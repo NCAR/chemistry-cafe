@@ -1,0 +1,169 @@
+    <!--
+    Choose purpose of visit.
+    -->
+    <div class="btn-group" ng-show="editp==1">
+        <label class="btn btn-primary" ng-model="purpose" btn-radio="'createTag'">Create<br>Tag</label>
+        <label class="btn btn-primary" ng-model="purpose" btn-radio="'exportTag'">Export<br>Tag</label>
+        <label class="btn btn-primary" ng-model="purpose" btn-radio="'branchFromTag'">Create Branch<br>From Tag</label>
+        <label class="btn btn-primary" ng-model="purpose" btn-radio="'editTag'">Edit Tag<br>Information</label>
+    </div> 
+    <br />
+    <hr>
+    <!--
+    Create a Tag on a Branch
+    -->
+    <div ng-show="purpose=='createTag'">
+        <form class="form-horizontal">
+        <div class ="form-group">
+            <label class="col-sm-3 control-label">Select Branch To Tag:</label>
+            <div class="col-sm-9 ">
+            <select style="width:240px;border:1px;overflow:hidden;height:40px'"
+                ng-model="selectedBranch" 
+                ng-options="branch as branch.name for branch in branchArray">
+                <option value="">-- Branch --</option>
+                </select>
+            </div>
+        </div>
+        <div class ="form-group">
+            <label class="col-sm-3 control-label">Tag Name:</label> &nbsp &nbsp
+            <label class="control-label">"DB index"-{{selectedBranch.name}}-{{today | date :'yyyy-MM-dd'}}</label>
+        </div>
+        <div class ="form-group">
+            <label class="col-sm-3 control-label">Short Tag Description:</label>
+            <div class="col-sm-9 ">
+                <input type="text" size=100 ng-model="exportName" placeholder="Tag TSMLT to create new T Branch"><br />
+            </div>
+        </div>
+        <div class ="form-group">
+            <label class="col-sm-3 control-label"> {{initials}} : {{today | date :'yyyy-MM-dd'}} : </label>
+            <div class="col-sm-9 ">
+                  <textarea rows="5" cols="50" ng-model="exportComment"
+                  placeholder="Add A Longer Description. Your initials and date will be prepended automatically.">
+                  </textarea> <br />
+            </div>
+        </div>
+        </form>
+        <button class="btn btn-success" ng-click="reset()">Cancel</button>
+        <button class="btn btn-success" ng-click="createTag()">Create</button>
+        <hr>
+    </div>
+
+    <!--
+    Create Branch From Tag
+    -->
+    <div ng-show="(purpose == 'branchFromTag') && (sourceTag.given_name)">
+        <form class="form-horizontal">
+        <div class ="form-group">
+            <label class="col-sm-3 control-label">Source Tag:</label>
+            <div class="col-sm-9 ">{{sourceTag.given_name}} </div>
+        </div>
+        <div class ="form-group">
+            <label class="col-sm-3 control-label">Your Name for the New Branch:</label>
+            <div class="col-sm-9 ">
+                <input type="text" size=100 ng-model="newBranchName" placeholder="(No spaces or special chars, _ is OK) Your New Branch Name"><br />
+            </div>
+        </div>
+        <button class="btn btn-success" ng-click="reset()">Cancel</button>
+        <button class="btn btn-success" ng-click="createBranchFromTag(sourceTag.id)">Create</button>
+        </form>
+        <hr>
+    </div>
+
+    <!--
+    Modify user-specified information about Tag
+    -->
+    <div ng-show="(purpose == 'editTag') && (sourceTag)">
+        <form class="form-horizontal">
+        <div class ="form-group">
+            <label class="col-sm-3 control-label">Your name for the tag:</label>
+            <div class="col-sm-9 ">
+                <input type="text" size=100 ng-model="givenName" placeholder="Your name for the Tag">
+            </div>
+        </div>
+        <div class ="form-group">
+            <label class="col-sm-3 control-label">Buggy</label>
+            <div class="col-sm-9 ">
+                <input type="checkbox" ng-model="buggy"> </input>{{buggy}}
+            </div>
+        </div>
+        <div class ="form-group">
+            <label class="col-sm-3 control-label"> {{initials}} : {{today | date :'yyyy-MM-dd'}} : </label>
+            <div class="col-sm-9 ">
+                  <textarea rows="5" cols="50" ng-model="newComment"
+                  placeholder="Add A Comment. Your initials and date will be prepended automatically.">
+                  </textarea> <br />
+            </div>
+        </div>
+        <button class="btn btn-success" ng-click="reset()">Cancel</button>
+        <button class="btn btn-success" ng-click="modifyTag()">Modify</button><br>
+       {{initials}} : {{today | date :'yyyy-MM-dd'}} : {{newComment}}<br>
+        <span ng-show ="(purpose == 'editTag') && (sourceTag)" ng-repeat="comment in sourceTag.previousComments track by $index">{{comment}}<br></span>
+        </form>
+        <hr>
+    </div>
+
+
+    <!--
+    Display Tags      
+    -->
+    <div >
+            <p> Filter </p>
+            <input type="text" ng-model="name_filter" ng-change="filter()" placeholder="Something Contains This String" >
+            <h6 align="left">Showing {{ filtered.length }}/{{ tagArray.length }} of the Reactions in the Database</h4>
+        <br/>
+        <div class="row">
+        <div class="col-md-12">
+            <table class="table table-striped table-bordered" >
+            <thead>
+                <th ng-show="purpose == 'exportTag'">Export</th>
+                <th ng-show="purpose == 'branchFromTag'">Create<br>Branch</th>
+                <th ng-show="purpose == 'editTag'">Tag<br>Info</th>
+                <th >Short Tag Description</th>
+                <th >Tag Name</th>
+                <th >Buggy<br>OK</th>
+                <th >Source<br>Branch</th>
+                <th >Tagger</th>
+                <th >Date Created</th>
+            </thead>
+            <tbody> 
+            <tr ng-repeat="tag in filtered 
+                            = (tagArray
+                            | filter:name_filter) ">
+<!--
+                            | orderBy : predicate :reverse) ">
+-->
+                <td ng-show="purpose == 'exportTag'">
+                    <button type = "submit" 
+                        ng-click="exportTag(tag.id)" >
+                        Export
+                    </button>
+                </td>
+                <td ng-show="purpose == 'branchFromTag'">
+                    <button type = "button" 
+                        ng-click="populateBranchFromTagForm(tag)" >
+                        Create
+                    </button>
+                </td>
+                <td ng-show="purpose == 'editTag'">
+                    <button type = "button" 
+                        ng-click="populateEditTagForm(tag)" >
+                        Info
+                    </button>
+                </td>
+                <td>{{ tag.given_name }}</td>
+                <td>{{ tag.filename }}</td>
+                <td>{{ tag.buggy ? "Buggy" : "OK"}}</td>
+                <td>{{ tag.branchname }}</td>
+                <td>{{ tag.initials }}</td>
+                <td>{{ tag.date | date :'yyyy-MM-dd'}}</td>
+            </tr> 
+            </tbody>
+            </table>
+        </div> <!-- end of div class col-md-12 -->
+        <div class="col-md-12" ng-show="filteredItems == 0"> 
+            <h4>Tags loading.... </h4> 
+        </div> <!-- end of div class row -->
+    </div>  <!-- ng-show -->
+    </div>  <!-- ng-show -->
+
+

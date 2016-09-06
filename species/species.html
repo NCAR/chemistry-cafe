@@ -1,0 +1,152 @@
+    <div class="btn-group" ng-show="editp==1">
+        <label class="btn btn-primary" ng-model="purpose" btn-radio="'masterEdit'">Edit<br>Species</label>
+        <label class="btn btn-primary" ng-model="purpose" btn-radio="'addSpecies'">Add New<br>Species</label>
+    </div>
+    <hr>
+
+    <div ng-show="purpose=='addSpecies' || purpose=='editSpecies'">
+        <form class="form-horizontal">
+        <div class ="form-group">
+            <label class="col-sm-3 control-label">Species Name:</label>
+            <div class="col-sm-9 ">
+                <input type="text" size=20 
+                    ng-model="form.name" 
+                    ng-disabled="purpose=='editSpecies'"
+                    placeholder="Name"><br />
+            </div>
+        </div>
+        <div class ="form-group">
+            <label class="col-sm-3 control-label">Chemical Formula:</label>
+            <div class="col-sm-9 ">
+                <input type="text" size=20 
+                    ng-model="form.formula" 
+                    placeholder="Formula"><br />
+            </div>
+        </div>
+        <div class ="form-group">
+            <label class="col-sm-3 control-label">Description:</label>
+            <div class="col-sm-9">
+                <input type="text" size=50 
+                    ng-model="form.description" 
+                    placeholder="Description"><br />
+            </div>
+        </div>
+        <div class ="form-group">
+            <label class="control-label col-sm-3">Aerosol:</label>
+            <div class="col-sm-3">
+                <select class="form-control" name="Aerosol" id="Aerosol" ng-model="form.aerosol">
+                  <option value="0">Not an Aerosol</option> 
+                  <option value="1">Aerosol</option> 
+                </select>
+            </div>
+        </div>
+
+        <div class ="form-group">
+            <label class="control-label col-sm-3">Transport:</label>
+            <div class="col-sm-3">
+                <select class="form-control" name="Transport" id="Transport" ng-model="form.transport">
+                  <option value="transported">Transported</option> 
+                  <option value="not-transported">Not-Transported</option> 
+                </select>
+            </div>
+        </div>
+
+        <div class ="form-group">
+            <label class="control-label col-sm-3">Source:</label>
+            <div class="col-sm-3">
+                <select class="form-control" name="Source" id="Source" ng-model="form.source">
+                  <option value="none">No Emissions</option> 
+                  <option value="emitted">Emissions</option> 
+                  <option value="LBC">Surface Boundary Condition</option> 
+                </select>
+            </div>
+        </div>
+
+        <div class ="form-group">
+            <label class="control-label col-sm-3">Solver Method:</label>
+            <div class="col-sm-3">
+                <select class="form-control" name="Solve" id="Solve" ng-model="form.solve">
+                  <option value="implicit">Implicit</option>
+                  <option value="explicit">Explicit</option>
+                </select>
+            </div>
+        </div>
+
+        <div class ="form-group">
+            <label class="control-label col-sm-3">Wet Deposition:</label>
+            <div class="col-sm-3">
+                <select class="form-control" name="wet_dep" id="wet_dep" ng-model="form.wet_dep">
+                  <option value="0">No Wet Deposition</option>
+                  <option value="1">Wet Deposition</option>
+                </select>
+            </div>
+        </div>
+
+        <div class ="form-group">
+            <label class="col-sm-3 control-label">Henry's Law:</label>
+            <div class="col-sm-9 ">
+                <input type="text" size=200
+                    ng-model="form.henry" 
+                    placeholder="Floating Point Numbers or function?"><br />
+            </div>
+        </div>
+
+        <div class ="form-group">
+            <label class="control-label col-sm-3">Dry Deposition:</label>
+            <div class="col-sm-3">
+                <select class="form-control" name="dry_dep" id="dry_dep" ng-model="form.dry_dep">
+                  <option value="0">No Dry Deposition</option>
+                  <option value="1">Dry Deposition</option>
+                </select>
+            </div>
+        </div>
+
+        <div class ="form-group">
+            <label class="control-label col-sm-3">Groups:</label>
+            <div class="col-sm-3">
+                <select class="form-control" name="groups" id="groups" ng-model="form.groups" multiple>
+                  <option ng-repeat="group in speciesGroups" value="{{group.id}}">{{group.name}}</option>
+                </select>
+            </div>
+        </div>
+
+
+
+        </form>
+        <button ng-show="editp==1 && purpose == 'addSpecies'" class="btn btn-success"  ng-click="create_species()">Create<br>This<br>Species</button>
+        <button ng-show="editp==1 && purpose == 'editSpecies'" class="btn btn-success" ng-click="modify_species()">Commit<br>Change</button>
+        <button class="btn btn-success" 
+           ng-show="purpose=='addSpecies' || purpose=='editSpecies'" 
+           ng-click="reset_form()">Cancel</button>
+    <hr>
+    </div>
+
+<div>Filter:
+    <input type="text" ng-model="name_filter" ng-change="filter()" placeholder="Name Substring" class="form-control" />
+</div>
+<h6 align="left">Filter found {{ filtered.length }} Species of the {{ totalItems }} in the Database</h6>
+
+<div ng-show="filteredItems > 0">
+    <table class="table table-striped">
+        <thead>
+            <th>Action</th>         
+            <th><a ng-click="sort_by('name');">Name&nbsp;</a></th>
+            <th><a ng-click="sort_by('formula');">Formula&nbsp;</a></th>
+            <th>Description</th>
+        </thead>
+        <tbody>
+            <tr ng-repeat="species in filtered = (speciesList | filter:{name:name_filter} |  orderBy : predicate :reverse)"> 
+                <td>
+                    <a ng-show="editp==1" href="" ng-click="populateEditForm(species)">Edit</a> 
+                    <a ng-show="editp!=1" href="" ng-click="populateEditForm(species)">Show</a> 
+                </td>
+                <td>{{ species.name }}</td>
+                <td>{{ species.formula }}</td>
+                <td>{{ species.description }}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<div class="col-md-12" ng-show="filteredItems == 0">
+    <div class="col-md-12"> <h4>No Species found (or slowly loading data) </h4> </div>
+</div>

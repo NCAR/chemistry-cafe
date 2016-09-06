@@ -1,0 +1,212 @@
+    <!--
+    Select purpose of visit.
+    -->
+    <div class="btn-group" ng-show="editp==1">
+        <label class="btn btn-primary" ng-model="purpose" btn-radio="'masterEdit'">Edit<br>Reactions</label>
+        <label class="btn btn-primary" ng-model="purpose" btn-radio="'addReaction'">Add New<br>Reaction</label>
+        <label class="btn btn-primary" ng-model="purpose" btn-radio="'markObsolete'">Mark<br>Obsolete</label>
+        <label class="btn btn-primary" ng-model="purpose" btn-radio="'showReferences'">Show/Edit<br>References</label>
+        <label class="btn btn-primary" ng-model="purpose" btn-radio="'groupSelect'">Assign<br>Group</label>
+    </div> 
+
+    <div class="btn-group" ng-show="editp!=1">
+        <label class="btn btn-primary" ng-model="purpose" btn-radio="'masterEdit'">Show<br>Reactions</label>
+        <label class="btn btn-primary" ng-model="purpose" btn-radio="'showReferences'">Show<br>References</label>
+    </div>
+
+    <br />
+
+    <!--
+    Modify reactions OR Create new reaction
+    -->
+    <div ng-show="(purpose == 'editReaction' || purpose == 'addReaction') && editp == 1">
+        <hr>
+        <form class="form-horizontal">
+        <div class ="form-group">
+            <label class="col-sm-3 control-label">Name:</label>
+            <div class="col-sm-9 ">
+                <input type="text" size=20 ng-model="formData.name" placeholder="FunctionName(arg1, arg2)"><br />
+            </div>
+        </div>
+        <div class ="form-group">
+            <label class="col-sm-3 control-label">Deprecated:</label>
+            <div class="col-sm-9 ">
+                <input type="checkbox" ng-model="formData.deprecated">
+            </div>
+        </div>
+        <div class ="form-group">
+            <label class="col-sm-3 control-label">Fortran Code:</label>
+            <div class="col-sm-9 ">
+                <input type="text" size=100 ng-model="formData.code" placeholder="REAL(KIND+dp) FUNCTION...t><br />
+            </div>
+        </div>
+        <div class ="form-group">
+            <label class="col-sm-3 control-label"> {{initials}} : {{today | date :'yyyy-MM-dd'}} : </label>
+            <div class="col-sm-9 ">
+                  <textarea  name="commentEdit" rows="5" cols="50" ng-model="formData.comment"
+                  placeholder="Add A Comment. Your initials and date will be prepended automatically."> 
+                  </textarea> <br />
+            </div>
+        </div>
+        </form> 
+        <button class="btn btn-success" ng-click="validate()">Validate</button>
+        <button class="btn btn-success" ng-click="reset_form()">Cancel</button><br />
+        <hr>
+    </div>
+    <!--
+    Show the target modification before commit
+    -->
+    <div ng-show="purpose == 'editReaction' || purpose =='addReaction'">
+        <h4>For these reactions ( <strong>{{sourceData.reactions}}</strong> ) </h4>
+        <div ng-show="editp==1">
+            <h4><strong>Custom rate modified to:</strong></h4>
+            <p>Depricate?: [{{formData.deprecated}}]</p>
+            <p>Name of Function: formData.name</p>
+            <p>Code: </p><p>{{formData.code}}</p>
+            <p>{{initials}} : {{today | date :'yyyy-MM-dd'}} : {{formData.comment}}</p>
+        </div>
+        <button class="btn" ng-click="modify_rate()" ng-show="editp==1">Commit Modification</button>
+        <button class="btn" ng-click="reset_form()" ng-show="editp!=1">Cancel</button>
+    </div>
+    <!--
+    Edit References
+    -->
+    <div name="edit_references" class="wrapper" ng-show="purpose=='editReferences'">
+        <h4 ><strong>Reaction :</strong></h4>
+        <p>Branches:  {{branchString}}</p>
+        <p>Rate:  {{rate}}</p>
+        <p>{{reactantString}} &rarr; {{productString}}</p>
+        <div ng-show="editp==1">
+        Add References:
+            <select ng-model="selectedReference" 
+                    ng-change="addReference()"
+                    ng-options="reference.desc for reference in allReferences"> </select>
+        </div>
+        <table class="table table-striped table-bordered" >
+        <thead>
+            <th >ID</th>
+            <th ng-show="editp==1"> Remove<br>Reference</th>
+            <th >Reference<br>Label</th>
+            <th >File</th>
+            <th >DOI</th>
+            <th >Details</th>
+            <th >Citation</th>
+            <th >User</th>
+            <th >http</th>
+        </thead>
+        <tbody> 
+            <tr ng-repeat="rReference in reactionReferences">
+                <td>{{ rReference.id }}</td>
+                <td><a ng-show="editp==1" ng-click="deleteChemistryReference(rReference.id,pid)">Remove</a></td>
+                <td>{{ rReference.label }}</td>
+                <td><a ng-click="fileshow(rReference.id,rReference.filename)">{{ rReference.filename }}</a></td>
+                <td>{{ rReference.doi }}</td>
+                <td>{{ rReference.detail }}</td>
+                <td>{{ rReference.citation }}</td>
+                <td>{{ rReference.initials }}</td>
+                <td>{{ rReference.http }}</td>
+            </tr>
+         </tbody>
+         </table>
+         <input type="button" value="Finished" ng-click="purpose = 'showReferences'"><br />
+    </div><br />
+
+    <!--
+    Display rates in a table
+    -->
+    <div> 
+        <hr>
+            <p> Display only rates satifying the filters: </p>
+            <input type="text" ng-model="name_filter" ng-change="filter()" placeholder="Product Filter" >
+            AND 
+            <span class="nullable">
+              <select ng-model="group_filter"
+                ng-options="g_filter.description for g_filter in reactionGroups" >
+              <option value="">-- All Groups --</option>
+              </select> 
+            </span>
+            AND
+            <span class="nullable">
+              <select ng-model="branch_filter"
+                ng-options="b_filter.name for b_filter in branchArray" >
+              <option value="">-- All Branches --</option>
+              </select>
+            </span><br>
+            <h6 align="left">Showing {{ filtered.length }}/{{ totalItems}} of the Reactions in the Database</h6>
+        <br/>
+        
+        <div class="row">
+        <div class="col-md-12">
+            <table class="table table-striped table-bordered" >
+            <thead>
+<!--
+                <th >ID</th>
+-->
+                <th ng-show="purpose=='masterEdit'"> </th>
+                <th ng-show="purpose=='markObsolete'">Obsolescence</th>
+                <th ng-show="purpose=='branchSelect' && selectedBranch"> Select into Branch </th>
+                <th ng-show="purpose=='showReferences'">References</th>
+                <th ng-show="purpose=='groupSelect'">Group</th>
+                <th>Reactants</th>
+                <th>Products</th>
+                <th>Label</th>
+                <th>Rate</th>
+                <th>Chem<br>Potential<br>Heat</th>
+                <th>Branches</th>
+            </thead>
+            <tbody> 
+            <tr ng-repeat="chemistry in filtered 
+                            = (pagedItems 
+                            | filter:hideIrrelevant 
+                            | filter:showFilteredGroup
+                            | filter:showFilteredBranch
+                            | filter:general_filter
+                            | filter:showFilteredReactant
+                            | filter:{productString:product_filter}) ">
+<!--
+                <td>{{ chemistry.id }}</td>
+                            | filter:{reactantArray:reactant_filter}
+                            | filter:showFilteredProduct) ">
+-->
+                <td ng-show="purpose=='masterEdit' && editp!=1">
+                    <button type = "button" ng-click="populateEditForm(chemistry)" >Show</button>
+                </td>
+                <td ng-show="purpose=='masterEdit' && editp==1">
+                    <button type = "button" ng-click="populateEditForm(chemistry)" >Edit</button>
+                    <button type = "button" ng-click="cloneToCreate(chemistry)" >Clone</button>
+                </td>
+                <td ng-show="purpose=='markObsolete'">
+                    <input type = "checkbox" ng-click="toggleDeprecatedChemistry(chemistry)" ng-model="chemistry.obsolete">
+                    Obsolete
+                </td>
+                <td ng-show="purpose=='branchSelect' && selectedBranch">
+                    <input type="checkbox" ng-click="toggleChemistryInBranch(chemistry)" ng-checked="reactiononbranch(chemistry)" >
+                    <span class="valueItems"><strong>{{selectedBranch.name}}</strong> </span>
+                </td>
+                <td ng-show="purpose=='showReferences'">
+                    <button type = "button" ng-click="editReferences(chemistry)" >Refs</button>
+                </td>
+                <td ng-show="purpose=='groupSelect'"> 
+                    <select 
+                        ng-model="chemistry.group_id"
+			ng-change="changeGroup(chemistry)"
+                        ng-options="reactionGroup.id as reactionGroup.description for reactionGroup in reactionGroups" >
+                </td>
+<!--
+                <td>{{ chemistry.group_id }}</td>
+-->
+                <td>{{ chemistry.reactantString }}</td>
+                <td>{{ chemistry.productString }}</td>
+                <td>{{ chemistry.label }}</td>
+                <td>{{ chemistry.rateString }}</td>
+                <td>{{ chemistry.cph }}</td>
+                <td>{{ chemistry.branchArray.length }}</td>
+            </tr> 
+            </tbody>
+            </table>
+        </div> <!-- end of div class col-md-12 -->
+        <div class="col-md-12" ng-show="filteredItems == 0"> 
+            <h4>Chemistry reactions loading.... </h4> 
+        </div> <!-- end of div class row -->
+    </div>  <!-- ng-show -->
+    <!-- end of display of reactions -->

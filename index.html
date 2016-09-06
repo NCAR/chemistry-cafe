@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" data-ng-app="ChemApp">
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+    <title>The Chemistry Cafe</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" /> 
+    <link href="references/reference.css" rel="stylesheet" /> 
+</head>
+
+<body autocomplete="off"
+      autocorrect="off"
+      autocapitalize="off"
+      spellcheck="false">
+    <div id="page">
+        <header class="container" 
+                ng-controller="loginController" 
+                ng-init="check_login()">
+                <div class="navbar navbar-default">
+                    <a class="navbar-brand" href="#"> The Chemistry Caf&eacute;</a>
+                    <ul class="nav navbar-nav navbar-right">
+                        <li class="dropdown">
+                          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Reactions <span class="caret"></span></a>
+                          <ul class="dropdown-menu" role="menu">
+                            <li><a href="#/Photolysis">Photolysis</a></li>
+                            <li><a href="#/Chemistry">Kinetics</a></li>
+                            <li ng-show="editp==1"><a href="#/Group">Define Grouping</a></li>
+                          </ul>
+                        </li>
+                        <li class="dropdown">
+                          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Species <span class="caret"></span></a>
+                          <ul class="dropdown-menu" role="menu">
+                            <li><a href="#/Species">Species</a></li>
+                            <li ng-show="editp==1"><a href="#/SpeciesGroups">Define Grouping</a></li>
+                          </ul>
+                        </li>
+                        <li><a ng-show="editp==1" href="#/References">References</a></li>
+                        <li class="dropdown">
+                          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Versioning <span class="caret"></span></a>
+                          <ul class="dropdown-menu" role="menu">
+                            <li><a href="#/Tags">Tags/Branches</a></li>
+                            <li><a href="#/Compare">Compare</a></li>
+                          </ul>
+                        </li>
+                        <li>
+                            <a href="/login/logout.php" ng-show="loggedIn()" style="color:green">Logout</a>
+                            <a href="/login/login.php" ng-show="!loggedIn()" style="color:red"  >Login </a>
+                        </li>
+                    </ul>
+                </div>
+        </header>
+
+        <section class="container" 
+                 id="body">
+            <div data-ng-view=""></div>
+        </section>
+        <hr />
+
+        <footer class="container">
+            Jittery Productions&copy.
+           <br />
+           <br />
+        </footer>
+
+    </div>
+</body>
+</html>
+
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.4/angular.min.js"></script>
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.4/angular-route.min.js"></script>
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.4/angular-resource.min.js"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.10.0/ui-bootstrap-tpls.min.js"></script>
+<script type="text/javascript" src="app.js"></script>
+<script type="text/javascript" src="photolysis/photolysisController.js"></script>
+<script type="text/javascript" src="chemistry/chemistryController.js"></script>
+<script type="text/javascript" src="species/speciesController.js"></script>
+<script type="text/javascript" src="species_group/speciesGroupController.js"></script>
+<script type="text/javascript" src="references/referenceController.js"></script>
+<script type="text/javascript" src="tags/tagsController.js"></script>
+<script type="text/javascript" src="compare/compareController.js"></script>
+<script type="text/javascript" src="group/groupController.js"></script>
+<!-- https://github.com/danialfarid/ng-file-upload -->
+<script type="text/javascript" src="references/angular-file-upload.min.js"></script>
+

@@ -1,0 +1,69 @@
+
+#include ../boxmox/wrapper
+#include ../boxmox/setup
+
+#LOOKATALL
+
+#INLINE F90_GLOBAL
+
+  ! global variables used by special rate constants of this mechanism
+
+  ! air/water concentration (molecules/cm3)
+  REAL(KIND=dp)      :: c_m, c_h2o
+  ! relative humidity
+  REAL(KIND=dp)      :: rh
+
+  ! SOA formation
+  REAL(KIND=dp)      :: nume, den
+  INTEGER, PARAMETER :: vbs_nbin = 4, vbs_nspec = 9,              &
+                        vbs_alk4 = 1, vbs_alk5 = 2, vbs_ole1 = 3, &
+                        vbs_ole2 = 4, vbs_aro1 = 5, vbs_aro2 = 6, &
+                        vbs_isop = 7, vbs_sesq = 8, vbs_terp = 9, &
+                        vbs_c1   = 1, vbs_c10  = 2, vbs_c100 = 3, &
+                        vbs_c1000 = 4
+
+#ENDINLINE
+
+#INLINE F90_INIT
+
+  ! relative humidity (not really used...)
+  rh = 0.5
+
+#ENDINLINE
+
+#INLINE F90_RCONST
+
+  c_m = C(ind_M)
+  c_h2o = C(ind_H2O)
+
+#ENDINLINE
+
+#INLINE F90_RATES
+
+REAL(kind=dp) FUNCTION JPL_TROE( k0_300K, n, kinf_300K, m, base, temp, cair )
+
+!------------------------------------------------------------
+! ... dummy arguments
+!------------------------------------------------------------
+    REAL(kind=dp), INTENT(IN) :: base      ! base expononent
+    REAL(kind=dp), INTENT(IN) :: temp      ! temperature [K]
+    REAL(kind=dp), INTENT(IN) :: cair      ! air concentration [molecules/cm3]
+    REAL(kind=dp), INTENT(IN) :: k0_300K   ! low pressure limit at 300 K
+    REAL(kind=dp), INTENT(IN) :: n         ! exponent for low pressure limit
+    REAL(kind=dp), INTENT(IN) :: kinf_300K ! high pressure limit at 300 K
+    REAL(kind=dp), INTENT(IN) :: m         ! exponent for high pressure limit
+
+!------------------------------------------------------------
+! ... local variables
+!------------------------------------------------------------
+    REAL(kind=dp)  :: zt_help, k0_T, kinf_T, k_ratio
+
+    zt_help = 300._dp/temp
+    k0_T    = k0_300K   * zt_help**(n) * cair ! k_0   at current T
+    kinf_T  = kinf_300K * zt_help**(m)        ! k_inf at current T
+    k_ratio = k0_T/kinf_T
+
+    JPL_TROE = k0_T/(1._dp + k_ratio)*base**(1._dp/(1._dp + LOG10(k_ratio)**2))
+
+END FUNCTION JPL_TROE
+
