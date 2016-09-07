@@ -3,12 +3,12 @@
     -->
 
     <div class="btn-group">
-        <label class="btn btn-primary" ng-model="purpose" btn-radio="'branchSelect'" ng-show="editp==1">Select Reactions<br>For Branch</label>
+        <label class="btn btn-primary" ng-model="purpose" btn-radio="'branchSelect'" ng-show="editp==1">Select Reactions<br>For Mechanism</label>
         <label class="btn btn-primary" ng-model="purpose" btn-radio="'masterEdit'">Edit<br>Reactions</label>
         <label class="btn btn-primary" ng-model="purpose" btn-radio="'addReaction'" ng-show="editp==1">Add New<br>Reaction</label>
         <label class="btn btn-primary" ng-model="purpose" btn-radio="'markObsolete'" ng-show="editp==1">Mark<br>Obsolete</label>
         <label class="btn btn-primary" ng-model="purpose" btn-radio="'showReferences'">Show/Link<br>References</label>
-        <label class="btn btn-primary" ng-model="purpose" btn-radio="'groupSelect'" ng-show="editp==1">Assign<br>Group</label>
+        <label class="btn btn-primary" ng-model="purpose" btn-radio="'groupSelect'" ng-show="editp==1">Assign<br>Section</label>
     </div> 
 
     <div ng-show="purpose=='branchSelect'" ng-show="editp==1" >
@@ -16,7 +16,7 @@
         <select  style="width:240px;border:1px;overflow:hidden;height:40px'"
             ng-model="selectedBranch" 
             ng-options="branch as branch.name for branch in branchArray" > 
-            <option value="">-- Branch --</option>
+            <option value="">-- Mechanism --</option>
         </select> 
     </div>
     <!--
@@ -157,14 +157,14 @@
             <span class="nullable">
               <select ng-model="group_filter"
                 ng-options="g_filter.description for g_filter in photolysisGroups" >
-              <option value="">-- All Groups --</option>
+              <option value="">-- All Sections --</option>
               </select>
             </span>
             AND
             <span class="nullable">
               <select ng-model="branch_filter"
                 ng-options="b_filter.name for b_filter in branchArray" >
-              <option value="">-- All Branches --</option>
+              <option value="">-- All Mechanisms --</option>
               </select>
             </span><br>
             <h6 align="left">Showing {{ filtered.length }}/{{ totalItems}} of the Reactions in the Database</h6>
@@ -179,13 +179,13 @@
 -->
                 <th ng-show="purpose=='masterEdit'"> </th>
                 <th ng-show="purpose=='markObsolete'">Obsolescence</th>
-                <th ng-show="purpose=='branchSelect' && selectedBranch"> Select into Branch </th>
+                <th ng-show="purpose=='branchSelect' && selectedBranch"> Select into Mechanism </th>
                 <th ng-show="purpose=='showReferences'">References</th>
                 <th ng-show="purpose=='groupSelect'">Group</th>
                 <th>Molecule</a></th>
                 <th>Rate</a></th>
                 <th>Products</th>
-                <th>Branches</th>
+                <th>Mechanisms</th>
             </thead>
             <tbody> 
             <tr ng-repeat="photolysis in filtered 

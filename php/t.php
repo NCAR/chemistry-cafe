@@ -34,7 +34,7 @@ switch('tstfilewrite')  { // testing :  php < thisfile.php
 
     case 'tstfilewrite' :
             global $con;
-            $id = 97;
+            $id = 96;
             $tags = pg_query($con,"SELECT filename FROM tags WHERE id = ".$id.";");
             $tagref= pg_fetch_array($tags,0,$result_type = PGSQL_ASSOC);
             mkdir('../tag_files/testdir');

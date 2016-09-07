@@ -2,12 +2,12 @@
     Select purpose of visit.
     -->
     <div class="btn-group" ng-show="editp==1">
-        <label class="btn btn-primary" ng-model="purpose" btn-radio="'branchSelect'">Select Reactions<br>For Branch</label>
+        <label class="btn btn-primary" ng-model="purpose" btn-radio="'branchSelect'">Select Reactions<br>For Mechanism</label>
         <label class="btn btn-primary" ng-model="purpose" btn-radio="'masterEdit'">Edit<br>Reactions</label>
         <label class="btn btn-primary" ng-model="purpose" btn-radio="'addReaction'">Add New<br>Reaction</label>
         <label class="btn btn-primary" ng-model="purpose" btn-radio="'markObsolete'">Mark<br>Obsolete</label>
         <label class="btn btn-primary" ng-model="purpose" btn-radio="'showReferences'">Show/Edit<br>References</label>
-        <label class="btn btn-primary" ng-model="purpose" btn-radio="'groupSelect'">Assign<br>Group</label>
+        <label class="btn btn-primary" ng-model="purpose" btn-radio="'groupSelect'">Assign<br>Section</label>
         <label class="btn btn-primary" ng-model="purpose" btn-radio="'wrfSelect'">Assign<br>WRF rate</label>
     </div> 
 
@@ -23,7 +23,7 @@
         <select style="width:240px;border:1px;overflow:hidden;height:40px'"
             ng-model="selectedBranch" 
             ng-options="branch as branch.name for branch in branchArray" > 
-            <option value="">-- Branch --</option>
+            <option value="">-- Mechanism --</option>
         </select> <br />
     </div> <br>
 
@@ -116,7 +116,7 @@
     -->
     <div name="edit_references" class="wrapper" ng-show="purpose=='editReferences'">
         <h4 ><strong>Reaction :</strong></h4>
-        <p>Branches:  {{branchString}}</p>
+        <p>Mechanism:  {{branchString}}</p>
         <p>Rate:  {{rate}}</p>
         <p>{{reactantString}} &rarr; {{productString}}</p>
         <div ng-show="editp==1">
@@ -169,14 +169,14 @@
             <span class="nullable">
               <select ng-model="group_filter"
                 ng-options="g_filter.description for g_filter in reactionGroups" >
-              <option value="">-- All Groups --</option>
+              <option value="">-- All Sections --</option>
               </select> 
             </span>
             AND
             <span class="nullable">
               <select ng-model="branch_filter"
                 ng-options="b_filter.name for b_filter in branchArray" >
-              <option value="">-- All Branches --</option>
+              <option value="">-- All Mechanisms --</option>
               </select>
             </span><br>
             <h6 align="left">Showing {{ filtered.length }}/{{ totalItems}} of the Reactions in the Database</h6>
@@ -191,7 +191,7 @@
 -->
                 <th ng-show="purpose=='masterEdit'"> </th>
                 <th ng-show="purpose=='markObsolete'">Obsolescence</th>
-                <th ng-show="purpose=='branchSelect' && selectedBranch"> Select into Branch </th>
+                <th ng-show="purpose=='branchSelect' && selectedBranch"> Select into Mechanism </th>
                 <th ng-show="purpose=='showReferences'">References</th>
                 <th ng-show="purpose=='groupSelect'">Group</th>
                 <th ng-show="purpose=='wrfSelect'">WRF rate</th>
@@ -200,7 +200,7 @@
                 <th>Label</th>
                 <th>Rate</th>
                 <th>Chem<br>Potential<br>Heat</th>
-                <th>Branches</th>
+                <th>Mechanisms</th>
             </thead>
             <tbody> 
             <tr ng-repeat="chemistry in filtered 

@@ -1,5 +1,5 @@
     <div >
-        <p> Select two items (Tags, Branches)  to compare </p>
+        <p> Select two items to compare </p>
     </div>
 
     <!--
@@ -48,11 +48,11 @@
     </div>  <!-- tags -->
 
     <!--
-    Display Branches
+    Display Mechanisms
     -->
     <div >
-        <h3> Branches </h3> <input type="text" ng-model="br_name_filter" ng-change="filter()" placeholder="Branch Filter" >
-            <h6 align="left">Showing {{ filtered.length }}/{{ tagArray.length }} of the Branches in the Database</h4>
+        <h3> Mechanisms </h3> <input type="text" ng-model="br_name_filter" ng-change="filter()" placeholder="Branch Filter" >
+            <h6 align="left">Showing {{ branchArray.length }} Mechanisms in the Database</h4>
         <br/>
 
         <div class="row"> <div class="col-md-12">
@@ -77,7 +77,7 @@
             </table>
             </div> <!-- end of div class col-md-12 --> </div> <!-- end of div row -->
         <div class="col-md-12" ng-show="filteredItems == 0"> 
-            <h4>Branches loading.... </h4> 
+            <h4>Mechanisms loading.... </h4> 
             </div> 
         </div>  </div><!-- branches -->
 

@@ -4,23 +4,23 @@
     <div class="btn-group" ng-show="editp==1">
         <label class="btn btn-primary" ng-model="purpose" btn-radio="'createTag'">Create<br>Tag</label>
         <label class="btn btn-primary" ng-model="purpose" btn-radio="'exportTag'">Export<br>Tag</label>
-        <label class="btn btn-primary" ng-model="purpose" btn-radio="'branchFromTag'">Create Branch<br>From Tag</label>
+        <label class="btn btn-primary" ng-model="purpose" btn-radio="'branchFromTag'">Create Mechanism<br>From Tag</label>
         <label class="btn btn-primary" ng-model="purpose" btn-radio="'editTag'">Edit Tag<br>Information</label>
     </div> 
     <br />
     <hr>
     <!--
-    Create a Tag on a Branch
+    Create a Tag on a Mechanism
     -->
     <div ng-show="purpose=='createTag'">
         <form class="form-horizontal">
         <div class ="form-group">
-            <label class="col-sm-3 control-label">Select Branch To Tag:</label>
+            <label class="col-sm-3 control-label">Select Mechanism To Tag:</label>
             <div class="col-sm-9 ">
             <select style="width:240px;border:1px;overflow:hidden;height:40px'"
-                ng-model="selectedBranch" 
+                ng-model="selectedMechanism" 
                 ng-options="branch as branch.name for branch in branchArray">
-                <option value="">-- Branch --</option>
+                <option value="">-- Mechanism --</option>
                 </select>
             </div>
         </div>
@@ -31,7 +31,7 @@
         <div class ="form-group">
             <label class="col-sm-3 control-label">Short Tag Description:</label>
             <div class="col-sm-9 ">
-                <input type="text" size=100 ng-model="exportName" placeholder="Tag TSMLT to create new T Branch"><br />
+                <input type="text" size=100 ng-model="exportName" placeholder="Tag TSMLT to create new Trop Mechanism"><br />
             </div>
         </div>
         <div class ="form-group">
@@ -49,7 +49,7 @@
     </div>
 
     <!--
-    Create Branch From Tag
+    Create Mechanism From Tag
     -->
     <div ng-show="(purpose == 'branchFromTag') && (sourceTag.given_name)">
         <form class="form-horizontal">
@@ -58,9 +58,9 @@
             <div class="col-sm-9 ">{{sourceTag.given_name}} </div>
         </div>
         <div class ="form-group">
-            <label class="col-sm-3 control-label">Your Name for the New Branch:</label>
+            <label class="col-sm-3 control-label">Your Name for the New Mechanism:</label>
             <div class="col-sm-9 ">
-                <input type="text" size=100 ng-model="newBranchName" placeholder="(No spaces or special chars, _ is OK) Your New Branch Name"><br />
+                <input type="text" size=100 ng-model="newBranchName" placeholder="(No spaces or special chars, _ is OK) Your New Mechanism Name"><br />
             </div>
         </div>
         <button class="btn btn-success" ng-click="reset()">Cancel</button>
@@ -116,12 +116,12 @@
             <table class="table table-striped table-bordered" >
             <thead>
                 <th ng-show="purpose == 'exportTag'">Export</th>
-                <th ng-show="purpose == 'branchFromTag'">Create<br>Branch</th>
+                <th ng-show="purpose == 'branchFromTag'">Create<br>Mechanism</th>
                 <th ng-show="purpose == 'editTag'">Tag<br>Info</th>
                 <th >Short Tag Description</th>
                 <th >Tag Name</th>
                 <th >Buggy<br>OK</th>
-                <th >Source<br>Branch</th>
+                <th >Source<br>Mechanism</th>
                 <th >Tagger</th>
                 <th >Date Created</th>
             </thead>
