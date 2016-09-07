@@ -42,6 +42,7 @@
                             <li><a href="#/Compare">Compare</a></li>
                           </ul>
                         </li>
+                        <li><a ng-show="editp==1" href="#/Help">Help</a></li>
                         <li>
                             <a href="/login/logout.php" ng-show="loggedIn()" style="color:green">Logout</a>
                             <a href="/login/login.php" ng-show="!loggedIn()" style="color:red"  >Login </a>
@@ -79,6 +80,7 @@
 <script type="text/javascript" src="tags/tagsController.js"></script>
 <script type="text/javascript" src="compare/compareController.js"></script>
 <script type="text/javascript" src="group/groupController.js"></script>
+<script type="text/javascript" src="help/helpController.js"></script>
 <!-- https://github.com/danialfarid/ng-file-upload -->
 <script type="text/javascript" src="references/angular-file-upload.min.js"></script>
 

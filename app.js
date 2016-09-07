@@ -42,6 +42,11 @@ app.config(function ($routeProvider) {
             templateUrl: "/group/group.html"
         });
 
+        $routeProvider.when("/Help", {
+            controller: "helpController",
+            templateUrl: "/help/help.html"
+        });
+
         $routeProvider.otherwise({ redirectTo: "/Tags" });
     
 });
