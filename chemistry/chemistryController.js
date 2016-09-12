@@ -60,6 +60,7 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
     $scope.product_filter = "";
     $scope.group_filter = null;
     $scope.branch_filter = null;
+    $scope.formData = [];
 
     /* variables for what is visible */
     $scope.name_input_disabled = false;
@@ -331,9 +332,9 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
         .success(function (data, status, headers, config) {    
           // easiest way to copy object in javascript?
           $scope.purpose = 'editReaction';
-          $scope.sourceData = JSON.parse( JSON.stringify(data) );
+          $scope.sourceData = data;
           $scope.sourceData.wrf_present = ($scope.sourceData.wcrid >> 0);
-          $scope.formData = JSON.parse( JSON.stringify(data) );
+          $scope.formData = data;
           $scope.formData.comment = '';
           $scope.previousCommentsFormatted = commentArrayToString(data.previousComments);
         })
@@ -353,8 +354,7 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
         .success(function (data, status, headers, config) {
           // easiest way to copy object in javascript?
           $scope.purpose = 'addReaction';
-          //$scope.sourceData = JSON.parse( JSON.stringify(data) );
-          $scope.formData = JSON.parse( JSON.stringify(data) );
+          $scope.formData = data;
           $scope.formData.comment = '';
           $scope.previousCommentsFormatted = commentArrayToString(data.previousComments);
         })
@@ -498,15 +498,25 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
             alert("Please enter a valid Comment.");
             return;
         }
+        if ($scope.formData.label.indexOf('usr_') != -1){
+            alert("Setting CESM Rate to be a usr_() function");
+            $scope.formData.r1 = "";
+            $scope.formData.r2 = "";
+            $scope.formData.r3 = "";
+            $scope.formData.r4 = "";
+            $scope.formData.r5 = "";
+        }
         // add chemistry reaction
         $http.post('/php/chemistry.php?action=add_reaction',
             {
+                'group_id'     : $scope.formData.group_id,
                 'label'        : $scope.formData.label,
                 'r1'           : $scope.formData.r1,
                 'r2'           : $scope.formData.r2,
                 'r3'           : $scope.formData.r3,
                 'r4'           : $scope.formData.r4,
                 'r5'           : $scope.formData.r5,
+                'wrf_custom_rate_id' : $scope.formData.wrf_custom_rate_id,
                 'cph'          : $scope.formData.cph,
                 'reactantArray': $scope.formData.reactantArray,
                 'productArray' : $scope.formData.productArray,
@@ -538,17 +548,27 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
             alert("Please enter a valid Comment.");
             return;
         }
-        // modify chemistry
+        if ($scope.formData.label.indexOf('usr_') != -1){
+            alert("Setting CESM Rate to be a usr_() function");
+            $scope.formData.r1 = "";
+            $scope.formData.r2 = "";
+            $scope.formData.r3 = "";
+            $scope.formData.r4 = "";
+            $scope.formData.r5 = "";
+        }
+        // database modify chemistry
         $http.post('/php/chemistry.php?action=mod_reaction',
             {
                 'oldpid'       : $scope.sourceData.id,
                 'branchArray'  : $scope.formData.branchArray,
+                'group_id'     : $scope.formData.group_id,
                 'label'        : $scope.formData.label,
                 'r1'           : $scope.formData.r1,
                 'r2'           : $scope.formData.r2,
                 'r3'           : $scope.formData.r3,
                 'r4'           : $scope.formData.r4,
                 'r5'           : $scope.formData.r5,
+                'wrf_custom_rate_id' : $scope.formData.wrf_custom_rate_id,
                 'cph'          : $scope.formData.cph,
                 'reactantArray': $scope.formData.reactantArray,
                 'productArray' : $scope.formData.productArray,

@@ -26,19 +26,28 @@
         <hr>
         <form class="form-horizontal">
           <div class ="form-group">
-            <label class="col-sm-2 control-label">Rate:</label>
+              <label class="col-sm-2 control-label">Reaction Section:</label>
+              <div class="col-sm-4 ">
+                  <select class="form-control" name="fsection" ng-model="formData.group_id"
+                      ng-options="group.id as group.description for group in photolysisGroups">
+                      <option value="">--- unassigned ---</option> <!-- not selected / blank option -->
+                  </select>
+              </div>
+          </div>
+          <div class ="form-group">
+            <label class="col-sm-2 control-label">CESM Rate:</label>
             <div class="col-sm-6 ">
-                <input type="text" size=20 ng-model="rateEdit" placeholder="Photolysis Rate">
+                <input type="text" size=20 ng-model="formData.rate" placeholder="Photolysis Rate">
             </div>
           </div>
           <div class ="form-group">
             <label class="col-sm-2 control-label">WRF Rate:</label>
             <div class="col-sm-2 ">
-                <input type="text" size=10 ng-model="wrfRateCoeffEdit" placeholder="Photolysis Rate Coeff">_real8 
+                <input type="text" size=10 ng-model="formData.wrfRateCoeffEdit" placeholder="Photolysis Rate Coeff">_real8 
             </div>
             <div class="col-md-1 "> &#10033 </div>
             <div class="col-md-3">
-              <select class="form-control" ng-model="wrfRateEdit"
+              <select class="form-control" ng-model="formData.wrfRateId"
                 ng-options="wrfRate.id as wrfRate.name for wrfRate in wrfRates">
               </select>
             </div>
@@ -46,7 +55,7 @@
           <div class ="form-group">
             <label class="col-sm-2 control-label">Molecule:</label>
             <div class="col-sm-4 ">
-                <input type="text" size=20 ng-model="moleculeEdit" placeholder="Decomposing Molecule">
+                <input type="text" size=20 ng-model="formData.molecule" placeholder="Decomposing Molecule">
             </div>
           </div>
           <div class ="form-group">
@@ -81,8 +90,8 @@
         <p>{{previousMolecule}} &rarr; {{previousProductString}}</p>
         <div  ng-show="editp==1">
             <h4><strong>Modified to:</strong></h4>
-            <p>{{rateEdit}}</p>
-            <p>{{moleculeEdit}} &rarr; {{productStringEdit}}</p> <br />
+            <p>{{formData.rate}}</p>
+            <p>{{formData.molecule}} &rarr; {{productStringEdit}}</p> <br />
             <p>{{initials}} : {{today | date :'yyyy-MM-dd'}} : {{commentEdit}}</p>
         </div>
         <p><span ng-bind-html="previousCommentsFormatted | unsafe"></p> <br>
@@ -96,8 +105,8 @@
     <form name="create_reactions" class="wrapper" ng-show="purpose == 'addReaction'">
         <hr>
         <h5 ><strong>Create :</strong></h5>
-        <p>{{rateEdit}}</p>
-        <p>{{moleculeEdit}} &rarr; {{productStringEdit}}</p>
+        <p>{{formData.rate}}</p>
+        <p>{{formData.molecule}} &rarr; {{productStringEdit}}</p>
         <p>{{initials}} : {{today | date :'yyyy-MM-dd'}} : {{commentEdit}}</p> <br>
         <input class="btn btn-primary" type="button" value="Create New" ng-click="create_photolysis()">
     </div>
@@ -106,7 +115,7 @@
     -->
     <div name="edit_references" class="wrapper" ng-show="purpose=='editReferences'">
         <h5 ><strong>Reaction :</strong></h5>
-        <p>Branches:  {{branchString}}</p>
+        <p>Mechanisms:  {{branchString}}</p>
         <p>Rate:  {{rate}}</p>
         <p>{{molecule}} &rarr; {{productString}}</p>
         <div  ng-show="editp==1">
@@ -181,7 +190,7 @@
                 <th ng-show="purpose=='markObsolete'">Obsolescence</th>
                 <th ng-show="purpose=='branchSelect' && selectedBranch"> Select into Mechanism </th>
                 <th ng-show="purpose=='showReferences'">References</th>
-                <th ng-show="purpose=='groupSelect'">Group</th>
+                <th ng-show="purpose=='groupSelect'">Section</th>
                 <th>Molecule</a></th>
                 <th>Rate</a></th>
                 <th>Products</th>

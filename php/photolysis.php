@@ -170,7 +170,7 @@ function get_photolysis_by_id() {
 
     global $con;
     $result = pg_prepare($con, "get_photolysis_by_id", 
-            "SELECT id, rate, moleculename, obsolete, wrf_photo_rates_id, wrf_photo_rates_coeff FROM photolysis WHERE id = $1;");
+            "SELECT id, rate, moleculename, obsolete, wrf_photo_rates_id, wrf_photo_rates_coeff, group_id FROM photolysis WHERE id = $1;");
 
     $result = pg_prepare($con, "get_branches_for_reaction", 
             "SELECT br.name FROM branchphotolysis AS p, branches AS br WHERE br.id = p.branch_id AND p.photolysis_id = $1 ORDER BY br.name;");
@@ -188,6 +188,7 @@ function get_photolysis_by_id() {
 
     $row_array['id'] = $reaction['id'];
     $row_array['rate'] = $reaction['rate'];
+    $row_array['group_id'] = $reaction['group_id'];
     $row_array['wrf_photo_rates_id'] = $reaction['wrf_photo_rates_id'];
     $row_array['wrf_photo_rates_coeff'] = $reaction['wrf_photo_rates_coeff'];
     $row_array['molecule'] = $reaction['moleculename'];
@@ -286,13 +287,14 @@ function mod_photolysis (){
 
     $data = json_decode(file_get_contents("php://input"));
     $oldpid       = $data->oldpid;  
+    $group_id     = $data->group_id;
     $branchArray  = $data->branchArray;
     $rate         = $data->rate;
     $molecule     = $data->molecule;
-    $wrf_photo_rates_id = $data->wrf_photo_rates_id;
+    $wrf_photo_rates_id    = $data->wrf_photo_rates_id;
     $wrf_photo_rates_coeff = $data->wrf_photo_rates_coeff;
-    $productArray = $data->productArray;
-    $newComment   = $data->newComment;
+    $productArray          = $data->productArray;
+    $newComment            = $data->newComment;
 
     $safe_to_commit = true; // so far everything seems normal
 
@@ -409,7 +411,7 @@ function add_photolysis_and_products (){
     global $con;
 
     $result = pg_prepare($con, "add_photolysis", 
-            "INSERT INTO photolysis (rate, moleculename, wrf_photo_rates_id) VALUES ($1, $2, $3) RETURNING id;"); 
+            "INSERT INTO photolysis (rate, moleculename, wrf_photo_rates_id, wrf_photo_rates_coeff, group_id) VALUES ($1, $2, $3, $4, $5) RETURNING id;"); 
 
     $result = pg_prepare($con, "add_photolysis_products",
             "INSERT INTO photolysisproducts (photolysisid, moleculename, coefficient) VALUES ($1,$2, $3);");
@@ -422,11 +424,13 @@ function add_photolysis_and_products (){
             "INSERT INTO branchphotolysis (branch_id, photolysis_id) SELECT id,$2 FROM branches WHERE name= $1;");
 
     $data = json_decode(file_get_contents("php://input"));
+    $group_id       = $data->group_id;
     $molecule       = $data->molecule;
     $rate           = $data->rate;
     $productArray   = $data->productArray;
-    $wrf_photo_rates_id = $data->wrf_photo_rates_id;
-    $newComment     = $data->newComment;
+    $wrf_photo_rates_id    = $data->wrf_photo_rates_id;
+    $wrf_photo_rates_coeff = $data->wrf_photo_rates_coeff;
+    $newComment            = $data->newComment;
 
     $safe_to_commit = true; // so far....
 
@@ -434,7 +438,7 @@ function add_photolysis_and_products (){
     $out = "Begin Transaction, safe:".$safe_to_commit."\n";
 
     // add photolysis
-    $result = pg_execute($con, "add_photolysis", array($rate, $molecule, $wrf_photo_rates_id));
+    $result = pg_execute($con, "add_photolysis", array($rate, $molecule, $wrf_photo_rates_id, $wrf_photo_rates_coeff, $group_id));
     $out = $out . "molecule:".$molecule.":rate:".$rate.":\n";
     $new_photolysis_id = pg_fetch_array($result)[0];
     $safe_to_commit = $safe_to_commit && ($new_photolysis_id>-1);

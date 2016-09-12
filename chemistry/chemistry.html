@@ -33,18 +33,48 @@
     <div ng-show="(purpose == 'editReaction' || purpose == 'addReaction') && editp == 1">
         <hr>
         <form class="form-horizontal">
+
         <div class ="form-group">
-            <label class="col-sm-3 control-label">Label:</label>
+            <label class="col-sm-3 control-label">Reaction Section:</label>
+            <div class="col-sm-3 ">
+                <select class="form-control" name="fsection" ng-model="formData.group_id"
+                    ng-options="group.id as group.description for group in reactionGroups">
+                    <option value="">--- unassigned ---</option> <!-- not selected / blank option -->
+                </select>
+            </div>
+        </div>
+
+        <div class ="form-group">
+            <label class="col-sm-3 control-label">CESM Label:</label>
             <div class="col-sm-9 ">
                 <input type="text" size=20 ng-model="formData.label" placeholder="Label"><br />
             </div>
         </div>
-        <div class ="form-group">
-            <label class="col-sm-3 control-label">Rate:</label>
+
+        <div class ="form-group" ng-show="(formData.label.indexOf('usr_') == -1)" >
+            <label class="col-sm-3 control-label">CESM Rate:</label>
             <div class="col-sm-9 ">
                 <input type="text" size=50 ng-model="formData.rateString" placeholder="Rate"><br />
             </div>
         </div>
+        <div class ="form-group" ng-show="(formData.label.indexOf('usr_') != -1)" >
+            <label class="col-sm-3 control-label">CESM Rate:</label>
+            <div class="col-sm-9 ">
+                {{formData.label}}( )
+            </div>
+        </div>
+
+
+        <div class ="form-group">
+            <label class="col-sm-3 control-label">WRF Rate:</label>
+            <div class="col-sm-3 ">
+                <select class="form-control" name="fwrfrates" ng-model="formData.wrf_custom_rate_id"
+                    ng-options="wrfRate.id as wrfRate.name for wrfRate in wrfRates ">
+                    <option value="">--- USE CESM RATE ---</option> <!-- not selected / blank option -->
+                </select>
+            </div>
+        </div>
+
         <div class ="form-group">
             <label class="col-sm-3 control-label">Chemical Potential Heating Rate:</label>
             <div class="col-sm-9 ">
@@ -75,7 +105,7 @@
         <button class="btn btn-success" ng-click="validate()">Validate</button>
         <button class="btn btn-success" ng-click="reset_form()">Cancel</button><br />
         <hr>
-        <div ng-show="sourceData.wrf_present"> <pre><code>{{sourceData.wcrcode}}</code></pre></div>
+        <div ng-show="sourceData.wrf_present"> WRF Custom Rate Code: <br><pre><code>{{sourceData.wcrcode}}</code></pre></div>
     </div>
     <!--
     Show the target modification before commit
@@ -83,13 +113,15 @@
     <div ng-show="purpose == 'editReaction'">
         <h4>For these branches ( <strong>{{sourceData.branchString}}</strong> ) </h4>
         <p>[{{sourceData.label}}]</p>
-        <p>Rate: {{sourceData.rateString}}</p>
+        <p ng-show="(sourceData.label.indexOf('usr_') == -1)">CESM Rate: {{sourceData.rateString}}</p>
+        <p ng-show="(sourceData.label.indexOf('usr_') != -1)">CESM Rate: {{sourceData.label}}( )</p>
         <p>cph: {{sourceData.cph ? sourceData.cph : " None"}}</p>
         <p>{{sourceData.reactantString}} &rarr; {{sourceData.productString}}</p>
         <div ng-show="editp==1">
             <h4><strong>Modified to:</strong></h4>
             <p>[{{formData.label}}]</p>
-            <p>Rate: {{formData.rateString}}</p>
+            <p ng-show="(formData.label.indexOf('usr_') == -1)">CESM Rate: {{formData.rateString}}</p>
+            <p ng-show="(formData.label.indexOf('usr_') != -1)">CESM Rate: {{formData.label}}( )</p>
             <p>cph: {{formData.cph ? formData.cph : " None"}}</p>
             <p>{{formData.reactantString}} &rarr; {{formData.productString}}</p>
             <p>{{initials}} : {{today | date :'yyyy-MM-dd'}} : {{formData.comment}}</p>
@@ -105,7 +137,7 @@
     <div ng-show="purpose == 'addReaction'">
         <h4 ><strong>Create :</strong></h4>
         <p>[{{formData.label}}]</p>
-        <p>Rate: {{formData.rateString}}</p>
+        <p>CESM Rate: {{formData.rateString}}</p>
         <p>cph: {{formData.cph ? formData.cph : " None"}}</p>
         <p>{{formData.reactantString}} &rarr; {{formData.productString}}</p>
         <p>{{initials}} : {{today | date :'yyyy-MM-dd'}} : {{formData.comment}}</p>
@@ -117,7 +149,7 @@
     <div name="edit_references" class="wrapper" ng-show="purpose=='editReferences'">
         <h4 ><strong>Reaction :</strong></h4>
         <p>Mechanism:  {{branchString}}</p>
-        <p>Rate:  {{rate}}</p>
+        <p>CESM Rate:  {{rate}}</p>
         <p>{{reactantString}} &rarr; {{productString}}</p>
         <div ng-show="editp==1">
         Add References:
@@ -193,12 +225,12 @@
                 <th ng-show="purpose=='markObsolete'">Obsolescence</th>
                 <th ng-show="purpose=='branchSelect' && selectedBranch"> Select into Mechanism </th>
                 <th ng-show="purpose=='showReferences'">References</th>
-                <th ng-show="purpose=='groupSelect'">Group</th>
+                <th ng-show="purpose=='groupSelect'">Section</th>
                 <th ng-show="purpose=='wrfSelect'">WRF rate</th>
                 <th>Reactants</th>
                 <th>Products</th>
                 <th>Label</th>
-                <th>Rate</th>
+                <th>CESM<br>Rate</th>
                 <th>Chem<br>Potential<br>Heat</th>
                 <th>Mechanisms</th>
             </thead>

@@ -120,6 +120,8 @@ app.controller('photolysisController', ['$scope', '$http', '$window', function (
     $scope.group_filter = null;
     $scope.branch_filter = null;
 
+    $scope.formData = [];
+
     /* variables for what is visible */
     $scope.name_input_disabled = false;
 
@@ -331,10 +333,11 @@ app.controller('photolysisController', ['$scope', '$http', '$window', function (
 
           $scope.branchArrayEdit = data.branchArray;
           $scope.branchStringEdit = data.branchString;
-          $scope.rateEdit = data.rate;
-          $scope.moleculeEdit = data.molecule;
-          $scope.wrfRateEdit = data.selectedWrfRateId;
-          $scope.wrfRateCoeffEdit = data.wrf_photo_rates_coeff;
+          $scope.formData.group_id = data.group_id;
+          $scope.formData.rate = data.rate;
+          $scope.formData.wrfRateCoeffEdit = data.wrf_photo_rates_coeff;
+          $scope.formData.wrfRateId = data.selectedWrfRateId;
+          $scope.formData.molecule = data.molecule;
           $scope.productArrayEdit = data.productArray;
           $scope.productStringEdit = productArrayToString(data.productArray);
           $scope.commentEdit = "";
@@ -365,21 +368,16 @@ app.controller('photolysisController', ['$scope', '$http', '$window', function (
 
           $scope.branchArrayEdit = data.branchArray;
           $scope.branchStringEdit = data.branchString;
-          $scope.rateEdit = data.rate;
-          $scope.moleculeEdit = data.molecule;
-          $scope.wrfRateEdit = data.selectedWrfRateId;
-          $scope.wrfRateCoeffEdit = data.wrf_photo_rates_coeff;
+          $scope.formData.group_id = data.group_id;
+          $scope.formData.rate = data.rate;
+          $scope.formData.wrfRateCoeffEdit = data.wrf_photo_rates_coeff;
+          $scope.formData.wrfRateId = data.selectedWrfRateId;
+          $scope.formData.molecule = data.molecule;
           $scope.productArrayEdit = data.productArray;
           $scope.productStringEdit = productArrayToString(data.productArray);
           $scope.commentEdit = "";
 
-          $scope.previous_photolysis_id = data.id;
-          $scope.previousMolecule = data.molecule;
-          $scope.previousRate = data.rate;
-          $scope.previousProductString = productArrayToString(data.productArray);
-
-          $scope.previousCommentsFormatted = commentArrayToString(data.previousComments);
-
+          $scope.previous_photolysis_id = "";
         })
         .error(function(data, status, headers, config){
             if(status == 419) {
@@ -454,8 +452,7 @@ app.controller('photolysisController', ['$scope', '$http', '$window', function (
         $scope.purpose = "masterEdit";
         $scope.branchArrayEdit = null;
         $scope.branchStringEdit = '';
-        $scope.rateEdit = '';
-        $scope.moleculeEdit = '';
+        $scope.formData = [];
         $scope.productArrayEdit = null;
         $scope.productStringEdit = '';
         $scope.commentEdit = '';
@@ -466,8 +463,7 @@ app.controller('photolysisController', ['$scope', '$http', '$window', function (
         $scope.purpose = "masterEdit";
         $scope.branchArrayEdit = null;
         $scope.branchStringEdit = '';
-        $scope.rateEdit = '';
-        $scope.moleculeEdit = '';
+        $scope.formData = [];
         $scope.productArrayEdit = null;
         $scope.productStringEdit = '';
         $scope.commentEdit = '';
@@ -477,7 +473,7 @@ app.controller('photolysisController', ['$scope', '$http', '$window', function (
     $scope.create_photolysis = function() {
 
         // validate
-        var newmole = $scope.moleculeEdit;
+        var newmole = $scope.formData.molecule;
         if (!molecule_in_database(newmole)) {
             alert("Photodissociating Molecule is not in database.\nReaction will not be added.");
             return;
@@ -498,9 +494,11 @@ app.controller('photolysisController', ['$scope', '$http', '$window', function (
         $http.post('/php/photolysis.php?action=add_photolysis_and_products',
             {
                 //'branchArray'  : $scope.branchArrayEdit,
-                'rate'         : $scope.rateEdit,
-                'molecule'     : newmole,
-                'wrf_photo_rates_id' : $scope.wrfRateEdit,
+                'group_id'     : $scope.formData.group_id,
+                'rate'         : $scope.formData.rate,
+                'molecule'     : $scope.formData.molecule,
+                'wrf_photo_rates_id' : $scope.formData.wrfRateId,
+                'wrf_photo_rates_coeff' : $scope.formData.wrfRateCoeffEdit,
                 'productArray' : $scope.productArrayEdit,
                 'newComment'   : $scope.commentEdit
             })
@@ -536,12 +534,13 @@ app.controller('photolysisController', ['$scope', '$http', '$window', function (
         $http.post('/php/photolysis.php?action=mod_photolysis',
             {
                 'oldpid'       : $scope.previous_photolysis_id,
-                'branchArray'  : $scope.branchArrayEdit,
-                'rate'         : $scope.rateEdit,
-                'molecule'     : newmole,
-                'wrf_photo_rates_id' : $scope.wrfRateEdit,
-                'wrf_photo_rates_coeff' : $scope.wrfRateCoeffEdit,
+                'group_id'     : $scope.formData.group_id,
+                'rate'         : $scope.formData.rate,
+                'molecule'     : $scope.formData.molecule,
+                'wrf_photo_rates_id' : $scope.formData.wrfRateId,
+                'wrf_photo_rates_coeff' : $scope.formData.wrfRateCoeffEdit,
                 'productArray' : $scope.productArrayEdit,
+                'branchArray'  : $scope.branchArrayEdit,
                 'newComment'   : $scope.commentEdit
             })
             .success(function (data, status, headers, config) {
