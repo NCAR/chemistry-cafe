@@ -359,8 +359,6 @@ function mod_reaction  (){
 
     $result = pg_prepare($con, "add_reaction_comment", "INSERT INTO reactioncomments (reaction_id, comment_id) VALUES ($1, $2);");
 
-    $result = pg_prepare($con, "get_group", "SELECT group_id FROM reactions WHERE id = $1;");
-
     $data = json_decode(file_get_contents("php://input"));
     $oldpid        = $data ->oldpid;
     $branchArray   = $data ->branchArray;
@@ -381,11 +379,6 @@ function mod_reaction  (){
 
     pg_query($con, "BEGIN;") or die("Could not start transaction\n");
     $out = "Begin Transaction, safe:".$safe_to_commit."\n";
-
-    $result = pg_execute($con, "get_group", array($oldpid));
-    $group_id = pg_fetch_array($result)[0];
-    $safe_to_commit = $safe_to_commit && ($group_id > 0);
-    $out = $out . "safe".$safe_to_commit." group_id ".$group_id."\n";
 
     // add chemistry
     $out = $out . "label".$label." cph:".$cph." r1:".$r1." r2:".$r2." r3:".$r3." r4:".$r4." r5:".$r5."\n";

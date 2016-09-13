@@ -594,7 +594,7 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
     $scope.editReferences = function(reaction){
         $scope.purpose = 'editReferences';
         $scope.pid =  reaction.id;
-        $scope.rate = reaction.r1+", "+reaction.r2+", "+reaction.r3+", "+reaction.r4+", "+reaction.r5;
+        $scope.formData.rateString = reaction.r1+", "+reaction.r2+", "+reaction.r3+", "+reaction.r4+", "+reaction.r5;
         $scope.species = reaction.molecule;
         $scope.reactantString = reaction.reactantString;
         $scope.productString = reaction.productString;

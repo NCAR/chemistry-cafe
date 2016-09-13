@@ -54,7 +54,7 @@
         <div class ="form-group" ng-show="(formData.label.indexOf('usr_') == -1)" >
             <label class="col-sm-3 control-label">CESM Rate:</label>
             <div class="col-sm-9 ">
-                <input type="text" size=50 ng-model="formData.rateString" placeholder="Rate"><br />
+                <input type="text" size=50 ng-model="formData.rateString" placeholder="CESM rate numbers"><br />
             </div>
         </div>
         <div class ="form-group" ng-show="(formData.label.indexOf('usr_') != -1)" >
@@ -149,7 +149,7 @@
     <div name="edit_references" class="wrapper" ng-show="purpose=='editReferences'">
         <h4 ><strong>Reaction :</strong></h4>
         <p>Mechanism:  {{branchString}}</p>
-        <p>CESM Rate:  {{rate}}</p>
+        <p>CESM Rate:  {{rateString}}</p>
         <p>{{reactantString}} &rarr; {{productString}}</p>
         <div ng-show="editp==1">
         Add References:

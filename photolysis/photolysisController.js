@@ -408,8 +408,7 @@ app.controller('photolysisController', ['$scope', '$http', '$window', function (
     /** validate products of reactions and construct Description of new reaction **/
     $scope.validate = function() {
         var okProduct = validateProduct();
-        $scope.moleculeEdit = $scope.moleculeEdit;
-        var okMolecule = molecule_in_database($scope.moleculeEdit);
+        var okMolecule = molecule_in_database($scope.formData.molecule);
         var okComment = validateComment();
         return (okMolecule && okProduct && okComment);
     }
@@ -436,7 +435,7 @@ app.controller('photolysisController', ['$scope', '$http', '$window', function (
 
     /** this should be done as well **/
     validateRate  = function() {
-        return ($scope.rateEdit.trim());
+        return ($scope.formData.rate.trim());
     }
 
     validateComment  = function() {
@@ -513,7 +512,7 @@ app.controller('photolysisController', ['$scope', '$http', '$window', function (
     $scope.modify_photolysis = function() {
 
         // validate
-        var newmole = $scope.moleculeEdit;
+        var newmole = $scope.formData.molecule;
         if (!molecule_in_database(newmole)) {
             alert("Photodissociating Molecule is not in database.\nReaction will not be added.");
             return;

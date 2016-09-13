@@ -100,11 +100,6 @@ function get_all_photolysis() {
              ON g.id=p.group_id 
              ORDER BY g.ordering ASC, p.moleculename ASC;");
 
-    //$result = pg_prepare($con, "get_all_photolysis", 
-            //"SELECT p.id, p.rate, p.moleculename, p.obsolete
-             //FROM photolysis AS p 
-             //ORDER BY p.moleculename ASC;");
-
     $result = pg_prepare($con, "get_photolysis_products", 
             "SELECT pp.moleculename, pp.coefficient FROM photolysisproducts pp WHERE pp.photolysisid = $1;");
 
@@ -300,11 +295,6 @@ function mod_photolysis (){
 
     pg_query($con, "BEGIN;") or die("Could not start transaction\n");
     $out = "Begin Transaction, safe:".$safe_to_commit."\n";
-
-    $result = pg_execute($con, "get_group", array($oldpid));
-    $group_id = pg_fetch_array($result)[0];
-    $safe_to_commit = $safe_to_commit && ($group_id > 0);
-    $out = $out . "safe".$safe_to_commit." group_id ".$group_id."\n";
 
     // add photolysis
     $result = pg_execute($con, "add_photolysis", array($rate, $molecule, $wrf_photo_rates_id, $wrf_photo_rates_coeff, $group_id));
