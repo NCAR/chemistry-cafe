@@ -64,10 +64,10 @@ app.controller('tagsController',['$scope','$http','$window', function ($scope, $
     }
 
     $scope.createBranchFromTag = function(tag_id) {
-        //alert('creating Branch from Tag : '+tag_id);
-        //alert('New Branch : '+$scope.newBranchName);
+        //alert('creating Mechanism from Tag : '+tag_id);
+        //alert('New Mechanism : '+$scope.newBranchName);
         if(!$scope.newBranchName){
-            alert('Please enter a name for the new branch');
+            alert('Please enter a name for the new mechanism');
             return;
         }
         $http.post("/php/tags.php?action=create_branch_from_tag",
@@ -85,9 +85,9 @@ app.controller('tagsController',['$scope','$http','$window', function ($scope, $
 
     $scope.createBranchFromBranch = function() {
         alert('Not implemented');
-        alert('creating Branch from Branch name: '+ $scope.sourceBranch.name);
-        alert('creating Branch from Branch id: '+ $scope.sourceBranch.id);
-        alert('New Branch : '+$scope.newBranchName);
+        alert('creating Mechanism from Mechanism name: '+ $scope.sourceBranch.name);
+        alert('creating Mechanism from Mechanism id: '+ $scope.sourceBranch.id);
+        alert('New Mechanism : '+$scope.newBranchName);
     }
 
     $scope.populateEditTagForm = function(tag){
