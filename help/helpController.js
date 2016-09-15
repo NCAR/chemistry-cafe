@@ -30,7 +30,7 @@ app.controller('helpController', ['$scope','$window', '$http',function ($scope, 
                 'suggestion' : $scope.suggestion
              }
         ).success(function(data) {
-            alert(data);
+            //alert(data);
             $scope.get_all_suggestions();
         });
         $scope.purpose = "";

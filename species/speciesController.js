@@ -34,12 +34,12 @@ app.controller('speciesController', function ($scope,$http) {
     }
     get_all_species();
 
-    get_all_species_groups = function(){
-        $http.post("/php/species_groups.php?action=get_groups").success(function(data) {
-            $scope.speciesGroups = data;
+    get_all_families = function(){
+        $http.post("/php/families.php?action=get_families").success(function(data) {
+            $scope.families = data;
         });
     }
-    get_all_species_groups();
+    get_all_families();
 
 
 /* CREATE TYPE transport AS ENUM ('transported','not-transported'); */
@@ -55,7 +55,7 @@ app.controller('speciesController', function ($scope,$http) {
       $scope.purpose = 'editSpecies';
       $http.post('/php/species.php?action=get_species', 
         {
-            'species'   : species.name
+            'name'   : species.name
         })      
         .success(function (data, status, headers, config) {    
             $scope.form = data;

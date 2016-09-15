@@ -5,7 +5,7 @@ include('config.php');
 /**  Switch Case to Get Action from controller  **/
 
 switch($_GET['action'])  {
-//switch('insert_species')  {
+//switch('get_all_species')  {
     case 'get_species' :
             get_species();
             break;
@@ -65,15 +65,21 @@ function insert_species() {
 /**  Function to Get All Species  **/
 function get_all_species() {
     global $con;
-    $qry = pg_query($con, 'SELECT name, formula, description FROM molecules ORDER BY name;');
+
+    $result = pg_prepare($con, "get_families", 'SELECT * FROM species_families where species_id=$1;');
+
+    $qry = pg_query($con, 'SELECT * FROM molecules ORDER BY name ;');
     $data = array();
-    while($row = pg_fetch_array($qry))
+    while($row = pg_fetch_assoc($qry))
     {
-        $data[] = array(
-                    "formula"        => $row['formula'],
-                    "name"           => $row['name'],
-                    "description"    => $row['description']
-                    );
+        $r = $row;
+
+        $famlist = pg_execute($con,"get_families",array($r['id']));
+        while ($fam = pg_fetch_assoc($famlist)) {
+          $r['families'][]=$fam;
+        }
+
+        array_push($data,$r);
     }
     print_r(json_encode($data));
     return json_encode($data);
@@ -85,21 +91,14 @@ function get_species() {
     global $con;
 
     $data = json_decode(file_get_contents("php://input"));     
+    $name = $data->name;
 
-    $qry = pg_query($con, "SELECT * FROM molecules WHERE name= '".$data->species."';");
+    $result = pg_prepare($con, "get_species","SELECT * FROM molecules WHERE name= $1;");
+    $qry = pg_execute($con, "get_species",array($name));
     $res = array();
-    if($row = pg_fetch_array($qry))
+    if($row = pg_fetch_assoc($qry))
     {
-        $res['formula']     = $row['formula'];
-        $res['name']        = $row['name'];
-        $res['description'] = $row['description'];
-        $res['aerosol'] = $row['aerosol'];
-        $res['transport'] = $row['transport'];
-        $res['source'] = $row['source'];
-        $res['solve'] = $row['solve'];
-        $res['henry'] = $row['henry'];
-        $res['wet_dep'] = $row['wet_dep'];
-        $res['dry_dep'] = $row['dry_dep'];
+        $res = $row;
     }
     print_r(json_encode($res));
     return json_encode($res);  

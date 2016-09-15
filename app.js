@@ -17,9 +17,9 @@ app.config(function ($routeProvider) {
             templateUrl: "/species/species.html"
         });
 
-        $routeProvider.when("/SpeciesGroups", {
-            controller: "speciesGroupController",
-            templateUrl: "/species_group/group.html"
+        $routeProvider.when("/Families", {
+            controller: "familyController",
+            templateUrl: "/families/family.html"
         });
 
         $routeProvider.when("/References", {
@@ -84,6 +84,9 @@ app.controller('loginController',function ($scope){
             window.location.replace("/login/login.php");
         }
     }
+
+   $scope.machineName = document.location.host;
+   $scope.productionMachine = ( document.location.host.indexOf("devel") == -1);
 
 });
 

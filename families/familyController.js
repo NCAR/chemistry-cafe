@@ -1,4 +1,4 @@
-app.controller('speciesGroupController', ['$scope', '$http', function ($scope, $http) {
+app.controller('familyController', ['$scope', '$http', function ($scope, $http) {
 
 /* Initialize */
 
@@ -9,13 +9,13 @@ app.controller('speciesGroupController', ['$scope', '$http', function ($scope, $
     $scope.purpose ="display";
 
     /* get molecules, branches, and all species from database for use in page */
-    get_groups = function(){
-        $http.get("/php/species_groups.php?action=get_groups").success(function(data) {
-            $scope.speciesGroups = data;
+    get_families = function(){
+        $http.get("/php/families.php?action=get_families").success(function(data) {
+            $scope.families = data;
         });
     }
 
-    get_groups();
+    get_families();
 
     $scope.sort_by = function(predicate) {
         $scope.predicate = predicate;
@@ -34,13 +34,13 @@ app.controller('speciesGroupController', ['$scope', '$http', function ($scope, $
 
 /* updates */
 
-    $scope.populateEditGroup = function(group) {
-      $http.post('/php/species_groups.php?action=get_group_by_id',
+    $scope.populateEditFamily = function(family) {
+      $http.post('/php/families.php?action=get_family_by_id',
         {
-            'id'   : group.id
+            'id'   : family.id
         })
         .success(function (data, status, headers, config) {
-          $scope.purpose = 'editGroup';
+          $scope.purpose = 'editFamily';
           $scope.id = data.id;
           $scope.name = data.name;
           $scope.description = data.description;
@@ -55,8 +55,8 @@ app.controller('speciesGroupController', ['$scope', '$http', function ($scope, $
         });
     }
 
-    $scope.create_group = function() {
-        $http.post('/php/species_groups.php?action=add_group',
+    $scope.create_family = function() {
+        $http.post('/php/families.php?action=add_family',
             {
                 'name'  : $scope.name,
                 'description'  : $scope.description
@@ -64,13 +64,13 @@ app.controller('speciesGroupController', ['$scope', '$http', function ($scope, $
             .success(function (data, status, headers, config) {
                 alert(data);
                 $scope.reset();
-                get_groups();
+                get_families();
             });
 
     }
 
-    $scope.modify_group = function() {
-        $http.post('/php/species_groups.php?action=mod_group',
+    $scope.modify_family = function() {
+        $http.post('/php/families.php?action=mod_family',
             {
                 'id'  : $scope.id,
                 'name'  : $scope.name,
@@ -78,7 +78,7 @@ app.controller('speciesGroupController', ['$scope', '$http', function ($scope, $
             })
             .success(function (data, status, headers, config) {
                 $scope.reset();
-                get_groups();
+                get_families();
             });
 
     }
