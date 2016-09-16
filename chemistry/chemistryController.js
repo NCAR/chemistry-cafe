@@ -482,6 +482,15 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
     $scope.create_chemistry = function() {
 
         // validate
+        if ($scope.formData.label.indexOf('usr_') != -1){
+            alert("Setting CESM Rate to be a usr_() function");
+            $scope.formData.rateString = "";
+            $scope.formData.r1 = "";
+            $scope.formData.r2 = "";
+            $scope.formData.r3 = "";
+            $scope.formData.r4 = "";
+            $scope.formData.r5 = "";
+        }
         if (!validateReactants()) {
             alert("Please enter valid reactant string.");
             return;
@@ -497,14 +506,6 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
         if (!validateComment()){
             alert("Please enter a valid Comment.");
             return;
-        }
-        if ($scope.formData.label.indexOf('usr_') != -1){
-            alert("Setting CESM Rate to be a usr_() function");
-            $scope.formData.r1 = "";
-            $scope.formData.r2 = "";
-            $scope.formData.r3 = "";
-            $scope.formData.r4 = "";
-            $scope.formData.r5 = "";
         }
         // add chemistry reaction
         $http.post('/php/chemistry.php?action=add_reaction',
@@ -533,6 +534,15 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
     $scope.modify_chemistry = function() {
 
         // validate
+        if ($scope.formData.label.indexOf('usr_') != -1){
+            alert("Setting CESM Rate to be a usr_() function");
+            $scope.formData.rateString = "";
+            $scope.formData.r1 = "";
+            $scope.formData.r2 = "";
+            $scope.formData.r3 = "";
+            $scope.formData.r4 = "";
+            $scope.formData.r5 = "";
+        }
         if (!validateReactants()) {
             return;
         }
@@ -547,14 +557,6 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
         if (!validateComment()){
             alert("Please enter a valid Comment.");
             return;
-        }
-        if ($scope.formData.label.indexOf('usr_') != -1){
-            alert("Setting CESM Rate to be a usr_() function");
-            $scope.formData.r1 = "";
-            $scope.formData.r2 = "";
-            $scope.formData.r3 = "";
-            $scope.formData.r4 = "";
-            $scope.formData.r5 = "";
         }
         // database modify chemistry
         $http.post('/php/chemistry.php?action=mod_reaction',
