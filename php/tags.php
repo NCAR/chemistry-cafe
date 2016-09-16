@@ -34,7 +34,7 @@ switch($_GET['action'])  {
 
     case 'tstfilewrite' :
             global $con;
-            $id = 97;
+            $id = 101;
             $tags = pg_query($con,"SELECT filename FROM tags WHERE id = ".$id.";");
             $tagref= pg_fetch_array($tags,0,$result_type = PGSQL_ASSOC);
             mkdir('../tag_files/testdir');
@@ -979,7 +979,7 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id){
     
             // construct label string
             if($r['cph']){
-                $label_string="[".$r['label'].",".$r['cph']."]";
+                $label_string="[".$r['label'].",cph=".$r['cph']."]";
             } else {
                 $label_string="[".$r['label']."]";
             } 

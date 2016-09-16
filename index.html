@@ -12,16 +12,21 @@
       autocorrect="off"
       autocapitalize="off"
       spellcheck="false">
-    <div id="page">
+    <div id="page" ng-init="maintenance=true">
         <header class="container" 
                 ng-controller="loginController" 
                 ng-init="check_login()">
                 <div class="navbar navbar-default">
-                    <div ng-show="(productionMachine)">
-                        <a class="navbar-brand" href="#"> The Chemistry Caf&eacute; </a>
+                    <div ng-show="!maintenance">
+                        <div ng-show="(productionMachine)">
+                            <a class="navbar-brand" href="#"> The Chemistry Caf&eacute; </a>
+                        </div>
+                        <div ng-show="(!productionMachine)">
+                            <a class="navbar-brand" style="color:red; background-color: rgba(0, 0, 255, 0.3);" href="#"> The Chemistry Caf&eacute; ({{machineName}})</a>
+                        </div>
                     </div>
-                    <div ng-show="(!productionMachine)">
-                        <a class="navbar-brand" style="color:red;" href="#"> The Chemistry Caf&eacute; ({{machineName}})</a>
+                    <div ng-show="maintenance">
+                        <a class="navbar-brand" style="color:red; background-color: rgba(0, 0, 255, 0.3); transform: rotate(+10deg);" href="#">Under Construction! Do Not Use! <br> The Chemistry Caf&eacute; </a>
                     </div>
                     <ul class="nav navbar-nav navbar-right">
                         <li class="dropdown">

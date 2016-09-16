@@ -358,6 +358,17 @@ app.controller('photolysisController', ['$scope', '$http', '$window', function (
         });
     }
 
+    $scope.createDefault = function() {
+          $scope.formData.group_id = "7";
+          $scope.formData.rate = "";
+          $scope.formData.wrfRateCoeffEdit = 1;
+          $scope.formData.wrfRateId = "95";
+          $scope.formData.molecule = "";
+          $scope.productArrayEdit = "";
+          $scope.productStringEdit = "";
+          $scope.commentEdit = "";
+    }
+
     $scope.cloneToCreate = function(photolysis) {
       $http.post('/php/photolysis.php?action=get_photolysis_by_id',
         {
@@ -502,9 +513,14 @@ app.controller('photolysisController', ['$scope', '$http', '$window', function (
                 'newComment'   : $scope.commentEdit
             })
             .success(function (data, status, headers, config) {
-                alert(data);
-                $scope.reset_new_reaction_form();
-                load_all_photolysis();
+                if(data == "Committed") {
+                    alert(data);
+                    $scope.reset_new_reaction_form();
+                    load_all_photolysis();
+                } else {
+                    alert(data);
+                }
+  
             });
 
     }

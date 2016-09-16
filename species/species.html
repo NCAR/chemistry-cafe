@@ -104,13 +104,11 @@
         <div class ="form-group">
             <label class="control-label col-sm-3">Families:</label>
             <div class="col-sm-3">
-               <select class="form-control" name="families" id="families" ng-model="form.selectedFamilyIds" multiple>
-                 <option ng-repeat="family in families" value="{{family.id}}">{{family.name}}</option>
-               </select>
+                <select class="form-control" name="families" id="families" ng-model="form.selectedFamilyIds" multiple>
+                  <option ng-repeat="family in families" value="{{family.id}}">{{family.name}}</option>
+                </select>
             </div>
         </div>
-
-
 
         </form>
         <button ng-show="editp==1 && purpose == 'addSpecies'" class="btn btn-success"  ng-click="create_species()">Create<br>This<br>Species</button>

@@ -4,23 +4,32 @@ include('config.php');
 
 /**  Switch Case to Get Action from controller  **/
 
-switch($_GET['action'])  {
-//switch('get_all_diagnostics')  {
-    case 'get_diagnostics' :
-            get_diagnostics();
-            break;
-
+//switch($_GET['action'])  {
+switch('get_all_diagnostics')  {
     case 'get_all_diagnostics' :
             get_all_diagnostics();
             break;
 
-    case 'update_diagnostics' :
-            update_diagnostics();
+    case 'get_diagnostic_by_id' :
+            get_diagnostic_by_id();
             break;
 
-    case 'insert_diagnostics' :
-            insert_diagnostics();
+    case 'add_reaction_level_diagnostic' :
+            add_reaction_level_diagnostic();
             break;
+
+    case 'mod_reaction_level_diagnostic' :
+            mod_reaction_level_diagnostic();
+            break;
+
+    case 'add_species_level_diagnostic' :
+            add_species_level_diagnostic();
+            break;
+
+    case 'mod_species_level_diagnostic' :
+            add_reaction_level_diagnostic();
+            break;
+
 }
 
 
@@ -76,23 +85,21 @@ function insert_diagnostics() {
 function get_all_diagnostics() {
     global $con;
 
-    $result = pg_prepare($con, "get_families", 'SELECT * FROM diagnostics where diagnostics=$1;');
-
-    $qry = pg_query($con, 'SELECT * FROM molecules ORDER BY name ;');
-    $data = array();
-    while($row = pg_fetch_assoc($qry))
+    /**  Species-level diagnostics such as VOC + OH **/
+    $sdiags = pg_prepare($con, "get_sdiags", 'SELECT * FROM sdiags;');
+    $diags['sdiags'] = array();
+    while($diag = pg_fetch_assoc($sdiags))
     {
-        $r = $row;
-
-        $famlist = pg_execute($con,"get_families",array($r['id']));
-        while ($fam = pg_fetch_assoc($famlist)) {
-          $r['families'][]=$fam;
-        }
-
-        array_push($data,$r);
+       $diags['sdiags'][] = $diag;
     }
-    print_r(json_encode($data));
-    return json_encode($data);
+
+    /**  Reaction-level diagnostics such as N-conservation **/
+    $diags['rdiags'] = array();
+
+        $diags['rdiags'][] = 'null';
+
+    print_r(json_encode($diags));
+    return json_encode($diags);
 }
 
 /**  Function to populate the form so that this diagnostics can be edited**/

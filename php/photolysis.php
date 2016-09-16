@@ -344,10 +344,10 @@ function mod_photolysis (){
     //$safe_to_commit = false;
     if ($safe_to_commit){
         pg_query($con, "COMMIT") or die("Transaction commit failed\n");
-        $out = "\nCommiting transaction\n". $out;
+        $out = "Committed";
     } else {
         pg_query($con, "ROLLBACK") or die("Transaction commit failed\n");
-        $out = "\nROLLBACK  transaction\n". $out;
+        $out = "\nCommit FAILED!\n". $out;
     }
     echo json_encode($out);
 }
@@ -423,14 +423,16 @@ function add_photolysis_and_products (){
     $newComment            = $data->newComment;
 
     $safe_to_commit = true; // so far....
+    $out = json_encode($data);
 
     pg_query($con, "BEGIN;") or die("Could not start transaction\n");
-    $out = "Begin Transaction, safe:".$safe_to_commit."\n";
+    $out .= "Begin Transaction, safe:".$safe_to_commit."\n";
 
     // add photolysis
     $result = pg_execute($con, "add_photolysis", array($rate, $molecule, $wrf_photo_rates_id, $wrf_photo_rates_coeff, $group_id));
     $out = $out . "molecule:".$molecule.":rate:".$rate.":\n";
     $new_photolysis_id = pg_fetch_array($result)[0];
+    $out = $out . "pid:".$new_photolysis_id."\n";
     $safe_to_commit = $safe_to_commit && ($new_photolysis_id>-1);
     $out = $out . "safe".$safe_to_commit." new photolysis with pid ".$new_photolysis_id."\n";
 
@@ -449,6 +451,7 @@ function add_photolysis_and_products (){
     $out = $out . "prodarr:".json_encode($productArray)."\n";
     foreach($productArray as $coeffproduct){
         // add photoproducts
+        $out = $out . "Adding new products, coeff:".$coeffproduct[0].":prod:".$coeffproduct[1]. ":\n";
         $res = pg_execute ($con, "add_photolysis_products", array($new_photolysis_id, $coeffproduct[1], $coeffproduct[0]));
         $safe_to_commit = $safe_to_commit && $res;
         $out = $out . "safe".$safe_to_commit." new products, coeff:".$coeffproduct[0].":prod:".$coeffproduct[1]. ":\n";
@@ -456,10 +459,10 @@ function add_photolysis_and_products (){
 
     if ($safe_to_commit){
         pg_query($con, "COMMIT") or die("Transaction commit failed\n");
-        $out = "\nCommiting transaction\n". $out;
+        $out = "Committed";
     } else {
         pg_query($con, "ROLLBACK") or die("Transaction commit failed\n");
-        $out = "\nROLLBACK  transaction\n". $out;
+        $out = "Commit FAILED:\n". $out;
     }
     echo($out);
 }

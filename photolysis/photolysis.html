@@ -5,7 +5,7 @@
     <div class="btn-group">
         <label class="btn btn-primary" ng-model="purpose" btn-radio="'branchSelect'" ng-show="editp==1">Select Reactions<br>For Mechanism</label>
         <label class="btn btn-primary" ng-model="purpose" btn-radio="'masterEdit'">Edit<br>Reactions</label>
-        <label class="btn btn-primary" ng-model="purpose" btn-radio="'addReaction'" ng-show="editp==1">Add New<br>Reaction</label>
+        <label class="btn btn-primary" ng-model="purpose" ng-click="createDefault()" btn-radio="'addReaction'" ng-show="editp==1">Add New<br>Reaction</label>
         <label class="btn btn-primary" ng-model="purpose" btn-radio="'markObsolete'" ng-show="editp==1">Mark<br>Obsolete</label>
         <label class="btn btn-primary" ng-model="purpose" btn-radio="'showReferences'">Show/Link<br>References</label>
         <label class="btn btn-primary" ng-model="purpose" btn-radio="'groupSelect'" ng-show="editp==1">Assign<br>Section</label>
