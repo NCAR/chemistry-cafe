@@ -6,9 +6,31 @@
         <label class="btn btn-primary" ng-model="purpose" btn-radio="'exportTag'">Export<br>Tag</label>
         <label class="btn btn-primary" ng-model="purpose" btn-radio="'branchFromTag'">Create Mechanism<br>From Tag</label>
         <label class="btn btn-primary" ng-model="purpose" btn-radio="'editTag'">Edit Tag<br>Information</label>
+        <label class="btn btn-primary" ng-model="purpose" btn-radio="'showMechanisms'">Show<br>Mechanisms</label>
     </div> 
     <br />
     <hr>
+
+    <!--
+    Show Mechanisms
+    -->
+    <div ng-show="purpose=='showMechanisms'">
+        <div class="row col-md-12">
+            <table class="table table-striped table-bordered" >
+            <thead>
+                <th >Mechanism Name</th>
+                <th >Deprecated/OK</th>
+            </thead>
+            <tbody> 
+            <tr ng-repeat="branch in branchArray">
+                <td>{{ branch.name }}</td>
+                <td>{{ branch.deprecated ? "Deprecated" : "OK" }}</td>
+            </tr> 
+            </tbody>
+            </table>
+        </div> <!-- end of div class row -->
+    </div>
+
     <!--
     Create a Tag on a Mechanism
     -->
@@ -21,10 +43,6 @@
                         ng-options="branch as branch.name for branch in branchArray">
                 </select>
             </div>
-        </div>
-        <div class ="form-group">
-            <label class="col-sm-3 control-label">Tag Name:</label> &nbsp &nbsp
-            <label class="control-label">"DB index"-{{selectedBranch.name}}-{{today | date :'yyyy-MM-dd'}}</label>
         </div>
         <div class ="form-group">
             <label class="col-sm-3 control-label">Short Tag Description:</label>

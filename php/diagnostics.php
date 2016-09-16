@@ -85,9 +85,11 @@ function insert_diagnostics() {
 function get_all_diagnostics() {
     global $con;
 
-    /**  Species-level diagnostics such as VOC + OH **/
-    $sdiags = pg_prepare($con, "get_sdiags", 'SELECT * FROM sdiags;');
     $diags['sdiags'] = array();
+
+    /**  Species-level diagnostics such as VOC + OH **/
+    $sdiags = pg_query($con, 'SELECT * FROM sdiags;');
+
     while($diag = pg_fetch_assoc($sdiags))
     {
        $diags['sdiags'][] = $diag;
@@ -96,7 +98,7 @@ function get_all_diagnostics() {
     /**  Reaction-level diagnostics such as N-conservation **/
     $diags['rdiags'] = array();
 
-        $diags['rdiags'][] = 'null';
+        $diags['rdiags'][] = ['null'];
 
     print_r(json_encode($diags));
     return json_encode($diags);
@@ -110,8 +112,7 @@ function get_diagnostics() {
     $data = json_decode(file_get_contents("php://input"));     
     $id = $data->id;
 
-    $result = pg_prepare($con, "get_diagnostics","SELECT * FROM molecules WHERE id= $1;");
-    $result = pg_prepare($con, "get_families", 'SELECT * FROM diagnostics where diagnostics=$1;');
+    $result = pg_prepare($con, "get_diagnostics", 'SELECT * FROM diagnostics where diagnostics=$1;');
 
     $qry = pg_execute($con, "get_diagnostics",array($id));
     $res = array();
