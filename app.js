@@ -12,6 +12,12 @@ app.config(function ($routeProvider) {
             templateUrl: "/chemistry/chemistry.html"
         });
 
+        $routeProvider.when("/Diagnostics", {
+            controller: "diagnosticsController",
+            templateUrl: "/diagnostics/diagnostics.html"
+        });
+
+
         $routeProvider.when("/Species", {
             controller: "speciesController",
             templateUrl: "/species/species.html"

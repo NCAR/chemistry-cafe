@@ -1,17 +1,17 @@
     <div class="btn-group" ng-show="editp==1">
-        <label class="btn btn-primary" ng-model="purpose" btn-radio="'masterEdit'">Edit<br>Species</label>
-        <label class="btn btn-primary" ng-model="purpose" btn-radio="'addSpecies'">Add New<br>Species</label>
+        <label class="btn btn-primary" ng-model="purpose" btn-radio="'masterEdit'">Edit<br>Diagnostics</label>
+        <label class="btn btn-primary" ng-model="purpose" btn-radio="'addDiagnostics'">Add New<br>Diagnostics</label>
     </div>
     <hr>
 
-    <div ng-show="purpose=='addSpecies' || purpose=='editSpecies'">
+    <div ng-show="purpose=='addDiagnostics' || purpose=='editDiagnostics'">
         <form class="form-horizontal">
         <div class ="form-group">
-            <label class="col-sm-3 control-label">Species Name:</label>
+            <label class="col-sm-3 control-label">Diagnostics Name:</label>
             <div class="col-sm-9 ">
                 <input type="text" size=20 
                     ng-model="form.name" 
-                    ng-disabled="purpose=='editSpecies'"
+                    ng-disabled="purpose=='editDiagnostics'"
                     placeholder="Name"><br />
             </div>
         </div>
@@ -104,19 +104,17 @@
         <div class ="form-group">
             <label class="control-label col-sm-3">Families:</label>
             <div class="col-sm-3">
-               <select class="form-control" name="families" id="families" ng-model="form.selectedFamilyIds" multiple>
-                 <option ng-repeat="family in families" value="{{family.id}}">{{family.name}}</option>
-               </select>
+                <select class="form-control" name="families" id="families" ng-model="form.selectedFamilyIds" multiple>
+                  <option ng-repeat="family in families" value="{{family.id}}">{{family.name}}</option>
+                </select>
             </div>
         </div>
 
-
-
         </form>
-        <button ng-show="editp==1 && purpose == 'addSpecies'" class="btn btn-success"  ng-click="create_species()">Create<br>This<br>Species</button>
-        <button ng-show="editp==1 && purpose == 'editSpecies'" class="btn btn-success" ng-click="modify_species()">Commit<br>Change</button>
+        <button ng-show="editp==1 && purpose == 'addDiagnostics'" class="btn btn-success"  ng-click="create_diagnostics()">Create<br>This<br>Diagnostics</button>
+        <button ng-show="editp==1 && purpose == 'editDiagnostics'" class="btn btn-success" ng-click="modify_diagnostics()">Commit<br>Change</button>
         <button class="btn btn-success" 
-           ng-show="purpose=='addSpecies' || purpose=='editSpecies'" 
+           ng-show="purpose=='addDiagnostics' || purpose=='editDiagnostics'" 
            ng-click="reset_form()">Cancel</button>
     <hr>
     </div>
@@ -124,7 +122,7 @@
 <div>Filter:
     <input type="text" ng-model="name_filter" ng-change="filter()" placeholder="Name Substring" class="form-control" />
 </div>
-<h6 align="left">Filter found {{ filtered.length }} Species of the {{ totalItems }} in the Database</h6>
+<h6 align="left">Filter found {{ filtered.length }} Diagnostics of the {{ totalItems }} in the Database</h6>
 
 <div ng-show="filteredItems > 0">
     <table class="table table-striped">
@@ -135,18 +133,18 @@
             <th>Description</th>
         </thead>
         <tbody>
-            <tr ng-repeat="species in filtered = (speciesList | filter:{name:name_filter} |  orderBy : predicate :reverse)"> 
+            <tr ng-repeat="diagnostics in filtered = (diagnosticsList | filter:{name:name_filter} |  orderBy : predicate :reverse)"> 
                 <td>
-                    <a ng-show="editp==1" href="" ng-click="populateEditForm(species)">Edit</a> 
-                    <a ng-show="editp!=1" href="" ng-click="populateEditForm(species)">Show</a> 
+                    <a ng-show="editp==1" href="" ng-click="populateEditForm(diagnostics)">Edit</a> 
+                    <a ng-show="editp!=1" href="" ng-click="populateEditForm(diagnostics)">Show</a> 
                 </td>
-                <td>{{ species.name }}</td>
-                <td>{{ species.formula }}</td>
-                <td>{{ species.description }}</td>
+                <td>{{ diagnostics.name }}</td>
+                <td>{{ diagnostics.formula }}</td>
+                <td>{{ diagnostics.description }}</td>
             </tr>
         </tbody>
     </table>
 </div>
 <div class="col-md-12" ng-show="filteredItems == 0">
-    <div class="col-md-12"> <h4>No Species found (or slowly loading data) </h4> </div>
+    <div class="col-md-12"> <h4>No Diagnostics found (or slowly loading data) </h4> </div>
 </div>

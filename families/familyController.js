@@ -1,4 +1,4 @@
-app.controller('familyController', ['$scope', '$http', function ($scope, $http) {
+app.controller('familyController', ['$scope', '$http', '$log', function ($scope, $http, $log) {
 
 /* Initialize */
 
@@ -12,6 +12,7 @@ app.controller('familyController', ['$scope', '$http', function ($scope, $http) 
     get_families = function(){
         $http.get("/php/families.php?action=get_families").success(function(data) {
             $scope.families = data;
+            $log.log('families');
         });
     }
 

@@ -5,32 +5,32 @@ include('config.php');
 /**  Switch Case to Get Action from controller  **/
 
 switch($_GET['action'])  {
-//switch('get_all_species')  {
-    case 'get_species' :
-            get_species();
+//switch('get_all_diagnostics')  {
+    case 'get_diagnostics' :
+            get_diagnostics();
             break;
 
-    case 'get_all_species' :
-            get_all_species();
+    case 'get_all_diagnostics' :
+            get_all_diagnostics();
             break;
 
-    case 'update_species' :
-            update_species();
+    case 'update_diagnostics' :
+            update_diagnostics();
             break;
 
-    case 'insert_species' :
-            insert_species();
+    case 'insert_diagnostics' :
+            insert_diagnostics();
             break;
 }
 
 
-/**  Function to Add a species  **/
-function insert_species() {
+/**  Function to Add a diagnostics  **/
+function insert_diagnostics() {
     global $con;
 
     $data = json_decode(file_get_contents("php://input")); 
 
-    $name          = $data->speciesname;    
+    $name          = $data->diagnostics;    
     $formula       = $data->formula;    
     $edescription  = $data->edescription;    
     $aerosol       = $data->aerosol;
@@ -60,7 +60,7 @@ function insert_species() {
     }
 
     $result = pg_prepare($con, "put_families",
-        "INSERT INTO species_families (species_id, families_id)
+        "INSERT INTO diagnostics (diagnostics, families_id)
          VALUES ($1, $2);");
 
     foreach ( $selectedFamilyIds as$familyid ){
@@ -73,10 +73,10 @@ function insert_species() {
 }
 
 /**  Function to Get All Species  **/
-function get_all_species() {
+function get_all_diagnostics() {
     global $con;
 
-    $result = pg_prepare($con, "get_families", 'SELECT * FROM species_families where species_id=$1;');
+    $result = pg_prepare($con, "get_families", 'SELECT * FROM diagnostics where diagnostics=$1;');
 
     $qry = pg_query($con, 'SELECT * FROM molecules ORDER BY name ;');
     $data = array();
@@ -95,18 +95,18 @@ function get_all_species() {
     return json_encode($data);
 }
 
-/**  Function to populate the form so that this species can be edited**/
-/**  get a species by name **/
-function get_species() {    
+/**  Function to populate the form so that this diagnostics can be edited**/
+/**  get a diagnostics by name **/
+function get_diagnostics() {    
     global $con;
 
     $data = json_decode(file_get_contents("php://input"));     
     $id = $data->id;
 
-    $result = pg_prepare($con, "get_species","SELECT * FROM molecules WHERE id= $1;");
-    $result = pg_prepare($con, "get_families", 'SELECT * FROM species_families where species_id=$1;');
+    $result = pg_prepare($con, "get_diagnostics","SELECT * FROM molecules WHERE id= $1;");
+    $result = pg_prepare($con, "get_families", 'SELECT * FROM diagnostics where diagnostics=$1;');
 
-    $qry = pg_execute($con, "get_species",array($id));
+    $qry = pg_execute($con, "get_diagnostics",array($id));
     $res = array();
     if($row = pg_fetch_assoc($qry))
     {
@@ -123,11 +123,11 @@ function get_species() {
 
 
 /** Function to Update Species **/
-function update_species() {
+function update_diagnostics() {
     global $con;
     $data = json_decode(file_get_contents("php://input")); 
     $id            = $data->id;    
-    $name          = $data->speciesname;    
+    $name          = $data->diagnostics;    
     $formula       = $data->formula;    
     $edescription  = $data->edescription;    
     $aerosol       = $data->aerosol;
@@ -147,11 +147,11 @@ function update_species() {
     $qry_res = pg_execute($con, "update_molecules", $to_be);
 
     $result = pg_prepare($con, "put_families",
-        "INSERT INTO species_families (species_id, families_id)
+        "INSERT INTO diagnostics (diagnostics, families_id)
          VALUES ($1, $2);");
 
-    $result = pg_query($con, "DELETE FROM species_families
-         WHERE species_id=".$id.";");
+    $result = pg_query($con, "DELETE FROM diagnostics
+         WHERE diagnostics=".$id.";");
 
     foreach ( $selectedFamilyIds as $familyid ){
         $result = pg_execute($con, "put_families", array($id, $familyid));

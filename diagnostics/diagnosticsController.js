@@ -1,4 +1,4 @@
-app.controller('speciesController', function ($scope,$http) {
+app.controller('diagnosticsController', ['$scope', '$location', '$anchorScroll', '$http', '$log', function ($scope, $location, $anchorScroll, $http, $log) {
 
     $scope.username = getCookie('chemdb_id');
     $scope.initials = getCookie('chemdb_initials');
@@ -10,7 +10,7 @@ app.controller('speciesController', function ($scope,$http) {
 
     /* paging and filtering of Species */
     $scope.filteredItems =  [];
-    $scope.speciesList  =  [];
+    $scope.diagnosticsList  =  [];
     $scope.predicate = 'name';
 
     $scope.sort_by = function(predicate) {
@@ -24,22 +24,25 @@ app.controller('speciesController', function ($scope,$http) {
         $scope.purpose = 'masterEdit';
     }
 
-    /** get all species in db (sorted by name) in all mechanisms **/
-    get_all_species = function(){
-        $http.post("/php/species.php?action=get_all_species").success(function(data) {
-            $scope.speciesList = data;    
-            $scope.filteredItems = $scope.speciesList.length; //Initially for no filter  
-            $scope.totalItems = $scope.speciesList.length;
+    /** get all diagnostics in db (sorted by name) in all mechanisms **/
+    get_all_diagnostics = function(){
+        $http.post("/php/diagnostics.php?action=get_all_diagnostics").success(function(data) {
+            $scope.diagnosticsList = data;    
+            $scope.filteredItems = $scope.diagnosticsList.length; //Initially for no filter  
+            $scope.totalItems = $scope.diagnosticsList.length;
+            $log.log('diagnostics');
         });
     }
-    get_all_species();
 
     get_all_families = function(){
         $http.post("/php/families.php?action=get_families").success(function(data) {
             $scope.families = data;
         });
     }
+
+    get_all_diagnostics();
     get_all_families();
+
 
 
 /* CREATE TYPE transport AS ENUM ('transported','not-transported'); */
@@ -50,26 +53,29 @@ app.controller('speciesController', function ($scope,$http) {
 //$scope.sourceChoices = [{'emitted'},{'LBC'},{'none'}];
 //$scope.solve_typeChoices = [{'explicit'},{'implicit'}];
 
-    /** Edit species details php **/
-    $scope.populateEditForm = function(species) {  
+    /** Edit diagnostics details php **/
+    $scope.populateEditForm = function(id) {  
       $scope.purpose = 'editSpecies';
-      $http.post('/php/species.php?action=get_species', 
+      $location.hash('top');
+      $anchorScroll();
+      $http.post('/php/diagnostics.php?action=get_diagnostics', 
         {
-            'id'   : species.id
+            'id'   : id
         })      
         .success(function (data, status, headers, config) {    
             $scope.form = data;
+            $log.log(data);
         })
         .error(function(data, status, headers, config){
-            alert("species was not found");
+            alert("diagnostics was not found");
         });
     }
 
-    /** Create species from form input by inserting in database **/
-    $scope.create_species = function() {
-        $http.post('/php/species.php?action=insert_species',
+    /** Create diagnostics from form input by inserting in database **/
+    $scope.create_diagnostics = function() {
+        $http.post('/php/diagnostics.php?action=insert_diagnostics',
             {
-                'speciesname'   : $scope.form.name,
+                'diagnosticsname'   : $scope.form.name,
                 'formula'       : $scope.form.formula,
                 'edescription'  : $scope.form.description,
                 'source'        : $scope.form.source,
@@ -79,11 +85,11 @@ app.controller('speciesController', function ($scope,$http) {
                 'henry'         : $scope.form.henry,
                 'wet_dep'       : $scope.form.wet_dep,
                 'dry_dep'       : $scope.form.dry_dep,
-                'selectedFamilyIds'    : $scope.form.selectedFamilyIds
+                'selectedFamilyIds' : $scope.form.selectedFamilyIds
             })
             .success(function (data, status, headers, config) {
-                //alert(JSON.stringify(data));
-                get_all_species();
+                $log.log(data)
+                get_all_diagnostics();
                 $scope.reset_form();
             })
             .error(function(data, status, headers, config){
@@ -92,12 +98,12 @@ app.controller('speciesController', function ($scope,$http) {
     }
 
 
-    /** Modify species details from form input by updating database **/
-    $scope.modify_species = function() {
-        $http.post('/php/species.php?action=update_species', 
+    /** Modify diagnostics details from form input by updating database **/
+    $scope.modify_diagnostics = function() {
+        $http.post('/php/diagnostics.php?action=update_diagnostics', 
             {
                 'id'            : $scope.form.id,
-                'speciesname'   : $scope.form.name,
+                'diagnosticsname'   : $scope.form.name,
                 'formula'       : $scope.form.formula,
                 'edescription'  : $scope.form.description,
                 'source'        : $scope.form.source,
@@ -107,11 +113,11 @@ app.controller('speciesController', function ($scope,$http) {
                 'henry'         : $scope.form.henry,
                 'wet_dep'       : $scope.form.wet_dep,
                 'dry_dep'       : $scope.form.dry_dep,
-                'selectedFamilyIds'    : $scope.form.selectedFamilyIds
+                'selectedFamilyIds' : $scope.form.selectedFamilyIds
             })
             .success(function (data, status, headers, config) {                 
-                    //alert(JSON.stringify(data));
-                    get_all_species();
+                    $log.log(data)
+                    get_all_diagnostics();
                     $scope.reset_form();
             })
             .error(function(data, status, headers, config){
@@ -119,4 +125,4 @@ app.controller('speciesController', function ($scope,$http) {
             });
     }
 
-});
+}]);
