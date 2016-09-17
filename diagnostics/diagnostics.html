@@ -11,104 +11,53 @@
             <div class="col-sm-9 ">
                 <input type="text" size=20 
                     ng-model="form.name" 
-                    ng-disabled="purpose=='editDiagnostics'"
                     placeholder="Name"><br />
             </div>
         </div>
         <div class ="form-group">
-            <label class="col-sm-3 control-label">Chemical Formula:</label>
-            <div class="col-sm-9 ">
-                <input type="text" size=20 
-                    ng-model="form.formula" 
-                    placeholder="Formula"><br />
-            </div>
-        </div>
-        <div class ="form-group">
-            <label class="col-sm-3 control-label">Description:</label>
-            <div class="col-sm-9">
-                <input type="text" size=50 
-                    ng-model="form.description" 
-                    placeholder="Description"><br />
-            </div>
-        </div>
-        <div class ="form-group">
-            <label class="control-label col-sm-3">Aerosol:</label>
-            <div class="col-sm-3">
-                <select class="form-control" name="Aerosol" id="Aerosol" ng-model="form.aerosol">
-                  <option value="0">Not an Aerosol</option> 
-                  <option value="1">Aerosol</option> 
+            <label class="col-sm-3 control-label">Species 1:</label>
+            <div class="col-sm-6 ">
+                <select class="form-control" name="species1" id="species1" 
+                        ng-model="form.species1"
+                        ng-mousedown="form.family1=''"
+                        ng-options="specie as specie.name for specie in species">
                 </select>
             </div>
         </div>
 
         <div class ="form-group">
-            <label class="control-label col-sm-3">Transport:</label>
-            <div class="col-sm-3">
-                <select class="form-control" name="Transport" id="Transport" ng-model="form.transport">
-                  <option value="transported">Transported</option> 
-                  <option value="not-transported">Not-Transported</option> 
+            <label class="col-sm-3 control-label">Family 1:</label>
+            <div class="col-sm-6 ">
+                <select class="form-control" name="family1" id="family1" 
+                        ng-model="form.family1"
+                        ng-mousedown="form.species1=''"
+                        ng-options="family as family.name for family in families">
                 </select>
             </div>
         </div>
 
         <div class ="form-group">
-            <label class="control-label col-sm-3">Source:</label>
-            <div class="col-sm-3">
-                <select class="form-control" name="Source" id="Source" ng-model="form.source">
-                  <option value="none">No Emissions</option> 
-                  <option value="emitted">Emissions</option> 
-                  <option value="LBC">Surface Boundary Condition</option> 
+            <label class="col-sm-3 control-label">Species 2:</label>
+            <div class="col-sm-6 ">
+                <select class="form-control" name="species2" id="species2" 
+                        ng-model="form.species2"
+                        ng-mousedown="form.family2=''"
+                        ng-options="specie as specie.name for specie in species">
                 </select>
             </div>
         </div>
 
         <div class ="form-group">
-            <label class="control-label col-sm-3">Solver Method:</label>
-            <div class="col-sm-3">
-                <select class="form-control" name="Solve" id="Solve" ng-model="form.solve">
-                  <option value="implicit">Implicit</option>
-                  <option value="explicit">Explicit</option>
+            <label class="col-sm-3 control-label">Family 2:</label>
+            <div class="col-sm-6 ">
+                <select class="form-control" name="family2" id="family2" 
+                        ng-model="form.family2"
+                        ng-mousedown="form.species2=''"
+                        ng-options="family as family.name for family in families">
                 </select>
             </div>
         </div>
-
-        <div class ="form-group">
-            <label class="control-label col-sm-3">Wet Deposition:</label>
-            <div class="col-sm-3">
-                <select class="form-control" name="wet_dep" id="wet_dep" ng-model="form.wet_dep">
-                  <option value="0">No Wet Deposition</option>
-                  <option value="1">Wet Deposition</option>
-                </select>
-            </div>
-        </div>
-
-        <div class ="form-group">
-            <label class="col-sm-3 control-label">Henry's Law:</label>
-            <div class="col-sm-9 ">
-                <input type="text" size=200
-                    ng-model="form.henry" 
-                    placeholder="Floating Point Numbers or function?"><br />
-            </div>
-        </div>
-
-        <div class ="form-group">
-            <label class="control-label col-sm-3">Dry Deposition:</label>
-            <div class="col-sm-3">
-                <select class="form-control" name="dry_dep" id="dry_dep" ng-model="form.dry_dep">
-                  <option value="0">No Dry Deposition</option>
-                  <option value="1">Dry Deposition</option>
-                </select>
-            </div>
-        </div>
-
-        <div class ="form-group">
-            <label class="control-label col-sm-3">Families:</label>
-            <div class="col-sm-3">
-                <select class="form-control" name="families" id="families" ng-model="form.selectedFamilyIds" multiple>
-                  <option ng-repeat="family in families" value="{{family.id}}">{{family.name}}</option>
-                </select>
-            </div>
-        </div>
+        {{form.name}} : {{form.family1.name}}{{form.species1.name}} + {{form.family2.name}}{{form.species2.name}}
 
         </form>
         <button ng-show="editp==1 && purpose == 'addDiagnostics'" class="btn btn-success"  ng-click="create_diagnostics()">Create<br>This<br>Diagnostics</button>
@@ -124,27 +73,28 @@
 </div>
 <h6 align="left">Filter found {{ filtered.length }} Diagnostics of the {{ totalItems }} in the Database</h6>
 
-<div ng-show="filteredItems > 0">
+<div>
     <table class="table table-striped">
         <thead>
-            <th>Action</th>         
-            <th><a ng-click="sort_by('name');">Name&nbsp;</a></th>
-            <th><a ng-click="sort_by('formula');">Formula&nbsp;</a></th>
-            <th>Description</th>
+            <th> </th>
+            <th>Name</th>
+            <th>Family1</th>
+            <th>Species1</th>
+            <th>Family2</th>
+            <th>Species2</th>
         </thead>
         <tbody>
-            <tr ng-repeat="diagnostics in filtered = (diagnosticsList | filter:{name:name_filter} |  orderBy : predicate :reverse)"> 
+            <tr ng-repeat="diagnostics in sdiagnosticsList"> 
                 <td>
                     <a ng-show="editp==1" href="" ng-click="populateEditForm(diagnostics)">Edit</a> 
                     <a ng-show="editp!=1" href="" ng-click="populateEditForm(diagnostics)">Show</a> 
                 </td>
                 <td>{{ diagnostics.name }}</td>
-                <td>{{ diagnostics.formula }}</td>
-                <td>{{ diagnostics.description }}</td>
+                <td>{{ diagnostics.family_id }}</td>
+                <td>{{ diagnostics.species_id }}</td>
+                <td>{{ diagnostics.family_id2 }}</td>
+                <td>{{ diagnostics.species_id2 }}</td>
             </tr>
         </tbody>
     </table>
-</div>
-<div class="col-md-12" ng-show="filteredItems == 0">
-    <div class="col-md-12"> <h4>No Diagnostics found (or slowly loading data) </h4> </div>
 </div>

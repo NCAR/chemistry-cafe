@@ -11,12 +11,6 @@ app.controller('diagnosticsController', ['$scope', '$location', '$anchorScroll',
     /* paging and filtering of Species */
     $scope.filteredItems =  [];
     $scope.diagnosticsList  =  [];
-    $scope.predicate = 'name';
-
-    $scope.sort_by = function(predicate) {
-        $scope.predicate = predicate;
-        $scope.reverse = !$scope.reverse;
-    };
 
     /* Input form at top of page varies, depending on create/mod/delete function */
     $scope.reset_form = function() {
@@ -27,10 +21,10 @@ app.controller('diagnosticsController', ['$scope', '$location', '$anchorScroll',
     /** get all diagnostics in db (sorted by name) in all mechanisms **/
     get_all_diagnostics = function(){
         $http.post("/php/diagnostics.php?action=get_all_diagnostics").success(function(data) {
-            $scope.diagnosticsList = data;    
-            $scope.filteredItems = $scope.diagnosticsList.length; //Initially for no filter  
-            $scope.totalItems = $scope.diagnosticsList.length;
-            $log.log('diagnostics');
+            $log.log(data);
+            $scope.sdiagnosticsList = data.sdiags;
+            $log.log($scope.sdiagnosticsList);
+            $scope.rdiagnosticsList = data.rdiags;
         });
     }
 
@@ -40,18 +34,15 @@ app.controller('diagnosticsController', ['$scope', '$location', '$anchorScroll',
         });
     }
 
+    get_all_species = function(){
+        $http.post("/php/species.php?action=get_all_species").success(function(data) {
+            $scope.species = data;
+        });
+    }
+
     get_all_diagnostics();
     get_all_families();
-
-
-
-/* CREATE TYPE transport AS ENUM ('transported','not-transported'); */
-/* select enum_range(null::transport) */
-/* CREATE TYPE source AS ENUM ('emitted','LBC','none') */
-/* CREATE TYPE solve_type AS ENUM ('explicit','implicit') */
-//$scope.transportChoices = [{choice:'transported'},{choice:'not-transported'}];
-//$scope.sourceChoices = [{'emitted'},{'LBC'},{'none'}];
-//$scope.solve_typeChoices = [{'explicit'},{'implicit'}];
+    get_all_species();
 
     /** Edit diagnostics details php **/
     $scope.populateEditForm = function(id) {  
@@ -75,20 +66,15 @@ app.controller('diagnosticsController', ['$scope', '$location', '$anchorScroll',
     $scope.create_diagnostics = function() {
         $http.post('/php/diagnostics.php?action=insert_diagnostics',
             {
-                'diagnosticsname'   : $scope.form.name,
-                'formula'       : $scope.form.formula,
-                'edescription'  : $scope.form.description,
-                'source'        : $scope.form.source,
-                'transport'     : $scope.form.transport,
-                'aerosol'       : $scope.form.aerosol,
-                'solve'         : $scope.form.solve,
-                'henry'         : $scope.form.henry,
-                'wet_dep'       : $scope.form.wet_dep,
-                'dry_dep'       : $scope.form.dry_dep,
-                'selectedFamilyIds' : $scope.form.selectedFamilyIds
+                'name'          : $scope.form.name,
+                'species_id'    : $scope.form.species_id,
+                'family_id'     : $scope.form.family_id,
+                'species_id2'   : $scope.form.species_id2,
+                'family_id2'    : $scope.form.family_id2
             })
             .success(function (data, status, headers, config) {
-                $log.log(data)
+                //$new_id = data.id;
+                $log.log(data);
                 get_all_diagnostics();
                 $scope.reset_form();
             })
@@ -103,17 +89,11 @@ app.controller('diagnosticsController', ['$scope', '$location', '$anchorScroll',
         $http.post('/php/diagnostics.php?action=update_diagnostics', 
             {
                 'id'            : $scope.form.id,
-                'diagnosticsname'   : $scope.form.name,
-                'formula'       : $scope.form.formula,
-                'edescription'  : $scope.form.description,
-                'source'        : $scope.form.source,
-                'transport'     : $scope.form.transport,
-                'aerosol'       : $scope.form.aerosol,
-                'solve'         : $scope.form.solve,
-                'henry'         : $scope.form.henry,
-                'wet_dep'       : $scope.form.wet_dep,
-                'dry_dep'       : $scope.form.dry_dep,
-                'selectedFamilyIds' : $scope.form.selectedFamilyIds
+                'name'          : $scope.form.name,
+                'species_id'    : $scope.form.species_id,
+                'family_id'     : $scope.form.family_id,
+                'species_id2'   : $scope.form.species_id2,
+                'family_id2'    : $scope.form.family_id2
             })
             .success(function (data, status, headers, config) {                 
                     $log.log(data)

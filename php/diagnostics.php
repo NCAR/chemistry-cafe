@@ -4,8 +4,8 @@ include('config.php');
 
 /**  Switch Case to Get Action from controller  **/
 
-//switch($_GET['action'])  {
-switch('get_all_diagnostics')  {
+switch($_GET['action'])  {
+//switch('get_all_diagnostics')  {
     case 'get_all_diagnostics' :
             get_all_diagnostics();
             break;
