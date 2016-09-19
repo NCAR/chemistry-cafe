@@ -34,7 +34,7 @@ switch($_GET['action'])  {
 
     case 'tstfilewrite' :
             global $con;
-            $id = 101;
+            $id = 97;
             $tags = pg_query($con,"SELECT filename FROM tags WHERE id = ".$id.";");
             $tagref= pg_fetch_array($tags,0,$result_type = PGSQL_ASSOC);
             mkdir('../tag_files/testdir');
@@ -43,48 +43,6 @@ switch($_GET['action'])  {
             write_cesm_tag_file($tagdir,$tagref['filename'],$id);
             write_kpp_tag_file($tagdir,$tagref['filename'],$id);
             break;
-
-}
-
-function cesm_to_kpp_photo_rate($cesm_rate) {
-    global $con;
-// kpp format:   .20946_dp*j(Pj_o2)
-// conversion:
-//        cesm                   resulting kpp
-//        jno=userdefined,      ---:ERROR(jno=userdefined,)
-//        jbrono2_b             j(Pj_brono2_b)
-//        jbigald->,0.2*jno2    0.2*j(Pj_no2)
-//        jalknit->,jch3ooh     j(Pj_ch3ooh)
-    if(strpos($cesm_rate,"=")!==false) return(":ERROR(".$cesm_rate.")");
-    if(strpos($cesm_rate,"->")===false){
-        $kpp_rate = substr($cesm_rate, 1);
-        $wrf_ref = $kpp_rate;
-        $wrf_str = "j(Pj_".$kpp_rate.")";
-    } else {
-        $sections=explode("->,",$cesm_rate);
-        $right = trim($sections[1]);
-        // does it now start with j... or 0.2*j...
-        $start = substr( $right ,0, 1);
-        if ($start == 'j') {
-            $kpp_rate = substr( $right ,1 );
-            $wrf_ref = $kpp_rate;
-            $wrf_str = "j(Pj_".$kpp_rate.")";
-        } else {
-            $vals = explode("*",$right);
-            $wrf_ref = substr($vals[1],1);
-            $wrf_str = $vals[0]."_dp*j(Pj_".substr($vals[1],1).")";
-        }
-    }
-
-    $wrf_rate_array = pg_execute($con,"get_wrf_rates",array($wrf_ref));
-    //print json_encode($wrf_ref);
-    $wrf_rate_comment = '{ERROR}';
-    while($wrf_rate_e = pg_fetch_array($wrf_rate_array)){
-        //print $wrf_rate_e['photr'];
-        //print   "\nnext\n";
-        $wrf_rate_comment = "  {PHOTR".$wrf_rate_e['photr']." ,".$wrf_rate_e['molecule']."}";
-    }
-    return($wrf_str . $wrf_rate_comment);
 
 }
 
@@ -402,10 +360,12 @@ function write_kpp_tag_file($tag_dir, $target_file_name, $tag_id){
     $eqn_file = fopen($wrf_dir."/".$target_file_name.".eqn",'w');
     $spc_file = fopen($wrf_dir."/".$target_file_name.".spc",'w');
     $def_file = fopen($wrf_dir."/".$target_file_name.".def",'w');
+    $rpt_file = fopen($wrf_dir."/".$target_file_name.".rpt",'w');
 
     $b_eqn_file = fopen($boxmox_dir."/".$target_file_name.".eqn",'w');
     $b_spc_file = fopen($boxmox_dir."/".$target_file_name.".spc",'w');
     $b_def_file = fopen($boxmox_dir."/".$target_file_name.".def",'w');
+    $b_rpt_file = fopen($boxmox_dir."/".$target_file_name.".rpt",'w');
 
     // get tag information
     $tagresult = pg_query($con,
@@ -448,11 +408,69 @@ function write_kpp_tag_file($tag_dir, $target_file_name, $tag_id){
     fwrite($eqn_file,"// photorates\n");
 
     //select unique molecules in tag
-    $phot_react = "SELECT DISTINCT ON (moleculename) moleculename, formula, transport, solve FROM photolysis AS p INNER JOIN molecules AS m ON m.name=p.moleculename INNER JOIN tag_photolysis AS tp ON tp.photolysis_id=p.id WHERE tp.tag_id = ".$tag_id." ";
-    $phot_prod = "SELECT DISTINCT ON (moleculename) moleculename, formula, transport, solve FROM photolysisproducts AS pp INNER JOIN molecules AS m ON m.name=pp.moleculename INNER JOIN tag_photolysis AS tp ON tp.photolysis_id=pp.photolysisid WHERE tp.tag_id = ".$tag_id." ";
-    $chem_react = "SELECT DISTINCT ON (moleculename) moleculename, formula, transport, solve FROM reactionreactants AS rr INNER JOIN molecules AS m ON m.name=rr.moleculename INNER JOIN tag_reactions AS tr ON tr.reaction_id=rr.reaction_id WHERE tr.tag_id = ".$tag_id." ";
-    $chem_prod = "SELECT DISTINCT ON (moleculename) moleculename, formula, transport, solve FROM reactionproducts AS rp INNER JOIN molecules AS m ON m.name=rp.moleculename INNER JOIN tag_reactions AS tr ON tr.reaction_id=rp.reaction_id WHERE tr.tag_id = ".$tag_id." ";
-    $molecules_in_tag_query = $phot_react." UNION ".$phot_prod." UNION ".$chem_react." UNION ".$chem_prod." ORDER BY transport, moleculename;";
+    $phot_react = "SELECT moleculename, formula, transport, solve 
+            FROM photolysis AS p 
+            INNER JOIN molecules AS m ON m.name=p.moleculename 
+            INNER JOIN tag_photolysis AS tp ON tp.photolysis_id=p.id WHERE tp.tag_id = ".$tag_id." ";
+    $phot_prod = "SELECT moleculename, formula, transport, solve 
+            FROM photolysisproducts AS pp 
+            INNER JOIN molecules AS m ON m.name=pp.moleculename 
+            INNER JOIN tag_photolysis AS tp ON tp.photolysis_id=pp.photolysisid WHERE tp.tag_id = ".$tag_id." ";
+    $chem_react = "SELECT moleculename, formula, transport, solve 
+            FROM reactionreactants AS rr 
+            INNER JOIN molecules AS m ON m.name=rr.moleculename 
+            INNER JOIN tag_reactions AS tr ON tr.reaction_id=rr.reaction_id WHERE tr.tag_id = ".$tag_id." ";
+    $chem_prod = "SELECT moleculename, formula, transport, solve 
+            FROM reactionproducts AS rp 
+            INNER JOIN molecules AS m ON m.name=rp.moleculename 
+            INNER JOIN tag_reactions AS tr ON tr.reaction_id=rp.reaction_id WHERE tr.tag_id = ".$tag_id." ";
+
+    $molecules_in_tag_query = $phot_react." UNION ".$phot_prod." UNION ".$chem_react." UNION ".$chem_prod ." ORDER BY transport, moleculename;";
+
+    $unsolved_species_query = "
+        WITH reactants AS
+            (
+                SELECT moleculename
+                FROM   photolysis AS p 
+                INNER JOIN 
+                       tag_photolysis AS tp 
+                ON     tp.photolysis_id=p.id  
+                WHERE  tp.tag_id = ".$tag_id."
+                UNION
+                SELECT moleculename
+                FROM   reactionreactants AS rr 
+                INNER JOIN 
+                       tag_reactions AS tr 
+                ON     tr.reaction_id=rr.reaction_id  
+                WHERE  tr.tag_id = ".$tag_id."
+           ) 
+        SELECT moleculename
+        FROM   photolysisproducts AS pp 
+        INNER JOIN 
+               tag_photolysis AS tp 
+        ON     tp.photolysis_id=pp.photolysisid
+        WHERE  tp.tag_id = ".$tag_id ."
+        AND    moleculename NOT IN (SELECT moleculename FROM reactants)
+        UNION
+        SELECT moleculename
+        FROM   reactionproducts AS rp 
+        INNER JOIN 
+               tag_reactions AS tr 
+        ON     tr.reaction_id=rp.reaction_id
+        WHERE  tr.tag_id = ".$tag_id ."
+        AND    moleculename NOT IN (SELECT moleculename FROM reactants) 
+        ORDER BY moleculename ;";
+
+
+    // create report of species in mechansim which are not "solution" species.
+    $unsolved_result = pg_query($con,$unsolved_species_query);
+    fwrite($rpt_file,"Species Appearing only as products\n");
+    fwrite($b_rpt_file,"Species Appearing only as products\n");
+    while($m = pg_fetch_array($unsolved_result)){
+        fwrite($rpt_file," ".$m['moleculename']."\n");
+        fwrite($b_rpt_file," ".$m['moleculename']."\n");
+    }
+
 
     // get an array of {molecules, molecule->formula} strings
     $molecules_result = pg_query($con,$molecules_in_tag_query);
@@ -742,6 +760,7 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id){
     }
 
     $tag_file = fopen($cesm_dir."/".$target_file_name.".in",'w');
+    $rpt_file = fopen($cesm_dir."/".$target_file_name.".rpt",'w');
 
 // get tag information
     $tagresult = pg_query($con,
@@ -785,11 +804,66 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id){
     fwrite($tag_file,"\n      Solution\n");
 
     //select unique molecules in tag
-    $phot_react = "SELECT DISTINCT ON (moleculename) moleculename, formula, transport, solve FROM photolysis AS p INNER JOIN molecules AS m ON m.name=p.moleculename INNER JOIN tag_photolysis AS tp ON tp.photolysis_id=p.id WHERE moleculename <> 'H2O' AND tp.tag_id = ".$tag_id." ";
-    $phot_prod = "SELECT DISTINCT ON (moleculename) moleculename, formula, transport, solve FROM photolysisproducts AS pp INNER JOIN molecules AS m ON m.name=pp.moleculename INNER JOIN tag_photolysis AS tp ON tp.photolysis_id=pp.photolysisid WHERE moleculename <> 'H2O' AND tp.tag_id = ".$tag_id." ";
-    $chem_react = "SELECT DISTINCT ON (moleculename) moleculename, formula, transport, solve FROM reactionreactants AS rr INNER JOIN molecules AS m ON m.name=rr.moleculename INNER JOIN tag_reactions AS tr ON tr.reaction_id=rr.reaction_id WHERE moleculename <> 'H2O' AND tr.tag_id = ".$tag_id." ";
-    $chem_prod = "SELECT DISTINCT ON (moleculename) moleculename, formula, transport, solve FROM reactionproducts AS rp INNER JOIN molecules AS m ON m.name=rp.moleculename INNER JOIN tag_reactions AS tr ON tr.reaction_id=rp.reaction_id WHERE moleculename <> 'H2O' AND tr.tag_id = ".$tag_id." ";
+    $phot_react = "SELECT moleculename, formula, transport, solve 
+            FROM photolysis AS p 
+            INNER JOIN molecules AS m ON m.name=p.moleculename 
+            INNER JOIN tag_photolysis AS tp ON tp.photolysis_id=p.id WHERE moleculename <> 'H2O' AND tp.tag_id = ".$tag_id." ";
+    $phot_prod = "SELECT moleculename, formula, transport, solve 
+            FROM photolysisproducts AS pp 
+            INNER JOIN molecules AS m ON m.name=pp.moleculename 
+            INNER JOIN tag_photolysis AS tp ON tp.photolysis_id=pp.photolysisid WHERE moleculename <> 'H2O' AND tp.tag_id = ".$tag_id." ";
+    $chem_react = "SELECT moleculename, formula, transport, solve 
+            FROM reactionreactants AS rr 
+            INNER JOIN molecules AS m ON m.name=rr.moleculename 
+            INNER JOIN tag_reactions AS tr ON tr.reaction_id=rr.reaction_id WHERE moleculename <> 'H2O' AND tr.tag_id = ".$tag_id." ";
+    $chem_prod = "SELECT moleculename, formula, transport, solve 
+            FROM reactionproducts AS rp 
+            INNER JOIN molecules AS m ON m.name=rp.moleculename 
+            INNER JOIN tag_reactions AS tr ON tr.reaction_id=rp.reaction_id WHERE moleculename <> 'H2O' AND tr.tag_id = ".$tag_id." ";
+
     $molecules_in_tag_query = $phot_react." UNION ".$phot_prod." UNION ".$chem_react." UNION ".$chem_prod." ORDER BY transport ASC, moleculename;";
+
+    $unsolved_species_query = "
+        WITH reactants AS
+            (
+                SELECT moleculename
+                FROM   photolysis AS p 
+                INNER JOIN 
+                       tag_photolysis AS tp 
+                ON     tp.photolysis_id=p.id  
+                WHERE  tp.tag_id = ".$tag_id."
+                UNION
+                SELECT moleculename
+                FROM   reactionreactants AS rr 
+                INNER JOIN 
+                       tag_reactions AS tr 
+                ON     tr.reaction_id=rr.reaction_id  
+                WHERE  tr.tag_id = ".$tag_id."
+           ) 
+        SELECT moleculename
+        FROM   photolysisproducts AS pp 
+        INNER JOIN 
+               tag_photolysis AS tp 
+        ON     tp.photolysis_id=pp.photolysisid
+        WHERE  tp.tag_id = ".$tag_id ."
+        AND    moleculename NOT IN (SELECT moleculename FROM reactants)
+        UNION
+        SELECT moleculename
+        FROM   reactionproducts AS rp 
+        INNER JOIN 
+               tag_reactions AS tr 
+        ON     tr.reaction_id=rp.reaction_id
+        WHERE  tr.tag_id = ".$tag_id ."
+        AND    moleculename NOT IN (SELECT moleculename FROM reactants) 
+        ORDER BY moleculename ;";
+
+    // create report of species in mechansim which are not "solution" species.
+    $unsolved_result = pg_query($con,$unsolved_species_query);
+    fwrite($rpt_file,"Species Appearing only as products\n");
+    while($m = pg_fetch_array($unsolved_result)){
+        fwrite($rpt_file," ".$m['moleculename']."\n");
+    }
+
 
     // get an array of {molecules, molecule->formula} strings
     $molecules_result = pg_query($con,$molecules_in_tag_query);

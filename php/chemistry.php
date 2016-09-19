@@ -80,6 +80,9 @@ function get_all_comments_for_reactions_id($id){
 
 function get_all_reactions() {
 
+    //$data        = json_decode(file_get_contents("php://input"));
+    //$nonobsolete = $data->nonobsolete;
+
     global $con;
 
     $result = pg_prepare($con, "get_all_reactions", 
