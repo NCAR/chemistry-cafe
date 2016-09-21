@@ -2,13 +2,13 @@
     Select purpose of visit.
     -->
     <div class="btn-group" ng-show="editp==1">
-        <label class="btn btn-primary" ng-model="purpose" btn-radio="'branchSelect'">Select Reactions<br>For Mechanism</label>
-        <label class="btn btn-primary" ng-model="purpose" btn-radio="'masterEdit'">Edit<br>Reactions</label>
         <label class="btn btn-primary" ng-model="purpose" btn-radio="'addReaction'">Add New<br>Reaction</label>
+        <label class="btn btn-primary" ng-model="purpose" btn-radio="'masterEdit'">Edit<br>Reactions</label>
+        <label class="btn btn-primary" ng-model="purpose" btn-radio="'wrfSelect'">Assign<br>WRF rate</label>
+        <label class="btn btn-primary" ng-model="purpose" btn-radio="'branchSelect'">Select Reactions<br>For Mechanism</label>
         <label class="btn btn-primary" ng-model="purpose" btn-radio="'markObsolete'">Mark<br>Obsolete</label>
         <label class="btn btn-primary" ng-model="purpose" btn-radio="'showReferences'">Show/Edit<br>References</label>
         <label class="btn btn-primary" ng-model="purpose" btn-radio="'groupSelect'">Assign<br>Section</label>
-        <label class="btn btn-primary" ng-model="purpose" btn-radio="'wrfSelect'">Assign<br>WRF rate</label>
     </div> 
 
     <div class="btn-group" ng-show="editp!=1">
@@ -16,7 +16,7 @@
         <label class="btn btn-primary" ng-model="purpose" btn-radio="'showReferences'">Show<br>References</label>
     </div>
 
-    <br />
+    <br/>
 
     <div ng-show="purpose=='branchSelect'" >
         <h4>Select Reactions for which branch?</h4>
@@ -159,7 +159,6 @@
         </div>
         <table class="table table-striped table-bordered" >
         <thead>
-            <th >ID</th>
             <th ng-show="editp==1"> Remove<br>Reference</th>
             <th >Reference<br>Label</th>
             <th >File</th>

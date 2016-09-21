@@ -10,95 +10,78 @@ switch($_GET['action'])  {
             get_all_diagnostics();
             break;
 
-    case 'get_diagnostic_by_id' :
-            get_diagnostic_by_id();
+    case 'get_sdiag' :
+            get_sdiag();
             break;
 
-    case 'add_reaction_level_diagnostic' :
-            add_reaction_level_diagnostic();
+    case 'ins_sdiag' :
+            ins_sdiag();
             break;
 
-    case 'mod_reaction_level_diagnostic' :
-            mod_reaction_level_diagnostic();
+    case 'mod_sdiag' :
+            mod_sdiag();
             break;
 
-    case 'add_species_level_diagnostic' :
-            add_species_level_diagnostic();
+    case 'get_rdiag' :
+            get_rdiag();
             break;
 
-    case 'mod_species_level_diagnostic' :
-            add_reaction_level_diagnostic();
+    case 'ins_rdiag' :
+            ins_rdiag();
+            break;
+
+    case 'mod_rdiag' :
+            mod_rdiag();
             break;
 
 }
 
 
-/**  Function to Add a diagnostics  **/
-function insert_diagnostics() {
-    global $con;
-
-    $data = json_decode(file_get_contents("php://input")); 
-
-    $name          = $data->diagnostics;    
-    $formula       = $data->formula;    
-    $edescription  = $data->edescription;    
-    $aerosol       = $data->aerosol;
-    $transport     = $data->transport;
-    $source        = $data->source;
-    $solve         = $data->solve;
-    $wet_dep       = $data->wet_dep;
-    $henry         = $data->henry;
-    $dry_dep       = $data->dry_dep;
-    $selectedFamilyIds = $data->selectedFamilyIds;
-
-    $result = pg_prepare($con, "insert_molecules",
-            "INSERT INTO molecules (name, formula, description, transport, source, aerosol, solve, henry, wet_dep, dry_dep) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
-             RETURNING id;");
-
-    $to_be = array($name, $formula, $edescription, $transport, $source, $aerosol, $solve, $henry, $wet_dep, $dry_dep);
-
-    $qry_res = pg_execute($con, "insert_molecules", $to_be);
-    $new_id = pg_fetch_array($qry_res)[0];
-
-    if ($qry_res) {
-        $retval = array('formula' => $formula,'name' =>$name, 'qry' => $qry, 'msg' => "Molecule Added Successfully:".$name, 'success' => true, 'error' => "No error" );
-    } 
-    else {
-        $retval = array('msg' => "Species was not added:".$name, 'success' => false, 'error' => 'Error In inserting record');
-    }
-
-    $result = pg_prepare($con, "put_families",
-        "INSERT INTO diagnostics (diagnostics, families_id)
-         VALUES ($1, $2);");
-
-    foreach ( $selectedFamilyIds as$familyid ){
-        $q_res = pg_execute($con, "put_families", array($new_id, $familyid));
-    }
-
-    print_r(json_encode($retval));
-    return json_encode($retval);
-    //return $retval;
+function IsEmptyString($val){
+    if (trim($val) === ''){$val = NULL;}
+    return $val;
 }
 
-/**  Function to Get All Species  **/
+
 function get_all_diagnostics() {
     global $con;
 
     $diags['sdiags'] = array();
 
     /**  Species-level diagnostics such as VOC + OH **/
-    $sdiags = pg_query($con, 'SELECT * FROM sdiags;');
+    $sql_q="
+        SELECT sd.id, sd.name, sd.species_id, sd.family_id, sd.species_id2, sd.family_id2,
+               sp1.name as sp1name, fm1.name as fm1name, sp2.name as sp2name, fm2.name as fm2name
+        FROM sdiags AS sd
+        LEFT JOIN molecules AS sp1
+        ON sp1.id=sd.species_id
+        LEFT JOIN molecules AS sp2
+        ON sp2.id=sd.species_id2
+        LEFT JOIN families AS fm1
+        ON fm1.id=sd.family_id
+        LEFT JOIN families AS fm2
+        ON fm2.id=sd.family_id2
+        ";
+
+    $sdiags = pg_query($con, $sql_q);
 
     while($diag = pg_fetch_assoc($sdiags))
     {
        $diags['sdiags'][] = $diag;
     }
 
-    /**  Reaction-level diagnostics such as N-conservation **/
-    $diags['rdiags'] = array();
+    /** Reaction-level diagnostics **/
+    $sql_q="
+        SELECT rd.id, rd.name, rd.cesm_namelist
+        FROM rdiags AS rd
+        ";
+    $rdiags = pg_query($con, $sql_q);
 
-        $diags['rdiags'][] = ['null'];
+    $diags['rdiags'] = array();
+    while($diag = pg_fetch_assoc($rdiags))
+    {
+        $diags['rdiags'][] = $diag;
+    }
 
     print_r(json_encode($diags));
     return json_encode($diags);
@@ -106,77 +89,147 @@ function get_all_diagnostics() {
 
 /**  Function to populate the form so that this diagnostics can be edited**/
 /**  get a diagnostics by name **/
-function get_diagnostics() {    
+function get_sdiag() {    
     global $con;
 
     $data = json_decode(file_get_contents("php://input"));     
     $id = $data->id;
 
-    $result = pg_prepare($con, "get_diagnostics", 'SELECT * FROM diagnostics where diagnostics=$1;');
+    $sql_q="
+        SELECT sd.id, sd.name, sd.species_id, sd.family_id, sd.species_id2, sd.family_id2,
+               sp1.name as sp1name, fm1.name as fm1name, sp2.name as sp2name, fm2.name as fm2name
+        FROM sdiags AS sd
+        LEFT JOIN molecules AS sp1
+        ON sp1.id=sd.species_id
+        LEFT JOIN molecules AS sp2
+        ON sp2.id=sd.species_id2
+        LEFT JOIN families AS fm1
+        ON fm1.id=sd.family_id
+        LEFT JOIN families AS fm2
+        ON fm2.id=sd.family_id2
+        WHERE sd.id=$1
+        ";
 
-    $qry = pg_execute($con, "get_diagnostics",array($id));
+    $qry = pg_query_params($con, $sql_q ,array($id));
     $res = array();
     if($row = pg_fetch_assoc($qry))
     {
         $res = $row;
-
-        $famlist = pg_execute($con,"get_families",array($res['id']));
-        while ($fam = pg_fetch_assoc($famlist)) {
-          $res['selectedFamilyIds'][]=$fam['families_id'];
-        }
     }
+
     print_r(json_encode($res));
     return json_encode($res);  
 }
 
+function ins_sdiag(){
 
-/** Function to Update Species **/
-function update_diagnostics() {
     global $con;
-    $data = json_decode(file_get_contents("php://input")); 
-    $id            = $data->id;    
-    $name          = $data->diagnostics;    
-    $formula       = $data->formula;    
-    $edescription  = $data->edescription;    
-    $aerosol       = $data->aerosol;
-    $transport     = $data->transport;
-    $source        = $data->source;
-    $solve         = $data->solve;
-    $wet_dep       = $data->wet_dep;
-    $henry         = $data->henry;
-    $dry_dep       = $data->dry_dep;
-    $selectedFamilyIds = $data->selectedFamilyIds;
 
-    $to_be = array($name, $formula, $edescription, $transport, $source, $aerosol, $solve, $henry, $wet_dep, $dry_dep);
+    $data = json_decode(file_get_contents("php://input"));
+    $name = $data->name;
+    $species_id = IsEmptyString($data->species_id);
+    $family_id = IsEmptyString($data->family_id);
+    $species_id2 = IsEmptyString($data->species_id2);
+    $family_id2 = IsEmptyString($data->family_id2);
 
-    $result = pg_prepare($con, "update_molecules",
-        "UPDATE molecules SET formula=$2, description=$3, transport=$4, source=$5, aerosol=$6, solve=$7, henry=$8, wet_dep=$9, dry_dep=$10   WHERE name=$1;");
+    $sql_q="
+        INSERT INTO sdiags (name, species_id, family_id, species_id2, family_id2)
+        VALUES ($1,$2,$3,$4,$5) 
+        RETURNING id";
 
-    $qry_res = pg_execute($con, "update_molecules", $to_be);
+    $vals = array($name, $species_id, $family_id, $species_id2, $family_id2);
+    $qry = pg_query_params($con, $sql_q, $vals);
+    print_r(json_encode($vals));
 
-    $result = pg_prepare($con, "put_families",
-        "INSERT INTO diagnostics (diagnostics, families_id)
-         VALUES ($1, $2);");
-
-    $result = pg_query($con, "DELETE FROM diagnostics
-         WHERE diagnostics=".$id.";");
-
-    foreach ( $selectedFamilyIds as $familyid ){
-        $result = pg_execute($con, "put_families", array($id, $familyid));
-    }
-
-
-    if ($qry_res) {
-        $arr = array('msg' => "Species Updated Successfully!!!", 'error' => false);
-        $jsn = json_encode($arr);
-        print_r($jsn);
-        return(true);
-    } else {
-        $arr = array('msg' => "Error In Updating record", 'error' => true);
-        $jsn = json_encode($arr);
-        print_r($jsn);
-        return(false);
-    }
 }
+
+function mod_sdiag(){
+
+    global $con;
+
+    $data = json_decode(file_get_contents("php://input"));
+    $id = $data->id;
+    $name = $data->name;
+    $species_id = IsEmptyString($data->species_id);
+    $family_id = IsEmptyString($data->family_id);
+    $species_id2 = IsEmptyString($data->species_id2);
+    $family_id2 = IsEmptyString($data->family_id2);
+
+    $sql_q="
+        UPDATE sdiags
+        SET name=$1,species_id=$2,family_id=$3,species_id2=$4,family_id2=$5
+        WHERE id=$6";
+
+    $vals = array($name, $species_id, $family_id, $species_id2, $family_id2,$id);
+    $qry = pg_query_params($con, $sql_q, $vals);
+    print_r(json_encode($vals));
+
+}
+
+
+
+function get_rdiag() {
+    global $con;
+
+    $data = json_decode(file_get_contents("php://input"));
+    $id = $data->id;
+
+    $sql_q="
+        SELECT rd.id, rd.name, rd.cesm_namelist
+        FROM rdiags AS rd
+        WHERE rd.id=$1
+        ";
+
+    $qry = pg_query_params($con, $sql_q ,array($id));
+    $res = array();
+    if($row = pg_fetch_assoc($qry))
+    {
+        $res = $row;
+    }
+
+    print_r(json_encode($res));
+    return json_encode($res);
+}
+
+function ins_rdiag(){
+
+    global $con;
+
+    $data = json_decode(file_get_contents("php://input"));
+    $name = $data->name;
+    $cesm_namelist = $data->cesm_namelist;
+
+    $sql_q="
+        INSERT INTO rdiags (name, cesm_namelist)
+        VALUES ($1,$2)
+        RETURNING id";
+
+    $vals = array($name, $cesm_namelist);
+    $qry = pg_query_params($con, $sql_q, $vals);
+    print_r(json_encode($vals));
+
+}
+
+function mod_rdiag(){
+
+    global $con;
+
+    $data = json_decode(file_get_contents("php://input"));
+    $id = $data->id;
+    $name = $data->name;
+    $cesm_namelist = $data->cesm_namelist;
+
+    $sql_q="
+        UPDATE rdiags
+        SET name=$1,cesm_namelist=$2
+        WHERE id=$3";
+
+    $vals = array($name, $cesm_namelist, $id);
+    $qry = pg_query_params($con, $sql_q, $vals);
+    print_r(json_encode($vals));
+
+}
+
+
 
 ?>

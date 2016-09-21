@@ -472,6 +472,73 @@ function write_kpp_tag_file($tag_dir, $target_file_name, $tag_id){
     }
 
 
+    // get species-level diagnostics
+    $sql_q="
+        SELECT sd.id, sd.name, sd.species_id, sd.family_id, sd.species_id2, sd.family_id2,
+               sp1.name as sp1name, fm1.name as fm1name, sp2.name as sp2name, fm2.name as fm2name
+        FROM sdiags AS sd
+        LEFT JOIN molecules AS sp1
+        ON sp1.id=sd.species_id
+        LEFT JOIN molecules AS sp2
+        ON sp2.id=sd.species_id2
+        LEFT JOIN families AS fm1
+        ON fm1.id=sd.family_id
+        LEFT JOIN families AS fm2
+        ON fm2.id=sd.family_id2
+        ";
+
+    $sdiagslist = pg_query($con, $sql_q);
+    $sdiags = array();
+    fwrite($rpt_file,   "\n Species-level Diagnositic Definitions \n");
+    fwrite($b_rpt_file, "\n Species-level Diagnositic Definitions \n");
+    while($diag = pg_fetch_assoc($sdiagslist))
+    {
+       $diagrow = array();
+       $diagrow['name'] = $diag['name'];
+       $diagrow['foundinmech'] = false;
+       fwrite($rpt_file, $diag['name'].": ");
+       fwrite($b_rpt_file, $diag['name'].": ");
+       if ($diag['species_id'] ) {
+         $mole=  pg_query($con,'SELECT name from molecules where id='.$diag['species_id']);
+         if($mole=pg_fetch_assoc($mole)){
+             $diagrow['l1']=array($mole['name']);
+         } 
+       }
+       if ($diag['family_id'] ) {
+         $diagrow['l1']=array();
+         $molelist=  pg_query($con,'
+              SELECT m.name from species_families 
+              INNER JOIN molecules AS m
+              on m.id=species_families.species_id
+              WHERE species_families.families_id='.$diag['family_id']);
+         while($mole=pg_fetch_assoc($molelist)){
+             array_push($diagrow['l1'],$mole['name']);
+         } 
+       }
+       fwrite($rpt_file, json_encode($diagrow['l1'])." , ");
+       fwrite($b_rpt_file, json_encode($diagrow['l1']))." , ";
+       if ($diag['species_id2'] ) {
+         $mole=  pg_query($con,'SELECT name from molecules where id='.$diag['species_id2']);
+         if($mole=pg_fetch_assoc($mole)){
+             $diagrow['l2']=array($mole['name']);
+         }
+       }
+       if ($diag['family_id2'] ) {
+         $diagrow['l2']=array();
+         $molelist=  pg_query($con,'
+              SELECT m.name from species_families 
+              INNER JOIN molecules AS m
+              on m.id=species_families.species_id
+              WHERE species_families.families_id='.$diag['family_id2']);
+         while($mole=pg_fetch_assoc($molelist)){
+             array_push($diagrow['l2'],$mole['name']);
+         }
+       }
+       fwrite($rpt_file, json_encode($diagrow['l2'])."\n");
+       fwrite($b_rpt_file, json_encode($diagrow['l2'])."\n");
+       array_push($sdiags,$diagrow);
+    }
+
     // get an array of {molecules, molecule->formula} strings
     $molecules_result = pg_query($con,$molecules_in_tag_query);
     $m_array = [];
@@ -557,12 +624,6 @@ function write_kpp_tag_file($tag_dir, $target_file_name, $tag_id){
                 $rate_string = $p['wrcoeff']."_dp*j(Pj_".$p['wrname'].") ";
             }
 
-            //$rate_string = cesm_to_kpp_photo_rate($p['rate']);
-    
-            // construct string for each line of file
-            //$photolysis_reaction_string = $rate_string . "      " . $reactant_string . " -> " . $product_string . "\n";
-            // pad on the right with spaces to pseudo-format output
-    
             $jstring = "J".$p['id'];
             $lab = "{".$equation_index.":".$jstring."} ";
     
@@ -642,20 +703,33 @@ function write_kpp_tag_file($tag_dir, $target_file_name, $tag_id){
             }
 
             // construct reactants string
+            $no_m_r_array = []; // for testing against species-level reactants
             $r_array = [];
             $r_reactants = pg_execute($con,"get_r_kpp_reactants",array($r['id']));
-
             while($rr = pg_fetch_array($r_reactants)){
+                if ($rr['moleculename'] != 'M') {
+                    $no_m_r_array[]=$rr['moleculename'];
+                }
                 if ($include_mass) {
                     $r_array[] = $rr['moleculename'];
                 } elseif ($rr['moleculename'] != 'M') {
                     $r_array[] = $rr['moleculename'];
                 }
             }
+            // test to see if matches species-level reactants
             $reactants_string = implode("+",$r_array);
 
             // construct products string
             $p_array = [];
+            foreach ($sdiags as $sdiag){
+              if(count($no_m_r_array) > 1){
+                if ( ( in_array($no_m_r_array[0],$sdiag['l1']) && in_array($no_m_r_array[1],$sdiag['l2']) ) || (in_array($no_m_r_array[1],$sdiag['l1']) && in_array($no_m_r_array[0],$sdiag['l2']))){
+                    $p_array[]=$sdiag['name'];
+                    $sdiag['foundinmech'] = true;  // keep track if the diagnostic "molecule" has been added to any product list
+                }
+              }
+            }
+
             $r_products = pg_execute($con,"get_r_kpp_products",array($r['id']));
             while($rp = pg_fetch_array($r_products)){
                 if ($include_mass) {
@@ -688,6 +762,13 @@ function write_kpp_tag_file($tag_dir, $target_file_name, $tag_id){
             $line .=  $rate_string . "\n";
             fwrite($eqn_file,$line);
         }
+    }
+
+    fwrite($rpt_file,  "\n Diagnostics Appearing products\n");
+    fwrite($b_rpt_file,"\n Diagnostics Appearing as products\n");
+    foreach ($sdiags as $sdiag){
+        fwrite($rpt_file," ".$sdiag['name']."\n");
+        fwrite($b_rpt_file," ".$sdiag['name']."\n");
     }
     
     // close the mechanism file

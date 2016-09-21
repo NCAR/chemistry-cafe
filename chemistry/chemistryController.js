@@ -118,7 +118,7 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
         } else if ($scope.purpose ==='addReaction') {  // those reactions not obsolete
             return( true ); 
 
-        } else if ($scope.purpose ==='showReferences' || $scope.purpose ==='branchSelect' || $scope.purpose ==='groupSelect' || $scope.purpose==='editReaction' || $scope.purpose ==='wrfSelect') {
+        } else if ($scope.purpose ==='showReferences' || $scope.purpose ==='branchSelect' || $scope.purpose ==='groupSelect' || $scope.purpose==='editReaction' || $scope.purpose ==='wrfSelect' || $scope.purpose === 'addDiags') {
             return( !chemistry.obsolete ); 
 
         }

@@ -1,10 +1,11 @@
     <div class="btn-group" ng-show="editp==1">
-        <label class="btn btn-primary" ng-model="purpose" btn-radio="'masterEdit'">Edit<br>Diagnostics</label>
-        <label class="btn btn-primary" ng-model="purpose" btn-radio="'addDiagnostics'">Add New<br>Diagnostics</label>
+        <label class="btn btn-primary" ng-model="purpose" btn-radio="'masterEdit'">Edit<br><br>Diagnostics</label>
+        <label class="btn btn-primary" ng-model="purpose" btn-radio="'addSDiagnostics'">Add<br>Species-Level<br>Diagnostics</label>
+        <label class="btn btn-primary" ng-model="purpose" btn-radio="'addRDiagnostics'">Add<br>Reaction-Level<br>Diagnostics</label>
     </div>
     <hr>
 
-    <div ng-show="purpose=='addDiagnostics' || purpose=='editDiagnostics'">
+    <div ng-show="purpose=='addSDiagnostics' || purpose=='editSDiagnostics'">
         <form class="form-horizontal">
         <div class ="form-group">
             <label class="col-sm-3 control-label">Diagnostics Name:</label>
@@ -18,9 +19,9 @@
             <label class="col-sm-3 control-label">Species 1:</label>
             <div class="col-sm-6 ">
                 <select class="form-control" name="species1" id="species1" 
-                        ng-model="form.species1"
-                        ng-mousedown="form.family1=''"
-                        ng-options="specie as specie.name for specie in species">
+                        ng-model="form.species_id"
+                        ng-mousedown="form.family_id=''"
+                        ng-options="specie.id as specie.name for specie in species">
                 </select>
             </div>
         </div>
@@ -29,9 +30,9 @@
             <label class="col-sm-3 control-label">Family 1:</label>
             <div class="col-sm-6 ">
                 <select class="form-control" name="family1" id="family1" 
-                        ng-model="form.family1"
-                        ng-mousedown="form.species1=''"
-                        ng-options="family as family.name for family in families">
+                        ng-model="form.family_id"
+                        ng-mousedown="form.species_id=''"
+                        ng-options="family.id as family.name for family in families">
                 </select>
             </div>
         </div>
@@ -40,9 +41,9 @@
             <label class="col-sm-3 control-label">Species 2:</label>
             <div class="col-sm-6 ">
                 <select class="form-control" name="species2" id="species2" 
-                        ng-model="form.species2"
-                        ng-mousedown="form.family2=''"
-                        ng-options="specie as specie.name for specie in species">
+                        ng-model="form.species_id2"
+                        ng-mousedown="form.family_id2=''"
+                        ng-options="specie.id as specie.name for specie in species">
                 </select>
             </div>
         </div>
@@ -51,50 +52,98 @@
             <label class="col-sm-3 control-label">Family 2:</label>
             <div class="col-sm-6 ">
                 <select class="form-control" name="family2" id="family2" 
-                        ng-model="form.family2"
-                        ng-mousedown="form.species2=''"
-                        ng-options="family as family.name for family in families">
+                        ng-model="form.family_id2"
+                        ng-mousedown="form.species_id2=''"
+                        ng-options="family.id as family.name for family in families">
                 </select>
             </div>
         </div>
-        {{form.name}} : {{form.family1.name}}{{form.species1.name}} + {{form.family2.name}}{{form.species2.name}}
+        {{form.name}}(ID:{{form.id}}) : {{form.family_id}}{{form.species_id}} + {{form.family_id2}}{{form.species_id2}}
 
         </form>
-        <button ng-show="editp==1 && purpose == 'addDiagnostics'" class="btn btn-success"  ng-click="create_diagnostics()">Create<br>This<br>Diagnostics</button>
-        <button ng-show="editp==1 && purpose == 'editDiagnostics'" class="btn btn-success" ng-click="modify_diagnostics()">Commit<br>Change</button>
+        <button ng-show="editp==1 && purpose == 'addSDiagnostics'" class="btn btn-success"  ng-click="create_sdiag()">Create</button>
+        <button ng-show="editp==1 && purpose == 'editSDiagnostics'" class="btn btn-success" ng-click="modify_sdiag()">Commit</button>
         <button class="btn btn-success" 
-           ng-show="purpose=='addDiagnostics' || purpose=='editDiagnostics'" 
+           ng-show="['addSDiagnostics','editSDiagnostics'].indexOf(purpose)!== -1" 
            ng-click="reset_form()">Cancel</button>
     <hr>
     </div>
 
-<div>Filter:
-    <input type="text" ng-model="name_filter" ng-change="filter()" placeholder="Name Substring" class="form-control" />
-</div>
-<h6 align="left">Filter found {{ filtered.length }} Diagnostics of the {{ totalItems }} in the Database</h6>
+    <div ng-show="purpose=='addRDiagnostics' || purpose=='editRDiagnostics'">
+        <form class="form-horizontal">
+        <div class ="form-group">
+            <label class="col-sm-3 control-label">Diagnostics Name:</label>
+            <div class="col-sm-9 ">
+                <input type="text" size=20 
+                    ng-model="form.name" 
+                    placeholder="Name"><br />
+            </div>
+        </div>
+        <div class ="form-group">
+            <label class="col-sm-3 control-label">Include in CESM namelist:</label>
+            <div class="col-sm-6 ">
+                <select class="form-control"
+                        ng-model="form.cesm_namelist">
+                   <option value="T">Yes</option>
+                   <option value="F">No</option>
+                </select>
+            </div>
+        </div>
+        <button ng-show="editp==1 && purpose == 'addRDiagnostics'" class="btn btn-success"  ng-click="create_rdiag()">Create</button>
+        <button ng-show="editp==1 && purpose == 'editRDiagnostics'" class="btn btn-success" ng-click="modify_rdiag()">Commit</button>
+        <button class="btn btn-success" 
+           ng-show="['addRDiagnostics','editRDiagnostics'].indexOf(purpose)!== -1" 
+           ng-click="reset_form()">Cancel</button>
+        <hr>
+    </div>
 
 <div>
     <table class="table table-striped">
         <thead>
             <th> </th>
             <th>Name</th>
+            <th> </th>
             <th>Family1</th>
             <th>Species1</th>
+            <th> </th>
             <th>Family2</th>
             <th>Species2</th>
         </thead>
         <tbody>
-            <tr ng-repeat="diagnostics in sdiagnosticsList"> 
+            <tr ng-repeat="diagnostic in sdiagnosticsList"> 
                 <td>
-                    <a ng-show="editp==1" href="" ng-click="populateEditForm(diagnostics)">Edit</a> 
-                    <a ng-show="editp!=1" href="" ng-click="populateEditForm(diagnostics)">Show</a> 
+                    <a ng-show="editp==1" href="" ng-click="populateEditForm(diagnostic.id)">Edit</a> 
+                    <a ng-show="editp!=1" href="" ng-click="populateEditForm(diagnostic.id)">Show</a> 
                 </td>
-                <td>{{ diagnostics.name }}</td>
-                <td>{{ diagnostics.family_id }}</td>
-                <td>{{ diagnostics.species_id }}</td>
-                <td>{{ diagnostics.family_id2 }}</td>
-                <td>{{ diagnostics.species_id2 }}</td>
+                <td>{{ diagnostic.name }}</td>
+                <td> | </td>
+                <td>{{ diagnostic.fm1name }}</td>
+                <td>{{ diagnostic.sp1name }}</td>
+                <td> | </td>
+                <td>{{ diagnostic.fm2name }}</td>
+                <td>{{ diagnostic.sp2name }}</td>
             </tr>
         </tbody>
     </table>
 </div>
+
+<div>
+    <table class="table table-striped">
+        <thead>
+            <th> </th>
+            <th>Name</th>
+            <th>CESM<br>namelist</th>
+        </thead>
+        <tbody>
+            <tr ng-repeat="rdiagnostic in rdiagnosticsList"> 
+                <td>
+                    <a ng-show="editp==1" href="" ng-click="populateEditFormR(rdiagnostic.id)">Edit</a>
+                    <a ng-show="editp!=1" href="" ng-click="populateEditFormR(rdiagnostic.id)">Show</a>
+                </td>
+                <td>{{ rdiagnostic.name }}</td>
+                <td>{{ rdiagnostic.cesm_namelist =='T' ? "Yes" : "No" }}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
