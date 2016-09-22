@@ -5,7 +5,7 @@ include('config.php');
 /**  Switch Case to Get Action from controller  **/
 
 switch($_GET['action'])  {
-//switch('get_families')  {
+//switch('get_species_in_family')  {
     case 'get_families' :
             get_families();
             break;
@@ -22,6 +22,17 @@ switch($_GET['action'])  {
             mod_family();
             break;
 
+    case 'get_species_in_family':
+            get_species_in_family();
+            break;
+  
+   case 'add_species_in_family':
+            add_species_in_family();
+            break;
+  
+   case 'del_species_in_family':
+            del_species_in_family();
+            break;
 }
 
 
@@ -48,6 +59,36 @@ function get_family_by_id() {
     {
         print_r(json_encode($row));
     }
+    return;
+}
+
+function get_species_in_family() {
+
+    global $con;
+
+    $data = json_decode(file_get_contents("php://input"));
+    $family_id=$data->family_id;
+    //$family_id = 1;
+
+    $qry = pg_query_params($con, "
+        WITH sp_f AS (
+            SELECT sp.id, sp.name, sp.formula, sp.description, spf.families_id
+            FROM molecules AS sp 
+            LEFT JOIN species_families AS spf
+            ON spf.species_id=sp.id AND spf.families_id = $1
+        )
+        SELECT sp_f.id, sp_f.name, sp_f.formula, sp_f.description, 
+        CASE WHEN sp_f.families_id = $1 THEN 'T' else 'F' END as infamily  
+        FROM sp_f
+        ORDER BY sp_f.name"
+        ,array($family_id));
+
+    $spinfam = array();
+    while($row = pg_fetch_array($qry,NULL, PGSQL_ASSOC))
+    {
+        $spinfam[]=$row;
+    }
+    print_r(json_encode($spinfam));
     return;
 }
 
@@ -84,6 +125,33 @@ function mod_family() {
     $result = pg_execute($con, "mod_family",array($id,$name,$description));
 
     return;
+}
+
+function add_species_in_family() {
+
+    global $con;
+
+    $data = json_decode(file_get_contents("php://input"));
+    $families_id=$data->families_id;
+    $species_id =$data->species_id;
+
+    $qry = pg_query_params($con, "INSERT INTO species_families (families_id, species_id) VALUES ($1,$2)",array($families_id,$species_id));
+    print_r("added species".$species_id." from family ".$families_id);
+ 
+}
+
+
+function del_species_in_family() {
+
+    global $con;
+
+    $data = json_decode(file_get_contents("php://input"));
+    $families_id=$data->families_id;
+    $species_id =$data->species_id;
+
+    $qry = pg_query_params($con, "DELETE FROM species_families WHERE families_id=$1 and species_id=$2",array($families_id,$species_id));
+    print_r("deleted species".$species_id." from family ".$families_id);
+
 }
 
 

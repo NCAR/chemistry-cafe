@@ -81,7 +81,42 @@ app.controller('familyController', ['$scope', '$http', '$log', function ($scope,
                 $scope.reset();
                 get_families();
             });
-
     }
+
+    $scope.getSpeciesFamilyList=function(family){
+        $scope.familySelection=family;
+        $http.post('/php/families.php?action=get_species_in_family',
+            {
+                'family_id'  : family.id
+            })
+            .success(function (data, status, headers, config) {
+                $scope.purpose='assignFamily';
+                $scope.speciesFamilyList=data;
+            });
+    }
+
+    $scope.toggleIncludeInFamily=function(specie){
+        alert(specie.id);
+        alert($scope.familySelection.id);
+        if(specie.infamily=='T'){
+          $http.post('/php/families.php?action=add_species_in_family',
+            {
+                'families_id'  : $scope.familySelection.id,
+                'species_id' : specie.id
+            })
+            .success(function (data, status, headers, config) {
+                //alert(data);
+            })
+        } else {
+          $http.post('/php/families.php?action=del_species_in_family',
+            {
+                'families_id'  : $scope.familySelection.id,
+                'species_id' : specie.id
+            })
+            .success(function (data, status, headers, config) {
+                //alert(data);
+            })}
+        };
+
 
 }]);
