@@ -24,6 +24,8 @@
     -->
     <div ng-show="(purpose == 'editPhotolysis' || purpose == 'addReaction') && (editp == 1)">
         <hr>
+        <div ng-show="purpose == 'editPhotolysis'"><h4>In Mechanisms: {{branchStringEdit}} </h4></div>
+        <hr>
         <form class="form-horizontal">
           <div class ="form-group">
               <label class="col-sm-2 control-label">Reaction Section:</label>
@@ -85,11 +87,10 @@
     -->
     <div ng-show="purpose == 'editPhotolysis'">
         <hr>
-        <h5>For these branches ( <strong>{{branchStringEdit}}</strong> ) </h5>
         <p>{{previousRate}}</p>
         <p>{{previousMolecule}} &rarr; {{previousProductString}}</p>
         <div  ng-show="editp==1">
-            <h4><strong>Modified to:</strong></h4>
+            <h4><strong>---- Changing to -----</strong></h4>
             <p>{{formData.rate}}</p>
             <p>{{formData.molecule}} &rarr; {{productStringEdit}}</p> <br />
             <p>{{initials}} : {{today | date :'yyyy-MM-dd'}} : {{commentEdit}}</p>
