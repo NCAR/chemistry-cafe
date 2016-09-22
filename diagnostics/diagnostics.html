@@ -137,8 +137,9 @@
         <tbody>
             <tr ng-repeat="rdiagnostic in rdiagnosticsList"> 
                 <td>
-                    <a ng-show="editp==1" href="" ng-click="populateEditFormR(rdiagnostic.id)">Edit</a>
-                    <a ng-show="editp!=1" href="" ng-click="populateEditFormR(rdiagnostic.id)">Show</a>
+                    <button class="btn btn-default btn-sm" ng-click="populateEditFormR(rdiagnostic.id)">Edit</button>
+                    <button class="btn btn-default btn-sm" ng-click="assignKineticCoeffs(rdiagnostic)">Assign to<br>Kinetics</button>
+                    <button class="btn btn-default btn-sm" ng-click="assignPhotolysisCoeffs(rdiagnostic)">Assign to<br>Photolysis</button>
                 </td>
                 <td>{{ rdiagnostic.name }}</td>
                 <td>{{ rdiagnostic.cesm_namelist =='T' ? "Yes" : "No" }}</td>
@@ -146,4 +147,53 @@
         </tbody>
     </table>
 </div>
+
+<div ng-show="purpose=='editRKDiags'">
+    <hr>
+    <table class="table table-striped table-bordered">
+        <thead>
+            <th>id</th>
+            <th>Coeffient for {{selectedDiagnostic.name}}</th>
+            <th>Reactants</th>
+            <th>Products</th>
+            <th>Rate</th>
+            <th>Label</th>
+            <th>cph </th>
+        </thead>
+        <tbody>
+            <tr ng-repeat="kineticCoeff in kineticsCoeffList">
+            <td>{{kineticCoeff.id}}</td>
+            <td><input type="text" ng-model="kineticCoeff.coefficient"><button class="btn btn-sm" ng-click="commitKCoeff(selectedDiagnostic, kineticCoeff)">Commit</button></td>
+            <td>{{kineticCoeff.reactantString}}</td>
+            <td>{{kineticCoeff.productString}}</td>
+            <td>{{kineticCoeff.rateString}}</td>
+            <td>{{kineticCoeff.label}}</td>
+            <td>{{kineticCoeff.cph}}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div ng-show="purpose=='editPKDiags'">
+    <hr>
+    <table class="table table-striped table-bordered">
+        <thead>
+            <th>id</th>
+            <th>Coeffient for {{selectedDiagnostic.name}}</th>
+            <th>Molecule</th>
+            <th>Rate</th>
+            <th>Products</th>
+        </thead>
+        <tbody>
+            <tr ng-repeat="photolysisCoeff in photolysisCoeffList">
+            <td>{{photolysisCoeff.id}}</td>
+            <td><input type="text" ng-model="photolysisCoeff.coefficient"><button class="btn btn-sm" ng-click="commitPCoeff(selectedDiagnostic, photolysisCoeff)">Commit</button></td>
+            <td>{{photolysisCoeff.molecule}}</td>
+            <td>{{photolysisCoeff.rate}}</td>
+            <td>{{photolysisCoeff.productString}}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
 

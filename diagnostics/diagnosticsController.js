@@ -157,7 +157,57 @@ app.controller('diagnosticsController', ['$scope', '$location', '$anchorScroll',
             });
     }
 
+    $scope.assignKineticCoeffs = function(rdiagnostic){
+        $scope.selectedDiagnostic = rdiagnostic;
+        $http.post('/php/diagnostics.php?action=get_reactions_and_diag_coeffs',
+            {
+                'rdiag_id'            : rdiagnostic.id
+            })
+            .success(function (data, status, headers, config) {
+                $scope.purpose="editRKDiags";
+                $scope.kineticsCoeffList=data;
+                //alert(data);
+            })
+    }
 
+    $scope.commitKCoeff = function(rdiag,kinetic){
+        $http.post('/php/diagnostics.php?action=set_kinetic_rdiag_coeff',{
+   
+                'rdiags_id'      : rdiag.id,
+                'coefficient'    : kinetic.coefficient,
+                'reaction_id'    : kinetic.id
+            })
+            .success(function (data, status, headers, config) {
+                //alert(data);
+                kinetic.coefficient = data;
+            })
+    }
 
+    $scope.assignPhotolysisCoeffs = function(rdiagnostic){
+        $scope.selectedDiagnostic = rdiagnostic;
+        $http.post('/php/diagnostics.php?action=get_photolysis_and_diag_coeffs',
+            {
+                'rdiag_id'            : rdiagnostic.id
+            })
+            .success(function (data, status, headers, config) {
+                $scope.purpose="editPKDiags";
+                $scope.photolysisCoeffList=data;
+                //alert(data);
+            })
+    }
+
+    $scope.commitPCoeff = function(rdiag,photolysis){
+        $http.post('/php/diagnostics.php?action=set_photolysis_rdiag_coeff',{
+
+                'rdiags_id'      : rdiag.id,
+                'coefficient'    : photolysis.coefficient,
+                'photolysis_id'  : photolysis.id
+            })
+            .success(function (data, status, headers, config) {
+                photolysis.coefficient = data;
+            })
+    }
+
+                
 
 }]);

@@ -34,7 +34,7 @@ switch($_GET['action'])  {
 
     case 'tstfilewrite' :
             global $con;
-            $id = 97;
+            $id = 103;
             $tags = pg_query($con,"SELECT filename FROM tags WHERE id = ".$id.";");
             $tagref= pg_fetch_array($tags,0,$result_type = PGSQL_ASSOC);
             mkdir('../tag_files/testdir');
@@ -940,10 +940,11 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id){
 
     // create report of species in mechansim which are not "solution" species.
     $unsolved_result = pg_query($con,$unsolved_species_query);
-    fwrite($rpt_file,"Species Appearing only as products\n");
+    fwrite($rpt_file,"\n Species Appearing only as products\n");
     while($m = pg_fetch_array($unsolved_result)){
         fwrite($rpt_file," ".$m['moleculename']."\n");
     }
+    fwrite($rpt_file,"\n");
 
 
     // get an array of {molecules, molecule->formula} strings
@@ -1010,6 +1011,17 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id){
     fwrite($tag_file," CHEMISTRY\n");
     fwrite($tag_file,"      Photolysis\n");
 
+// Diagnostics
+    fwrite($rpt_file,"\n The following diagnostics may be in your mechanism. \n Please add them to the Species list, and other locations as necessary. \n");
+    $r_diag_list = pg_query($con, "SELECT name as moleculename from rdiags;");
+    while($d = pg_fetch_array($r_diag_list)){
+        fwrite($rpt_file," ".$d['moleculename']."\n");
+    }
+    fwrite($rpt_file,"\n");
+
+// Warning
+    fwrite($rpt_file,"\n Please check to see if the Fixed Species List is correct\n");
+
 // photolysis
     // get all photolysis reactions and components (for tag);
 
@@ -1020,6 +1032,12 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id){
         "SELECT moleculename, coefficient 
          FROM photolysisproducts AS pp 
          WHERE pp.photolysisid = $1");
+  
+    $result = pg_prepare($con,"get_rdiags", 
+         "SELECT r.name as moleculename, pr.coefficient
+          FROM photolysis_rdiags AS pr
+          INNER JOIN rdiags AS r on r.id=pr.rdiags_id
+          WHERE pr.photolysis_id = $1");
 
     while($group = pg_fetch_array($groups)){
 
@@ -1047,6 +1065,10 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id){
                 } else {
                     $p_array[] = $pp['moleculename'];
                 } 
+            }
+            $r_diags = pg_execute($con,"get_rdiags",array($p['id']));
+            while($r_diag = pg_fetch_array($r_diags)){
+                $p_array[] = $r_diag['coefficient']."*".$r_diag['moleculename'];
             }
             $product_string = implode(" + ",$p_array); // combine products for complete yield
             $product_string .= " ";
@@ -1079,6 +1101,13 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id){
         "SELECT moleculename
          FROM reactionreactants AS rr 
          WHERE rr.reaction_id = $1");
+
+    $result = pg_prepare($con,"get_rrdiags",
+         "SELECT r.name as moleculename, rr.coefficient
+          FROM reaction_rdiags AS rr
+          INNER JOIN rdiags AS r on r.id=rr.rdiags_id
+          WHERE rr.reaction_id = $1");
+
 
     $groups = pg_query($con,"SELECT id, description, ordering FROM reaction_groups ORDER BY ordering ASC;");
 
@@ -1119,6 +1148,10 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id){
                 } else {
                     $p_array[] = $rp['moleculename'];
                 } 
+            }
+            $r_diags = pg_execute($con,"get_rrdiags",array($r['id']));
+            while($r_diag = pg_fetch_array($r_diags)){
+                $p_array[] = $r_diag['coefficient']."*".$r_diag['moleculename'];
             }
             $products_string = implode(" + ",$p_array);
             $products_string .= " ";
