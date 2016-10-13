@@ -42,7 +42,8 @@
                           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Species <span class="caret"></span></a>
                           <ul class="dropdown-menu" role="menu">
                             <li><a href="#/Species">Species</a></li>
-                            <li ng-show="editp==1"><a href="#/Families">Families</a></li>
+                            <li><a href="#/Families">Families</a></li>
+                            <li><a href="#/Externals">External Packages</a></li>
                           </ul>
                         </li>
                         <li class="dropdown">
@@ -63,7 +64,7 @@
         </header>
 
         <section class="container" 
-                 id="body">
+                 id="body" ng-show="!maintenance">
             <div data-ng-view=""></div>
         </section>
         <hr />
@@ -88,6 +89,7 @@
 <script type="text/javascript" src="diagnostics/diagnosticsController.js"></script>
 <script type="text/javascript" src="species/speciesController.js"></script>
 <script type="text/javascript" src="families/familyController.js"></script>
+<script type="text/javascript" src="externals/externalsController.js"></script>
 <script type="text/javascript" src="references/referenceController.js"></script>
 <script type="text/javascript" src="tags/tagsController.js"></script>
 <script type="text/javascript" src="compare/compareController.js"></script>

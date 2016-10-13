@@ -28,6 +28,11 @@ app.config(function ($routeProvider) {
             templateUrl: "/families/family.html"
         });
 
+        $routeProvider.when("/Externals", {
+            controller: "externalsController",
+            templateUrl: "/externals/externals.html"
+        });
+
         $routeProvider.when("/References", {
             controller: "referenceController",
             templateUrl: "/references/reference.html"

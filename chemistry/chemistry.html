@@ -47,22 +47,20 @@
         </div>
 
         <div class ="form-group">
-            <label class="col-sm-3 control-label">CESM Label:</label>
+            <label class="col-sm-3 control-label" >CESM Label:</label>
             <div class="col-sm-9 ">
                 <input type="text" size=20 ng-model="formData.label" placeholder="Label"><br />
             </div>
         </div>
 
-        <div class ="form-group" ng-show="(formData.label.indexOf('usr_') == -1)" >
-            <label class="col-sm-3 control-label">CESM Rate:</label>
-            <div class="col-sm-9 ">
+        <div class ="form-group"  >
+            <label class="col-sm-3 control-label" ng-show="(formData.label.indexOf('usr_') != -1)">CESM Rate: {{formData.label}}( )</label>
+            <label class="col-sm-3 control-label" ng-show="(formData.label.indexOf('usr_') == -1)">CESM Rate:</label>
+            <div class="col-sm-9 " ng-show="(formData.label.indexOf('usr_') == -1)">
                 <input type="text" size=50 ng-model="formData.rateString" placeholder="CESM rate numbers"><br />
             </div>
-        </div>
-        <div class ="form-group" ng-show="(formData.label.indexOf('usr_') != -1)" >
-            <label class="col-sm-3 control-label">CESM Rate:</label>
-            <div class="col-sm-9 ">
-                {{formData.label}}( )
+            <div class="col-sm-9 " ng-show="(formData.label.indexOf('usr_') != -1)">
+                <input type="text" size=50 ng-model="formData.rateString" placeholder="Single Parameter For User Rate"><br />
             </div>
         </div>
 
@@ -113,6 +111,7 @@
     Show the target modification before commit
     -->
     <div ng-show="purpose == 'editReaction'">
+        <h4>For these mechanisms ( <strong>{{sourceData.branchString}}</strong> ) </h4>
         <p>[{{sourceData.label}}]</p>
         <p ng-show="(sourceData.label.indexOf('usr_') == -1)">CESM Rate: {{sourceData.rateString}}</p>
         <p ng-show="(sourceData.label.indexOf('usr_') != -1)">CESM Rate: {{sourceData.label}}( )</p>

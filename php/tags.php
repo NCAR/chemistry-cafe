@@ -34,14 +34,15 @@ switch($_GET['action'])  {
 
     case 'tstfilewrite' :
             global $con;
-            $id = 103;
+            $id = 98;
+            $branch_id = 19;
             $tags = pg_query($con,"SELECT filename FROM tags WHERE id = ".$id.";");
             $tagref= pg_fetch_array($tags,0,$result_type = PGSQL_ASSOC);
             mkdir('../tag_files/testdir');
             $tagdir = '../tag_files/testdir/'.$tagref['filename'];
             mkdir($tagdir);
-            write_cesm_tag_file($tagdir,$tagref['filename'],$id);
-            write_kpp_tag_file($tagdir,$tagref['filename'],$id);
+            write_cesm_tag_file($tagdir,$tagref['filename'],$id, $branch_id);
+            write_kpp_tag_file($tagdir,$tagref['filename'],$id, $branch_id);
             break;
 
 }
@@ -260,8 +261,8 @@ function create_tag() {
     // for each branchphotolysis with branch_id, create tag_photolysis
     $result = pg_query($con, "INSERT INTO tag_photolysis (tag_id, photolysis_id) SELECT ".$tag_id.",photolysis_id FROM branchphotolysis WHERE branch_id =".$branch_id.";");
 
-    write_cesm_tag_file($target_dir,$target_file_name, $tag_id);
-    write_kpp_tag_file($target_dir, $target_file_name, $tag_id);
+    write_cesm_tag_file($target_dir,$target_file_name, $tag_id, $branch_id);
+    write_kpp_tag_file($target_dir, $target_file_name, $tag_id, $branch_id);
 
     //tar up the files
     exec("cd ../tag_files ; tar -cf ".$target_file_name.".tar ".$target_file_name);
@@ -341,7 +342,7 @@ function get_all_comments_for_tag($tag_id){
     return $previous_comments;
 }
 
-function write_kpp_tag_file($tag_dir, $target_file_name, $tag_id){
+function write_kpp_tag_file($tag_dir, $target_file_name, $tag_id, $branch_id){
     global $con;
     // write file $target_file_name with data in $tag_id
 
@@ -477,6 +478,8 @@ function write_kpp_tag_file($tag_dir, $target_file_name, $tag_id){
         SELECT sd.id, sd.name, sd.species_id, sd.family_id, sd.species_id2, sd.family_id2,
                sp1.name as sp1name, fm1.name as fm1name, sp2.name as sp2name, fm2.name as fm2name
         FROM sdiags AS sd
+        INNER JOIN mechanism_wrf_sdiags as mws
+        ON mws.sdiag_id=sd.id
         LEFT JOIN molecules AS sp1
         ON sp1.id=sd.species_id
         LEFT JOIN molecules AS sp2
@@ -485,9 +488,10 @@ function write_kpp_tag_file($tag_dir, $target_file_name, $tag_id){
         ON fm1.id=sd.family_id
         LEFT JOIN families AS fm2
         ON fm2.id=sd.family_id2
+        WHERE mws.mechanism_id = $1;
         ";
 
-    $sdiagslist = pg_query($con, $sql_q);
+    $sdiagslist = pg_query_params($con, $sql_q, array($branch_id));
     $sdiags = array();
     fwrite($rpt_file,   "\n Species-level Diagnositic Definitions \n");
     fwrite($b_rpt_file, "\n Species-level Diagnositic Definitions \n");
@@ -831,7 +835,7 @@ function write_kpp_tag_file($tag_dir, $target_file_name, $tag_id){
     return;
 }
 
-function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id){
+function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id, $mechanism_id){
 
     global $con;
     // write file $target_file_name with data in $tag_id
@@ -842,6 +846,76 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id){
 
     $tag_file = fopen($cesm_dir."/".$target_file_name.".in",'w');
     $rpt_file = fopen($cesm_dir."/".$target_file_name.".rpt",'w');
+    $namelist = fopen($cesm_dir."/".$target_file_name.".atm_in",'w');
+
+// collect species-level diagnostics to namelist
+    $sql_q="
+        SELECT sd.id, sd.name, sd.species_id, sd.family_id, sd.species_id2, sd.family_id2,
+               sp1.name as sp1name, fm1.name as fm1name, sp2.name as sp2name, fm2.name as fm2name
+        FROM sdiags AS sd
+        INNER JOIN mechanism_sdiags as mws
+        ON mws.sdiag_id=sd.id
+        LEFT JOIN molecules AS sp1
+        ON sp1.id=sd.species_id
+        LEFT JOIN molecules AS sp2
+        ON sp2.id=sd.species_id2
+        LEFT JOIN families AS fm1
+        ON fm1.id=sd.family_id
+        LEFT JOIN families AS fm2
+        ON fm2.id=sd.family_id2
+        WHERE mws.mechanism_id = $1;
+        ";
+
+    $sdiagslist = pg_query_params($con, $sql_q, array($mechanism_id));
+    $sdiags = array();
+    fwrite($rpt_file,   "\n Species-level Diagnositic Definitions \n");
+    while($diag = pg_fetch_assoc($sdiagslist))
+    {
+       $diagrow = array();
+       $diagrow['name'] = $diag['name'];
+       $diagrow['labellist'] = array();
+       $diagrow['foundinmech'] = false;
+       fwrite($rpt_file, $diag['name'].": ");
+       if ($diag['species_id'] ) {
+         $mole=  pg_query($con,'SELECT name from molecules where id='.$diag['species_id']);
+         if($mole=pg_fetch_assoc($mole)){
+             $diagrow['l1']=array($mole['name']);
+         }
+       }
+       if ($diag['family_id'] ) {
+         $diagrow['l1']=array();
+         $molelist=  pg_query($con,'
+              SELECT m.name from species_families 
+              INNER JOIN molecules AS m
+              on m.id=species_families.species_id
+              WHERE species_families.families_id='.$diag['family_id']);
+         while($mole=pg_fetch_assoc($molelist)){
+             array_push($diagrow['l1'],$mole['name']);
+         }
+       }
+       fwrite($rpt_file, json_encode($diagrow['l1'])." , ");
+       if ($diag['species_id2'] ) {
+         $mole=  pg_query($con,'SELECT name from molecules where id='.$diag['species_id2']);
+         if($mole=pg_fetch_assoc($mole)){
+             $diagrow['l2']=array($mole['name']);
+         }
+       }
+       if ($diag['family_id2'] ) {
+         $diagrow['l2']=array();
+         $molelist=  pg_query($con,'
+              SELECT m.name from species_families 
+              INNER JOIN molecules AS m
+              on m.id=species_families.species_id
+              WHERE species_families.families_id='.$diag['family_id2']);
+         while($mole=pg_fetch_assoc($molelist)){
+             array_push($diagrow['l2'],$mole['name']);
+         }
+       }
+       fwrite($rpt_file, json_encode($diagrow['l2'])."\n");
+       array_push($sdiags,$diagrow);
+    }
+
+
 
 // get tag information
     $tagresult = pg_query($con,
@@ -888,21 +962,128 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id){
     $phot_react = "SELECT moleculename, formula, transport, solve 
             FROM photolysis AS p 
             INNER JOIN molecules AS m ON m.name=p.moleculename 
-            INNER JOIN tag_photolysis AS tp ON tp.photolysis_id=p.id WHERE moleculename <> 'H2O' AND tp.tag_id = ".$tag_id." ";
+            INNER JOIN tag_photolysis AS tp ON tp.photolysis_id=p.id 
+            WHERE moleculename <> 'H2O' AND tp.tag_id = ".$tag_id." ";
     $phot_prod = "SELECT moleculename, formula, transport, solve 
             FROM photolysisproducts AS pp 
             INNER JOIN molecules AS m ON m.name=pp.moleculename 
-            INNER JOIN tag_photolysis AS tp ON tp.photolysis_id=pp.photolysisid WHERE moleculename <> 'H2O' AND tp.tag_id = ".$tag_id." ";
+            INNER JOIN tag_photolysis AS tp ON tp.photolysis_id=pp.photolysisid 
+            WHERE moleculename <> 'H2O' AND tp.tag_id = ".$tag_id." ";
     $chem_react = "SELECT moleculename, formula, transport, solve 
             FROM reactionreactants AS rr 
             INNER JOIN molecules AS m ON m.name=rr.moleculename 
-            INNER JOIN tag_reactions AS tr ON tr.reaction_id=rr.reaction_id WHERE moleculename <> 'H2O' AND tr.tag_id = ".$tag_id." ";
+            INNER JOIN tag_reactions AS tr ON tr.reaction_id=rr.reaction_id 
+            WHERE moleculename <> 'H2O' AND tr.tag_id = ".$tag_id." ";
     $chem_prod = "SELECT moleculename, formula, transport, solve 
             FROM reactionproducts AS rp 
             INNER JOIN molecules AS m ON m.name=rp.moleculename 
-            INNER JOIN tag_reactions AS tr ON tr.reaction_id=rp.reaction_id WHERE moleculename <> 'H2O' AND tr.tag_id = ".$tag_id." ";
+            INNER JOIN tag_reactions AS tr ON tr.reaction_id=rp.reaction_id 
+            WHERE moleculename <> 'H2O' AND tr.tag_id = ".$tag_id." ";
 
     $molecules_in_tag_query = $phot_react." UNION ".$phot_prod." UNION ".$chem_react." UNION ".$chem_prod." ORDER BY transport ASC, moleculename;";
+
+
+    $transported_phot_react = "SELECT moleculename, formula, solve 
+            FROM photolysis AS p 
+            INNER JOIN molecules AS m ON m.name=p.moleculename 
+            INNER JOIN tag_photolysis AS tp ON tp.photolysis_id=p.id 
+            WHERE NOT EXISTS (
+                SELECT * FROM mechanism_nottransported AS nt 
+                WHERE m.id = nt.species_id 
+                AND mechanism_id = $2
+                )
+            AND moleculename <> 'H2O' AND 
+            tp.tag_id = $1";
+
+    $transported_chem_react = "SELECT moleculename, formula, solve 
+            FROM reactionreactants AS rr 
+            INNER JOIN molecules AS m ON m.name=rr.moleculename 
+            INNER JOIN tag_reactions AS tr ON tr.reaction_id=rr.reaction_id 
+            WHERE NOT EXISTS (
+                SELECT * FROM mechanism_nottransported AS nt 
+                WHERE m.id = nt.species_id 
+                AND mechanism_id = $2
+                )
+            AND moleculename <> 'H2O' 
+            AND tr.tag_id = $1";
+
+
+    $transported_reactants_in_tag_query = $transported_phot_react." UNION ".$transported_chem_react." ORDER BY moleculename;";
+
+    $nontransported_phot_react = "SELECT moleculename, formula, solve 
+            FROM photolysis AS p 
+            INNER JOIN molecules AS m ON m.name=p.moleculename 
+            INNER JOIN tag_photolysis AS tp ON tp.photolysis_id=p.id 
+            WHERE EXISTS (
+                SELECT * FROM mechanism_nottransported AS nt 
+                WHERE m.id = nt.species_id 
+                AND mechanism_id = $2
+                )
+            AND moleculename <> 'H2O' AND 
+            tp.tag_id = $1";
+
+    $nontransported_chem_react = "SELECT moleculename, formula, solve 
+            FROM reactionreactants AS rr 
+            INNER JOIN molecules AS m ON m.name=rr.moleculename 
+            INNER JOIN tag_reactions AS tr ON tr.reaction_id=rr.reaction_id 
+            WHERE EXISTS (
+                SELECT * FROM mechanism_nottransported AS nt 
+                WHERE m.id = nt.species_id 
+                AND mechanism_id = $2
+                )
+            AND moleculename <> 'H2O' 
+            AND tr.tag_id = $1";
+
+    $nontransported_reactants_in_tag_query = $nontransported_phot_react." UNION ".$nontransported_chem_react." ORDER BY moleculename;";
+
+    $externals_in_mechanism_query =
+           "SELECT m.name as moleculename, m.formula, m.solve, e.name as externalname
+            FROM molecules AS m
+            INNER JOIN mechanism_externals AS me ON me.mechanism_id = $1
+            INNER JOIN externals AS e ON e.id = me.external_id         
+            INNER JOIN species_externals AS se ON se.species_id=m.id ; ";
+
+    $rdiags_query ="
+        SELECT rd.name
+        FROM rdiags as rd
+        WHERE EXISTS (
+            SELECT *
+            FROM reaction_rdiags as rr
+            INNER JOIN branchreactions as br
+            ON br.reaction_id = rr.reaction_id
+            AND br.branch_id = $1
+            WHERE rr.rdiags_id=rd.id
+            UNION
+            SELECT *
+            FROM photolysis_rdiags as pr
+            INNER JOIN branchphotolysis as bp
+            ON bp.photolysis_id = pr.photolysis_id
+            AND bp.branch_id = $1
+            WHERE pr.rdiags_id=rd.id
+       )   ;";
+
+    $fixed_query ="
+        SELECT name
+        FROM molecules 
+        INNER JOIN mechanism_fixed
+        ON mechanism_fixed.species_id=molecules.id
+        WHERE mechanism_fixed.mechanism_id=$1
+           ;";
+
+    $extforcing_query ="
+        SELECT name, mf.extforcing
+        FROM molecules 
+        INNER JOIN mechanism_extforcing as mf
+        ON mf.species_id=molecules.id
+        WHERE mf.mechanism_id= $1
+        ORDER BY 
+            CASE mf.extforcing 
+              WHEN '' THEN 1
+              WHEN 'File' THEN 2
+              WHEN 'Code' THEN 3
+              WHEN 'None' THEN 4
+              ELSE 5 
+            END ;";
 
     $unsolved_species_query = "
         WITH reactants AS
@@ -938,29 +1119,36 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id){
         AND    moleculename NOT IN (SELECT moleculename FROM reactants) 
         ORDER BY moleculename ;";
 
+
     // create report of species in mechansim which are not "solution" species.
     $unsolved_result = pg_query($con,$unsolved_species_query);
-    fwrite($rpt_file,"\n Species Appearing only as products\n");
+    fwrite($rpt_file,"Species Appearing only as products\n");
     while($m = pg_fetch_array($unsolved_result)){
         fwrite($rpt_file," ".$m['moleculename']."\n");
     }
-    fwrite($rpt_file,"\n");
 
 
-    // get an array of {molecules, molecule->formula} strings
-    $molecules_result = pg_query($con,$molecules_in_tag_query);
+
+
+
+    // get an array of {molecules, molecule->formula} strings, [transported, externals, diagnostics, nontransported, H2O]
     $m_array = [];
     $not_trans_array = [];
     $implicit_solve_array = [];
     $explicit_solve_array = [];
-    while($m = pg_fetch_array($molecules_result)){
+
+    $trans_molecules_result     = pg_query_params($con,$transported_reactants_in_tag_query,array($tag_id,$mechanism_id));
+    $externals_molecules_result = pg_query_params($con,$externals_in_mechanism_query,      array($mechanism_id));
+    $rdiags_result              = pg_query_params($con,$rdiags_query,                      array($mechanism_id));
+    $nontrans_molecules_result  = pg_query_params($con,$nontransported_reactants_in_tag_query,array($tag_id,$mechanism_id));
+    $fixed_molecules_result     = pg_query_params($con,$fixed_query,                       array($mechanism_id));
+    $forcing_result             = pg_query_params($con,$extforcing_query,                  array($mechanism_id));
+
+    while($m = pg_fetch_array($trans_molecules_result)){
         if($m['formula']){
             $m_array[]=" ".$m['moleculename']." -> ".$m['formula'];
         }else{
             $m_array[]=" ".$m['moleculename'];
-        }
-        if($m['transport']=="not-transported"){
-            $not_trans_array[] =" ".$m['moleculename'];
         }
         if($m['solve']=="explicit"){
             $explicit_solve_array[] =" ".$m['moleculename'];
@@ -969,8 +1157,56 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id){
             $implicit_solve_array[] =" ".$m['moleculename'];
         }
     }
+    while($m = pg_fetch_array($rdiags_result)){
+        $m_array[]=" ".$m['name'];
+        $explicit_solve_array[] =" ".$m['name'];
+    }
+    while($m = pg_fetch_array($externals_molecules_result)){
+        if($m['formula']){
+            $m_array[]=" ".$m['moleculename']." -> ".$m['formula'];
+        }else{
+            $m_array[]=" ".$m['moleculename'];
+        }
+        if($m['solve']=="explicit"){
+            $explicit_solve_array[] =" ".$m['moleculename'];
+        }
+        if($m['solve']=="implicit"){
+            $implicit_solve_array[] =" ".$m['moleculename'];
+        }
+    }
+    while($m = pg_fetch_array($nontrans_molecules_result)){
+        if($m['formula']){
+            $m_array[]=" ".$m['moleculename']." -> ".$m['formula'];
+        }else{
+            $m_array[]=" ".$m['moleculename'];
+        }
+        $not_trans_array[] =" ".$m['moleculename'];
+        if($m['solve']=="explicit"){
+            $explicit_solve_array[] =" ".$m['moleculename'];
+        }
+        if($m['solve']=="implicit"){
+            $implicit_solve_array[] =" ".$m['moleculename'];
+        }
+    }
+
     $m_array[]=" H2O";
     $implicit_solve_array[] = " H2O";
+
+    $fixed = array();
+    $fixed[] = " M";
+    while($m = pg_fetch_array($fixed_molecules_result)){
+        $fixed[] = " ".$m['name'];
+    }
+
+    $file_forced =  "";
+    $code_forced =  "";
+    while($f = pg_fetch_array($forcing_result)){
+       if($f['extforcing'] == "File"){
+           $file_forced =  $file_forced." ".$f['name']." <- dataset \n";
+       } elseif ($f['extforcing'] == "Code") {
+           $code_forced =  $code_forced." ".$f['name']." \n";
+       }
+    }
 
 
     // join array elements into string with commas and newlines
@@ -978,6 +1214,7 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id){
     $implicit_text = implode("\n",$implicit_solve_array);
     $explicit_text = implode("\n",$explicit_solve_array);
     $not_trans_text = implode(",\n",$not_trans_array);
+    $fixed_text = implode(",",$fixed)."\n";
 
     // write molecules and formulae to file
     fwrite($tag_file,$m_text);
@@ -987,7 +1224,7 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id){
     fwrite($tag_file,"      End Solution\n");
     fwrite($tag_file,"\n\n");
     fwrite($tag_file,"      Fixed\n");
-    fwrite($tag_file," M\n");
+    fwrite($tag_file,$fixed_text);
     fwrite($tag_file,"      End Fixed\n\n");
     fwrite($tag_file,"      Not-Transported\n");
     fwrite($tag_file,$not_trans_text);
@@ -1011,17 +1248,6 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id){
     fwrite($tag_file," CHEMISTRY\n");
     fwrite($tag_file,"      Photolysis\n");
 
-// Diagnostics
-    fwrite($rpt_file,"\n The following diagnostics may be in your mechanism. \n Please add them to the Species list, and other locations as necessary. \n");
-    $r_diag_list = pg_query($con, "SELECT name as moleculename from rdiags;");
-    while($d = pg_fetch_array($r_diag_list)){
-        fwrite($rpt_file," ".$d['moleculename']."\n");
-    }
-    fwrite($rpt_file,"\n");
-
-// Warning
-    fwrite($rpt_file,"\n Please check to see if the Fixed Species List is correct\n");
-
 // photolysis
     // get all photolysis reactions and components (for tag);
 
@@ -1034,10 +1260,12 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id){
          WHERE pp.photolysisid = $1");
   
     $result = pg_prepare($con,"get_rdiags", 
-         "SELECT r.name as moleculename, pr.coefficient
+         "SELECT r.name as moleculename, pr.coefficient, pr.photolysis_id
           FROM photolysis_rdiags AS pr
           INNER JOIN rdiags AS r on r.id=pr.rdiags_id
-          WHERE pr.photolysis_id = $1");
+          INNER JOIN mechanism_rdiags AS mr ON mr.rdiag_id=pr.rdiags_id
+          WHERE mr.mechanism_id=$2
+          AND pr.photolysis_id=$1");
 
     while($group = pg_fetch_array($groups)){
 
@@ -1066,7 +1294,7 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id){
                     $p_array[] = $pp['moleculename'];
                 } 
             }
-            $r_diags = pg_execute($con,"get_rdiags",array($p['id']));
+            $r_diags = pg_execute($con,"get_rdiags",array($p['id'],$mechanism_id));
             while($r_diag = pg_fetch_array($r_diags)){
                 $p_array[] = $r_diag['coefficient']."*".$r_diag['moleculename'];
             }
@@ -1106,7 +1334,9 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id){
          "SELECT r.name as moleculename, rr.coefficient
           FROM reaction_rdiags AS rr
           INNER JOIN rdiags AS r on r.id=rr.rdiags_id
-          WHERE rr.reaction_id = $1");
+          INNER JOIN mechanism_rdiags AS mr ON mr.rdiag_id=rr.rdiags_id
+          WHERE mr.mechanism_id=$2
+          AND   rr.reaction_id = $1");
 
 
     $groups = pg_query($con,"SELECT id, description, ordering FROM reaction_groups ORDER BY ordering ASC;");
@@ -1133,11 +1363,25 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id){
             // construct reactants string
             $r_array = [];
             $r_reactants = pg_execute($con,"get_r_reactants",array($r['id']));
+            $no_m_r_array = []; // for testing against species-level reactants
             while($rr = pg_fetch_array($r_reactants)){
                 $r_array[] = $rr['moleculename'];
+                if ($rr['moleculename'] != 'M') {
+                    $no_m_r_array[]=$rr['moleculename'];
+                }
             }
+
+            foreach ($sdiags as &$sdiag){
+              if(count($no_m_r_array) > 1){
+                if ( ( in_array($no_m_r_array[0],$sdiag['l1']) && in_array($no_m_r_array[1],$sdiag['l2']) ) || (in_array($no_m_r_array[1],$sdiag['l1']) && in_array($no_m_r_array[0],$sdiag['l2']))){
+                    $sdiag['labellist'][] = $r['label'];
+                }
+              }
+            }
+
             $reactants_string = implode(" + ",$r_array);
             $reactants_string .= " ";
+
     
             // construct products string
             $p_array = [];
@@ -1149,12 +1393,13 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id){
                     $p_array[] = $rp['moleculename'];
                 } 
             }
-            $r_diags = pg_execute($con,"get_rrdiags",array($r['id']));
+            $r_diags = pg_execute($con,"get_rrdiags",array($r['id'], $mechanism_id));
             while($r_diag = pg_fetch_array($r_diags)){
                 $p_array[] = $r_diag['coefficient']."*".$r_diag['moleculename'];
             }
             $products_string = implode(" + ",$p_array);
             $products_string .= " ";
+
     
             // construct rates string
             $rate_string = "";
@@ -1185,6 +1430,15 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id){
     }
     fwrite($tag_file,"      End Reactions\n\n");
 
+    $line = array();
+    foreach ($sdiags as &$sdiag){
+       $labellist = $sdiag['labellist'];
+       $line[] = " ".$sdiag['name']." = ".implode(" + ",$labellist);
+    }
+    $sdiag_string = " '".implode("',\n '",$line)." '\n";
+
+    fwrite($namelist, $sdiag_string);
+
 // add footer
 
    $version_text ="      Version Options
@@ -1197,7 +1451,8 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id){
       End Version Options\n";
 
     fwrite($tag_file,"      Ext Forcing\n");
-    fwrite($tag_file,"          NO     \n");
+    fwrite($tag_file,$file_forced);
+    fwrite($tag_file,$code_forced);
     fwrite($tag_file,"      End Ext Forcing\n\n");
     fwrite($tag_file,"      End Chemistry\n\n");
     fwrite($tag_file,"      SIMULATION PARAMETERS\n\n");

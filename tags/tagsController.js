@@ -1,7 +1,7 @@
 app.controller('tagsController',['$scope','$http','$window', function ($scope, $http, $window) {
 
     $scope.branchArray =  [];
-    $scope.selectedBranch  =  [];
+    $scope.selectedBranch  =  "";
     $scope.selectedTag = []; 
     $scope.purpose ="exportTag";
     $scope.sourceTag = null;
@@ -37,6 +37,177 @@ app.controller('tagsController',['$scope','$http','$window', function ($scope, $
         $scope.newTagName = null;
         $scope.purpose = 'exportTag';
     }
+
+    $scope.choseBranchOptions = function(branch) {
+       $scope.editPackages='F'; 
+       $scope.editSDiags='F'
+       $scope.editRDiags='F'
+       $scope.editFixed='F'
+       $scope.editNottransported='F'
+       $scope.editExtforcing='F'
+       $http.post("/php/mechanism_associated.php?action=get_all_associated",
+             {
+                 'mechanism_id': $scope.selectedBranch.id
+             })
+             .success( function (data ) {
+                 $scope.associated = data;
+             });
+    }
+
+    $scope.toggleIncludeInExternal = function(external){
+       if(external.externals=='T'){
+           $http.post("/php/mechanism_associated.php?action=add_external",
+               {
+                 'mechanism_id': $scope.selectedBranch.id,
+                 'external_id': external.external_id
+               })
+               .success( function (data) {
+                 external.externals = data;
+               });
+       } else {
+           $http.post("/php/mechanism_associated.php?action=del_external",
+               {
+                 'mechanism_id': $scope.selectedBranch.id,
+                 'external_id': external.external_id
+               })
+               .success( function (data) {
+                   external.externals = data;
+               });
+       }
+
+    }
+
+    $scope.toggleIncludeSDiag = function(sdiag){
+       if(sdiag.sdiags=='T'){
+           $http.post("/php/mechanism_associated.php?action=add_sdiag",
+               {
+                 'mechanism_id': $scope.selectedBranch.id,
+                 'sdiag_id': sdiag.sdiag_id
+               })
+               .success( function (data) {
+                 sdiag.sdiags = data;
+               });
+       } else {
+           $http.post("/php/mechanism_associated.php?action=del_sdiag",
+               {
+                 'mechanism_id': $scope.selectedBranch.id,
+                 'sdiag_id': sdiag.sdiag_id
+               })
+               .success( function (data) {
+                 sdiag.sdiags = data;
+               });
+       }
+
+    }
+
+    $scope.toggleIncludeWrfSDiag = function(sdiag){
+       if(sdiag.wrf_sdiags=='T'){
+           $http.post("/php/mechanism_associated.php?action=add_wrf_sdiag",
+               {
+                 'mechanism_id': $scope.selectedBranch.id,
+                 'sdiag_id': sdiag.sdiag_id
+               })
+               .success( function (data) {
+                 sdiag.wrf_sdiags = data;
+               });
+       } else {
+           $http.post("/php/mechanism_associated.php?action=del_wrf_sdiag",
+               {
+                 'mechanism_id': $scope.selectedBranch.id,
+                 'sdiag_id': sdiag.sdiag_id
+               })
+               .success( function (data) {
+                 sdiag.wrf_sdiags = data;
+               });
+       }
+
+    }
+
+    $scope.toggleIncludeRDiag = function(rdiag){
+       if(rdiag.rdiags=='T'){
+           $http.post("/php/mechanism_associated.php?action=add_rdiag",
+               {
+                 'mechanism_id': $scope.selectedBranch.id,
+                 'rdiag_id': rdiag.rdiag_id
+               })
+               .success( function (data) {
+                 rdiag.rdiags = data;
+               });
+       } else {  
+           $http.post("/php/mechanism_associated.php?action=del_rdiag",
+               { 
+                 'mechanism_id': $scope.selectedBranch.id,
+                 'rdiag_id': rdiag.rdiag_id
+               })
+               .success( function (data) {
+                 rdiag.rdiags = data;
+               });
+       }
+
+    }
+
+    $scope.toggleFixed = function(specie){
+       if(specie.fixed=='T'){
+           $http.post("/php/mechanism_associated.php?action=add_fixed",
+               {
+                 'mechanism_id': $scope.selectedBranch.id,
+                 'specie_id': specie.species_id
+               })
+               .success( function (data) {
+                 specie.fixed = data;
+               });
+       } else {
+           $http.post("/php/mechanism_associated.php?action=del_fixed",
+               {
+                 'mechanism_id': $scope.selectedBranch.id,
+                 'specie_id': specie.species_id
+               })
+               .success( function (data) {
+                 specie.fixed = data;
+               });
+       }
+
+    }
+
+    $scope.toggleNottransported = function(specie){
+       if(specie.nottransported=='T'){
+           $http.post("/php/mechanism_associated.php?action=add_nottransported",
+               {
+                 'mechanism_id': $scope.selectedBranch.id,
+                 'specie_id': specie.species_id
+               })
+               .success( function (data) {
+                 specie.nottransported = data;
+               });
+       } else {
+           $http.post("/php/mechanism_associated.php?action=del_nottransported",
+               {
+                 'mechanism_id': $scope.selectedBranch.id,
+                 'specie_id': specie.species_id
+               })
+               .success( function (data) {
+                 specie.nottransported = data;
+               });
+       }
+
+    }
+
+    $scope.toggleExtforcing = function(specie){
+       $http.post("/php/mechanism_associated.php?action=mod_extforcing",
+           {
+             'mechanism_id': $scope.selectedBranch.id,
+             'specie_id': specie.species_id,
+             'extforcing':specie.extforcing
+           })
+           .success( function (data) {
+             specie.extforcing = data;
+           });
+
+    }
+
+
+
+
 
     $scope.createTag = function() {
         // write mechanism file and store file name and user description in database.
