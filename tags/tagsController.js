@@ -197,10 +197,10 @@ app.controller('tagsController',['$scope','$http','$window', function ($scope, $
            {
              'mechanism_id': $scope.selectedBranch.id,
              'specie_id': specie.species_id,
-             'extforcing':specie.extforcing
+             'extforcing':specie.forcing
            })
            .success( function (data) {
-             specie.extforcing = data;
+             specie.forcing = data;
            });
 
     }

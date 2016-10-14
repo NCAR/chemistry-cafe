@@ -141,18 +141,20 @@ function get_all_associated() {
             ORDER BY nottransported DESC, name;";
 
     $eforce_q = "
-            SELECT id as species_id, name, description, mechanism_id, extforcing FROM      
+            SELECT id as species_id, name, description, mechanism_id, forcing FROM      
             (SELECT id, name, description FROM molecules) e   
             LEFT JOIN 
-            (SELECT species_id, mechanism_id, extforcing FROM mechanism_extforcing WHERE mechanism_id = $1 ) me
-            ON me.species_id=e.id
-            ORDER BY 
-                CASE extforcing 
-                  WHEN 'File' THEN 2
-                  WHEN 'Code' THEN 3
-                  WHEN 'None' THEN 4
-                  ELSE 5 
-                END ;";
+            (SELECT species_id, mechanism_id, forcing,
+                CASE
+                  WHEN forcing='File' THEN 2
+                  WHEN forcing='Code' THEN 3
+                  WHEN forcing='None' THEN 4
+                  ELSE 5  
+                  END AS extforcing
+            FROM mechanism_extforcing WHERE mechanism_id = $1 ) me
+            ON me.species_id=e.id 
+            ORDER BY extforcing, name;
+            ";
 
 
     $mech=array($mechanism_id);
@@ -398,14 +400,14 @@ function mod_extforcing(){
     $extforcing = $data->extforcing;
 
     $s_qry = " 
-       SELECT mechanism_id, species_id, extforcing 
+       SELECT mechanism_id, species_id, forcing 
        FROM mechanism_extforcing 
        WHERE mechanism_id = $1 AND species_id=$2;";
     $d_qry = " 
        DELETE FROM mechanism_extforcing
        WHERE mechanism_id = $1 AND species_id=$2;";
     $i_qry = " 
-       INSERT INTO mechanism_extforcing (mechanism_id, species_id, extforcing)
+       INSERT INTO mechanism_extforcing (mechanism_id, species_id, forcing)
        VALUES ($1, $2, $3);";
 
     $resset = pg_query_params($con,$s_qry,array($mechanism_id, $specie_id));

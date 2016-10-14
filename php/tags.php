@@ -1037,7 +1037,7 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id, $mechanism_id){
     $nontransported_reactants_in_tag_query = $nontransported_phot_react." UNION ".$nontransported_chem_react." ORDER BY moleculename;";
 
     $externals_in_mechanism_query =
-           "SELECT m.name as moleculename, m.formula, m.solve, e.name as externalname
+           "SELECT DISTINCT m.name as moleculename, m.formula, m.solve
             FROM molecules AS m
             INNER JOIN mechanism_externals AS me ON me.mechanism_id = $1
             INNER JOIN externals AS e ON e.id = me.external_id         
@@ -1071,13 +1071,13 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id, $mechanism_id){
            ;";
 
     $extforcing_query ="
-        SELECT name, mf.extforcing
+        SELECT name, mf.forcing
         FROM molecules 
         INNER JOIN mechanism_extforcing as mf
         ON mf.species_id=molecules.id
         WHERE mf.mechanism_id= $1
         ORDER BY 
-            CASE mf.extforcing 
+            CASE mf.forcing 
               WHEN '' THEN 1
               WHEN 'File' THEN 2
               WHEN 'Code' THEN 3
@@ -1201,9 +1201,9 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id, $mechanism_id){
     $file_forced =  "";
     $code_forced =  "";
     while($f = pg_fetch_array($forcing_result)){
-       if($f['extforcing'] == "File"){
+       if($f['forcing'] == "File"){
            $file_forced =  $file_forced." ".$f['name']." <- dataset \n";
-       } elseif ($f['extforcing'] == "Code") {
+       } elseif ($f['forcing'] == "Code") {
            $code_forced =  $code_forced." ".$f['name']." \n";
        }
     }
