@@ -1258,7 +1258,9 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id, $mechanism_id){
             FROM molecules AS m
             INNER JOIN mechanism_externals AS me ON me.mechanism_id = $1
             INNER JOIN externals AS e ON e.id = me.external_id         
-            INNER JOIN species_externals AS se ON se.species_id=m.id ; ";
+            INNER JOIN species_externals AS se ON se.species_id=m.id 
+            WHERE se.external_id = e.id
+            ; ";
 
     $rdiags_query ="
         SELECT rd.name
