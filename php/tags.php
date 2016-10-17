@@ -38,11 +38,13 @@ switch($_GET['action'])  {
             $branch_id = 19;
             $tags = pg_query($con,"SELECT filename FROM tags WHERE id = ".$id.";");
             $tagref= pg_fetch_array($tags,0,$result_type = PGSQL_ASSOC);
+            print_r($tagref['filename']);
             mkdir('../tag_files/testdir');
             $tagdir = '../tag_files/testdir/'.$tagref['filename'];
             mkdir($tagdir);
             write_cesm_tag_file($tagdir,$tagref['filename'],$id, $branch_id);
             write_kpp_tag_file($tagdir,$tagref['filename'],$id, $branch_id);
+            write_tex($tagdir,$tagref['filename'],$id, $branch_id);
             break;
 
 }
@@ -263,6 +265,7 @@ function create_tag() {
 
     write_cesm_tag_file($target_dir,$target_file_name, $tag_id, $branch_id);
     write_kpp_tag_file($target_dir, $target_file_name, $tag_id, $branch_id);
+    write_tex($target_dir,$target_file_name, $tag_id, $branch_id);
 
     //tar up the files
     exec("cd ../tag_files ; tar -cf ".$target_file_name.".tar ".$target_file_name);
@@ -340,6 +343,220 @@ function get_all_comments_for_tag($tag_id){
         }
     }
     return $previous_comments;
+}
+
+function write_tex($tag_dir, $target_file_name, $tag_id, $branch_id){
+
+    global $con;
+    // write file $target_file_name with data in $tag_id
+
+   $tex_dir = $tag_dir.'/tex';
+
+   if(!is_dir($tex_dir)) {
+        mkdir($tex_dir);
+    }
+
+   $tex_file = fopen($tex_dir."/".$target_file_name.".tex",'w');
+   $photo_header=<<<END
+\\documentclass[gmd,ms]{copernicus}
+
+\\begin{document}
+
+\\title{"$target_file_name" mechanism}
+
+\\begin{table*}[t]
+\\caption{Photolysis reactions}
+\\begin{tabular}{p{3.5cm}lp{9cm}}
+\\hline
+Reactant  & & Products \\\\
+\\hline  \n
+END;
+
+   $photo_footer=<<<END
+\\hline
+\\end{tabular}
+\\end{table*}
+\\newpage \n
+END;
+
+
+    $chem_header=<<<END
+\\begin{table*}[t]
+\\caption{Kinetic reactions}
+\\begin{tabular}{p{3cm}lp{6cm}p{4cm}}
+\\hline
+Reactant  & & Products & Rate\\\\
+\\hline \n
+END;
+
+    $chem_footer=<<<END
+\\hline
+\\end{tabular}
+\\end{table*}
+\\end{document} \n
+END;
+
+    fwrite($tex_file,$photo_header);
+
+    $hnu = "h$\\nu$";
+    $lf = "    \\\\\n";
+    $arrow = "    & $\\rightarrow$ &  ";
+
+    $groups = pg_query($con,"SELECT id, description, ordering FROM photolysis_groups ORDER BY ordering ASC;");
+
+    $result = pg_prepare($con,"get_t_products",
+            "SELECT moleculename, coefficient 
+             FROM photolysisproducts AS pp 
+             WHERE pp.photolysisid = $1");
+
+    while($group = pg_fetch_array($groups)){
+
+        $photolysis_query =
+            "SELECT p.id, p.rate, p.moleculename, p.group_id, p.wrf_photo_rates_id, wr.name as wrname, p.wrf_photo_rates_coeff as wrcoeff
+             FROM photolysis AS p 
+             INNER JOIN tag_photolysis AS tp 
+             ON tp.photolysis_id=p.id 
+             INNER JOIN wrf_photo_rates AS wr
+             ON wr.id = p.wrf_photo_rates_id
+             WHERE tp.tag_id =".$tag_id."
+             AND p.group_id =".$group['id']."
+             ORDER BY p.moleculename ASC;";
+
+        $photo_reaction = pg_query($con, $photolysis_query);
+
+        while($p = pg_fetch_array($photo_reaction)){
+
+            $p_array = []; // array of strings, each a product of coefficient and molecule
+            $p_products = pg_execute($con,"get_t_products",array($p['id']));
+            while($pp = pg_fetch_array($p_products)){
+                if ($pp['coefficient']){
+                    $p_array[] = $pp['coefficient']."*".$pp['moleculename'];
+                } else {
+                    $p_array[] = $pp['moleculename'];
+                }
+            }
+            $product_string = implode(" + ",$p_array); // combine products for complete yield
+            $reaction_string = $p['moleculename']." + ".$hnu.$arrow.$product_string.$lf;
+            $reaction_string = str_replace('_', '\_', $reaction_string);
+
+            fwrite($tex_file,$reaction_string);
+        }
+    }
+   fwrite($tex_file,$photo_footer);
+
+
+    fwrite($tex_file,$chem_header);
+    // queries to find reactants, products
+    $result = pg_prepare($con,"get_r_tex_products",
+        "SELECT moleculename, coefficient 
+         FROM reactionproducts AS rp 
+         WHERE rp.reaction_id = $1");
+
+    $result = pg_prepare($con,"get_r_tex_reactants",
+        "SELECT moleculename
+         FROM reactionreactants AS rr 
+         WHERE rr.reaction_id = $1");
+
+    $result = pg_prepare($con,"get_group_tex_reactions",
+           "SELECT r.id, label, cph, r1, r2, r3, r4, r5, r.group_id, wcr.name
+            FROM reactions AS r 
+            INNER JOIN tag_reactions AS tr 
+            ON tr.reaction_id=r.id 
+            LEFT JOIN wrf_custom_rates AS wcr
+            ON wcr.id = r.wrf_custom_rate_id
+            WHERE tr.tag_id = $1
+            AND r.group_id = $2
+            ORDER BY r.label ASC;");
+
+    $groups = pg_query($con,"SELECT id, description, ordering FROM reaction_groups ORDER BY ordering ASC;");
+
+    $gas_index = 0;
+
+    while($group = pg_fetch_array($groups)){
+
+        $reactions = pg_execute($con,"get_group_tex_reactions",array($tag_id,$group['id']));
+
+        // for each reaction ($r)
+        while($r = pg_fetch_array($reactions)){
+
+            $gas_index = $r['id'];
+
+            // construct rates string
+            $rate_string = "";
+            $include_mass = true;
+            if (!is_null($r['r1']) and !is_null($r['r2']) and !is_null($r['r3']) and !is_null($r['r4']) and !is_null($r['r5']) ) {
+                $rate_string = sprintf("TROEE(%5.2e, %.2f, %e, %.2f, %.2f)",$r['r1'],$r['r2'],$r['r3'],$r['r4'],$r['r5']);
+                $include_mass = false;
+            } elseif (!is_null($r['r1']) and !is_null($r['r2']) and !is_null($r['r3']) and !is_null($r['r4']) ) {
+                $rate_string = sprintf("ERROR(%e, %e, %e, %e, TEMP, C_M)",$r['r1'],$r['r2'],$r['r3'],$r['r4']);
+            } elseif (!is_null($r['r1']) and !is_null($r['r2']) and !is_null($r['r3'])) {
+                $rate_string = sprintf("ERROR(%e, %e, %e, TEMP, C_M)",$r['r1'],$r['r2'],$r['r3']);
+            } elseif (!is_null($r['r1']) and !is_null($r['r2']) ) {
+                $rate_string = sprintf("%5.2e exp(%.2f / t )",$r['r1'],-$r['r2']);
+            } elseif (!is_null($r['r1']) ) {
+                $rate_string = sprintf("%6.3e",$r['r1']);
+            } else if(strpos($r['label'],"usr_") !== false){
+                 $rate_string .= $r['name'];
+            } else {
+                $rate_string = "ERROR(".$r['id'].") ;";
+            }
+
+            // construct reactants string
+            $no_m_r_array = []; // for testing against species-level reactants
+            $r_array = [];
+            $r_reactants = pg_execute($con,"get_r_tex_reactants",array($r['id']));
+            while($rr = pg_fetch_array($r_reactants)){
+                if ($rr['moleculename'] != 'M') {
+                    $no_m_r_array[]=$rr['moleculename'];
+                }
+                if ($include_mass) {
+                    $r_array[] = $rr['moleculename'];
+                } elseif ($rr['moleculename'] != 'M') {
+                    $r_array[] = $rr['moleculename'];
+                }
+            }
+            // test to see if matches species-level reactants
+            $reactants_string = implode(" + ",$r_array);
+
+            // construct products string
+            $p_array = [];
+            $r_products = pg_execute($con,"get_r_tex_products",array($r['id']));
+            while($rp = pg_fetch_array($r_products)){
+                if ($include_mass) {
+                    if($rp['coefficient']){
+                        $p_array[] = $rp['coefficient']."*".$rp['moleculename'];
+                    } else {
+                        $p_array[] = $rp['moleculename'];
+                    }
+                } elseif ($rp['moleculename'] != 'M') {
+                    if($rp['coefficient']){
+                        $p_array[] = $rp['coefficient']."*".$rp['moleculename'];
+                    } else {
+                        $p_array[] = $rp['moleculename'];
+                    }
+                }
+            }
+
+            $products_string = implode(" + ",$p_array);
+
+            if(empty($products_string)){
+                $products_string = 'M';
+            }
+
+            // write line to file
+            // pad each string on the right with spaces to attempt somewhat formatted output
+            $pad_string = " ";
+            $line = $reactants_string.$arrow.$products_string." & ".$rate_string.$lf;
+            $line=str_replace('_', '\_', $line);
+            fwrite($tex_file,$line);
+        }
+    }
+    fwrite($tex_file,$chem_footer);
+
+
+    fclose($tex_file);
+    return;
+
 }
 
 function write_kpp_tag_file($tag_dir, $target_file_name, $tag_id, $branch_id){
