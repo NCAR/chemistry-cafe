@@ -87,7 +87,7 @@ function get_all_diagnostics() {
 
     /** Reaction-level diagnostics **/
     $sql_q="
-        SELECT rd.id, rd.name, rd.cesm_namelist
+        SELECT rd.id, rd.name, rd.cesm_namelist, rd.formula
         FROM rdiags AS rd
         ";
     $rdiags = pg_query($con, $sql_q);
@@ -190,7 +190,7 @@ function get_rdiag() {
     $id = $data->id;
 
     $sql_q="
-        SELECT rd.id, rd.name, rd.cesm_namelist
+        SELECT rd.id, rd.name, rd.cesm_namelist, rd.formula
         FROM rdiags AS rd
         WHERE rd.id=$1
         ";
@@ -213,10 +213,11 @@ function ins_rdiag(){
     $data = json_decode(file_get_contents("php://input"));
     $name = $data->name;
     $cesm_namelist = $data->cesm_namelist;
+    $formula = $data->formula;
 
     $sql_q="
-        INSERT INTO rdiags (name, cesm_namelist)
-        VALUES ($1,$2)
+        INSERT INTO rdiags (name, cesm_namelist, formula)
+        VALUES ($1,$2,$3)
         RETURNING id";
 
     $vals = array($name, $cesm_namelist);
@@ -233,13 +234,14 @@ function mod_rdiag(){
     $id = $data->id;
     $name = $data->name;
     $cesm_namelist = $data->cesm_namelist;
+    $formula = $data->formula;
 
     $sql_q="
         UPDATE rdiags
-        SET name=$1,cesm_namelist=$2
-        WHERE id=$3";
+        SET name=$1,cesm_namelist=$2, formula=$3
+        WHERE id=$4";
 
-    $vals = array($name, $cesm_namelist, $id);
+    $vals = array($name, $cesm_namelist, $formula,$id);
     $qry = pg_query_params($con, $sql_q, $vals);
     print_r(json_encode($vals));
 

@@ -1263,7 +1263,7 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id, $mechanism_id){
             ; ";
 
     $rdiags_query ="
-        SELECT rd.name
+        SELECT rd.name, rd.formula
         FROM rdiags as rd
         WHERE EXISTS (
             SELECT *
@@ -1377,7 +1377,11 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id, $mechanism_id){
         }
     }
     while($m = pg_fetch_array($rdiags_result)){
-        $m_array[]=" ".$m['name'];
+        if($m['formula']){
+            $m_array[]=" ".$m['name']." -> ".$m['formula'];
+        }else{
+            $m_array[]=" ".$m['name'];
+        }
         $explicit_solve_array[] =" ".$m['name'];
     }
     while($m = pg_fetch_array($externals_molecules_result)){

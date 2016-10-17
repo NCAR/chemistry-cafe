@@ -128,7 +128,8 @@ app.controller('diagnosticsController', ['$scope', '$location', '$anchorScroll',
         $http.post('/php/diagnostics.php?action=ins_rdiag',
             {
                 'name'          : $scope.form.name,
-                'cesm_namelist' : $scope.form.cesm_namelist
+                'cesm_namelist' : $scope.form.cesm_namelist,
+                'formula'       : $scope.form.formula
             })
             .success(function (data, status, headers, config) {
                 $log.log(data);
@@ -145,7 +146,8 @@ app.controller('diagnosticsController', ['$scope', '$location', '$anchorScroll',
             {
                 'id'            : $scope.form.id,
                 'name'          : $scope.form.name,
-                'cesm_namelist' : $scope.form.cesm_namelist
+                'cesm_namelist' : $scope.form.cesm_namelist,
+                'formula'       : $scope.form.formula
             })
             .success(function (data, status, headers, config) {
                     $log.log(data)
