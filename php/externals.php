@@ -72,13 +72,13 @@ function get_species_in_external() {
 
     $qry = pg_query_params($con, "
         WITH sp_e AS (
-            SELECT sp.id, sp.name, sp.formula, sp.description, spe.externals_id
+            SELECT sp.id, sp.name, sp.formula, sp.description, spe.external_id
             FROM molecules AS sp 
             LEFT JOIN species_externals AS spe
-            ON spe.species_id=sp.id AND spe.externals_id = $1
+            ON spe.species_id=sp.id AND spe.external_id = $1
         )
         SELECT sp_e.id, sp_e.name, sp_e.formula, sp_e.description, 
-        CASE WHEN sp_e.externals_id = $1 THEN 'T' else 'F' END as inexternal  
+        CASE WHEN sp_e.external_id = $1 THEN 'T' else 'F' END as inexternal  
         FROM sp_e
         ORDER BY sp_e.name"
         ,array($external_id));
@@ -135,7 +135,7 @@ function add_species_in_external() {
     $externals_id=$data->externals_id;
     $species_id =$data->species_id;
 
-    $qry = pg_query_params($con, "INSERT INTO species_externals (externals_id, species_id) VALUES ($1,$2)",array($externals_id,$species_id));
+    $qry = pg_query_params($con, "INSERT INTO species_externals (external_id, species_id) VALUES ($1,$2)",array($externals_id,$species_id));
     print_r("added species".$species_id." from external ".$externals_id);
  
 }
@@ -149,7 +149,7 @@ function del_species_in_external() {
     $externals_id=$data->externals_id;
     $species_id =$data->species_id;
 
-    $qry = pg_query_params($con, "DELETE FROM species_externals WHERE externals_id=$1 and species_id=$2",array($externals_id,$species_id));
+    $qry = pg_query_params($con, "DELETE FROM species_externals WHERE external_id=$1 and species_id=$2",array($externals_id,$species_id));
     print_r("deleted species".$species_id." from external ".$externals_id);
 
 }
