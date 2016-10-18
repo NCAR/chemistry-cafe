@@ -1449,6 +1449,10 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id, $mechanism_id){
     fwrite($tag_file,"      Fixed\n");
     fwrite($tag_file,$fixed_text);
     fwrite($tag_file,"      End Fixed\n\n");
+    fwrite($tag_file,"      Col-int\n");
+    fwrite($tag_file," O3 = 0.\n");
+    fwrite($tag_file," O2 = 0.\n");
+    fwrite($tag_file,"      End Col-int\n\n");
     fwrite($tag_file,"      Not-Transported\n");
     fwrite($tag_file,$not_trans_text);
     fwrite($tag_file,"\n      End Not-Transported\n\n");
