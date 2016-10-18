@@ -1200,56 +1200,105 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id, $mechanism_id){
     $molecules_in_tag_query = $phot_react." UNION ".$phot_prod." UNION ".$chem_react." UNION ".$chem_prod." ORDER BY transport ASC, moleculename;";
 
 
-    $transported_phot_react = "SELECT moleculename, formula, solve 
+    $transported_phot_react = "
+            SELECT moleculename, formula, solve 
             FROM photolysis AS p 
             INNER JOIN molecules AS m ON m.name=p.moleculename 
             INNER JOIN tag_photolysis AS tp ON tp.photolysis_id=p.id 
-            WHERE NOT EXISTS (
-                SELECT * FROM mechanism_nottransported AS nt 
-                WHERE m.id = nt.species_id 
-                AND mechanism_id = $2
-                )
-            AND moleculename <> 'H2O' AND 
-            tp.tag_id = $1";
+            WHERE tp.tag_id = $1
+            AND moleculename <> 'H2O'
+            AND moleculename NOT IN (
+                -- not transported
+                SELECT name AS moleculename 
+                FROM molecules AS moles
+                INNER JOIN mechanism_nottransported AS nt 
+                ON moles.id = nt.species_id 
+                WHERE mechanism_id = $2
+                UNION
+                -- nor in fixed
+                SELECT name AS moleculename
+                FROM molecules 
+                INNER JOIN mechanism_fixed
+                ON mechanism_fixed.species_id=molecules.id
+                WHERE mechanism_fixed.mechanism_id=$2
+            )
+            ";
 
-    $transported_chem_react = "SELECT moleculename, formula, solve 
+    $transported_chem_react = "
+            SELECT moleculename, formula, solve 
             FROM reactionreactants AS rr 
             INNER JOIN molecules AS m ON m.name=rr.moleculename 
             INNER JOIN tag_reactions AS tr ON tr.reaction_id=rr.reaction_id 
-            WHERE NOT EXISTS (
-                SELECT * FROM mechanism_nottransported AS nt 
-                WHERE m.id = nt.species_id 
-                AND mechanism_id = $2
+            WHERE tr.tag_id = $1
+            AND moleculename <> 'H2O'
+            AND moleculename NOT IN (
+                -- not transported
+                SELECT name AS moleculename 
+                FROM molecules AS moles
+                INNER JOIN mechanism_nottransported AS nt 
+                ON moles.id = nt.species_id 
+                WHERE mechanism_id = $2
+                UNION
+                -- nor in fixed
+                SELECT name AS moleculename
+                FROM molecules 
+                INNER JOIN mechanism_fixed
+                ON mechanism_fixed.species_id=molecules.id
+                WHERE mechanism_fixed.mechanism_id=$2
                 )
-            AND moleculename <> 'H2O' 
-            AND tr.tag_id = $1";
+            ";
 
 
     $transported_reactants_in_tag_query = $transported_phot_react." UNION ".$transported_chem_react." ORDER BY moleculename;";
 
-    $nontransported_phot_react = "SELECT moleculename, formula, solve 
+    $nontransported_phot_react = "
+            SELECT moleculename, formula, solve 
             FROM photolysis AS p 
             INNER JOIN molecules AS m ON m.name=p.moleculename 
             INNER JOIN tag_photolysis AS tp ON tp.photolysis_id=p.id 
-            WHERE EXISTS (
-                SELECT * FROM mechanism_nottransported AS nt 
-                WHERE m.id = nt.species_id 
-                AND mechanism_id = $2
+            WHERE tp.tag_id = $1
+            AND moleculename <> 'H2O' 
+            AND moleculename IN (
+                -- not transported
+                SELECT name AS moleculename 
+                FROM molecules AS moles
+                INNER JOIN mechanism_nottransported AS nt 
+                ON moles.id = nt.species_id 
+                WHERE mechanism_id = $2
                 )
-            AND moleculename <> 'H2O' AND 
-            tp.tag_id = $1";
+            AND moleculename NOT IN(
+                -- fixed
+                SELECT name AS moleculename
+                FROM molecules 
+                INNER JOIN mechanism_fixed
+                ON mechanism_fixed.species_id=molecules.id
+                WHERE mechanism_fixed.mechanism_id=$2
+                )
+            ";
 
     $nontransported_chem_react = "SELECT moleculename, formula, solve 
             FROM reactionreactants AS rr 
             INNER JOIN molecules AS m ON m.name=rr.moleculename 
             INNER JOIN tag_reactions AS tr ON tr.reaction_id=rr.reaction_id 
-            WHERE EXISTS (
-                SELECT * FROM mechanism_nottransported AS nt 
-                WHERE m.id = nt.species_id 
-                AND mechanism_id = $2
-                )
+            WHERE tr.tag_id = $1
             AND moleculename <> 'H2O' 
-            AND tr.tag_id = $1";
+            AND moleculename IN (
+                -- not transported
+                SELECT name AS moleculename 
+                FROM molecules AS moles
+                INNER JOIN mechanism_nottransported AS nt 
+                ON moles.id = nt.species_id 
+                WHERE mechanism_id = $2
+                )
+            AND moleculename NOT IN(
+                -- fixed
+                SELECT name AS moleculename
+                FROM molecules 
+                INNER JOIN mechanism_fixed
+                ON mechanism_fixed.species_id=molecules.id
+                WHERE mechanism_fixed.mechanism_id=$2
+                )
+            ";
 
     $nontransported_reactants_in_tag_query = $nontransported_phot_react." UNION ".$nontransported_chem_react." ORDER BY moleculename;";
 
@@ -1345,10 +1394,6 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id, $mechanism_id){
     while($m = pg_fetch_array($unsolved_result)){
         fwrite($rpt_file," ".$m['moleculename']."\n");
     }
-
-
-
-
 
     // get an array of {molecules, molecule->formula} strings, [transported, externals, diagnostics, nontransported, H2O]
     $m_array = [];
