@@ -153,7 +153,7 @@ function get_all_associated() {
                   END AS extforcing
             FROM mechanism_extforcing WHERE mechanism_id = $1 ) me
             ON me.species_id=e.id 
-            ORDER BY extforcing, name;
+            ORDER BY forcing, name;
             ";
 
 
