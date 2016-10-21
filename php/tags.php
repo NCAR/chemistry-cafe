@@ -1074,21 +1074,8 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id, $mechanism_id){
     // write file $target_file_name with data in $tag_id
     $cesm_dir = $tag_dir.'/cesm';
 
-    // campp  cam-chem preprocessor
-    $campp_src = "/home/www/html/campp_skel";
-    $campp_dst = $cesm_dir.'/campp';
-
     if(!is_dir($cesm_dir)) {
         mkdir($cesm_dir);
-        mkdir($campp_dst);
-        mkdir($campp_dst.'/'.$target_file_name);
-
-        print_r($campp_dst);
-        $files1 = scandir($campp_dst);
-        print_r($files1);
-
-        recurse_copy($campp_src,$campp_dst);
-        chmod($campp_dst.'/campp', 0777);
     }
 
     $tag_filename = $cesm_dir."/".$target_file_name.".in";
@@ -1191,28 +1178,18 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id, $mechanism_id){
 
 // header
     
-    // write header to file
-    fwrite($tag_file,"BEGSIM\n");
-    fwrite($tag_file,"output_unit_number = 7\n");
-    fwrite($tag_file,"output_file        = ".$tagv['filename'].".doc\n");
-    fwrite($tag_file,"procout_path       = ../\n");
-    fwrite($tag_file,"src_path           = ../bkend/\n");
-    fwrite($tag_file,"procfiles_path     = ../procfiles/cam/\n");
-    fwrite($tag_file,"sim_dat_path       = ../".$tagv['filename']."/\n");
-    fwrite($tag_file,"sim_dat_filename   = ".$tagv['filename'].".dat\n");
-    fwrite($tag_file,"\n");
 
-    fwrite($tag_file,"Comments\n");
-    fwrite($tag_file,"     \" User-given Tag Description: ".$tagv['given_name']."\"\n");
-    fwrite($tag_file,"     \" Tag database identifier : ".$tagv['filename']."\"\n");
-    fwrite($tag_file,"     \" Tag created by : ".$tagv['initials']."\"\n");
-    fwrite($tag_file,"     \" Tag created from branch : ".$tagv['branchname']."\"\n");
-    fwrite($tag_file,"     \" Tag created on : ".$tagv['date']."\"\n");
-    fwrite($tag_file,"     \" Comments for this tag follow:\"\n");
+    // write header to file
+    fwrite($tag_file,"* Comments\n");
+    fwrite($tag_file,"* User-given Tag Description: ".$tagv['given_name']."\n");
+    fwrite($tag_file,"* Tag database identifier : ".$tagv['filename']."\n");
+    fwrite($tag_file,"* Tag created by : ".$tagv['initials']."\n");
+    fwrite($tag_file,"* Tag created from branch : ".$tagv['branchname']."\n");
+    fwrite($tag_file,"* Tag created on : ".$tagv['date']."\n");
+    fwrite($tag_file,"* Comments for this tag follow:\n");
     foreach ($tagv['previousComments'] as &$t ){
-        fwrite($tag_file,"     \"     ".$t."\"\n");
+        fwrite($tag_file,"*     ".$t."\n");
     }
-    fwrite($tag_file,"End Comments\n");
 
 // molecules
     // write molecule header 
@@ -1774,22 +1751,56 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id, $mechanism_id){
     fwrite($tag_file,"      SIMULATION PARAMETERS\n\n");
     fwrite($tag_file,$version_text);
     fwrite($tag_file,"\n\n      End Simulation Parameters\n");
-    fwrite($tag_file,"ENDSIM\n");
 
     // close the mechanism file
     fclose($tag_file);
 
     // run cam preprocessor
-    $target_campp = $campp_dst.'/inputs/';
 
+    // campp  cam-chem preprocessor skeleton files
+    $campp_src = "/home/www/html/campp_skel";
+    $campp_dst = $cesm_dir.'/campp';
+
+    mkdir($campp_dst);
+    mkdir($campp_dst.'/'.$target_file_name);
+
+    print_r($campp_dst);
     $files1 = scandir($campp_dst);
     print_r($files1);
-    $files2 = scandir($target_campp);
-    print_r($files2);
 
-    if (!copy($tag_filename, $target_campp.$target_file_name.'.in' )) {
-        echo "failed to copy $tag_filename...\n";
-    }
+    recurse_copy($campp_src,$campp_dst);
+    chmod($campp_dst.'/campp', 0777);
+
+    // cp (modified) $mech_file to campp directory
+
+    $mech_file = file_get_contents($tag_filename);
+    echo('tag filename'.$tag_filename."\n");
+
+    $campp_header ="BEGSIM\n"."output_unit_number = 7\n";
+    $campp_header = $campp_header."output_file        = ".$tagv['filename'].".doc\n";
+    $campp_header = $campp_header."procout_path       = ../\n";
+    $campp_header = $campp_header."src_path           = ../bkend/\n";
+    $campp_header = $campp_header."procfiles_path     = ../procfiles/cam/\n";
+    $campp_header = $campp_header."sim_dat_path       = ../".$tagv['filename']."/\n";
+    $campp_header = $campp_header."sim_dat_filename   = ".$tagv['filename'].".dat\n";
+    $campp_header = $campp_header."\n";
+    $campp_header = $campp_header."Comments\n";
+    $campp_header = $campp_header."     \" User-given Tag Description: ".$tagv['given_name']."\"\n";
+    $campp_header = $campp_header."     \" Tag database identifier : ".$tagv['filename']."\"\n";
+    $campp_header = $campp_header."     \" Tag created by : ".$tagv['initials']."\"\n";
+    $campp_header = $campp_header."     \" Tag created from branch : ".$tagv['branchname']."\"\n";
+    $campp_header = $campp_header."     \" Tag created on : ".$tagv['date']."\"\n";
+    $campp_header = $campp_header."     \" Tag created from branch : ".$tagv['branchname']."\"\n";
+    $campp_header = $campp_header."     \" Tag created on : ".$tagv['date']."\"\n";
+    $campp_header = $campp_header."     \" Comments for this tag follow:\"\n";
+    $campp_header = $campp_header."End Comments\n";
+    $campp_header = $campp_header.$mech_file;
+    $campp_header = $campp_header."ENDSIM\n";
+
+    $target_campp = $campp_dst.'/inputs/';
+    $campp_file = fopen($target_campp.$target_file_name.".in",'w');
+    file_put_contents($target_campp.$target_file_name.".in", $campp_header);
+
     $output = shell_exec('cd '.$target_campp.'; ../campp '.$target_file_name.'.in ;');
     echo $output;
     return;
