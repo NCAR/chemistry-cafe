@@ -34,8 +34,8 @@ switch($_GET['action'])  {
 
     case 'tstfilewrite' :
             global $con;
-            $id = 98;
-            $branch_id = 19;
+            $id = 109;
+            $branch_id = 29;
             $tags = pg_query($con,"SELECT filename FROM tags WHERE id = ".$id.";");
             $tagref= pg_fetch_array($tags,0,$result_type = PGSQL_ASSOC);
             print_r($tagref['filename']);
@@ -49,6 +49,22 @@ switch($_GET['action'])  {
 
 }
 
+
+function recurse_copy($src,$dst) { 
+    $dir = opendir($src); 
+    @mkdir($dst); 
+    while(false !== ( $file = readdir($dir)) ) { 
+        if (( $file != '.' ) && ( $file != '..' )) { 
+            if ( is_dir($src . '/' . $file) ) { 
+                recurse_copy($src . '/' . $file,$dst . '/' . $file); 
+            } 
+            else { 
+                copy($src . '/' . $file,$dst . '/' . $file); 
+            } 
+        } 
+    } 
+    closedir($dir); 
+} 
 function get_all_branches() {
 
     global $con;
@@ -1057,10 +1073,25 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id, $mechanism_id){
     global $con;
     // write file $target_file_name with data in $tag_id
     $cesm_dir = $tag_dir.'/cesm';
+
+    // campp  cam-chem preprocessor
+    $campp_src = "/home/www/html/campp_skel";
+    $campp_dst = $cesm_dir.'/campp';
+
     if(!is_dir($cesm_dir)) {
         mkdir($cesm_dir);
+        mkdir($campp_dst);
+        mkdir($campp_dst.'/'.$target_file_name);
+
+        print_r($campp_dst);
+        $files1 = scandir($campp_dst);
+        print_r($files1);
+
+        recurse_copy($campp_src,$campp_dst);
+        chmod($campp_dst.'/campp', 0777);
     }
 
+    $tag_filename = $cesm_dir."/".$target_file_name.".in";
     $tag_file = fopen($cesm_dir."/".$target_file_name.".in",'w');
     $rpt_file = fopen($cesm_dir."/".$target_file_name.".rpt",'w');
     $namelist = fopen($cesm_dir."/".$target_file_name.".atm_in",'w');
@@ -1159,16 +1190,29 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id, $mechanism_id){
     }
 
 // header
+    
     // write header to file
-    fwrite($tag_file,"* User-given Tag Description: ".$tagv['given_name']."\n");
-    fwrite($tag_file,"* Tag database identifier : ".$tagv['filename']."\n");
-    fwrite($tag_file,"* Tag created by : ".$tagv['initials']."\n");
-    fwrite($tag_file,"* Tag created from branch : ".$tagv['branchname']."\n");
-    fwrite($tag_file,"* Tag created on : ".$tagv['date']."\n");
-    fwrite($tag_file,"* Comments for this tag follow:\n");
+    fwrite($tag_file,"BEGSIM\n");
+    fwrite($tag_file,"output_unit_number = 7\n");
+    fwrite($tag_file,"output_file        = ".$tagv['filename'].".doc\n");
+    fwrite($tag_file,"procout_path       = ../\n");
+    fwrite($tag_file,"src_path           = ../bkend/\n");
+    fwrite($tag_file,"procfiles_path     = ../procfiles/cam/\n");
+    fwrite($tag_file,"sim_dat_path       = ../".$tagv['filename']."/\n");
+    fwrite($tag_file,"sim_dat_filename   = ".$tagv['filename'].".dat\n");
+    fwrite($tag_file,"\n");
+
+    fwrite($tag_file,"Comments\n");
+    fwrite($tag_file,"     \" User-given Tag Description: ".$tagv['given_name']."\"\n");
+    fwrite($tag_file,"     \" Tag database identifier : ".$tagv['filename']."\"\n");
+    fwrite($tag_file,"     \" Tag created by : ".$tagv['initials']."\"\n");
+    fwrite($tag_file,"     \" Tag created from branch : ".$tagv['branchname']."\"\n");
+    fwrite($tag_file,"     \" Tag created on : ".$tagv['date']."\"\n");
+    fwrite($tag_file,"     \" Comments for this tag follow:\"\n");
     foreach ($tagv['previousComments'] as &$t ){
-        fwrite($tag_file,"*     ".$t."\n");
+        fwrite($tag_file,"     \"     ".$t."\"\n");
     }
+    fwrite($tag_file,"End Comments\n");
 
 // molecules
     // write molecule header 
@@ -1730,9 +1774,24 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id, $mechanism_id){
     fwrite($tag_file,"      SIMULATION PARAMETERS\n\n");
     fwrite($tag_file,$version_text);
     fwrite($tag_file,"\n\n      End Simulation Parameters\n");
+    fwrite($tag_file,"ENDSIM\n");
 
     // close the mechanism file
     fclose($tag_file);
+
+    // run cam preprocessor
+    $target_campp = $campp_dst.'/inputs/';
+
+    $files1 = scandir($campp_dst);
+    print_r($files1);
+    $files2 = scandir($target_campp);
+    print_r($files2);
+
+    if (!copy($tag_filename, $target_campp.$target_file_name.'.in' )) {
+        echo "failed to copy $tag_filename...\n";
+    }
+    $output = shell_exec('cd '.$target_campp.'; ../campp '.$target_file_name.'.in ;');
+    echo $output;
     return;
 }
 
