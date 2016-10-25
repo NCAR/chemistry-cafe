@@ -58,7 +58,12 @@ app.config(function ($routeProvider) {
             templateUrl: "/help/help.html"
         });
 
-        $routeProvider.otherwise({ redirectTo: "/Tags" });
+        $routeProvider.when("/Log", {
+            controller: "logController",
+            templateUrl: "/log/log.html"
+        });
+
+        $routeProvider.otherwise({ redirectTo: "/Log" });
     
 });
 

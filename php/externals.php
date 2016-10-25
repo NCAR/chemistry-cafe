@@ -137,7 +137,24 @@ function add_species_in_external() {
 
     $qry = pg_query_params($con, "INSERT INTO species_externals (external_id, species_id) VALUES ($1,$2)",array($externals_id,$species_id));
     print_r("added species".$species_id." from external ".$externals_id);
- 
+
+    // prepare data to log result
+    $qry="
+        SELECT m.name as spname, ex.name as exname FROM species_externals as se
+        INNER JOIN molecules as m
+        ON m.id=se.species_id
+        INNER JOIN externals as ex
+        ON ex.id=se.external_id
+        where se.external_id=$1
+        AND se.species_id=$2
+        ";
+    $ret = pg_query_params($con, $qry, array($externals_id,$species_id));
+    $mname = pg_fetch_result ($ret,0,0);
+    $ename = pg_fetch_result ($ret,0,1);
+    $newComment='';
+    $change = "Species: ".$mname." added to externals list ".$ename;
+    $logq= "INSERT INTO log (user_id, change, comment) SELECT id, $2, $3 FROM users WHERE username = $1 RETURNING id;";
+    $res = pg_query_params($con, $logq, array($_COOKIE['chemdb_id'], $change, $newComment));
 }
 
 
@@ -149,10 +166,27 @@ function del_species_in_external() {
     $externals_id=$data->externals_id;
     $species_id =$data->species_id;
 
+    // prepare data to log result
+    $qry="
+        SELECT m.name as spname, ex.name as exname FROM species_externals as se
+        INNER JOIN molecules as m
+        ON m.id=se.species_id
+        INNER JOIN externals as ex
+        ON ex.id=se.external_id
+        where se.external_id=$1
+        AND se.species_id=$2
+        ";
+    $ret = pg_query_params($con, $qry, array($externals_id,$species_id));
+    $mname = pg_fetch_result ($ret,0,0);
+    $ename = pg_fetch_result ($ret,0,1);
+    $newComment='';
+    $change = "Species: ".$mname." deleted from externals list ".$ename;
+    $logq= "INSERT INTO log (user_id, change, comment) SELECT id, $2, $3 FROM users WHERE username = $1 RETURNING id;";
+    $res = pg_query_params($con, $logq, array($_COOKIE['chemdb_id'], $change, $newComment));
+
+    // delete it.
     $qry = pg_query_params($con, "DELETE FROM species_externals WHERE external_id=$1 and species_id=$2",array($externals_id,$species_id));
     print_r("deleted species".$species_id." from external ".$externals_id);
-
 }
-
 
 ?>

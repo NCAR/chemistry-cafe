@@ -217,6 +217,7 @@ app.controller('photolysisController', ['$scope', '$http', '$window', function (
             $http.post('/php/photolysis.php?action=del_branchreaction', 
                  {   
                     'photolysis_id' : photolysis.id,
+                    'photolysis'    : photolysis,
                     'branch_name'     : $scope.selectedBranch.name
                  }   
             ).success(function (data, status, headers, config) {
@@ -234,6 +235,7 @@ app.controller('photolysisController', ['$scope', '$http', '$window', function (
             $http.post('/php/photolysis.php?action=add_branchreaction',
                  {
                     'photolysis_id' : photolysis.id,
+                    'photolysis'    : photolysis,
                     'branch_name'     : $scope.selectedBranch.name
                  }
             ).success(function (data, status, headers, config) {

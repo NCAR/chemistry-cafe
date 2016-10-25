@@ -58,6 +58,18 @@ switch($_GET['action'])  {
 
 }
 
+function productArrayToString($reactionproducts){
+      $cumul_string = [];
+      foreach($reactionproducts as $coeffproduct){
+          if ($coeffproduct[0]) {
+              $cumul_string[] = $coeffproduct[0]."*".$coeffproduct[1];
+          } else {
+              $cumul_string[] = $coeffproduct[1];
+          }
+      }
+      return implode(' + ',$cumul_string) ;
+}
+
 function get_all_comments_for_photolysis_id($id){
     global $con;
     $comments = pg_query($con, 
@@ -345,6 +357,14 @@ function mod_photolysis (){
     if ($safe_to_commit){
         pg_query($con, "COMMIT") or die("Transaction commit failed\n");
         $out = "Committed";
+
+        // prepare data to log result
+        $reactantString = $molecule;
+        $productString = productArrayToString($productArray);
+        $change = "Mod : ".$rate." ,".$reactantString."->".$productString;
+        $logq= "INSERT INTO log (user_id, change, comment) SELECT id, $2, $3 FROM users WHERE username = $1 RETURNING id;";
+        $res = pg_query_params($con, $logq, array($_COOKIE['chemdb_id'], $change, $newComment));
+
     } else {
         pg_query($con, "ROLLBACK") or die("Transaction commit failed\n");
         $out = "\nCommit FAILED!\n". $out;
@@ -460,6 +480,15 @@ function add_photolysis_and_products (){
     if ($safe_to_commit){
         pg_query($con, "COMMIT") or die("Transaction commit failed\n");
         $out = "Committed";
+
+        // prepare data to log result
+        $reactantString = $molecule;
+        $rate =$rate;
+        $productString = productArrayToString($productArray);
+        $change = "Add : ".$rate." ,".$reactantString."->".$productString;
+        $logq= "INSERT INTO log (user_id, change, comment) SELECT id, $2, $3 FROM users WHERE username = $1 RETURNING id;";
+        $res = pg_query_params($con, $logq, array($_COOKIE['chemdb_id'], $change, $newComment));
+
     } else {
         pg_query($con, "ROLLBACK") or die("Transaction commit failed\n");
         $out = "Commit FAILED:\n". $out;
@@ -480,9 +509,19 @@ function del_branchreaction(){
 
     $data = json_decode(file_get_contents("php://input"));
     $photolysis_id          = $data->photolysis_id;
+    $photolysis             = $data->photolysis;
     $branch_name            = $data->branch_name  ;
 
     $result = pg_execute($con, "del_branchreaction", array($branch_name, $photolysis_id));
+
+    // prepare data to log result
+    $reactantString = $photolysis->molecule;
+    $rate = $photolysis->rate;
+    $newComment='';
+    $change = "From :".$branch_name.", Del  ".$rate." ,".$reactantString."->".$photolysis->productString;
+    $logq= "INSERT INTO log (user_id, change, comment) SELECT id, $2, $3 FROM users WHERE username = $1 RETURNING id;";
+    $res = pg_query_params($con, $logq, array($_COOKIE['chemdb_id'], $change, $newComment));
+
 }
 
 function add_branchreaction(){
@@ -501,12 +540,21 @@ function add_branchreaction(){
     $data = json_decode(file_get_contents("php://input"));
     $photolysis_id          = $data->photolysis_id;
     $branch_name            = $data->branch_name  ;
+    $photolysis             = $data->photolysis;
 
     $branches = pg_execute($con, "get_branch_id", array($branch_name));
     $row = pg_fetch_row($branches);
     $br_id = $row[0];
 
     $result = pg_execute($con, "add_branchreaction", array($br_id, $photolysis_id));
+
+    // prepare data to log result
+    $reactantString = $photolysis->molecule;
+    $rate = $photolysis->rate;
+    $newComment='';
+    $change = "To   :".$branch_name.", Add  ".$rate." ,".$reactantString."->".$photolysis->productString;
+    $logq= "INSERT INTO log (user_id, change, comment) SELECT id, $2, $3 FROM users WHERE username = $1 RETURNING id;";
+    $res = pg_query_params($con, $logq, array($_COOKIE['chemdb_id'], $change, $newComment));
 }
 
 function add_photolysis_reference() {

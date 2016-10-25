@@ -4,7 +4,7 @@
 include('config.php');
 
 switch($_GET['action'])  {
-//switch('get_reaction_by_id')  { // testing :  php < thisfile.php
+//switch('mod_reaction')  { // testing :  php < thisfile.php
     case 'get_all_reactions' :
             get_all_reactions();
             break;
@@ -57,6 +57,18 @@ switch($_GET['action'])  {
             update_wrf_rate();
             break;
 
+}
+
+function productArrayToString($reactionproducts){
+      $cumul_string = [];
+      foreach($reactionproducts as $coeffproduct){
+          if ($coeffproduct[0]) {
+              $cumul_string[] = $coeffproduct[0]."*".$coeffproduct[1];
+          } else {
+              $cumul_string[] = $coeffproduct[1];
+          }
+      }
+      return implode(' + ',$cumul_string) ;
 }
 
 function get_all_comments_for_reactions_id($id){
@@ -166,13 +178,6 @@ function get_all_reactions() {
       }
       $row_array['productString']= implode(' + ',$cumul_string) ;
 
-      // comment in database
-/*      $comments = pg_execute($con, "get_comments_by_id",array($reaction['id']));
-      while ($comment = pg_fetch_array($comments)) {
-          $row_array['comment']  =$comment['note'];
-          $row_array['commenter']=$comment['username'];
-      } */
-      //$row_array['previousComments'] = get_all_comments_for_reaction_id($reaction['id']);
       array_push($json_response,$row_array);
    }
    echo json_encode($json_response);
@@ -378,7 +383,9 @@ function mod_reaction  (){
     $productArray  = $data ->productArray;
     $newComment    = $data ->newComment;
 
-    $safe_to_commit = true; // so far everything seems normal
+
+    // prepare for transaction
+    $safe_to_commit = true; 
 
     pg_query($con, "BEGIN;") or die("Could not start transaction\n");
     $out = "Begin Transaction, safe:".$safe_to_commit."\n";
@@ -395,7 +402,7 @@ function mod_reaction  (){
 
     // add new comment
     $result = pg_prepare($con, "add_comment", "INSERT INTO comments (note, user_id) SELECT $1, id FROM users WHERE username = $2 RETURNING id;");
-    $result = pg_execute($con, "add_comment", array($newComment,$_COOKIE['chemdb_id']));
+    $result = pg_execute($con, "add_comment", array($newComment, $_COOKIE['chemdb_id']) );
     $new_comment_id = pg_fetch_array($result)[0];
     //$new_comment_id = $new_comment_r[0];
     $safe_to_commit = $safe_to_commit && ($new_comment_id > 0);
@@ -444,8 +451,18 @@ function mod_reaction  (){
 
     //$safe_to_commit = false;
     if ($safe_to_commit){
+
         pg_query($con, "COMMIT") or die("Transaction commit failed\n");
         $out = "Commiting transaction\n". $out;
+
+        // prepare data to log result
+        $reactantString = implode('+',$reactantArray);
+        $rate = " rates(".$r1.", ".$r2.", ".$r3.", ".$r4.", ".$r5.") ";
+        $productString = productArrayToString($productArray);
+        $change = "Mod [".$label."]  cph:".$cph." ,".$rate.$reactantString."->".$productString." Branches:".implode(' ',$branchArray);
+        $logq= "INSERT INTO log (user_id, change, comment) SELECT id, $2, $3 FROM users WHERE username = $1 RETURNING id;";
+        $res = pg_query_params($con, $logq, array($_COOKIE['chemdb_id'], $change, $newComment));
+
     } else {
         pg_query($con, "ROLLBACK") or die("Transaction commit failed\n");
         $out = "ROLLBACK  transaction\n". $out;
@@ -568,6 +585,15 @@ function add_reaction (){
         $res = pg_execute ($con, "add_reaction_product", array($new_reaction_id, $coeffproduct[1], $coeffproduct[0]));
         $safe_to_commit = $safe_to_commit && $res;
         $out = $out . "safe".$safe_to_commit." new products, coeff:".$coeffproduct[0].":prod:".$coeffproduct[1]. ":\n";
+
+        // prepare data to log result
+        $reactantString = implode('+',$reactantArray);
+        $rate = " rates(".$r1.", ".$r2.", ".$r3.", ".$r4.", ".$r5.") ";
+        $productString = productArrayToString($productArray);
+        $change = "Add [".$label."]  cph:".$cph." ,".$rate.$reactantString."->".$productString;
+        $logq= "INSERT INTO log (user_id, change, comment) SELECT id, $2, $3 FROM users WHERE username = $1 RETURNING id;";
+        $res = pg_query_params($con, $logq, array($_COOKIE['chemdb_id'], $change, $newComment));
+
     }
 
     if ($safe_to_commit){
@@ -592,10 +618,29 @@ function del_branchreaction(){
             "DELETE FROM branchreactions WHERE branch_id IN (SELECT id FROM branches WHERE name= $1) AND branchreactions.reaction_id = $2;");
 
     $data = json_decode(file_get_contents("php://input"));
-    $reaction_id          = $data->reaction_id;
-    $branch_name          = $data->branch_name  ;
+    $branch_name    = $data->branch_name  ;
+    $reaction       = $data->reaction;
+    $reaction_id    = $reaction->id;
+    $label = $reaction->label;
+    $reactantString = $reaction->reactantString;
+    $productString = $reaction->productString;
+    $cph = $reaction->cph;
+    $r1 = $reaction->r1;
+    $r2 = $reaction->r2;
+    $r3 = $reaction->r3;
+    $r4 = $reaction->r4;
+    $r5 = $reaction->r5;
 
     $result = pg_execute($con, "del_branchreaction", array($branch_name, $reaction_id));
+
+    // prepare data to log result
+    $rate = " rates(".$r1.", ".$r2.", ".$r3.", ".$r4.", ".$r5.") ";
+    $newComment='';
+    $change = "From :".$branch_name.", Delete [".$label."]  cph:".$cph." ,".$rate.$reactantString."->".$productString;
+    $logq= "INSERT INTO log (user_id, change, comment) SELECT id, $2, $3 FROM users WHERE username = $1 RETURNING id;";
+    $res = pg_query_params($con, $logq, array($_COOKIE['chemdb_id'], $change, $newComment));
+
+
 }
 
 function add_branchreaction(){
@@ -612,14 +657,32 @@ function add_branchreaction(){
             "INSERT INTO branchreactions (branch_id, reaction_id) VALUES ($1, $2);") or die ("failed to prepare pbr");
 
     $data = json_decode(file_get_contents("php://input"));
-    $reaction_id          = $data->reaction_id;
-    $branch_name            = $data->branch_name  ;
+    $branch_name    = $data->branch_name  ;
+    $reaction       = $data->reaction;
+    $reaction_id    = $reaction->id;
+    $label = $reaction->label;
+    $reactantString = $reaction->reactantString;
+    $productString = $reaction->productString;
+    $cph = $reaction->cph;
+    $r1 = $reaction->r1;
+    $r2 = $reaction->r2;
+    $r3 = $reaction->r3;
+    $r4 = $reaction->r4;
+    $r5 = $reaction->r5;
 
     $branches = pg_execute($con, "get_branch_id", array($branch_name));
     $row = pg_fetch_row($branches);
     $br_id = $row[0];
 
     $result = pg_execute($con, "add_branchreaction", array($br_id, $reaction_id));
+
+    // prepare data to log result
+    $rate = " rates(".$r1.", ".$r2.", ".$r3.", ".$r4.", ".$r5.") ";
+    $newComment='';
+    $change = "To   :".$branch_name.", Add    [".$label."]  cph:".$cph." ,".$rate.$reactantString."->".$productString;
+    $logq= "INSERT INTO log (user_id, change, comment) SELECT id, $2, $3 FROM users WHERE username = $1 RETURNING id;";
+    $res = pg_query_params($con, $logq, array($_COOKIE['chemdb_id'], $change, $newComment));
+
 }
 
 function add_reaction_reference() {
@@ -655,9 +718,18 @@ function update_chemistry_group() {
 
     $data = json_decode(file_get_contents("php://input"));
     $id = $data->id;
+    $reaction = $data->reaction;
     $group_id = $data->group_id;
 
     $result = pg_query($con,"UPDATE reactions SET group_id=".$group_id." WHERE id=".$id." ;");
+
+    // prepare data to log result
+    $rate = " rates(".$reaction->r1.", ".$reaction->r2.", ".$reaction->r3.", ".$reaction->r4.", ".$reaction->r5.") ";
+    $newComment='';
+    $change = "Move Into Group:".$group_id.",   [".$reaction->label."]  cph:".$reaction->cph." ,".$rate.$reaction->reactantString."->".$reaction->productString;
+    $logq= "INSERT INTO log (user_id, change, comment) SELECT id, $2, $3 FROM users WHERE username = $1 RETURNING id;";
+    $res = pg_query_params($con, $logq, array($_COOKIE['chemdb_id'], $change, $newComment));
+
 }
 
 function update_wrf_rate() {
@@ -665,9 +737,18 @@ function update_wrf_rate() {
 
     $data = json_decode(file_get_contents("php://input"));
     $id = $data->id;
+    $reaction = $data->reaction;
     $wrf_custom_rate_id = $data->wrf_custom_rate_id;
 
     $result = pg_query($con,"UPDATE reactions SET wrf_custom_rate_id=".$wrf_custom_rate_id." WHERE id=".$id." ;");
+
+    // prepare data to log result
+    $rate = " rates(".$reaction->r1.", ".$reaction->r2.", ".$reaction->r3.", ".$reaction->r4.", ".$reaction->r5.") ";
+    $newComment='';
+    $change = "Update WRF Rate:".$wrf_custom_rate_id.",   [".$reaction->label."]  cph:".$reaction->cph." ,".$rate.$reaction->reactantString."->".$reaction->productString;
+    $logq= "INSERT INTO log (user_id, change, comment) SELECT id, $2, $3 FROM users WHERE username = $1 RETURNING id;";
+    $res = pg_query_params($con, $logq, array($_COOKIE['chemdb_id'], $change, $newComment));
+
 }
 
 ?>

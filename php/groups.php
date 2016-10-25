@@ -2,8 +2,6 @@
 
 include('config.php'); 
 
-/**  Switch Case to Get Action from controller  **/
-
 switch($_GET['action'])  {
 //switch('get_photolysis_groups')  {
     case 'get_reaction_groups' :

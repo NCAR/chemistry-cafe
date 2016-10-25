@@ -176,6 +176,7 @@ app.controller('diagnosticsController', ['$scope', '$location', '$anchorScroll',
         $http.post('/php/diagnostics.php?action=set_kinetic_rdiag_coeff',{
    
                 'rdiags_id'      : rdiag.id,
+                'reaction'      : kinetic,
                 'coefficient'    : kinetic.coefficient,
                 'reaction_id'    : kinetic.id
             })
@@ -203,13 +204,12 @@ app.controller('diagnosticsController', ['$scope', '$location', '$anchorScroll',
 
                 'rdiags_id'      : rdiag.id,
                 'coefficient'    : photolysis.coefficient,
-                'photolysis_id'  : photolysis.id
+                'photolysis_id'  : photolysis.id,
+                'photolysis'     : photolysis
             })
             .success(function (data, status, headers, config) {
                 photolysis.coefficient = data;
             })
     }
-
-                
 
 }]);

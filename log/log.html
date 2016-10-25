@@ -1,0 +1,29 @@
+
+    <hr>
+
+    <!--
+    Display Log
+    -->
+    <div ng-init="get_all_logs()">
+        <h3> Change Log </h3>
+        <div class="col-md-12">
+            <table class="table table-striped table-bordered" >
+            <thead>
+                <th>Change</a></th>
+                <th>Date</a></th>
+                <th>Comment</a></th>
+                <th>User</a></th>
+            </thead>
+            <tbody> 
+            <tr ng-repeat="l in logList">
+                <td>{{ l.change }}</td>
+                <th>{{ l.date | date :'yyyy-MM-dd' }}</a></th>
+                <td>{{ l.comment }}</td>
+                <td>{{ l.initials }}</td>
+            </tr> 
+            </tbody>
+            </table>
+        </div> <!-- end of div class col-md-12 -->
+    </div>  <!-- ng-show -->
+    <!-- end of display of reactions -->
+

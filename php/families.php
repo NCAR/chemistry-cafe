@@ -138,6 +138,24 @@ function add_species_in_family() {
     $qry = pg_query_params($con, "INSERT INTO species_families (families_id, species_id) VALUES ($1,$2)",array($families_id,$species_id));
     print_r("added species".$species_id." from family ".$families_id);
  
+    // prepare data to log result
+    $qry="
+        SELECT f.name as fname, sp.name as spname FROM species_families as sf
+        INNER JOIN molecules as sp
+        ON sp.id=sf.species_id
+        INNER JOIN families as f
+        ON f.id=sf.families_id
+        where f.id=$1
+        AND sp.id=$2
+        ";
+    $ret = pg_query_params($con, $qry, array($families_id,$species_id));
+    $fname = pg_fetch_result ($ret,0,0);
+    $sname = pg_fetch_result ($ret,0,1);
+    $newComment='';
+    $change = "Species: ".$sname." added to family  ".$fname;
+    $logq= "INSERT INTO log (user_id, change, comment) SELECT id, $2, $3 FROM users WHERE username = $1 RETURNING id;";
+    $res = pg_query_params($con, $logq, array($_COOKIE['chemdb_id'], $change, $newComment));
+
 }
 
 
@@ -149,6 +167,25 @@ function del_species_in_family() {
     $families_id=$data->families_id;
     $species_id =$data->species_id;
 
+    // prepare data to log result
+    $qry="
+        SELECT f.name as fname, sp.name as spname FROM species_families as sf
+        INNER JOIN molecules as sp
+        ON sp.id=sf.species_id
+        INNER JOIN families as f
+        ON f.id=sf.families_id
+        where f.id=$1
+        AND sp.id=$2
+        ";
+    $ret = pg_query_params($con, $qry, array($families_id,$species_id));
+    $fname = pg_fetch_result ($ret,0,0);
+    $sname = pg_fetch_result ($ret,0,1);
+    $newComment='';
+    $change = "Species: ".$sname." deleted from family  ".$fname;
+    $logq= "INSERT INTO log (user_id, change, comment) SELECT id, $2, $3 FROM users WHERE username = $1 RETURNING id;";
+    $res = pg_query_params($con, $logq, array($_COOKIE['chemdb_id'], $change, $newComment));
+
+    // delete it
     $qry = pg_query_params($con, "DELETE FROM species_families WHERE families_id=$1 and species_id=$2",array($families_id,$species_id));
     print_r("deleted species".$species_id." from family ".$families_id);
 

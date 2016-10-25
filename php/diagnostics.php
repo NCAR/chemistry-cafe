@@ -156,6 +156,27 @@ function ins_sdiag(){
     $qry = pg_query_params($con, $sql_q, $vals);
     print_r(json_encode($vals));
 
+    // prepare data to log result
+    if($species_id){
+        $result = pg_query_params ($con, "SELECT name FROM molecules WHERE id = $1",array($species_id));
+        $sp1name = pg_fetch_result ($result,0,0);
+    } else {
+        $result = pg_query_params ($con, "SELECT name FROM families WHERE id = $1",array($family_id));
+        $fm1name = pg_fetch_result ($result,0,0);
+    }
+    if($species_id2){
+        $result = pg_query_params ($con, "SELECT name FROM molecules WHERE id = $1",array($species_id2));
+        $sp2name = pg_fetch_result ($result,0,0);
+    } else {
+        $result = pg_query_params ($con, "SELECT name FROM families WHERE id = $1",array($family_id2));
+        $fm2name = pg_fetch_result ($result,0,0);
+    }
+    $newComment='';
+    $change = "New Diagnostic: ".$name.": (".$sp1name.$fm1name." and ".$sp2name.$fm2name." )";
+    $logq= "INSERT INTO log (user_id, change, comment) SELECT id, $2, $3 FROM users WHERE username = $1 RETURNING id;";
+    $res = pg_query_params($con, $logq, array($_COOKIE['chemdb_id'], $change, $newComment));
+
+
 }
 
 function mod_sdiag(){
@@ -178,6 +199,26 @@ function mod_sdiag(){
     $vals = array($name, $species_id, $family_id, $species_id2, $family_id2,$id);
     $qry = pg_query_params($con, $sql_q, $vals);
     print_r(json_encode($vals));
+
+    // prepare data to log result
+    if($species_id){
+        $result = pg_query_params ($con, "SELECT name FROM molecules WHERE id = $1",array($species_id));
+        $sp1name = pg_fetch_result ($result,0,0);
+    } else {
+        $result = pg_query_params ($con, "SELECT name FROM families WHERE id = $1",array($family_id));
+        $fm1name = pg_fetch_result ($result,0,0);
+    }
+    if($species_id2){
+        $result = pg_query_params ($con, "SELECT name FROM molecules WHERE id = $1",array($species_id2));
+        $sp2name = pg_fetch_result ($result,0,0);
+    } else {
+        $result = pg_query_params ($con, "SELECT name FROM families WHERE id = $1",array($family_id2));
+        $fm2name = pg_fetch_result ($result,0,0);
+    }
+    $newComment='';
+    $change = "Mod Diagnostic: ".$name.": (".$sp1name.$fm1name." and ".$sp2name.$fm2name." )";
+    $logq= "INSERT INTO log (user_id, change, comment) SELECT id, $2, $3 FROM users WHERE username = $1 RETURNING id;";
+    $res = pg_query_params($con, $logq, array($_COOKIE['chemdb_id'], $change, $newComment));
 
 }
 
@@ -224,6 +265,13 @@ function ins_rdiag(){
     $qry = pg_query_params($con, $sql_q, $vals);
     print_r(json_encode($vals));
 
+    // prepare data to log result
+    $newComment='';
+    $change = "New Diagnostic: ".$name." cesm_namelist: ".$cesm_namelist." formula:".$formula;
+    $logq= "INSERT INTO log (user_id, change, comment) SELECT id, $2, $3 FROM users WHERE username = $1 RETURNING id;";
+    $res = pg_query_params($con, $logq, array($_COOKIE['chemdb_id'], $change, $newComment));
+
+
 }
 
 function mod_rdiag(){
@@ -244,6 +292,13 @@ function mod_rdiag(){
     $vals = array($name, $cesm_namelist, $formula,$id);
     $qry = pg_query_params($con, $sql_q, $vals);
     print_r(json_encode($vals));
+
+    // prepare data to log result
+    $newComment='';
+    $change = "Mod Diagnostic: ".$name." cesm_namelist: ".$cesm_namelist." formula:".$formula;
+    $logq= "INSERT INTO log (user_id, change, comment) SELECT id, $2, $3 FROM users WHERE username = $1 RETURNING id;";
+    $res = pg_query_params($con, $logq, array($_COOKIE['chemdb_id'], $change, $newComment));
+
 
 }
 
@@ -375,6 +430,7 @@ function set_kinetic_rdiag_coeff(){
 
     $data = json_decode(file_get_contents("php://input"));
     $rdiags_id = $data->rdiags_id;
+    $reaction = $data->reaction;
     $coefficient = IsEmptyString($data->coefficient);
     $reaction_id = $data->reaction_id;
 
@@ -411,6 +467,14 @@ function set_kinetic_rdiag_coeff(){
        print_r( 'error' );
    }
 
+    // prepare data to log result
+    $rdiagset = pg_query_params($con, ' SELECT name from rdiags where id =$1 ',array($rdiags_id));
+    $rname = pg_fetch_result ($rdiagset,0,0);
+    $newComment='';
+    $change = "Coefficient: ".$coefficient."*".$rname." applied to: ".$reaction->label." ".$reaction->reactantString."->".$reaction->productString;
+    $logq= "INSERT INTO log (user_id, change, comment) SELECT id, $2, $3 FROM users WHERE username = $1 RETURNING id;";
+    $res = pg_query_params($con, $logq, array($_COOKIE['chemdb_id'], $change, $newComment));
+
 
 }
 
@@ -421,6 +485,7 @@ function set_photolysis_rdiag_coeff(){
     $rdiags_id = $data->rdiags_id;
     $coefficient = IsEmptyString($data->coefficient);
     $photolysis_id = $data->photolysis_id;
+    $photolysis = $data->photolysis;
 
 
     // check if reaction has coefficient
@@ -454,6 +519,15 @@ function set_photolysis_rdiag_coeff(){
    } else {
        print_r( 'error' );
    }
+
+    // prepare data to log result
+    $rdiagset = pg_query_params($con, ' SELECT name from rdiags where id =$1 ',array($rdiags_id));
+    $rname = pg_fetch_result ($rdiagset,0,0);
+    $newComment='';    
+    $change = "Coefficient: ".$coefficient."*".$rname." applied to:".$photolysis->rate.", ".$photolysis->molecule."->".$photolysis->productString;
+    $logq= "INSERT INTO log (user_id, change, comment) SELECT id, $2, $3 FROM users WHERE username = $1 RETURNING id;";
+    $res = pg_query_params($con, $logq, array($_COOKIE['chemdb_id'], $change, $newComment));
+
 
 
 }

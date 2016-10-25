@@ -210,6 +210,7 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
             $http.post('/php/chemistry.php?action=del_branchreaction', 
                  {   
                     'reaction_id' : chemistry.id,
+                    'reaction' : chemistry,
                     'branch_name'  : $scope.selectedBranch.name
                  }   
             ).success(function (data, status, headers, config) {
@@ -227,6 +228,7 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
             $http.post('/php/chemistry.php?action=add_branchreaction',
                  {
                     'reaction_id' : chemistry.id,
+                    'reaction' : chemistry,
                     'branch_name'  : $scope.selectedBranch.name
                  }
             ).success(function (data, status, headers, config) {
@@ -630,9 +632,10 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
 
     $scope.changeGroup = function(chemistry){
          //alert('chem_id:'+chemistry.id+" gid:"+chemistry.group_id);
-         $http.post('/php/chemistry.php?action=update_chemistry_group',
+        $http.post('/php/chemistry.php?action=update_chemistry_group',
         {
            'id'  : chemistry.id,
+           'reaction'  : chemistry,
            'group_id' : chemistry.group_id
         })
         .success(function (data, status, headers, config) {
@@ -645,6 +648,7 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
          $http.post('/php/chemistry.php?action=update_wrf_rate',
         {
            'id'  : chemistry.id,
+           'reaction'  : chemistry,
            'wrf_custom_rate_id' : chemistry.wrf_custom_rate_id
         })
         .success(function (data, status, headers, config) {
