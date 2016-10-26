@@ -4,7 +4,7 @@
 include('config.php');
 
 switch($_GET['action'])  {
-//switch('mod_reaction')  { // testing :  php < thisfile.php
+//switch('get_all_reactions')  { // testing :  php < thisfile.php
     case 'get_all_reactions' :
             get_all_reactions();
             break;
@@ -98,10 +98,13 @@ function get_all_reactions() {
     global $con;
 
     $result = pg_prepare($con, "get_all_reactions", 
-            "SELECT r.id, r.label, r.cph, r.r1, r.r2, r.r3, r.r4, r.r5, r.obsolete, r.group_id, g.ordering, g.description as section, r.wrf_custom_rate_id
+           "SELECT r.id, r.label, r.cph, r.r1, r.r2, r.r3, r.r4, r.r5, r.obsolete, r.group_id, g.ordering, g.description as section, r.wrf_custom_rate_id, reaction_products(r.id) as productstring
             FROM reactions AS r
             INNER JOIN reaction_groups AS g 
-            ON g.id=r.group_id ORDER BY ordering, label ;");
+            ON g.id=r.group_id 
+            WHERE not r.obsolete
+            ORDER BY ordering, label 
+            ;");
 
     $result = pg_prepare($con, "get_reactions_products", 
             "SELECT pp.moleculename, pp.coefficient FROM reactionproducts pp WHERE pp.reaction_id = $1;");
@@ -133,8 +136,7 @@ function get_all_reactions() {
       $row_array['obsolete'] = ($reaction['obsolete'] === 't') ;
       $row_array['reactantArray'] = array();
       $row_array['reactantString'] = '';
-      $row_array['productArray'] = array();
-      $row_array['productString'] = '';
+      $row_array['productString'] = $reaction['productstring'];
       $row_array['branchArray'] = array();
       $row_array['branchString'] = '';
       $row_array['branchIdArray'] = array();
@@ -165,19 +167,6 @@ function get_all_reactions() {
       }
       $row_array['reactantString']= implode(' + ',$row_array['reactantArray']);
 
-      // products and coefficients for each reaction
-      $reactionproducts = pg_execute($con, "get_reactions_products", array($reaction['id']));
-      $cumul_string = [];
-      while ($product = pg_fetch_array($reactionproducts)) {
-          array_push($row_array['productArray'],array($product['coefficient'],$product['moleculename']));
-          if ($product['coefficient']) {
-              $cumul_string[] = $product['coefficient']."*".$product['moleculename'];
-          } else {
-              $cumul_string[] = $product['moleculename'];
-          }
-      }
-      $row_array['productString']= implode(' + ',$cumul_string) ;
-
       array_push($json_response,$row_array);
    }
    echo json_encode($json_response);
@@ -193,7 +182,7 @@ function get_reaction_by_id() {
     global $con;
 
     $result = pg_prepare($con, "get_reactions_by_id", 
-            "SELECT r.id, r.label, r.cph, r.r1, r.r2, r.r3, r.r4, r.r5, r.obsolete, r.group_id, g.ordering, g.description as section, r.wrf_custom_rate_id
+            "SELECT r.id, r.label, r.cph, r.r1, r.r2, r.r3, r.r4, r.r5, r.obsolete, r.group_id, g.ordering, g.description as section, r.wrf_custom_rate_id, reaction_products(r.id) as productstring
              FROM reactions AS r
              INNER JOIN reaction_groups AS g 
              ON g.id=r.group_id 
@@ -232,8 +221,7 @@ function get_reaction_by_id() {
       $row_array['obsolete'] = ($reaction['obsolete'] === 't') ;
       $row_array['reactantArray'] = array();
       $row_array['reactantString'] = '';
-      $row_array['productArray'] = array();
-      $row_array['productString'] = '';
+      $row_array['productString'] = $reaction['productstring'];
       $row_array['branchArray'] = array();
       $row_array['branchString'] = '';
 
@@ -272,19 +260,6 @@ function get_reaction_by_id() {
           array_push($row_array['reactantArray'],$reactant['moleculename']);
       }
       $row_array['reactantString']= implode(' + ',$row_array['reactantArray']);
-
-      // products and coefficients for each reaction
-      $reactionproducts = pg_execute($con, "get_reactions_products", array($reaction['id']));
-      $cumul_string = [];
-      while ($product = pg_fetch_array($reactionproducts)) {
-          array_push($row_array['productArray'],array($product['coefficient'],$product['moleculename']));
-          if ($product['coefficient']) {
-              $cumul_string[] = $product['coefficient']."*".$product['moleculename'];
-          } else {
-              $cumul_string[] = $product['moleculename'];
-          }
-      }
-      $row_array['productString']= implode(' + ',$cumul_string) ;
 
       $row_array['previousComments'] = get_all_comments_for_reaction_id($reaction['id']);
    }
