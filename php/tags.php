@@ -261,7 +261,7 @@ function create_tag() {
     $tag_id = pg_fetch_array($tid)[0];
 
     //parent directory for all preprocessor files
-    $target_file_name = $tag_id."-".trim($branch_name)."-".date("Y-m-d");
+    $target_file_name = "MZ".$tag_id."_".trim($branch_name)."_".date("Ymd");
     $target_dir = '../tag_files/'.$target_file_name;
     if(!is_dir($target_dir)) {
         mkdir($target_dir);
