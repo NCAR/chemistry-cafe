@@ -397,7 +397,7 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
     }
 
     validateLabel = function() {
-        if($scope.formData.label && $scope.formData.label.length > 0 && $scope.formData.label.length < 17) {
+        if($scope.formData.label && $scope.formData.label.length > 0 && $scope.formData.label.length < 33) {
             return(true)
         } else {
             alert('Please add a label of 16 or fewer characters')
