@@ -61,6 +61,7 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
     $scope.group_filter = null;
     $scope.branch_filter = null;
     $scope.formData = [];
+    $scope.formData.group_id = 12;
 
     /* variables for what is visible */
     $scope.name_input_disabled = false;
@@ -79,16 +80,15 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
     }
 
     $scope.showFilteredProduct = function(chemistry){
-        var result = false;
         if($scope.product_filter){
-            result = false;
-            for (var i=0; i < chemistry.productArray.length; i++ ){
-                if(productArray[i][1] === $scope.product_filter ){
-                    return( true );
-                }
+            if(chemistry.productString){
+                return(chemistry.productString.indexOf($scope.product_filter) > -1)
+            } else {
+                return(false)
             }
+        } else {
+            return( true );
         }
-        return( result );
     }
 
     $scope.showFilteredReactant = function(chemistry){
@@ -388,15 +388,29 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
 
     /** validate products of reactions and construct Description of new reaction **/
     $scope.validate = function() {
+        var okLabel = validateLabel();
+        var okRate = validateRate();
         var okReactant = validateReactants();
         var okProduct = validateProduct();
-        var okRate = validateRate();
         var okComment = validateComment();
-        return (okReactant && okProduct && okRate && okComment);
+        return (okReactant && okProduct && okRate && okComment && okLabel);
     }
 
+    validateLabel = function() {
+        if($scope.formData.label && $scope.formData.label.length > 0 && $scope.formData.label.length < 17) {
+            return(true)
+        } else {
+            alert('Please add a label of 16 or fewer characters')
+            return(false)
+        }
+    }
     /** validate product of reactions as specified in Edit form.  Repopulate form with parsed data. **/
     validateProduct = function() {
+        if($scope.formData.productString === undefined){
+            $scope.formData.productArray = [];
+            $scope.formData.productString = '';
+            return true;
+        }
         if($scope.formData.productString.trim()){
             var parsedArrayEdit = productStringToArray($scope.formData.productString);
             if(parsedArrayEdit){
@@ -416,9 +430,11 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
     }
 
     validateReactants  = function() {
+	if(!$scope.formData.reactantString) {alert('Please add Reactant(s)')}
         var rString = $scope.formData.reactantString.trim();
         var rArray = rString.split('+');
         var i;
+	if(rString.length < 1) {alert('Please add Reactant(s)')}
         for(i=0; i<rArray.length; i++){
             rArray[i] = rArray[i].trim();
             if(!species_in_database(rArray[i]) && rArray[i] != "M"){
@@ -433,11 +449,16 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
     }
 
     validateRate  = function() {
-        var rString = $scope.formData.rateString.trim();
-        var rArray = rString.split(',');
+        var rString ;
+        var rArray;
         var i;
-        var len = rArray.length;
-        alert('Rate validation, string:'+rString+':len'+ len);
+        var len ;
+	if($scope.formData.label.indexOf('usr_') == -1  && !$scope.formData.rateString) {alert('Please add Rate(s)'); return false;}
+	if($scope.formData.label.indexOf('usr_') != -1  && !$scope.formData.rateString) {return true;}
+        rString = $scope.formData.rateString.trim();
+        rArray = rString.split(',');
+        len = rArray.length;
+	if($scope.formData.label.indexOf('usr_') != -1  && len > 1) {alert('Only 1 parameter allowed for usr_ type reactions'); return false;}
         $scope.formData.r1 = null;
         $scope.formData.r2 = null;
         $scope.formData.r3 = null;
@@ -478,6 +499,7 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
         $scope.purpose = 'masterEdit';
         $scope.sourceData = null;
         $scope.formData = null;
+        $scope.formData.group_id = 12;
     }
 
     /**  update database with form data **/
@@ -485,7 +507,7 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
 
         // validate
         if ($scope.formData.label.indexOf('usr_') != -1){
-            alert("Setting CESM Rate to be a usr_() function");
+            //alert("Setting CESM Rate to be a usr_() function");
             $scope.formData.rateString = "";
             $scope.formData.r1 = "";
             $scope.formData.r2 = "";
@@ -505,10 +527,16 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
             alert("Please enter a valid rate string.");
             return;
         }
+        if (!validateLabel()){
+            alert("Please enter a label between 1 and 16 characters.");
+            return;
+        }
         if (!validateComment()){
             alert("Please enter a valid Comment.");
             return;
         }
+        // set default group to undefined 
+        if(!$scope.formData.group_id){$scope.formData.group_id = 12}
         // add chemistry reaction
         $http.post('/php/chemistry.php?action=add_reaction',
             {
