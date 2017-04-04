@@ -393,10 +393,12 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
         var okReactant = validateReactants();
         var okProduct = validateProduct();
         var okComment = validateComment();
+        //alert('labelok:'+okLabel+' okRate:'+okRate+' okReactant:'+okReactant+' okProduct:'+okProduct+' okComment:'+okComment);
         return (okReactant && okProduct && okRate && okComment && okLabel);
     }
 
     validateLabel = function() {
+        //alert('label:'+$scope.formData.label);
         if($scope.formData.label && $scope.formData.label.length > 0 && $scope.formData.label.length < 33) {
             return(true)
         } else {
@@ -406,6 +408,7 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
     }
     /** validate product of reactions as specified in Edit form.  Repopulate form with parsed data. **/
     validateProduct = function() {
+        //alert('unprocessed product:'+$scope.formData.productString);
         if($scope.formData.productString === undefined){
             $scope.formData.productArray = [];
             $scope.formData.productString = '';
@@ -416,6 +419,7 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
             if(parsedArrayEdit){
                 $scope.formData.productString = productArrayToString(parsedArrayEdit);
                 $scope.formData.productArray = parsedArrayEdit;
+                //alert('processed product:'+$scope.formData.productString);
                 return true;
             } else {
                 // leave bad string in place
@@ -445,6 +449,7 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
         rString = rArray.join(" + ");
         $scope.formData.reactantString = rString;
         $scope.formData.reactantArray = rArray;
+        //alert('processed reactants:'+$scope.formData.reactantString);
         return true;
     }
 
@@ -454,7 +459,17 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
         var i;
         var len ;
 	if($scope.formData.label.indexOf('usr_') == -1  && !$scope.formData.rateString) {alert('Please add Rate(s)'); return false;}
-	if($scope.formData.label.indexOf('usr_') != -1  && !$scope.formData.rateString) {return true;}
+        //alert($scope.formData.label);
+        //alert($scope.formData.rateString);
+  	if($scope.formData.label.indexOf('usr_') != -1  && !$scope.formData.rateString) {
+            //alert('valid null rate');
+            $scope.formData.r1 = null;
+            $scope.formData.r2 = null;
+            $scope.formData.r3 = null;
+            $scope.formData.r4 = null;
+            $scope.formData.r5 = null;
+            return true;
+        }
         rString = $scope.formData.rateString.trim();
         rArray = rString.split(',');
         len = rArray.length;

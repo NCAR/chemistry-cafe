@@ -560,16 +560,15 @@ function add_reaction (){
         $res = pg_execute ($con, "add_reaction_product", array($new_reaction_id, $coeffproduct[1], $coeffproduct[0]));
         $safe_to_commit = $safe_to_commit && $res;
         $out = $out . "safe".$safe_to_commit." new products, coeff:".$coeffproduct[0].":prod:".$coeffproduct[1]. ":\n";
-
-        // prepare data to log result
-        $reactantString = implode('+',$reactantArray);
-        $rate = " rates(".$r1.", ".$r2.", ".$r3.", ".$r4.", ".$r5.") ";
-        $productString = productArrayToString($productArray);
-        $change = "Add [".$label."]  cph:".$cph." ,".$rate.$reactantString."->".$productString;
-        $logq= "INSERT INTO log (user_id, change, comment) SELECT id, $2, $3 FROM users WHERE username = $1 RETURNING id;";
-        $res = pg_query_params($con, $logq, array($_COOKIE['chemdb_id'], $change, $newComment));
-
     }
+
+    // prepare data to log result
+    $reactantString = implode('+',$reactantArray);
+    $rate = " rates(".$r1.", ".$r2.", ".$r3.", ".$r4.", ".$r5.") ";
+    $productString = productArrayToString($productArray);
+    $change = "Add [".$label."]  cph:".$cph." ,".$rate.$reactantString."->".$productString;
+    $logq= "INSERT INTO log (user_id, change, comment) SELECT id, $2, $3 FROM users WHERE username = $1 RETURNING id;";
+    $res = pg_query_params($con, $logq, array($_COOKIE['chemdb_id'], $change, $newComment));
 
     if ($safe_to_commit){
         pg_query($con, "COMMIT") or die("Transaction commit failed\n");
