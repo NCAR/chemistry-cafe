@@ -9,6 +9,10 @@ switch($_GET['action'])  {
             get_all_reactions();
             break;
 
+    case 'get_all_reactions_old' :
+            get_all_reactions_old();
+            break;
+
     case 'get_reaction_by_id' :
             get_reaction_by_id();
             break;
@@ -91,6 +95,94 @@ function get_all_comments_for_reactions_id($id){
 }
 
 function get_all_reactions() {
+
+    global $con;
+
+    $result = pg_prepare($con, "get_all_reactions", "
+  SELECT r.*, concat_ws(',',r.r1, r.r2, r.r3, r.r4, r.r5) as rateString,
+  plist.prodstring as productString,
+  rlist.reactantString, rlist.reactantArray,
+  br.branchIDArray, br.branchArray, br.branchString,
+  tg.tagIdArray,
+  gp.id as group_id, gp.description as section
+  FROM reactions r
+
+    LEFT JOIN (
+      SELECT rp.reaction_id, prodstring(rp.coefficient, rp.moleculename) as prodstring
+      FROM reactionproducts rp
+      GROUP BY rp.reaction_id
+    ) as plist
+    ON r.id=plist.reaction_id
+
+    LEFT JOIN (
+      SELECT rr.reaction_id, string_agg(rr.moleculename,' + ') as reactantstring, array_to_json(array_agg(moleculename)) as reactantArray
+      FROM reactionreactants rr
+      GROUP BY rr.reaction_id
+    ) as rlist
+    ON r.id=rlist.reaction_id
+
+    LEFT JOIN (
+         SELECT reaction_id, array_to_json(array_agg(branch_id)) as branchIDArray, array_to_json(array_agg(brnames.name)) as branchArray, string_agg(brnames.name,' ') as branchString
+         FROM branchreactions
+         JOIN (
+              SELECT id, name
+              FROM branches brs
+         )    as brnames
+         on brnames.id = branchreactions.branch_id
+         GROUP BY reaction_id
+    ) AS br
+    ON r.id=br.reaction_id
+
+    LEFT JOIN (
+         SELECT reaction_id, array_to_json(array_agg(tag_id)) as tagIdArray
+         FROM tag_reactions
+         JOIN (
+              SELECT id, given_name
+              FROM tags tgs
+         )    as tgnames
+         on tgnames.id = tag_reactions.tag_id
+         GROUP BY reaction_id
+    ) AS tg
+    ON r.id=tg.reaction_id
+
+    LEFT JOIN (
+      SELECT reaction_groups.id, reaction_groups.description, reaction_groups.ordering
+      FROM reaction_groups
+    ) as gp
+    ON gp.id = r.group_id
+
+    ORDER BY gp.ordering, r.label  ;");
+
+    $json_response = array();
+
+    $chemistryreactions = pg_execute($con, "get_all_reactions", array());
+    while ($reaction = pg_fetch_array($chemistryreactions, NULL, PGSQL_ASSOC)) {
+      $row_array['id'] = $reaction['id'];
+      $row_array['label'] = $reaction['label'];
+      $row_array['cph'] = $reaction['cph'];
+      $row_array['r1'] = $reaction['r1'];
+      $row_array['r2'] = $reaction['r2'];
+      $row_array['r3'] = $reaction['r3'];
+      $row_array['r4'] = $reaction['r4'];
+      $row_array['r5'] = $reaction['r5'];
+      $row_array['wrf_custom_rate_id'] = $reaction['wrf_custom_rate_id'];
+      $row_array['rateString'] = $reaction['ratestring'];
+      $row_array['obsolete'] = ($reaction['obsolete'] === 't') ;
+      $row_array['reactantArray'] = json_decode($reaction['reactantarray']);
+      $row_array['reactantString'] = $reaction['reactantstring'];
+      $row_array['productString'] = $reaction['productstring'];
+      $row_array['branchArray'] = ( empty($reaction['brancharray']) ? array() : json_decode($reaction['brancharray'])  );//json_decode($reaction['brancharray']);
+      $row_array['branchString'] = $reaction['branchstring'];
+      $row_array['branchIdArray'] = ( empty($reaction['branchidarray']) ? array() : json_decode($reaction['branchidarray']));
+      $row_array['tagIdArray'] = ( empty($reaction['tagidarray']) ? array() : json_decode($reaction['tagidarray']) );
+      $row_array['section'] = $reaction['section'];
+      $row_array['group_id'] = $reaction['group_id'];
+      array_push($json_response,$row_array);
+   }
+   echo json_encode($json_response);
+}
+
+function get_all_reactions_old() {
 
     //$data        = json_decode(file_get_contents("php://input"));
     //$nonobsolete = $data->nonobsolete;
@@ -570,6 +662,7 @@ function add_reaction (){
     $logq= "INSERT INTO log (user_id, change, comment) SELECT id, $2, $3 FROM users WHERE username = $1 RETURNING id;";
     $res = pg_query_params($con, $logq, array($_COOKIE['chemdb_id'], $change, $newComment));
 
+
     if ($safe_to_commit){
         pg_query($con, "COMMIT") or die("Transaction commit failed\n");
         $out = $out . "\nCommiting transaction\n";
@@ -577,6 +670,7 @@ function add_reaction (){
         pg_query($con, "ROLLBACK") or die("Transaction commit failed\n");
         $out = $out . "\nROLLBACK  transaction\n";
     }
+
     echo json_encode($out);
 }
 
