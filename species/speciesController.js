@@ -76,9 +76,17 @@ app.controller('speciesController', function ($scope,$http) {
                 'transport'     : $scope.form.transport,
                 'aerosol'       : $scope.form.aerosol,
                 'solve'         : $scope.form.solve,
-                'henry'         : $scope.form.henry,
                 'wet_dep'       : $scope.form.wet_dep,
                 'dry_dep'       : $scope.form.dry_dep,
+                'henrys_law_type'  : $scope.form.henrys_law_type,
+                'molecular_weight' : $scope.form.molecular_weight,
+                'kh_298'           : $scope.form.kh_298          ,
+                'dh_r'             : $scope.form.dh_r            ,
+                'k1_298'           : $scope.form.k1_298          ,
+                'dh1_r'            : $scope.form.dh1_r           ,
+                'k2_298'           : $scope.form.k2_298          ,
+                'dh2_r'            : $scope.form.dh2_r           ,
+                'henrys_sources'   : $scope.form.henrys_sources  ,
                 'selectedFamilyIds'    : $scope.form.selectedFamilyIds
             })
             .success(function (data, status, headers, config) {
@@ -104,9 +112,17 @@ app.controller('speciesController', function ($scope,$http) {
                 'transport'     : $scope.form.transport,
                 'aerosol'       : $scope.form.aerosol,
                 'solve'         : $scope.form.solve,
-                'henry'         : $scope.form.henry,
                 'wet_dep'       : $scope.form.wet_dep,
                 'dry_dep'       : $scope.form.dry_dep,
+                'henrys_law_type'  : $scope.form.henrys_law_type,
+                'molecular_weight' : $scope.form.molecular_weight,
+                'kh_298'           : $scope.form.kh_298          ,
+                'dh_r'             : $scope.form.dh_r            ,
+                'k1_298'           : $scope.form.k1_298          ,
+                'dh1_r'            : $scope.form.dh1_r           ,
+                'k2_298'           : $scope.form.k2_298          ,
+                'dh2_r'            : $scope.form.dh2_r           ,
+                'henrys_sources'   : $scope.form.henrys_sources  ,
                 'selectedFamilyIds'    : $scope.form.selectedFamilyIds
             })
             .success(function (data, status, headers, config) {                 

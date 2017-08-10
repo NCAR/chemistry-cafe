@@ -34,8 +34,8 @@ switch($_GET['action'])  {
 
     case 'tstfilewrite' :
             global $con;
-            $id = 124;
-            $branch_id = 23;
+            $id = 156;
+            $branch_id = 45;
             $tags = pg_query($con,"SELECT filename FROM tags WHERE id = ".$id.";");
             $tagref= pg_fetch_array($tags,0,$result_type = PGSQL_ASSOC);
             //print_r($tagref['filename']);
@@ -590,10 +590,12 @@ function write_kpp_tag_file($tag_dir, $target_file_name, $tag_id, $branch_id){
 
     //.eqn and .spc files are identical between wrf and boxmox
     //.def has some additional info for boxmox 
+    //.hnr is the Henrys Law Data
     $eqn_file = fopen($wrf_dir."/".$target_file_name.".eqn",'w');
     $spc_file = fopen($wrf_dir."/".$target_file_name.".spc",'w');
     $def_file = fopen($wrf_dir."/".$target_file_name.".def",'w');
     $rpt_file = fopen($wrf_dir."/".$target_file_name.".rpt",'w');
+    $hnr_file = fopen($wrf_dir."/".$target_file_name.".hnr",'w');
 
     $b_eqn_file = fopen($boxmox_dir."/".$target_file_name.".eqn",'w');
     $b_spc_file = fopen($boxmox_dir."/".$target_file_name.".spc",'w');
@@ -723,6 +725,9 @@ function write_kpp_tag_file($tag_dir, $target_file_name, $tag_id, $branch_id){
         WHERE mws.mechanism_id = $1;
         ";
 
+    $henrys_law_query = "SELECT name, henrys_law_type, molecular_weight, kh_298, dh_r, k1_298, dh1_r, k2_298, dh2_r FROM molecules WHERE name = $1";
+    $result = pg_prepare($con,"henrys_law",$henrys_law_query);
+
     $sdiagslist = pg_query_params($con, $sql_q, array($branch_id));
     $sdiags = array();
     fwrite($rpt_file,   "\n Species-level Diagnositic Definitions \n");
@@ -780,6 +785,20 @@ function write_kpp_tag_file($tag_dir, $target_file_name, $tag_id, $branch_id){
     $m_array = [];
     $m_array[] = "#DEFVAR";
     while($m = pg_fetch_array($molecules_result)){
+        $henrys = pg_execute($con,"henrys_law",array($m['moleculename']));
+        while($h = pg_fetch_array($henrys)){
+            if($m['moleculename'] !== 'M' && $m['moleculename'] !== 'O2' && $m['moleculename'] !== 'N2' && $m['moleculename'] !== 'H2O') {
+                $hlt = (!isset($h['henrys_law_type']) || is_null($h['henrys_law_type'])) ? 'NULL' : $h['henrys_law_type'];
+                $mw = (!isset($h['molecular_weight']) || is_null($h['molecular_weight'])) ? 'NULL' : $h['molecular_weight'];
+                $kh_298 = (!isset($h['kh_298']) || is_null($h['kh_298'])) ? 'NULL' : $h['kh_298'];
+                $dh_r = (!isset($h['dh_r']) || is_null($h['dh_r'])) ? 'NULL' : $h['dh_r'];
+                $k1_298 = (!isset($h['k1_298']) || is_null($h['k1_298'])) ? 'NULL' : $h['k1_298'];
+                $dh1_r = (!isset($h['dh1_r']) || is_null($h['dh1_r'])) ? 'NULL' : $h['dh1_r'];
+                $k2_298 = (!isset($h['k2_298']) || is_null($h['k2_298'])) ? 'NULL' : $h['k2_298'];
+                $dh2_r = (!isset($h['dh2_r']) || is_null($h['dh2_r'])) ? 'NULL' : $h['dh2_r'];
+                fwrite($hnr_file, $h['name'].",".$hlt.",".$mw.",".$kh_298.",".$dh_r.",".$k1_298.",".$dh1_r.",".$k2_298.",".$dh2_r."\n");
+            }
+        }
         if($m['moleculename'] !== 'H2O' && $m['moleculename'] !== 'CO2' && $m['moleculename'] !== 'O2' && $m['moleculename'] !== 'N2') {
             // IGNORE means that there are no stoichiometry tests done for the molecules
             $m_array[]=" ".$m['moleculename']." =IGNORE ;";

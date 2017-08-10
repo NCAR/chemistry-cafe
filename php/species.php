@@ -38,16 +38,27 @@ function insert_species() {
     $source        = $data->source;
     $solve         = $data->solve;
     $wet_dep       = $data->wet_dep;
-    $henry         = $data->henry;
+    $henrys_law_type  = $data->henrys_law_type;
+    $henrys_sources   = $data->henrys_sources ;
+    $molecular_weight = $data->molecular_weight;
+    $kh_298           = $data->kh_298          ;
+    $dh_r             = $data->dh_r            ;
+    $k1_298           = $data->k1_298          ;
+    $dh1_r            = $data->dh1_r           ;
+    $k2_298           = $data->k2_298          ;
+    $dh2_r            = $data->dh2_r           ;
     $dry_dep       = $data->dry_dep;
     $selectedFamilyIds = $data->selectedFamilyIds;
 
     $result = pg_prepare($con, "insert_molecules",
-            "INSERT INTO molecules (name, formula, description, transport, source, aerosol, solve, henry, wet_dep, dry_dep) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
+            "INSERT INTO molecules 
+                 (name, formula, description, transport, 
+                  source, aerosol, solve, wet_dep, dry_dep,
+                  henrys_law_type, molecular_weight, kh_298, dh_r, k1_298, dh1_r, k2_298, dh2_r, henrys_sources) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18) 
              RETURNING id;");
 
-    $to_be = array($name, $formula, $edescription, $transport, $source, $aerosol, $solve, $henry, $wet_dep, $dry_dep);
+    $to_be = array($name, $formula, $edescription, $transport, $source, $aerosol, $solve, $wet_dep, $dry_dep, $henrys_law_type, $molecular_weight, $kh_298, $dh_r, $k1_298, $dh1_r, $k2_298, $dh2_r, $henrys_sources);
 
     $qry_res = pg_execute($con, "insert_molecules", $to_be);
     $new_id = pg_fetch_array($qry_res)[0];
@@ -135,14 +146,22 @@ function update_species() {
     $source        = $data->source;
     $solve         = $data->solve;
     $wet_dep       = $data->wet_dep;
-    $henry         = $data->henry;
     $dry_dep       = $data->dry_dep;
+    $henrys_law_type  = $data->henrys_law_type;
+    $henrys_sources   = $data->henrys_sources ;
+    $molecular_weight = $data->molecular_weight;
+    $kh_298           = $data->kh_298          ;
+    $dh_r             = $data->dh_r            ;
+    $k1_298           = $data->k1_298          ;
+    $dh1_r            = $data->dh1_r           ;
+    $k2_298           = $data->k2_298          ;
+    $dh2_r            = $data->dh2_r           ;
     $selectedFamilyIds = $data->selectedFamilyIds;
 
-    $to_be = array($name, $formula, $edescription, $transport, $source, $aerosol, $solve, $henry, $wet_dep, $dry_dep);
+    $to_be = array($name, $formula, $edescription, $transport, $source, $aerosol, $solve, $wet_dep, $dry_dep, $henrys_law_type, $molecular_weight, $kh_298, $dh_r, $k1_298, $dh1_r, $k2_298, $dh2_r, $henrys_sources);
 
     $result = pg_prepare($con, "update_molecules",
-        "UPDATE molecules SET formula=$2, description=$3, transport=$4, source=$5, aerosol=$6, solve=$7, henry=$8, wet_dep=$9, dry_dep=$10   WHERE name=$1;");
+        "UPDATE molecules SET formula=$2, description=$3, transport=$4, source=$5, aerosol=$6, solve=$7,  wet_dep=$8, dry_dep=$9, henrys_law_type=$10, molecular_weight=$11, kh_298=$12, dh_r=$13, k1_298=$14, dh1_r=$15, k2_298=$16, dh2_r=$17, henrys_sources=$18   WHERE name=$1;");
 
     $qry_res = pg_execute($con, "update_molecules", $to_be);
 

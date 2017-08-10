@@ -9,7 +9,7 @@
         <div class ="form-group">
             <label class="col-sm-3 control-label">Species Name:</label>
             <div class="col-sm-9 ">
-                <input type="text" size=20 
+                <input type="text" size=16 maxlength="16"
                     ng-model="form.name" 
                     ng-disabled="purpose=='editSpecies'"
                     placeholder="Name"><br />
@@ -73,15 +73,6 @@
         </div>
 
         <div class ="form-group">
-            <label class="col-sm-3 control-label">Henry's Law:</label>
-            <div class="col-sm-9 ">
-                <input type="text" size=200
-                    ng-model="form.henry" 
-                    placeholder="Floating Point Numbers or function?"><br />
-            </div>
-        </div>
-
-        <div class ="form-group">
             <label class="control-label col-sm-3">Dry Deposition:</label>
             <div class="col-sm-3">
                 <select class="form-control" name="dry_dep" id="dry_dep" ng-model="form.dry_dep">
@@ -97,6 +88,83 @@
                 <select class="form-control" name="families" id="families" ng-model="form.selectedFamilyIds" multiple>
                   <option ng-repeat="family in families" value="{{family.id}}">{{family.name}}</option>
                 </select>
+            </div>
+        </div>
+
+        <div> Henry's Law Data </div>
+        <div class ="form-group">
+            <label class="col-sm-3 control-label">Henry's Law Type:</label>
+            <div class="col-sm-1 ">
+                <input type="text" size=2
+                    ng-model="form.henrys_law_type" 
+                    placeholder="0 for right now, until we understand types of formulae"><br />
+            </div>
+            <div class="col-sm-3 "> O for now, until we get specific henry's law types </div>
+        </div>
+
+        <div class ="form-group">
+            <label class="col-sm-3 control-label">molecular weight</label>
+            <div class="col-sm-9 ">
+                <input type="text" size=30 
+                    ng-model="form.molecular_weight" 
+                    placeholder="molecular weight for henrys law (units?)"><br />
+            </div>
+        </div>
+
+        <div class ="form-group">
+            <label class="col-sm-3 control-label">kh_298</label>
+            <div class="col-sm-9 ">
+                <input type="text" size=30 
+                    ng-model="form.kh_298" 
+                    placeholder="kh_298 (units?)"><br />
+            </div>
+        </div>
+        <div class ="form-group">
+            <label class="col-sm-3 control-label">dh_r</label>
+            <div class="col-sm-9 ">
+                <input type="text" size=30 
+                    ng-model="form.dh_r" 
+                    placeholder="dh_r (units?)"><br />
+            </div>
+        </div>
+        <div class ="form-group">
+            <label class="col-sm-3 control-label">k1_298</label>
+            <div class="col-sm-9 ">
+                <input type="text" size=30 
+                    ng-model="form.k1_298" 
+                    placeholder="k1_298 (units?)"><br />
+            </div>
+        </div>
+        <div class ="form-group">
+            <label class="col-sm-3 control-label">dh1_r</label>
+            <div class="col-sm-9 ">
+                <input type="text" size=30 
+                    ng-model="form.dh1_r" 
+                    placeholder="dh1_r (units?)"><br />
+            </div>
+        </div>
+        <div class ="form-group">
+            <label class="col-sm-3 control-label">k2_298</label>
+            <div class="col-sm-9 ">
+                <input type="text" size=30 
+                    ng-model="form.k2_298" 
+                    placeholder="k2_298 (units?)"><br />
+            </div>
+        </div>
+        <div class ="form-group">
+            <label class="col-sm-3 control-label">dh2_r</label>
+            <div class="col-sm-9 ">
+                <input type="text" size=30 
+                    ng-model="form.dh2_r" 
+                    placeholder="dh2_r (units?)"><br />
+            </div>
+        </div>
+        <div class ="form-group">
+            <label class="col-sm-3 control-label">Source Data for Henry's Law</label>
+            <div class="col-sm-9 ">
+                <input type="text" size=80 
+                    ng-model="form.henrys_sources" 
+                    placeholder="Where did this come from?"<br />
             </div>
         </div>
 
