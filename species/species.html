@@ -24,6 +24,11 @@
             </div>
         </div>
         <div class ="form-group">
+            <label class="col-sm-3 control-label">molecular weight</label>
+            <div class="col-sm-9 "> {{form.molecular_weight}} </div>
+        </div>
+
+        <div class ="form-group">
             <label class="col-sm-3 control-label">Description:</label>
             <div class="col-sm-9">
                 <input type="text" size=50 
@@ -63,7 +68,7 @@
         </div>
 
         <div class ="form-group">
-            <label class="control-label col-sm-3">Wet Deposition:</label>
+            <label class="control-label col-sm-3">[CESM] Wet Deposition:</label>
             <div class="col-sm-3">
                 <select class="form-control" name="wet_dep" id="wet_dep" ng-model="form.wet_dep">
                   <option value="0">No Wet Deposition</option>
@@ -73,7 +78,7 @@
         </div>
 
         <div class ="form-group">
-            <label class="control-label col-sm-3">Dry Deposition:</label>
+            <label class="control-label col-sm-3">[CESM] Dry Deposition:</label>
             <div class="col-sm-3">
                 <select class="form-control" name="dry_dep" id="dry_dep" ng-model="form.dry_dep">
                   <option value="0">No Dry Deposition</option>
@@ -92,27 +97,26 @@
         </div>
 
         <div> Henry's Law Data </div>
+        <div ng-show="form.henrys_law_type==1">
+            <img src="../img/HenrysFormulas.png" style="width:305px;height:195px;">
+        </div>
+        <div ng-show="form.henrys_law_type==2">
+            <img src="../img/Henrys_methane.png" style="width:305px;height:195px;">
+        </div>
         <div class ="form-group">
-            <label class="col-sm-3 control-label">Henry's Law Type:</label>
-            <div class="col-sm-1 ">
-                <input type="text" size=2
-                    ng-model="form.henrys_law_type" 
-                    placeholder="0 for right now, until we understand types of formulae"><br />
+            <label class="col-sm-3 control-label">Dissociation</label>
+            <div class="col-sm-3">
+                <select class="form-control" name="henry_type" id="henry_type" ng-model="form.henrys_law_type">
+                  <option value="0">Not Yet Specified</option>
+                  <option value="1">[H+, anion]</option>
+                  <option value="2">[OH-, cation]</option>
+                  <option value="3">Not Applicable</option>
+                </select>
             </div>
-            <div class="col-sm-3 "> O for now, until we get specific henry's law types </div>
         </div>
 
         <div class ="form-group">
-            <label class="col-sm-3 control-label">molecular weight</label>
-            <div class="col-sm-9 ">
-                <input type="text" size=30 
-                    ng-model="form.molecular_weight" 
-                    placeholder="molecular weight for henrys law (units?)"><br />
-            </div>
-        </div>
-
-        <div class ="form-group">
-            <label class="col-sm-3 control-label">kh_298</label>
+            <label class="col-sm-3 control-label">kh<sub>298</sub></label>
             <div class="col-sm-9 ">
                 <input type="text" size=30 
                     ng-model="form.kh_298" 
@@ -120,7 +124,7 @@
             </div>
         </div>
         <div class ="form-group">
-            <label class="col-sm-3 control-label">dh_r</label>
+            <label class="col-sm-3 control-label">dh<sub>r</sub></label>
             <div class="col-sm-9 ">
                 <input type="text" size=30 
                     ng-model="form.dh_r" 
@@ -128,7 +132,7 @@
             </div>
         </div>
         <div class ="form-group">
-            <label class="col-sm-3 control-label">k1_298</label>
+            <label class="col-sm-3 control-label">k1<sub>298</sub></label>
             <div class="col-sm-9 ">
                 <input type="text" size=30 
                     ng-model="form.k1_298" 
@@ -136,7 +140,7 @@
             </div>
         </div>
         <div class ="form-group">
-            <label class="col-sm-3 control-label">dh1_r</label>
+            <label class="col-sm-3 control-label">dh1<sub>r</sub></label>
             <div class="col-sm-9 ">
                 <input type="text" size=30 
                     ng-model="form.dh1_r" 
@@ -144,7 +148,7 @@
             </div>
         </div>
         <div class ="form-group">
-            <label class="col-sm-3 control-label">k2_298</label>
+            <label class="col-sm-3 control-label">k2<sub>298</sub></label>
             <div class="col-sm-9 ">
                 <input type="text" size=30 
                     ng-model="form.k2_298" 
@@ -152,7 +156,7 @@
             </div>
         </div>
         <div class ="form-group">
-            <label class="col-sm-3 control-label">dh2_r</label>
+            <label class="col-sm-3 control-label">dh2<sub>r</sub></label>
             <div class="col-sm-9 ">
                 <input type="text" size=30 
                     ng-model="form.dh2_r" 
@@ -167,7 +171,6 @@
                     placeholder="Where did this come from?"<br />
             </div>
         </div>
-
         </form>
         <button ng-show="editp==1 && purpose == 'addSpecies'" class="btn btn-success"  ng-click="create_species()">Create<br>This<br>Species</button>
         <button ng-show="editp==1 && purpose == 'editSpecies'" class="btn btn-success" ng-click="modify_species()">Commit<br>Change</button>
