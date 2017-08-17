@@ -1,4 +1,4 @@
-app.controller('speciesController', function ($scope,$http) {
+app.controller('speciesController', ['$scope','$http','$window', function ($scope, $http, $window) {
 
     $scope.username = getCookie('chemdb_id');
     $scope.initials = getCookie('chemdb_initials');
@@ -135,4 +135,9 @@ app.controller('speciesController', function ($scope,$http) {
             });
     }
 
-});
+    $scope.showdoc = function(){
+        $window.open('/img/HenrysLaw.pdf');
+    };
+
+
+}]);
