@@ -501,7 +501,7 @@ END;
             $include_mass = true;
             if (!is_null($r['r1']) and !is_null($r['r2']) and !is_null($r['r3']) and !is_null($r['r4']) and !is_null($r['r5']) ) {
                 $rate_string = sprintf("TROEE(%5.2e, %.2f, %e, %.2f, %.2f)",$r['r1'],$r['r2'],$r['r3'],$r['r4'],$r['r5']);
-                $include_mass = false;
+                //$include_mass = false; always include M term for tex output
             } elseif (!is_null($r['r1']) and !is_null($r['r2']) and !is_null($r['r3']) and !is_null($r['r4']) ) {
                 $rate_string = sprintf("ERROR(%e, %e, %e, %e, TEMP, C_M)",$r['r1'],$r['r2'],$r['r3'],$r['r4']);
             } elseif (!is_null($r['r1']) and !is_null($r['r2']) and !is_null($r['r3'])) {
