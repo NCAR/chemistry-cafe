@@ -507,7 +507,7 @@ END;
             } elseif (!is_null($r['r1']) and !is_null($r['r2']) and !is_null($r['r3'])) {
                 $rate_string = sprintf("ERROR(%e, %e, %e, TEMP, C_M)",$r['r1'],$r['r2'],$r['r3']);
             } elseif (!is_null($r['r1']) and !is_null($r['r2']) ) {
-                $rate_string = sprintf("%5.2e exp(%.2f / t )",$r['r1'],-$r['r2']);
+                $rate_string = sprintf("%5.2e exp( %.2f / t )",$r['r1'],$r['r2']);
             } elseif (!is_null($r['r1']) ) {
                 $rate_string = sprintf("%6.3e",$r['r1']);
             } else if(strpos($r['label'],"usr_") !== false){
