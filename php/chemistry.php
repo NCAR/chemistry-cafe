@@ -450,6 +450,7 @@ function mod_reaction  (){
     $productArray  = $data ->productArray;
     $newComment    = $data ->newComment;
 
+    if (empty($cph)) { $cph = null; }
 
     // prepare for transaction
     $safe_to_commit = true; 
