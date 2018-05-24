@@ -569,7 +569,7 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
                 'newComment'   : $scope.formData.comment
             })
             .success(function (data, status, headers, config) {
-                //alert(data);
+                alert(data);
                 $scope.reset_form();
                 load_all_chemistry();
             });

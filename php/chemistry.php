@@ -445,7 +445,7 @@ function mod_reaction  (){
     $r4            = $data ->r4;
     $r5            = $data ->r5;
     $wrf_custom_rate_id = $data ->wrf_custom_rate_id;
-    $cph           = $data ->cph;
+    $cph           = trim($data ->cph);
     $reactantArray = $data ->reactantArray;
     $productArray  = $data ->productArray;
     $newComment    = $data ->newComment;
@@ -535,7 +535,7 @@ function mod_reaction  (){
         pg_query($con, "ROLLBACK") or die("Transaction commit failed\n");
         $out = "ROLLBACK  transaction\n". $out;
     }
-    echo json_encode($out);
+    echo $out;
 }
 
 function deprecate_reactions (){
@@ -600,17 +600,19 @@ function add_reaction (){
 
     $data = json_decode(file_get_contents("php://input"));
     $group_id      = $data ->group_id;
-    $label         = $data ->label;
+    $label         = trim($data ->label);
     $r1            = $data ->r1;
     $r2            = $data ->r2;
     $r3            = $data ->r3;
     $r4            = $data ->r4;
     $r5            = $data ->r5;
     $wrf_custom_rate_id = $data ->wrf_custom_rate_id;
-    $cph           = $data ->cph;
+    $cph           = trim($data ->cph);
     $reactantArray = $data ->reactantArray;
     $productArray  = $data ->productArray;
-    $newComment    = $data ->newComment;
+    $newComment    = trim($data ->newComment);
+
+    if (empty($cph)) { $cph = null; }
 
     $safe_to_commit = true; // so far....
 
@@ -672,7 +674,7 @@ function add_reaction (){
         $out = $out . "\nROLLBACK  transaction\n";
     }
 
-    echo json_encode($out);
+    echo $out;
 }
 
 function del_branchreaction(){
