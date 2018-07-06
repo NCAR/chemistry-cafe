@@ -31,14 +31,14 @@ app.controller('compareController',['$scope','$http','$window', function ($scope
     $scope.today = new Date();
 
     $scope.selectTag = function(tag){
-        $scope.selections[$scope.selectId] = {"type":"TAG","tag":tag,"name":tag.given_name}
+        $scope.selections[$scope.selectId] = {"type":"TAG","tag":tag,"name":tag.given_name,"id":tag.id}
         $scope.numberSelected += 1;
         $scope.selectId = ($scope.numberSelected)%2;
         if($scope.numberSelected>=2) {$scope.compare()};
     }
 
     $scope.selectBranch = function(branch){
-        $scope.selections[$scope.selectId] = {"type":"BRANCH","branch":branch,"name":branch.name}
+        $scope.selections[$scope.selectId] = {"type":"BRANCH","branch":branch,"name":branch.name,"id":branch.id}
         $scope.numberSelected += 1;
         $scope.selectId = ($scope.numberSelected)%2;
         if($scope.numberSelected>=2) {$scope.compare()};
@@ -46,71 +46,73 @@ app.controller('compareController',['$scope','$http','$window', function ($scope
 
 // Branch vs Branch
     function both_bb(reaction){
-        return reaction.branchIdArray.indexOf($scope.selections[0].branch.id) != -1 && 
-               reaction.branchIdArray.indexOf($scope.selections[1].branch.id) != -1;
+        return ((reaction.branchIdArray.indexOf($scope.id0) != -1) && 
+                (reaction.branchIdArray.indexOf($scope.id1) != -1));
     }
 
     function left_bb(reaction){
-        return reaction.branchIdArray.indexOf($scope.selections[0].branch.id) != -1 && 
-               reaction.branchIdArray.indexOf($scope.selections[1].branch.id) == -1;
+        return ((reaction.branchIdArray.indexOf($scope.id0) != -1) && 
+                (reaction.branchIdArray.indexOf($scope.id1) == -1));
     }
 
     function rght_bb(reaction){
-        return reaction.branchIdArray.indexOf($scope.selections[0].branch.id) == -1 && 
-               reaction.branchIdArray.indexOf($scope.selections[1].branch.id) != -1;
+        return ((reaction.branchIdArray.indexOf($scope.id0) == -1) && 
+                (reaction.branchIdArray.indexOf($scope.id1) != -1));
     }
 
 // Tag vs Tag
     function both_tt(reaction){
-        return reaction.tagIdArray.indexOf($scope.selections[0].tag.id) != -1 &&
-               reaction.tagIdArray.indexOf($scope.selections[1].tag.id) != -1;
+        return reaction.tagIdArray.indexOf($scope.id0) != -1 &&
+               reaction.tagIdArray.indexOf($scope.id1) != -1;
     }
 
     function left_tt(reaction){
-        return reaction.tagIdArray.indexOf($scope.selections[0].tag.id) != -1 &&
-               reaction.tagIdArray.indexOf($scope.selections[1].tag.id) == -1;
+        return reaction.tagIdArray.indexOf($scope.id0) != -1 &&
+               reaction.tagIdArray.indexOf($scope.id1) == -1;
     }
 
     function rght_tt(reaction){ 
-        return reaction.tagIdArray.indexOf($scope.selections[0].tag.id) == -1 &&
-               reaction.tagIdArray.indexOf($scope.selections[1].tag.id) != -1;
+        return reaction.tagIdArray.indexOf($scope.id0) == -1 &&
+               reaction.tagIdArray.indexOf($scope.id1) != -1;
     }
 
 // Branch vs Tag
     function both_bt(reaction){
-        return reaction.branchIdArray.indexOf($scope.selections[0].branch.id) != -1 &&
-               reaction.tagIdArray.indexOf($scope.selections[1].tag.id) != -1;
+        return reaction.branchIdArray.indexOf($scope.id0) != -1 &&
+               reaction.tagIdArray.indexOf($scope.id1) != -1;
     }
 
     function left_bt(reaction){
-        return reaction.branchIdArray.indexOf($scope.selections[0].branch.id) != -1 &&
-               reaction.tagIdArray.indexOf($scope.selections[1].tag.id) == -1;
+        return reaction.branchIdArray.indexOf($scope.id0) != -1 &&
+               reaction.tagIdArray.indexOf($scope.id1) == -1;
     }
 
     function rght_bt(reaction){
-        return reaction.branchIdArray.indexOf($scope.selections[0].branch.id) == -1 &&
-               reaction.tagIdArray.indexOf($scope.selections[1].tag.id) != -1;
+        return reaction.branchIdArray.indexOf($scope.id0) == -1 &&
+               reaction.tagIdArray.indexOf($scope.id1) != -1;
     }
 
 // Tag vs Branch
     function both_tb(reaction){
-        return reaction.tagIdArray.indexOf($scope.selections[0].tag.id) != -1 &&
-               reaction.branchIdArray.indexOf($scope.selections[1].branch.id) != -1;
+        return reaction.tagIdArray.indexOf($scope.id0) != -1 &&
+               reaction.branchIdArray.indexOf($scope.id1) != -1;
     }
 
     function left_tb(reaction){
-        return reaction.tagIdArray.indexOf($scope.selections[0].tag.id) != -1 &&
-               reaction.branchIdArray.indexOf($scope.selections[1].branch.id) == -1;
+        return reaction.tagIdArray.indexOf($scope.id0) != -1 &&
+               reaction.branchIdArray.indexOf($scope.id1) == -1;
     }
 
     function rght_tb(reaction){
-        return reaction.tagIdArray.indexOf($scope.selections[0].tag.id) == -1 &&
-               reaction.branchIdArray.indexOf($scope.selections[1].branch.id) != -1;
+        return reaction.tagIdArray.indexOf($scope.id0) == -1 &&
+               reaction.branchIdArray.indexOf($scope.id1) != -1;
     }
 
 
 
-    $scope.compare = function(reactions) {
+    $scope.compare = function() {
+        $scope.id0 = parseInt($scope.selections[0].id);
+        $scope.id1 = parseInt($scope.selections[1].id);
         if( $scope.selections[0].type == "BRANCH" && $scope.selections[1].type == "BRANCH") {
             $scope.cs = "br vs br";
             $scope.reactions_both = $scope.reactions.filter(both_bb);

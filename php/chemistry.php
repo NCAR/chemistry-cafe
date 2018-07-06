@@ -179,7 +179,7 @@ function get_all_reactions() {
       $row_array['group_id'] = $reaction['group_id'];
       array_push($json_response,$row_array);
    }
-   echo json_encode($json_response);
+   echo json_encode($json_response,JSON_PRETTY_PRINT);
 }
 
 function get_all_reactions_old() {
