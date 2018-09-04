@@ -61,7 +61,7 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
     $scope.group_filter = null;
     $scope.branch_filter = null;
     $scope.formData = [];
-    $scope.formData.group_id = 12;
+    //$scope.formData.group_id = 12;
 
     /* variables for what is visible */
     $scope.name_input_disabled = false;
@@ -514,7 +514,7 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
         $scope.purpose = 'masterEdit';
         $scope.sourceData = null;
         $scope.formData = null;
-        $scope.formData.group_id = 12;
+        //$scope.formData.group_id = 12;
     }
 
     /**  update database with form data **/

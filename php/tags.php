@@ -1779,9 +1779,10 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id, $mechanism_id){
 // add footer
 
    $version_text ="      Version Options
-        machine = intel
+        machine = nec
         model   = cam
-        model_architecture = SCALAR
+        model_architecture = VECTOR
+        vector_length = 32
         architecture = hybrid
 *       vec_ftns = on
         namemod = on
