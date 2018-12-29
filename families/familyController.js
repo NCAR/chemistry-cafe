@@ -63,7 +63,7 @@ app.controller('familyController', ['$scope', '$http', '$log', function ($scope,
                 'description'  : $scope.description
             })
             .success(function (data, status, headers, config) {
-                alert(data);
+                //alert(data);
                 $scope.reset();
                 get_families();
             });
@@ -96,8 +96,8 @@ app.controller('familyController', ['$scope', '$http', '$log', function ($scope,
     }
 
     $scope.toggleIncludeInFamily=function(specie){
-        alert(specie.id);
-        alert($scope.familySelection.id);
+        //alert(specie.id);
+        //alert($scope.familySelection.id);
         if(specie.infamily=='T'){
           $http.post('/php/families.php?action=add_species_in_family',
             {

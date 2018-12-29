@@ -1784,7 +1784,6 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id, $mechanism_id){
         model_architecture = VECTOR
         vector_length = 32
         architecture = hybrid
-*       vec_ftns = on
         namemod = on
       End Version Options\n";
 
