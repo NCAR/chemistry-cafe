@@ -178,14 +178,24 @@ function return_tag_json($tag_id){
              FROM photolysisproducts AS pp 
              WHERE pp.photolysisid = $1");
 
-
     $photolysis_query =
-        "SELECT p.id, p.rate, p.moleculename, p.group_id, p.wrf_photo_rates_id, wr.name as wrname, p.wrf_photo_rates_coeff as wrcoeff
+        "SELECT p.id, 
+            p.rate, 
+            p.moleculename, 
+            p.group_id, 
+            p.wrf_photo_rates_id, 
+            wr.name as wrname, 
+            p.wrf_photo_rates_coeff as wrcoeff,
+            p.tuv_id,
+            p.tuv_coeff,
+            tuv.reaction as tuv_reaction
          FROM photolysis AS p 
          INNER JOIN tag_photolysis AS tp 
          ON tp.photolysis_id=p.id 
          INNER JOIN wrf_photo_rates AS wr
          ON wr.id = p.wrf_photo_rates_id
+         INNER JOIN tuv
+         ON tuv.id = p.tuv_id
          WHERE tp.tag_id =".$tag_id."
          ORDER BY p.moleculename ASC;";
     
@@ -214,6 +224,9 @@ function return_tag_json($tag_id){
                 "id"=>$p['id'], 
                 "rate"=>$p['rate'], 
                 "wrf_rate"=>$wpr['photr'],
+                "tuv_id"=>$p['tuv_id'],
+                "tuv_coeff"=>$p['tuv_coeff'],
+                "tuv_reaction"=>$p['tuv_reaction'],
                 "products"=>$p_array
                 );
     }
