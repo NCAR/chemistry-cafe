@@ -23,7 +23,7 @@ switch($_GET['action'])  {
             global $con;
             //get_all_comments_for_tag($id);
             //return_tag_json($_GET['tag_id'] );
-            return_tag_json(101 );
+            return_tag_json(206 );
             break;
 
 }
@@ -276,7 +276,7 @@ function return_tag_json($tag_id){
         } elseif (!is_null($r['r1']) and !is_null($r['r2']) and !is_null($r['r3'])) {
             $rate_string = sprintf(" ERROR(%e_r8, %e_r8, %e_r8, TEMP, C_M) ",$r['r1'],$r['r2'],$r['r3']);
         } elseif (!is_null($r['r1']) and !is_null($r['r2']) ) {
-            $rate_string = sprintf(" arrhenius(%e_r8, %.2f_r8, TEMP) ",$r['r1'],-$r['r2']);
+            $rate_string = sprintf(' %e_r8 * exp(%.2f_r8 / TEMP) ',$r['r1'],-$r['r2']);
         } elseif (!is_null($r['r1']) ) {
             $rate_string = sprintf(" %e_r8",$r['r1']);
         } else if(strpos($r['label'],"usr_") !== false){
@@ -351,7 +351,7 @@ function return_tag_json($tag_id){
     //print(json_encode($reaction_section, JSON_PRETTY_PRINT));
     //print(json_encode($wrf_functions_array, JSON_PRETTY_PRINT));
 
-    print(json_encode($mechanism, JSON_PRETTY_PRINT));
+    print(json_encode($mechanism, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     
     //return $reaction_json ;
 }
