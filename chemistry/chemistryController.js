@@ -168,7 +168,7 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
                 alert("Coefficient " + coeff + " is not bigger than zero.");
                 break;
             } else {
-                prodarray.push ( [coeff, species] );
+                prodarray.push( [coeff, species]);
             }
         }
         if (prodarray.length !== cmarray.length) {
@@ -419,13 +419,6 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
             if(parsedArrayEdit){
                 $scope.formData.productString = productArrayToString(parsedArrayEdit);
                 $scope.formData.productArray = parsedArrayEdit;
-                //alert('processed product:'+$scope.formData.productString);
-                //Are all products in the list of molecules?
-                for(i=0; i<$scope.formData.productArray.length; i++){
-                    if(!species_in_database($scope.formData.productArray[i]) && $scope.formData.productArray[i] != "M"){
-                        alert('Product '+$scope.formData.productArray[i]+' is not a valid species.  It will not be solved');
-                    }
-                }
                 return true;
             } else {
                 // leave bad string in place
