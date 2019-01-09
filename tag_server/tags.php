@@ -269,7 +269,7 @@ function return_tag_json($tag_id){
         $rate_string = ": ";
         $include_mass = true;
         if (!is_null($r['r1']) and !is_null($r['r2']) and !is_null($r['r3']) and !is_null($r['r4']) and !is_null($r['r5']) ) {
-            $rate_string = sprintf(" troe(%e_r8, %.2f_r8, %e_r8, %.2f_r8, %.2f_r8, TEMP, C_M) ",$r['r1'],$r['r2'],$r['r3'],$r['r4'],$r['r5']);
+            $rate_string = "0 !" . sprintf(" troe(%e_r8, %.2f_r8, %e_r8, %.2f_r8, %.2f_r8, TEMP, C_M) ",$r['r1'],$r['r2'],$r['r3'],$r['r4'],$r['r5']);
             $include_mass = false;
         } elseif (!is_null($r['r1']) and !is_null($r['r2']) and !is_null($r['r3']) and !is_null($r['r4']) ) {
             $rate_string = sprintf(" ERROR(%e_r8, %e_r8, %e_r8, %e_r8, TEMP, C_M) ",$r['r1'],$r['r2'],$r['r3'],$r['r4']);
@@ -280,7 +280,7 @@ function return_tag_json($tag_id){
         } elseif (!is_null($r['r1']) ) {
             $rate_string = sprintf(" %e_r8",$r['r1']);
         } else if(strpos($r['label'],"usr_") !== false){
-             $rate_string .= $r['name'];
+             $rate_string = $r['name'];
         } else {
             $rate_string = " ERROR(".$r['id'].")";
         }
@@ -335,7 +335,7 @@ function return_tag_json($tag_id){
     while($custom_function = pg_fetch_array($wrf_custom_functions_query_result)){
         $wrf_functions_array[] = array(
              "name"=>$custom_function['name'],
-             "code"=>$custom_function['code']
+             "code"=>str_replace("_dp","_r8",str_replace("KIND=dp","KIND=r8",$custom_function['code']))
              );
     }
 

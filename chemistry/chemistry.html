@@ -128,7 +128,7 @@
         </div>
         <h6> Comments: </h6>
         <p><span ng-bind-html="previousCommentsFormatted | unsafe"></p> <br>
-        <button class="btn btn-primary" ng-click="modify_chemistry()" ng-show="editp==1">Commit Modification</button>
+        <button class="btn btn-success" ng-click="modify_chemistry()" ng-show="editp==1">Commit Modification</button>
         <button class="btn btn-primary" ng-click="reset_form()" ng-show="editp!=1">Done</button>
     </div>
     <!--
@@ -141,7 +141,7 @@
         <p>cph: {{formData.cph ? formData.cph : " None"}}</p>
         <p>{{formData.reactantString}} &rarr; {{formData.productString}}</p>
         <p>{{initials}} : {{today | date :'yyyy-MM-dd'}} : {{formData.comment}}</p>
-        <button class="btn" ng-click="create_chemistry()">Create Reaction</button>
+        <button class="btn btn-success" ng-click="create_chemistry()">Create Reaction</button>
     </div>
     <!--
     Edit References

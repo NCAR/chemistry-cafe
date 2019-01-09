@@ -433,6 +433,13 @@ app.controller('photolysisController', ['$scope', '$http', '$window', function (
             if(parsedArrayEdit){
                 $scope.productStringEdit = productArrayToString(parsedArrayEdit);
                 $scope.productArrayEdit = parsedArrayEdit;
+                //Are all products in the list of molecules?
+                for(i=0; i<$scope.productArrayEdit.length; i++){
+                    if(!species_in_database($scope.productArrayEdit[i][1]) && $scope.productArrayEdit[i][1] != "M"){
+                        alert('Product '+$scope.productArrayEdit[i][1]+' is not a valid species.  It will not be solved');
+                    }
+                }
+
                 return true;
             } else {
                 // leave bad string in place
