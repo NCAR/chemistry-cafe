@@ -3,7 +3,7 @@
 include('../php/config.php'); 
 
 switch($_GET['action'])  {
-//switch('test')  { // testing :  php < thisfile.php
+//switch('test')  { // testing 
     case 'get_all_branches' :
             get_all_branches();
             break;
@@ -266,17 +266,16 @@ function return_tag_json($tag_id){
     while($r = pg_fetch_array($reactions)){
 
         // construct rates string
-        $rate_string = ": ";
         $include_mass = true;
         if (!is_null($r['r1']) and !is_null($r['r2']) and !is_null($r['r3']) and !is_null($r['r4']) and !is_null($r['r5']) ) {
-            $rate_string = "0 !" . sprintf(" troe(%e_r8, %.2f_r8, %e_r8, %.2f_r8, %.2f_r8, TEMP, C_M) ",$r['r1'],$r['r2'],$r['r3'],$r['r4'],$r['r5']);
+            $rate_string = "NULL !" . sprintf(" troe(%e_r8, %.2f_r8, %e_r8, %.2f_r8, %.2f_r8, TEMP, C_M) ",$r['r1'],$r['r2'],$r['r3'],$r['r4'],$r['r5']);
             $include_mass = false;
         } elseif (!is_null($r['r1']) and !is_null($r['r2']) and !is_null($r['r3']) and !is_null($r['r4']) ) {
             $rate_string = sprintf(" ERROR(%e_r8, %e_r8, %e_r8, %e_r8, TEMP, C_M) ",$r['r1'],$r['r2'],$r['r3'],$r['r4']);
         } elseif (!is_null($r['r1']) and !is_null($r['r2']) and !is_null($r['r3'])) {
             $rate_string = sprintf(" ERROR(%e_r8, %e_r8, %e_r8, TEMP, C_M) ",$r['r1'],$r['r2'],$r['r3']);
         } elseif (!is_null($r['r1']) and !is_null($r['r2']) ) {
-            $rate_string = sprintf(' %e_r8 * exp(%.2f_r8 / TEMP) ',$r['r1'],-$r['r2']);
+            $rate_string = sprintf(' %e_r8 * exp(%.2f_r8 / TEMP) ',$r['r1'],$r['r2']);
         } elseif (!is_null($r['r1']) ) {
             $rate_string = sprintf(" %e_r8",$r['r1']);
         } else if(strpos($r['label'],"usr_") !== false){
@@ -320,7 +319,7 @@ function return_tag_json($tag_id){
     
 
     $query =     
-        "SELECT wr.id, wr.name, wr.code
+        "SELECT DISTINCT wr.id, wr.name, wr.code
          FROM wrf_custom_rates AS wr
          INNER JOIN reactions AS r
                ON r.wrf_custom_rate_id = wr.id
