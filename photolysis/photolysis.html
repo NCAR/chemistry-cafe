@@ -95,8 +95,8 @@
             <p>{{initials}} : {{today | date :'yyyy-MM-dd'}} : {{commentEdit}}</p>
         </div>
         <p><span ng-bind-html="previousCommentsFormatted | unsafe"></p> <br>
-        <input class="btn btn-primary col-sm-2" type="button" name="reset_form" value="Cancel This Edit" ng-click="reset_modify_form()">
-        <input class="btn btn-primary" type="button" value="Commit Modification" ng-click="modify_photolysis()" ng-show="editp==1">
+        <input class="btn btn-success col-sm-2" type="button" name="reset_form" value="Cancel This Edit" ng-click="reset_modify_form()">
+        <input class="btn btn-success" type="button" value="Commit Modification" ng-click="modify_photolysis()" ng-show="editp==1">
     </div>
     <!--
     Create New Reaction
@@ -108,7 +108,7 @@
         <p>{{formData.rate}}</p>
         <p>{{formData.molecule}} &rarr; {{productStringEdit}}</p>
         <p>{{initials}} : {{today | date :'yyyy-MM-dd'}} : {{commentEdit}}</p> <br>
-        <input class="btn btn-primary" type="button" value="Create New" ng-click="create_photolysis()">
+        <input class="btn btn-success" type="button" value="Create New" ng-click="create_photolysis()">
     </div>
     <!--
     Edit References

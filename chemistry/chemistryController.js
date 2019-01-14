@@ -168,7 +168,7 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
                 alert("Coefficient " + coeff + " is not bigger than zero.");
                 break;
             } else {
-                prodarray.push ( [coeff, species] );
+                prodarray.push( [coeff, species]);
             }
         }
         if (prodarray.length !== cmarray.length) {
@@ -419,7 +419,6 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
             if(parsedArrayEdit){
                 $scope.formData.productString = productArrayToString(parsedArrayEdit);
                 $scope.formData.productArray = parsedArrayEdit;
-                //alert('processed product:'+$scope.formData.productString);
                 return true;
             } else {
                 // leave bad string in place
