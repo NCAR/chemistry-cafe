@@ -457,18 +457,15 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
         var rArray;
         var i;
         var len ;
-	if($scope.formData.label.indexOf('usr_') == -1  && !$scope.formData.rateString) {alert('Please add Rate(s)'); return false;}
-        //alert($scope.formData.label);
-        //alert($scope.formData.rateString);
-  	if($scope.formData.label.indexOf('usr_') != -1  && !$scope.formData.rateString) {
-            //alert('valid null rate');
+	if($scope.formData.label.indexOf('usr_') == -1  && !$scope.formData.rateString) {
+            alert('Please confirm that you want no rate'); 
             $scope.formData.r1 = null;
             $scope.formData.r2 = null;
             $scope.formData.r3 = null;
             $scope.formData.r4 = null;
             $scope.formData.r5 = null;
             return true;
-        }
+            }
         rString = $scope.formData.rateString.trim();
         rArray = rString.split(',');
         len = rArray.length;

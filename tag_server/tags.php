@@ -227,6 +227,8 @@ function return_tag_json($tag_id){
                 "tuv_id"=>$p['tuv_id'],
                 "tuv_coeff"=>$p['tuv_coeff'],
                 "tuv_reaction"=>$p['tuv_reaction'],
+                "reactant_count" => 1, 
+                "troe" => false, 
                 "products"=>$p_array
                 );
     }
