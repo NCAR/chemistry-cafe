@@ -227,6 +227,8 @@ function return_tag_json($tag_id){
                 "tuv_id"=>$p['tuv_id'],
                 "tuv_coeff"=>$p['tuv_coeff'],
                 "tuv_reaction"=>$p['tuv_reaction'],
+                "reactant_count" => 1, 
+                "troe" => false, 
                 "products"=>$p_array
                 );
     }
@@ -288,9 +290,14 @@ function return_tag_json($tag_id){
         // construct reactants
         $no_m_r_array = []; // for testing against species-level reactants
         $r_array = [];
+        $troe = false;
+        $reactant_count = 0;
         $r_reactants = pg_execute($con,"get_r_kpp_reactants",array($r['id']));
         while($rr = pg_fetch_array($r_reactants)){
-            if ($rr['moleculename'] != 'M') {
+            $reactant_count ++;
+            if ($rr['moleculename'] == 'M') {
+                $troe = true;
+            }else{
                 $r_array[] = $rr['moleculename'];
             }
         }
@@ -312,6 +319,8 @@ function return_tag_json($tag_id){
         $reaction_array[] = array( 
               "rate" => $r['rate_string'], 
               "reactants" => $r['reactants'], 
+              "reactant_count" => $reactant_count, 
+              "troe" => $troe, 
               "products" => $r['products']
               );
     }
