@@ -143,7 +143,8 @@ m[1] = new Array(3);
 m[2] = new Array(3);
 
 m[0][0] = 2;
-//m[1][0] = 1;
+m[0][1] = 2;
+m[1][0] = 1;
 //m[2][0] = -3;
 
 //m[0][1] = 2;
@@ -156,30 +157,9 @@ m[2][2] = 2;
 
 jacobian.init(m) 
 
-//jacobian.matrix[0][0] = m[0][0];
-//jacobian.matrix[1][0] = m[1][0];
-//jacobian.matrix[2][0] = m[2][0];
-
-//jacobian.matrix[0][1] = m[0][1];
-//jacobian.matrix[1][1] = m[1][1];
-//jacobian.matrix[2][1] = m[2][1];
-
-//jacobian.matrix[0][2] = m[0][2];
-//jacobian.matrix[1][2] = m[1][2];
-//jacobian.matrix[2][2] = m[2][2];
-
 console.log('init');
 console.log(JSON.stringify(jacobian.matrix));
 console.log('run');
-
-/*
-jacobian.matrix[0][3] = ['03'];
-jacobian.matrix[0][2] = ['02'];
-jacobian.matrix[1][0] = ['10'];
-jacobian.matrix[1][2] = ['12'];
-jacobian.matrix[2][0] = ['20'];
-jacobian.matrix[2][3] = ['23'];
-*/
 
 console.log('printMatrix');
 jacobian.printMatrix(jacobian.matrix);
@@ -333,33 +313,33 @@ for (var col = 0; col < jacobian.size; col++){
 console.log('end subroutine construct_pivot');
 
 app.post('/getLUFactor', function(req, res) {
-// needs to do photolysis as well
+
+  // collect data from request
   var content = req.body;
-  console.log('What I got : '+JSON.stringify(content.logicalJacobian));
-  console.log('is it an array: '+Array.isArray(content.logicalJacobian));
-  console.log('Factoring matrix of size : '+content.logicalJacobian.length)
-  jacobian.init(content.logicalJacobian) 
+  
+  // Compute factorization fill-in
+  jacobian.init(content.logicalJacobian) ;
   for (let i = 0; i < jacobian.size ; i++){
     //console.log('row: '+i);
     let minLoc = jacobian.interactionIndexArray(i);
     //console.log('Pivot: '+ i + " and " + minLoc);
     jacobian.switchColAndRow(i, minLoc);
-    //jacobian.printMatrix(jacobian.matrix);
     jacobian.LUFillIn(i)
-    //console.log('After fillin');
   }
-  //jacobian.printMatrix(jacobian.matrix);
+  
+  // Compute mapping from [i,j] to linear array of LU(:)
   jacobian.linearArrayMapping();
-  //jacobian.printMatrix(jacobian.map);
 
   const accumulatedFortanLUFactorization = [];
 
+  // generate Fortran
   for (var rankIndex = 0; rankIndex < jacobian.size; rankIndex++){
     accumulatedFortanLUFactorization.push('LU('+jacobian.diag[rankIndex]+') = 1./LU('+jacobian.diag[rankIndex]+')');
     if( rankIndex < jacobian.size-1 ){
       for (var row = rankIndex + 1; row < jacobian.size; row++){
         if( jacobian.matrix[row][rankIndex]){
-          accumulatedFortanLUFactorization.push('LU('+jacobian.map[row][rankIndex]+') = LU('+jacobian.map[row][rankIndex]+')*LU('+jacobian.diag[rankIndex]+')');
+          let fortranString = 'LU('+jacobian.map[row][rankIndex]+') = LU('+jacobian.map[row][rankIndex]+')*LU('+jacobian.diag[rankIndex]+')';
+          accumulatedFortanLUFactorization.push(fortranString);
         }
       }
       for (var col = rankIndex + 1; col < jacobian.size; col++){
@@ -370,13 +350,15 @@ app.post('/getLUFactor', function(req, res) {
                 let indx=jacobian.map[row][col];
                 let indx1=jacobian.map[row][rankIndex];
                 let indx2=jacobian.map[rankIndex][col];
-                accumulatedFortanLUFactorization.push('LU('+indx+') = LU('+indx+') - LU('+indx1+')*LU('+indx2+')');
+                let fortranString = 'LU('+indx+') = LU('+indx+') - LU('+indx1+')*LU('+indx2+')';
+                accumulatedFortanLUFactorization.push(fortranString);
               }else{
                 let indx=jacobian.map[row][col];
                 let indx1=jacobian.map[row][rankIndex];
                 let indx2=jacobian.map[rankIndex][col];
                 jacobian.matrix[row][col]=true;
-                accumulatedFortanLUFactorization.push('LU('+indx+') = -LU('+indx1+')*LU('+indx2+')');
+                let fortranString = 'LU('+indx+') = -LU('+indx1+')*LU('+indx2+')';
+                accumulatedFortanLUFactorization.push(fortranString);
               }
             }
           }
@@ -388,104 +370,106 @@ app.post('/getLUFactor', function(req, res) {
   //console.log('fortran factor');
   //console.log(JSON.stringify(accumulatedFortanLUFactorization, null, 2));
 
-  console.log('fortran init');
-  for (var col = 0; col < jacobian.size; col++){
-    for (var row = 0; row < jacobian.size; row++){
-      if(jacobian.matrix[row][col] && (jacobian.matrix[row][col] !== true)){
-        console.log('LU('+jacobian.map[row][col]+') = '+jacobian.matrix[row][col]);
+  // true jacobian (as opposed to logicalJacobian)
+  let tJac = content.jacobian;
+
+  var init_jac_fortran = "\n";
+  init_jac_fortran += 'subroutine init_jacobian(LU)\n';
+  init_jac_fortran += '  real(r8), intent(inout) :: LU(:)\n';
+  init_jac_fortran += '  LU(:) = 0\n';
+  for (var col = 0; col < jacobian.matrix.length; col++){
+    for (var row = 0; row < jacobian.matrix.length; row++){
+      if(tJac[row][col].length > 0 ){ //&& (jacobian.matrix[row][col] !== true)){
+        init_jac_fortran += '  LU('+jacobian.map[row][col]+') = '+JSON.stringify(tJac[row][col])+ '\n';
       }
     }
   }
+  init_jac_fortran += 'end subroutine init_jacobian\n';
+  //console.log(init_jac_fortran);
 
   // write some fortran to test things
-  console.log('subroutine construct_LU_map(Map)');
-  console.log('  integer :: Map(:,:)');
+  var construct_LU_map_fortran = "\n";
+  construct_LU_map_fortran += 'subroutine construct_LU_map(Map)\n';
+  construct_LU_map_fortran += '  integer :: Map(:,:)\n';
   for (var col = 0; col < jacobian.matrix.length; col++){
     let fortran_col = col+1
     for (var row = 0; row < jacobian.matrix.length; row++){
       let fortran_row = row+1
       if(jacobian.map[row][col]){
-        console.log('  Map('+fortran_row+','+fortran_col+') = '+jacobian.map[row][col]);
+        construct_LU_map_fortran += '  Map('+fortran_row+','+fortran_col+') = '+jacobian.map[row][col]+'\n';
       }
     }
   }
-  console.log('end subroutine construct_LU_map\n\n\n');
+  construct_LU_map_fortran += 'end subroutine construct_LU_map\n\n\n'
+  //console.log(construct_LU_map_fortran);
 
 
-  console.log('subroutine init(LU, map)');
-  console.log('  real(r8) LU(:)\n');
-  console.log('  integer map(:,:)\n');
-  for (var col = 0; col < jacobian.size; col++){
-    let fortran_col = col+1
-    for (var row = 0; row < jacobian.size; row++){
-      let fortran_row = row+1
-      if(jacobian.matrix[row][col] && (jacobian.matrix[row][col] !== true)){
-        console.log('  LU( map('+fortran_row+','+fortran_col+') ) = '+jacobian.matrix[row][col]);
-      }
-    }
-  }
-  console.log('end subroutine init\n\n\n');
-  
-  console.log('subroutine factor(LU)');
-  console.log('  real(r8) LU(:)\n');
+  var factor_LU_fortran = "\n";
+  factor_LU_fortran += 'subroutine factor(LU)\n';
+  factor_LU_fortran += '  real(r8) LU(:)\n';
   for (var entries = 0; entries < accumulatedFortanLUFactorization.length; entries++){
-    console.log('  '+accumulatedFortanLUFactorization[entries]);
+    factor_LU_fortran += '  '+accumulatedFortanLUFactorization[entries]+'\n';
   }
-  console.log('end subroutine factor\n\n');
+  factor_LU_fortran += 'end subroutine factor\n';
 
-  console.log('subroutine backsolve_L_y_eq_b(LU,b,y)');
-  console.log('  real(r8) LU(:)');
-  console.log('  real(r8) b(:)');
-  console.log('  real(r8) y(:)');
-  console.log('\n');
+
+  var backsolve_L_y_eq_b_fortran = "\n";
+  backsolve_L_y_eq_b_fortran += 'subroutine backsolve_L_y_eq_b(LU,b,y)\n';
+  backsolve_L_y_eq_b_fortran += '  real(r8) LU(:)\n';
+  backsolve_L_y_eq_b_fortran += '  real(r8) b(:)\n';
+  backsolve_L_y_eq_b_fortran += '  real(r8) y(:)\n';
   for(var row = 0; row < jacobian.size; row++){
     let fortran_row = row + 1;
-    console.log('  y('+fortran_row+') = b('+fortran_row+')');
+    backsolve_L_y_eq_b_fortran += '  y('+fortran_row+') = b('+fortran_row+')\n';
     for(var col = 0; col < row; col++){
       let fortran_col = col + 1;
       if(jacobian.map[row][col]){
-        console.log('  y('+fortran_row+') = y('+fortran_row+') - LU('+jacobian.map[row][col]+') * y('+fortran_col+')');
+        backsolve_L_y_eq_b_fortran +='  y('+fortran_row+') = y('+fortran_row+') - LU('+jacobian.map[row][col]+') * y('+fortran_col+')\n'
       }
     }
   }
-  console.log('end subroutine backsolve_L_y_eq_b\n\n\n');
+  backsolve_L_y_eq_b_fortran +='end subroutine backsolve_L_y_eq_b\n\n\n';
 
 
-  console.log('subroutine backsolve_U_x_eq_y(LU,y,x)');
-  console.log('  real(r8) LU(:)');
-  console.log('  real(r8) y(:)');
-  console.log('  real(r8) x(:)');
-  console.log('  real(r8) temporary');
-  console.log('\n');
+  var backsolve_u_x_eq_y_fortran = '\nsubroutine backsolve_U_x_eq_y(LU,y,x)\n';
+  backsolve_u_x_eq_y_fortran +='   real(r8) LU(:)\n'
+  backsolve_u_x_eq_y_fortran +='  real(r8) y(:)\n'
+  backsolve_u_x_eq_y_fortran +='  real(r8) x(:)\n'
+  backsolve_u_x_eq_y_fortran +='  real(r8) temporary\n'
   for(var row = jacobian.size-1; row > -1; row--){
     let fortran_row = row + 1;
-    console.log('  temporary = y('+fortran_row+')');
+    backsolve_u_x_eq_y_fortran +='  temporary = y('+fortran_row+')\n'
     for(var col = row+1; col < jacobian.size; col++){
       let fortran_col = col + 1;
       if(jacobian.map[row][col]){
-        console.log('  temporary = temporary - LU('+jacobian.map[row][col]+') * x('+fortran_col+')');
+        backsolve_u_x_eq_y_fortran +='  temporary = temporary - LU('+jacobian.map[row][col]+') * x('+fortran_col+')\n'
       }
     }
-    console.log('  x('+fortran_row+') = LU('+jacobian.map[row][row]+') * temporary' );
+    backsolve_u_x_eq_y_fortran +='  x('+fortran_row+') = LU('+jacobian.map[row][row]+') * temporary\n';
   }
-  console.log('end subroutine backsolve_U_x_eq_y');
+  backsolve_u_x_eq_y_fortran +='end subroutine backsolve_U_x_eq_y\n';
 
-  let pivotFortran = '\n\n\nsubroutine construct_pivot(pivot)';
-  pivotFortran +='  integer :: pivot(:)';
+
+  let pivotFortran = '\n\n\nsubroutine construct_pivot(pivot)\n';
+  pivotFortran +='  integer :: pivot(:)\n';
   for (var col = 0; col < jacobian.size; col++){
     let fortran_col = col+1
     // +1 to convert to 1-offset for fortran
-    pivotFortran += '  pivot('+fortran_col+') = '+(jacobian.pivot[col]+1);
+    pivotFortran += '  pivot('+fortran_col+') = '+(jacobian.pivot[col]+1)+'\n';
   }
   pivotFortran += 'end subroutine construct_pivot';
 
 
-  res.json({"pivot":pivotFortran});
+  res.json({
+    "pivot":pivotFortran, 
+    "backsolve_L_y_eq_b_fortran":backsolve_L_y_eq_b_fortran,
+    "backsolve_U_x_eq_y_fortran":backsolve_u_x_eq_y_fortran,
+    "factor_LU_fortran":factor_LU_fortran,
+    "construct_LU_map_fortran":construct_LU_map_fortran,
+    "init_jac_fortran":init_jac_fortran});
 
 });
 
-
-app.get('/hiToAndrew', (req, res) => res.send('Hello World!'));
 
 http.listen(8081, function(){
     var addr = http.address();

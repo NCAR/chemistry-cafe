@@ -1,7 +1,7 @@
 <?php
 
 
-include('../html/php/config.php');
+include('../php/config.php');
 
 
 //switch($_GET['action'])  {
@@ -355,6 +355,7 @@ function return_tag_json($tag_id){
     }
 
     $mechanism = array( "mechanism"=> array(
+           "tag_info"=>$tagv,
            "molecules"=>$molecule_array, 
            "photolysis"=>$photolysis_array, 
            "reactions"=>$reaction_array, 
@@ -379,32 +380,29 @@ function return_tag_json($tag_id){
     curl_close($ch);
     print("Number of photodecomps\n");
     print($jacobian->nPhotodecomps );
+    print(json_encode($jacobian->jacobian) );
+    print("\n");
 
 
     // collect the LU factoriztion/solve algorithm.
 
     print("Call LU_algorithm.js");
-    $logicalJacobian = json_encode($jacobian);
+    $jacobian = json_encode($jacobian);
     $ch_factor = curl_init('http://localhost:8081/getLUFactor');
     curl_setopt($ch_factor, CURLOPT_CUSTOMREQUEST, "POST");
-    curl_setopt($ch_factor, CURLOPT_POSTFIELDS, $logicalJacobian);
+    curl_setopt($ch_factor, CURLOPT_POSTFIELDS, $jacobian);
     curl_setopt($ch_factor, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch_factor, CURLOPT_HTTPHEADER, array(
         'Content-Type: application/json',
-        'Content-Length: ' . strlen($logicalJacobian))
+        'Content-Length: ' . strlen($jacobian))
     );
     $factorizationFortran  = json_decode(curl_exec($ch_factor));
     //print($factorizationFortran);
     curl_close($ch_factor);
 
     $pivotFortran = $factorizationFortran->pivot;
-    print("pivot\n");
-    print($pivotFortran);
+    print($factorizationFortran->init_jac_fortran);
 
-
-
-
-   
 
 }
 
