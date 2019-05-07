@@ -62,7 +62,7 @@ const labelCollector = function() {
 // Store data to be converted to code
 // Code will be netTendency*rateConstant(rateConstantIndex)*product_of_vmr_array*M
 //   I.E., 0.6*rateConstant(22)*vmr(8)*vmr(3)*M
-//   or 0.6*rateConstant(22)*vmr(8)*vmr(3)*numberDensity^3
+//      or 0.6*rateConstant(22)*vmr(8)*vmr(3)*numberDensity^3
 // arrayOfVmr is array of vmr's by label.  
 //
 // Rendering takes place later, using the pivot array from the LU factorization routine
@@ -77,143 +77,168 @@ function term(rateConstantIndex, arrayOfVmr, troeTerm=false, netTendency=1.0){
 // This should be part of the database!
 // Decorates the reaction with a "raw label"
 // label is constructed as
-//   'reactant1'_'reactant2'_M_a_count]
+//   'reactant1'_'reactant2'_M_a_count
 //   i.e., O2_O3_M_a_1
 //     or  O_O2_M_a_2
 //   where count is an index separating reactions having same reactants and same branch
 //   "a" or "b" indicates a branch of a reaction
-const label = function(labelCollection, reaction, idxReaction) {
-  let rawLabel = "";
-  if(reaction.reactants.length == 0){
-    rawLabel = "None";
-  }else{
-    rawLabel = reaction.reactants.sort().join("_");
+const labelor = function() {
+  let idxReaction = 0;
+  this.add = function(labelCollection,reaction){
+    idxReaction ++;
+    let rawLabel ="";
+
+    if(reaction.reactants.length == 0){
+      rawLabel = "None";
+    } else {
+      rawLabel = reaction.reactants.sort().join("_");
+    }
+
+    if (reaction.reactionBranch) { 
+      rawLabel += "_" + reaction.reactionBranch;
+    }
+
+    if (reaction.troe) {
+      rawLabel += "_M"; 
+    }
+
+    reaction.rawLabel = rawLabel;
+    reaction.label = reaction.rawLabel+"_"+labelCollection.add(rawLabel);
+    reaction.idxReaction = idxReaction;
   }
-  if (reaction.troe) {rawLabel += "_M" };
-  if (reaction.reactionBranch) { rawLabel += "_" + reaction.reactionBranch };
-  reaction.rawLabel = rawLabel;
-  reaction.label = reaction.rawLabel+"_"+labelCollection.add(rawLabel);
-  reaction.idxReaction = idxReaction;
 }
 
 
 
+// Iterate through the list of reactants and products to create a net stoichiometric tendency
+//   of each molecule in the given reaction.
+// If net tendency is smaller than a limit, eliminate it from the array of tendencies
 // Decorate each reaction with an array of net stoichiometric tendencies for the molecules
 const stoichiometricTendencies = function(reaction, molecules) {
+
   let tendency = []; // tendency array for this reaction
   let tendencyCount = 0;
+
   reaction.reactants.forEach( function(reactant){
     let indexOfReactant = molecules.map(function(e) { return e.moleculename; }).indexOf(reactant);
-    tendency[tendencyCount] = {idxConstituent:indexOfReactant, constituent:reactant,netTendency:-1};
+    tendency[tendencyCount] = {idxConstituent:indexOfReactant, constituent:reactant, netTendency:-1};
     tendencyCount ++;
   });
+
   reaction.products.forEach( function(product){
     let position = tendency.map(function(e) { return e.constituent; }).indexOf(product.molecule);
     let indexOfReactant = molecules.map(function(e) { return e.moleculename; }).indexOf(product.molecule);
-    if( position < 0 ){ // if this product was not in the list of reactants
+    if( position < 0 ){ 
+      // This product is not in the list of reactants
       tendency.push({idxConstituent:indexOfReactant, constituent:product.molecule, netTendency:product.coefficient});
-    } else { // if this product is in the list of reactants
+    } else { 
+      // This product is in the list of reactants, so accumulate net tendency
       tendency[position].netTendency += product.coefficient;
       tendencyCount ++;
     }
   });
-  // remove terms with roundoff-level-zero stoichiometric coefficients
+
+  // Remove terms with roundoff-level-zero stoichiometric coefficients
   var tendency_nonzero = [];
   for( var i = 0; i < tendency.length; i++){
     if(Math.abs(tendency[i].netTendency) > zero_equivalent_stoichometry_limit ){ 
       tendency_nonzero.push(tendency[i]);
     }
   }
-  // reaction.tendencies = [ {idxConstituent:22, constituent:'O2', netTendency:-0.5}, ...]
+
+  // Decorate the reaction with the tendencies
+  //   reaction.tendencies = [ {idxConstituent:22, constituent:'O2', netTendency:-0.5}, ...]
   reaction.tendencies = tendency_nonzero;
 
 }
 
 // Collect forcing for each molecule.  This is the 
-// right hand side of the differential equation for
-// each molecule.  It may be useful to compute forcing
-// for each reaction and apply it to each molecule, Or
+//   right hand side of the differential equation for
+//   each molecule.  It may be useful to compute forcing
+//   for each reaction and apply it to each molecule, Or
 // One can use this collection to compute forcing for each
-// molecule using a number of rates.
+//   molecule using a number of rates.
 // Also construct the jacobian of the forcing, i.e. the
-// sensitivity of the forcing to the concentrations of each constituent
+//   sensitivity of the forcing to the concentrations of each constituent
 // Also construct logical jacobian for forcing, i.e. whether or not
-// the forcing is sensitive to the concentrations of each constituent
+//   the forcing is sensitive to the concentrations of each constituent
 const forceCollector = function(molecules){
 
+  // forcing (i.e., rate of change) of each molecule
   var force = [];
-  var logicalJacobian = [];
+  // jacobian d(force)/dMolecule
   var jacobian = [];
+  // matrix of Boolean.  Entries are true if the jacobian has an entry, or if it is filled in by pivoting
+  var logicalJacobian = []; 
 
+  // Compute number of molecules in the mechanism
   let count = molecules.length;
 
+  // Initialize storage for forcing, jacobian, and logicalJacobian
   for(let iMolecule = 0; iMolecule < count; iMolecule++){
-
     force[iMolecule] = {};
-    force[iMolecule].constituent = molecules[iMolecule].moleculename;
+    force[iMolecule].constituentName = molecules[iMolecule].moleculename;
     force[iMolecule].idxConstituent = iMolecule;
     // net stoichiometric tendency of every constituent in the reaction
     force[iMolecule].tendency = [];
-
     // each jacobian element is an array of terms
     jacobian[iMolecule] = [];
     for(let jMolecule = 0; jMolecule < count; jMolecule++){
       jacobian[iMolecule][jMolecule] = [];
     }
-
     // each logicalJacobian element is true/false
     logicalJacobian[iMolecule] = [];
     for(let jMolecule = 0; jMolecule < count; jMolecule++){
       logicalJacobian[iMolecule][jMolecule] = false;
     }
-    
   }
   
+
+  // construct forcing, logicalJacobian, and jacobian from each reaction
+  this.constructForcingFromTendencies = function(reaction, moleculeIndex){
+
+    let rate=new term(reaction.idxReaction, reaction.reactants, reaction.troe);
+
+    let nTends = reaction.tendencies.length;
+
+    for (let iTend = 0; iTend < nTends; iTend++){
+      let tendency = reaction.tendencies[iTend];
+      let forcedMoleculeIndex = tendency.idxConstituent;
+      if (forcedMoleculeIndex == -1 ) break;  // molecule not in the list of molecules-> don't consider it.
+      force[forcedMoleculeIndex].tendency.push({tendency:tendency.netTendency, rate:rate});
+        
+      // jacobian: derivative of forcing[tendency.constituent] w/r/t each tendency in the reaction list
+      for(let i = 0; i < reaction.reactants.length; i++){
+
+        //console.log("derivative of "+ tendency.constituent+ " w/r/t/ "+reaction.reactants[i]);
+        let sensitivityIndex = moleculeIndex.moleculeAssociation[reaction.reactants[i]];
+        logicalJacobian[forcedMoleculeIndex][sensitivityIndex] = true;
+
+        // Jacobian terms.  Rate is tendency * rate_constant * [product of reactant_array] * M (if troe)
+        // Jacobian is (net stoichiometry term for molecule) * rate.
+        // For the derivitive w.r.t. each reactant, construct 
+        //   tendency * rate_constant * [product of reactant_array without the sensitivity molecule] * M (if troe)
+
+        // Construct reactant array without each sensitivity molecule
+        let remainingTerms = reaction.reactants.slice(0); // replicate
+        remainingTerms.splice(i,1); // remove this term
+
+        // jacTerm = {rateConstantIndex:idxReaction, arrayOfVmr:['O2'], troeTerm:reaction.troe, netTendency:-0.25]}
+        let jacTerm = new term(reaction.idxReaction, remainingTerms, reaction.troe, tendency.netTendency);
+        jacobian[forcedMoleculeIndex][sensitivityIndex].push(jacTerm);
+      }
+
+    }
+
+  }
+
+
   this.printForce = function(){
     force.forEach( function(f){
        console.log(f.constituent);
        console.log(f.tendency);
     });
   }
-
-
-
-  this.constructForcingFromTendencies = function(reaction, moleculeIndex){
-    let rate=new term(reaction.idxReaction, reaction.reactants, reaction.troe);
-    //console.log("reaction number  "+rate.idxReaction);
-    //console.log("reaction.tendencies "+JSON.stringify(reaction.tendencies));
-    //console.log("reaction.reactants "+JSON.stringify(reaction.reactants));
-    let nTends = reaction.tendencies.length;
-    for (let iTend = 0; iTend < nTends; iTend++){
-        let tendency = reaction.tendencies[iTend];
-        let forcedMoleculeIndex = tendency.idxConstituent;
-        if (forcedMoleculeIndex == -1 ) break;  // molecule not in the list of molecules-> don't consider it.
-        force[forcedMoleculeIndex].tendency.push({tendency:tendency.netTendency, rate:rate});
-        
-        // jacobian: derivative of forcing[tendency.constituent] w/r/t each tendency in the reaction list
-        for(let i = 0; i < reaction.reactants.length; i++){
-
-          //console.log("derivative of "+ tendency.constituent+ " w/r/t/ "+reaction.reactants[i]);
-          let sensitivityIndex = moleculeIndex.moleculeAssociation[reaction.reactants[i]];
-          logicalJacobian[forcedMoleculeIndex][sensitivityIndex] = true;
-
-          // Jacobian terms.  Rate is tendency * rate_constant * [product of reactant_array] * M (if troe)
-          // Jacobian is net stoichiometry term for molecule * rate.
-          // For the derivitive w.r.t. each reactant, construct 
-          //   tendency * rate_constant * [product of reactant_array without the sensitivity molecule] * M (if troe)
-
-          // Construct reactant array without each sensitivity molecule
-          let remainingTerms = reaction.reactants.slice(0); // replicate
-          remainingTerms.splice(i,1); // remove this term
-
-          // jacTerm = {rateConstantIndex:idxReaction, arrayOfVmr:['O2'], troeTerm:reaction.troe, netTendency:-0.25]}
-          let jacTerm = new term(reaction.idxReaction, remainingTerms, reaction.troe, tendency.netTendency);
-          jacobian[forcedMoleculeIndex][sensitivityIndex].push(jacTerm);
-        }
-    }
-  }
-
-  this.getLength = force.length
 
   this.printForcing = function(){
     for(let i = 0; i < molecules.length; i++){
@@ -234,21 +259,21 @@ const forceCollector = function(molecules){
     }
   }
 
-  this.getLogicalJacobian = function(){
-    return logicalJacobian ;
-  }
-
   this.printJacobian = function(){
     console.log(' ---- Jacobian ---- ');
     for(let i = 0; i < molecules.length; i++){
       for(let j = 0; j < molecules.length; j++){
         let jacstring = "";
-        //jacobian[i][j].forEach( (term) => {jacstring += "\n"+JSON.stringify(term)});
-        //console.log('fi si ' + i + ":" + j);
-        console.log(molecules[i].moleculename + ' ' +molecules[j].moleculename) //+ " = " + jacstring); 
+        console.log(molecules[i].moleculename + ',' +molecules[j].moleculename) 
         console.dir(jacobian[i][j])
       }
     }
+  }
+
+
+
+  this.getLogicalJacobian = function(){
+    return logicalJacobian ;
   }
 
   this.getJacobian = function(){
@@ -263,34 +288,59 @@ const forceCollector = function(molecules){
 
 
 app.post('/phpcallback', function(req, res) {
-// needs to do photolysis as well
+
+  // Only use the body of the request.
+  // Ignore header data.
   var content = req.body;
-  console.log('constructing Jacobian, forcing, rates, rateConstants and Logical Jacobian for mechanism: ');
-  console.log(content.mechanism.tag_info.given_name);
+
+  // Extract relevant data from the request.
   let molecules = content.mechanism.molecules;
   let reactions = content.mechanism.reactions;
-  let photodecomps = content.mechanism.photolysis
+  let photoDecomps = content.mechanism.photolysis
+
+  // Labelling should be done in the database.
+  // For now, do the labelling here.
   var labelCollection = new labelCollector();
+  var label = new labelor();
+
+  // Construct an index into the molecule array
+  // I.E., moleculeIndex.moleculeAssociation[molecules[i].moleculename]=i;
   var moleculeIndex = new moleculeIndexer(molecules);
-  //moleculeIndex.print();
+
+  // Initialize the forceCollection to store relevant
+  //   forcing, jacobian, and logicalJacobian
   var forceCollection = new forceCollector(molecules);
-  //forceCollection.printForce();
+ 
+  // Label each reaction
   reactions.forEach(function(reaction,index){
-    label(labelCollection, reaction, index)});
+    label.add(labelCollection, reaction)});
+  photoDecomps.forEach(function(reaction,index){
+    label.add(labelCollection, reaction)});
+
+  // Compute tendency of molecules due to each reaction
   reactions.forEach(function(reaction){
     stoichiometricTendencies(reaction, molecules)});
-  //moleculeIndex.print();
+  photoDecomps.forEach(function(reaction){
+    stoichiometricTendencies(reaction, molecules)});
+
+  // Construct force, jacobian and logicalJacobian for each reaction
   reactions.forEach(function(reaction){
     forceCollection.constructForcingFromTendencies(reaction, moleculeIndex)});
+  photoDecomps.forEach(function(reaction){
+    forceCollection.constructForcingFromTendencies(reaction, moleculeIndex)});
+
+  // Get these from the forceCollection
   let logicalJacobian = forceCollection.getLogicalJacobian();
   let jacobian = forceCollection.getJacobian();
   let force = forceCollection.getForce();
   //forceCollection.printLogicalJacobian();
   //forceCollection.printJacobian();
+  
+  // Send result back to host
   res.json({
     "molecules": molecules, 
     "reactions":reactions, 
-    "photodecomps":photodecomps, 
+    "photoDecomps":photoDecomps, 
     "labelCollection":labelCollection,
     "logicalJacobian":logicalJacobian, 
     "jacobian":jacobian, 

@@ -135,187 +135,12 @@ function Jacobian() {
 
 }
 
-const jacobian = new Jacobian();
-
-let m = new Array(3);
-m[0] = new Array(3);
-m[1] = new Array(3);
-m[2] = new Array(3);
-
-m[0][0] = 2;
-m[0][1] = 2;
-m[1][0] = 1;
-//m[2][0] = -3;
-
-//m[0][1] = 2;
-m[1][1] = 4;
-//m[2][1] = -2;
-
-//m[0][2] = -2;
-//m[1][2] = -7;
-m[2][2] = 2;
-
-jacobian.init(m) 
-
-console.log('init');
-console.log(JSON.stringify(jacobian.matrix));
-console.log('run');
-
-console.log('printMatrix');
-jacobian.printMatrix(jacobian.matrix);
-console.log('pivot');
-
-for (let i = 0; i < jacobian.size ; i++){
-  console.log('row: '+i);
-  let minLoc = jacobian.interactionIndexArray(i);
-  console.log('Pivot: '+ i + " and " + minLoc);
-  jacobian.switchColAndRow(i, minLoc);
-  jacobian.printMatrix(jacobian.matrix);
-  jacobian.LUFillIn(i)
-  console.log('After fillin');
-  jacobian.printMatrix(jacobian.matrix);
-}
-
-console.log('Mapping');
-jacobian.linearArrayMapping();
-jacobian.printMatrix(jacobian.map);
-
-const accumulatedFortanLUFactorization = [];
-
-for (var rankIndex = 0; rankIndex < jacobian.size; rankIndex++){
-  accumulatedFortanLUFactorization.push('LU('+jacobian.diag[rankIndex]+') = 1./LU('+jacobian.diag[rankIndex]+')');
-  if( rankIndex < jacobian.size-1 ){
-    for (var row = rankIndex + 1; row < jacobian.size; row++){
-      if( jacobian.matrix[row][rankIndex]){
-        accumulatedFortanLUFactorization.push('LU('+jacobian.map[row][rankIndex]+') = LU('+jacobian.map[row][rankIndex]+')*LU('+jacobian.diag[rankIndex]+')');
-      }
-    }
-    for (var col = rankIndex + 1; col < jacobian.size; col++){
-      if(jacobian.matrix[rankIndex][col]){
-        for ( var row = rankIndex + 1; row < jacobian.size; row++){
-          if(jacobian.matrix[row][rankIndex]){
-            if(jacobian.matrix[row][col] && jacobian.matrix[row][col] !== true ){
-              let indx=jacobian.map[row][col];
-              let indx1=jacobian.map[row][rankIndex];
-              let indx2=jacobian.map[rankIndex][col];
-              accumulatedFortanLUFactorization.push('LU('+indx+') = LU('+indx+') - LU('+indx1+')*LU('+indx2+')');
-            }else{
-              let indx=jacobian.map[row][col];
-              let indx1=jacobian.map[row][rankIndex];
-              let indx2=jacobian.map[rankIndex][col];
-              jacobian.matrix[row][col]=true;
-              accumulatedFortanLUFactorization.push('LU('+indx+') = -LU('+indx1+')*LU('+indx2+')');
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-console.log('fortran factor');
-console.log(JSON.stringify(accumulatedFortanLUFactorization, null, 2));
-
-console.log('fortran init');
-for (var col = 0; col < jacobian.size; col++){
-  for (var row = 0; row < jacobian.size; row++){
-    if(jacobian.matrix[row][col] && (jacobian.matrix[row][col] !== true)){
-      console.log('LU('+jacobian.map[row][col]+') = '+jacobian.matrix[row][col]);
-    }
-  }
-}
-
-
-
-
-// write some fortran to test things
-
-
-console.log('subroutine construct_LU_map(Map)');
-console.log('  integer :: Map(:,:)');
-for (var col = 0; col < jacobian.matrix.length; col++){
-  let fortran_col = col+1
-  for (var row = 0; row < jacobian.matrix.length; row++){
-    let fortran_row = row+1
-    if(jacobian.map[row][col]){
-      console.log('  Map('+fortran_row+','+fortran_col+') = '+jacobian.map[row][col]);
-    }
-  }
-}
-console.log('end subroutine construct_LU_map\n\n\n');
-
-
-console.log('subroutine init(LU, map)');
-console.log('  real(r8) LU(:)\n');
-console.log('  integer map(:,:)\n');
-for (var col = 0; col < jacobian.size; col++){
-  let fortran_col = col+1
-  for (var row = 0; row < jacobian.size; row++){
-    let fortran_row = row+1
-    if(jacobian.matrix[row][col] && (jacobian.matrix[row][col] !== true)){
-      console.log('  LU( map('+fortran_row+','+fortran_col+') ) = '+jacobian.matrix[row][col]);
-    }
-  }
-}
-console.log('end subroutine init\n\n\n');
-
-console.log('subroutine factor(LU)');
-console.log('  real(r8) LU(:)\n');
-for (var entries = 0; entries < accumulatedFortanLUFactorization.length; entries++){
-  console.log('  '+accumulatedFortanLUFactorization[entries]);
-}
-console.log('end subroutine factor\n\n');
-
-console.log('subroutine backsolve_L_y_eq_b(LU,b,y)');
-console.log('  real(r8) LU(:)');
-console.log('  real(r8) b(:)');
-console.log('  real(r8) y(:)');
-console.log('\n');
-for(var row = 0; row < jacobian.size; row++){
-  let fortran_row = row + 1;
-  console.log('  y('+fortran_row+') = b('+fortran_row+')');
-  for(var col = 0; col < row; col++){
-    let fortran_col = col + 1;
-    if(jacobian.map[row][col]){
-      console.log('  y('+fortran_row+') = y('+fortran_row+') - LU('+jacobian.map[row][col]+') * y('+fortran_col+')');
-    }
-  }
-}
-console.log('end subroutine backsolve_L_y_eq_b\n\n\n');
-
-
-console.log('subroutine backsolve_U_x_eq_y(LU,y,x)');
-console.log('  real(r8) LU(:)');
-console.log('  real(r8) y(:)');
-console.log('  real(r8) x(:)');
-console.log('  real(r8) temporary');
-console.log('\n');
-for(var row = jacobian.size-1; row > -1; row--){
-  let fortran_row = row + 1;
-  console.log('  temporary = y('+fortran_row+')');
-  for(var col = row+1; col < jacobian.size; col++){
-    let fortran_col = col + 1;
-    if(jacobian.map[row][col]){
-      console.log('  temporary = temporary - LU('+jacobian.map[row][col]+') * x('+fortran_col+')');
-    }
-  }
-  console.log('  x('+fortran_row+') = LU('+jacobian.map[row][row]+') * temporary' );
-}
-console.log('end subroutine backsolve_U_x_eq_y');
-
-console.log('\n\n\nsubroutine construct_pivot(pivot)');
-console.log('  integer :: pivot(:)');
-for (var col = 0; col < jacobian.size; col++){
-  let fortran_col = col+1
-  // +1 to convert to 1-offset for fortran
-  console.log('  pivot('+fortran_col+') = '+(jacobian.pivot[col]+1))
-}
-console.log('end subroutine construct_pivot');
-
 app.post('/getLUFactor', function(req, res) {
 
   // collect data from request
   var content = req.body;
+
+  var jacobian = new Jacobian();
   
   // Compute factorization fill-in
   jacobian.init(content.logicalJacobian) ;
@@ -380,7 +205,10 @@ app.post('/getLUFactor', function(req, res) {
   for (var col = 0; col < jacobian.matrix.length; col++){
     for (var row = 0; row < jacobian.matrix.length; row++){
       if(tJac[row][col].length > 0 ){ //&& (jacobian.matrix[row][col] !== true)){
-        init_jac_fortran += '  LU('+jacobian.map[row][col]+') = '+JSON.stringify(tJac[row][col])+ '\n';
+        let iRow = jacobian.pivot.indexOf(row);
+        let iCol = jacobian.pivot.indexOf(col);
+        init_jac_fortran += '! df(molecule)/d(molecule)';
+        init_jac_fortran += '  LU('+jacobian.map[iRow][iCol]+') = '+JSON.stringify(tJac[row][col])+ '\n';
       }
     }
   }

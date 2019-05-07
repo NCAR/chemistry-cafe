@@ -378,14 +378,10 @@ function return_tag_json($tag_id){
 
     $jacobian=json_decode(curl_exec($ch));
     curl_close($ch);
-    print("Number of photodecomps\n");
-    print($jacobian->nPhotodecomps );
-    print(json_encode($jacobian->jacobian) );
-    print("\n");
+    print(json_encode($jacobian->photoDecomps, JSON_PRETTY_PRINT) );
 
 
     // collect the LU factoriztion/solve algorithm.
-
     print("Call LU_algorithm.js");
     $jacobian = json_encode($jacobian);
     $ch_factor = curl_init('http://localhost:8081/getLUFactor');
