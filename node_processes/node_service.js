@@ -38,14 +38,14 @@ const moleculeIndexer = function(molecules){
 
 
 // Store data to be converted to code
-// Code will be netTendency*rateConstant(rateConstantIndex)*product_of_vmr_array*M
+// Code will be netTendency*rateConstant(idxReaction)*product_of_vmr_array*M
 //   I.E., 0.6*rateConstant(22)*vmr(8)*vmr(3)*M
 //      or 0.6*rateConstant(22)*vmr(8)*vmr(3)*numberDensity^3
 // arrayOfVmr is array of vmr's by label.  
 //
 // Rendering takes place later, using the pivot array from the LU factorization routine
-function term(rateConstantIndex, arrayOfVmr, troeTerm=false, netTendency=1.0){
-  this.rateConstantIndex=rateConstantIndex;
+function term(idxReaction, arrayOfVmr, troeTerm=false, netTendency=1.0){
+  this.idxReaction=idxReaction;
   this.arrayOfVmr=arrayOfVmr;
   this.troeTerm=troeTerm;
   this.netTendency=netTendency;
@@ -69,7 +69,6 @@ const labelor = function() {
   let collection = []; 
 
   this.add = function(reaction, reactionTypeIndex, reactionType){
-    idxReaction ++;
     let rawLabel ="";
 
     if(reaction.reactants.length == 0){
@@ -103,6 +102,7 @@ const labelor = function() {
     reaction.reactionTypeIndex = reactionTypeIndex;
     reaction.reactionType = reactionType;
     reaction.idxReaction = idxReaction;
+    idxReaction ++;
   }
 
   this.printCollection = function() {
@@ -296,7 +296,7 @@ const forceCollector = function(molecules){
 }
 
 
-app.post('/phpcallback', function(req, res) {
+app.post('/constructJacobian', function(req, res) {
 
   // Only use the body of the request.
   // Ignore header data.
