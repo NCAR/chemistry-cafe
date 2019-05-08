@@ -379,6 +379,8 @@ function return_tag_json($tag_id){
     $jacobian=json_decode(curl_exec($ch));
     curl_close($ch);
     print(json_encode($jacobian->photoDecomps, JSON_PRETTY_PRINT) );
+    //print(json_encode($jacobian->force, JSON_PRETTY_PRINT) );
+    //print(json_encode($jacobian->reactions, JSON_PRETTY_PRINT) );
 
 
     // collect the LU factoriztion/solve algorithm.
@@ -397,7 +399,8 @@ function return_tag_json($tag_id){
     curl_close($ch_factor);
 
     $pivotFortran = $factorizationFortran->pivot;
-    print($factorizationFortran->init_jac_fortran);
+    //print($factorizationFortran->init_jac_fortran);
+    //print($factorizationFortran->init_jac_fortran);
 
 
 }

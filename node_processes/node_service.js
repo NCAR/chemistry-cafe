@@ -36,28 +36,6 @@ const moleculeIndexer = function(molecules){
 }
 
 
-// Collect all reaction (raw) labels.  
-// If label has been used before, count number of times that label has appeared.
-// Return the count of that label.
-const labelCollector = function() {
-  this.collection = [];
-  this.add = function(rawLabel)
-  {
-    let position = this.collection.map(function(e) { return e.rawLabel; }).indexOf(rawLabel);
-    if(position > -1) {
-      this.collection[position].count ++;
-      return this.collection[position].count;
-    } else {
-      this.collection.push({rawLabel:rawLabel,count:1});
-      return 1;
-    }
-  }
-
-  this.print = function() {
-    console.log('Labels count: '+this.collection.length);
-    console.dir(this.collection);
-  }
-}
 
 // Store data to be converted to code
 // Code will be netTendency*rateConstant(rateConstantIndex)*product_of_vmr_array*M
@@ -83,8 +61,14 @@ function term(rateConstantIndex, arrayOfVmr, troeTerm=false, netTendency=1.0){
 //   where count is an index separating reactions having same reactants and same branch
 //   "a" or "b" indicates a branch of a reaction
 const labelor = function() {
+  //
+  // global index into list of all types of reactions
   let idxReaction = 0;
-  this.add = function(labelCollection,reaction){
+
+  // array of how often a rawLabel appears
+  let collection = []; 
+
+  this.add = function(reaction, reactionTypeIndex, reactionType){
     idxReaction ++;
     let rawLabel ="";
 
@@ -102,10 +86,35 @@ const labelor = function() {
       rawLabel += "_M"; 
     }
 
+    // figure out if this rawLabel is already present
+    let position = collection.map(function(e) { return e.rawLabel; }).indexOf(rawLabel);
+    let count = 0;
+    if(position > -1) {
+      collection[position].count ++;
+      count = collection[position].count;
+    } else {
+      collection.push({rawLabel:rawLabel,count:1});
+      count = 1;
+    }
+
+
     reaction.rawLabel = rawLabel;
-    reaction.label = reaction.rawLabel+"_"+labelCollection.add(rawLabel);
+    reaction.label = reaction.rawLabel+"_"+count;
+    reaction.reactionTypeIndex = reactionTypeIndex;
+    reaction.reactionType = reactionType;
     reaction.idxReaction = idxReaction;
   }
+
+  this.printCollection = function() {
+    console.log('Number of raw Labels: '+collection.length);
+    console.log('Number of times each rawLabel appears');
+    console.dir(this.collection);
+  }
+
+  this.getCollection = function(){
+    return collection;
+  }
+
 }
 
 
@@ -300,7 +309,6 @@ app.post('/phpcallback', function(req, res) {
 
   // Labelling should be done in the database.
   // For now, do the labelling here.
-  var labelCollection = new labelCollector();
   var label = new labelor();
 
   // Construct an index into the molecule array
@@ -312,10 +320,15 @@ app.post('/phpcallback', function(req, res) {
   var forceCollection = new forceCollector(molecules);
  
   // Label each reaction
-  reactions.forEach(function(reaction,index){
-    label.add(labelCollection, reaction)});
-  photoDecomps.forEach(function(reaction,index){
-    label.add(labelCollection, reaction)});
+  // Decorate each reaction with 
+  //   a label, 
+  //   a global index into list of all reactions, 
+  //   the reactionType, 
+  //   and an index into that reaction typelist
+  reactions.forEach(function(reaction, index){
+    label.add(reaction, index, "reaction")});
+  photoDecomps.forEach(function(reaction, index){
+    label.add(reaction, index, "photoDecomp")});
 
   // Compute tendency of molecules due to each reaction
   reactions.forEach(function(reaction){
@@ -333,6 +346,7 @@ app.post('/phpcallback', function(req, res) {
   let logicalJacobian = forceCollection.getLogicalJacobian();
   let jacobian = forceCollection.getJacobian();
   let force = forceCollection.getForce();
+  let labelCollection = label.getCollection();
   //forceCollection.printLogicalJacobian();
   //forceCollection.printJacobian();
   
