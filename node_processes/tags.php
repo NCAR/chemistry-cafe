@@ -380,11 +380,14 @@ function return_tag_json($tag_id){
     curl_close($ch);
     //print(json_encode($jacobian->reactions, JSON_PRETTY_PRINT) );
     //print(json_encode($jacobian->photoDecomps, JSON_PRETTY_PRINT) );
-    //print(json_encode($jacobian->force, JSON_PRETTY_PRINT) );
-
+    //print(json_encode($jacobian->moleculeIndex, JSON_PRETTY_PRINT) );
+    //print(json_encode($jacobian->test, JSON_PRETTY_PRINT) );
+    //print(json_encode($jacobian->molecules, JSON_PRETTY_PRINT) );
+    
 
     // collect the LU factoriztion/solve algorithm.
-    print("Call LU_algorithm.js");
+    print("Call LU_algorithm.js\n");
+    print(json_encode($jacobian->moleculeIndex));
     $jacobian = json_encode($jacobian);
     $ch_factor = curl_init('http://localhost:8081/getLUFactor');
     curl_setopt($ch_factor, CURLOPT_CUSTOMREQUEST, "POST");
@@ -395,11 +398,30 @@ function return_tag_json($tag_id){
         'Content-Length: ' . strlen($jacobian))
     );
     $factorizationFortran  = json_decode(curl_exec($ch_factor));
-    //print($factorizationFortran);
+    //print(json_encode($factorizationFortran->reorderedMolecules));
     curl_close($ch_factor);
 
     //$pivotFortran = $factorizationFortran->pivot;
-    print($factorizationFortran->init_jac_fortran);
+    //print($factorizationFortran->init_jac_fortran);
+    //print(json_encode($factorizationFortran->init_jac, JSON_PRETTY_PRINT));
+
+    print("Call toFortran.js\n");
+    //$factorizationFortran->moleculeIndex = $jacobian->moleculeIndex;
+    print(json_encode($jacobian->moleculeIndex));
+    print(json_encode($factorizationFortran->moleculeIndex));
+    $factors = json_encode($factorizationFortran);
+    $ch_factor = curl_init('http://localhost:8082/toFortran');
+    curl_setopt($ch_factor, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch_factor, CURLOPT_POSTFIELDS, $factors);
+    curl_setopt($ch_factor, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch_factor, CURLOPT_HTTPHEADER, array(
+        'Content-Type: application/json',
+        'Content-Length: ' . strlen($factors))
+    );
+    $code  = json_decode(curl_exec($ch_factor));
+    print($code-> init_jac_code_string);
+    curl_close($ch_factor);
+
 
 
 }

@@ -22,7 +22,7 @@ var number_density_string = ["", " * number_density_air"," * number_density_air_
 // Collect all molecule names and assign an associative array
 // to index them
 const moleculeIndexer = function(molecules){
-  this.moleculeAssociation = [];
+  this.moleculeAssociation = {};
   let i = 0;
   for (i = 0; i < molecules.length; i++){
     //console.log(molecules[i].moleculename);
@@ -33,6 +33,7 @@ const moleculeIndexer = function(molecules){
   this.print = function(){
     console.log(this.moleculeAssociation);
   }
+  this.getMoleculeIndex = function() {return (this.moleculeAssociation);}
 }
 
 
@@ -44,11 +45,12 @@ const moleculeIndexer = function(molecules){
 // arrayOfVmr is array of vmr's by label.  
 //
 // Rendering takes place later, using the pivot array from the LU factorization routine
-function term(idxReaction, arrayOfVmr, troeTerm=false, netTendency=1.0){
+function term(idxReaction, arrayOfVmr, troeTerm=false, netTendency=1.0, reactionString = ""){
   this.idxReaction=idxReaction;
   this.arrayOfVmr=arrayOfVmr;
   this.troeTerm=troeTerm;
   this.netTendency=netTendency;
+  this.reactionString=reactionString;
 }
 
 
@@ -96,12 +98,22 @@ const labelor = function() {
       count = 1;
     }
 
+    // Add reaction string {j,k} : (troe? M, : "")  reactants -> products
+    let reactionString = "";
+    reactionString = (reactionType == "reaction") ? "k_"+rawLabel+"_"+count+": ":reactionString;
+    reactionString = (reactionType == "photoDecomp") ? "j_"+rawLabel+"_"+count+": ":reactionString;
+    reactionString = reactionString + (reaction.troe ? "M, " : "");
+    reactionString = reactionString + reaction.reactants.join(" + ");
+    reactionString = reactionString + " -> ";
+    reactionString = reactionString + reaction.products.map(function(elem){return parseFloat(elem.coefficient)+"*"+elem.molecule}).join(" + ");
 
+    // decorate reaction
     reaction.rawLabel = rawLabel;
     reaction.label = reaction.rawLabel+"_"+count;
     reaction.reactionTypeIndex = reactionTypeIndex;
     reaction.reactionType = reactionType;
     reaction.idxReaction = idxReaction;
+    reaction.reactionString = reactionString;
     idxReaction ++;
   }
 
@@ -206,7 +218,7 @@ const forceCollector = function(molecules){
   // construct forcing, logicalJacobian, and jacobian from each reaction
   this.constructForcingFromTendencies = function(reaction, moleculeIndex){
 
-    let rate=new term(reaction.idxReaction, reaction.reactants, reaction.troe);
+    let rate=new term(reaction.idxReaction, reaction.reactants, reaction.troe, reaction.reactionString);
 
     let nTends = reaction.tendencies.length;
 
@@ -233,7 +245,7 @@ const forceCollector = function(molecules){
         remainingTerms.splice(i,1); // remove this term
 
         // jacTerm = {rateConstantIndex:idxReaction, arrayOfVmr:['O2'], troeTerm:reaction.troe, netTendency:-0.25]}
-        let jacTerm = new term(reaction.idxReaction, remainingTerms, reaction.troe, tendency.netTendency);
+        let jacTerm = new term(reaction.idxReaction, remainingTerms, reaction.troe, tendency.netTendency, reaction.reactionString);
         jacobian[forcedMoleculeIndex][sensitivityIndex].push(jacTerm);
       }
 
@@ -306,6 +318,7 @@ app.post('/constructJacobian', function(req, res) {
   let molecules = content.mechanism.molecules;
   let reactions = content.mechanism.reactions;
   let photoDecomps = content.mechanism.photolysis
+  //console.log(molecules);
 
   // Labelling should be done in the database.
   // For now, do the labelling here.
@@ -350,15 +363,19 @@ app.post('/constructJacobian', function(req, res) {
   //forceCollection.printLogicalJacobian();
   //forceCollection.printJacobian();
   
+  let mIndex = moleculeIndex.getMoleculeIndex();
+  //console.log(mIndex);
+  //
   // Send result back to host
   res.json({
     "molecules": molecules, 
+    "test":[1,2],
     "reactions":reactions, 
     "photoDecomps":photoDecomps, 
     "labelCollection":labelCollection,
     "logicalJacobian":logicalJacobian, 
     "jacobian":jacobian, 
-    "moleculeIndex":moleculeIndex, 
+    "moleculeIndex":mIndex,
     "force":force});
 });
 

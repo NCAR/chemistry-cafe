@@ -132,6 +132,9 @@ function logicalFactorize() {
     }
     this.numberSparseFactorElements=k;
   }
+  this.getPivot = function(){ 
+    return this.pivot;
+  }
 
 }
 
@@ -156,14 +159,26 @@ app.post('/getLUFactor', function(req, res) {
   logicalFactorization.linearArrayMapping();
 
   const accumulatedFortanLUFactorization = [];
+  const LUFactorization = [];
 
   // generate Fortran
   for (var rankIndex = 0; rankIndex < logicalFactorization.size; rankIndex++){
+    LUFactorization.push({
+      "type":"diagInv",
+      "targetIndex":logicalFactorization.diag[rankIndex],
+      "sourceIndex":[logicalFactorization.diag[rankIndex]]
+    });
     accumulatedFortanLUFactorization.push('LU('+logicalFactorization.diag[rankIndex]+') = 1./LU('+logicalFactorization.diag[rankIndex]+')');
     if( rankIndex < logicalFactorization.size-1 ){
       for (var row = rankIndex + 1; row < logicalFactorization.size; row++){
         if( logicalFactorization.matrix[row][rankIndex]){
-          let fortranString = 'LU('+logicalFactorization.map[row][rankIndex]+') = LU('+logicalFactorization.map[row][rankIndex]+')*LU('+logicalFactorization.diag[rankIndex]+')';
+          LUFactorization.push({
+            "type":"leftEliminate",
+            "targetIndex":logicalFactorization.map[row][rankIndex],
+            "sourceIndex":[logicalFactorization.map[row][rankIndex],logicalFactorization.diag[rankIndex]]
+          });
+          let fortranString = 'LU('+logicalFactorization.map[row][rankIndex] + ')';
+          fortranString += ' = LU('+logicalFactorization.map[row][rankIndex]+')*LU('+logicalFactorization.diag[rankIndex]+')';
           accumulatedFortanLUFactorization.push(fortranString);
         }
       }
@@ -172,12 +187,29 @@ app.post('/getLUFactor', function(req, res) {
           for ( var row = rankIndex + 1; row < logicalFactorization.size; row++){
             if(logicalFactorization.matrix[row][rankIndex]){
               if(logicalFactorization.matrix[row][col] && logicalFactorization.matrix[row][col] !== true ){
+                LUFactorization.push({
+                  "type":"Update",
+                  "targetIndex":logicalFactorization.map[row][col],
+                  "sourceIndex":[
+                    logicalFactorization.map[row][col],
+                    logicalFactorization.map[row][rankIndex],
+                    logicalFactorization.map[rankIndex][col]
+                    ]
+                });
                 let indx=logicalFactorization.map[row][col];
                 let indx1=logicalFactorization.map[row][rankIndex];
                 let indx2=logicalFactorization.map[rankIndex][col];
                 let fortranString = 'LU('+indx+') = LU('+indx+') - LU('+indx1+')*LU('+indx2+')';
                 accumulatedFortanLUFactorization.push(fortranString);
               }else{
+                LUFactorization.push({
+                  "type":"Fill",
+                  "targetIndex":logicalFactorization.map[row][col],
+                  "sourceIndex":[
+                    logicalFactorization.map[row][rankIndex],
+                    logicalFactorization.map[rankIndex][col]
+                    ]
+                });
                 let indx=logicalFactorization.map[row][col];
                 let indx1=logicalFactorization.map[row][rankIndex];
                 let indx2=logicalFactorization.map[rankIndex][col];
@@ -197,8 +229,10 @@ app.post('/getLUFactor', function(req, res) {
 
   // true jacobian (as opposed to logicalJacobian)
   let jacobian = content.jacobian;
+  let molecules = content.molecules;
 
   var init_jac_fortran = "\n";
+  var init_jac = [];
   init_jac_fortran += 'subroutine init_jacobian(LU)\n';
   init_jac_fortran += '  real(r8), intent(inout) :: LU(:)\n';
   init_jac_fortran += '  LU(:) = 0\n';
@@ -207,7 +241,13 @@ app.post('/getLUFactor', function(req, res) {
       if(jacobian[row][col].length > 0 ){ //&& (jacobian.matrix[row][col] !== true)){
         let iRow = logicalFactorization.pivot.indexOf(row);
         let iCol = logicalFactorization.pivot.indexOf(col);
-        init_jac_fortran += '! df(molecule)/d(molecule)';
+        init_jac.push({
+          "forcedMolecule":molecules[row].moleculename ,
+          "sensitivityMolecule": molecules[col].moleculename,
+          "LUArrayIndex":logicalFactorization.map[iRow][iCol],
+          "jacobianTerms":jacobian[row][col]
+        });
+        init_jac_fortran += '  ! df(molecule)/d(molecule)';
         init_jac_fortran += '  LU('+logicalFactorization.map[iRow][iCol]+') = '+JSON.stringify(jacobian[row][col])+ '\n';
       }
     }
@@ -291,14 +331,22 @@ app.post('/getLUFactor', function(req, res) {
   pivotFortran += 'end subroutine construct_pivot';
   //console.log(pivotFortran);
 
+  var reorderedMolecules = [];
+  for(let i = 0; i< molecules.length; i++){
+    reorderedMolecules[i]=molecules[logicalFactorization.pivot[i]];
+  }
+  //console.log(reorderedMolecules);
 
   res.json({
-    "pivot":pivotFortran, 
+    "pivotFortran":pivotFortran, 
+    "pivot":logicalFactorization.pivot,
+    "reorderedMolecules":reorderedMolecules,
     "backsolve_L_y_eq_b_fortran":backsolve_L_y_eq_b_fortran,
     "backsolve_U_x_eq_y_fortran":backsolve_u_x_eq_y_fortran,
     "factor_LU_fortran":factor_LU_fortran,
     "construct_LU_map_fortran":construct_LU_map_fortran,
-    "init_jac_fortran":init_jac_fortran});
+    "init_jac_fortran":init_jac_fortran,
+    "init_jac":init_jac});
 
 });
 
