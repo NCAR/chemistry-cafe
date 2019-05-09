@@ -364,6 +364,7 @@ function return_tag_json($tag_id){
     
 
     $mechanism_json = json_encode($mechanism);
+    //print($mechanism_json);
 
     $data_string = $mechanism_json;
 
@@ -381,15 +382,13 @@ function return_tag_json($tag_id){
     //print(json_encode($jacobian->reactions, JSON_PRETTY_PRINT) );
     //print(json_encode($jacobian->photoDecomps, JSON_PRETTY_PRINT) );
     //print(json_encode($jacobian->moleculeIndex, JSON_PRETTY_PRINT) );
-    //print(json_encode($jacobian->test, JSON_PRETTY_PRINT) );
     //print(json_encode($jacobian->molecules, JSON_PRETTY_PRINT) );
     
 
-    // collect the LU factoriztion/solve algorithm.
-    print("Call LU_algorithm.js\n");
-    print(json_encode($jacobian->moleculeIndex));
+    // collect the sparse LU factoriztion and corresponding reordering of the molecules
+    //print(json_encode($jacobian->moleculeIndex));
     $jacobian = json_encode($jacobian);
-    $ch_factor = curl_init('http://localhost:8081/getLUFactor');
+    $ch_factor = curl_init('http://localhost:8081/constructSparseLUFactor');
     curl_setopt($ch_factor, CURLOPT_CUSTOMREQUEST, "POST");
     curl_setopt($ch_factor, CURLOPT_POSTFIELDS, $jacobian);
     curl_setopt($ch_factor, CURLOPT_RETURNTRANSFER, true);
@@ -405,12 +404,12 @@ function return_tag_json($tag_id){
     //print($factorizationFortran->init_jac_fortran);
     //print(json_encode($factorizationFortran->init_jac, JSON_PRETTY_PRINT));
 
-    print("Call toFortran.js\n");
+    //print("Call toFortran.js\n");
     //$factorizationFortran->moleculeIndex = $jacobian->moleculeIndex;
-    print(json_encode($jacobian->moleculeIndex));
-    print(json_encode($factorizationFortran->moleculeIndex));
+    //print(json_encode($jacobian->moleculeIndex));
+    //print(json_encode($factorizationFortran->moleculeIndex));
     $factors = json_encode($factorizationFortran);
-    $ch_factor = curl_init('http://localhost:8082/toFortran');
+    $ch_factor = curl_init('http://localhost:8082/toCode');
     curl_setopt($ch_factor, CURLOPT_CUSTOMREQUEST, "POST");
     curl_setopt($ch_factor, CURLOPT_POSTFIELDS, $factors);
     curl_setopt($ch_factor, CURLOPT_RETURNTRANSFER, true);

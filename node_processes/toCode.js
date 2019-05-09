@@ -20,6 +20,9 @@ function reorderedIndex (reorderedMolecules){
 }
 
 let number_density_string = ["", "number_density_air","number_density_air_squared", "number_density_air_cubed"];
+
+// convert terms to code:
+//   netTendency * product of reactants * conversion to number_density * rateConstant
 function termToCode (term, moleculeIndex, indexOffset) {
   let idxReaction = term.idxReaction;
   let arrayOfVmr = term.arrayOfVmr;
@@ -62,7 +65,7 @@ function termToCode (term, moleculeIndex, indexOffset) {
   return termString;
 }
 
-app.post('/toFortran', function(req, res) {
+app.post('/toCode', function(req, res) {
 
   // collect data from request
   var content = req.body;
@@ -75,9 +78,9 @@ app.post('/toFortran', function(req, res) {
   let init_jac = content.init_jac;
   //console.log(JSON.stringify(init_jac));
 
-  let init_jac_code_string = "\n";
-
+  // code to initialize jacobian
   init_jac.toCode = function(indexOffset=0){
+    let init_jac_code_string = "\n";
     init_jac_code_string += 'subroutine init_jacobian(LU, number_density_air)\n';
     init_jac_code_string += '  real(r8), intent(inout) :: LU(:)\n';
     init_jac_code_string += '  real(r8), intent(in) :: number_density_air\n';
@@ -97,8 +100,13 @@ app.post('/toFortran', function(req, res) {
     init_jac_code_string += 'end subroutine init_jacobian\n';
     return init_jac_code_string;
   }
-  init_jac.toCode(1)
-  res.json({"init_jac_code_string":init_jac_code_string});
+
+  let indexOffset = 1; //convert to fortran
+  let init_jac_fortran = init_jac.toCode(indexOffset);
+
+  res.json({
+    "init_jac_code_string":init_jac_fortran
+  });
 });
 
 

@@ -369,7 +369,6 @@ app.post('/constructJacobian', function(req, res) {
   // Send result back to host
   res.json({
     "molecules": molecules, 
-    "test":[1,2],
     "reactions":reactions, 
     "photoDecomps":photoDecomps, 
     "labelCollection":labelCollection,
