@@ -33,7 +33,7 @@ include('../php/config.php');
 
 //}
 
-return_tag_json(202 );
+return_tag_json(255 );
 
 
 function get_all_branches() {
@@ -363,7 +363,7 @@ function return_tag_json($tag_id){
            ));
     
 
-    $mechanism_json = json_encode($mechanism);
+    $mechanism_json = json_encode($mechanism, JSON_PRETTY_PRINT);
     //print($mechanism_json);
 
     $data_string = $mechanism_json;
