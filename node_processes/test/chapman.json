@@ -1,0 +1,239 @@
+{
+    "mechanism": {
+        "tag_info": {
+            "id": "255",
+            "given_name": "Chapman_vdemo",
+            "initials": "ajc",
+            "branchname": "Chapman",
+            "branch_id": "65",
+            "date": "2019-01-18 14:11:16.02075-07",
+            "buggy": false,
+            "filename": "MZ255_Chapman_20190118",
+            "previousComments": {
+                "comments": [
+                    "ajc : 2019-01-18 : This is a demo.  I didn't like CO2 photodecomp."
+                ]
+            }
+        },
+        "molecules": [
+            {
+                "moleculename": "N2",
+                "formula": "",
+                "transport": "transported",
+                "solve": "implicit",
+                "henrys_law_type": "0",
+                "molecular_weight": "0",
+                "kh_298": "0",
+                "dh_r": "0",
+                "k1_298": "0",
+                "dh1_r": "0",
+                "k2_298": "0",
+                "dh2_r": "0",
+                "standard_name": "N2_std"
+            },
+            {
+                "moleculename": "O",
+                "formula": null,
+                "transport": "transported",
+                "solve": "implicit",
+                "henrys_law_type": "0",
+                "molecular_weight": "15.9994",
+                "kh_298": "0",
+                "dh_r": "0",
+                "k1_298": "0",
+                "dh1_r": "0",
+                "k2_298": "0",
+                "dh2_r": "0",
+                "standard_name": "O_std"
+            },
+            {
+                "moleculename": "O1D",
+                "formula": "O",
+                "transport": "not-transported",
+                "solve": "implicit",
+                "henrys_law_type": "0",
+                "molecular_weight": "15.9994",
+                "kh_298": "0",
+                "dh_r": "0",
+                "k1_298": "0",
+                "dh1_r": "0",
+                "k2_298": "0",
+                "dh2_r": "0",
+                "standard_name": "O1D_std"
+            },
+            {
+                "moleculename": "O2",
+                "formula": "",
+                "transport": "transported",
+                "solve": "implicit",
+                "henrys_law_type": "1",
+                "molecular_weight": "0",
+                "kh_298": "1.3E-03",
+                "dh_r": "0",
+                "k1_298": "0",
+                "dh1_r": "0",
+                "k2_298": "0",
+                "dh2_r": "0",
+                "standard_name": "O2_std"
+            },
+            {
+                "moleculename": "O3",
+                "formula": null,
+                "transport": "transported",
+                "solve": "implicit",
+                "henrys_law_type": "1",
+                "molecular_weight": "47.9982",
+                "kh_298": "1.03E-02",
+                "dh_r": "2830",
+                "k1_298": "0",
+                "dh1_r": "0",
+                "k2_298": "0",
+                "dh2_r": "0",
+                "standard_name": "O3_std"
+            }
+        ],
+        "photolysis": [
+            {
+                "reactants": [
+                    "O2"
+                ],
+                "id": "5757",
+                "rate": "jo2_b=userdefined,",
+                "wrf_rate": null,
+                "tuv_id": "1",
+                "tuv_coeff": "1",
+                "tuv_reaction": "O2 -> O + O",
+                "reactant_count": 1,
+                "troe": false,
+                "products": [
+                    {
+                        "coefficient": "2",
+                        "molecule": "O"
+                    }
+                ]
+            },
+            {
+                "reactants": [
+                    "O3"
+                ],
+                "id": "5759",
+                "rate": "jo3_a",
+                "wrf_rate": null,
+                "tuv_id": "2",
+                "tuv_coeff": "1",
+                "tuv_reaction": "O3 -> O2 + O(1D)",
+                "reactant_count": 1,
+                "troe": false,
+                "products": [
+                    {
+                        "coefficient": 1,
+                        "molecule": "O1D"
+                    },
+                    {
+                        "coefficient": 1,
+                        "molecule": "O2"
+                    }
+                ]
+            },
+            {
+                "reactants": [
+                    "O3"
+                ],
+                "id": "5758",
+                "rate": "jo3_b",
+                "wrf_rate": null,
+                "tuv_id": "3",
+                "tuv_coeff": "1",
+                "tuv_reaction": "O3 -> O2 + O(3P)",
+                "reactant_count": 1,
+                "troe": false,
+                "products": [
+                    {
+                        "coefficient": 1,
+                        "molecule": "O"
+                    },
+                    {
+                        "coefficient": 1,
+                        "molecule": "O2"
+                    }
+                ]
+            }
+        ],
+        "reactions": [
+            {
+                "rate": " 2.150000e-11_r8 * exp(110.00_r8 \/ TEMP) ",
+                "reactants": [
+                    "O1D",
+                    "N2"
+                ],
+                "reactant_count": 2,
+                "troe": false,
+                "products": [
+                    {
+                        "coefficient": 1,
+                        "molecule": "O"
+                    },
+                    {
+                        "coefficient": 1,
+                        "molecule": "N2"
+                    }
+                ]
+            },
+            {
+                "rate": " 3.300000e-11_r8 * exp(55.00_r8 \/ TEMP) ",
+                "reactants": [
+                    "O1D",
+                    "O2"
+                ],
+                "reactant_count": 2,
+                "troe": false,
+                "products": [
+                    {
+                        "coefficient": 1,
+                        "molecule": "O"
+                    },
+                    {
+                        "coefficient": 1,
+                        "molecule": "O2"
+                    }
+                ]
+            },
+            {
+                "rate": " 8.000000e-12_r8 * exp(-2060.00_r8 \/ TEMP) ",
+                "reactants": [
+                    "O",
+                    "O3"
+                ],
+                "reactant_count": 2,
+                "troe": false,
+                "products": [
+                    {
+                        "coefficient": "2",
+                        "molecule": "O2"
+                    }
+                ]
+            },
+            {
+                "rate": "usr_O_O2( temp )",
+                "reactants": [
+                    "O",
+                    "O2"
+                ],
+                "reactant_count": 3,
+                "troe": true,
+                "products": [
+                    {
+                        "coefficient": 1,
+                        "molecule": "O3"
+                    }
+                ]
+            }
+        ],
+        "custom_rates": [
+            {
+                "name": "usr_O_O2( temp )",
+                "code": "REAL(KIND=r8) FUNCTION usr_O_O2( temp )\n! for cesm-consistent reaction labels\n! O+O2+M -> O3+M\n\n    REAL(KIND=r8), INTENT(IN) :: temp\n\n    usr_O_O2 = 6.00e-34_r8*(temp\/300._r8)**(-2.4_r8)\n\nEND FUNCTION usr_O_O2"
+            }
+        ]
+    }
+}
