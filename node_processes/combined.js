@@ -870,14 +870,27 @@ app.post('/toCode', function(req, res) {
   }
 
   
-  //construct_factored_h_minus_jac.toCode = function(indexOffset=0) {
-    //console.log(indexOffset);
-  // input alpha_over_dt
-  // input dFdy
-  // construct new matrix, alpha_over_dt_minus_jac
-  // factor new matrix
-  // output LU
-  //}
+  init_jac.factored_code = function(indexOffset=0) {
+    console.log(indexOffset);
+    let diagonalIndices = init_jac[0].diagonalIndices;
+    console.log(JSON.stringify(diagonalIndices));
+    let factored_h_minus_jac_string  = '\nsubroutine factored_h_minus_jac(LU, alpha, dforce_dy)\n';
+    factored_h_minus_jac_string += '!compute LU decomposition of [\alpha * I - dforce_dy]\n';
+    factored_h_minus_jac_string += '  real(r8), intent(in) :: dforce_dy(:)\n';
+    factored_h_minus_jac_string += '  real(r8), intent(in) :: alpha\n';
+    factored_h_minus_jac_string += '  real(r8), intent(in) :: LU(:)\n';
+    factored_h_minus_jac_string += '  LU(:) = dforce_dy(:)\n';
+ 
+    for(let iRank = 0; iRank < diagonalIndices.length; iRank++){
+      let diag = diagonalIndices[iRank] + indexOffset;
+      factored_h_minus_jac_string += '  LU('+ diag + ') = LU('+ diag + ') + alpha \n';
+    }
+    factored_h_minus_jac_string += '  call factor(LU) \n';
+    factored_h_minus_jac_string += '  end subroutine factored_h_minus_jac)\n';
+
+    console.log(factored_h_minus_jac_string);
+    return factored_h_minus_jac_string;
+  }
 
   //solve_LU_times_x_equals_y_toCode = function(indexOffset=0) {
     //console.log(indexOffset);
@@ -894,6 +907,7 @@ app.post('/toCode', function(req, res) {
   let indexOffset = 1; //convert to fortran
   let init_jac_fortran = init_jac.toCode(indexOffset);
   let init_kinetics_fortran = kinetics_init.toCode(indexOffset);
+  let factored_h_minus_jac_string = init_jac.factored_code(indexOffset);;
 
   res.json({
     "init_jac_code_string":init_jac_fortran,
