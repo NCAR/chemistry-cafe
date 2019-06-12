@@ -436,7 +436,9 @@ function logicalFactorize() {
   this.interactionIndexArray = function(subMatrixIndex) {
     // Compute interaction indicies of submatrix starting at index = subMatrixIndex
 
+    // Number of entries in the row
     let rowCount = new Array(this.size).fill(0);
+    // Number of entries in the column
     let colCount = new Array(this.size).fill(0);
 
     for (let i = subMatrixIndex; i < this.size; i++){
@@ -499,10 +501,38 @@ function logicalFactorize() {
     }
     this.numberSparseFactorElements=k;
   }
+
   this.getPivot = function(){ 
     return this.pivot;
   }
 
+  this.getDiagIndices = function(){ 
+    return this.diag;
+  }
+
+}
+
+function diagInv (targetIndex) {
+  // LU(targetIndex) = 1/LU(targetIndex)
+  this.targetIndex = targetIndex;
+}
+
+function leftEliminate (targetIndex, diagonalIndex) {
+  // LU(targetIndex) = LU(targetIndex) * LU(diagonalIndex)
+  this.targetIndex = targetIndex;
+  this.diagonalIndex = diagonalIndex
+}
+
+function update (targetIndex, productTerm1, productTerm2) {
+  // LU(targetIndex) = LU(targetIndex) - LU(productTerm1)*LU(productTerm2)
+  this.targetIndex = targetIndex;
+  this.productTerms = [productTerm1, productTerm2];
+}
+
+function fill (targetIndex, productTerm1, productTerm2){
+  // LU(targetIndex) = -LU(productTerm1)*LU(productTerm2)
+  this.targetIndex = targetIndex;
+  this.productTerms = [productTerm1, productTerm2];
 }
 
 // Given molecules and logical matrix, construct sparse LU factorization
@@ -531,21 +561,13 @@ app.post('/ConstructSparseLUFactor', function(req, res) {
   const LUFactorization = [];
 
   // generate Fortran
-  for (var rankIndex = 0; rankIndex < logicalFactorization.size; rankIndex++){
-    LUFactorization.push({
-      "type":"diagInv",
-      "targetIndex":logicalFactorization.diag[rankIndex],
-      "sourceIndex":[logicalFactorization.diag[rankIndex]]
-    });
+  for (let rankIndex = 0; rankIndex < logicalFactorization.size; rankIndex++){
+    LUFactorization.push(new diagInv(logicalFactorization.diag[rankIndex]));
     accumulatedFortanLUFactorization.push('LU('+logicalFactorization.diag[rankIndex]+') = 1./LU('+logicalFactorization.diag[rankIndex]+')');
     if( rankIndex < logicalFactorization.size-1 ){
-      for (var row = rankIndex + 1; row < logicalFactorization.size; row++){
+      for (let row = rankIndex + 1; row < logicalFactorization.size; row++){
         if( logicalFactorization.matrix[row][rankIndex]){
-          LUFactorization.push({
-            "type":"leftEliminate",
-            "targetIndex":logicalFactorization.map[row][rankIndex],
-            "sourceIndex":[logicalFactorization.map[row][rankIndex],logicalFactorization.diag[rankIndex]]
-          });
+          LUFactorization.push(new leftEliminate(logicalFactorization.map[row][rankIndex],logicalFactorization.diag[rankIndex]));
           let fortranString = 'LU('+logicalFactorization.map[row][rankIndex] + ')';
           fortranString += ' = LU('+logicalFactorization.map[row][rankIndex]+')*LU('+logicalFactorization.diag[rankIndex]+')';
           accumulatedFortanLUFactorization.push(fortranString);
@@ -555,33 +577,19 @@ app.post('/ConstructSparseLUFactor', function(req, res) {
         if(logicalFactorization.matrix[rankIndex][col]){
           for ( var row = rankIndex + 1; row < logicalFactorization.size; row++){
             if(logicalFactorization.matrix[row][rankIndex]){
-              if(logicalFactorization.matrix[row][col] && logicalFactorization.matrix[row][col] !== true ){
-                LUFactorization.push({
-                  "type":"Update",
-                  "targetIndex":logicalFactorization.map[row][col],
-                  "sourceIndex":[
-                    logicalFactorization.map[row][col],
-                    logicalFactorization.map[row][rankIndex],
-                    logicalFactorization.map[rankIndex][col]
-                    ]
-                });
+// THIS IS A WRONG:
+              if(logicalFactorization.matrix[row][col] ){
+                LUFactorization.push( new update(logicalFactorization.map[row][col],logicalFactorization.map[row][rankIndex], logicalFactorization.map[rankIndex][col]));
                 let indx=logicalFactorization.map[row][col];
                 let indx1=logicalFactorization.map[row][rankIndex];
                 let indx2=logicalFactorization.map[rankIndex][col];
                 let fortranString = 'LU('+indx+') = LU('+indx+') - LU('+indx1+')*LU('+indx2+')';
                 accumulatedFortanLUFactorization.push(fortranString);
               }else{
-                LUFactorization.push({
-                  "type":"Fill",
-                  "targetIndex":logicalFactorization.map[row][col],
-                  "sourceIndex":[
-                    logicalFactorization.map[row][rankIndex],
-                    logicalFactorization.map[rankIndex][col]
-                    ]
-                });
                 let indx=logicalFactorization.map[row][col];
                 let indx1=logicalFactorization.map[row][rankIndex];
                 let indx2=logicalFactorization.map[rankIndex][col];
+                LUFactorization.push(new fill(logicalFactorization.map[row][col],logicalFactorization.map[row][rankIndex], logicalFactorization.map[rankIndex][col]));
                 logicalFactorization.matrix[row][col]=true;
                 let fortranString = 'LU('+indx+') = -LU('+indx1+')*LU('+indx2+')';
                 accumulatedFortanLUFactorization.push(fortranString);
@@ -592,6 +600,7 @@ app.post('/ConstructSparseLUFactor', function(req, res) {
       }
     }
   }
+  
 
   //console.log('fortran factor');
   //console.log(JSON.stringify(accumulatedFortanLUFactorization, null, 2));
@@ -610,7 +619,9 @@ app.post('/ConstructSparseLUFactor', function(req, res) {
           "forcedMolecule":molecules[row].moleculename ,
           "sensitivityMolecule": molecules[col].moleculename,
           "LUArrayIndex":logicalFactorization.map[iRow][iCol],
-          "jacobianTerms":jacobian[row][col]
+          "jacobianTerms":jacobian[row][col],
+          "LUFactorization":LUFactorization,
+          "diagonalIndices":logicalFactorization.getDiagIndices()
         });
       }
     }
@@ -623,7 +634,44 @@ app.post('/ConstructSparseLUFactor', function(req, res) {
     factor_LU_fortran += '  '+accumulatedFortanLUFactorization[entries]+'\n';
   }
   factor_LU_fortran += 'end subroutine factor\n';
-  //console.log(factor_LU_fortran);
+  console.log(factor_LU_fortran);
+
+
+  var alt_factor = function(LUFactorization){
+    console.log('LUFACTOR');
+
+    diagInv.prototype.toCode = function() {
+      let fortranString = 'LU('+this.targetIndex+') = 1./LU('+this.targetIndex+')\n';
+      console.log (fortranString);
+    }
+
+    leftEliminate.prototype.toCode = function() {
+      let fortranString = 'LU(' + this.targetIndex + ') = LU(' +this.targetIndex+ ') * LU(' +this.diagonalIndex+ ')\n';
+      console.log (fortranString);
+    }
+
+    update.prototype.toCode = function() {
+      let fortranString = 'LU('+this.targetIndex +') = LU('+ this.targetIndex +') - LU('+this.productTerms[0]+')*LU('+this.productTerms[1]+')\n';
+      console.log (fortranString);
+    }
+
+    fill.prototype.toCode = function(){ 
+      let fortranString = 'LU('+this.targetIndex+') = -LU('+this.productTerms[0]+')*LU('+this.productTerms[1]+')\n';
+      console.log (fortranString);
+    }
+
+
+    LUFactorization.forEach( 
+      (step) => {
+        console.log(JSON.stringify(step)); 
+        step.toCode(step);
+      } 
+    );
+
+    let fortranCode = LUFactorization[0].toCode ; //.forEach( (item) => item.toCode );
+    console.log(fortranCode);
+    return fortranCode;
+  }
 
 
   var backsolve_L_y_eq_b_fortran = "\n";
@@ -672,6 +720,8 @@ app.post('/ConstructSparseLUFactor', function(req, res) {
   //console.log(reorderedMolecules);
 
   var pivot = logicalFactorization.pivot;
+ 
+  let alt_fortranFactor = alt_factor(LUFactorization);
 
   res.json({
     "reorderedMolecules":reorderedMolecules,
@@ -765,6 +815,7 @@ app.post('/toCode', function(req, res) {
   // collect data from request
   var content = req.body;
   var reorderedMolecules = content.reorderedMolecules
+  console.log("reorderedMolecules");
   console.log(reorderedMolecules);
 
   // find index for molecules, as reordered by pivot
@@ -774,27 +825,31 @@ app.post('/toCode', function(req, res) {
   kinetics_init.toCode = function(indexOffset=0){
     let init_kinetics_string ="\nsubroutine kinetics_init(";
     init_kinetics_string += reorderedMolecules.map((elem) =>{return elem.moleculename;}).join(",");
-    init_kinetics_string += ",numberDensityArray";
+    init_kinetics_string += ",number_density_array,number_density_air";
     init_kinetics_string += ")\n";
     init_kinetics_string += "\n real(r8),intent(in) :: ";
     init_kinetics_string += reorderedMolecules.map((elem) =>{return elem.moleculename;}).join(",");
-    init_kinetics_string += "\n real(r8), intent(out):: numberDensityArray("+reorderedMolecules.length+")";
-    init_kinetics_string += "\n real(r8) numberDensityOfAir = 2.6e19";
+    init_kinetics_string += "\n real(r8), intent(out):: number_density_array("+reorderedMolecules.length+")";
+    init_kinetics_string += "\n real(r8), intent(in) :: number_density_air";
+    // for every molecule in the reordered array, convert vmr to number density
     let initStringArray = reorderedMolecules.map((elem,index) =>{return "numberDensityArray("+(index+indexOffset)+")="+elem.moleculename+"*numberDensityOfAir";});
     init_kinetics_string += "\n " + initStringArray.join("\n ");
-    init_kinetics_string += "\n\n end subroutine kinetics_init";
+    init_kinetics_string += "\n\n"+"end subroutine kinetics_init";
     return init_kinetics_string;
   }
 
   let init_jac = content.init_jac;
-  //console.log(JSON.stringify(init_jac));
 
   // code to initialize jacobian
   init_jac.toCode = function(indexOffset=0){
     let init_jac_code_string = "\n";
-    init_jac_code_string += 'subroutine init_jacobian(LU, number_density_air)\n';
-    init_jac_code_string += '  real(r8), intent(inout) :: LU(:)\n';
-    init_jac_code_string += '  real(r8), intent(in) :: number_density_air\n';
+    init_jac_code_string += '\nsubroutine dforce_dy(LU, rate_constant, number_density, number_density_air)\n';
+    init_jac_code_string += "\n  ! Compute the derivative of the Forcing w.r.t. each chemical";
+    init_jac_code_string += "\n  ! Also known as the Jacobian";
+    init_jac_code_string += '\n  real(r8), intent(out) :: LU(:)\n';
+    init_jac_code_string += '  real(r8), intent(in) :: rate_constant(:)\n';
+    init_jac_code_string += '  real(r8), intent(in) :: number_density(:)\n';
+    init_jac_code_string += '  real(r8), intent(in) :: number_density_air\n\n';
     init_jac_code_string += '  LU(:) = 0\n';
     init_jac_code_string += '\n';
     for (let ijac = 0; ijac < init_jac.length; ijac++){
@@ -809,6 +864,28 @@ app.post('/toCode', function(req, res) {
     init_jac_code_string += 'end subroutine init_jacobian\n';
     return init_jac_code_string;
   }
+
+  
+  //construct_factored_h_minus_jac.toCode = function(indexOffset=0) {
+    //console.log(indexOffset);
+  // input alpha_over_dt
+  // input dFdy
+  // construct new matrix, alpha_over_dt_minus_jac
+  // factor new matrix
+  // output LU
+  //}
+
+  //solve_LU_times_x_equals_y_toCode = function(indexOffset=0) {
+    //console.log(indexOffset);
+  // input y, factored G
+  //} 
+
+  //jacobian_times_vector_toCode = function(indexOffset=0){
+    //console.log(indexOffset);
+  //input dFdY
+  //input vector
+  //output result
+  //}
 
   let indexOffset = 1; //convert to fortran
   let init_jac_fortran = init_jac.toCode(indexOffset);
