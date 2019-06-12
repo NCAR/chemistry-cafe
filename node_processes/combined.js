@@ -630,47 +630,51 @@ app.post('/ConstructSparseLUFactor', function(req, res) {
   var factor_LU_fortran = "\n";
   factor_LU_fortran += 'subroutine factor(LU)\n';
   factor_LU_fortran += '  real(r8) LU(:)\n';
-  for (var entries = 0; entries < accumulatedFortanLUFactorization.length; entries++){
-    factor_LU_fortran += '  '+accumulatedFortanLUFactorization[entries]+'\n';
-  }
-  factor_LU_fortran += 'end subroutine factor\n';
-  console.log(factor_LU_fortran);
-
 
   var alt_factor = function(LUFactorization){
-    console.log('LUFACTOR');
 
-    diagInv.prototype.toCode = function() {
-      let fortranString = 'LU('+this.targetIndex+') = 1./LU('+this.targetIndex+')\n';
-      console.log (fortranString);
+    diagInv.prototype.toCode = function(iOffset=0) {
+      let targetI = iOffset + parseInt(this.targetIndex);
+      let fortranString = 'LU('+ targetI +') = 1./LU('+ targetI +')\n';
+      return fortranString;
     }
 
-    leftEliminate.prototype.toCode = function() {
-      let fortranString = 'LU(' + this.targetIndex + ') = LU(' +this.targetIndex+ ') * LU(' +this.diagonalIndex+ ')\n';
-      console.log (fortranString);
+    leftEliminate.prototype.toCode = function(iOffset=0) {
+      let targetI = iOffset + parseInt(this.targetIndex);
+      let diagI = iOffset + parseInt(this.diagonalIndex);
+      let fortranString = 'LU(' + targetI + ') = LU(' + targetI + ') * LU(' + diagI + ')\n';
+      return fortranString;
     }
 
-    update.prototype.toCode = function() {
-      let fortranString = 'LU('+this.targetIndex +') = LU('+ this.targetIndex +') - LU('+this.productTerms[0]+')*LU('+this.productTerms[1]+')\n';
-      console.log (fortranString);
+    update.prototype.toCode = function(iOffset=0) {
+      let targetI = iOffset + parseInt(this.targetIndex);
+      let prodI0 = iOffset + parseInt(this.productTerms[0]);
+      let prodI1 = iOffset + parseInt(this.productTerms[1]);
+      let fortranString = 'LU('+ targetI +') = LU('+ targetI +') - LU('+ prodI0 +')*LU('+ prodI1 +')\n';
+      return fortranString;
     }
 
-    fill.prototype.toCode = function(){ 
-      let fortranString = 'LU('+this.targetIndex+') = -LU('+this.productTerms[0]+')*LU('+this.productTerms[1]+')\n';
-      console.log (fortranString);
+    fill.prototype.toCode = function(iOffset=0){ 
+      let targetI = iOffset + parseInt(this.targetIndex);
+      let prodI0 = iOffset + parseInt(this.productTerms[0]);
+      let prodI1 = iOffset + parseInt(this.productTerms[1]);
+      let fortranString = 'LU('+ targetI +') = -LU('+ prodI0 +')*LU('+ prodI1 +')\n';
+      return fortranString;
     }
 
 
-    LUFactorization.forEach( 
+    var fortranOffset = 1;
+
+    let fortranCodeArray = LUFactorization.map( 
       (step) => {
-        console.log(JSON.stringify(step)); 
-        step.toCode(step);
+        return step.toCode(fortranOffset);
       } 
     );
 
-    let fortranCode = LUFactorization[0].toCode ; //.forEach( (item) => item.toCode );
-    console.log(fortranCode);
-    return fortranCode;
+    factor_LU_fortran += fortranCodeArray.join("");
+
+    factor_LU_fortran += 'end subroutine factor\n';
+    return factor_LU_fortran;
   }
 
 
