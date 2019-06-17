@@ -213,7 +213,7 @@ const forceCollector = function(molecules){
   // construct forcing, logicalJacobian, and jacobian from each reaction
   this.constructForcingFromTendencies = function(reaction, moleculeIndex){
 
-    let rate=new term(reaction.idxReaction, reaction.reactants, reaction.troe, reaction.reactionString);
+    let rate=new term(reaction.idxReaction, reaction.reactants, reaction.troe, 1, reaction.reactionString);
 
     let nTends = reaction.tendencies.length;
 
@@ -541,11 +541,15 @@ app.post('/ConstructSparseLUFactor', function(req, res) {
 
   // collect data from request
   var content = req.body;
+  var logicalJacobian = content.logicalJacobian;
+  let jacobian = content.jacobian;
+  let molecules = content.molecules;
+  let force = content.force;
 
   var logicalFactorization = new logicalFactorize();
   
   // Compute factorization fill-in
-  logicalFactorization.init(content.logicalJacobian) ;
+  logicalFactorization.init(logicalJacobian) ;
   for (let i = 0; i < logicalFactorization.size ; i++){
     //console.log('row: '+i);
     let minLoc = logicalFactorization.interactionIndexArray(i);
@@ -602,13 +606,6 @@ app.post('/ConstructSparseLUFactor', function(req, res) {
   }
   
 
-  //console.log('fortran factor');
-  //console.log(JSON.stringify(accumulatedFortanLUFactorization, null, 2));
-
-  // true jacobian (as opposed to logicalJacobian)
-  let jacobian = content.jacobian;
-  let molecules = content.molecules;
-
   var init_jac = [];
   for (var col = 0; col < logicalFactorization.matrix.length; col++){
     for (var row = 0; row < logicalFactorization.matrix.length; row++){
@@ -635,14 +632,14 @@ app.post('/ConstructSparseLUFactor', function(req, res) {
 
     diagInv.prototype.toCode = function(iOffset=0) {
       let targetI = iOffset + parseInt(this.targetIndex);
-      let fortranString = 'LU('+ targetI +') = 1./LU('+ targetI +')\n';
+      let fortranString = '  LU('+ targetI +') = 1./LU('+ targetI +')\n';
       return fortranString;
     }
 
     leftEliminate.prototype.toCode = function(iOffset=0) {
       let targetI = iOffset + parseInt(this.targetIndex);
       let diagI = iOffset + parseInt(this.diagonalIndex);
-      let fortranString = 'LU(' + targetI + ') = LU(' + targetI + ') * LU(' + diagI + ')\n';
+      let fortranString = '  LU(' + targetI + ') = LU(' + targetI + ') * LU(' + diagI + ')\n';
       return fortranString;
     }
 
@@ -650,7 +647,7 @@ app.post('/ConstructSparseLUFactor', function(req, res) {
       let targetI = iOffset + parseInt(this.targetIndex);
       let prodI0 = iOffset + parseInt(this.productTerms[0]);
       let prodI1 = iOffset + parseInt(this.productTerms[1]);
-      let fortranString = 'LU('+ targetI +') = LU('+ targetI +') - LU('+ prodI0 +')*LU('+ prodI1 +')\n';
+      let fortranString = '  LU('+ targetI +') = LU('+ targetI +') - LU('+ prodI0 +')*LU('+ prodI1 +')\n';
       return fortranString;
     }
 
@@ -658,7 +655,7 @@ app.post('/ConstructSparseLUFactor', function(req, res) {
       let targetI = iOffset + parseInt(this.targetIndex);
       let prodI0 = iOffset + parseInt(this.productTerms[0]);
       let prodI1 = iOffset + parseInt(this.productTerms[1]);
-      let fortranString = 'LU('+ targetI +') = -LU('+ prodI0 +')*LU('+ prodI1 +')\n';
+      let fortranString = '  LU('+ targetI +') = -LU('+ prodI0 +')*LU('+ prodI1 +')\n';
       return fortranString;
     }
 
@@ -688,6 +685,7 @@ app.post('/ConstructSparseLUFactor', function(req, res) {
     backsolve_L_y_eq_b_fortran += '  y('+fortran_row+') = b('+fortran_row+')\n';
     for(var col = 0; col < row; col++){
       let fortran_col = col + 1;
+      let LUIndex = logicalFactorization.map[row][col] + 1;
       if(logicalFactorization.map[row][col]){
         backsolve_L_y_eq_b_fortran +='  y('+fortran_row+') = y('+fortran_row+') - LU('+logicalFactorization.map[row][col]+') * y('+fortran_col+')\n'
       }
@@ -707,11 +705,13 @@ app.post('/ConstructSparseLUFactor', function(req, res) {
     backsolve_u_x_eq_y_fortran +='  temporary = y('+fortran_row+')\n'
     for(var col = row+1; col < logicalFactorization.size; col++){
       let fortran_col = col + 1;
+      let LUIndex = logicalFactorization.map[row][col] + 1;
       if(logicalFactorization.map[row][col]){
-        backsolve_u_x_eq_y_fortran +='  temporary = temporary - LU('+logicalFactorization.map[row][col]+') * x('+fortran_col+')\n'
+        backsolve_u_x_eq_y_fortran +='  temporary = temporary - LU('+LUIndex+') * x('+fortran_col+')\n'
       }
     }
-    backsolve_u_x_eq_y_fortran +='  x('+fortran_row+') = LU('+logicalFactorization.map[row][row]+') * temporary\n';
+    let LUIndex = logicalFactorization.map[row][row] + 1;
+    backsolve_u_x_eq_y_fortran +='  x('+fortran_row+') = LU('+LUIndex+') * temporary\n';
   }
   backsolve_u_x_eq_y_fortran +='end subroutine backsolve_U_x_eq_y\n';
   //console.log(backsolve_u_x_eq_y_fortran);
@@ -723,6 +723,11 @@ app.post('/ConstructSparseLUFactor', function(req, res) {
   }
   //console.log(reorderedMolecules);
 
+  var reorderedForcing = [];
+  for(let i = 0; i< molecules.length; i++){
+    reorderedForcing[i]=force[logicalFactorization.pivot[i]];
+  }
+
   var pivot = logicalFactorization.pivot;
  
   let alt_fortranFactor = alt_factor(LUFactorization);
@@ -733,6 +738,7 @@ app.post('/ConstructSparseLUFactor', function(req, res) {
     "backsolve_U_x_eq_y_fortran":backsolve_u_x_eq_y_fortran,
     "factor_LU_fortran":factor_LU_fortran,
     "pivot":pivot,
+    "reorderedForcing":reorderedForcing,
     "init_jac":init_jac});
 
 });
@@ -760,6 +766,7 @@ function termToCode (term, moleculeIndex, indexOffset) {
   let arrayOfVmr = term.arrayOfVmr;
   let troeTerm = term.troeTerm;
   let netTendency = term.netTendency;
+  let reactionString = term.reactionString;
 
   //let vmrToNumberDensityCount = arrayOfVmr.length + (troeTerm ? 1 : 0);
   //let vmrToNumberDensityConversion = number_density_string[vmrToNumberDensityCount];
@@ -818,9 +825,12 @@ app.post('/toCode', function(req, res) {
 
   // collect data from request
   var content = req.body;
-  var reorderedMolecules = content.reorderedMolecules
+  var reorderedMolecules = content.reorderedMolecules;
+  var force = content.reorderedForcing;
   console.log("reorderedMolecules");
   console.log(reorderedMolecules);
+  console.log("reorderedForcing");
+  console.log(JSON.stringify(force, null, 2));
 
   // find index for molecules, as reordered by pivot
   var moleculeIndex =reorderedIndex(reorderedMolecules);
@@ -870,47 +880,51 @@ app.post('/toCode', function(req, res) {
   }
 
   
-  init_jac.factored_code = function(indexOffset=0) {
-    console.log(indexOffset);
+  init_jac.factored_alpha_minus_jac = function(indexOffset=0) {
     let diagonalIndices = init_jac[0].diagonalIndices;
-    console.log(JSON.stringify(diagonalIndices));
-    let factored_h_minus_jac_string  = '\nsubroutine factored_h_minus_jac(LU, alpha, dforce_dy)\n';
-    factored_h_minus_jac_string += '!compute LU decomposition of [\alpha * I - dforce_dy]\n';
-    factored_h_minus_jac_string += '  real(r8), intent(in) :: dforce_dy(:)\n';
-    factored_h_minus_jac_string += '  real(r8), intent(in) :: alpha\n';
-    factored_h_minus_jac_string += '  real(r8), intent(in) :: LU(:)\n';
-    factored_h_minus_jac_string += '  LU(:) = dforce_dy(:)\n';
+    let factored_alpha_minus_jac_string  = '\nsubroutine factored_alpha_minus_jac(LU, alpha, dforce_dy)\n';
+    factored_alpha_minus_jac_string += '\n';
+    factored_alpha_minus_jac_string += '  !compute LU decomposition of [\alpha * I - dforce_dy]\n';
+    factored_alpha_minus_jac_string += '  real(r8), intent(in) :: dforce_dy(:)\n';
+    factored_alpha_minus_jac_string += '  real(r8), intent(in) :: alpha\n';
+    factored_alpha_minus_jac_string += '  real(r8), intent(out) :: LU(:)\n';
+    factored_alpha_minus_jac_string += '\n';
+    factored_alpha_minus_jac_string += '  LU(:) = dforce_dy(:)\n';
+    factored_alpha_minus_jac_string += '\n';
  
     for(let iRank = 0; iRank < diagonalIndices.length; iRank++){
       let diag = diagonalIndices[iRank] + indexOffset;
-      factored_h_minus_jac_string += '  LU('+ diag + ') = LU('+ diag + ') + alpha \n';
+      factored_alpha_minus_jac_string += '  LU('+ diag + ') = dforce_dy('+ diag + ') + alpha \n';
     }
-    factored_h_minus_jac_string += '  call factor(LU) \n';
-    factored_h_minus_jac_string += '  end subroutine factored_h_minus_jac)\n';
 
-    console.log(factored_h_minus_jac_string);
-    return factored_h_minus_jac_string;
+    factored_alpha_minus_jac_string += '\n';
+    factored_alpha_minus_jac_string += '  call factor(LU) \n';
+    factored_alpha_minus_jac_string += '\n';
+    factored_alpha_minus_jac_string += 'end subroutine factored_alpha_minus_jac)\n';
+
+    return factored_alpha_minus_jac_string;
   }
 
-  //solve_LU_times_x_equals_y_toCode = function(indexOffset=0) {
+  init_jac.solve_LU_times_x_equals_y_toCode = function(indexOffset=0) {
     //console.log(indexOffset);
   // input y, factored G
-  //} 
+  } 
 
-  //jacobian_times_vector_toCode = function(indexOffset=0){
+  init_jac.jacobian_times_vector_toCode = function(indexOffset=0){
     //console.log(indexOffset);
   //input dFdY
   //input vector
   //output result
-  //}
+  }
 
   let indexOffset = 1; //convert to fortran
   let init_jac_fortran = init_jac.toCode(indexOffset);
   let init_kinetics_fortran = kinetics_init.toCode(indexOffset);
-  let factored_h_minus_jac_string = init_jac.factored_code(indexOffset);;
+  let factored_alpha_minus_jac = init_jac.factored_alpha_minus_jac(indexOffset);;
 
   res.json({
     "init_jac_code_string":init_jac_fortran,
+    "factored_alpha_minus_jac":factored_alpha_minus_jac,
     "init_kinetics":init_kinetics_fortran
   });
 });
