@@ -886,13 +886,15 @@ app.post('/toCode', function(req, res) {
   init_jac.factored_alpha_minus_jac = function(indexOffset=0) {
     let diagonalIndices = init_jac[0].diagonalIndices;
     let factored_alpha_minus_jac_string  = '\nsubroutine factored_alpha_minus_jac(LU, alpha, dforce_dy)\n';
-    factored_alpha_minus_jac_string += '\n';
     factored_alpha_minus_jac_string += '  !compute LU decomposition of [\alpha * I - dforce_dy]\n';
+    factored_alpha_minus_jac_string += '\n';
     factored_alpha_minus_jac_string += '  real(r8), intent(in) :: dforce_dy(:)\n';
     factored_alpha_minus_jac_string += '  real(r8), intent(in) :: alpha\n';
     factored_alpha_minus_jac_string += '  real(r8), intent(out) :: LU(:)\n';
     factored_alpha_minus_jac_string += '\n';
-    factored_alpha_minus_jac_string += '  LU(:) = dforce_dy(:)\n';
+    factored_alpha_minus_jac_string += '  LU(:) = -dforce_dy(:)\n';
+    factored_alpha_minus_jac_string += '\n';
+    factored_alpha_minus_jac_string += '! add alpha to diagonal elements\n';
     factored_alpha_minus_jac_string += '\n';
  
     for(let iRank = 0; iRank < diagonalIndices.length; iRank++){
