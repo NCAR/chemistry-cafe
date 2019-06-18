@@ -5,5 +5,10 @@ test/examples.tar
 test/factor.F90
 test/factored_alpha_minus_jac.F90
 test/force.F90
-
-
+test/dforce_dy_times_vector.F90
+test/factor_solve_utilities.F90
+test/kinetics_final.F90
+test/kinetics_utilities.F90
+test/output.tar
+test/preprocessor_generated.tar
+test/solve.F90

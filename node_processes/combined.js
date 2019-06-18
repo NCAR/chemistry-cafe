@@ -628,7 +628,9 @@ app.post('/ConstructSparseLUFactor', function(req, res) {
 
   var factor_LU_fortran = "\n";
   factor_LU_fortran += 'subroutine factor(LU)\n';
-  factor_LU_fortran += '  real(r8) LU(:)\n';
+  factor_LU_fortran += '\n\n';
+  factor_LU_fortran += '  real(r8), intent(inout) :: LU(:)\n';
+  factor_LU_fortran += '\n\n';
 
   var alt_factor = function(LUFactorization){
 
@@ -672,6 +674,7 @@ app.post('/ConstructSparseLUFactor', function(req, res) {
 
     factor_LU_fortran += fortranCodeArray.join("");
 
+    factor_LU_fortran += '\n\n';
     factor_LU_fortran += 'end subroutine factor\n';
     return factor_LU_fortran;
   }
@@ -679,9 +682,11 @@ app.post('/ConstructSparseLUFactor', function(req, res) {
 
   var backsolve_L_y_eq_b_fortran = "\n";
   backsolve_L_y_eq_b_fortran += 'subroutine backsolve_L_y_eq_b(LU,b,y)\n';
-  backsolve_L_y_eq_b_fortran += '  real(r8) LU(:)\n';
-  backsolve_L_y_eq_b_fortran += '  real(r8) b(:)\n';
-  backsolve_L_y_eq_b_fortran += '  real(r8) y(:)\n';
+  backsolve_L_y_eq_b_fortran +='\n\n'
+  backsolve_L_y_eq_b_fortran += '  real(r8), intent(in) :: LU(:)\n';
+  backsolve_L_y_eq_b_fortran += '  real(r8), intent(in) :: b(:)\n';
+  backsolve_L_y_eq_b_fortran += '  real(r8), intent(out) :: y(:)\n';
+  backsolve_L_y_eq_b_fortran +='\n\n'
   for(var row = 0; row < logicalFactorization.size; row++){
     let fortran_row = row + 1;
     backsolve_L_y_eq_b_fortran += '  y('+fortran_row+') = b('+fortran_row+')\n';
@@ -693,15 +698,18 @@ app.post('/ConstructSparseLUFactor', function(req, res) {
       }
     }
   }
+  backsolve_L_y_eq_b_fortran +='\n\n'
   backsolve_L_y_eq_b_fortran +='end subroutine backsolve_L_y_eq_b\n\n\n';
   //console.log(backsolve_L_y_eq_b_fortran);
 
 
   var backsolve_u_x_eq_y_fortran = '\nsubroutine backsolve_U_x_eq_y(LU,y,x)\n';
-  backsolve_u_x_eq_y_fortran +='   real(r8) LU(:)\n'
-  backsolve_u_x_eq_y_fortran +='  real(r8) y(:)\n'
-  backsolve_u_x_eq_y_fortran +='  real(r8) x(:)\n'
-  backsolve_u_x_eq_y_fortran +='  real(r8) temporary\n'
+  backsolve_u_x_eq_y_fortran +='\n\n'
+  backsolve_u_x_eq_y_fortran +='  real(r8), intent(in) :: LU(:)\n'
+  backsolve_u_x_eq_y_fortran +='  real(r8), intent(in) :: y(:)\n'
+  backsolve_u_x_eq_y_fortran +='  real(r8), intent(out) :: x(:)\n'
+  backsolve_u_x_eq_y_fortran +='  real(r8) :: temporary\n'
+  backsolve_u_x_eq_y_fortran +='\n\n'
   for(var row = logicalFactorization.size-1; row > -1; row--){
     let fortran_row = row + 1;
     backsolve_u_x_eq_y_fortran +='  temporary = y('+fortran_row+')\n'
@@ -715,6 +723,7 @@ app.post('/ConstructSparseLUFactor', function(req, res) {
     let LUIndex = logicalFactorization.map[row][row] + 1;
     backsolve_u_x_eq_y_fortran +='  x('+fortran_row+') = LU('+LUIndex+') * temporary\n';
   }
+  backsolve_u_x_eq_y_fortran +='\n\n'
   backsolve_u_x_eq_y_fortran +='end subroutine backsolve_U_x_eq_y\n';
   //console.log(backsolve_u_x_eq_y_fortran);
 
@@ -734,12 +743,24 @@ app.post('/ConstructSparseLUFactor', function(req, res) {
  
   let alt_fortranFactor = alt_factor(LUFactorization);
 
+  let indexOffset = 1; //convert to fortran
+  let module = "module factor_solve_utilities\n\n";
+  module += "  implicit none\n\n";
+  module += "  public :: backsolve_L_y_eq_b, backsolve_u_x_eq_y, factor \n\n"
+  module += "  contains\n\n";
+  module += backsolve_L_y_eq_b_fortran;
+  module += backsolve_u_x_eq_y_fortran;
+  module += factor_LU_fortran;
+  module += "\nend module factor_solve_utilities\n";
+
+
   res.json({
     "reorderedMolecules":reorderedMolecules,
     "backsolve_L_y_eq_b_fortran":backsolve_L_y_eq_b_fortran,
     "backsolve_U_x_eq_y_fortran":backsolve_u_x_eq_y_fortran,
     "factor_LU_fortran":factor_LU_fortran,
     "pivot":pivot,
+    "module":module,
     "reorderedForcing":reorderedForcing,
     "init_jac":init_jac});
 
@@ -759,9 +780,9 @@ function reorderedIndex (reorderedMolecules){
   return index;
 }
 
-//let number_density_string = ["", "number_density_air","number_density_air_squared", "number_density_air_cubed"];
 
-// convert terms to code:
+// convert terms to code
+// expressions are of the following form:
 //   netTendency * product of reactants * conversion to number_density * rateConstant
 function termToCode (term, moleculeIndex, indexOffset) {
   let idxReaction = term.idxReaction;
@@ -770,20 +791,14 @@ function termToCode (term, moleculeIndex, indexOffset) {
   let netTendency = term.netTendency;
   let reactionString = term.reactionString;
 
-  //let vmrToNumberDensityCount = arrayOfVmr.length + (troeTerm ? 1 : 0);
-  //let vmrToNumberDensityConversion = number_density_string[vmrToNumberDensityCount];
-  let rateConstString = "rateConstant(" +(parseInt(idxReaction) + parseInt(indexOffset))+")";
+  let rateConstString = "rate_constant(" +(parseInt(idxReaction) + parseInt(indexOffset))+")";
   let troeDensityCount = (troeTerm ? 1 : 0);
   let troeDensityConversion = (troeTerm ? "number_density_air" : "");
 
-  //let vmrStringArray =[];
-  //for(let iVmr = 0; iVmr < arrayOfVmr.length; iVmr++){
-    //vmrStringArray.push("vmr("+ moleculeIndex[arrayOfVmr[iVmr]]   +")");
-  //}
 
   let numberDensityArray =[];
   for(let iVmr = 0; iVmr < arrayOfVmr.length; iVmr++){
-    numberDensityArray.push("numberDensity("+ (parseInt(indexOffset) + parseInt(moleculeIndex[arrayOfVmr[iVmr]])) +")");
+    numberDensityArray.push("number_density("+ (parseInt(indexOffset) + parseInt(moleculeIndex[arrayOfVmr[iVmr]])) +")");
   }
   if(troeTerm) {numberDensityArray.push(troeDensityConversion);}
 
@@ -802,15 +817,6 @@ function termToCode (term, moleculeIndex, indexOffset) {
     }
   }
 
-  //let arrayOfVmrString="";
-  //let termString = ""
-  //if (arrayOfVmr.length > 0) {
-    //arrayOfVmrString = arrayOfVmr.join(" * ") + " * " + vmrToNumberDensityConversion;
-    //termString = tendencyString + " * " + arrayOfVmrString;
-  //} else {
-    //termString = tendencyString;
-  //}
-  
   let arrayOfNumberDensityString = "";
   let termString = "";
   if (arrayOfVmr.length > 0) {
@@ -831,30 +837,48 @@ app.post('/toCode', function(req, res) {
   let init_jac = content.init_jac;
   let force = content.reorderedForcing;
 
-  console.log("reorderedMolecules");
-  console.log(reorderedMolecules);
-  console.log("reorderedForcing");
-  console.log(JSON.stringify(force, null, 2));
-
   // find index for molecules, as reordered by pivot
   var moleculeIndex =reorderedIndex(reorderedMolecules);
 
-  let kinetics_init = reorderedMolecules;
+  // clone molecules
+  let kinetics_init = JSON.parse(JSON.stringify(reorderedMolecules));
   kinetics_init.toCode = function(indexOffset=0){
     let init_kinetics_string ="\nsubroutine kinetics_init(";
-    init_kinetics_string += reorderedMolecules.map((elem) =>{return elem.moleculename;}).join(",");
-    init_kinetics_string += ",number_density_array,number_density_air";
+    init_kinetics_string += reorderedMolecules.map((elem) =>{return elem.moleculename;}).join(", ");
+    init_kinetics_string += ", number_density, number_density_air";
     init_kinetics_string += ")\n";
     init_kinetics_string += "\n real(r8),intent(in) :: ";
-    init_kinetics_string += reorderedMolecules.map((elem) =>{return elem.moleculename;}).join(",");
-    init_kinetics_string += "\n real(r8), intent(out):: number_density_array("+reorderedMolecules.length+")";
+    init_kinetics_string += reorderedMolecules.map((elem) =>{return elem.moleculename;}).join(", ");
+    init_kinetics_string += "\n real(r8), intent(out):: number_density("+reorderedMolecules.length+")";
     init_kinetics_string += "\n real(r8), intent(in) :: number_density_air";
+    init_kinetics_string += "\n\n";
     // for every molecule in the reordered array, convert vmr to number density
-    let initStringArray = reorderedMolecules.map((elem,index) =>{return "numberDensityArray("+(index+indexOffset)+")="+elem.moleculename+"*numberDensityOfAir";});
+    let initStringArray = reorderedMolecules.map((elem,index) =>{return "number_density_array("+(index+indexOffset)+")="+elem.moleculename+" * number_density_air";});
     init_kinetics_string += "\n " + initStringArray.join("\n ");
     init_kinetics_string += "\n\n"+"end subroutine kinetics_init";
     return init_kinetics_string;
   }
+
+  
+  //clone molecules
+  let kinetics_final = JSON.parse(JSON.stringify(reorderedMolecules));
+  kinetics_final.toCode = function(indexOffset=0){
+    let final_kinetics_string ="\nsubroutine kinetics_final(";
+    final_kinetics_string += reorderedMolecules.map((elem) =>{return elem.moleculename;}).join(", ");
+    final_kinetics_string += ", number_density, number_density_air";
+    final_kinetics_string += ")\n";
+    final_kinetics_string += "\n real(r8),intent(out) :: ";
+    final_kinetics_string += reorderedMolecules.map((elem) =>{return elem.moleculename;}).join(", ");
+    final_kinetics_string += "\n real(r8), intent(in):: number_density("+reorderedMolecules.length+")";
+    final_kinetics_string += "\n real(r8), intent(in) :: number_density_air";
+    final_kinetics_string += "\n\n";
+    // for every molecule in the reordered array, convert vmr to number density
+    let initStringArray = reorderedMolecules.map((elem,index) =>{return elem.moleculename + " = number_density("+(index+indexOffset)+") / number_density_air";});
+    final_kinetics_string += "\n " + initStringArray.join("\n ");
+    final_kinetics_string += "\n\n"+"end subroutine kinetics_final";
+    return final_kinetics_string;
+  }
+
 
 
   // code to initialize jacobian
@@ -878,12 +902,13 @@ app.post('/toCode', function(req, res) {
         init_jac_code_string += '    '+LUElement+'= '+LUElement+termToCode(element.jacobianTerms[iterm], moleculeIndex, indexOffset) +'\n\n' ;
       }
     }
-    init_jac_code_string += 'end subroutine init_jacobian\n';
+    init_jac_code_string += 'end subroutine dforce_dy\n';
     return init_jac_code_string;
   }
 
   
   init_jac.factored_alpha_minus_jac = function(indexOffset=0) {
+    // Construct unfactored LU = alpha * I - jacobian, then call factorization routine on unfactored LU
     let diagonalIndices = init_jac[0].diagonalIndices;
     let factored_alpha_minus_jac_string  = '\nsubroutine factored_alpha_minus_jac(LU, alpha, dforce_dy)\n';
     factored_alpha_minus_jac_string += '  !compute LU decomposition of [\alpha * I - dforce_dy]\n';
@@ -894,9 +919,10 @@ app.post('/toCode', function(req, res) {
     factored_alpha_minus_jac_string += '\n';
     factored_alpha_minus_jac_string += '  LU(:) = -dforce_dy(:)\n';
     factored_alpha_minus_jac_string += '\n';
+
+    // Add alpha to diagonal elements
     factored_alpha_minus_jac_string += '! add alpha to diagonal elements\n';
     factored_alpha_minus_jac_string += '\n';
- 
     for(let iRank = 0; iRank < diagonalIndices.length; iRank++){
       let diag = diagonalIndices[iRank] + indexOffset;
       factored_alpha_minus_jac_string += '  LU('+ diag + ') = dforce_dy('+ diag + ') + alpha \n';
@@ -905,7 +931,7 @@ app.post('/toCode', function(req, res) {
     factored_alpha_minus_jac_string += '\n';
     factored_alpha_minus_jac_string += '  call factor(LU) \n';
     factored_alpha_minus_jac_string += '\n';
-    factored_alpha_minus_jac_string += 'end subroutine factored_alpha_minus_jac)\n';
+    factored_alpha_minus_jac_string += 'end subroutine factored_alpha_minus_jac\n';
 
     return factored_alpha_minus_jac_string;
   }
@@ -915,11 +941,27 @@ app.post('/toCode', function(req, res) {
   // input y, factored G
   } 
 
-  init_jac.jacobian_times_vector_toCode = function(indexOffset=0){
-    //console.log(indexOffset);
-  //input dFdY
-  //input vector
-  //output result
+  init_jac.dforce_dy_times_vector_string = function(indexOffset=0){
+  // Construct code for dF/dy * vector
+    let dforce_dy_times_vector_string  = '\npure subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)\n';
+    dforce_dy_times_vector_string += '\n  !  Compute product of [ dforce_dy * vector ]\n\n';
+    dforce_dy_times_vector_string += '  real(r8), intent(in) :: dforce_dy(:) ! Jacobian of forcing\n';
+    dforce_dy_times_vector_string += '  real(r8), intent(in) :: vector(:)    ! Vector of number densities corresponding to dy\n';
+    dforce_dy_times_vector_string += '  real(r8), intent(out) :: cummulative_product(:)  ! Product of jacobian with vector\n';
+    dforce_dy_times_vector_string += '\n';
+    dforce_dy_times_vector_string += '  cummulative_product(:) = 0\n\n';
+
+    for (let ijac = 0; ijac < init_jac.length; ijac++){
+      let element = init_jac[ijac];
+      dforce_dy_times_vector_string += '\n  ! df_'+element.forcedMolecule+'/d('+element.sensitivityMolecule+') * '+element.sensitivityMolecule+'_temporary\n';
+      let LUElement = 'dforce_dy('+(element.LUArrayIndex+indexOffset)+')'
+      let forceIndex = moleculeIndex[element.forcedMolecule]+ indexOffset;
+      let sensitivityIndex = moleculeIndex[element.sensitivityMolecule]+ indexOffset;
+      dforce_dy_times_vector_string += '  cummulative_product('+forceIndex+') = cummulative_product('+forceIndex+') + ';
+      dforce_dy_times_vector_string += LUElement+' * vector('+sensitivityIndex+')\n\n' ;
+    }
+    dforce_dy_times_vector_string  += '\nend subroutine dforce_dy_times_vector\n';
+    return dforce_dy_times_vector_string;
   }
 
   force.toCode = function(indexOffset=0) {
@@ -954,18 +996,47 @@ app.post('/toCode', function(req, res) {
 
   }
 
+  let solve_string = "\n";
+  solve_string += "subroutine solve(LU, x, b) \n\n";
+  solve_string += "  real(r8), intent(in) :: LU(:), b(:) ! solve LU * x = b \n";
+  solve_string += "  real(r8), intent(out) :: x(:) \n";
+  solve_string += "  real(r8) :: y(size(b)) \n\n";
+  solve_string += "  call backsolve_L_y_eq_b(LU, b, y)\n";
+  solve_string += "  call backsolve_U_x_eq_y(LU, y, x)\n";
+  solve_string += "\nend subroutine solve \n\n";
+
   let indexOffset = 1; //convert to fortran
+  let module = "module kinetics_utilities\n\n";
+  module += "  use factor_solve_utilities, only:  backsolve_L_y_eq_b, backsolve_u_x_eq_y, factor \n\n"
+  module += "  implicit none\n\n";
+  module += "  public :: dforce_dy_times_vector, factored_alpha_minus_jac, force, dforce_dy, kinetics_init, kinetics_final, solve \n";
+  module += "  contains\n\n";
+  module += init_jac.toCode(indexOffset);
+  module += kinetics_init.toCode(indexOffset);
+  module += kinetics_final.toCode(indexOffset);
+  module += init_jac.factored_alpha_minus_jac(indexOffset);
+  module += force.toCode(indexOffset);
+  module += init_jac.dforce_dy_times_vector_string(indexOffset);
+  module += solve_string;
+  module += "\nend module kinetics_utilities\n";
+
+
   let init_jac_fortran = init_jac.toCode(indexOffset);
   let init_kinetics_fortran = kinetics_init.toCode(indexOffset);
+  let final_kinetics_fortran = kinetics_final.toCode(indexOffset);
   let factored_alpha_minus_jac = init_jac.factored_alpha_minus_jac(indexOffset);
   let force_fortran = force.toCode(indexOffset);
-
+  let dforce_dy_times_vector_string = init_jac.dforce_dy_times_vector_string(indexOffset);
 
   res.json({
     "init_jac_code_string":init_jac_fortran,
-    "factored_alpha_minus_jac":factored_alpha_minus_jac,
     "init_kinetics":init_kinetics_fortran,
-    "force":force_fortran
+    "final_kinetics":final_kinetics_fortran,
+    "factored_alpha_minus_jac":factored_alpha_minus_jac,
+    "force":force_fortran,
+    "solve":solve_string,
+    "dforce_dy_times_vector":dforce_dy_times_vector_string, 
+    "module" : module
   });
 });
 
