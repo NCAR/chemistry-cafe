@@ -1,1 +1,9 @@
 node_modules
+test/backsolve_L_y_eq_b.F90
+test/backsolve_U_x_eq_y.F90
+test/examples.tar
+test/factor.F90
+test/factored_alpha_minus_jac.F90
+test/force.F90
+
+

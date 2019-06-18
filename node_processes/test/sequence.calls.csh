@@ -10,4 +10,5 @@ python -c 'import sys, json; print json.load(sys.stdin)["backsolve_L_y_eq_b_fort
 python -c 'import sys, json; print json.load(sys.stdin)["backsolve_U_x_eq_y_fortran"]' < $1.LU > backsolve_U_x_eq_y.F90
 python -c 'import sys, json; print json.load(sys.stdin)["factor_LU_fortran"]' < $1.LU > factor.F90
 python -c 'import sys, json; print json.load(sys.stdin)["init_kinetics"]' < $1.jac.init > kinetics_init.F90
+python -c 'import sys, json; print json.load(sys.stdin)["force"]' < $1.jac.init > force.F90
 

@@ -213,7 +213,7 @@ const forceCollector = function(molecules){
   // construct forcing, logicalJacobian, and jacobian from each reaction
   this.constructForcingFromTendencies = function(reaction, moleculeIndex){
 
-    let rate=new term(reaction.idxReaction, reaction.reactants, reaction.troe, 1, reaction.reactionString);
+    //let rate=new term(reaction.idxReaction, reaction.reactants, reaction.troe, 1, reaction.reactionString);
 
     let nTends = reaction.tendencies.length;
 
@@ -221,7 +221,9 @@ const forceCollector = function(molecules){
       let tendency = reaction.tendencies[iTend];
       let forcedMoleculeIndex = tendency.idxConstituent;
       if (forcedMoleculeIndex == -1 ) break;  // molecule not in the list of molecules-> don't consider it.
-      force[forcedMoleculeIndex].tendency.push({tendency:tendency.netTendency, rate:rate});
+      
+      force[forcedMoleculeIndex].tendency.push(new term(reaction.idxReaction, reaction.reactants, reaction.troe, tendency.netTendency, reaction.reactionString));
+      //force[forcedMoleculeIndex].tendency.push({tendency:tendency.netTendency, rate:rate});
         
       // jacobian: derivative of forcing[tendency.constituent] w/r/t each tendency in the reaction list
       for(let i = 0; i < reaction.reactants.length; i++){
@@ -757,7 +759,7 @@ function reorderedIndex (reorderedMolecules){
   return index;
 }
 
-let number_density_string = ["", "number_density_air","number_density_air_squared", "number_density_air_cubed"];
+//let number_density_string = ["", "number_density_air","number_density_air_squared", "number_density_air_cubed"];
 
 // convert terms to code:
 //   netTendency * product of reactants * conversion to number_density * rateConstant
@@ -770,9 +772,9 @@ function termToCode (term, moleculeIndex, indexOffset) {
 
   //let vmrToNumberDensityCount = arrayOfVmr.length + (troeTerm ? 1 : 0);
   //let vmrToNumberDensityConversion = number_density_string[vmrToNumberDensityCount];
-  let rateConstString = "rateConstant(" +(idxReaction + indexOffset)+")";
+  let rateConstString = "rateConstant(" +(parseInt(idxReaction) + parseInt(indexOffset))+")";
   let troeDensityCount = (troeTerm ? 1 : 0);
-  let troeDensityConversion = number_density_string[troeDensityCount];
+  let troeDensityConversion = (troeTerm ? "number_density_air" : "");
 
   //let vmrStringArray =[];
   //for(let iVmr = 0; iVmr < arrayOfVmr.length; iVmr++){
@@ -781,9 +783,9 @@ function termToCode (term, moleculeIndex, indexOffset) {
 
   let numberDensityArray =[];
   for(let iVmr = 0; iVmr < arrayOfVmr.length; iVmr++){
-    numberDensityArray.push("numberDensity("+ moleculeIndex[arrayOfVmr[iVmr]]   +")");
+    numberDensityArray.push("numberDensity("+ (parseInt(indexOffset) + parseInt(moleculeIndex[arrayOfVmr[iVmr]])) +")");
   }
-  if(troeTerm) {numberDensityArray.push(number_density_string[1]);}
+  if(troeTerm) {numberDensityArray.push(troeDensityConversion);}
 
   let tendencyString =""; 
   if (netTendency > 0) {
@@ -824,9 +826,11 @@ function termToCode (term, moleculeIndex, indexOffset) {
 app.post('/toCode', function(req, res) {
 
   // collect data from request
-  var content = req.body;
-  var reorderedMolecules = content.reorderedMolecules;
-  var force = content.reorderedForcing;
+  let content = req.body;
+  let reorderedMolecules = content.reorderedMolecules;
+  let init_jac = content.init_jac;
+  let force = content.reorderedForcing;
+
   console.log("reorderedMolecules");
   console.log(reorderedMolecules);
   console.log("reorderedForcing");
@@ -852,7 +856,6 @@ app.post('/toCode', function(req, res) {
     return init_kinetics_string;
   }
 
-  let init_jac = content.init_jac;
 
   // code to initialize jacobian
   init_jac.toCode = function(indexOffset=0){
@@ -917,15 +920,48 @@ app.post('/toCode', function(req, res) {
   //output result
   }
 
+  force.toCode = function(indexOffset=0) {
+
+    let force_code_string = "\n";
+    force_code_string +="subroutine force(rate_constant, number_density, number_density_air, force)\n";
+    force_code_string +="  ! Compute force function for all molecules\n";
+    force_code_string +="\n";
+    force_code_string +="  real(r8), intent(in) :: rate_constant(:)\n";
+    force_code_string +="  real(r8), intent(in) :: number_density(:)\n";
+    force_code_string +="  real(r8), intent(in) :: number_density_air\n";
+    force_code_string +="  real(r8), intent(out) :: force(:)\n";
+    force_code_string +="\n";
+
+    for(let iMolecule = 0; iMolecule < force.length; iMolecule++ ){
+      let forceString = "force("+iMolecule+")";
+      force_code_string +="  "+forceString+" = 0\n";
+
+      let nTendency = force[iMolecule].tendency.length;
+      for (let iTendency = 0; iTendency < nTendency; iTendency ++){
+        let termCode = termToCode(force[iMolecule].tendency[iTendency], moleculeIndex, indexOffset);
+        force_code_string +="  "+forceString+" = "+forceString +" "+ termCode+"\n";
+      }
+    }
+
+    force_code_string +="\n";
+    force_code_string +="end subroutine force\n";
+
+    return force_code_string;
+
+  }
+
   let indexOffset = 1; //convert to fortran
   let init_jac_fortran = init_jac.toCode(indexOffset);
   let init_kinetics_fortran = kinetics_init.toCode(indexOffset);
-  let factored_alpha_minus_jac = init_jac.factored_alpha_minus_jac(indexOffset);;
+  let factored_alpha_minus_jac = init_jac.factored_alpha_minus_jac(indexOffset);
+  let force_fortran = force.toCode(indexOffset);
+
 
   res.json({
     "init_jac_code_string":init_jac_fortran,
     "factored_alpha_minus_jac":factored_alpha_minus_jac,
-    "init_kinetics":init_kinetics_fortran
+    "init_kinetics":init_kinetics_fortran,
+    "force":force_fortran
   });
 });
 
