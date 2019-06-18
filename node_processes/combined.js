@@ -933,12 +933,14 @@ app.post('/toCode', function(req, res) {
     force_code_string +="\n";
 
     for(let iMolecule = 0; iMolecule < force.length; iMolecule++ ){
-      let forceString = "force("+iMolecule+")";
+      let forceString = "force("+(iMolecule+indexOffset)+")";
+      force_code_string +="\n\n! "+force[iMolecule].constituentName+"\n";
       force_code_string +="  "+forceString+" = 0\n";
 
       let nTendency = force[iMolecule].tendency.length;
       for (let iTendency = 0; iTendency < nTendency; iTendency ++){
         let termCode = termToCode(force[iMolecule].tendency[iTendency], moleculeIndex, indexOffset);
+        force_code_string +="\n  ! "+ force[iMolecule].tendency[iTendency].reactionString+"\n";
         force_code_string +="  "+forceString+" = "+forceString +" "+ termCode+"\n";
       }
     }
