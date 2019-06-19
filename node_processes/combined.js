@@ -694,7 +694,7 @@ app.post('/ConstructSparseLUFactor', function(req, res) {
       let fortran_col = col + 1;
       let LUIndex = logicalFactorization.map[row][col] + 1;
       if(logicalFactorization.map[row][col]){
-        backsolve_L_y_eq_b_fortran +='  y('+fortran_row+') = y('+fortran_row+') - LU('+logicalFactorization.map[row][col]+') * y('+fortran_col+')\n'
+        backsolve_L_y_eq_b_fortran +='  y('+fortran_row+') = y('+fortran_row+') - LU('+LUIndex+') * y('+fortran_col+')\n'
       }
     }
   }
@@ -944,9 +944,10 @@ app.post('/toCode', function(req, res) {
   init_jac.dforce_dy_times_vector_string = function(indexOffset=0){
   // Construct code for dF/dy * vector
     let dforce_dy_times_vector_string  = '\npure subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)\n';
-    dforce_dy_times_vector_string += '\n  !  Compute product of [ dforce_dy * vector ]\n\n';
+    dforce_dy_times_vector_string += '\n  !  Compute product of [ dforce_dy * vector ]';
+    dforce_dy_times_vector_string += '\n  !  Commonly used to compute time-truncation errors [dforce_dy * force ]\n\n';
     dforce_dy_times_vector_string += '  real(r8), intent(in) :: dforce_dy(:) ! Jacobian of forcing\n';
-    dforce_dy_times_vector_string += '  real(r8), intent(in) :: vector(:)    ! Vector of number densities corresponding to dy\n';
+    dforce_dy_times_vector_string += '  real(r8), intent(in) :: vector(:)    ! Vector ordered as the order of number density in dy\n';
     dforce_dy_times_vector_string += '  real(r8), intent(out) :: cummulative_product(:)  ! Product of jacobian with vector\n';
     dforce_dy_times_vector_string += '\n';
     dforce_dy_times_vector_string += '  cummulative_product(:) = 0\n\n';
