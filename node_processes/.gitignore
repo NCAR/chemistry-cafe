@@ -1,0 +1,17 @@
+node_modules
+test/backsolve_L_y_eq_b.F90
+test/backsolve_U_x_eq_y.F90
+test/examples.tar
+test/factor.F90
+test/factored_alpha_minus_jac.F90
+test/force.F90
+test/dforce_dy_times_vector.F90
+test/factor_solve_utilities.F90
+test/kinetics_final.F90
+test/kinetics_utilities.F90
+test/output.tar
+test/preprocessor_generated.tar
+test/solve.F90
+test/target/factor_solve_utilities.F90
+test/target/kinetics_utilities.F90
+

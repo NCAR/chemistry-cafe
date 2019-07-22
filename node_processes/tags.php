@@ -31,8 +31,6 @@ switch($_GET['action'])  {
 
 }
 
-//return_tag_json(255 );
-
 
 function get_all_branches() {
 
@@ -117,16 +115,16 @@ function return_tag_json($tag_id){
     // get tag information
     $tagresult = pg_query($con,
        "SELECT t.id, t.given_name, u.initials, b.name AS branchname, b.id AS branch_id, t.date, t.buggy , t.filename
-         FROM tags AS t
-         INNER JOIN users AS u
-         ON u.id=t.user_id
-         INNER JOIN branches AS b
-         ON b.id=t.branch_id
-         WHERE t.id=".$tag_id."
-         ORDER BY date DESC;");
+        FROM tags AS t
+        INNER JOIN users AS u
+        ON u.id=t.user_id
+        INNER JOIN branches AS b
+        ON b.id=t.branch_id
+        WHERE t.id=".$tag_id."
+        ORDER BY date DESC;");
 
     while ($tag = pg_fetch_array($tagresult))
-     {
+    {
         $tagv['id'] =  $tag['id'];
         $tagv['given_name']=  $tag['given_name'];
         $tagv['initials'] =  $tag['initials'];
@@ -136,7 +134,7 @@ function return_tag_json($tag_id){
         $tagv['buggy'] = ($tag['buggy']=='t');
         $tagv['filename'] = $tag['filename'];
 	$tagv['previousComments'] = get_all_comments_for_tag($tagv['id']);
-     }
+    }
 
     //select unique molecules in tag
     $phot_react = "SELECT moleculename, formula, transport, solve, henrys_law_type, molecular_weight, kh_298, dh_r, k1_298, dh1_r, k2_298, dh2_r, concat(moleculename,'_std') as standard_name
@@ -352,8 +350,7 @@ function return_tag_json($tag_id){
              );
     }
 
-    $mechanism = array( 
-           "mechanism"=> array(
+    $mechanism = array( "mechanism"=> array(
            "tag_info"=>$tagv,
            "molecules"=>$molecule_array, 
            "photolysis"=>$photolysis_array, 
@@ -368,7 +365,68 @@ function return_tag_json($tag_id){
 
     print(json_encode($mechanism, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     
-    //return $reaction_json ;
+/*
+    $mechanism_json = json_encode($mechanism, JSON_PRETTY_PRINT);
+    print($mechanism_json);
+
+    $data_string = $mechanism_json;
+
+    $ch = curl_init('http://localhost:8080/constructJacobian');
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+        'Content-Type: application/json',
+        'Content-Length: ' . strlen($data_string))
+    );
+
+    $jacobian=json_decode(curl_exec($ch));
+    curl_close($ch);
+    //print(json_encode($jacobian->reactions, JSON_PRETTY_PRINT) );
+    //print(json_encode($jacobian->photoDecomps, JSON_PRETTY_PRINT) );
+    //print(json_encode($jacobian->moleculeIndex, JSON_PRETTY_PRINT) );
+    //print(json_encode($jacobian->molecules, JSON_PRETTY_PRINT) );
+    
+
+    // collect the sparse LU factoriztion and corresponding reordering of the molecules
+    //print(json_encode($jacobian->moleculeIndex));
+    $jacobian = json_encode($jacobian);
+    $ch_factor = curl_init('http://localhost:8080/constructSparseLUFactor');
+    curl_setopt($ch_factor, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch_factor, CURLOPT_POSTFIELDS, $jacobian);
+    curl_setopt($ch_factor, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch_factor, CURLOPT_HTTPHEADER, array(
+        'Content-Type: application/json',
+        'Content-Length: ' . strlen($jacobian))
+    );
+    $factorizationFortran  = json_decode(curl_exec($ch_factor));
+    //print(json_encode($factorizationFortran->reorderedMolecules));
+    curl_close($ch_factor);
+
+    //$pivotFortran = $factorizationFortran->pivot;
+    //print($factorizationFortran->init_jac_fortran);
+    //print(json_encode($factorizationFortran->init_jac, JSON_PRETTY_PRINT));
+
+    //print("Call toFortran.js\n");
+    //$factorizationFortran->moleculeIndex = $jacobian->moleculeIndex;
+    //print(json_encode($jacobian->moleculeIndex));
+    //print(json_encode($factorizationFortran->moleculeIndex));
+    $factors = json_encode($factorizationFortran);
+    $ch_factor = curl_init('http://localhost:8080/toCode');
+    curl_setopt($ch_factor, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch_factor, CURLOPT_POSTFIELDS, $factors);
+    curl_setopt($ch_factor, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch_factor, CURLOPT_HTTPHEADER, array(
+        'Content-Type: application/json',
+        'Content-Length: ' . strlen($factors))
+    );
+    $code  = json_decode(curl_exec($ch_factor));
+    //print($code-> init_jac_code_string);
+    curl_close($ch_factor);
+*/
+
+
+
 }
 
 ?>
