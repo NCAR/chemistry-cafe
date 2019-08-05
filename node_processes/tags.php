@@ -26,7 +26,7 @@ switch($_GET['action'])  {
             //global $con;
             ////get_all_comments_for_tag($id);
             //return_tag_json($_GET['tag_id'] );
-            //return_tag_json(255 );
+            return_tag_json(255 );
             //break;
 
 }
@@ -273,8 +273,9 @@ function return_tag_json($tag_id){
         // construct rates string
         $include_mass = true;
         if (!is_null($r['r1']) and !is_null($r['r2']) and !is_null($r['r3']) and !is_null($r['r4']) and !is_null($r['r5']) ) {
-            $rate_string = "NULL !" . sprintf(" troe(%e_r8, %.2f_r8, %e_r8, %.2f_r8, %.2f_r8, TEMP, C_M) ",$r['r1'],$r['r2'],$r['r3'],$r['r4'],$r['r5']);
+            $rate_string =  sprintf(" troe(%e_r8, %.2f_r8, %e_r8, %.2f_r8, %.2f_r8, t_inv_300, C_M) ",$r['r1'],$r['r2'],$r['r3'],$r['r4'],$r['r5']);
             $include_mass = false;
+            $t_inv_300 = true;
         } elseif (!is_null($r['r1']) and !is_null($r['r2']) and !is_null($r['r3']) and !is_null($r['r4']) ) {
             $rate_string = sprintf(" ERROR(%e_r8, %e_r8, %e_r8, %e_r8, TEMP, C_M) ",$r['r1'],$r['r2'],$r['r3'],$r['r4']);
         } elseif (!is_null($r['r1']) and !is_null($r['r2']) and !is_null($r['r3'])) {
@@ -355,7 +356,8 @@ function return_tag_json($tag_id){
            "molecules"=>$molecule_array, 
            "photolysis"=>$photolysis_array, 
            "reactions"=>$reaction_array, 
-           "custom_rates"=>$wrf_functions_array 
+           "custom_rates"=>$wrf_functions_array ,
+           "t_inv_300"=>$t_inv_300
            ));
     
     //print(json_encode($molecule_section, JSON_PRETTY_PRINT));
