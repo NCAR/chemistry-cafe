@@ -257,7 +257,7 @@ function return_tag_json($tag_id){
            "SELECT r.id, label, cph, r1, r2, r3, r4, r5, r.group_id, 
                    wcr.name, 
                    r.rate_constant_call, 
-                   r.rate_constant_function_id
+                   r.rate_constant_function_id,
                    rcf.name as rate_function_name, 
                    rcf.id as rate_function_id,
                    rcf.fortran_computation as fortran
