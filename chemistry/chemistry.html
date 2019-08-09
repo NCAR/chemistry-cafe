@@ -47,6 +47,7 @@
             </div>
         </div>
 
+
         <div class ="form-group">
             <label class="col-sm-3 control-label" >CESM Label:</label>
             <div class="col-sm-9 ">
@@ -72,6 +73,22 @@
                     ng-options="wrfRate.id as wrfRate.name for wrfRate in wrfRates ">
                     <option value="">--- USE CESM RATE ---</option> <!-- not selected / blank option -->
                 </select>
+            </div>
+        </div>
+
+        <div class ="form-group">
+            <label class="col-sm-3 control-label">Rate Constant Function:</label>
+            <div class="col-sm-3 ">
+                <select class="form-control" name="frateFunction" ng-model="formData.rate_constant_function_id"
+                    ng-options="rate_function.id as rate_constant_function_name for rate_function in rate_functions ">
+                </select>
+            </div>
+        </div>
+
+        <div class ="form-group">
+            <label class="col-sm-3 control-label">Rate Constant Function Arguments:</label>
+            <div class="col-sm-9 ">
+              <input type="text" size=100 ng-model=formData.rate_constant_call > <br />
             </div>
         </div>
 
@@ -106,19 +123,16 @@
         <button class="btn btn-success" ng-click="reset_form()">Cancel</button><br />
         <hr>
         <div ng-show="sourceData.wrf_present"> WRF Custom Rate Code: <br><pre><code>{{sourceData.wcrcode}}</code></pre></div>
+        <div> Rate Constant Function: <br><pre><code>{{sourceData.fortran}}</code></pre></div>
     </div>
     <!--
     Show the target modification before commit
     -->
     <div ng-show="purpose == 'editReaction'">
         <h4>For these mechanisms ( <strong>{{sourceData.branchString}}</strong> ) </h4>
-        <p>[{{sourceData.label}}]</p>
-        <p ng-show="(sourceData.label.indexOf('usr_') == -1)">CESM Rate: {{sourceData.rateString}}</p>
-        <p ng-show="(sourceData.label.indexOf('usr_') != -1)">CESM Rate: {{sourceData.label}}( )</p>
-        <p>cph: {{sourceData.cph ? sourceData.cph : " None"}}</p>
-        <p>{{sourceData.reactantString}} &rarr; {{sourceData.productString}}</p>
         <div ng-show="editp==1">
             <h4><strong>---- Changing to -----</strong></h4>
+            <p> reaction_id: {{sourceData.id}} </p>
             <p>[{{formData.label}}]</p>
             <p ng-show="(formData.label.indexOf('usr_') == -1)">CESM Rate: {{formData.rateString}}</p>
             <p ng-show="(formData.label.indexOf('usr_') != -1)">CESM Rate: {{formData.label}}( )</p>

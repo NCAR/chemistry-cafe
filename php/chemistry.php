@@ -274,12 +274,22 @@ function get_reaction_by_id() {
     global $con;
 
     $result = pg_prepare($con, "get_reactions_by_id", 
-            "SELECT r.id, r.label, r.cph, r.r1, r.r2, r.r3, r.r4, r.r5, r.obsolete, r.group_id, g.ordering, g.description as section, r.wrf_custom_rate_id, reaction_products(r.id) as productstring
-             FROM reactions AS r
-             INNER JOIN reaction_groups AS g 
-             ON g.id=r.group_id 
-             WHERE r.id = $1;");
- 
+     "SELECT r.id, label, cph, r1, r2, r3, r4, r5, r.group_id, r.obsolete, r.group_id, r.wrf_custom_rate_id, reaction_products(r.id) as productstring,
+                   g.ordering, g.description as section, 
+                   r.rate_constant_call, 
+                   rcf.name as rate_constant_function_name,
+                   rcf.id as rate_constant_function_id,
+                   rcf.fortran_computation as fortran,
+                   wcr.name 
+            FROM reactions AS r 
+            INNER JOIN reaction_groups AS g 
+            ON g.id=r.group_id 
+            LEFT JOIN rate_constant_function as rcf
+            ON r.rate_constant_function_id = rcf.id
+            LEFT JOIN wrf_custom_rates AS wcr
+            ON wcr.id = r.wrf_custom_rate_id
+            WHERE r.id = $1;");
+
     $result = pg_prepare($con, "get_wrf_custom_rates_by_id", 
             "SELECT id, name, version, deprecated, code
              FROM wrf_custom_rates
@@ -316,6 +326,11 @@ function get_reaction_by_id() {
       $row_array['productString'] = $reaction['productstring'];
       $row_array['branchArray'] = array();
       $row_array['branchString'] = '';
+      $row_array['rate_constant_function_id'] = $reaction['rate_constant_function_id'];
+      $row_array['rate_constant_call'] = $reaction['rate_constant_call'];
+      $row_array['rate_constant_name'] = $reaction['name'];
+      $row_array['rate_constant_function_name'] = $reaction['rate_constant_function_name'];
+      $row_array['fortran'] = $reaction['fortran'];
 
       $wcrlist = pg_execute($con, "get_wrf_custom_rates_by_id", array($row_array['wrf_custom_rate_id']));
       if ($wcr = pg_fetch_array($wcrlist)) {

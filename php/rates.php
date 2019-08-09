@@ -12,6 +12,10 @@ switch($_GET['action'])  {
             add_ref_no_file();
             break;
 
+    case 'get_rate_functions' :
+            get_rate_functions();
+            break;
+
     case 'get_rate_by_id' :
             get_rate_by_id();
             break;
@@ -38,6 +42,28 @@ function get_all_rates() {
     print_r(json_encode($rate_list));
     return json_encode($rate_list);
 }
+
+function get_rate_functions () {
+    global $con;
+    $result = pg_query($con,
+        "SELECT *
+         FROM rate_constant_function 
+         ORDER BY id DESC;" );
+
+    $rate_list = array();
+    while($row = pg_fetch_array($result))
+    {
+        $row_array['id'] =  $row['id'];
+        $row_array['name']=  $row['name'];
+        $row_array['returned_units']=  $row['returned_units'];
+        $row_array['local_variables']=  $row['local_variables'];
+        $row_array['fortran_computation']=  $row['fortran_computation'];
+        array_push($rate_list, $row_array);
+    }
+    print_r(json_encode($rate_list));
+    return json_encode($rate_list);
+}
+
 
 function get_rate_by_id() {
 

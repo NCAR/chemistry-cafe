@@ -44,7 +44,14 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
         });
     }
 
+    get_rate_functions = function(){
+        $http.get("/php/rates.php?action=get_rate_functions").success(function(data) {
+            $scope.rate_functions = data;
+        });
+    }
+
     get_reaction_groups();
+    get_rate_functions();
     load_all_chemistry();
     load_all_species();
     load_all_branches();
@@ -257,7 +264,7 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
              chemistry.r3 = data.r3;
              chemistry.r4 = data.r4;
              chemistry.r5 = data.r5;
-             chemistry.rateString = data.rateString;
+             chemistry.rateString = data.rate_function_name;
              chemistry.obsolete = data.obsolete;
              chemistry.reactantArray = data.reactantArray;
              chemistry.reactantString = data.reactantString;

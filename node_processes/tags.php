@@ -26,7 +26,7 @@ switch($_GET['action'])  {
             //global $con;
             ////get_all_comments_for_tag($id);
             //return_tag_json($_GET['tag_id'] );
-            return_tag_json(255 );
+            return_tag_json(265 );
             //break;
 
 }
@@ -254,10 +254,18 @@ function return_tag_json($tag_id){
          WHERE rr.reaction_id = $1");
 
     $result = pg_prepare($con,"get_reactions",
-           "SELECT r.id, label, cph, r1, r2, r3, r4, r5, r.group_id, wcr.name
+           "SELECT r.id, label, cph, r1, r2, r3, r4, r5, r.group_id, 
+                   wcr.name, 
+                   r.rate_constant_call, 
+                   r.rate_constant_function_id
+                   rcf.name as rate_function_name, 
+                   rcf.id as rate_function_id,
+                   rcf.fortran_computation as fortran
             FROM reactions AS r 
             INNER JOIN tag_reactions AS tr 
             ON tr.reaction_id=r.id 
+            LEFT JOIN rate_constant_function as rcf
+            ON r.rate_constant_function_id = rcf.id
             LEFT JOIN wrf_custom_rates AS wcr
             ON wcr.id = r.wrf_custom_rate_id
             WHERE tr.tag_id = $1
@@ -266,15 +274,16 @@ function return_tag_json($tag_id){
 
     $reactions = pg_execute($con,"get_reactions",array($tag_id));
 
+    $reaction_rate_constant_functions_set = array(); 
     $reaction_array = array();
     // for each reaction ($r)
     while($r = pg_fetch_array($reactions)){
 
         // construct rates string
-        $include_mass = true;
+        $include_mass = false;
         if (!is_null($r['r1']) and !is_null($r['r2']) and !is_null($r['r3']) and !is_null($r['r4']) and !is_null($r['r5']) ) {
             $rate_string =  sprintf(" troe(%e_r8, %.2f_r8, %e_r8, %.2f_r8, %.2f_r8, t_inv_300, C_M) ",$r['r1'],$r['r2'],$r['r3'],$r['r4'],$r['r5']);
-            $include_mass = false;
+            $include_mass = true;
             $t_inv_300 = true;
         } elseif (!is_null($r['r1']) and !is_null($r['r2']) and !is_null($r['r3']) and !is_null($r['r4']) ) {
             $rate_string = sprintf(" ERROR(%e_r8, %e_r8, %e_r8, %e_r8, TEMP, C_M) ",$r['r1'],$r['r2'],$r['r3'],$r['r4']);
@@ -290,6 +299,11 @@ function return_tag_json($tag_id){
             $rate_string = " ERROR(".$r['id'].")";
         }
         $r['rate_string'] = $rate_string;
+        
+        if(!is_null($r['rate_function_id'])){
+          $r['rate_constant_function_call'] = $r['rate_function_name']."(".$r['rate_constant_call'].")";
+          $reaction_rate_constant_functions_set[] = $r['rate_function_id'];
+        }
 
         // construct reactants
         $no_m_r_array = []; // for testing against species-level reactants
@@ -325,10 +339,15 @@ function return_tag_json($tag_id){
               "reactants" => $r['reactants'], 
               "reactant_count" => $reactant_count, 
               "troe" => $troe, 
+              "function_call" => $r['rate_constant_function_call'],
               "products" => $r['products']
               );
     }
-    $reaction_section = array("reactions"=>$reaction_array);
+              
+    $reaction_section = array(
+        "rate_constant_function_ids" => array_unique($reaction_rate_constant_functions_set),
+        "reactions"=>$reaction_array
+        );
     
 
     $query =     
@@ -356,6 +375,7 @@ function return_tag_json($tag_id){
            "molecules"=>$molecule_array, 
            "photolysis"=>$photolysis_array, 
            "reactions"=>$reaction_array, 
+           "rate_constant_function_ids" => array_unique($reaction_rate_constant_functions_set),
            "custom_rates"=>$wrf_functions_array ,
            "t_inv_300"=>$t_inv_300
            ));

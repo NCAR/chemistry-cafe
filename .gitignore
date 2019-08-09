@@ -2,6 +2,7 @@
 php/pwd.php
 php/t.php
 tag_files/*
+campp_skel/*
 login/*
 usr_rates
 data/ccmi23_chem_mech.noc.in
