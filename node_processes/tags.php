@@ -1,6 +1,5 @@
 <?php
 
-
 include('../php/config.php');
 
 
@@ -276,11 +275,15 @@ function return_tag_json($tag_id){
 
     $reaction_rate_constant_functions_set = array(); 
     $reaction_array = array();
+
+    $include_mass = false;
+    $t_inv_300 = false;
+    $t_inv = false;
+
     // for each reaction ($r)
     while($r = pg_fetch_array($reactions)){
 
         // construct rates string
-        $include_mass = false;
         if (!is_null($r['r1']) and !is_null($r['r2']) and !is_null($r['r3']) and !is_null($r['r4']) and !is_null($r['r5']) ) {
             $rate_string =  sprintf(" troe(%e_r8, %.2f_r8, %e_r8, %.2f_r8, %.2f_r8, t_inv_300, C_M) ",$r['r1'],$r['r2'],$r['r3'],$r['r4'],$r['r5']);
             $include_mass = true;
@@ -291,6 +294,7 @@ function return_tag_json($tag_id){
             $rate_string = sprintf(" ERROR(%e_r8, %e_r8, %e_r8, TEMP, C_M) ",$r['r1'],$r['r2'],$r['r3']);
         } elseif (!is_null($r['r1']) and !is_null($r['r2']) ) {
             $rate_string = sprintf(' %e_r8 * exp(%.2f_r8 / TEMP) ',$r['r1'],$r['r2']);
+            $t_inv = true;
         } elseif (!is_null($r['r1']) ) {
             $rate_string = sprintf(" %e_r8",$r['r1']);
         } else if(strpos($r['label'],"usr_") !== false){
@@ -304,6 +308,8 @@ function return_tag_json($tag_id){
           $r['rate_constant_function_call'] = $r['rate_function_name']."(".$r['rate_constant_call'].")";
           $reaction_rate_constant_functions_set[] = $r['rate_function_id'];
         }
+
+
 
         // construct reactants
         $no_m_r_array = []; // for testing against species-level reactants
@@ -334,22 +340,47 @@ function return_tag_json($tag_id){
             }
         }
         $r['products']=$p_array;
-        $reaction_array[] = array( 
-              "rate" => $r['rate_string'], 
+        if($_GET['micm'] == 'true'){
+            $reaction_array[] = array( 
+              "rate" => $r['rate_constant_function_call'],
               "reactants" => $r['reactants'], 
               "reactant_count" => $reactant_count, 
               "troe" => $troe, 
-              "function_call" => $r['rate_constant_function_call'],
               "products" => $r['products']
               );
+        } else {
+            $reaction_array[] = array(
+              "rate" => $r['rate_string'], 
+              "reactants" => $r['reactants'],
+              "reactant_count" => $reactant_count,
+              "troe" => $troe,
+              "products" => $r['products']
+              );
+        }
     }
-              
-    $reaction_section = array(
-        "rate_constant_function_ids" => array_unique($reaction_rate_constant_functions_set),
-        "reactions"=>$reaction_array
-        );
-    
+    // collect rate constant functions
+    $rate_function_ids = array_unique($reaction_rate_constant_functions_set);
 
+    $rate_list = array();
+
+    $result = pg_prepare($con,"get_rate_functions",
+        "SELECT *
+         FROM rate_constant_function 
+         WHERE rate_constant_function.id = $1;" );
+
+    foreach( $rate_function_ids as $rate_id ){
+      $row_list = pg_execute($con, "get_rate_functions", array($rate_id));
+      while($row = pg_fetch_array($row_list))
+        {
+          $row_array['id'] =  $row['id'];
+          $row_array['name']=  $row['name'];
+          $row_array['returned_units']=  $row['returned_units'];
+          $row_array['local_variables']=  $row['local_variables'];
+          $row_array['code']=  $row['fortran_computation'];
+          array_push($rate_list, $row_array);
+        }
+    }
+    
     $query =     
         "SELECT DISTINCT wr.id, wr.name, wr.code
          FROM wrf_custom_rates AS wr
@@ -370,84 +401,29 @@ function return_tag_json($tag_id){
              );
     }
 
-    $mechanism = array( "mechanism"=> array(
+    if($_GET['micm'] == 'true'){
+        $mechanism = array( "mechanism"=> array(
            "tag_info"=>$tagv,
            "molecules"=>$molecule_array, 
            "photolysis"=>$photolysis_array, 
            "reactions"=>$reaction_array, 
-           "rate_constant_function_ids" => array_unique($reaction_rate_constant_functions_set),
-           "custom_rates"=>$wrf_functions_array ,
-           "t_inv_300"=>$t_inv_300
+           "custom_rates"=>$rate_list,
+           "t_inv_300"=>$t_inv_300,
+           "t_inv"=>$t_inv,
+           "include_mass"=>$include_mass,
            ));
-    
-    //print(json_encode($molecule_section, JSON_PRETTY_PRINT));
-    //print(json_encode($photolysis_section, JSON_PRETTY_PRINT));
-    //print(json_encode($reaction_section, JSON_PRETTY_PRINT));
-    //print(json_encode($wrf_functions_array, JSON_PRETTY_PRINT));
+    } else {
+        $mechanism = array( "mechanism"=> array(
+           "tag_info"=>$tagv,
+           "molecules"=>$molecule_array, 
+           "photolysis"=>$photolysis_array, 
+           "reactions"=>$reaction_array, 
+           "custom_rates"=>$wrf_functions_array ,
+           ));
+    }
 
     print(json_encode($mechanism, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     
-/*
-    $mechanism_json = json_encode($mechanism, JSON_PRETTY_PRINT);
-    print($mechanism_json);
-
-    $data_string = $mechanism_json;
-
-    $ch = curl_init('http://localhost:8080/constructJacobian');
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-        'Content-Type: application/json',
-        'Content-Length: ' . strlen($data_string))
-    );
-
-    $jacobian=json_decode(curl_exec($ch));
-    curl_close($ch);
-    //print(json_encode($jacobian->reactions, JSON_PRETTY_PRINT) );
-    //print(json_encode($jacobian->photoDecomps, JSON_PRETTY_PRINT) );
-    //print(json_encode($jacobian->moleculeIndex, JSON_PRETTY_PRINT) );
-    //print(json_encode($jacobian->molecules, JSON_PRETTY_PRINT) );
-    
-
-    // collect the sparse LU factoriztion and corresponding reordering of the molecules
-    //print(json_encode($jacobian->moleculeIndex));
-    $jacobian = json_encode($jacobian);
-    $ch_factor = curl_init('http://localhost:8080/constructSparseLUFactor');
-    curl_setopt($ch_factor, CURLOPT_CUSTOMREQUEST, "POST");
-    curl_setopt($ch_factor, CURLOPT_POSTFIELDS, $jacobian);
-    curl_setopt($ch_factor, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch_factor, CURLOPT_HTTPHEADER, array(
-        'Content-Type: application/json',
-        'Content-Length: ' . strlen($jacobian))
-    );
-    $factorizationFortran  = json_decode(curl_exec($ch_factor));
-    //print(json_encode($factorizationFortran->reorderedMolecules));
-    curl_close($ch_factor);
-
-    //$pivotFortran = $factorizationFortran->pivot;
-    //print($factorizationFortran->init_jac_fortran);
-    //print(json_encode($factorizationFortran->init_jac, JSON_PRETTY_PRINT));
-
-    //print("Call toFortran.js\n");
-    //$factorizationFortran->moleculeIndex = $jacobian->moleculeIndex;
-    //print(json_encode($jacobian->moleculeIndex));
-    //print(json_encode($factorizationFortran->moleculeIndex));
-    $factors = json_encode($factorizationFortran);
-    $ch_factor = curl_init('http://localhost:8080/toCode');
-    curl_setopt($ch_factor, CURLOPT_CUSTOMREQUEST, "POST");
-    curl_setopt($ch_factor, CURLOPT_POSTFIELDS, $factors);
-    curl_setopt($ch_factor, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch_factor, CURLOPT_HTTPHEADER, array(
-        'Content-Type: application/json',
-        'Content-Length: ' . strlen($factors))
-    );
-    $code  = json_decode(curl_exec($ch_factor));
-    //print($code-> init_jac_code_string);
-    curl_close($ch_factor);
-*/
-
-
 
 }
 
