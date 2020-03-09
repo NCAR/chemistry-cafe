@@ -224,7 +224,7 @@ function get_all_reactions_old() {
       $row_array['r4'] = $reaction['r4'];
       $row_array['r5'] = $reaction['r5'];
       $row_array['wrf_custom_rate_id'] = $reaction['wrf_custom_rate_id'];
-      $row_array['rateString'] = '';
+      $row_array['rateString'] = $reaction['ratestring'];
       $row_array['obsolete'] = ($reaction['obsolete'] === 't') ;
       $row_array['reactantArray'] = array();
       $row_array['reactantString'] = '';
@@ -237,7 +237,7 @@ function get_all_reactions_old() {
       $row_array['group_id'] = $reaction['group_id'];
 
       // construct rateString from rates  (filter out null values)
-      $row_array['rateString'] = implode(", ",array_filter( array($reaction['r1'], $reaction['r2'], $reaction['r3'], $reaction['r4'], $reaction['r5']), 'strlen' ) );
+      //$row_array['rateString'] = implode(", ",array_filter( array($reaction['r1'], $reaction['r2'], $reaction['r3'], $reaction['r4'], $reaction['r5']), 'strlen' ) );
       
       // list of branches for a given reaction
       $branchlist = pg_execute($con, "get_branches_for_reaction", array($reaction['id']));
@@ -274,7 +274,7 @@ function get_reaction_by_id() {
     global $con;
 
     $result = pg_prepare($con, "get_reactions_by_id", 
-     "SELECT r.id, label, cph, r1, r2, r3, r4, r5, r.group_id, r.obsolete, r.group_id, r.wrf_custom_rate_id, reaction_products(r.id) as productstring,
+     "SELECT r.id, label, cph, r1, r2, r3, r4, r5, concat_ws(',',r.r1, r.r2, r.r3, r.r4, r.r5) as ratestring, r.group_id, r.obsolete, r.group_id, r.wrf_custom_rate_id, reaction_products(r.id) as productstring,
                    g.ordering, g.description as section, 
                    r.rate_constant_call, 
                    rcf.name as rate_constant_function_name,
@@ -319,7 +319,7 @@ function get_reaction_by_id() {
       $row_array['wrf_custom_rate_id'] = $reaction['wrf_custom_rate_id'];
       $row_array['section'] = $reaction['section'];
       $row_array['group_id'] = $reaction['group_id'];
-      $row_array['rateString'] = '';
+      $row_array['rateString'] = $reaction['ratestring'];
       $row_array['obsolete'] = ($reaction['obsolete'] === 't') ;
       $row_array['reactantArray'] = array();
       $row_array['reactantString'] = '';
@@ -342,12 +342,12 @@ function get_reaction_by_id() {
       }
 
       // construct rateString from rates
-      $row_array['rateString'] = '';
-      if (!is_null($row_array['r1'])) $row_array['rateString'] .= $row_array['r1'];
-      if (!is_null($row_array['r2'])) $row_array['rateString'] .= ", ".$row_array['r2'];
-      if (!is_null($row_array['r3'])) $row_array['rateString'] .= ", ".$row_array['r3'];
-      if (!is_null($row_array['r4'])) $row_array['rateString'] .= ", ".$row_array['r4'];
-      if (!is_null($row_array['r5'])) $row_array['rateString'] .= ", ".$row_array['r5'];
+      //$row_array['rateString'] = '';
+      //if (!is_null($row_array['r1'])) $row_array['rateString'] .= $row_array['r1'];
+      //if (!is_null($row_array['r2'])) $row_array['rateString'] .= ", ".$row_array['r2'];
+      //if (!is_null($row_array['r3'])) $row_array['rateString'] .= ", ".$row_array['r3'];
+      //if (!is_null($row_array['r4'])) $row_array['rateString'] .= ", ".$row_array['r4'];
+      //if (!is_null($row_array['r5'])) $row_array['rateString'] .= ", ".$row_array['r5'];
 
 
       // list of branches for a given reaction
@@ -370,7 +370,7 @@ function get_reaction_by_id() {
 
       $row_array['previousComments'] = get_all_comments_for_reaction_id($reaction['id']);
    }
-   echo json_encode($row_array);
+   echo json_encode($row_array,JSON_PRETTY_PRINT);
 }
 
 function get_references_by_id(){

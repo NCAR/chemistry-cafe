@@ -264,7 +264,7 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
              chemistry.r3 = data.r3;
              chemistry.r4 = data.r4;
              chemistry.r5 = data.r5;
-             chemistry.rateString = data.rate_function_name;
+             chemistry.rateString = data.rateString;
              chemistry.obsolete = data.obsolete;
              chemistry.reactantArray = data.reactantArray;
              chemistry.reactantString = data.reactantString;
