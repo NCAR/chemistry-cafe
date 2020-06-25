@@ -25,9 +25,21 @@ switch($_GET['action'])  {
             //global $con;
             ////get_all_comments_for_tag($id);
             //return_tag_json($_GET['tag_id'] );
-            return_tag_json(265 );
+            return_tag_json(272 );
             //break;
 
+}
+
+
+// for each argument of rate constant, construct the a=value element of the call
+// i.e., Troe( a = 5, b=3e-16, ...)
+function arg_list($arr)
+{
+    $key_val_arr=[];
+    foreach($arr as $key=>$value) {
+      $key_val_arr[] = "$key=$value";
+    }
+    return (join(" , ",$key_val_arr));
 }
 
 
@@ -152,8 +164,11 @@ function return_tag_json($tag_id){
 	    FROM reactionproducts AS rp 
 	    INNER JOIN molecules AS m ON m.name=rp.moleculename 
 	    INNER JOIN tag_reactions AS tr ON tr.reaction_id=rp.reaction_id WHERE tr.tag_id = ".$tag_id." ";
+    $musica_earth = "SELECT name, formula, transport, solve, henrys_law_type, molecular_weight, kh_298, dh_r, k1_298, dh1_r, k2_298, dh2_r , concat(name,'_std') as standard_name
+	    FROM molecules AS mr 
+            where mr.musica_earth";
 
-    $molecules_in_tag_query = $phot_react." UNION ".$phot_prod." UNION ".$chem_react." UNION ".$chem_prod ." ORDER BY moleculename;";
+    $molecules_in_tag_query = $phot_react." UNION ".$phot_prod." UNION ".$chem_react." UNION ".$chem_prod ." UNION ".$musica_earth." ORDER BY moleculename;";
 
     $molecules_result = pg_query($con,$molecules_in_tag_query);
     if (pg_num_rows($molecules_result)) {
@@ -185,21 +200,17 @@ function return_tag_json($tag_id){
             p.rate, 
             p.moleculename, 
             p.group_id, 
-            p.wrf_photo_rates_id, 
-            wr.name as wrname, 
-            p.wrf_photo_rates_coeff as wrcoeff,
-            p.tuv_id,
-            p.tuv_coeff,
-            tuv.reaction as tuv_reaction
+            p.micm_js_id,
+            p.micm_js_coeff,
+            mj.reaction,
+            mj.label
          FROM photolysis AS p 
          INNER JOIN tag_photolysis AS tp 
          ON tp.photolysis_id=p.id 
-         INNER JOIN wrf_photo_rates AS wr
-         ON wr.id = p.wrf_photo_rates_id
-         INNER JOIN tuv
-         ON tuv.id = p.tuv_id
-         WHERE tp.tag_id =".$tag_id."
-         ORDER BY p.moleculename ASC;";
+         INNER JOIN micm_js as mj
+         ON mj.id=p.micm_js_id
+         WHERE tp.tag_id = ".$tag_id."
+         ORDER BY p.moleculename ASC";
     
     $photo_reaction = pg_query($con, $photolysis_query);
 
@@ -224,11 +235,10 @@ function return_tag_json($tag_id){
             $photolysis_array[] = array(
                 "reactants"=>$reactant, 
                 "id"=>$p['id'], 
-                "rate"=>$p['rate'], 
-                "wrf_rate"=>$wpr['photr'],
-                "tuv_id"=>$p['tuv_id'],
-                "tuv_coeff"=>$p['tuv_coeff'],
-                "tuv_reaction"=>$p['tuv_reaction'],
+                "rate"=>$p['label'], 
+                "tuv_id"=>$p['micm_js_id'],
+                "tuv_coeff"=>$p['micm_js_coeff'],
+                "tuv_reaction"=>$p['reaction'],
                 "reactant_count" => 1, 
                 "troe" => false, 
                 "products"=>$p_array
@@ -259,7 +269,8 @@ function return_tag_json($tag_id){
                    r.rate_constant_function_id,
                    rcf.name as rate_function_name, 
                    rcf.id as rate_function_id,
-                   rcf.fortran_computation as fortran
+                   rcf.fortran_computation as fortran,
+                   r.rate_constant
             FROM reactions AS r 
             INNER JOIN tag_reactions AS tr 
             ON tr.reaction_id=r.id 
@@ -283,33 +294,13 @@ function return_tag_json($tag_id){
     // for each reaction ($r)
     while($r = pg_fetch_array($reactions)){
 
-        // construct rates string
-        if (!is_null($r['r1']) and !is_null($r['r2']) and !is_null($r['r3']) and !is_null($r['r4']) and !is_null($r['r5']) ) {
-            $rate_string =  sprintf(" troe(%e_r8, %.2f_r8, %e_r8, %.2f_r8, %.2f_r8, t_inv_300, C_M) ",$r['r1'],$r['r2'],$r['r3'],$r['r4'],$r['r5']);
-            $include_mass = true;
-            $t_inv_300 = true;
-        } elseif (!is_null($r['r1']) and !is_null($r['r2']) and !is_null($r['r3']) and !is_null($r['r4']) ) {
-            $rate_string = sprintf(" ERROR(%e_r8, %e_r8, %e_r8, %e_r8, TEMP, C_M) ",$r['r1'],$r['r2'],$r['r3'],$r['r4']);
-        } elseif (!is_null($r['r1']) and !is_null($r['r2']) and !is_null($r['r3'])) {
-            $rate_string = sprintf(" ERROR(%e_r8, %e_r8, %e_r8, TEMP, C_M) ",$r['r1'],$r['r2'],$r['r3']);
-        } elseif (!is_null($r['r1']) and !is_null($r['r2']) ) {
-            $rate_string = sprintf(' %e_r8 * exp(%.2f_r8 / TEMP) ',$r['r1'],$r['r2']);
-            $t_inv = true;
-        } elseif (!is_null($r['r1']) ) {
-            $rate_string = sprintf(" %e_r8",$r['r1']);
-        } else if(strpos($r['label'],"usr_") !== false){
-             $rate_string = $r['name'];
-        } else {
-            $rate_string = " ERROR(".$r['id'].")";
-        }
-        $r['rate_string'] = $rate_string;
-        
-        if(!is_null($r['rate_function_id'])){
-          $r['rate_constant_function_call'] = $r['rate_function_name']."(".$r['rate_constant_call'].")";
-          $reaction_rate_constant_functions_set[] = $r['rate_function_id'];
-        }
+        $rate_const = json_decode($r['rate_constant'], true);
+        $rate_const_init_arg_list_init = arg_list($rate_const['parameters']);
 
+        $environs = "";
 
+        //$r['rate_constant_initialize'] = $rate_const['reaction_class']."%initialize(".$rate_const_init_arg_list_init.$environs.")";
+        $r['rate_call'] = $rate_const['reaction_class']."(".$rate_const['reaction_class']."_parameters, environmental_state)";
 
         // construct reactants
         $no_m_r_array = []; // for testing against species-level reactants
@@ -340,10 +331,15 @@ function return_tag_json($tag_id){
             }
         }
         $r['products']=$p_array;
+
+
+              //"rate_constant_constructor" => $r['rate_constant_initialize'],
         if($_GET['micm'] == 'true'){
             $reaction_array[] = array( 
               "rate" => $r['rate_constant_function_call'],
               "reactants" => $r['reactants'], 
+              "rate_call" => $r['rate_call'],
+              "rate_constant" => $rate_const,
               "reactant_count" => $reactant_count, 
               "troe" => $troe, 
               "products" => $r['products']
@@ -352,6 +348,8 @@ function return_tag_json($tag_id){
             $reaction_array[] = array(
               "rate" => $r['rate_string'], 
               "reactants" => $r['reactants'],
+              "rate_call" => $r['rate_call'],
+              "rate_constant" => $rate_const,
               "reactant_count" => $reactant_count,
               "troe" => $troe,
               "products" => $r['products']

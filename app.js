@@ -17,6 +17,11 @@ app.config(function ($routeProvider) {
             templateUrl: "/chemistry/rateConstant.html"
         });
 
+        $routeProvider.when("/React", {
+            controller: "reactController",
+            templateUrl: "/react/react.html"
+        });
+
         $routeProvider.when("/Diagnostics", {
             controller: "diagnosticsController",
             templateUrl: "/diagnostics/diagnostics.html"

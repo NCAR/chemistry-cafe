@@ -1,0 +1,31 @@
+    <!--
+    Show rate constant classes
+    -->
+<div>
+  <p> Reaction rate constants are specified in terms of number-density.</p>
+  <p> Reaction rate constants for termolecular (air-density-dependent) reactions are specified so that the reaction rate is obtained by multiplying these rate constants by the number density of air and the reactant number densities. </p>
+</div>
+<div class="col-md-12">
+    <table class="table table-striped table-bordered">
+        <thead>
+            <th>Name</th>
+            <th>Formula/Expression</th>
+            <th>Environmentals</th>
+            <th>Parameters : Default Values</th>
+        </thead>
+        <tbody>
+            <tr ng-repeat="class in reactionClass">
+                <td> {{class.name}} </td>
+                <td> <img ng-src="{{class.img_file_path}}" width="200"> </td>
+                <td>
+                    <div ng-repeat="env in class.environmentals"> {{env}}
+                        <br> </div>
+                </td>
+                <td>
+                    <div ng-repeat="(param,values) in class.parameters"> {{param}} : {{values.default}} [{{values.units}}]
+                        <br> </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

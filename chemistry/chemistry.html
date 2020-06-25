@@ -77,19 +77,44 @@
         </div>
 
         <div class ="form-group">
-            <label class="col-sm-3 control-label">Rate Constant Function:</label>
+            <label class="col-sm-3 control-label">Reaction Type:</label>
             <div class="col-sm-3 ">
-                <select class="form-control" name="frateFunction" ng-model="formData.rate_constant_function_id"
-                    ng-options="rate_function.id as rate_constant_function_name for rate_function in rate_functions ">
+                <select class="form-control" name="freactionClass" ng-model="formData.selected_reaction_class"
+                    ng-options="reaction_class as reaction_class.name for reaction_class in reaction_classes "
+                    ng-change="update_reaction_class()">
                 </select>
             </div>
         </div>
 
+        <div class="col-sm-12 "> 
+            <p style="margin-bottom:3mm;margin-top:3mm;">
+            {{formData.selected_reaction_class.description}} 
+        </div>
+
+        <div class="col-sm-12 "> 
+          <p style="margin-bottom:3mm;">
+            <img ng-src="{{formData.selected_reaction_class.formula_img_url}}" width="500"> 
+          </p>
+        </div>
+
+
         <div class ="form-group">
-            <label class="col-sm-3 control-label">Rate Constant Function Arguments:</label>
-            <div class="col-sm-9 ">
-              <input type="text" size=100 ng-model=formData.rate_constant_call > <br />
-            </div>
+            <table class="table table-striped table-bordered" >
+		<tr> 
+		    <th>Parameter </th>
+		    <th>Value </th>
+		    <th>Default </th>
+		    <th>Units </th>
+		    <th>Comment </th>
+                </tr>
+                <tr ng-repeat="(param,val) in formData.selected_reaction_class.parameters">
+                    <td> {{param}} </td> 
+                    <td> <input type="text" size=15 ng-model="formData.rate_constant.parameters[param]" placeholder="Number"> </td> 
+                    <td> {{val.default}} </td> 
+                    <td> {{val.units}} </td> 
+                    <td> {{val.comment}} </td> 
+                </tr>
+            </table>
         </div>
 
         <div class ="form-group">

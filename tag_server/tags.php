@@ -23,7 +23,7 @@ switch($_GET['action'])  {
             global $con;
             //get_all_comments_for_tag($id);
             //return_tag_json($_GET['tag_id'] );
-            return_tag_json(206 );
+            return_tag_json(268 );
             break;
 
 }
@@ -251,7 +251,7 @@ function return_tag_json($tag_id){
          WHERE rr.reaction_id = $1");
 
     $result = pg_prepare($con,"get_reactions",
-           "SELECT r.id, label, cph, r1, r2, r3, r4, r5, r.group_id, wcr.name
+           "SELECT r.id, label, cph, r1, r2, r3, r4, r5, r.group_id, wcr.name, rate_constant
             FROM reactions AS r 
             INNER JOIN tag_reactions AS tr 
             ON tr.reaction_id=r.id 
@@ -319,6 +319,7 @@ function return_tag_json($tag_id){
         $reaction_array[] = array( 
               "rate" => $r['rate_string'], 
               "reactants" => $r['reactants'], 
+              "rate_constant" => json_decode($r['rate_constant']), 
               "reactant_count" => $reactant_count, 
               "troe" => $troe, 
               "products" => $r['products']

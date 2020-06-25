@@ -83,6 +83,8 @@ app.controller('photolysisController', ['$scope', '$http', '$window', function (
         $http.get("/php/photolysis.php?action=get_all_photolysis").success(function(data) {
             for (var i=0; i < data.length; i++){
                 data[i].productString = productArrayToString(data[i].productArray);
+                data[i].rateDescription = "";
+                data[i].rateDescription = data[i].rateDescription.concat(data[i].micm_js_coeff," ",data[i].label);
             }
             $scope.pagedItems = data;
             $scope.filteredItems = $scope.pagedItems.length; //Initially for no filter  
@@ -96,6 +98,16 @@ app.controller('photolysisController', ['$scope', '$http', '$window', function (
         });
     }
 
+   get_all_micm_rates = function(){
+        $http.get("/php/photolysis.php?action=get_all_micm_rates").success(function(data) {
+            $scope.micmRates = data;
+            for (let rate in $scope.micmRates){
+                $scope.micmRates[rate].description = "";
+                $scope.micmRates[rate].description = $scope.micmRates[rate].description.concat($scope.micmRates[rate].reaction," : ",$scope.micmRates[rate].label);
+            }
+        });
+   }
+
     get_all_references = function () {
         $http.get("/php/references.php?action=get_all_references").success(function(data) {
             $scope.allReferences = data;
@@ -108,6 +120,7 @@ app.controller('photolysisController', ['$scope', '$http', '$window', function (
     load_all_branches();
     load_all_photolysis();
     get_all_wrf_rates();
+    get_all_micm_rates();
     get_all_references();
 
     $scope.username = getCookie('chemdb_id');
@@ -337,6 +350,8 @@ app.controller('photolysisController', ['$scope', '$http', '$window', function (
           $scope.branchStringEdit = data.branchString;
           $scope.formData.group_id = data.group_id;
           $scope.formData.rate = data.rate;
+          $scope.formData.micmRateCoeffEdit = data.micm_js_coeff;
+          $scope.formData.micmRateId = data.selectedMicmRateId;
           $scope.formData.wrfRateCoeffEdit = data.wrf_photo_rates_coeff;
           $scope.formData.wrfRateId = data.selectedWrfRateId;
           $scope.formData.molecule = data.molecule;
@@ -363,6 +378,8 @@ app.controller('photolysisController', ['$scope', '$http', '$window', function (
     $scope.createDefault = function() {
           $scope.formData.group_id = "7";
           $scope.formData.rate = "";
+          $scope.formData.micmRateCoeffEdit = 1;
+          $scope.formData.micmRateId = "95";
           $scope.formData.wrfRateCoeffEdit = 1;
           $scope.formData.wrfRateId = "95";
           $scope.formData.molecule = "";
@@ -383,6 +400,8 @@ app.controller('photolysisController', ['$scope', '$http', '$window', function (
           $scope.branchStringEdit = data.branchString;
           $scope.formData.group_id = data.group_id;
           $scope.formData.rate = data.rate;
+          $scope.formData.micmRateCoeffEdit = data.micm_photo_rates_coeff;
+          $scope.formData.micmRateId = data.selectedMicmfRateId;
           $scope.formData.wrfRateCoeffEdit = data.wrf_photo_rates_coeff;
           $scope.formData.wrfRateId = data.selectedWrfRateId;
           $scope.formData.molecule = data.molecule;
@@ -509,6 +528,8 @@ app.controller('photolysisController', ['$scope', '$http', '$window', function (
                 'group_id'     : $scope.formData.group_id,
                 'rate'         : $scope.formData.rate,
                 'molecule'     : $scope.formData.molecule,
+                'micm_js_id' : $scope.formData.micmRateId,
+                'micm_js_coeff' : $scope.formData.micmRateCoeffEdit,
                 'wrf_photo_rates_id' : $scope.formData.wrfRateId,
                 'wrf_photo_rates_coeff' : $scope.formData.wrfRateCoeffEdit,
                 'productArray' : $scope.productArrayEdit,
@@ -554,6 +575,8 @@ app.controller('photolysisController', ['$scope', '$http', '$window', function (
                 'group_id'     : $scope.formData.group_id,
                 'rate'         : $scope.formData.rate,
                 'molecule'     : $scope.formData.molecule,
+                'micm_js_id' : $scope.formData.micmRateId,
+                'micm_js_coeff' : $scope.formData.micmRateCoeffEdit,
                 'wrf_photo_rates_id' : $scope.formData.wrfRateId,
                 'wrf_photo_rates_coeff' : $scope.formData.wrfRateCoeffEdit,
                 'productArray' : $scope.productArrayEdit,

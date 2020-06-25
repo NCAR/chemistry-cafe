@@ -165,6 +165,7 @@ function get_all_reactions() {
       $row_array['r3'] = $reaction['r3'];
       $row_array['r4'] = $reaction['r4'];
       $row_array['r5'] = $reaction['r5'];
+      $row_array['rate_constant'] = json_decode($reaction['rate_constant']);
       $row_array['wrf_custom_rate_id'] = $reaction['wrf_custom_rate_id'];
       $row_array['rateString'] = $reaction['ratestring'];
       $row_array['obsolete'] = ($reaction['obsolete'] === 't') ;
@@ -280,7 +281,8 @@ function get_reaction_by_id() {
                    rcf.name as rate_constant_function_name,
                    rcf.id as rate_constant_function_id,
                    rcf.fortran_computation as fortran,
-                   wcr.name 
+                   wcr.name,
+                   r.rate_constant 
             FROM reactions AS r 
             INNER JOIN reaction_groups AS g 
             ON g.id=r.group_id 
@@ -316,6 +318,7 @@ function get_reaction_by_id() {
       $row_array['r3'] = $reaction['r3'];
       $row_array['r4'] = $reaction['r4'];
       $row_array['r5'] = $reaction['r5'];
+      $row_array['rate_constant'] = json_decode($reaction['rate_constant']);
       $row_array['wrf_custom_rate_id'] = $reaction['wrf_custom_rate_id'];
       $row_array['section'] = $reaction['section'];
       $row_array['group_id'] = $reaction['group_id'];
@@ -433,7 +436,7 @@ function mod_reaction  (){
     global $con;
 
     $result = pg_prepare($con, "add_reaction", 
-            "INSERT INTO reactions (label, cph, r1, r2, r3, r4, r5, group_id, wrf_custom_rate_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id;"); 
+            "INSERT INTO reactions (label, cph, r1, r2, r3, r4, r5, group_id, wrf_custom_rate_id, rate_constant) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id;"); 
 
     $result = pg_prepare($con, "add_reaction_reactant", 
             "INSERT INTO reactionreactants (reaction_id, moleculename) VALUES ($1, $2);");
@@ -460,6 +463,7 @@ function mod_reaction  (){
     $r4            = $data ->r4;
     $r5            = $data ->r5;
     $wrf_custom_rate_id = $data ->wrf_custom_rate_id;
+    $rate_constant = json_encode($data ->rate_constant);
     $cph           = trim($data ->cph);
     $reactantArray = $data ->reactantArray;
     $productArray  = $data ->productArray;
@@ -476,7 +480,7 @@ function mod_reaction  (){
     // add chemistry
     $out = $out . "label".$label." cph:".$cph." r1:".$r1." r2:".$r2." r3:".$r3." r4:".$r4." r5:".$r5."\n";
     //$out = $out . "add_reaction argument".json_encode(array($label, $cph, $r1, $r2, $r3, $r4, $r5))."\n";
-    $result = pg_execute($con, "add_reaction", array($label, $cph, $r1, $r2, $r3, $r4, $r5, $group_id, $wrf_custom_rate_id));
+    $result = pg_execute($con, "add_reaction", array($label, $cph, $r1, $r2, $r3, $r4, $r5, $group_id, $wrf_custom_rate_id, $rate_constant));
     $new_reaction_id = pg_fetch_array($result)[0];
     //$new_reaction_id = $new_reaction[0];
     $safe_to_commit = $safe_to_commit && ($new_reaction_id > 0);
@@ -602,7 +606,7 @@ function add_reaction (){
     global $con;
 
     $result = pg_prepare($con, "add_reaction",
-            "INSERT INTO reactions (label, cph, r1, r2, r3, r4, r5, group_id, wrf_custom_rate_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id;"); 
+            "INSERT INTO reactions (label, cph, r1, r2, r3, r4, r5, group_id, wrf_custom_rate_id, rate_constant) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id;"); 
 
     $result = pg_prepare($con, "add_reaction_reactant",
             "INSERT INTO reactionreactants (reaction_id, moleculename) VALUES ($1, $2);");
@@ -622,6 +626,7 @@ function add_reaction (){
     $r4            = $data ->r4;
     $r5            = $data ->r5;
     $wrf_custom_rate_id = $data ->wrf_custom_rate_id;
+    $rate_constant = json_encode($data ->rate_constant);
     $cph           = trim($data ->cph);
     $reactantArray = $data ->reactantArray;
     $productArray  = $data ->productArray;
@@ -635,7 +640,7 @@ function add_reaction (){
     $out = "Begin Transaction, safe:".$safe_to_commit."\n";
 
     // add chemistry
-    $result = pg_execute($con, "add_reaction", array($label, $cph, $r1, $r2, $r3, $r4, $r5, $group_id, $wrf_custom_rate_id));
+    $result = pg_execute($con, "add_reaction", array($label, $cph, $r1, $r2, $r3, $r4, $r5, $group_id, $wrf_custom_rate_id, $rate_constant));
     $out = $out . "label".$label." cph:".$cph." r1:".$r1." r2:".$r2." r3:".$r3." r4:".$r4." r5:".$r5."\n";
     $new_reaction_id = pg_fetch_array($result)[0];
     $out = $out . "new id:".json_encode($result)."\n";

@@ -50,6 +50,12 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
         });
     }
 
+    get_reaction_class = function(){
+        $http.get("/php/react.php?action=get_all_reaction_classes").success(function(data) {
+            $scope.reaction_classes = data;
+        });
+    }
+
     get_reaction_groups();
     get_rate_functions();
     load_all_chemistry();
@@ -57,6 +63,7 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
     load_all_branches();
     get_all_references();
     get_wrf_rates();
+    get_reaction_class();
 
     $scope.username = getCookie('chemdb_id');
     $scope.initials = getCookie('chemdb_initials');
@@ -265,6 +272,7 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
              chemistry.r4 = data.r4;
              chemistry.r5 = data.r5;
              chemistry.rateString = data.rate_function_name;
+             chemistry.rateConstant = data.rate_constant;
              chemistry.obsolete = data.obsolete;
              chemistry.reactantArray = data.reactantArray;
              chemistry.reactantString = data.reactantString;
@@ -345,6 +353,10 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
           $scope.sourceData.wrf_present = ($scope.sourceData.wcrid >> 0);
           $scope.formData = data;
           $scope.formData.comment = '';
+          $scope.formData.selected_reaction_class = $scope.reaction_classes.find(rclass => rclass.name === $scope.formData.rate_constant.reaction_class);
+
+          //alert(JSON.stringify($scope.formData.selected_reaction_class,null,2));
+
           $scope.previousCommentsFormatted = commentArrayToString(data.previousComments);
         })
         .error(function(data, status, headers, config){
@@ -365,6 +377,9 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
           $scope.purpose = 'addReaction';
           $scope.formData = data;
           $scope.formData.comment = '';
+          $scope.previousCommentsFormatted = commentArrayToString(data.previousComments);
+          $scope.formData.selected_reaction_class = $scope.reaction_classes.find(react => react.name === $scope.formData.rate_constant.reaction_class);
+          alert(JSON.stringify($scope.formData.selected_reaction_class,null,2));
           $scope.previousCommentsFormatted = commentArrayToString(data.previousComments);
         })
         .error(function(data, status, headers, config){
@@ -395,6 +410,7 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
 
     /** validate products of reactions and construct Description of new reaction **/
     $scope.validate = function() {
+        //alert(JSON.stringify($scope.formData, null, 2));
         var okLabel = validateLabel();
         var okRate = validateRate();
         var okReactant = validateReactants();
@@ -421,7 +437,8 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
             $scope.formData.productString = '';
             return true;
         }
-        if($scope.formData.productString.trim()){
+        if($scope.formData.productString){
+         if($scope.formData.productString.trim()){
             var parsedArrayEdit = productStringToArray($scope.formData.productString);
             if(parsedArrayEdit){
                 $scope.formData.productString = productArrayToString(parsedArrayEdit);
@@ -437,6 +454,12 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
             $scope.formData.productString = '';
             return true;
         }
+      } else {
+            // no products is acceptable
+            $scope.formData.productArray = [];
+            $scope.formData.productString = '';
+            return true;
+     }
     }
 
     validateReactants  = function() {
@@ -520,9 +543,21 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
         //$scope.formData.group_id = 12;
     }
 
+    $scope.update_reaction_class = function(){
+      // update reaction class and set to defaults as defined in the class
+      //alert("selected reaction class");
+      //alert(JSON.stringify($scope.formData.selected_reaction_class,null,2));
+      $scope.formData.rate_constant.reaction_class = $scope.formData.selected_reaction_class["name"];
+      $scope.formData.rate_constant.parameters = {};
+      for (var param in $scope.formData.selected_reaction_class.parameters){
+        $scope.formData.rate_constant.parameters[param] = $scope.formData.selected_reaction_class.parameters[param].default;
+      }
+    }
+
     /**  update database with form data **/
     $scope.create_chemistry = function() {
 
+        //alert(JSON.stringify($scope.formData, null, 2));
         // validate
         if ($scope.formData.label.indexOf('usr_') != -1){
             //alert("Setting CESM Rate to be a usr_() function");
@@ -553,6 +588,10 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
             alert("Please enter a valid Comment.");
             return;
         }
+
+        // set the reaction class name 
+        $scope.formData.rate_constant["reaction_class"] = $scope.formData.selected_reaction_class["name"];
+
         // set default group to undefined 
         if(!$scope.formData.group_id){$scope.formData.group_id = 12}
         // add chemistry reaction
@@ -566,6 +605,7 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
                 'r4'           : $scope.formData.r4,
                 'r5'           : $scope.formData.r5,
                 'wrf_custom_rate_id' : $scope.formData.wrf_custom_rate_id,
+                'rate_constant' : $scope.formData.rate_constant,
                 'cph'          : $scope.formData.cph,
                 'reactantArray': $scope.formData.reactantArray,
                 'productArray' : $scope.formData.productArray,
@@ -581,9 +621,10 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
     /**  update database with form data **/
     $scope.modify_chemistry = function() {
 
+        //alert(JSON.stringify($scope.formData, null, 2));
         // validate
         if ($scope.formData.label.indexOf('usr_') != -1){
-            alert("Setting CESM Rate to be a usr_() function");
+            //alert("Setting CESM Rate to be a usr_() function");
             $scope.formData.rateString = "";
             $scope.formData.r1 = "";
             $scope.formData.r2 = "";
@@ -606,9 +647,11 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
             alert("Please enter a valid Comment.");
             return;
         }
+        //alert($scope.formData.selected_reaction_class["name"]);
+        $scope.formData.rate_constant["reaction_class"] = $scope.formData.selected_reaction_class["name"];
+        //alert(JSON.stringify($scope.formData.rate_constant,null,2));
         // database modify chemistry
-        $http.post('/php/chemistry.php?action=mod_reaction',
-            {
+        let update = {
                 'oldpid'       : $scope.sourceData.id,
                 'branchArray'  : $scope.formData.branchArray,
                 'group_id'     : $scope.formData.group_id,
@@ -619,13 +662,15 @@ app.controller('chemistryController', ['$scope', '$http', '$window', function ($
                 'r4'           : $scope.formData.r4,
                 'r5'           : $scope.formData.r5,
                 'wrf_custom_rate_id' : $scope.formData.wrf_custom_rate_id,
+                'rate_constant' : $scope.formData.rate_constant,
                 'cph'          : $scope.formData.cph,
                 'reactantArray': $scope.formData.reactantArray,
                 'productArray' : $scope.formData.productArray,
                 'newComment'   : $scope.formData.comment
-            })
+            };
+        $http.post('/php/chemistry.php?action=mod_reaction', update )
             .success(function (data, status, headers, config) {
-                alert(data);
+                //alert(data);
                 $scope.reset_form();
                 load_all_chemistry();
             });
