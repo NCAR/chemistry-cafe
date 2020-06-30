@@ -15,10 +15,7 @@ switch($_GET['action'])  {
 
     case 'return_tag' :
             //global $con;
-            //get_all_comments_for_tag($id);
-            //return_tag_json(255 );
             return_tag_json($_GET['tag_id'] );
-            //return_tag_json(137 );
             break;
 
     case 'test' :
@@ -172,10 +169,28 @@ function return_tag_json($tag_id){
 
     $molecules_result = pg_query($con,$molecules_in_tag_query);
     if (pg_num_rows($molecules_result)) {
-        $molecule_array = pg_fetch_all($molecules_result);
-    } 
-    else {
-        $molecule_array = [];
+        while($molecule = pg_fetch_array($molecules_result)){
+            $henrys_law = array(
+               "henrys_law_type"=>$molecule['henrys_law_type'], 
+               "kh_298"=>$molecule['kh_298'], 
+               "dh_r"=>$molecule['dh_r'], 
+               "k1_298"=>$molecule['k1_298'], 
+               "dh1_r"=>$molecule['dh1_r'], 
+               "k2_298"=>$molecule['k2_298'], 
+               "dh2_r"=>$molecule['dh2_r']
+            );
+            $molecule_array[] = array(
+                "moleculename"=>$molecule['moleculename'],
+                "formula"=>$molecule['formula'],
+                "transport"=>$molecule['transport'],
+                "solve"=>$molecule['solve'],
+                "henrys_law"=>$henrys_law,
+                "molecular_weight"=>$molecule['molecular_weight'],
+                "standard_name"=>$molecule['moleculename'].'_std'
+            );
+        } 
+    } else {
+       $molecule_array = [];
     }
 
     $molecule_section =array("molecules"=>$molecule_array);
@@ -239,7 +254,7 @@ function return_tag_json($tag_id){
                 "tuv_id"=>$p['micm_js_id'],
                 "tuv_coeff"=>$p['micm_js_coeff'],
                 "tuv_reaction"=>$p['reaction'],
-                "reactant_count" => 1, 
+                //"reactant_count" => 1, 
                 "troe" => false, 
                 "products"=>$p_array
                 );
@@ -306,10 +321,10 @@ function return_tag_json($tag_id){
         $no_m_r_array = []; // for testing against species-level reactants
         $r_array = [];
         $troe = false;
-        $reactant_count = 0;
+        //$reactant_count = 0;
         $r_reactants = pg_execute($con,"get_r_kpp_reactants",array($r['id']));
         while($rr = pg_fetch_array($r_reactants)){
-            $reactant_count ++;
+            //$reactant_count ++;
             if ($rr['moleculename'] == 'M') {
                 $troe = true;
             }else{
@@ -340,7 +355,7 @@ function return_tag_json($tag_id){
               "reactants" => $r['reactants'], 
               "rate_call" => $r['rate_call'],
               "rate_constant" => $rate_const,
-              "reactant_count" => $reactant_count, 
+              //"reactant_count" => $reactant_count, 
               "troe" => $troe, 
               "products" => $r['products']
               );
@@ -350,7 +365,7 @@ function return_tag_json($tag_id){
               "reactants" => $r['reactants'],
               "rate_call" => $r['rate_call'],
               "rate_constant" => $rate_const,
-              "reactant_count" => $reactant_count,
+              //"reactant_count" => $reactant_count,
               "troe" => $troe,
               "products" => $r['products']
               );
@@ -405,7 +420,7 @@ function return_tag_json($tag_id){
            "molecules"=>$molecule_array, 
            "photolysis"=>$photolysis_array, 
            "reactions"=>$reaction_array, 
-           "custom_rates"=>$rate_list,
+           //"custom_rates"=>$rate_list,
            "t_inv_300"=>$t_inv_300,
            "t_inv"=>$t_inv,
            "include_mass"=>$include_mass,
@@ -416,7 +431,7 @@ function return_tag_json($tag_id){
            "molecules"=>$molecule_array, 
            "photolysis"=>$photolysis_array, 
            "reactions"=>$reaction_array, 
-           "custom_rates"=>$wrf_functions_array ,
+           //"custom_rates"=>$wrf_functions_array ,
            ));
     }
 
