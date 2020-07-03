@@ -426,13 +426,16 @@ function return_tag_json($tag_id){
            "include_mass"=>$include_mass,
            ));
     } else {
-        $mechanism = array( "mechanism"=> array(
-           "tag_info"=>$tagv,
-           "molecules"=>$molecule_array, 
-           "photolysis"=>$photolysis_array, 
-           "reactions"=>$reaction_array, 
-           //"custom_rates"=>$wrf_functions_array ,
-           ));
+        $mechanism = array( 
+          "mechanism"=> array(
+            "version"=>"0.1",
+            "tag_info"=>$tagv,
+            "molecules"=>$molecule_array, 
+            "photolysis"=>$photolysis_array, 
+            "reactions"=>$reaction_array, 
+            //"custom_rates"=>$wrf_functions_array ,
+            )
+         );
     }
 
     print(json_encode($mechanism, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
