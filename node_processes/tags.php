@@ -428,7 +428,7 @@ function return_tag_json($tag_id){
     } else {
         $mechanism = array( 
           "mechanism"=> array(
-            "version"=>"0.1",
+            "mechanism_format"=>"0.1",
             "tag_info"=>$tagv,
             "molecules"=>$molecule_array, 
             "photolysis"=>$photolysis_array, 
