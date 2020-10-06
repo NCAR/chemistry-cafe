@@ -7,36 +7,48 @@
 								% TeX will automatically convert eps --> pdf in pdflatex		
 \usepackage{amssymb}
 
-\title{Henry's Law}
+\title{Effective Henry's Law Constant}
 %\author{The Author}
 \date{}							% Activate to display a given date or no date
 
 \begin{document}
 \maketitle
+\section*{Henry's Law}
+The amount of a gas, $X,$ in equilibrium with aqueous-phase concentration of the gas, $X_{\mbox{aq}},$ is proportional to the gas-phase partial pressure, $pX$.
+\begin{eqnarray*}
+X_{\mbox{aq}} &=& K_H \;\; pX \\
+\left[K_H\right] &=& \mbox{moles} X / \mbox{liter of air} / \mbox{atm} \\
+\left[X_{\mbox{aq}}\right] &=& \mbox{moles} X / \mbox{liter of liquid } \mbox{H}_2\mbox{O} \\
+\left[p_X\right] &=& \mbox{atm}
+\end{eqnarray*}
+where $K_H$ is the Henry's Law constant.
+The temperature dependence of the Henry's Law constant is often parameterized.
+\begin{eqnarray*}
+K_H = \mbox{kh}_{298} \; \exp\left(\mbox{dh}_r \;\left(\frac{1}{T}-\frac{1}{298}\right)\right) 
+\end{eqnarray*}
+
 \section*{Acid}
-% Henry's Law Coefficients are written as Heff = KH + KH K1/[H+] + KH K1 K2/[H+]^2
-%                              where KH=kh_298*exp(dh_r*(1/T-1/298))
-%                              where K1=k1_298*exp(dh1_r*(1/T-1/298))
-%                              where K2=k2_298*exp(dh2_r*(1/T-1/298))
-% [H+] is the hydrogen ion concentration that is obtained from the pH of the drop. pH = -log10([H+])
+For an acid, where the compound and its anions are in equilibrium,
 \begin{eqnarray*}
-H_{eff} &=& K_H \left(1 + \frac{K_1}{[H+]}\left(1 + \frac{K_2 }{ [H+]}\right)\right)
-\end{eqnarray*}
-\section*{Base}
-\begin{eqnarray*}
-H_{eff} &=& K_H \left(1 + \frac{K_1}{K_2}{[H+]}\right)
-\end{eqnarray*}
-\section*{Where}
-\begin{eqnarray*}
-K_H&=&\mbox{kh}_{298} \; \exp(\mbox{dh}_r \;(\frac{1}{T}-\frac{1}{298})) \\ [3pt]
-K_1&=&\mbox{k1}_{298} \; \exp(\mbox{dh1}_r \;(\frac{1}{T}-\frac{1}{298})) \\ [3pt]
-K_2&=&\mbox{k2}_{298} \; \exp(\mbox{dh2}_r \;(\frac{1}{T}-\frac{1}{298})) \\ [3pt]
+H_{eff} &=& K_H \left(1 + \frac{K_1}{[H+]}\left(1 + \frac{K_2}{ [H+]}\right)\right) \\
+K_1&=&\mbox{k1}_{298} \; \exp(\mbox{dh1}_r \;(\frac{1}{T}-\frac{1}{298})) \\ 
+K_2&=&\mbox{k2}_{298} \; \exp(\mbox{dh2}_r \;(\frac{1}{T}-\frac{1}{298})) \\ 
 {[H+]} &=& 10^{-pH}
 \end{eqnarray*}
 
-\section*{Example Derivation of $H_{eff}$ for $CO_2$}
+
+\section*{Base}
+For a base, where the compound and its cations are in equilibrium
+\begin{eqnarray*}
+H_{eff} &=& K_H \left(1 + \frac{K_1}{K_w}{[H+]}\right) \\
+K_1&=&\mbox{k1}_{298} \; \exp(\mbox{dh1}_r \;(\frac{1}{T}-\frac{1}{298})) \\ 
+K_w&=&\mbox{kw}_{298} \; \exp(\mbox{dh2}_w \;(\frac{1}{T}-\frac{1}{298})) \\ 
+K_w &=& \left[ H^+ \right] \left[ OH^-\right]
+\end{eqnarray*}
+
+\section*{Example Derivation of $H_{eff}$ for an acid}
 Assume the compound and its anions are in equilibrium. 
-Define a family for that species. 
+Define a family for that species, in this case, $CO_2$
 For example, 
 \begin{eqnarray*}
 C(IV) = H_2CO_3 + HCO_3^- + CO_3^=
@@ -63,4 +75,44 @@ resulting in
 \begin{eqnarray*}
 H_{eff} &=& K_H  \left(1+  \frac{K_1}{[H+]}  \left(1 +   \frac{K_2}{[H+]}\right)\right) 
 \end{eqnarray*}
+
+\section*{Example derivation of $H_{eff}$ for a base}
+For a gas that hydrolyzes and dissociates into a cation such as $NH_3$, 
+\begin{eqnarray*}
+NH_3\mbox{aq} = K_H  \; pNH_3
+\end{eqnarray*}
+$NH_3$ hydrolyzes to make $NH_3-H_2O = NH_4OH$ which dissociates:
+\begin{eqnarray*}
+NH_4OH &\leftrightarrow& NH_4^+  + OH^- \\
+K_1 &=&  \left[NH4^+\right]\left[OH^-\right]/\left[NH_4OH\right]
+\end{eqnarray*}
+with an equilibrium constant $K_1$.  
+
+Water also dissociates
+\begin{eqnarray*}
+H_2O &\leftrightarrow& H^+  + OH^- \\
+K_w &=& \left[H^+\right]\left[OH^-\right]
+\end{eqnarray*}
+with an equilibrium constant $K_w$. 
+
+The algebraic derivation follows as:
+\begin{eqnarray*}
+\left[ NH_4OH \right] &=& K_H \;\; pNH3 \\
+\left[NH_4^+\right] \left[ OH^- \right] &=& K_1 \left[ NH_4OH \right] \\
+\therefore \left[ NH_4^+ \right] &=& K_1 \left[ H^+ \right] \left[ NH_4OH \right ]/ K_w 
+\end{eqnarray*}
+Or using the same derivation as the acid above, for $NH_3$ define the family, $N(-III)$, as 
+\begin{eqnarray*}
+N(-III) &=& NH_4OH + NH4^+ 
+\end{eqnarray*}
+It follows that 
+\begin{eqnarray*}
+N(-III) &=& K_H \;\; pNH_3 + \frac{K_1  }{ \left[OH^-\right]} \left[ NH_4OH \right]\\
+N(-III) &=& K_H \;\; pNH_3 + \frac{K_1*\left[H+\right]}{K_w} \; K_H \;\; pNH_3  
+\end{eqnarray*}
+but by the definition $\left[N(-III)\right] = H_{eff} \; \;pNH_3$ we can identify
+\begin{eqnarray*}
+H_{eff} = K_H  \left(1 + \frac{K_1 }{K_w}\;\left[H^+\right]\right)
+\end{eqnarray*}
+
 \end{document}  
