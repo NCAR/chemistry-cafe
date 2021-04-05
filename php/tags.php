@@ -34,8 +34,8 @@ switch($_GET['action'])  {
 
     case 'tstfilewrite' :
             global $con;
-            $id = 156;
-            $branch_id = 45;
+            $id = 288;
+            $branch_id = 78;
             $tags = pg_query($con,"SELECT filename FROM tags WHERE id = ".$id.";");
             $tagref= pg_fetch_array($tags,0,$result_type = PGSQL_ASSOC);
             //print_r($tagref['filename']);
@@ -44,6 +44,7 @@ switch($_GET['action'])  {
             write_cesm_tag_file($tagdir,$tagref['filename'],$id, $branch_id);
             write_kpp_tag_file($tagdir,$tagref['filename'],$id, $branch_id);
             write_tex($tagdir,$tagref['filename'],$id, $branch_id);
+            write_music_box_tag_file($tagdir, $tagref['filename'], $id, $branch_id);
             break;
 
 }
@@ -283,6 +284,7 @@ function create_tag() {
     write_cesm_tag_file($target_dir,$target_file_name, $tag_id, $branch_id);
     write_kpp_tag_file($target_dir, $target_file_name, $tag_id, $branch_id);
     write_tex($target_dir,$target_file_name, $tag_id, $branch_id);
+    write_music_box_tag_file($target_dir, $tagret_file_name, $tag_id, $branch_id);
 
     //tar up the files
     exec("cd ../tag_files ; tar -cf ".$target_file_name.".tar ".$target_file_name);
@@ -1801,6 +1803,7 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id, $mechanism_id){
 
     // run cam preprocessor
 
+/*
     // campp  cam-chem preprocessor skeleton files
     $campp_src = "/home/www/html/campp_skel";
     $campp_dst = $cesm_dir.'/campp';
@@ -1844,7 +1847,472 @@ function write_cesm_tag_file($tag_dir,$target_file_name,$tag_id, $mechanism_id){
     file_put_contents($target_campp.$target_file_name.".in", $campp_header);
 
     $output = shell_exec('cd '.$target_campp.'; ../campp '.$target_file_name.'.in ;');
+*/
     return;
 }
 
+// Writes the set of Music Box configuration files for a tagged mechanism
+function write_music_box_tag_file($tag_dir, $target_file_name, $tag_id, $branch_id) {
+
+    global $con;
+
+    $music_box_dir = $tag_dir.'/music_box';
+    if(!is_dir($music_box_dir)) {
+        mkdir($music_box_dir);
+    }
+
+    $music_box_config_dir = $music_box_dir.'/config';
+    if(!is_dir($music_box_config_dir)) {
+        mkdir($music_box_config_dir);
+    }
+
+    $camp_dir = $music_box_config_dir.'/camp_data';
+    if(!is_dir($camp_dir)) {
+        mkdir($camp_dir);
+    }
+
+    // my_config.json is the Music Box configuration
+    // camp_data/config.json is the CAMP configuration
+    // camp_data/species.json is the CAMP chemical species
+    // camp_data/reactions.json is the CAMP reactions
+    // camp_data/tolerance.json is the CAMP solver tolerances
+    $music_box_config_file = fopen($music_box_config_dir.'/my_config.json', 'w');
+    $camp_config_file      = fopen($camp_dir.'/config.json',         'w');
+    $camp_tolerance_file   = fopen($camp_dir.'/tolerance.json',      'w');
+    $camp_species_file     = fopen($camp_dir.'/species.json',        'w');
+    $camp_reactions_file   = fopen($camp_dir.'/reactions.json',      'w');
+
+    write_music_box_config_file($con, $music_box_config_file, $tag_id);
+    write_camp_config_file(     $con, $camp_config_file     , $tag_id);
+    write_camp_tolerance_file(  $con, $camp_tolerance_file  , $tag_id);
+    write_camp_species_file(    $con, $camp_species_file    , $tag_id);
+    write_camp_reactions_file(  $con, $camp_reactions_file  , $tag_id, $target_file_name);
+
+    // close files
+    fclose($music_box_config_file);
+    fclose($camp_config_file);
+    fclose($camp_tolerance_file);
+    fclose($camp_species_file);
+    fclose($camp_reactions_file);
+
+}
+
+// Writes the Music Box configuration file for a tagged mechanism
+function write_music_box_config_file($con, $file, $tag_id) { 
+
+    fwrite($file, "{\n");
+    fwrite($file, "  \"box model options\": {\n");
+    fwrite($file, "    \"grid\": \"box\",\n");
+    fwrite($file, "    \"chemistry time step [min]\": 1.0,\n");
+    fwrite($file, "    \"output time step [min]\": 1.0,\n");
+    fwrite($file, "    \"simulation length [day]\": 1.0\n");
+    fwrite($file, "  },\n");
+    fwrite($file, "  \"chemical species\": { },\n");
+    fwrite($file, "  \"environmental conditions\": {\n");
+    fwrite($file, "    \"temperature\": {\n");
+    fwrite($file, "      \"initial value [K]\": 298.0\n");
+    fwrite($file, "    },\n");
+    fwrite($file, "    \"pressure\": {\n");
+    fwrite($file, "      \"initial value [Pa]\": 101325.0\n");
+    fwrite($file, "    }\n");
+    fwrite($file, "  },\n");
+    fwrite($file, "  \"evolving conditions\" : { },\n");
+    fwrite($file, "  \"model components\": [\n");
+    fwrite($file, "    {\n");
+    fwrite($file, "      \"type\": \"CAMP\",\n");
+    fwrite($file, "      \"configuration file\": \"camp_data/config.json\",\n");
+    fwrite($file, "      \"override species\": {\n");
+    fwrite($file, "        \"M\": {\n");
+    fwrite($file, "          \"mixing ratio mol mol-1\": 1.0\n");
+    fwrite($file, "        }\n");
+    fwrite($file, "      },\n");
+    fwrite($file, "      \"suppress output\": {\n");
+    fwrite($file, "        \"M\": {}\n");
+    fwrite($file, "      }\n");
+    fwrite($file, "    }\n");
+    fwrite($file, "  ]\n");
+    fwrite($file, "}\n");
+
+}
+
+// Writes the CAMP configuration file for a tagged mechanism
+function write_camp_config_file($con, $file, $tag_id) {
+
+    fwrite($file, "{\n");
+    fwrite($file, "  \"pmc-files\": [\n");
+    fwrite($file, "    \"camp_data/tolerance.json\",\n");
+    fwrite($file, "    \"camp_data/species.json\",\n");
+    fwrite($file, "    \"camp_data/reactions.json\"\n");
+    fwrite($file, "  ]\n");
+    fwrite($file, "}\n");
+
+}
+
+// Writes the CAMP tolerances file for a tagged mechanism
+function write_camp_tolerance_file($con, $file, $tag_id) {
+
+    fwrite($file, "{\n");
+    fwrite($file, "  \"pmc-data\": [\n");
+    fwrite($file, "    {\n");
+    fwrite($file, "      \"type\": \"RELATIVE_TOLERANCE\",\n");
+    fwrite($file, "      \"value\": 1.0e-4\n");
+    fwrite($file, "    }\n");
+    fwrite($file, "  ]\n");
+    fwrite($file, "}\n");
+
+}
+
+// Writes the CAMP species file for a tagged mechanism
+function write_camp_species_file($con, $file, $tag_id) {
+
+    $gas_species = tag_gas_species($con, $tag_id);
+    fwrite($file, "{\n");
+    fwrite($file, "  \"pmc-data\": [\n");
+    $species_objects = array();
+    while($species = pg_fetch_array($gas_species)) {
+      $species_objects[] = "    {\n" .
+                           "      \"name\": \"".$species['name']."\",\n" .
+                           "      \"type\": \"CHEM_SPEC\",\n" .
+                           "      \"description\": \"".$species['description']."\",\n" .
+                           "      \"molecular weight [kg mol-1]\": " . 
+                                     ($species['molecular_weight__g_mol']/1000.0)."\n" .
+                           "    }";
+    }
+    $species_objects[] = "    {\n" .
+                         "      \"name\": \"M\",\n" .
+                         "      \"type\": \"CHEM_SPEC\",\n" .
+                         "      \"description\": \"third-body species\"\n" .
+                         "    }\n";
+    fwrite($file, implode(",\n", $species_objects));
+    fwrite($file, "\n  ]\n");
+    fwrite($file, "}\n");
+
+}
+
+// Writes the CAMP reactions file for a tagged mechanism
+function write_camp_reactions_file($con, $file, $tag_id, $mechanism_name) {
+
+    $gas_reactions = tag_gas_reactions($con, $tag_id);
+    fwrite($file, "{\n");
+    fwrite($file, "  \"pmc-data\": [\n");
+    fwrite($file, "    {\n");
+    fwrite($file, "      \"name\": \"".$mechanism_name."\",\n");
+    fwrite($file, "      \"type\": \"MECHANISM\",\n");
+    fwrite($file, "      \"reactions\": [\n");
+    $reaction_objects = array();
+    $unsupported_reaction_objects = array();
+    $reaction_indent = 8;
+    while($reaction = pg_fetch_array($gas_reactions)) {
+      switch($reaction['type']) {
+        case 'ARRHENIUS':
+          $reaction_objects[] = get_reaction_object_arrhenius($con, $reaction, $reaction_indent);
+          break;
+        case 'PHOTOLYSIS':
+          $reaction_objects[] = get_reaction_object_photolysis($con, $reaction, $reaction_indent);
+          break;
+        case 'TROE':
+          $reaction_objects[] = get_reaction_object_troe($con, $reaction, $reaction_indent);
+          break;
+        default:
+          $unsupported_reaction_objects[] = get_reaction_object_unsupported($con, $reaction, 4);
+          break;
+      }
+    }
+    fwrite($file, implode(",\n", $reaction_objects));
+    fwrite($file, "\n      ]\n");
+    fwrite($file, "    }\n");
+    if(count($unsupported_reaction_objects) > 0) {
+      fwrite($file, "  ],\n");
+      fwrite($file, "  \"comment\": [\n");
+      fwrite($file, "    \"These reactions are not yet supported by CAMP, " .
+                                        "but exist in the tagged mechanism.\",\n");
+      fwrite($file, "    \"They will be ignored during solving.\"\n");
+      fwrite($file, "  ],\n");
+      fwrite($file, "  \"unsupported reactions\": [\n");
+      fwrite($file, implode(",\n", $unsupported_reaction_objects));
+      fwrite($file, "\n");
+    }
+    fwrite($file, "  ]\n");
+    fwrite($file, "}\n");
+
+}
+
+// Returns query results for gas-phase chemical species in a tagged mechanism
+function tag_gas_species($con, $tag_id) {
+
+    // select species present in mechanism reactions
+    $species_query =
+      "SELECT moleculename AS name, description, molecular_weight AS molecular_weight__g_mol
+         FROM ( SELECT DISTINCT moleculename
+             FROM ( SELECT moleculename
+                 FROM ( SELECT moleculename, id
+                     FROM photolysis
+                   UNION SELECT moleculename, photolysisid AS id
+                     FROM photolysisproducts ) AS photolysis
+                 INNER JOIN tag_photolysis ON tag_photolysis.photolysis_id = photolysis.id
+                 WHERE tag_photolysis.tag_id = ".$tag_id."
+               UNION SELECT moleculename
+                 FROM ( SELECT moleculename, reaction_id AS id
+                     FROM reactionreactants
+                   UNION SELECT moleculename, reaction_id AS id
+                     FROM reactionproducts ) AS reaction
+                 INNER JOIN tag_reactions ON tag_reactions.reaction_id = reaction.id
+                 WHERE tag_reactions.tag_id = ".$tag_id." ) AS ms ) AS mechanism_species
+         INNER JOIN molecules ON molecules.name = mechanism_species.moleculename
+         WHERE molecules.aerosol = 0";
+
+    return pg_query($con, $species_query);
+
+}
+
+// Returns query results for gas-phase reactions in a tagged mechanism
+function tag_gas_reactions($con, $tag_id) {
+
+    // get the ids and types for all gas-phase reactions
+    $reactions_query =
+      "SELECT id, 'PHOTOLYSIS' AS type
+         FROM photolysis
+         INNER JOIN tag_photolysis ON tag_photolysis.photolysis_id = photolysis.id
+         WHERE tag_photolysis.tag_id = ".$tag_id."
+       UNION SELECT id,
+           CASE
+             WHEN r1 IS NOT NULL AND r3 IS NULL AND r4 IS NULL AND r5 IS NULL
+                  THEN 'ARRHENIUS'
+             WHEN r1 IS NOT NULL AND r2 IS NOT NULL AND r3 IS NOT NULL AND
+                  r4 IS NOT NULL AND r5 IS NOT NULL THEN 'TROE' 
+             ELSE 'UNSUPPORTED'
+           END AS type
+         FROM reactions
+         INNER JOIN tag_reactions ON tag_reactions.reaction_id = reactions.id
+         WHERE tag_reactions.tag_id = ".$tag_id;
+
+    return pg_query($con, $reactions_query);
+
+}
+
+// Returns a stringified json object for an Arrhenius reaction
+function get_reaction_object_arrhenius($con, $reaction, $indent) {
+
+    // Get the rate constant parameters
+    //
+    // r1 = A and r2 = E_a/k_B in k = A * e^( - E_a / ( k_B * T ) )
+    //
+    // where E_a is the activation enery [J], k_B is the Boltzmann constant [J/K],
+    // and T is temperature [K].
+    //
+    $k_B = 1.380649e-23; // Boltzmann constant [J/K]
+    $params_query = "SELECT r1 AS a, r2 AS c
+                     FROM reactions
+                     WHERE id = ".$reaction['id'];
+    $params = pg_fetch_assoc(pg_query($con, $params_query));
+
+    // Get the reactants
+    $reactants_query = "SELECT moleculename AS name, COUNT(moleculename) AS qty
+                          FROM reactionreactants
+                          WHERE reaction_id = ".$reaction['id']."
+                          GROUP BY moleculename";
+    $reactants = pg_query($con, $reactants_query);
+
+    // Get the products
+    $products_query = "SELECT moleculename AS name, coefficient AS yield
+                         FROM reactionproducts
+                         WHERE reaction_id = ".$reaction['id'];
+    $products = pg_query($con, $products_query);
+
+    $prefix = "";
+    for($i = 0; $i < $indent; ++$i) $prefix .= " ";
+    $object = $prefix."{\n" .
+              $prefix."  \"type\": \"ARRHENIUS\",\n";
+    if(!is_null($params['a'])) $object .= $prefix."  \"A\": ". $params['a'].       ",\n";
+    if(!is_null($params['c'])) $object .= $prefix."  \"Ea\": ".($params['c']*$k_B).",\n";
+    $object .= $prefix."  \"reactants\": {\n";
+    $reactant_objects = array();
+    while($reactant = pg_fetch_array($reactants)) {
+      if($reactant['qty'] == 1) {
+        $reactant_objects[] = $prefix."    \"".$reactant['name']."\": { }";
+      } else {
+        $reactant_objects[] = $prefix."    \"".$reactant['name']."\": { \"qty\": ".$reactant['qty']." }";
+      }
+    }
+    $object .= implode(",\n", $reactant_objects);
+    $object .= "\n".$prefix."  },\n";
+    $object .= $prefix."  \"products\": {\n";
+    $product_objects = array();
+    while($product = pg_fetch_array($products)) {
+      if(is_null($product['yield'])) {
+        $product_objects[] = $prefix."    \"".$product['name']."\": { }";
+      } else {
+        $product_objects[] = $prefix."    \"".$product['name']."\": { \"yield\": ".$product['yield']." }";
+      }
+    }
+    $object .= implode(",\n", $product_objects);
+    $object .= "\n".$prefix."  }\n";
+    $object .= $prefix."}";
+
+    return $object;
+
+}
+
+// Returns a stringified json object for a Troe reaction
+function get_reaction_object_troe($con, $reaction, $indent) {
+
+    // Get the rate constant parameters
+    //
+    // r1 = k0_A
+    // r2 = - k0_B
+    // r3 = kinf_A
+    // r4 = N
+    // r5 = Fc
+    //
+    // in k = k0 [M] / ( 1 + k0 [M] / kinf ) * Fc^( 1 + ( 1/N ( log10( k0 [M] / kinf ) )^2 )^-1 )
+    //
+    // where k0 = k0_A * ( T / 300 K )^( k0_B ), kinf = kinf_A,  and T is temperature [K].
+    //
+    $params_query = "SELECT r1 AS k0_a, r2 AS k0_b, r3 AS kinf_a, r4 AS n, r5 AS fc
+                     FROM reactions
+                     WHERE id = ".$reaction['id'];
+    $params = pg_fetch_assoc(pg_query($con, $params_query));
+
+    // Get the reactants
+    $reactants_query = "SELECT moleculename AS name, COUNT(moleculename) AS qty
+                          FROM reactionreactants
+                          WHERE reaction_id = ".$reaction['id']."
+                          GROUP BY moleculename";
+    $reactants = pg_query($con, $reactants_query);
+
+    // Get the products
+    $products_query = "SELECT moleculename AS name, coefficient AS yield
+                         FROM reactionproducts
+                         WHERE reaction_id = ".$reaction['id'];
+    $products = pg_query($con, $products_query);
+
+    $prefix = "";
+    for($i = 0; $i < $indent; ++$i) $prefix .= " ";
+    $object = $prefix."{\n" .
+              $prefix."  \"type\": \"TROE\",\n";
+    if(!is_null($params['k0_a']))   $object .= $prefix."  \"k0_A\": ".  $params['k0_a'].   ",\n";
+    if(!is_null($params['k0_b']))   $object .= $prefix."  \"k0_B\": ".  (-$params['k0_b']).",\n";
+    if(!is_null($params['kinf_a'])) $object .= $prefix."  \"kinf_A\": ".$params['kinf_a']. ",\n";
+    if(!is_null($params['n']))      $object .= $prefix."  \"N\": ".     $params['n'].      ",\n";
+    if(!is_null($params['fc']))     $object .= $prefix."  \"Fc\": ".    $params['fc'].     ",\n";
+    $object .= $prefix."  \"reactants\": {\n";
+    $reactant_objects = array();
+    while($reactant = pg_fetch_array($reactants)) {
+      if($reactant['qty'] == 1) {
+        $reactant_objects[] = $prefix."    \"".$reactant['name']."\": { }";
+      } else {
+        $reactant_objects[] = $prefix."    \"".$reactant['name']."\": { \"qty\": ".$reactant['qty']." }";
+      }
+    }
+    $object .= implode(",\n", $reactant_objects);
+    $object .= "\n".$prefix."  },\n";
+    $object .= $prefix."  \"products\": {\n";
+    $product_objects = array();
+    while($product = pg_fetch_array($products)) {
+      if(is_null($product['yield'])) {
+        $product_objects[] = $prefix."    \"".$product['name']."\": { }";
+      } else {
+        $product_objects[] = $prefix."    \"".$product['name']."\": { \"yield\": ".$product['yield']." }";
+      }
+    }
+    $object .= implode(",\n", $product_objects);
+    $object .= "\n".$prefix."  }\n";
+    $object .= $prefix."}";
+
+    return $object;
+
+}
+
+// Returns a stringified json object for a photolysis reaction
+function get_reaction_object_photolysis($con, $reaction, $indent) {
+
+    // Get the rate constant parameters
+    $params_query = "SELECT rate AS label, moleculename AS species
+                     FROM photolysis
+                     WHERE id = ".$reaction['id'];
+    $params = pg_fetch_assoc(pg_query($con, $params_query));
+
+    // Get the products
+    $products_query = "SELECT moleculename AS name, coefficient AS yield
+                         FROM photolysisproducts
+                         WHERE photolysisid = ".$reaction['id'];
+    $products = pg_query($con, $products_query);
+
+    $prefix = "";
+    for($i = 0; $i < $indent; ++$i) $prefix .= " ";
+    $object = $prefix."{\n" .
+              $prefix."  \"type\": \"PHOTOLYSIS\",\n";
+    if(!is_null($params['label'])) $object .= $prefix."  \"MUSICA name\": \"".$params['label']."\",\n";
+    $object .= $prefix."  \"reactants\": {\n";
+    $object .= $prefix."    \"".$params['species']."\": { }\n";
+    $object .= $prefix."  },\n";
+    $object .= $prefix."  \"products\": {\n";
+    $product_objects = array();
+    while($product = pg_fetch_array($products)) {
+      if(is_null($product['yield'])) {
+        $product_objects[] = $prefix."    \"".$product['name']."\": { }";
+      } else {
+        $product_objects[] = $prefix."    \"".$product['name']."\": { \"yield\": ".$product['yield']." }";
+      }
+    }
+    $object .= implode(",\n", $product_objects);
+    $object .= "\n".$prefix."  }\n";
+    $object .= $prefix."}";
+
+    return $object;
+}
+
+// Returns a stringified json object for an unsupported reaction
+function get_reaction_object_unsupported($con, $reaction, $indent) {
+
+    // Get the rate constant parameters
+    $params_query = "SELECT label
+                     FROM reactions
+                     WHERE id = ".$reaction['id'];
+    $params = pg_fetch_assoc(pg_query($con, $params_query));
+
+    // Get the reactants
+    $reactants_query = "SELECT moleculename AS name, COUNT(moleculename) AS qty
+                          FROM reactionreactants
+                          WHERE reaction_id = ".$reaction['id']."
+                          GROUP BY moleculename";
+    $reactants = pg_query($con, $reactants_query);
+
+    // Get the products
+    $products_query = "SELECT moleculename AS name, coefficient AS yield
+                         FROM reactionproducts
+                         WHERE reaction_id = ".$reaction['id'];
+    $products = pg_query($con, $products_query);
+
+    $prefix = "";
+    for($i = 0; $i < $indent; ++$i) $prefix .= " ";
+    $object = $prefix."{\n" .
+              $prefix."  \"type\": \"UNSUPPORTED\",\n";
+    if(!is_null($params['label'])) $object .= $prefix."  \"label\": \"".$params['label']."\",\n";
+    $object .= $prefix."  \"reactants\": {\n";
+    $reactant_objects = array();
+    while($reactant = pg_fetch_array($reactants)) {
+      if($reactant['qty'] == 1) {
+        $reactant_objects[] = $prefix."    \"".$reactant['name']."\": { }";
+      } else {
+        $reactant_objects[] = $prefix."    \"".$reactant['name']."\": { \"qty\": ".$reactant['qty']." }";
+      }
+    }
+    $object .= implode(",\n", $reactant_objects);
+    $object .= "\n".$prefix."  },\n";
+    $object .= $prefix."  \"products\": {\n";
+    $product_objects = array();
+    while($product = pg_fetch_array($products)) {
+      if(is_null($product['yield'])) {
+        $product_objects[] = $prefix."    \"".$product['name']."\": { }";
+      } else {
+        $product_objects[] = $prefix."    \"".$product['name']."\": { \"yield\": ".$product['yield']." }";
+      }
+    }
+    $object .= implode(",\n", $product_objects);
+    $object .= "\n".$prefix."  }\n";
+    $object .= $prefix."}";
+
+    return $object;
+}
 ?>
