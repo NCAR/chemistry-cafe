@@ -3,8 +3,8 @@
 include('../php/config.php');
 
 
-//switch('test')  { // testing 
-switch($_GET['action'])  {
+switch('test')  { // testing 
+//switch($_GET['action'])  {
     //case 'get_all_branches' :
             //get_all_branches();
             //break;
