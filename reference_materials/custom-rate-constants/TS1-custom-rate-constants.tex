@@ -1,0 +1,710 @@
+\documentclass[titlepage]{article}
+
+\usepackage{amsmath}
+\usepackage{chemformula}
+\usepackage{fancyvrb}
+\usepackage{lipsum}
+\usepackage[margin=1in]{geometry}
+\usepackage{xcolor}
+
+\DefineVerbatimEnvironment{blockcode}
+  {Verbatim}
+  {fontsize=\small,formatcom=\color{blue}}
+
+\begin{document}
+
+\title{TS1 Custom Rate Constants}
+\author{Matt Dawson}
+\maketitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_DMS\_OH}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/mozart/mo_usrrxt.F90 (1062,1070)
+!-----------------------------------------------------------------
+!       ... DMS + OH  --> .5 * SO2
+!-----------------------------------------------------------------
+       if( usr_DMS_OH_ndx > 0 ) then
+          call comp_exp( exp_fac, 7460._r8*tinv, ncol )
+          ko(:) = 1._r8 + 5.5e-31_r8 * exp_fac * m(:,k) * 0.21_r8
+          call comp_exp( exp_fac, 7810._r8*tinv, ncol )
+          rxt(:,k,usr_DMS_OH_ndx) = 1.7e-42_r8 * exp_fac * m(:,k) * 0.21_r8 / ko(:)
+       end if
+\end{blockcode}
+
+This is equivalent to:
+
+\begin{equation}
+k = \frac{1.7 \times 10^{-42} e^{\frac{7810}{T}} [\mbox{M}] 0.21}{1 + 5.5 \times 10^{-31} e^{\frac{7460}{T}} [\mbox{M}] 0.21 }
+\end{equation}
+
+This can be rearranged as a Troe reaction,
+
+\begin{equation}
+\begin{split}
+k & = \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{1+(1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \\
+k_0 & = A_0 e^{\left( \frac{C_0}{T} \right)} \left( \frac{T}{300} \right)^{B_0} \\
+k_{inf} & = A_{inf} e^{\left( \frac{C_{inf}}{T} \right)} \left( \frac{T}{300} \right)^{B_{inf}}
+\end{split}
+\end{equation}
+
+\noindent where $F_C = 0$, $A_0 = 0.21 \times 1.7 \times 10^{-42}$, $B_0 = 0$, $C_0 = 7810$, $A_{inf} = \frac{1.7 \times 10^{-42}}{5.5 \times 10^{-31}}$, $B_{inf} = 0$, and $C_{inf} = 7810-7460$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_GLYOXAL\_aer}
+
+Aerosol surface reaction
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_PBZNIT\_M}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/mozart/mo_usrrxt.F90 (971,971)
+       call comp_exp( exp_fac, -14000._r8*tinv, ncol )
+
+\color{gray}...
+
+\color{gray}/cam/src/chemistry/mozart/mo_usrrxt.F90 (1006,1015)
+!-----------------------------------------------------------------
+!       ... pbznit + m --> acbzo2 + no2 + m
+!-----------------------------------------------------------------
+       if( usr_PBZNIT_M_ndx > 0 ) then
+          if( tag_ACBZO2_NO2_ndx > 0 ) then
+             rxt(:,k,usr_PBZNIT_M_ndx) = rxt(:,k,tag_ACBZO2_NO2_ndx) * 1.111e28_r8 * exp_fac(:)
+          else
+             rxt(:,k,usr_PBZNIT_M_ndx) = 0._r8
+          end if
+       end if
+\end{blockcode}
+
+The reaction rates set in \verb>mo_usrrxt::usrrxt()> do not appear to include those for \verb>tag_ACBZO2_NO2_ndx>. As the \verb>rxt(:,:)> array is an \verb>intent(inout)> argument, it could already contain this rate when the function is called. The \verb>mo_usrrxt::usrrxt()> function is called by \verb>mo_gas_phase_chemdr::gas_phase_chemdr()>, which declares and initializes an array called \verb>reaction_rates(:,:,:)> which is passed to \verb>mo_usrrxt::usrrxt()> as \verb>rxt(:,:)>. Prior to calling \verb>mo_usrrxt::usrrxt()>, the functions \verb>ratecon_sfstrat()> and \verb>mo_setrxt::setrxt()> are called, passing \verb>reaction_rates(:,:,:)> as an argument:
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}cam/src/chemistry/mozart/mo_gas_phase_chemdr.F90 (242,252)
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+  subroutine gas_phase_chemdr(lchnk, ncol, imozart, q, &
+                              phis, zm, zi, calday, &
+                              tfld, pmid, pdel, pint,  &
+                              cldw, troplev, troplevchem, &
+                              ncldwtr, ufld, vfld,  &
+                              delt, ps, xactive_prates, &
+                              fsds, ts, asdir, ocnfrac, icefrac, &
+                              precc, precl, snowhland, ghg_chem, latmapback, &
+                              drydepflx, wetdepflx, cflx, fire_sflx, fire_ztop, nhx_nitrogen_flx, noy_nitrogen_flx, qtend, pbuf)
+
+\color{gray}...
+
+\color{gray}cam/src/chemistry/mozart/mo_gas_phase_chemdr.F90 (387,387)
+    real(r8)     ::  reaction_rates(ncol,pver,max(1,rxntot))      ! reaction rates
+
+\color{gray}...
+
+\color{gray}cam/src/chemistry/mozart/mo_gas_phase_chemdr.F90 (487,488)
+    ! initialize to NaN to hopefully catch user defined rxts that go unset
+    reaction_rates(:,:,:) = nan
+
+\color{gray}...
+
+\color{gray}cam/src/chemistry/mozart/mo_gas_phase_chemdr.F90 (705,712)
+       !-----------------------------------------------------------------------
+       !        ... call aerosol reaction rates
+       !-----------------------------------------------------------------------
+       call ratecon_sfstrat( ncol, invariants(:,:,indexm), pmid, tfld, &
+            radius_strat(:,:,1), sad_strat(:,:,1), sad_strat(:,:,2), &
+            sad_strat(:,:,3), h2ovmr, vmr, reaction_rates, &
+            gprob_n2o5, gprob_cnt_hcl, gprob_cnt_h2o, gprob_bnt_h2o, &
+            gprob_hocl_hcl, gprob_hobr_hcl, wtper )
+
+\color{gray}...
+
+\color{gray}cam/src/chemistry/mozart/mo_gas_phase_chemdr.F90 (735,738)
+    !-----------------------------------------------------------------------
+    !       ...  Set rates for "tabular" and user specified reactions
+    !-----------------------------------------------------------------------
+    call setrxt( reaction_rates, tfld, invariants(1,1,indexm), ncol )
+
+\color{gray}...
+
+\color{gray}cam/src/chemistry/mozart/mo_gas_phase_chemdr.F90 (774,776)
+    call usrrxt( reaction_rates, tfld, ion_temp_fld, ele_temp_fld, invariants, h2ovmr, &
+                 pmid, invariants(:,:,indexm), sulfate, mmr, relhum, strato_sad, &
+                 troplevchem, dlats, ncol, sad_trop, reff, cwat, mbar, pbuf )
+\end{blockcode}
+
+There are a number of different definitions of the \verb>mo_setrxt> module, presumably for different model configurations, which must be chosen in some way during the build process. Each of these modules appears to set different rates, with hard-coded indices and no description of what these rates correspond to. For example, the \verb>mo_setrxt::setrxt()> function sets four rates:
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}components/cam/src/chemistry/pp_trop_mam7/mo_setrxt.F90 (38,41)
+      rate(:,:,3) = 2.9e-12_r8 * exp( -160._r8 * itemp(:,:) )
+      rate(:,:,5) = 9.6e-12_r8 * exp( -234._r8 * itemp(:,:) )
+      rate(:,:,7) = 1.9e-13_r8 * exp( 520._r8 * itemp(:,:) )
+      rate(:,:,8) = 1.7e-12_r8 * exp( -710._r8 * itemp(:,:) )
+\end{blockcode}
+
+\vspace{30px}
+\noindent\textit{\Large Is there a way to know what reaction rates these indices correspond to?}
+\vspace{30px}
+
+I will assume that these modules are written by some pre-processor and hope that the rate they set for whatever index corresponds to \verb>tag_ACBZO2_NO2_ndx> is based on the following reaction that appears in the TS1 mechanism:
+
+\begin{blockcode}
+        {
+          "type": "TROE",
+          "k0_A": 9.7e-29,
+          "k0_B": -5.6,
+          "kinf_A": 9.3e-12,
+          "N": 1.5,
+          "Fc": 0.6,
+          "reactants": {
+            "ACBZO2": { },
+            "NO2": { },
+            "M": { }
+          },
+          "products": {
+            "PBZNIT": { },
+            "M": { }
+          }
+        },
+\end{blockcode}
+
+\noindent as this is the only reaction with \verb>ACBZO2> and \verb>NO2> as products. If this is the case, the \verb>usr_PBZNIT_M> rate is:
+
+\begin{equation}
+\begin{split}
+k & = \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{1+(1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} 1.111 \times 10^{28} e^{\left(\frac{-14000}{T}\right)}\\
+k_0 & = A_0 e^{\left( \frac{C_0}{T} \right)} \left( \frac{T}{300} \right)^{B_0} \\
+k_{inf} & = A_{inf} e^{\left( \frac{C_{inf}}{T} \right)} \left( \frac{T}{300} \right)^{B_{inf}}
+\end{split}
+\end{equation}
+
+\noindent where $F_C = 0.6$, $N = 1.5$, $A_0 = 9.7 \times 10^{-29}$, $B_0 = -5.6$, $C_0 = 0$, $A_{inf} = 9.3 \times 10^{-12}$, $B_{inf} = 0$, and $C_{inf} = 0$. This can be rearranged into a Troe reaction as:
+
+\begin{equation}
+\begin{split}
+k & = \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{1+(1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \\
+k_0 & = A_0 e^{\left( \frac{C_0}{T} \right)} \left( \frac{T}{300} \right)^{B_0} \\
+k_{inf} & = A_{inf} e^{\left( \frac{C_{inf}}{T} \right)} \left( \frac{T}{300} \right)^{B_{inf}}
+\end{split}
+\end{equation}
+
+\noindent where $F_C = 0.6$, $N = 1.5$, $A_0 = 9.7 \times 10^{-29} \times 1.111 \times 10^{28}$, $B_0 = -5.6$, $C_0 = -14000$, $A_{inf} = 9.3 \times 10^{-12} \times 1.111 \times 10^{28}$, $B_{inf} = 0$, and $C_{inf} = -14000$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_O\_O2}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}cam/src/chemistry/mozart/mo_usrrxt.F90 (799,807)
+       tp(:)             = 300._r8 * tinv(:)
+
+\color{gray}...
+
+\color{gray}cam/src/chemistry/mozart/mo_usrrxt.F90 (799,807)
+!-----------------------------------------------------------------
+! ... o + o2 + m --> o3 + m (JPL15-10)
+!-----------------------------------------------------------------
+       if( usr_O_O2_ndx > 0 ) then
+          rxt(:,k,usr_O_O2_ndx) = 6.e-34_r8 * tp(:)**2.4_r8
+       end if
+\end{blockcode}
+
+This is equivalent to:
+
+\begin{equation}
+k = 6.0 \times 10^{-34} \left(\frac{300}{T}\right)^{2.4},
+\end{equation}
+
+\noindent which can be rearranged into an Arrhenius reaction as:
+
+\begin{equation}
+k = Ae^{(\frac{-E_a}{k_bT})}(\frac{T}{D})^B(1.0+E \times P),
+\end{equation}
+
+\noindent with $A = 6.0 \times 10^{-34}$, $B = -2.4$, $E_a = 0$, $D = 300$, and $E = 0$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_HO2\_aer}
+
+Aerosol surface reaction
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_N2O5\_M}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}cam/src/chemistry/mozart/mo_usrrxt.F90 (849,859)
+!-----------------------------------------------------------------
+! ... n2o5 + m --> no2 + no3 + m (JPL15-10)
+!-----------------------------------------------------------------
+       if( usr_N2O5_M_ndx > 0 ) then
+          if( tag_NO2_NO3_ndx > 0 ) then
+             call comp_exp( exp_fac, -10840.0_r8*tinv, ncol )
+             rxt(:,k,usr_N2O5_M_ndx) = rxt(:,k,tag_NO2_NO3_ndx) * 1.724138e26_r8 * exp_fac(:)
+          else
+             rxt(:,k,usr_N2O5_M_ndx) = 0._r8
+          end if
+       end if
+\end{blockcode}
+
+Following the same logic as for \verb>usr_PBZNIT_M>, the \verb>tag_NO2_NO3_ndx> reaction is identified as:
+
+\begin{blockcode}
+        {
+          "type": "TROE",
+          "k0_A": 2.4e-30,
+          "k0_B": -3,
+          "kinf_A": 1.6e-12,
+          "N": -0.1,
+          "Fc": 0.6,
+          "reactants": {
+            "NO3": { },
+            "NO2": { },
+            "M": { }
+          },
+          "products": {
+            "N2O5": { },
+            "M": { }
+          }
+        },
+\end{blockcode}
+
+\noindent and can be rearranged as a Troe reaction:
+
+\begin{equation}
+\begin{split}
+k & = \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{1+(1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \\
+k_0 & = A_0 e^{\left( \frac{C_0}{T} \right)} \left( \frac{T}{300} \right)^{B_0} \\
+k_{inf} & = A_{inf} e^{\left( \frac{C_{inf}}{T} \right)} \left( \frac{T}{300} \right)^{B_{inf}}
+\end{split}
+\end{equation}
+
+\noindent where $F_C = 0.6$, $N = -0.1$, $A_0 = 2.4 \times 10^{-30} \times 1.724138 \times 10^{26}$, $B_0 = -3$, $C_0 = -10840$, $A_{inf} = 1.6 \times 10^{-12} \times 1.724138 \times 10^{26}$, $B_{inf} = 0$, and $C_{inf} = -10840$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_HO2NO2\_M}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}cam/src/chemistry/mozart/mo_usrrxt.F90 (898,905)
+       if( usr_HO2NO2_M_ndx > 0 ) then
+          if( tag_NO2_HO2_ndx > 0 ) then
+             call comp_exp( exp_fac, -10900._r8*tinv, ncol )
+             rxt(:,k,usr_HO2NO2_M_ndx) = rxt(:,k,tag_NO2_HO2_ndx) * exp_fac(:) / 2.1e-27_r8
+          else
+             rxt(:,k,usr_HO2NO2_M_ndx) = 0._r8
+          end if
+       end if
+\end{blockcode}
+
+Following the same logic as for \verb>usr_PBZNIT_M>, the \verb>tag_NO2_HO2_ndx> reaction is identified as:
+
+\begin{blockcode}
+        {
+          "type": "TROE",
+          "k0_A": 1.9e-31,
+          "k0_B": -3.4,
+          "kinf_A": 4e-12,
+          "N": 0.3,
+          "Fc": 0.6,
+          "reactants": {
+            "NO2": { },
+            "HO2": { },
+            "M": { }
+          },
+          "products": {
+            "HO2NO2": { },
+            "M": { }
+          }
+        },
+\end{blockcode}
+
+\noindent and can be rearranged as a Troe reaction:
+
+\begin{equation}
+\begin{split}
+k & = \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{1+(1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \\
+k_0 & = A_0 e^{\left( \frac{C_0}{T} \right)} \left( \frac{T}{300} \right)^{B_0} \\
+k_{inf} & = A_{inf} e^{\left( \frac{C_{inf}}{T} \right)} \left( \frac{T}{300} \right)^{B_{inf}}
+\end{split}
+\end{equation}
+
+\noindent where $F_C = 0.6$, $N = 0.3$, $A_0 = 1.9 \times 10^{-31} / \left( 2.1 \times 10^{-27} \right)$, $B_0 = -3.4$, $C_0 = -10900$, $A_{inf} = 4 \times 10^{-12} / \left( 2.1 \times 10^{-27} \right)$, $B_{inf} = 0$, and $C_{inf} = -10900$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_NO3\_aer}
+
+Aerosol surface reaction
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_HO2\_HO2}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}cam/src/chemistry/mozart/mo_usrrxt.F90 (2212,2219)
+!-----------------------------------------------------------------
+! ... ho2 + ho2 --> h2o2
+! Note: this rate involves the water vapor number density
+!-----------------------------------------------------------------
+         ko(:)   = 3.0e-13_r8  * exp( 460._r8*tinv(:) )
+         kinf(:) = 2.1e-33_r8 * m(:,k) * exp( 920._r8*tinv(:) )
+         fc(:)   = 1._r8 + 1.4e-21_r8 * m(:,k) * h2ovmr(:,k) * exp( 2200._r8*tinv(:) )
+         rxt(:,k,usr_HO2_HO2_ndx) = (ko(:) + kinf(:)) * fc(:)
+\end{blockcode}
+
+The term \verb>m(:,k) * h2ovmr(:,k)> should be the water vapor number density (assuming \verb>h2ovmr(:,k)> is in units of $\mbox{mol}/\mbox{mol}$). This reaction can then be rearranged as four reactions:
+\vspace{20px}
+
+
+\ch{HO2 + HO2 -> H2O2}
+
+\ch{HO2 + HO2 ->[ M ] H2O2}
+
+\ch{HO2 + HO2 ->[ H2O ] H2O2}
+
+\ch{HO2 + HO2 ->[ M, H2O ] H2O2}
+
+\vspace{20px}
+
+\noindent with Arrhenius rate constants:
+
+\begin{equation}
+k = Ae^{(\frac{C}{T})}(\frac{T}{D})^B(1.0+E \times P),
+\end{equation}
+
+\noindent with rate constant parameters, respectively:
+
+\begin{itemize}
+\item $A = 3.0 \times 10^{-13}$, $B = 0$, $C = 460$, and $E = 0$.
+\item $A = 2.1 \times 10^{-33}$, $B = 0$, $C = 920$, and $E = 0$.
+\item $A = 3.0 \times 10^{-13} \times 1.4 \times 10^{-21}$, $B = 0$, $C = 2660$, and $E = 0$.
+\item $A = 2.1 \times 10^{-33} \times 1.4 \times 10^{-21}$, $B = 0$, $C = 3120$, and $E = 0$.
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_MPAN\_M}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}cam/src/chemistry/mozart/mo_usrrxt.F90 (987,996)
+!-----------------------------------------------------------------
+! ... mpan + m --> mco3 + no2 + m (JPL15-10)
+!-----------------------------------------------------------------
+       if( usr_MPAN_M_ndx > 0 ) then
+          if( tag_MCO3_NO2_ndx > 0 ) then
+             rxt(:,k,usr_MPAN_M_ndx) = rxt(:,k,tag_MCO3_NO2_ndx) * 1.111e28_r8 * exp_fac(:)
+          else
+             rxt(:,k,usr_MPAN_M_ndx) = 0._r8
+          end if
+       end if
+\end{blockcode}
+
+This rate constant calculation appears to be based on the reaction:
+\vspace{20px}
+
+\ch{MCO3 + NO2 ->[ M ] MPAN}
+
+\vspace{20px}
+\noindent and this reaction in the mechanism has a custom rate constant:
+
+\begin{verbatim}
+    {
+      "type": "UNSUPPORTED",
+      "label": "usr_MCO3_NO2",
+      "reactants": {
+        "MCO3": { },
+        "NO2": { },
+        "M": { }
+      },
+      "products": {
+        "MPAN": { },
+        "M": { }
+      }
+    },
+\end{verbatim}
+
+\noindent however, the \verb>usr_MPAN_M> reaction uses \verb>tag_MCO3_NO2_ndx> instead of \verb>usr_MCO3_NO2_ndx>, which I believe indicates that this is a standard (Arrhenius or Troe) reaction rather than a custom reaction. Looking through the code, I see that this reaction does appear to sometimes be treated as a Troe reaction:
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}components/cam/src/chemistry/pp_trop_strat_mam4_ts2/chem_mech.doc (1147,1149)
+  tag_MCO3_NO2     (240)   MCO3 + NO2 + M ->  MPAN + M                                          troe : ko=9.70E-29*(300/t)**5.60  (407)
+                                                                                                       ki=9.30E-12*(300/t)**1.50
+                                                                                                        f=0.60
+\end{blockcode}
+
+\textit{\Large Is this rate constant being calculated for the TS1 mechanism?}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_SO2\_OH}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}cam/src/chemistry/mozart/mo_usrrxt.F90 (1072,1079)
+!-----------------------------------------------------------------
+!       ... SO2 + OH  --> SO4  (REFERENCE?? - not Liao)
+!-----------------------------------------------------------------
+       if( usr_SO2_OH_ndx > 0 ) then
+          fc(:) = 3.0e-31_r8 *(300._r8*tinv(:))**3.3_r8
+          ko(:) = fc(:)*m(:,k)/(1._r8 + fc(:)*m(:,k)/1.5e-12_r8)
+          rxt(:,k,usr_SO2_OH_ndx) = ko(:)*.6_r8**(1._r8 + (log10(fc(:)*m(:,k)/1.5e-12_r8))**2._r8)**(-1._r8)
+       end if
+\end{blockcode}
+
+This is a Troe reaction:
+
+\begin{equation}
+\begin{split}
+k & = \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{1+(1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \\
+k_0 & = A_0 e^{\left( \frac{C_0}{T} \right)} \left( \frac{T}{300} \right)^{B_0} \\
+k_{inf} & = A_{inf} e^{\left( \frac{C_{inf}}{T} \right)} \left( \frac{T}{300} \right)^{B_{inf}}
+\end{split}
+\end{equation}
+
+\noindent where $F_C = 0.6$, $N = 1.0$, $A_0 = 3 \times 10^{-31}$, $B_0 = -3.3$, $C_0 = 0$, $A_{inf} = 1.5 \times 10^{-12}$, $B_{inf} = 0$, and $C_{inf} = 0$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_CO\_OH\_a}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}cam/src/chemistry/mozart/mo_usrrxt.F90 (914,920)
+!-----------------------------------------------------------------
+!           co + oh --> co2 + ho2     (combined branches - do not use with CO_OH_b)
+!-----------------------------------------------------------------
+       if( usr_CO_OH_a_ndx > 0 ) then
+          rxt(:,k,usr_CO_OH_a_ndx) = 1.5e-13_r8 * &
+               (1._r8 + 6.e-7_r8*boltz_cgs*m(:,k)*temp(:ncol,k))
+       end if
+\end{blockcode}
+
+This can be split into two reactions:
+\vspace{20px}
+
+\ch{CO + OH -> CO2 + HO2}
+
+\ch{CO + OH ->[ M ] CO2 + HO2}
+
+\vspace{20px}
+
+\noindent with Arrhenius rate constants:
+
+\begin{equation}
+k = Ae^{(\frac{C}{T})}(\frac{T}{D})^B(1.0+E \times P),
+\end{equation}
+
+\noindent with rate constant parameters, respectively:
+
+\begin{itemize}
+\item $A = 1.5 \times 10^{-13}$, $B = 0$, $C = 0$, and $E = 0$.
+\item $A = 1.5 \times 10^{-13} \times 6 \times 10^{-7} \times k_B$, $B = 1$, $C = 0$, $D = 1$, and $E = 0$.
+\end{itemize}
+
+\noindent where $k_B$ is the Boltzmann constant [erg $\mbox{K}^{-1}$]. Yes, that's right, in erg.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_O\_O}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}cam/src/chemistry/mozart/mo_usrrxt.F90 (810,815)
+!-----------------------------------------------------------------
+! ... o + o + m -> o2 + m
+!-----------------------------------------------------------------
+       if ( usr_O_O_ndx > 0 ) then
+          rxt(:,k,usr_O_O_ndx) = 2.76e-34_r8 * exp( 720.0_r8*tinv(:) )
+       end if
+\end{blockcode}
+
+This is an Arrhenius reaction:
+
+\begin{equation}
+k = Ae^{(\frac{C}{T})}(\frac{T}{D})^B(1.0+E \times P),
+\end{equation}
+
+\noindent with $A = 2.76 \times 10^{-34}$, $B = 0$, $C = 720$, and $E = 0$.
+ 
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+          
+\section{usr\_N2O5\_aer}
+
+Aerosol surface reaction
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_NO2\_aer}
+
+Aerosol surface reaction
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_PAN\_M}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}cam/src/chemistry/mozart/mo_usrrxt.F90 (968,978)
+!-----------------------------------------------------------------
+! ... pan + m --> ch3co3 + no2 + m (JPL15-10)
+!-----------------------------------------------------------------
+       call comp_exp( exp_fac, -14000._r8*tinv, ncol )
+       if( usr_PAN_M_ndx > 0 ) then
+          if( tag_CH3CO3_NO2_ndx > 0 ) then
+             rxt(:,k,usr_PAN_M_ndx) = rxt(:,k,tag_CH3CO3_NO2_ndx) * 1.111e28_r8 * exp_fac(:)
+          else
+             rxt(:,k,usr_PAN_M_ndx) = 0._r8
+          end if
+       end if
+\end{blockcode}
+
+Following the same logic as for \verb>usr_PBZNIT_M>, the \verb>tag_CH3CO3_NO2_ndx> reaction is identified as:
+
+\begin{blockcode}
+         {
+          "type": "TROE",
+          "k0_A": 9.7e-29,
+          "k0_B": -5.6,
+          "kinf_A": 9.3e-12,
+          "N": 1.5,
+          "Fc": 0.6,
+          "reactants": {
+            "CH3CO3": { },
+            "NO2": { },
+            "M": { }
+          },
+          "products": {
+            "PAN": { },
+            "M": { }
+          }
+        },
+\end{blockcode}
+
+\noindent and can be rearranged as a Troe reaction:
+
+\begin{equation}
+\begin{split}
+k & = \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{1+(1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \\
+k_0 & = A_0 e^{\left( \frac{C_0}{T} \right)} \left( \frac{T}{300} \right)^{B_0} \\
+k_{inf} & = A_{inf} e^{\left( \frac{C_{inf}}{T} \right)} \left( \frac{T}{300} \right)^{B_{inf}}
+\end{split}
+\end{equation}
+
+\noindent where $F_C = 0.6$, $N = 1.5$, $A_0 = 9.7 \times 10^{-29} \times 1.111 \times 10^{28}$, $B_0 = -5.6$, $C_0 = -14000$, $A_{inf} = 9.3 \times 10^{-12} \times 1.111 \times 10^{28}$, $B_{inf} = 0$, and $C_{inf} = -14000$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_HNO3\_OH}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}cam/src/chemistry/mozart/mo_usrrxt.F90 (877,889)
+!-----------------------------------------------------------------
+! set rates for:
+!   ... hno3 + oh --> no3 + h2o
+!           ho2no2 + m --> ho2 + no2 + m
+!-----------------------------------------------------------------
+       if( usr_HNO3_OH_ndx > 0 ) then
+          call comp_exp( exp_fac, 1335._r8*tinv, ncol )
+          ko(:) = m(:,k) * 6.5e-34_r8 * exp_fac(:)
+          call comp_exp( exp_fac, 2199._r8*tinv, ncol )
+          ko(:) = ko(:) / (1._r8 + ko(:)/(2.7e-17_r8*exp_fac(:)))
+          call comp_exp( exp_fac, 460._r8*tinv, ncol )
+          rxt(:,k,usr_HNO3_OH_ndx) = ko(:) + 2.4e-14_r8*exp_fac(:)
+       end if
+\end{blockcode}
+
+This can be split into two reactions with the same reactants and products:
+\vspace{20px}
+
+\ch{HNO3 + OH -> NO3 + H2O}
+
+\vspace{20px}
+\noindent the first with an Arrhenius rate constant:
+
+\begin{equation}
+k = Ae^{(\frac{C}{T})}(\frac{T}{D})^B(1.0+E \times P),
+\end{equation}
+
+\noindent with $A = 2.4 \times 10^{-14}$, $B = 0$, $C = 460$, and $E = 0$, and the second
+with a Troe rate constant:
+
+\begin{equation}
+\begin{split}
+k & = \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{1+(1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \\
+k_0 & = A_0 e^{\left( \frac{C_0}{T} \right)} \left( \frac{T}{300} \right)^{B_0} \\
+k_{inf} & = A_{inf} e^{\left( \frac{C_{inf}}{T} \right)} \left( \frac{T}{300} \right)^{B_{inf}}
+\end{split}
+\end{equation}
+
+\noindent where $F_C = 0.0$, $A_0 = 6.5 \times 10^{-34}$, $B_0 = 0$, $C_0 = 1335$, $A_{inf} = 2.7 \times 10^{-17}$, $B_{inf} = 0$, and $C_{inf} = 2199$.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_MCO3\_NO2}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}cam/src/chemistry/mozart/mo_usrrxt.F90 (804,804)
+       tp(:)             = 300._r8 * tinv(:)
+\color{gray}cam/src/chemistry/mozart/mo_usrrxt.F90 (958,996)
+!-----------------------------------------------------------------
+!     ... mco3 + no2 -> mpan
+!-----------------------------------------------------------------
+       if( usr_MCO3_NO2_ndx > 0 ) then
+          rxt(:,k,usr_MCO3_NO2_ndx) = 1.1e-11_r8 * tp(:) / m(:,k)
+       end if
+       if( usr_MCO3_XNO2_ndx > 0 ) then
+          rxt(:,k,usr_MCO3_XNO2_ndx) = 1.1e-11_r8 * tp(:) / m(:,k)
+       end if
+\end{blockcode}
+
+This can be rearranged as an Arrhenius reaction, \textbf{by removing M from the reactants and products}:
+
+\begin{equation}
+k = Ae^{(\frac{C}{T})}(\frac{T}{D})^B(1.0+E \times P),
+\end{equation}
+
+\noindent with $A = 1.1 \times 10^{-11}$, $B = -1$, $C = 0$, $D = 300$, and $E = 0$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_CH3COCH3\_OH}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}cam/src/chemistry/mozart/mo_usrrxt.F90 (1054,1060)
+!-----------------------------------------------------------------
+!       ... ch3coch3 + oh -> ro2 + h2o
+!-----------------------------------------------------------------
+       if( usr_CH3COCH3_OH_ndx > 0 ) then
+          call comp_exp( exp_fac, -2000._r8*tinv, ncol )
+          rxt(:,k,usr_CH3COCH3_OH_ndx) = 3.82e-11_r8 * exp_fac(:) + 1.33e-13_r8
+       end if
+\end{blockcode}
+
+This can be split into two reactions with the same products and reactants:
+\vspace{20px}
+
+\ch{CH3COCH3 + OH -> RO2 + H2O}
+
+\vspace{20px}
+
+\noindent both with Arrhenius rate constants:
+
+\begin{equation}
+k = Ae^{(\frac{C}{T})}(\frac{T}{D})^B(1.0+E \times P),
+\end{equation}
+
+\noindent with rate constant parameters:
+
+\begin{itemize}
+  \item $A = 3.82 \times 10^{-11}$, $B = 0$, $C = -2000$, and $E = 0$.
+  \item $A = 1.33 \times 10^{-13}$, $B = 0$, $C = 0$, and $E = 0$.
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
