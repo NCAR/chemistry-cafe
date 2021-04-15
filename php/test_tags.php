@@ -5,8 +5,8 @@ include_once('CampReactionArrhenius.php');
 include_once('CampReactionTroe.php');
 include_once('CustomReaction.php');
 
-switch($_GET['action'])  {
-//switch('tstfilewrite')  { // testing :  php < thisfile.php
+//switch($_GET['action'])  {
+switch('tstfilewrite')  { // testing :  php < thisfile.php
     case 'get_all_branches' :
             get_all_branches();
             break;
@@ -37,7 +37,7 @@ switch($_GET['action'])  {
 
     case 'tstfilewrite' :
             global $con;
-            $id = 288;
+            $id = 292;
             $branch_id = 78;
             $tags = pg_query($con,"SELECT filename FROM tags WHERE id = ".$id.";");
             $tagref= pg_fetch_array($tags,0,$result_type = PGSQL_ASSOC);
@@ -132,7 +132,7 @@ function download($tagid) {
 
     if (file_exists($pathtagfile)) {
 
-        header("Content-Type: application/tar");
+        header("Content-Type: application/x-tar");
         header("Content-Disposition: attachment; filename=".$tagfile);
         header("Content-Length:".filesize($pathtagfile));
         header("Content-Transfer-Encoding: binary");
