@@ -1,6 +1,9 @@
 <?php
 
 include('config.php'); 
+include_once('CampReactionArrhenius.php');
+include_once('CampReactionTroe.php');
+include_once('CustomReaction.php');
 
 switch($_GET['action'])  {
 //switch('tstfilewrite')  { // testing :  php < thisfile.php
@@ -39,7 +42,7 @@ switch($_GET['action'])  {
             $tags = pg_query($con,"SELECT filename FROM tags WHERE id = ".$id.";");
             $tagref= pg_fetch_array($tags,0,$result_type = PGSQL_ASSOC);
             //print_r($tagref['filename']);
-            $tagdir = '../tag_files/testdir/'.$tagref['filename'];
+            $tagdir = '/home/some_test_dir/testdir/'.$tagref['filename'];
             mkdir($tagdir);
             write_cesm_tag_file($tagdir,$tagref['filename'],$id, $branch_id);
             write_kpp_tag_file($tagdir,$tagref['filename'],$id, $branch_id);
@@ -129,7 +132,7 @@ function download($tagid) {
 
     if (file_exists($pathtagfile)) {
 
-        header("Content-Type: application/x-tar");
+        header("Content-Type: application/tar");
         header("Content-Disposition: attachment; filename=".$tagfile);
         header("Content-Length:".filesize($pathtagfile));
         header("Content-Transfer-Encoding: binary");
@@ -1895,6 +1898,7 @@ function write_music_box_tag_file($tag_dir, $target_file_name, $tag_id, $branch_
     fclose($camp_species_file);
     fclose($camp_reactions_file);
 
+    print "\n\n";
 }
 
 // Writes the Music Box configuration file for a tagged mechanism
@@ -2003,38 +2007,45 @@ function write_camp_reactions_file($con, $file, $tag_id, $mechanism_name) {
     $unsupported_reaction_objects = array();
     $reaction_indent = 8;
     while($reaction = pg_fetch_array($gas_reactions)) {
-      switch($reaction['type']) {
-        case 'ARRHENIUS':
-          $reaction_objects[] = get_reaction_object_arrhenius($con, $reaction, $reaction_indent);
-          break;
-        case 'PHOTOLYSIS':
-          $reaction_objects[] = get_reaction_object_photolysis($con, $reaction, $reaction_indent);
-          break;
-        case 'TROE':
-          $reaction_objects[] = get_reaction_object_troe($con, $reaction, $reaction_indent);
-          break;
-        default:
-          $unsupported_reaction_objects[] = get_reaction_object_unsupported($con, $reaction, 4);
-          break;
-      }
+        switch($reaction['type']) {
+            case 'ARRHENIUS':
+                $reaction_objects[] = get_reaction_object_arrhenius($con, $reaction, $reaction_indent);
+                 break;
+            case 'PHOTOLYSIS':
+                $reaction_objects[] = get_reaction_object_photolysis($con, $reaction, $reaction_indent);
+                break;
+            case 'TROE':
+                $reaction_objects[] = get_reaction_object_troe($con, $reaction, $reaction_indent);
+                break;
+            default:
+                $rxn = new CustomReaction($con, $reaction);
+                $camp_rxns = $rxn->getCampReactions( );
+                if(count($camp_rxns)>0) {
+                    foreach($camp_rxns as $camp_rxn) {
+                        $reaction_objects[] = $camp_rxn->getCampConfiguration( $reaction_indent );
+                    }
+                } else {
+                    $unsupported_reaction_objects[] = get_reaction_object_unsupported($con, $reaction, 4);
+                };
+                break;
+        }
     }
     fwrite($file, implode(",\n", $reaction_objects));
     fwrite($file, "\n      ]\n");
     fwrite($file, "    }\n");
     if(count($unsupported_reaction_objects) > 0) {
-      fwrite($file, "  ],\n");
-      fwrite($file, "  \"comment\": [\n");
-      fwrite($file, "    \"These reactions are not yet supported by CAMP, " .
-                                        "but exist in the tagged mechanism.\",\n");
-      fwrite($file, "    \"They will be ignored during solving.\"\n");
-      fwrite($file, "  ],\n");
-      fwrite($file, "  \"unsupported reactions\": [\n");
-      fwrite($file, implode(",\n", $unsupported_reaction_objects));
-      fwrite($file, "\n");
+        fwrite($file, "  ],\n");
+        fwrite($file, "  \"comment\": [\n");
+        fwrite($file, "    \"These reactions are not yet supported by CAMP, " .
+                                          "but exist in the tagged mechanism.\",\n");
+        fwrite($file, "    \"They will be ignored during solving.\"\n");
+        fwrite($file, "  ],\n");
+        fwrite($file, "  \"unsupported reactions\": [\n");
+        fwrite($file, implode(",\n", $unsupported_reaction_objects));
+        fwrite($file, "\n");
     }
     fwrite($file, "  ]\n");
     fwrite($file, "}\n");
-
 }
 
 // Returns query results for gas-phase chemical species in a tagged mechanism
@@ -2070,7 +2081,7 @@ function tag_gas_reactions($con, $tag_id) {
 
     // get the ids and types for all gas-phase reactions
     $reactions_query =
-      "SELECT id, 'PHOTOLYSIS' AS type
+      "SELECT id, 'PHOTOLYSIS' AS type, rate AS label
          FROM photolysis
          INNER JOIN tag_photolysis ON tag_photolysis.photolysis_id = photolysis.id
          WHERE tag_photolysis.tag_id = ".$tag_id."
@@ -2081,7 +2092,7 @@ function tag_gas_reactions($con, $tag_id) {
              WHEN r1 IS NOT NULL AND r2 IS NOT NULL AND r3 IS NOT NULL AND
                   r4 IS NOT NULL AND r5 IS NOT NULL THEN 'TROE' 
              ELSE 'UNSUPPORTED'
-           END AS type
+           END AS type, label
          FROM reactions
          INNER JOIN tag_reactions ON tag_reactions.reaction_id = reactions.id
          WHERE tag_reactions.tag_id = ".$tag_id;
@@ -2111,45 +2122,34 @@ function get_reaction_object_arrhenius($con, $reaction, $indent) {
                           FROM reactionreactants
                           WHERE reaction_id = ".$reaction['id']."
                           GROUP BY moleculename";
-    $reactants = pg_query($con, $reactants_query);
+    $reactants_results = pg_query($con, $reactants_query);
+    $reactants = array();
+    while($reactant = pg_fetch_array($reactants_results)) {
+        $reactants[$reactant['name']] = array( "qty" => $reactant['qty'] );
+    }
 
     // Get the products
     $products_query = "SELECT moleculename AS name, coefficient AS yield
                          FROM reactionproducts
                          WHERE reaction_id = ".$reaction['id'];
-    $products = pg_query($con, $products_query);
-
-    $prefix = "";
-    for($i = 0; $i < $indent; ++$i) $prefix .= " ";
-    $object = $prefix."{\n" .
-              $prefix."  \"type\": \"ARRHENIUS\",\n";
-    if(!is_null($params['a'])) $object .= $prefix."  \"A\": ". $params['a'].       ",\n";
-    if(!is_null($params['c'])) $object .= $prefix."  \"Ea\": ".($params['c']*$k_B).",\n";
-    $object .= $prefix."  \"reactants\": {\n";
-    $reactant_objects = array();
-    while($reactant = pg_fetch_array($reactants)) {
-      if($reactant['qty'] == 1) {
-        $reactant_objects[] = $prefix."    \"".$reactant['name']."\": { }";
-      } else {
-        $reactant_objects[] = $prefix."    \"".$reactant['name']."\": { \"qty\": ".$reactant['qty']." }";
-      }
+    $products_results = pg_query($con, $products_query);
+    $products = array();
+    while($product = pg_fetch_array($products_results)) {
+        if(is_null($product['yield'])) {
+            $products[$product['name']] = array( );
+        } else {
+            $products[$product['name']] = array( "yield" => $product['yield'] );
+        }
     }
-    $object .= implode(",\n", $reactant_objects);
-    $object .= "\n".$prefix."  },\n";
-    $object .= $prefix."  \"products\": {\n";
-    $product_objects = array();
-    while($product = pg_fetch_array($products)) {
-      if(is_null($product['yield'])) {
-        $product_objects[] = $prefix."    \"".$product['name']."\": { }";
-      } else {
-        $product_objects[] = $prefix."    \"".$product['name']."\": { \"yield\": ".$product['yield']." }";
-      }
-    }
-    $object .= implode(",\n", $product_objects);
-    $object .= "\n".$prefix."  }\n";
-    $object .= $prefix."}";
 
-    return $object;
+    $rxn = CampReactionArrhenius::builder( )
+               ->reactants($reactants)
+               ->products( $products )
+               ->A(is_null($params['a']) ? 1 :  $params['a'])
+               ->C(is_null($params['c']) ? 0 : -$params['c'])
+               ->build( );
+
+    return $rxn->getCampConfiguration( $indent );
 
 }
 
@@ -2178,48 +2178,37 @@ function get_reaction_object_troe($con, $reaction, $indent) {
                           FROM reactionreactants
                           WHERE reaction_id = ".$reaction['id']."
                           GROUP BY moleculename";
-    $reactants = pg_query($con, $reactants_query);
+    $reactants_results = pg_query($con, $reactants_query);
+    $reactants = array();
+    while($reactant = pg_fetch_array($reactants_results)) {
+        $reactants[$reactant['name']] = array( "qty" => $reactant['qty'] );
+    }
 
     // Get the products
     $products_query = "SELECT moleculename AS name, coefficient AS yield
                          FROM reactionproducts
                          WHERE reaction_id = ".$reaction['id'];
-    $products = pg_query($con, $products_query);
-
-    $prefix = "";
-    for($i = 0; $i < $indent; ++$i) $prefix .= " ";
-    $object = $prefix."{\n" .
-              $prefix."  \"type\": \"TROE\",\n";
-    if(!is_null($params['k0_a']))   $object .= $prefix."  \"k0_A\": ".  $params['k0_a'].   ",\n";
-    if(!is_null($params['k0_b']))   $object .= $prefix."  \"k0_B\": ".  (-$params['k0_b']).",\n";
-    if(!is_null($params['kinf_a'])) $object .= $prefix."  \"kinf_A\": ".$params['kinf_a']. ",\n";
-    if(!is_null($params['n']))      $object .= $prefix."  \"N\": ".     $params['n'].      ",\n";
-    if(!is_null($params['fc']))     $object .= $prefix."  \"Fc\": ".    $params['fc'].     ",\n";
-    $object .= $prefix."  \"reactants\": {\n";
-    $reactant_objects = array();
-    while($reactant = pg_fetch_array($reactants)) {
-      if($reactant['qty'] == 1) {
-        $reactant_objects[] = $prefix."    \"".$reactant['name']."\": { }";
-      } else {
-        $reactant_objects[] = $prefix."    \"".$reactant['name']."\": { \"qty\": ".$reactant['qty']." }";
-      }
+    $products_results = pg_query($con, $products_query);
+    $products = array();
+    while($product = pg_fetch_array($products_results)) {
+        if(is_null($product['yield'])) {
+            $products[$product['name']] = array( );
+        } else {
+            $products[$product['name']] = array( "yield" => $product['yield'] );
+        }
     }
-    $object .= implode(",\n", $reactant_objects);
-    $object .= "\n".$prefix."  },\n";
-    $object .= $prefix."  \"products\": {\n";
-    $product_objects = array();
-    while($product = pg_fetch_array($products)) {
-      if(is_null($product['yield'])) {
-        $product_objects[] = $prefix."    \"".$product['name']."\": { }";
-      } else {
-        $product_objects[] = $prefix."    \"".$product['name']."\": { \"yield\": ".$product['yield']." }";
-      }
-    }
-    $object .= implode(",\n", $product_objects);
-    $object .= "\n".$prefix."  }\n";
-    $object .= $prefix."}";
 
-    return $object;
+    $rxn = CampReactionTroe::builder( )
+               ->reactants($reactants)
+               ->products( $products )
+               ->k0_A(  is_null($params['k0_a'])   ? 1   :  $params['k0_a'])
+               ->k0_B(  is_null($params['k0_b'])   ? 0   : -$params['k0_b'])
+               ->kinf_A(is_null($params['kinf_a']) ? 1   :  $params['kinf_a'])
+               ->Fc(    is_null($params['fc'])     ? 0.6 :  $params['fc'])
+               ->N(     is_null($params['n'])      ? 1   :  $params['n'])
+               ->build( );
+
+    return $rxn->getCampConfiguration( $indent );
 
 }
 

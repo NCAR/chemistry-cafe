@@ -12,6 +12,10 @@ switch($_GET['action'])  {
             get_all_wrf_rates();
             break;
 
+    case 'get_all_micm_rates' :
+            get_all_micm_rates();
+            break;
+
     case 'get_photolysis_by_id' :
             get_photolysis_by_id();
             break;
@@ -101,15 +105,32 @@ function get_all_wrf_rates() {
     echo json_encode($row_array);
 }
 
+function get_all_micm_rates() {
+    global $con;
+
+    $result = pg_prepare($con, "get_all_micm_rates",
+            "SELECT *
+             FROM micm_js
+             ORDER BY reaction;");
+
+    $micm_rates = pg_execute($con, "get_all_micm_rates", array());
+    $row_array = pg_fetch_all($micm_rates);
+
+    echo json_encode($row_array);
+}
+
+
 function get_all_photolysis() {
 
     global $con;
 
     $result = pg_prepare($con, "get_all_photolysis",
-            "SELECT p.id, p.rate, p.moleculename, p.obsolete, p.group_id, p.wrf_photo_rates_coeff
+            "SELECT p.id, p.rate, p.moleculename, p.obsolete, p.group_id, p.wrf_photo_rates_coeff, p.micm_js_id, p.micm_js_coeff, mj.label
              FROM photolysis AS p 
              INNER JOIN photolysis_groups AS g 
              ON g.id=p.group_id 
+             LEFT JOIN micm_js as mj
+             on mj.id = p.micm_js_id
              ORDER BY g.ordering ASC, p.moleculename ASC;");
 
     $result = pg_prepare($con, "get_photolysis_products", 
@@ -127,6 +148,9 @@ function get_all_photolysis() {
       $row_array['rate'] = $reaction['rate'];
       $row_array['molecule'] = $reaction['moleculename'];
       $row_array['wrf_photo_rates_coeff'] = $reaction['wrf_photo_rates_coeff'];
+      $row_array['micm_js_coeff'] = $reaction['micm_js_coeff'];
+      $row_array['micm_js_id'] = $reaction['micm_js_id'];
+      $row_array['label'] = $reaction['label'];
       $row_array['obsolete'] = ($reaction['obsolete'] === 't') ;
       $row_array['productArray'] = array();
       $row_array['branchArray'] = array();
@@ -177,7 +201,7 @@ function get_photolysis_by_id() {
 
     global $con;
     $result = pg_prepare($con, "get_photolysis_by_id", 
-            "SELECT id, rate, moleculename, obsolete, wrf_photo_rates_id, wrf_photo_rates_coeff, group_id FROM photolysis WHERE id = $1;");
+            "SELECT id, rate, moleculename, obsolete, wrf_photo_rates_id, wrf_photo_rates_coeff, micm_js_id, micm_js_coeff, group_id FROM photolysis WHERE id = $1;");
 
     $result = pg_prepare($con, "get_branches_for_reaction", 
             "SELECT br.name FROM branchphotolysis AS p, branches AS br WHERE br.id = p.branch_id AND p.photolysis_id = $1 ORDER BY br.name;");
@@ -198,6 +222,9 @@ function get_photolysis_by_id() {
     $row_array['group_id'] = $reaction['group_id'];
     $row_array['wrf_photo_rates_id'] = $reaction['wrf_photo_rates_id'];
     $row_array['wrf_photo_rates_coeff'] = $reaction['wrf_photo_rates_coeff'];
+    $row_array['micm_js_id'] = $reaction['micm_js_id'];
+    $row_array['micm_js_coeff'] = $reaction['micm_js_coeff'];
+    $row_array['selectedMicmRateId'] = $reaction['micm_js_id'];
     $row_array['molecule'] = $reaction['moleculename'];
     $row_array['obsolete'] = ($reaction['obsolete'] === 't');
     $row_array['productArray'] = array();
@@ -276,7 +303,7 @@ function mod_photolysis (){
     global $con;
 
     $result = pg_prepare($con, "add_photolysis", 
-            "INSERT INTO photolysis (rate, moleculename, wrf_photo_rates_id, wrf_photo_rates_coeff, group_id) VALUES ($1, $2, $3, $4, $5) RETURNING id;"); 
+            "INSERT INTO photolysis (rate, moleculename, wrf_photo_rates_id, wrf_photo_rates_coeff, micm_js_id, micm_js_coeff,group_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;"); 
 
     $result = pg_prepare($con, "add_photolysis_products", 
             "INSERT INTO photolysisproducts (photolysisid, moleculename, coefficient) VALUES ($1,$2, $3);");
@@ -298,6 +325,8 @@ function mod_photolysis (){
     $branchArray  = $data->branchArray;
     $rate         = $data->rate;
     $molecule     = $data->molecule;
+    $micm_js_id    = $data->micm_js_id;
+    $micm_js_coeff = $data->micm_js_coeff;
     $wrf_photo_rates_id    = $data->wrf_photo_rates_id;
     $wrf_photo_rates_coeff = $data->wrf_photo_rates_coeff;
     $productArray          = $data->productArray;
@@ -309,7 +338,7 @@ function mod_photolysis (){
     $out = "Begin Transaction, safe:".$safe_to_commit."\n";
 
     // add photolysis
-    $result = pg_execute($con, "add_photolysis", array($rate, $molecule, $wrf_photo_rates_id, $wrf_photo_rates_coeff, $group_id));
+    $result = pg_execute($con, "add_photolysis", array($rate, $molecule, $wrf_photo_rates_id, $wrf_photo_rates_coeff, $micm_js_id, $micm_js_coeff, $group_id));
     $new_photolysis_id = pg_fetch_array($result)[0];
     $safe_to_commit = $safe_to_commit && ($new_photolysis_id>-1);
     $out = $out . "safe".$safe_to_commit." new photolysis with pid ".$new_photolysis_id."\n New wrf rate:".$wrf_photo_rates_id."\n";
@@ -421,7 +450,7 @@ function add_photolysis_and_products (){
     global $con;
 
     $result = pg_prepare($con, "add_photolysis", 
-            "INSERT INTO photolysis (rate, moleculename, wrf_photo_rates_id, wrf_photo_rates_coeff, group_id) VALUES ($1, $2, $3, $4, $5) RETURNING id;"); 
+            "INSERT INTO photolysis (rate, moleculename, wrf_photo_rates_id, wrf_photo_rates_coeff, micm_js_id, micm_js_coeff, group_id) VALUES ($1, $2, $3, $4, $5) RETURNING id;"); 
 
     $result = pg_prepare($con, "add_photolysis_products",
             "INSERT INTO photolysisproducts (photolysisid, moleculename, coefficient) VALUES ($1,$2, $3);");
@@ -438,6 +467,8 @@ function add_photolysis_and_products (){
     $molecule       = $data->molecule;
     $rate           = $data->rate;
     $productArray   = $data->productArray;
+    $micm_js_id    = $data->micm_js_id;
+    $micm_js_coeff = $data->micm_js_coeff;
     $wrf_photo_rates_id    = $data->wrf_photo_rates_id;
     $wrf_photo_rates_coeff = $data->wrf_photo_rates_coeff;
     $newComment            = $data->newComment;
@@ -449,7 +480,7 @@ function add_photolysis_and_products (){
     $out .= "Begin Transaction, safe:".$safe_to_commit."\n";
 
     // add photolysis
-    $result = pg_execute($con, "add_photolysis", array($rate, $molecule, $wrf_photo_rates_id, $wrf_photo_rates_coeff, $group_id));
+    $result = pg_execute($con, "add_photolysis", array($rate, $molecule, $wrf_photo_rates_id, $wrf_photo_rates_coeff, $micm_js_id, $micm_js_coeff, $group_id));
     $out = $out . "molecule:".$molecule.":rate:".$rate.":\n";
     $new_photolysis_id = pg_fetch_array($result)[0];
     $out = $out . "pid:".$new_photolysis_id."\n";
