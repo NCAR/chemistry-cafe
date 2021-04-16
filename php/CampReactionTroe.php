@@ -47,13 +47,18 @@ class CampReactionTroe extends CampReaction
         };
     }
 
+    // Music box reaction name
+    protected function getReactionType( ): string {
+        return "TROE";
+    }
+
     // Returns the CAMP configuration json object for the reaction
     // as a string with the specified indent.
     public function getCampConfiguration(int $indent = 0): string {
         $prefix = "";
         for($i = 0; $i < $indent; ++$i) $prefix .= " ";
         $config  = $prefix."{\n";
-        $config .= $prefix."  \"type\": \"TROE\",\n";
+        $config .= $prefix."  \"type\": \"".$this->getReactionType( )."\",\n";
         if($this->k0_A_    != 1)   $config .= $prefix."  \"k0_A\": ".  $this->k0_A_.  ",\n";
         if($this->k0_B_    != 0)   $config .= $prefix."  \"k0_B\": ".  $this->k0_B_.  ",\n";
         if($this->k0_C_    != 0)   $config .= $prefix."  \"k0_C\": ".  $this->k0_C_.  ",\n";

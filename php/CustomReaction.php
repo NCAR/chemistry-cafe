@@ -1,6 +1,7 @@
 <?php
 
 include_once('CampReactionArrhenius.php');
+include_once('CampReactionTernaryChemicalActivation.php');
 include_once('CampReactionTroe.php');
 
 //
@@ -90,6 +91,15 @@ class CustomReaction
                 break;
             case "usr_CH3COCH3_OH":
                 $reactions = $this->getReactionsCh3coch3Oh( );
+                break;
+            case "usr_CL2O2_M":
+                $reactions = $this->getReactionsCl2o2M( );
+                break;
+            case "usr_SO3_H2O":
+                $reactions = $this->getReactionsSo3H2o( );
+                break;
+            case "usr_CO_OH_b":
+                $reactions = $this->getReactionsCoOhB( );
                 break;
             default:
                 print "\nWarning: Custom function $this->custom_rate_constant_name_ is unsupported.";
@@ -345,6 +355,48 @@ class CustomReaction
                           ->reactants( $this->original_reactants_ )
                           ->products(  $this->original_products_  )
                           ->A( 1.33e-13 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_CL2O2_M
+    //
+    private function getReactionsCl2o2M( ) {
+        return array( CampReactionArrhenius::builder( )
+                          ->reactants( $this->original_reactants_ )
+                          ->products(  $this->original_products_  )
+                          ->A( 3e-11 * 2.16e-27 )
+                          ->C( 2450 + 8537 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_SO3_H2O
+    //
+    private function getReactionsSo3H2o( ) {
+        $reactants = array_merge( $this->original_reactants_, ['H2O' => []]);
+        $products  = array_merge( $this->original_products_,  ['H2O' => []]);
+        return array( CampReactionArrhenius::builder( )
+                         ->reactants( $reactants )
+                         ->products(  $products  )
+                         ->A( 8.5e-21 )
+                         ->C( 6540 )
+                         ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_CO_OH_b
+    //
+    private function getReactionsCoOhB( ) {
+        return array( CampReactionTernaryChemicalActivation::builder( )
+                          ->reactants( $this->original_reactants_ )
+                          ->products(  $this->original_products_  )
+                          ->k0_A( 1.5e13 )
+                          ->kinf_A( 2.1e9 )
+                          ->kinf_B( 6.1 )
                           ->build( ) );
     }
 }
