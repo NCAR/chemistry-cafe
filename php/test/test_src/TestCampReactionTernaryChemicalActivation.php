@@ -1,12 +1,12 @@
 <?php
 //
-// Tests for the CampReactionTroe clas
+// Tests for the CampReactionTernaryChemicalActivation clas
 //
-include("CampReactionTroe.php");
+include("../../CampReactionTernaryChemicalActivation.php");
 
-function testCampReactionTroe( ) {
+function testCampReactionTernaryChemicalActivation( ) {
 
-    print "Running tests for CampReactionTroe\n";
+    print "Running tests for CampReactionTernaryChemicalActivation\n";
 
     $reactants = array( "FOO" => array( "qty" => 1 ),
                         "BAR" => array( "qty" => 3 ) );
@@ -14,11 +14,11 @@ function testCampReactionTroe( ) {
                         "BAR" => array( "yield" => 1.5 ),
                         "BAZ" => array( "yield" => 0.5 ) );
 
-    $rxn = CampReactionTroe::builder( )->build( );
+    $rxn = CampReactionTernaryChemicalActivation::builder( )->build( );
 
     $expected_string = <<<'EOD'
 {
-  "type": "TROE",
+  "type": "TERNARY_CHEMICAL_ACTIVATION",
   "reactants": {
 
   },
@@ -32,7 +32,7 @@ EOD;
 
     $expected_string = <<<'EOD'
     {
-      "type": "TROE",
+      "type": "TERNARY_CHEMICAL_ACTIVATION",
       "reactants": {
 
       },
@@ -44,7 +44,7 @@ EOD;
 
     assert($rxn->getCampConfiguration( 4 ) == $expected_string);
 
-    $rxn = CampReactionTroe::builder( )
+    $rxn = CampReactionTernaryChemicalActivation::builder( )
                ->reactants( $reactants )
                ->products( $products )
                ->k0_A( 2.5e-23 )
@@ -59,7 +59,7 @@ EOD;
 
     $expected_string = <<<'EOD'
 {
-  "type": "TROE",
+  "type": "TERNARY_CHEMICAL_ACTIVATION",
   "k0_A": 2.5E-23,
   "k0_B": 3.2,
   "k0_C": 2.4E-10,
@@ -86,6 +86,6 @@ EOD;
 }
 
 // Run the tests
-testCampReactionTroe( );
+testCampReactionTernaryChemicalActivation( );
 
 ?>

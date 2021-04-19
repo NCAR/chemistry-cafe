@@ -1,6 +1,7 @@
 .DS_Store
 php/pwd.php
 php/t.php
+php/test/build
 tag_files/*
 campp_skel/*
 login/*
