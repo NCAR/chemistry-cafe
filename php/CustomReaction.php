@@ -20,28 +20,10 @@ class CustomReaction
     protected $original_products_ = array( );
     protected const kBoltzmannErgK = 1.38065E-16; // [erg K-1]
 
-    public function __construct($con, $reaction) {
-        $reactants_query = "SELECT moleculename AS name,
-                                   COUNT(moleculename) AS qty
-                              FROM reactionreactants
-                              WHERE reaction_id = ".$reaction['id']."
-                              GROUP BY moleculename";
-        $reactants_results = pg_query($con, $reactants_query);
-        $this->original_reactants_ = array( );
-        while($reactant = pg_fetch_array($reactants_results)) {
-            $this->original_reactants_[$reactant['name']] =
-                array('qty' => $reactant['qty']);
-        }
-        $products_query = "SELECT moleculename AS name, coefficient AS yield
-                             FROM reactionproducts
-                             WHERE reaction_id = ".$reaction['id'];
-        $products_results = pg_query($con, $products_query);
-        $this->original_products_ = array( );
-        while($product = pg_fetch_array($products_results)) {
-            $this->original_products_[$product['name']] =
-                array('yield' => $product['yield']);
-        }
-        $this->custom_rate_constant_name_ = $reaction['label'];
+    public function __construct($name, $reactants, $products) {
+        $this->custom_rate_constant_name_ = $name;
+        $this->original_reactants_        = $reactants;
+        $this->original_products_         = $products;
     }
 
     // Returns a set of CAMP reaction objects that correspond to the original

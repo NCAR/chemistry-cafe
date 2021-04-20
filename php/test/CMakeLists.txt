@@ -15,15 +15,15 @@ enable_testing( )
 add_test(test_arrhenius                   ${CMAKE_BINARY_DIR}/TestCampReactionArrhenius.sh)
 add_test(test_troe                        ${CMAKE_BINARY_DIR}/TestCampReactionTroe.sh)
 add_test(test_ternary_chemical_activation ${CMAKE_BINARY_DIR}/TestCampReactionTernaryChemicalActivation.sh)
-add_test(test_custom_rates                ${CMAKE_BINARY_DIR}/TestCampCustomRates.sh)
+add_test(test_custom_reaction             ${CMAKE_BINARY_DIR}/TestCustomReaction.sh)
 
 ######################################################################
-# custom rates test
+# custom reactions test
 
-set(CUSTOM_RATES_SRC test_src/CAM/cam_module_stubs.F90
-                     test_src/CAM/driver.F90
-                     test_src/CAM/mo_usrrxt.F90)
+set(CUSTOM_REACTION_SRC test_src/CAM/cam_module_stubs.F90
+                        test_src/CAM/driver.F90
+                        test_src/CAM/mo_usrrxt.F90)
 
-add_executable(calculate_custom_rates ${CUSTOM_RATES_SRC})
+add_executable(calculate_custom_rate_constants ${CUSTOM_REACTION_SRC})
 
 ######################################################################

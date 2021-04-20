@@ -45,7 +45,7 @@ contains
     array_index = size( array )
   end function find_or_add
 
-  ! get a unique reaction index
+  ! gets a unique reaction index
   integer function get_rxt_ndx( label ) result( reaction_index )
     character(len=*), intent(in) :: label
     type(string_t) :: str_label
@@ -53,7 +53,7 @@ contains
     reaction_index = find_or_add( str_label, reaction_labels )
   end function get_rxt_ndx
 
-  ! get a unique species index
+  ! gets a unique species index
   integer function get_spc_ndx( label ) result( species_index )
     character(len=*), intent(in) :: label
     type(string_t) :: str_label
@@ -61,13 +61,62 @@ contains
     species_index = find_or_add( str_label, species_labels )
   end function get_spc_ndx
 
-  ! get a unique invariant species index
+  ! gets a unique invariant species index
   integer function get_inv_ndx( label ) result( species_index )
     character(len=*), intent(in) :: label
     type(string_t) :: str_label
     str_label%val_ = trim( label )
     species_index = find_or_add( str_label, invariant_species_labels )
   end function get_inv_ndx
+
+  ! returns all reaction labels as a single comma-separated string
+  function get_reaction_labels( ) result( labels )
+    character(len=:), allocatable :: labels
+    integer :: i
+    labels = ""
+    do i = 1, size( reaction_labels )
+      labels = labels//"REACTION:"//reaction_labels( i )%val_//","
+    end do
+    if( len( labels ) .gt. 0 ) labels = labels( 1 : len( labels ) - 1 )
+  end function get_reaction_labels
+
+  ! returns all species labels as a single comma-separated string
+  function get_species_labels( ) result( labels )
+    character(len=:), allocatable :: labels
+    integer :: i
+    labels = ""
+    do i = 1, size( species_labels )
+      labels = labels//"SPECIES:"//species_labels( i )%val_//","
+    end do
+    if( len( labels ) .gt. 0 ) labels = labels( 1 : len( labels ) - 1 )
+  end function get_species_labels
+
+  ! returns all invariant species labels as a single comma-separated string
+  function get_invariant_species_labels( ) result( labels )
+    character(len=:), allocatable :: labels
+    integer :: i
+    labels = ""
+    do i = 1, size( invariant_species_labels )
+      labels = labels//"INVARIANT:"//invariant_species_labels( i )%val_//","
+    end do
+    if( len( labels ) .gt. 0 ) labels = labels( 1 : len( labels ) - 1 )
+  end function get_invariant_species_labels
+
+  ! returns the number of reactions
+  integer function number_of_reactions( )
+    number_of_reactions = size( reaction_labels )
+  end function number_of_reactions
+
+  ! returns the number of species
+  integer function number_of_species( )
+    number_of_species = size( species_labels )
+  end function number_of_species
+
+  ! returns the number of invariant species
+  integer function number_of_invariant_species( )
+    number_of_invariant_species = size( invariant_species_labels )
+  end function number_of_invariant_species
+
 end module mo_chem_utls
 
 module spmd_utils
