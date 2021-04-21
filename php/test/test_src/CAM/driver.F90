@@ -66,6 +66,7 @@ program driver
 
   ! initialize things
   call mo_setinv_init( )
+  call add_reaction_dependencies( )
   call usrrxt_inti( )
 
   ! calculate rates
@@ -101,6 +102,45 @@ program driver
   close( 7 )
 
 contains
+
+  ! For custom rate constant functions that are calculated from rate constants
+  ! of standard reactions, these must be added to rate constant list
+  subroutine add_reaction_dependencies( )
+    use shr_kind_mod,                  only : R8 => shr_kind_r8
+    call add_troe_reaction( 'tag_ACBZO2_NO2', &
+                            9.7e-29_R8, -5.6_R8, 9.3e-12_R8, 1.5_R8, 0.6_R8 )
+  end subroutine add_reaction_dependencies
+
+  ! Adds a Troe reaction in standard CAM format to the reaction list and
+  ! calculates its rate constant
+  subroutine add_troe_reaction( label, k0_A, k0_B, kinf_A, N, Fc )
+    use mo_chem_utls,                  only : get_rxt_ndx
+    use shr_kind_mod,                  only : R8 => shr_kind_r8
+    character(len=*), intent(in) :: label
+    real(R8), intent(in) :: k0_A, k0_B, kinf_A, N, Fc
+    real(R8) :: k0, kinf
+    integer :: i_rxn, i_level
+    i_rxn = get_rxt_ndx( label )
+    do i_level = 1, pver
+      k0 = k0_A * (temp(1,i_level) / 300.0)**k0_B
+      kinf = kinf_A
+      rxt(1,i_level,i_rxn) = &
+          k0 * m(1,i_level) / (1.0 + k0 * m(1,i_level) / kinf ) * &
+          Fc**(1.0 + 1.0/(1.0/N * (log10(k0 * m(1,i_level)/kinf))**2 ) )
+    end do
+  end subroutine add_troe_reaction
+
+  ! Adds an Arrhenius reaction in standard CAM format to the reaction list and
+  ! calculates its rate constant
+  subroutine add_arrhenius_reaction( label, A, B, C )
+    use mo_chem_utls,                  only : get_rxt_ndx
+    use shr_kind_mod,                  only : R8 => shr_kind_r8
+    character(len=*), intent(in) :: label
+    real(R8), intent(in) :: A, B, C
+    integer :: i_rxn
+    i_rxn = get_rxt_ndx( label )
+    rxt(1,:,i_rxn) = A * exp( C / temp(1,:) ) * (temp(1,:)/300.0)**B
+  end subroutine add_arrhenius_reaction
 
   ! converts a 8-byte real to a string
   function real_to_string( val )

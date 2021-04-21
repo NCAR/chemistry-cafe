@@ -7,18 +7,34 @@ include("TestUtilities.php");
 
 function testCustomReaction( ) {
 
-    $reactants = array( );
-    $products  = array( );
+    $troposphere_reactions  = [ 'usr_DMS_OH', 'usr_PBZNIT_M' ];
+    $stratosphere_reactions = array( );
     $file_dict = loadDictionaryFromCsvFile( 'out/original_rate_constants.csv' );
-    $troposphere_environment  = extract_environment_data( $file_dict[ 0 ] );
-    $stratosphere_environment = extract_environment_data( $file_dict[ 2 ] );
 
-    $rxn = new CustomReaction( 'usr_DMS_OH', $reactants, $products );
-    $camp_rxns = $rxn->getCampReactions( );
-    assert_equal_rates( $camp_rxns, $file_dict[ 0 ][ "REACTION:usr_DMS_OH" ],
-                        $troposphere_environment );
+    foreach( $troposphere_reactions  as $name ) test_troposphere_reaction(  $name, $file_dict );
+    foreach( $stratosphere_reactions as $name ) test_stratosphere_reaction( $name, $file_dict );
 
     print "\nPassed!\n\n";
+}
+
+// Test a custom rate constant refactoring under Tropospheric conditions
+function test_troposphere_reaction( $name, $file_dict ) {
+    $reactants = array( );
+    $products  = array( );
+    $environment = extract_environment_data( $file_dict[ 0 ] );
+    $rxn = new CustomReaction( $name, $reactants, $products );
+    $camp_rxns = $rxn->getCampReactions( );
+    assert_equal_rates( $camp_rxns, $file_dict[ 0 ][ "REACTION:".$name ], $environment );
+}
+
+// Test a custom rate constant refactoring under Stratospheric conditions
+function test_stratosphere_reaction( $name, $file_dict ) {
+    $reactants = array( );
+    $products  = array( );
+    $environment = extract_environment_data( $file_dict[ 2 ] );
+    $rxn = new CustomReaction( $name, $reactants, $products );
+    $camp_rxns = $rxn->getCampReactions( );
+    assert_equal_rates( $camp_rxns, $file_dict[ 2 ][ "REACTION:".$name ], $environment );
 }
 
 // Extract environmental data from a file dictionary converting to CAMP names and units
@@ -37,6 +53,7 @@ function assert_equal_rates( $refactored_reactions, $original_rate_constant, $en
     foreach( $refactored_reactions as $reaction ) {
         $rate += $reaction->getRate( $environment );
     }
+    echo "\nComparing: ", $rate, " to ", $original_rate_constant, "\n";
     assert_almost_equal( $rate, $original_rate_constant );
 }
 
