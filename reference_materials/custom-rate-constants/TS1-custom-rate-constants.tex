@@ -3,6 +3,7 @@
 \usepackage{amsmath}
 \usepackage{chemformula}
 \usepackage{fancyvrb}
+\usepackage{hyperref}
 \usepackage{lipsum}
 \usepackage[margin=1in]{geometry}
 \usepackage{xcolor}
@@ -16,6 +17,15 @@
 \title{TS1 Custom Rate Constants}
 \author{Matt Dawson}
 \maketitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Introduction}
+
+To output chemical mechanisms from the Chemistry Caf\'{e} in Music Box format, the custom rate constants in CAM need to be addressed individually and either rearranged into one or more standard Music Box reaction types, or used to create new reaction types in Music Box. For now aerosol surface reactions will be ignored. For the gas-phase reactions of the TS1 mechanism, it appears that all but one reaction that uses a custom rate constant can be rearranged into sets of standard Music Box reactions. The one remaining reaction has been added to Music Box as the `ternary chemical activation' reaction type.
+
+The following sections present the original rate constant functions for all non-standard gas-phase TS1 reactions from \verb>cam/src/chemistry/mozart/mo_usrrxt.F90>, include notes I made as I navigated this code for the first time, and present a proposed refactoring into standard Music Box reaction types.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -44,13 +54,13 @@ This can be rearranged as a Troe reaction,
 
 \begin{equation}
 \begin{split}
-k & = \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{1+(1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \\
+k & = \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{(1+1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \\
 k_0 & = A_0 e^{\left( \frac{C_0}{T} \right)} \left( \frac{T}{300} \right)^{B_0} \\
 k_{inf} & = A_{inf} e^{\left( \frac{C_{inf}}{T} \right)} \left( \frac{T}{300} \right)^{B_{inf}}
 \end{split}
 \end{equation}
 
-\noindent where $F_C = 0$, $A_0 = 0.21 \times 1.7 \times 10^{-42}$, $B_0 = 0$, $C_0 = 7810$, $A_{inf} = \frac{1.7 \times 10^{-42}}{5.5 \times 10^{-31}}$, $B_{inf} = 0$, and $C_{inf} = 7810-7460$.
+\noindent where $F_C = 1$, $A_0 = 0.21 \times 1.7 \times 10^{-42}$, $B_0 = 0$, $C_0 = 7810$, $A_{inf} = \frac{1.7 \times 10^{-42}}{5.5 \times 10^{-31}}$, $B_{inf} = 0$, and $C_{inf} = 7810-7460$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -172,11 +182,11 @@ I will assume that these modules are written by some pre-processor and hope that
         },
 \end{blockcode}
 
-\noindent as this is the only reaction with \verb>ACBZO2> and \verb>NO2> as products. If this is the case, the \verb>usr_PBZNIT_M> rate is:
+\noindent as this is the only reaction with \verb>ACBZO2> and \verb>NO2> as reactants. If this is the case, the \verb>usr_PBZNIT_M> rate is:
 
 \begin{equation}
 \begin{split}
-k & = \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{1+(1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} 1.111 \times 10^{28} e^{\left(\frac{-14000}{T}\right)}\\
+k & = \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{(1+1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} 1.111 \times 10^{28} e^{\left(\frac{-14000}{T}\right)}\\
 k_0 & = A_0 e^{\left( \frac{C_0}{T} \right)} \left( \frac{T}{300} \right)^{B_0} \\
 k_{inf} & = A_{inf} e^{\left( \frac{C_{inf}}{T} \right)} \left( \frac{T}{300} \right)^{B_{inf}}
 \end{split}
@@ -186,7 +196,7 @@ k_{inf} & = A_{inf} e^{\left( \frac{C_{inf}}{T} \right)} \left( \frac{T}{300} \r
 
 \begin{equation}
 \begin{split}
-k & = \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{1+(1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \\
+k & = \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{(1+1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \\
 k_0 & = A_0 e^{\left( \frac{C_0}{T} \right)} \left( \frac{T}{300} \right)^{B_0} \\
 k_{inf} & = A_{inf} e^{\left( \frac{C_{inf}}{T} \right)} \left( \frac{T}{300} \right)^{B_{inf}}
 \end{split}
@@ -278,7 +288,7 @@ Following the same logic as for \verb>usr_PBZNIT_M>, the \verb>tag_NO2_NO3_ndx> 
 
 \begin{equation}
 \begin{split}
-k & = \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{1+(1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \\
+k & = \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{(1+1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \\
 k_0 & = A_0 e^{\left( \frac{C_0}{T} \right)} \left( \frac{T}{300} \right)^{B_0} \\
 k_{inf} & = A_{inf} e^{\left( \frac{C_{inf}}{T} \right)} \left( \frac{T}{300} \right)^{B_{inf}}
 \end{split}
@@ -328,7 +338,7 @@ Following the same logic as for \verb>usr_PBZNIT_M>, the \verb>tag_NO2_HO2_ndx> 
 
 \begin{equation}
 \begin{split}
-k & = \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{1+(1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \\
+k & = \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{(1+1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \\
 k_0 & = A_0 e^{\left( \frac{C_0}{T} \right)} \left( \frac{T}{300} \right)^{B_0} \\
 k_{inf} & = A_{inf} e^{\left( \frac{C_{inf}}{T} \right)} \left( \frac{T}{300} \right)^{B_{inf}}
 \end{split}
@@ -392,6 +402,10 @@ k = Ae^{(\frac{C}{T})}(\frac{T}{D})^B(1.0+E \times P),
 \section{usr\_MPAN\_M}
 
 \begin{blockcode}[commandchars=\\\{\}]
+\color{gray}cam/src/chemistry/mozart/mo_usrrxt.F90 (971,971)
+       call comp_exp( exp_fac, -14000._r8*tinv, ncol )
+\end{blockcode}
+\begin{blockcode}[commandchars=\\\{\}]
 \color{gray}cam/src/chemistry/mozart/mo_usrrxt.F90 (987,996)
 !-----------------------------------------------------------------
 ! ... mpan + m --> mco3 + no2 + m (JPL15-10)
@@ -438,7 +452,9 @@ This rate constant calculation appears to be based on the reaction:
                                                                                                         f=0.60
 \end{blockcode}
 
-\textit{\Large Is this rate constant being calculated for the TS1 mechanism?}
+After discussion with Louisa and Becky, the Troe reaction for \ch{MCO3 + NO2 ->[M] MPAN} is the correct one to use, with $F_c = 0.6$, $N = 1.5$, $A_0 = 9.7 \times 10^{-29}$, $B_0 = -5.6$, $C_0 = 0$, $A_{inf} = 9.3 \times 10^{-12}$, $B_{inf} = 0$, and $C_{inf} = 0$.
+
+This means the \verb>usr_MPAN_M> reaction can be rearranged as a Troe reaction with $F_c = 0.6$, $N = 1.5$, $A_0 = 9.7 \times 10^{-29} \times 1.111 \times 10^{28}$, $B_0 = -5.6$, $C_0 = -14000$, $A_{inf} = 9.3 \times 10^{-12} \times 1.111 \times 10^{28}$, $B_{inf} = 0$, and $C_{inf} = -14000$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -460,7 +476,7 @@ This is a Troe reaction:
 
 \begin{equation}
 \begin{split}
-k & = \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{1+(1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \\
+k & = \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{(1+1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \\
 k_0 & = A_0 e^{\left( \frac{C_0}{T} \right)} \left( \frac{T}{300} \right)^{B_0} \\
 k_{inf} & = A_{inf} e^{\left( \frac{C_{inf}}{T} \right)} \left( \frac{T}{300} \right)^{B_{inf}}
 \end{split}
@@ -468,10 +484,25 @@ k_{inf} & = A_{inf} e^{\left( \frac{C_{inf}}{T} \right)} \left( \frac{T}{300} \r
 
 \noindent where $F_C = 0.6$, $N = 1.0$, $A_0 = 3 \times 10^{-31}$, $B_0 = -3.3$, $C_0 = 0$, $A_{inf} = 1.5 \times 10^{-12}$, $B_{inf} = 0$, and $C_{inf} = 0$.
 
+The parameters for this reaction appear to come from DeMore et al. 1997 (\url{https://jpldataeval.jpl.nasa.gov/pdf/Atmos97_Anotated.pdf} page 129).
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{usr\_CO\_OH\_a}
 
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}cime/src/share/util/shr_const_mod.F90 (24,24)
+   real(R8),parameter :: SHR_CONST_BOLTZ   = 1.38065e-23_R8  ! Boltzmann's constant ~ J/K/molecule
+\end{blockcode}
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}cam/src/utils/physconst.F90 (60,60)
+real(r8), public, parameter :: boltz       = shr_const_boltz      ! Boltzman's constant (J/K/molecule)
+\end{blockcode}
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}cam/src/chemistry/utils/mo_constants.F90 (25,25)
+  real(r8), parameter ::  boltz_cgs   = boltz*1.e7_r8       ! erg/K
+\end{blockcode}
 \begin{blockcode}[commandchars=\\\{\}]
 \color{gray}cam/src/chemistry/mozart/mo_usrrxt.F90 (914,920)
 !-----------------------------------------------------------------
@@ -505,7 +536,7 @@ k = Ae^{(\frac{C}{T})}(\frac{T}{D})^B(1.0+E \times P),
 \item $A = 1.5 \times 10^{-13} \times 6 \times 10^{-7} \times k_B$, $B = 1$, $C = 0$, $D = 1$, and $E = 0$.
 \end{itemize}
 
-\noindent where $k_B$ is the Boltzmann constant [erg $\mbox{K}^{-1}$]. Yes, that's right, in erg.
+\noindent where $k_B$ is the Boltzmann constant [erg $\mbox{K}^{-1}$]. \textbf{Watch out for the non-SI unit erg.}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -588,7 +619,7 @@ Following the same logic as for \verb>usr_PBZNIT_M>, the \verb>tag_CH3CO3_NO2_nd
 
 \begin{equation}
 \begin{split}
-k & = \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{1+(1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \\
+k & = \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{(1+1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \\
 k_0 & = A_0 e^{\left( \frac{C_0}{T} \right)} \left( \frac{T}{300} \right)^{B_0} \\
 k_{inf} & = A_{inf} e^{\left( \frac{C_{inf}}{T} \right)} \left( \frac{T}{300} \right)^{B_{inf}}
 \end{split}
@@ -634,13 +665,13 @@ with a Troe rate constant:
 
 \begin{equation}
 \begin{split}
-k & = \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{1+(1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \\
+k & = \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{(1+1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \\
 k_0 & = A_0 e^{\left( \frac{C_0}{T} \right)} \left( \frac{T}{300} \right)^{B_0} \\
 k_{inf} & = A_{inf} e^{\left( \frac{C_{inf}}{T} \right)} \left( \frac{T}{300} \right)^{B_{inf}}
 \end{split}
 \end{equation}
 
-\noindent where $F_C = 0.0$, $A_0 = 6.5 \times 10^{-34}$, $B_0 = 0$, $C_0 = 1335$, $A_{inf} = 2.7 \times 10^{-17}$, $B_{inf} = 0$, and $C_{inf} = 2199$.
+\noindent where $F_C = 1$, $A_0 = 6.5 \times 10^{-34}$, $B_0 = 0$, $C_0 = 1335$, $A_{inf} = 2.7 \times 10^{-17}$, $B_{inf} = 0$, and $C_{inf} = 2199$.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -705,6 +736,151 @@ k = Ae^{(\frac{C}{T})}(\frac{T}{D})^B(1.0+E \times P),
   \item $A = 1.33 \times 10^{-13}$, $B = 0$, $C = 0$, and $E = 0$.
 \end{itemize}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_CL2O2\_M}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}cam/src/chemistry/mozart/mo_usrrxt.F90 (817,827)
+!-----------------------------------------------------------------
+!   ... cl2o2 + m -> 2*clo + m  (JPL15-10)
+!-----------------------------------------------------------------
+       if ( usr_CL2O2_M_ndx > 0 ) then
+          if ( tag_CLO_CLO_M_ndx > 0 ) then
+             ko(:)            = 2.16e-27_r8 * exp( 8537.0_r8* tinv(:) )
+             rxt(:,k,usr_CL2O2_M_ndx) = rxt(:,k,tag_CLO_CLO_M_ndx)/ko(:)
+          else
+             rxt(:,k,usr_CL2O2_M_ndx) = 0._r8
+          end if
+       end if
+\end{blockcode}
+
+Following the same logic as for \verb>usr_PBZNIT_M>, the \verb>tag_CLO_CLO_M_ndx> reaction is identified as:
+
+\begin{blockcode}
+        {
+          "type": "ARRHENIUS",
+          "A": 3e-11,
+          "Ea": -3.38259005E-20,
+          "reactants": {
+            "CLO": { "qty": 2 }
+          },
+          "products": {
+            "CL": { "yield": 2 },
+            "O2": { }
+          }
+        },
+\end{blockcode}
+
+\noindent and can be rearranged as an Arrhenius reaction:
+
+\begin{equation}
+\begin{split}
+k = Ae^{(\frac{C}{T})}(\frac{T}{D})^B(1.0+E \times P),
+\end{split}
+\end{equation}
+
+\noindent where $A = 3 \times 10^{-11} / \left(2.16 \times 10^{-27}\right)$, $B = 0$, $C = 2450 - 8537$, and $E = 0$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_SO3\_H2O}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}cam/src/chemistry/mozart/mo_usrrxt.F90 (829,847)
+!-----------------------------------------------------------------
+!       ... so3 + 2*h2o --> h2so4 + h2o
+!       Note: this reaction proceeds by the 2 intermediate steps below
+!           so3 + h2o --> adduct
+!           adduct + h2o --> h2so4 + h2o
+!               (Lovejoy et al., JCP, pp. 19911-19916, 1996)
+! The first order rate constant used here is recommended by JPL 2011.
+! This rate involves the water vapor number density.
+!-----------------------------------------------------------------
+
+       if ( usr_SO3_H2O_ndx > 0 ) then
+          call comp_exp( exp_fac, 6540.0_r8*tinv(:), ncol )
+          if( h2o_ndx > 0 ) then
+             fc(:) = 8.5e-21_r8 * m(:,k) * h2ovmr(:,k) * exp_fac(:)
+          else
+             fc(:) = 8.5e-21_r8 * invariants(:,k,inv_h2o_ndx) * exp_fac(:)
+          end if
+          rxt(:,k,usr_SO3_H2O_ndx) = 1.0e-20_r8 * fc(:)
+       end if
+\end{blockcode}
+
+As for \verb>usr_HO2_HO2>, the term \verb>m(:,k) * h2ovmr(:,k)> is taken to be the water vapor number density. Interestingly, the use of the \verb>invariants> array here when $\mbox{h2o\_ndx} <= 0$ is not used in the calculation of \verb>usr_HO2_HO2>.
+\vspace{20px}
+
+\textit{\Large Should the invariants array be used for the water number density whenever $\mbox{h2o\_ndx} <= 0$ ?}
+
+\vspace{20px}
+This can be rearranged as:
+\vspace{20px}
+
+\ch{SO3 + H2O ->[H2O] H2SO4}
+
+\vspace{20px}
+\noindent with an Arrhenius rate constant:
+
+\begin{equation}
+\begin{split}
+k = Ae^{(\frac{C}{T})}(\frac{T}{D})^B(1.0+E \times P),
+\end{split}
+\end{equation}
+
+\noindent where $A = 8.5 \times 10^{-41}$, $B = 0$, $C = 6540$, and $E = 0$.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_CO\_OH\_b}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}cam/src/chemistry/mozart/mo_usrrxt.F90 (227,227)
+  real(r8), parameter :: t0     = 300._r8                ! K
+\end{blockcode}
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}cam/src/chemistry/mozart/mo_usrrxt.F90 (829,847)
+!-----------------------------------------------------------------
+!   ... co + oh --> co2 + h (second branch JPL15-10, with CO+OH+M)
+!-----------------------------------------------------------------
+       if( usr_CO_OH_b_ndx > 0 ) then
+         kinf(:)  = 2.1e+09_r8 * (temp(:ncol,k)/ t0)**(6.1_r8)
+         ko  (:)  = 1.5e-13_r8
+
+         term1(:) = ko(:) / ( (kinf(:) / m(:,k)) )
+         term2(:) = ko(:) / (1._r8 + term1(:))
+
+         term1(:) = log10( term1(:) )
+         term1(:) = 1.0_r8 / (1.0_r8 + term1(:)*term1(:))
+
+         rxt(:ncol,k,usr_CO_OH_b_ndx) = term2(:) * (0.6_r8)**term1(:)
+       end if
+\end{blockcode}
+
+From JPL15-10, the second branch is:
+\vspace{20px}
+
+\ch{OH + CO ->[M] H + CO2}
+
+\vspace{20px}
+\noindent which ``proceed[s] via bound intermediates. For example, the reaction between HO and CO to yield \ch{H + CO2} takes place on a potential energy surface that contains the radical HOCO. The yield of H and \ch{CO2} is diminished as the pressure rises. The loss of reactants is thus the sum of two processes, an association to yield HOCO and the chemical activation process yielding H and CO2. The total rate constant for loss of reactants is fit by the equation above for the association added to the chemical activation rate constant.''
+
+The resulting rate constant equation is a Troe rate constant without $[\mbox{M}]$ in the numerator of the first term:
+
+\begin{equation}
+\begin{split}
+k & = \frac{k_0}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{(1+1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \\
+k_0 & = A_0 e^{\left( \frac{C_0}{T} \right)} \left( \frac{T}{300} \right)^{B_0} \\
+k_{inf} & = A_{inf} e^{\left( \frac{C_{inf}}{T} \right)} \left( \frac{T}{300} \right)^{B_{inf}}
+\end{split}
+\end{equation}
+
+This reaction type has been added to Music Box as ``\verb>TERNARY_CHEMICAL_ACTIVATION>.'' For this reaction, the rate constant parameters are: $A_0 = 1.5 \times 10^{13}$, $B_0 = 0$, $C_0 = 0$, $A_{inf} = 2.1 \times 10^9$, $B_{inf} = 6.1$, $C_{inf} = 0$, $F_c = 0.6$, and $N = 1$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \end{document}
