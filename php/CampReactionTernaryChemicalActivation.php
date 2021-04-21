@@ -5,7 +5,7 @@ include_once("CampReactionTroe.php");
 //
 // Generator of CAMP configuration data for ternary chemical activation reactions
 //
-//   k = k0 / ( 1 + k0 [M] / kinf ) Fc^( 1 + ( 1/N ( log10( k0 [M] / kinf ) )^2 )^-1
+//   k = k0 / ( 1 + k0 [M] / kinf ) Fc^( 1 + ( 1/N ( log10( k0 [M] / kinf ) )^2 )^-1 )
 //
 //   k0 = k0_A * exp( k0_C / T ) * ( T / 300 )^k0_B
 //
@@ -34,6 +34,27 @@ class CampReactionTernaryChemicalActivation extends CampReactionTroe
     protected function getReactionType( ): string {
         return "TERNARY_CHEMICAL_ACTIVATION";
     }
+
+    // Returns the rate for the reaction under given conditions
+    public function getRate($environment) {
+        $kinf =$this->kinf_A_ *
+               exp( $this->kinf_C_ / $environment[ 'temperature' ] ) *
+               pow( $environment[ 'temperature' ] / 300.0, $this->kinf_B_ );
+        $k0 =  $this->k0_A_ *
+               exp( $this->k0_C_ / $environment[ 'temperature' ] ) *
+               pow( $environment[ 'temperature' ] / 300.0, $this->k0_B_ );
+        $rate = $k0 /
+               ( 1 + $k0 * $environment[ 'M' ] / $kinf ) *
+               pow( $this->Fc_, 1 + pow( 1 / $this->N_ *
+                    pow( log10( $k0 * $environment[ 'M' ] / $kinf ), 2), -1 ) );
+        foreach($this->reactants_ as $reactant => $props) {
+            for($i = 0; $i < $props['qty']; ++$i) {
+                $rate *= $environment[ $reactant ];
+            }
+        }
+        return $rate;
+    }
+
 }
 
 // Abstract builder

@@ -102,7 +102,7 @@ class CustomReaction
                           ->k0_C( 7810 )
                           ->kinf_A( 1.7e-42 / ( 5.5e-31 ) )
                           ->kinf_C( 7810 - 7460 )
-                          ->Fc( 0 )
+                          ->Fc( 1 )
                           ->build( ) );
     }
 
@@ -301,7 +301,7 @@ class CustomReaction
                           ->k0_C( 1335 )
                           ->k0_A( 2.7e-17 )
                           ->k0_C( 2199 )
-                          ->Fc( 0 )
+                          ->Fc( 1 )
                           ->build( ) );
     }
 

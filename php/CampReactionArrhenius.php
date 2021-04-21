@@ -9,6 +9,7 @@ include_once("CampReaction.php");
 //
 class CampReactionArrhenius extends CampReaction
 {
+    protected const kBoltzmann_ = 1.380649e-23; // Boltzmann constant [J/K]
     private $reactants_;
     private $products_;
     private $A_;
@@ -36,7 +37,7 @@ class CampReactionArrhenius extends CampReaction
             }
         };
     }
-             
+
     // Returns the CAMP configuration json object for the reaction
     // as a string with the specified indent.
     public function getCampConfiguration(int $indent = 0): string {
@@ -75,6 +76,21 @@ class CampReactionArrhenius extends CampReaction
         $config .= "\n".$prefix."  }\n";
         $config .= $prefix."}";
         return $config;
+    }
+
+    // Returns the rate for the reaction under given conditions
+    public function getRate($environment) {
+        $rate = $this->A_ *
+            exp( -$this->Ea_ / ( self::kBoltzmann_ *
+                                 $environment[ 'temperature' ] ) ) *
+               pow( $environment[ 'temperature' ] / $this->D_, $this->B_ ) *
+               ( 1 + $this->E_ * $environment[ 'pressure' ] );
+        foreach($this->reactants_ as $reactant => $props) {
+            for($i = 0; $i < $props['qty']; ++$i) {
+                $rate *= $environment[ $reactant ];
+            }
+        }
+        return $rate;
     }
 }
 

@@ -17,4 +17,10 @@ function loadDictionaryFromCsvFile( $file_path ) {
     }
     return $dict;
 }
+
+// assert two values are equal within a tolerance
+function assert_almost_equal( $val1, $val2, $relative_tolerance = 1.0e-10 ) {
+    $diff = abs( $val1 - $val2 );
+    assert( $diff < abs( $val1 + $val2 ) / 2.0 );
+}
 ?>
