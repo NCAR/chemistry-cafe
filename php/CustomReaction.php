@@ -164,8 +164,8 @@ class CustomReaction
                           ->k0_A( 1.9e-31 / ( 2.1e-27 ) )
                           ->k0_B( -3.4 )
                           ->k0_C( -10900 )
-                          ->k0_A( 4e-12 / ( 2.1e-27 ) )
-                          ->k0_C( -10900 )
+                          ->kinf_A( 4e-12 / ( 2.1e-27 ) )
+                          ->kinf_C( -10900 )
                           ->N( 0.3 )
                           ->build( ) );
     }
@@ -175,12 +175,13 @@ class CustomReaction
     //   usr_HO2_HO2
     //
     private function getReactionsHo2Ho2( ) {
-        $r2_reactants = array_merge( $this->original_reactants_, ['M' => []]);
-        $r3_reactants = array_merge( $this->original_reactants_, ['H2O' => []]);
-        $r4_reactants = array_merge( $this->original_reactants_, ['M' => [], 'H2O' => []]);
-        $r2_products  = array_merge( $this->original_products_,  ['M' => []]);
+        $r2_reactants = array_merge( $this->original_reactants_, ['M'   => [ 'qty' => 1 ]]);
+        $r3_reactants = array_merge( $this->original_reactants_, ['H2O' => [ 'qty' => 1 ]]);
+        $r4_reactants = array_merge( $this->original_reactants_, ['M'   => [ 'qty' => 1 ],
+                                                                  'H2O' => [ 'qty' => 1 ]]);
+        $r2_products  = array_merge( $this->original_products_,  ['M'   => []]);
         $r3_products  = array_merge( $this->original_products_,  ['H2O' => []]);
-        $r4_products  = array_merge( $this->original_products_,  ['M' => [], 'H2O' => []]);
+        $r4_products  = array_merge( $this->original_products_,  ['M'   => [], 'H2O' => []]);
         return array( CampReactionArrhenius::builder( )
                           ->reactants( $this->original_reactants_ )
                           ->products(  $this->original_products_  )
@@ -243,8 +244,8 @@ class CustomReaction
     //   usr_CO_OH_a
     //
     private function getReactionsCoOhA( ) {
-        $r2_reactants = array_merge( $this->original_reactants_, ['M' => []]);
-        $r2_products  = array_merge( $this->original_products_,  ['M' => []]);
+        $r2_reactants = array_merge( $this->original_reactants_, ['M' => [ 'qty' => 1 ]]);
+        $r2_products  = array_merge( $this->original_products_,  ['M' => [ ]]);
         return array( CampReactionArrhenius::builder( )
                           ->reactants( $this->original_reactants_ )
                           ->products(  $this->original_products_  )
@@ -294,13 +295,19 @@ class CustomReaction
     //   usr_HNO3_OH
     //
     private function getReactionsHno3Oh( ) {
-        return array( CampReactionTroe::builder( )
+        return array( CampReactionArrhenius::builder( )
+                          ->reactants( $this->original_reactants_ )
+                          ->products(  $this->original_products_  )
+                          ->A( 2.4e-14 )
+                          ->C( 460 )
+                          ->build( ),
+                      CampReactionTroe::builder( )
                           ->reactants( $this->original_reactants_ )
                           ->products(  $this->original_products_  )
                           ->k0_A( 6.5e-34 )
                           ->k0_C( 1335 )
-                          ->k0_A( 2.7e-17 )
-                          ->k0_C( 2199 )
+                          ->kinf_A( 2.7e-17 )
+                          ->kinf_C( 2199 )
                           ->Fc( 1 )
                           ->build( ) );
     }
@@ -348,8 +355,8 @@ class CustomReaction
         return array( CampReactionArrhenius::builder( )
                           ->reactants( $this->original_reactants_ )
                           ->products(  $this->original_products_  )
-                          ->A( 3e-11 * 2.16e-27 )
-                          ->C( 2450 + 8537 )
+                          ->A( 3e-11 / 2.16e-27 )
+                          ->C( 2450 - 8537 )
                           ->build( ) );
     }
 
@@ -358,12 +365,12 @@ class CustomReaction
     //   usr_SO3_H2O
     //
     private function getReactionsSo3H2o( ) {
-        $reactants = array_merge( $this->original_reactants_, ['H2O' => []]);
+        $reactants = array_merge( $this->original_reactants_, ['H2O' => [ 'qty' => 1 ]]);
         $products  = array_merge( $this->original_products_,  ['H2O' => []]);
         return array( CampReactionArrhenius::builder( )
                          ->reactants( $reactants )
                          ->products(  $products  )
-                         ->A( 8.5e-21 )
+                         ->A( 8.5e-41 )
                          ->C( 6540 )
                          ->build( ) );
     }
@@ -376,7 +383,7 @@ class CustomReaction
         return array( CampReactionTernaryChemicalActivation::builder( )
                           ->reactants( $this->original_reactants_ )
                           ->products(  $this->original_products_  )
-                          ->k0_A( 1.5e13 )
+                          ->k0_A( 1.5e-13 )
                           ->kinf_A( 2.1e9 )
                           ->kinf_B( 6.1 )
                           ->build( ) );

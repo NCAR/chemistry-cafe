@@ -109,6 +109,16 @@ contains
     use shr_kind_mod,                  only : R8 => shr_kind_r8
     call add_troe_reaction( 'tag_ACBZO2_NO2', &
                             9.7e-29_R8, -5.6_R8, 9.3e-12_R8, 1.5_R8, 0.6_R8 )
+    call add_troe_reaction( 'tag_NO2_NO3', &
+                            2.4e-30_R8, -3.0_R8, 1.6e-12_R8, -0.1_R8, 0.6_R8 )
+    call add_troe_reaction( 'tag_NO2_HO2', &
+                            1.9e-31_R8, -3.4_R8, 4.0e-12_R8, 0.3_R8, 0.6_R8 )
+    call add_troe_reaction( 'tag_MCO3_NO2', &
+                            9.7e-29_R8, -5.6_R8, 9.3e-12_R8, 1.5_R8, 0.6_R8 )
+    call add_troe_reaction( 'tag_CH3CO3_NO2', &
+                            9.7e-29_R8, -5.6_R8, 9.3e-12_R8, 1.5_R8, 0.6_R8 )
+    call add_arrhenius_reaction( 'tag_CLO_CLO_M', &
+                                 3e-11_R8, 0.0_R8, 2450.0_R8 )
   end subroutine add_reaction_dependencies
 
   ! Adds a Troe reaction in standard CAM format to the reaction list and
@@ -126,7 +136,7 @@ contains
       kinf = kinf_A
       rxt(1,i_level,i_rxn) = &
           k0 * m(1,i_level) / (1.0 + k0 * m(1,i_level) / kinf ) * &
-          Fc**(1.0 + 1.0/(1.0/N * (log10(k0 * m(1,i_level)/kinf))**2 ) )
+          Fc**(1.0 / ( 1.0 + 1.0/N * (log10(k0 * m(1,i_level)/kinf))**2 ) )
     end do
   end subroutine add_troe_reaction
 

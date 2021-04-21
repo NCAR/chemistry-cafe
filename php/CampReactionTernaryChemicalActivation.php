@@ -45,8 +45,8 @@ class CampReactionTernaryChemicalActivation extends CampReactionTroe
                pow( $environment[ 'temperature' ] / 300.0, $this->k0_B_ );
         $rate = $k0 /
                ( 1 + $k0 * $environment[ 'M' ] / $kinf ) *
-               pow( $this->Fc_, 1 + pow( 1 / $this->N_ *
-                    pow( log10( $k0 * $environment[ 'M' ] / $kinf ), 2), -1 ) );
+               pow( $this->Fc_, pow( 1 + 1 / $this->N_ *
+                     pow( log10( $k0 * $environment[ 'M' ] / $kinf ), 2), -1 ) );
         foreach($this->reactants_ as $reactant => $props) {
             for($i = 0; $i < $props['qty']; ++$i) {
                 $rate *= $environment[ $reactant ];

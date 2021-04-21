@@ -13,16 +13,16 @@ include_once("CampReaction.php");
 //
 class CampReactionTroe extends CampReaction
 {
-    private $reactants_;
-    private $products_;
-    private $k0_A_;
-    private $k0_B_;
-    private $k0_C_;
-    private $kinf_A_;
-    private $kinf_B_;
-    private $kinf_C_;
-    private $Fc_;
-    private $N_;
+    protected $reactants_;
+    protected $products_;
+    protected $k0_A_;
+    protected $k0_B_;
+    protected $k0_C_;
+    protected $kinf_A_;
+    protected $kinf_B_;
+    protected $kinf_C_;
+    protected $Fc_;
+    protected $N_;
 
     protected function __construct(array $reactants, array $products, $k0_A,
         $k0_B, $k0_C, $kinf_A, $kinf_B, $kinf_C, $Fc, $N) {
@@ -105,7 +105,7 @@ class CampReactionTroe extends CampReaction
                pow( $environment[ 'temperature' ] / 300.0, $this->k0_B_ );
         $rate = $k0 * $environment[ 'M' ] /
                ( 1 + $k0 * $environment[ 'M' ] / $kinf ) *
-               pow( $this->Fc_, 1 + pow( 1 / $this->N_ *
+               pow( $this->Fc_, pow( 1 + 1 / $this->N_ *
                     pow( log10( $k0 * $environment[ 'M' ] / $kinf ), 2), -1 ) );
         foreach($this->reactants_ as $reactant => $props) {
             for($i = 0; $i < $props['qty']; ++$i) {
