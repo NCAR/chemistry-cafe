@@ -1995,9 +1995,18 @@ function write_camp_species_file($con, $file, $tag_id) {
 
 // Writes the CAMP reactions file for a tagged mechanism
 function write_camp_reactions_file($con, $file, $tag_id, $mechanism_name) {
+    // get the md5 checksum of the version of mo_usrrxt.F90 used in the tests for custom rates
+    $md5_file = file("md5_checksum_mo_usrrxt");
+    $line     = explode(" ", $md5_file[0]);
+    $checksum = $line[0];
 
     $gas_reactions = tag_gas_reactions($con, $tag_id);
     fwrite($file, "{\n");
+    fwrite($file, "  \"comments\": [ \"This mechanism may contain refactored reactions based on custom\",\n");
+    fwrite($file, "                \"rate constant functions in mo_usrrxt.F90 in the CAM source code.\",\n");
+    fwrite($file, "                \"As this file could change at any time, it is important that you\",\n");
+    fwrite($file, "                \"do an md5 checksum of mo_usrrxt.F90 from the version of CAM you\",\n");
+    fwrite($file, "                \"are using. The value should be: ".$checksum."\" ],\n");
     fwrite($file, "  \"pmc-data\": [\n");
     fwrite($file, "    {\n");
     fwrite($file, "      \"name\": \"".$mechanism_name."\",\n");

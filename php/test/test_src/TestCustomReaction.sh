@@ -20,6 +20,7 @@ else
     echo Failure
     exit 1
   else
+    md5sum CAM/mo_usrrxt.F90 > md5_checksum_mo_usrrxt
     echo PASS
     exit 0
   fi
