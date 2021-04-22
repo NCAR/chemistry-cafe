@@ -37,12 +37,12 @@ switch($_GET['action'])  {
 
     case 'tstfilewrite' :
             global $con;
-            $id = 288;
+            $id = 289;
             $branch_id = 78;
             $tags = pg_query($con,"SELECT filename FROM tags WHERE id = ".$id.";");
             $tagref= pg_fetch_array($tags,0,$result_type = PGSQL_ASSOC);
             //print_r($tagref['filename']);
-            $tagdir = '/home/some_test_dir/testdir/'.$tagref['filename'];
+            $tagdir = '/home/some-test-dir/testdir/'.$tagref['filename'];
             mkdir($tagdir);
             write_cesm_tag_file($tagdir,$tagref['filename'],$id, $branch_id);
             write_kpp_tag_file($tagdir,$tagref['filename'],$id, $branch_id);
@@ -2018,7 +2018,7 @@ function write_camp_reactions_file($con, $file, $tag_id, $mechanism_name) {
                 $reaction_objects[] = get_reaction_object_troe($con, $reaction, $reaction_indent);
                 break;
             default:
-                $rxn = new CustomReaction($con, $reaction);
+                $rxn = custom_reaction_from_database($con, $reaction);
                 $camp_rxns = $rxn->getCampReactions( );
                 if(count($camp_rxns)>0) {
                     foreach($camp_rxns as $camp_rxn) {
@@ -2046,6 +2046,29 @@ function write_camp_reactions_file($con, $file, $tag_id, $mechanism_name) {
     }
     fwrite($file, "  ]\n");
     fwrite($file, "}\n");
+}
+
+// Creates a new CustomReaction object from the database
+function custom_reaction_from_database($con, $reaction) : CustomReaction {
+    $reactants_query = "SELECT moleculename AS name,
+                               COUNT(moleculename) AS qty
+                          FROM reactionreactants
+                          WHERE reaction_id = ".$reaction['id']."
+                          GROUP BY moleculename";
+    $reactants_results = pg_query($con, $reactants_query);
+    $reactants = array( );
+    while($reactant = pg_fetch_array($reactants_results)) {
+        $reactants[$reactant['name']] = array('qty' => $reactant['qty']);
+    }
+    $products_query = "SELECT moleculename AS name, coefficient AS yield
+                         FROM reactionproducts
+                         WHERE reaction_id = ".$reaction['id'];
+    $products_results = pg_query($con, $products_query);
+    $products = array( );
+    while($product = pg_fetch_array($products_results)) {
+        $products[$product['name']] = array('yield' => $product['yield']);
+    }
+    return new CustomReaction($reaction['label'], $reactants, $products);
 }
 
 // Returns query results for gas-phase chemical species in a tagged mechanism
