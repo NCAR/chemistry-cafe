@@ -65,7 +65,7 @@ class CampReactionArrhenius extends CampReaction
         $config .= $prefix."  \"products\": {\n";
         $product_strings = array( );
         foreach($this->products_ as $name => $props) {
-            if(is_null($props['yield'])) {
+            if($props['yield'] == 1) {
                 $product_strings[] = $prefix."    \"".$name."\": { }";
             } else {
                 $product_strings[] = $prefix."    \"".$name."\": { \"yield\": "
@@ -110,11 +110,21 @@ abstract class CampReactionArrheniusBuilder
 
     public function reactants(array $reactants): CampReactionArrheniusBuilder {
         $this->reactants_ = $reactants;
+        foreach($this->reactants_ as $reactant => $props) {
+            if(!array_key_exists('qty', $props) || is_null($props['qty'])) {
+                $this->reactants_[$reactant]['qty'] = 1;
+            }
+        }
         return $this;
     }
 
     public function products(array $products): CampReactionArrheniusBuilder {
         $this->products_ = $products;
+        foreach($this->products_ as $product => $props) {
+            if(!array_key_exists('yield', $props) || is_null($props['yield'])) {
+                $this->products_[$product]['yield'] = 1;
+            }
+        }
         return $this;
     }
 

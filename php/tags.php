@@ -287,7 +287,7 @@ function create_tag() {
     write_cesm_tag_file($target_dir,$target_file_name, $tag_id, $branch_id);
     write_kpp_tag_file($target_dir, $target_file_name, $tag_id, $branch_id);
     write_tex($target_dir,$target_file_name, $tag_id, $branch_id);
-    write_music_box_tag_file($target_dir, $tagret_file_name, $tag_id, $branch_id);
+    write_music_box_tag_file($target_dir, $target_file_name, $tag_id, $branch_id);
 
     //tar up the files
     exec("cd ../tag_files ; tar -cf ".$target_file_name.".tar ".$target_file_name);
