@@ -84,11 +84,113 @@ class CustomReaction
             case "usr_CO_OH_b":
                 $reactions = $this->getReactionsCoOhB( );
                 break;
+            case "usr_ISOPB1O2_NOa":
+                $reactions = $this->getReactionsIsopb1o2NoA( );
+                break;
+            case "usr_ISOPB1O2_NOn":
+                $reactions = $this->getReactionsIsopb1o2NoN( );
+                break;
+            case "usr_ISOPB4O2_NOa":
+                $reactions = $this->getReactionsIsopb4o2NoA( );
+                break;
+            case "usr_ISOPB4O2_NOn":
+                $reactions = $this->getReactionsIsopb4o2NoN( );
+                break;
+            case "usr_ISOPED1O2_NOa":
+                $reactions = $this->getReactionsIsoped1o2NoA( );
+                break;
+            case "usr_ISOPED1O2_NOn":
+                $reactions = $this->getReactionsIsoped1o2NoN( );
+                break;
+            case "usr_ISOPED4O2_NOa":
+                $reactions = $this->getReactionsIsoped4o2NoA( );
+                break;
+            case "usr_ISOPED4O2_NOn":
+                $reactions = $this->getReactionsIsoped4o2NoN( );
+                break;
+            case "usr_ISOPZD1O2_NOa":
+                $reactions = $this->getReactionsIsopzd1o2NoA( );
+                break;
+            case "usr_ISOPZD1O2_NOn":
+                $reactions = $this->getReactionsIsopzd1o2NoN( );
+                break;
+            case "usr_ISOPZD4O2_NOa":
+                $reactions = $this->getReactionsIsopzd4o2NoA( );
+                break;
+            case "usr_ISOPZD4O2_NOn":
+                $reactions = $this->getReactionsIsopzd4o2NoN( );
+                break;
             case "usr_ISOPNO3_NOa":
                 $reactions = $this->getReactionsIsopno3NoA( );
                 break;
             case "usr_ISOPNO3_NOn":
                 $reactions = $this->getReactionsIsopno3NoN( );
+                break;
+            case "usr_MVKO2_NOa":
+                $reactions = $this->getReactionsMvko2NoA( );
+                break;
+            case "usr_MVKO2_NOn":
+                $reactions = $this->getReactionsMvko2NoN( );
+                break;
+            case "usr_MACRO2_NOa":
+                $reactions = $this->getReactionsMacro2NoA( );
+                break;
+            case "usr_MACRO2_NOn":
+                $reactions = $this->getReactionsMacro2NoN( );
+                break;
+            case "usr_IEPOXOO_NOa":
+                $reactions = $this->getReactionsIepoxooNoA( );
+                break;
+            case "usr_IEPOXOO_NOn":
+                $reactions = $this->getReactionsIepoxooNoN( );
+                break;
+            case "usr_ISOPN1DO2_NOa":
+                $reactions = $this->getReactionsIsopn1do2NoA( );
+                break;
+            case "usr_ISOPN1DO2_NOn":
+                $reactions = $this->getReactionsIsopn1do2NoN( );
+                break;
+            case "usr_ISOPN2BO2_NOa":
+                $reactions = $this->getReactionsIsopn2bo2NoA( );
+                break;
+            case "usr_ISOPN2BO2_NOn":
+                $reactions = $this->getReactionsIsopn2bo2NoN( );
+                break;
+            case "usr_ISOPN3BO2_NOa":
+                $reactions = $this->getReactionsIsopn3bo2NoA( );
+                break;
+            case "usr_ISOPN3BO2_NOn":
+                $reactions = $this->getReactionsIsopn3bo2NoN( );
+                break;
+            case "usr_ISOPN4DO2_NOa":
+                $reactions = $this->getReactionsIsopn4do2NoA( );
+                break;
+            case "usr_ISOPN4DO2_NOn":
+                $reactions = $this->getReactionsIsopn4do2NoN( );
+                break;
+            case "usr_ISOPNBNO3O2_NOa":
+                $reactions = $this->getReactionsIsopnbno3o2NoA( );
+                break;
+            case "usr_ISOPNBNO3O2_NOn":
+                $reactions = $this->getReactionsIsopnbno3o2NoN( );
+                break;
+            case "usr_ISOPNOOHBO2_NOa":
+                $reactions = $this->getReactionsIsopnoohbo2NoA( );
+                break;
+            case "usr_ISOPNOOHBO2_NOn":
+                $reactions = $this->getReactionsIsopnoohbo2NoN( );
+                break;
+            case "usr_ISOPNOOHDO2_NOa":
+                $reactions = $this->getReactionsIsopnoohdo2NoA( );
+                break;
+            case "usr_ISOPNOOHDO2_NOn":
+                $reactions = $this->getReactionsIsopnoohdo2NoN( );
+                break;
+            case "usr_NC4CHOO2_NOa":
+                $reactions = $this->getReactionsNc4choo2NoA( );
+                break;
+            case "usr_NC4CHOO2_NOn":
+                $reactions = $this->getReactionsNc4choo2NoN( );
                 break;
             default:
                 print "\nWarning: Custom function $this->custom_rate_constant_name_ is unsupported.";
@@ -398,6 +500,186 @@ class CustomReaction
 
     // Returns a set of CAMP reactions for the custom rate constant function:
     //
+    //   usr_ISOPB1O2_NOa
+    //
+    private function getReactionsIsopb1o2NoA( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(       $this->original_reactants_ )
+                          ->alkoxy_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.14 )
+                          ->n( 6 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_ISOPB1O2_NOn
+    //
+    private function getReactionsIsopb1o2NoN( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(        $this->original_reactants_ )
+                          ->nitrate_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.14 )
+                          ->n( 6 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_ISOPB4O2_NOa
+    //
+    private function getReactionsIsopb4o2NoA( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(       $this->original_reactants_ )
+                          ->alkoxy_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.13 )
+                          ->n( 6 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_ISOPB4O2_NOn
+    //
+    private function getReactionsIsopb4o2NoN( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(        $this->original_reactants_ )
+                          ->nitrate_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.13 )
+                          ->n( 6 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_ISOPED1O2_NOa
+    //
+    private function getReactionsIsoped1o2NoA( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(       $this->original_reactants_ )
+                          ->alkoxy_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.12 )
+                          ->n( 6 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_ISOPED1O2_NOn
+    //
+    private function getReactionsIsoped1o2NoN( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(        $this->original_reactants_ )
+                          ->nitrate_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.12 )
+                          ->n( 6 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_ISOPED4O2_NOa
+    //
+    private function getReactionsIsoped4o2NoA( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(       $this->original_reactants_ )
+                          ->alkoxy_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.12 )
+                          ->n( 6 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_ISOPED4O2_NOn
+    //
+    private function getReactionsIsoped4o2NoN( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(        $this->original_reactants_ )
+                          ->nitrate_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.12 )
+                          ->n( 6 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_ISOPZD1O2_NOa
+    //
+    private function getReactionsIsopzd1o2NoA( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(       $this->original_reactants_ )
+                          ->alkoxy_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.12 )
+                          ->n( 6 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_ISOPZD1O2_NOn
+    //
+    private function getReactionsIsopzd1o2NoN( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(        $this->original_reactants_ )
+                          ->nitrate_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.12 )
+                          ->n( 6 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_ISOPZD4O2_NOa
+    //
+    private function getReactionsIsopzd4o2NoA( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(       $this->original_reactants_ )
+                          ->alkoxy_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.12 )
+                          ->n( 6 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_ISOPZD4O2_NOn
+    //
+    private function getReactionsIsopzd4o2NoN( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(        $this->original_reactants_ )
+                          ->nitrate_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.12 )
+                          ->n( 6 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
     //   usr_ISOPNO3_NOa
     //
     private function getReactionsIsopno3NoA( ) {
@@ -423,6 +705,336 @@ class CustomReaction
                           ->Y( -360 )
                           ->a0( 0.135 )
                           ->n( 9 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_MVKO2_NOa
+    //
+    private function getReactionsMvko2NoA( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(       $this->original_reactants_ )
+                          ->alkoxy_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.04 )
+                          ->n( 6 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_MVKO2_NOn
+    //
+    private function getReactionsMvko2NoN( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(        $this->original_reactants_ )
+                          ->nitrate_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.04 )
+                          ->n( 6 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_MACRO2_NOa
+    //
+    private function getReactionsMacro2NoA( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(       $this->original_reactants_ )
+                          ->alkoxy_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.06 )
+                          ->n( 6 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_MACRO2_NOn
+    //
+    private function getReactionsMacro2NoN( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(        $this->original_reactants_ )
+                          ->nitrate_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.06 )
+                          ->n( 6 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_IEPOXOO_NOa
+    //
+    private function getReactionsIepoxooNoA( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(       $this->original_reactants_ )
+                          ->alkoxy_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.025 )
+                          ->n( 8 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_IEPOXOO_NOn
+    //
+    private function getReactionsIepoxooNoN( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(        $this->original_reactants_ )
+                          ->nitrate_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.025 )
+                          ->n( 8 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_ISOPN1DO2_NOa
+    //
+    private function getReactionsIsopn1do2NoA( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(       $this->original_reactants_ )
+                          ->alkoxy_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.084 )
+                          ->n( 11 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_ISOPN1DO2_NOn
+    //
+    private function getReactionsIsopn1do2NoN( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(        $this->original_reactants_ )
+                          ->nitrate_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.084 )
+                          ->n( 11 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_ISOPN2BO2_NOa
+    //
+    private function getReactionsIsopn2bo2NoA( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(       $this->original_reactants_ )
+                          ->alkoxy_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.065 )
+                          ->n( 11 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_ISOPN2BO2_NOn
+    //
+    private function getReactionsIsopn2bo2NoN( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(        $this->original_reactants_ )
+                          ->nitrate_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.065 )
+                          ->n( 11 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_ISOPN3BO2_NOa
+    //
+    private function getReactionsIsopn3bo2NoA( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(       $this->original_reactants_ )
+                          ->alkoxy_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.053 )
+                          ->n( 11 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_ISOPN3BO2_NOn
+    //
+    private function getReactionsIsopn3bo2NoN( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(        $this->original_reactants_ )
+                          ->nitrate_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.053 )
+                          ->n( 11 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_ISOPN4DO2_NOa
+    //
+    private function getReactionsIsopn4do2NoA( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(       $this->original_reactants_ )
+                          ->alkoxy_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.165 )
+                          ->n( 11 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_ISOPN4DO2_NOn
+    //
+    private function getReactionsIsopn4do2NoN( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(        $this->original_reactants_ )
+                          ->nitrate_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.165 )
+                          ->n( 11 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_ISOPNBNO3O2_NOa
+    //
+    private function getReactionsIsopnbno3o2NoA( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(       $this->original_reactants_ )
+                          ->alkoxy_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.203 )
+                          ->n( 11 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_ISOPNBNO3O2_NOn
+    //
+    private function getReactionsIsopnbno3o2NoN( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(        $this->original_reactants_ )
+                          ->nitrate_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.203 )
+                          ->n( 11 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_ISOPNOOHBO2_NOa
+    //
+    private function getReactionsIsopnoohbo2NoA( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(       $this->original_reactants_ )
+                          ->alkoxy_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.141 )
+                          ->n( 12 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_ISOPNOOHBO2_NOn
+    //
+    private function getReactionsIsopnoohbo2NoN( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(        $this->original_reactants_ )
+                          ->nitrate_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.141 )
+                          ->n( 11 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_ISOPNOOHDO2_NOa
+    //
+    private function getReactionsIsopnoohdo2NoA( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(       $this->original_reactants_ )
+                          ->alkoxy_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.045 )
+                          ->n( 12 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_ISOPNOOHDO2_NOn
+    //
+    private function getReactionsIsopnoohdo2NoN( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(        $this->original_reactants_ )
+                          ->nitrate_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.045 )
+                          ->n( 12 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_NC4CHOO2_NOa
+    //
+    private function getReactionsNc4choo2NoA( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(       $this->original_reactants_ )
+                          ->alkoxy_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.021 )
+                          ->n( 11 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_NC4CHOO2_NOn
+    //
+    private function getReactionsNc4choo2NoN( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(        $this->original_reactants_ )
+                          ->nitrate_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.021 )
+                          ->n( 11 )
                           ->build( ) );
     }
 }

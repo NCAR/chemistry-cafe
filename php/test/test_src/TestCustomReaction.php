@@ -19,8 +19,40 @@ function testCustomReaction( ) {
     foreach( $stratosphere_reactions as $name ) test_stratosphere_reaction( $name, $file_dict );
 
     // reactions with specific rate comparisons
-    test_troposphere_reaction( 'usr_ISOPNO3_NOn', $file_dict, 'nitrate' );
-    test_troposphere_reaction( 'usr_ISOPNO3_NOa', $file_dict, 'alkoxy'  );
+    test_troposphere_reaction( 'usr_ISOPB1O2_NOn',    $file_dict, 'nitrate' );
+    test_troposphere_reaction( 'usr_ISOPB1O2_NOa',    $file_dict, 'alkoxy'  );
+    test_troposphere_reaction( 'usr_ISOPB4O2_NOn',    $file_dict, 'nitrate' );
+    test_troposphere_reaction( 'usr_ISOPB4O2_NOa',    $file_dict, 'alkoxy'  );
+    test_troposphere_reaction( 'usr_ISOPED1O2_NOn',   $file_dict, 'nitrate' );
+    test_troposphere_reaction( 'usr_ISOPED1O2_NOa',   $file_dict, 'alkoxy'  );
+    test_troposphere_reaction( 'usr_ISOPED4O2_NOn',   $file_dict, 'nitrate' );
+    test_troposphere_reaction( 'usr_ISOPED4O2_NOa',   $file_dict, 'alkoxy'  );
+    test_troposphere_reaction( 'usr_ISOPZD1O2_NOn',   $file_dict, 'nitrate' );
+    test_troposphere_reaction( 'usr_ISOPZD1O2_NOa',   $file_dict, 'alkoxy'  );
+    test_troposphere_reaction( 'usr_ISOPZD4O2_NOn',   $file_dict, 'nitrate' );
+    test_troposphere_reaction( 'usr_ISOPZD4O2_NOa',   $file_dict, 'alkoxy'  );
+    test_troposphere_reaction( 'usr_ISOPNO3_NOn',     $file_dict, 'nitrate' );
+    test_troposphere_reaction( 'usr_ISOPNO3_NOa',     $file_dict, 'alkoxy'  );
+    test_troposphere_reaction( 'usr_MVKO2_NOn',       $file_dict, 'nitrate' );
+    test_troposphere_reaction( 'usr_MVKO2_NOa',       $file_dict, 'alkoxy'  );
+    test_troposphere_reaction( 'usr_MACRO2_NOn',      $file_dict, 'nitrate' );
+    test_troposphere_reaction( 'usr_MACRO2_NOa',      $file_dict, 'alkoxy'  );
+    test_troposphere_reaction( 'usr_ISOPN1DO2_NOn',   $file_dict, 'nitrate' );
+    test_troposphere_reaction( 'usr_ISOPN1DO2_NOa',   $file_dict, 'alkoxy'  );
+    test_troposphere_reaction( 'usr_ISOPN2BO2_NOn',   $file_dict, 'nitrate' );
+    test_troposphere_reaction( 'usr_ISOPN2BO2_NOa',   $file_dict, 'alkoxy'  );
+    test_troposphere_reaction( 'usr_ISOPN3BO2_NOn',   $file_dict, 'nitrate' );
+    test_troposphere_reaction( 'usr_ISOPN3BO2_NOa',   $file_dict, 'alkoxy'  );
+    test_troposphere_reaction( 'usr_ISOPN4DO2_NOn',   $file_dict, 'nitrate' );
+    test_troposphere_reaction( 'usr_ISOPN4DO2_NOa',   $file_dict, 'alkoxy'  );
+    test_troposphere_reaction( 'usr_ISOPNBNO3O2_NOn', $file_dict, 'nitrate' );
+    test_troposphere_reaction( 'usr_ISOPNBNO3O2_NOa', $file_dict, 'alkoxy'  );
+    test_troposphere_reaction( 'usr_ISOPNOOHBO2_NOn', $file_dict, 'nitrate' );
+    test_troposphere_reaction( 'usr_ISOPNOOHBO2_NOa', $file_dict, 'alkoxy'  );
+    test_troposphere_reaction( 'usr_ISOPNOOHDO2_NOn', $file_dict, 'nitrate' );
+    test_troposphere_reaction( 'usr_ISOPNOOHDO2_NOa', $file_dict, 'alkoxy'  );
+    test_troposphere_reaction( 'usr_NC4CHOO2_NOn',    $file_dict, 'nitrate' );
+    test_troposphere_reaction( 'usr_NC4CHOO2_NOa',    $file_dict, 'alkoxy'  );
 
     print "\nPassed!\n\n";
 }
