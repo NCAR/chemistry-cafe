@@ -36,7 +36,7 @@ class CampReactionTernaryChemicalActivation extends CampReactionTroe
     }
 
     // Returns the rate for the reaction under given conditions
-    public function getRate($environment) {
+    public function getRate($environment, string $label = '') {
         $kinf =$this->kinf_A_ *
                exp( $this->kinf_C_ / $environment[ 'temperature' ] ) *
                pow( $environment[ 'temperature' ] / 300.0, $this->kinf_B_ );

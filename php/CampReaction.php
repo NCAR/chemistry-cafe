@@ -9,6 +9,6 @@ abstract class CampReaction
     abstract protected function getCampConfiguration(int $indent = 0): string;
 
     // Returns the rate for the reaction under given conditions
-    abstract protected function getRate($environment);
+    abstract protected function getRate($environment, string $label = '');
 }
 ?>

@@ -79,7 +79,7 @@ class CampReactionArrhenius extends CampReaction
     }
 
     // Returns the rate for the reaction under given conditions
-    public function getRate($environment) {
+    public function getRate($environment, string $label = '') {
         $rate = $this->A_ *
             exp( -$this->Ea_ / ( self::kBoltzmann_ *
                                  $environment[ 'temperature' ] ) ) *

@@ -3,6 +3,7 @@
 include_once('CampReactionArrhenius.php');
 include_once('CampReactionTernaryChemicalActivation.php');
 include_once('CampReactionTroe.php');
+include_once('CampReactionWennbergNoRo2.php');
 
 //
 // Generator of CAMP reaction objects for custom rate constant function
@@ -82,6 +83,12 @@ class CustomReaction
                 break;
             case "usr_CO_OH_b":
                 $reactions = $this->getReactionsCoOhB( );
+                break;
+            case "usr_ISOPNO3_NOa":
+                $reactions = $this->getReactionsIsopno3NoA( );
+                break;
+            case "usr_ISOPNO3_NOn":
+                $reactions = $this->getReactionsIsopno3NoN( );
                 break;
             default:
                 print "\nWarning: Custom function $this->custom_rate_constant_name_ is unsupported.";
@@ -386,6 +393,36 @@ class CustomReaction
                           ->k0_A( 1.5e-13 )
                           ->kinf_A( 2.1e9 )
                           ->kinf_B( 6.1 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_ISOPNO3_NOa
+    //
+    private function getReactionsIsopno3NoA( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(       $this->original_reactants_ )
+                          ->alkoxy_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.135 )
+                          ->n( 9 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_ISOPNO3_NOn
+    //
+    private function getReactionsIsopno3NoN( ) {
+        return array( CampReactionWennbergNoRo2::builder( )
+                          ->reactants(        $this->original_reactants_ )
+                          ->nitrate_products( $this->original_products_  )
+                          ->X( 2.7e-12 )
+                          ->Y( -360 )
+                          ->a0( 0.135 )
+                          ->n( 9 )
                           ->build( ) );
     }
 }
