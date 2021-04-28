@@ -3,35 +3,37 @@
 include_once("CampReaction.php");
 
 //
-// Generator of CAMP configuration data for Arrhenius reactions
+// Generator of CAMP configuration data for Wennberg tunneling reactions.
+// See eq (12) in:
+// Paul O. Wennberg et al. “Gas-Phase Reactions of Isoprene and Its Major
+//    Oxidation Products”. In: Chemical Reviews 118.7 (2018). PMID: 29522327,
+//    pp. 3337–3390. doi: 10.1021/acs.chemrev.7b00439.
+//    eprint: https://doi.org/10.1021/acs.chemrev.7b00439.
+//    url: https://doi.org/10.1021/acs.chemrev.7b00439.
 //
-//   k = A * exp( -E_a / ( k_B * T ) ) * ( T / D )^B * ( 1 + E * P )
+//   k_tunneling = A * exp( -B / T ) * exp( C / T^3 )
 //
-class CampReactionArrhenius extends CampReaction
+class CampReactionWennbergTunneling extends CampReaction
 {
     protected const kBoltzmann_ = 1.380649e-23; // Boltzmann constant [J/K]
     private $reactants_;
     private $products_;
     private $A_;
     private $B_;
-    private $D_;
-    private $E_;
-    private $Ea_;
+    private $C_;
 
     protected function __construct(array $reactants, array $products, $A,
-        $B, $D, $E, $Ea) {
+        $B, $C) {
         $this->reactants_ = $reactants;
         $this->products_  = $products;
         $this->A_         = $A;
         $this->B_         = $B;
-        $this->D_         = $D;
-        $this->E_         = $E;
-        $this->Ea_        = $Ea;
+        $this->C_         = $C;
     }
 
     // Concrete builder
-    public static function builder( ): CampReactionArrheniusBuilder {
-        return new class extends CampReactionArrheniusBuilder {
+    public static function builder( ): CampReactionWennbergTunnelingBuilder {
+        return new class extends CampReactionWennbergTunnelingBuilder {
             public function __construct( ) {
                 parent::__construct( );
             }
@@ -44,12 +46,10 @@ class CampReactionArrhenius extends CampReaction
         $prefix = "";
         for($i = 0; $i < $indent; ++$i) $prefix .= " ";
         $config  = $prefix."{\n";
-        $config .= $prefix."  \"type\": \"ARRHENIUS\",\n";
-        if($this->A_  != 1)   $config .= $prefix."  \"A\": ". $this->A_. ",\n";
-        if($this->B_  != 0)   $config .= $prefix."  \"B\": ". $this->B_. ",\n";
-        if($this->D_  != 300) $config .= $prefix."  \"D\": ". $this->D_. ",\n";
-        if($this->E_  != 0)   $config .= $prefix."  \"E\": ". $this->E_. ",\n";
-        if($this->Ea_ != 0)   $config .= $prefix."  \"Ea\": ".$this->Ea_.",\n";
+        $config .= $prefix."  \"type\": \"WENNBERG_TUNNELING\",\n";
+        $config .= $prefix."  \"A\": ". $this->A_. ",\n";
+        $config .= $prefix."  \"B\": ". $this->B_. ",\n";
+        $config .= $prefix."  \"C\": ". $this->C_. ",\n";
         $config .= $prefix."  \"reactants\": {\n";
         $reactant_strings = array( );
         foreach($this->reactants_ as $name => $props) {
@@ -81,10 +81,8 @@ class CampReactionArrhenius extends CampReaction
     // Returns the rate for the reaction under given conditions
     public function getRate($environment, string $label = '') {
         $rate = $this->A_ *
-            exp( -$this->Ea_ / ( self::kBoltzmann_ *
-                                 $environment[ 'temperature' ] ) ) *
-               pow( $environment[ 'temperature' ] / $this->D_, $this->B_ ) *
-               ( 1 + $this->E_ * $environment[ 'pressure' ] );
+            exp( -$this->B_ / $environment[ 'temperature' ] ) *
+            exp(  $this->C_ / pow( $environment[ 'temperature' ], 3 ) );
         foreach($this->reactants_ as $reactant => $props) {
             for($i = 0; $i < $props['qty']; ++$i) {
                 $rate *= $environment[ $reactant ];
@@ -95,20 +93,18 @@ class CampReactionArrhenius extends CampReaction
 }
 
 // Abstract builder
-abstract class CampReactionArrheniusBuilder
+abstract class CampReactionWennbergTunnelingBuilder
 {
     protected const kBoltzmann_ = 1.380649e-23; // Boltzmann constant [J/K]
     protected $reactants_ = array( );
     protected $products_ = array( );
     protected $A_ = 1.0;
     protected $B_ = 0.0;
-    protected $D_ = 300.0;
-    protected $E_ = 0.0;
-    protected $Ea_ = 0.0;
+    protected $C_ = 0.0;
 
     protected function __construct( ){ }
 
-    public function reactants(array $reactants): CampReactionArrheniusBuilder {
+    public function reactants(array $reactants): CampReactionWennbergTunnelingBuilder {
         $this->reactants_ = $reactants;
         foreach($this->reactants_ as $reactant => $props) {
             if(!array_key_exists('qty', $props) || is_null($props['qty'])) {
@@ -118,7 +114,7 @@ abstract class CampReactionArrheniusBuilder
         return $this;
     }
 
-    public function products(array $products): CampReactionArrheniusBuilder {
+    public function products(array $products): CampReactionWennbergTunnelingBuilder {
         $this->products_ = $products;
         foreach($this->products_ as $product => $props) {
             if(!array_key_exists('yield', $props) || is_null($props['yield'])) {
@@ -128,43 +124,27 @@ abstract class CampReactionArrheniusBuilder
         return $this;
     }
 
-    public function A($A): CampReactionArrheniusBuilder {
+    public function A($A): CampReactionWennbergTunnelingBuilder {
         $this->A_ = $A;
         return $this;
     }
 
-    public function B($B): CampReactionArrheniusBuilder {
+    public function B($B): CampReactionWennbergTunnelingBuilder {
         $this->B_ = $B;
         return $this;
     }
 
-    public function C($C): CampReactionArrheniusBuilder {
-        $this->Ea_ = - $C * self::kBoltzmann_;
+    public function C($C): CampReactionWennbergTunnelingBuilder {
+        $this->C_ = $C;
         return $this;
     }
 
-    public function D($D): CampReactionArrheniusBuilder {
-        $this->D_ = $D;
-        return $this;
-    }
-
-    public function E($E): CampReactionArrheniusBuilder {
-        $this->E_ = $E;
-        return $this;
-    }
-
-    public function Ea($Ea): CampReactionArrheniusBuilder {
-        $this->Ea_ = $Ea;
-        return $this;
-    }
-
-    public function build( ): CampReactionArrhenius {
+    public function build( ): CampReactionWennbergTunneling {
         return new class($this->reactants_, $this->products_, $this->A_,
-            $this->B_, $this->D_, $this->E_, $this->Ea_) extends
-            CampReactionArrhenius {
+            $this->B_, $this->C_) extends CampReactionWennbergTunneling {
             public function __construct(array $reactants, array $products,
-                $A, $B, $D, $E, $Ea) {
-                parent::__construct($reactants, $products, $A, $B, $D, $E, $Ea);
+                $A, $B, $C) {
+                parent::__construct($reactants, $products, $A, $B, $C);
             }
         };
     }

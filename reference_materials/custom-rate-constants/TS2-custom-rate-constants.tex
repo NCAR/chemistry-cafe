@@ -1,0 +1,335 @@
+\documentclass[titlepage]{article}
+
+\usepackage{amsmath}
+\usepackage{biblatex}
+\usepackage{chemformula}
+\usepackage{fancyvrb}
+\usepackage{hyperref}
+\usepackage{lipsum}
+\usepackage[margin=1in]{geometry}
+\usepackage{xcolor}
+
+\addbibresource{TS2_refs.bib}
+
+\DefineVerbatimEnvironment{blockcode}
+  {Verbatim}
+  {fontsize=\small,formatcom=\color{blue}}
+
+\begin{document}
+
+\title{TS2 Custom Rate Constants}
+\author{Matt Dawson}
+\maketitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Introduction}
+
+This document builds on the TS1 Custom Rate Constants document, adding treatments for custom rate constant
+functions used in the TS2 mechanism that are not also present in TS1.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_ISOPNO3\_NOa and usr\_ISOPNO3\_NOn}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/mozart/mo_usrrxt.F90 (1213,1231)
+!-----------------------------------------------------------------
+!       ... ISOPNO3_NOn Temp/Pressure Dependent Nitrate Yield
+!-----------------------------------------------------------------
+       if( usr_ISOPNO3_NOn_ndx > 0 ) then
+          nyield = (1._r8-0.135_r8)/0.135_r8
+          natom = 9.0_r8
+          exp_natom = exp( natom )
+          acorr = (2.0e-22_r8*exp_natom*2.45e19_r8)/(1._r8+((2.0e-22_r8* &
+                      exp_natom*2.45e19_r8)/(0.43_r8*(298._r8*(1._r8/293._r8))**8._r8)))* &
+                      0.41_r8**(1._r8/(1._r8+(log10((2.0e-22_r8*exp_natom*2.45e19_r8)/ &
+                      (0.43_r8*(298._r8*(1._r8/293._r8))**8._r8)))**2._r8))
+          aterm(:) = (2.0e-22_r8*exp_natom*m(:,k))/(1._r8+((2.0e-22_r8* &
+                      exp_natom*m(:,k))/(0.43_r8*(298._r8*tinv(:))**8._r8)))* &
+                      0.41_r8**(1._r8/(1._r8+(log10((2.0e-22_r8*exp_natom*m(:,k))/ &
+                      (0.43_r8*(298._r8*tinv(:))**8._r8)))**2._r8))
+          call comp_exp( exp_fac, 360._r8*tinv, ncol )
+          rxt(:,k,usr_ISOPNO3_NOn_ndx) = 2.7e-12_r8 * exp_fac(:)*aterm(:)/(aterm(:)+acorr*nyield)
+          rxt(:,k,usr_ISOPNO3_NOa_ndx) = 2.7e-12_r8 * exp_fac(:)*acorr*nyield/(aterm(:)+acorr*nyield)
+       end if
+\end{blockcode}
+
+This appears to be based on eqs (1)--(6) of \cite{Wennberg2018}, which define the rate constant for each branch as a function of four parameters ($X, Y, Z, n$):
+
+\begin{equation}
+\begin{split}
+k_{nitrate} & = \left(X e^{-Y/T}\right) \left(\frac{A(T, \mbox{[M]}, n)}{A(T, \mbox{[M]}, n) + Z}\right) \\
+k_{alkoxy} & = \left(X e^{-Y/T}\right)\left(\frac{Z}{Z + A(T, \mbox{[M]}, n)}\right) \\
+A(T, \mbox{[M]}, n) & = \frac{2 \times 10^{-22} e^n \mbox{[M]}}{1 + \frac{2 \times 10^{-22} e^n \mbox{[M]}}{0.43(T/298)^{-8}}} 0.41^{(1+[log( \frac{2 \times 10^{-22} e^n \mbox{[M]}}{0.43(T/298)^{-8}})]^2)^{-1}}
+\end{split}
+\end{equation}
+
+\noindent where $T$ is temperature (K) and [M] is the number density of air (molecules $\mbox{cm}^{-3}$).
+To retain the detail of the current implementation of these rate constant functions, $Z$ is defined as a function of two parameters ($\alpha_0, n$):
+
+\begin{equation}
+Z( \alpha_0, n) = A(T = 293 \mbox{K}, \mbox{[M]} = 2.45 \times 10^{19} \frac{\mbox{molec}}{\mbox{cm}^3}, n) \frac{(1-\alpha_0)}{\alpha_0}
+\end{equation}
+
+This reaction has been added to Music Box as \verb>WENNBERG_NO_RO2>. The usr\_ISOPNO3\_NOn and usr\_ISOPNO3\_NOa rate constants can then be calculated according to the above equations with $X = 2.7 \times 10^{-12}$, $Y = -360$, $\alpha_0 = 0.135$, and $n = 9$, with usr\_ISOPNO3\_NOn corresponding to $k_{nitrate}$ and usr\_ISOPNO3\_NOa corresponding to $k_{alkoxy}$.
+
+Similar custom rate constant functions are summarized in Table~\ref{tab:wennberg}.
+
+\begin{table}
+\centering
+\caption{Wennberg \ch{NO + RO2} rate constant parameters by custom rate constant function name}
+\label{tab:wennberg}
+\begin{tabular}{l c c c c}
+Function name & $X$ & $Y$ & $a_0$ & $n$ \\
+\hline
+usr\_ISOPB1O2\_NO   & $2.7 \times 10^{-12}$ & 360 & 0.14   & 6 \\
+usr\_ISOPB4O2\_NO   & $2.7 \times 10^{-12}$ & 360 & 0.13   & 6 \\
+usr\_ISOPD1O2\_NO   & $2.7 \times 10^{-12}$ & 360 & 0.12   & 6 \\
+usr\_ISOPD4O2\_NO   & $2.7 \times 10^{-12}$ & 360 & 0.12   & 6 \\
+usr\_ISOPZD1O2\_NO & $2.7 \times 10^{-12}$ & 360 & 0.12   & 6 \\
+usr\_ISOPZD4O2\_NO & $2.7 \times 10^{-12}$ & 360 & 0.12   & 6 \\
+usr\_ISOPNO3\_NO     & $2.7 \times 10^{-12}$ & 360 & 0.135 & 9 \\
+usr\_MVKO2\_NO        & $2.7 \times 10^{-12}$ & 360 & 0.04   & 6 \\
+usr\_MACRO2\_NO      & $2.7 \times 10^{-12}$ & 360 & 0.06  & 6 \\
+usr\_IEPOXOO\_NO     & $2.7 \times 10^{-12}$ & 360 & 0.025 & 8 \\
+usr\_ISOPN1DO2\_NO & $2.7 \times 10^{-12}$ & 360 & 0.084 & 11 \\
+usr\_ISOPN2BO2\_NO & $2.7 \times 10^{-12}$ & 360 & 0.065 & 11 \\
+usr\_ISOPN3BO2\_NO & $2.7 \times 10^{-12}$ & 360 & 0.053 & 11 \\
+usr\_ISOPN4DO2\_NO & $2.7 \times 10^{-12}$ & 360 & 0.165 & 11 \\
+usr\_ISOPNBNO3O2\_NO & $2.7 \times 10^{-12}$ & 360 & 0.203 & 11 \\
+usr\_ISOPNOOHBO2\_NO & $2.7 \times 10^{-12}$ & 360 & 0.141 & 12 \\
+usr\_ISOPNOOHDO2\_NO & $2.7 \times 10^{-12}$ & 360 & 0.045 & 12 \\
+usr\_NC4CHOO2\_NO & $2.7 \times 10^{-12}$ & 360 & 0.021 & 11 \\
+\hline
+\end{tabular}
+\end{table}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_ISOPZD1O2}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/mozart/mo_usrrxt.F90 (1081,1089)
+!-----------------------------------------------------------------
+!       ... ISOPZD1O2 --> HPALD etc. Wennberg 2018 for rate
+!-----------------------------------------------------------------
+       if( usr_ISOPZD1O2_ndx > 0 ) then
+          call comp_exp( exp_fac, -12200._r8*tinv, ncol )
+          ko(:) = 5.05e15_r8 * exp_fac(:)
+          call comp_exp( exp_fac, 1.e8_r8*tinv**3._r8, ncol )
+          rxt(:,k,usr_ISOPZD1O2_ndx) = ko(:)*exp_fac(:)
+       end if
+\end{blockcode}
+
+This appears to be based on eq. (12) of \cite{Wennberg2018}:
+
+\begin{equation}
+k_{tunneling} = A e^{-B/T} e^{C/T^3}
+\end{equation}
+
+\noindent with $A = 5.05 \times 10^{15}$, $B = 12200$, and $C = 1 \times 10^8$. This reaction has been added to Music Box as \verb>WENNBERG_TUNNELING>.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_TERPAPAN\_M}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/mozart/mo_usrrxt.F90 (971,971)
+       call comp_exp( exp_fac, -14000._r8*tinv, ncol )
+\end{blockcode}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/mozart/mo_usrrxt.F90 (1016,1025)
+!-----------------------------------------------------------------
+!       ... TERPAPAN + m --> TERPACO3 + no2 + m
+!-----------------------------------------------------------------
+       if( usr_TERPAPAN_M_ndx > 0 ) then
+          if( tag_TERPACO3_NO2_ndx > 0 ) then
+             rxt(:,k,usr_TERPAPAN_M_ndx) = rxt(:,k,tag_TERPACO3_NO2_ndx) * 1.111e28_r8 * exp_fac(:)
+          else
+             rxt(:,k,usr_TERPAPAN_M_ndx) = 0._r8
+          end if
+       end if
+\end{blockcode}
+
+Following the same logic as for \verb>usr_PBZNIT_M>, the \verb>tag_TERPACO3_NO2_ndx> reaction is identified as:
+
+\begin{blockcode}
+        {
+          "type": "TROE",
+          "k0_A": 9.7e-29,
+          "k0_B": -5.6,
+          "kinf_A": 9.3e-12,
+          "N": 1.5,
+          "reactants": {
+            "TERPACO3": { },
+            "NO2": { },
+            "M": { }
+          },
+          "products": {
+            "TERPAPAN": { },
+            "M": { }
+          }
+        },
+\end{blockcode}
+
+\noindent and can be rearranged as a Troe reaction:
+
+\begin{equation}
+\begin{split}
+k & = \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{(1+1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \\
+k_0 & = A_0 e^{\left( \frac{C_0}{T} \right)} \left( \frac{T}{300} \right)^{B_0} \\
+k_{inf} & = A_{inf} e^{\left( \frac{C_{inf}}{T} \right)} \left( \frac{T}{300} \right)^{B_{inf}}
+\end{split}
+\end{equation}
+
+\noindent where $F_C = 0.6$, $N = 1.5$, $A_0 = 9.7 \times 10^{-29} \times 1.111 \times 10^{28}$, $B_0 = -5.6$, $C_0 = -14000$, $A_{inf} = 9.3 \times 10^{-12} \times 1.111 \times 10^{28}$, $B_{inf} = 0$, and $C_{inf} = -14000$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_TERPA2PAN\_M}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/mozart/mo_usrrxt.F90 (971,971)
+       call comp_exp( exp_fac, -14000._r8*tinv, ncol )
+\end{blockcode}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/mozart/mo_usrrxt.F90 (1026,1035)
+!-----------------------------------------------------------------
+!       ... TERPA2PAN + m --> TERPA2CO3 + no2 + m
+!-----------------------------------------------------------------
+       if( usr_TERPA2PAN_M_ndx > 0 ) then
+          if( tag_TERPA2CO3_NO2_ndx > 0 ) then
+             rxt(:,k,usr_TERPA2PAN_M_ndx) = rxt(:,k,tag_TERPA2CO3_NO2_ndx) * 1.111e28_r8 * exp_fac(:)
+          else
+             rxt(:,k,usr_TERPA2PAN_M_ndx) = 0._r8
+          end if
+       end if
+\end{blockcode}
+
+Following the same logic as for \verb>usr_PBZNIT_M>, the \verb>tag_TERPA2CO3_NO2_ndx> reaction is identified as:
+
+\begin{blockcode}
+        {
+          "type": "TROE",
+          "k0_A": 9.7e-29,
+          "k0_B": -5.6,
+          "kinf_A": 9.3e-12,
+          "N": 1.5,
+          "reactants": {
+            "TERPA2CO3": { },
+            "NO2": { },
+            "M": { }
+          },
+          "products": {
+            "TERPA2PAN": { },
+            "M": { }
+          }
+        },
+\end{blockcode}
+
+\noindent and can be rearranged as a Troe reaction:
+
+\begin{equation}
+\begin{split}
+k & = \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{(1+1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \\
+k_0 & = A_0 e^{\left( \frac{C_0}{T} \right)} \left( \frac{T}{300} \right)^{B_0} \\
+k_{inf} & = A_{inf} e^{\left( \frac{C_{inf}}{T} \right)} \left( \frac{T}{300} \right)^{B_{inf}}
+\end{split}
+\end{equation}
+
+\noindent where $F_C = 0.6$, $N = 1.5$, $A_0 = 9.7 \times 10^{-29} \times 1.111 \times 10^{28}$, $B_0 = -5.6$, $C_0 = -14000$, $A_{inf} = 9.3 \times 10^{-12} \times 1.111 \times 10^{28}$, $B_{inf} = 0$, and $C_{inf} = -14000$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_TERPA3PAN\_M}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/mozart/mo_usrrxt.F90 (971,971)
+       call comp_exp( exp_fac, -14000._r8*tinv, ncol )
+\end{blockcode}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/mozart/mo_usrrxt.F90 (1036,1045)
+!-----------------------------------------------------------------
+!       ... TERPA3PAN + m --> TERPA3CO3 + no2 + m
+!-----------------------------------------------------------------
+       if( usr_TERPA3PAN_M_ndx > 0 ) then
+          if( tag_TERPA3CO3_NO2_ndx > 0 ) then
+             rxt(:,k,usr_TERPA3PAN_M_ndx) = rxt(:,k,tag_TERPA3CO3_NO2_ndx) * 1.111e28_r8 * exp_fac(:)
+          else
+             rxt(:,k,usr_TERPA3PAN_M_ndx) = 0._r8
+          end if
+       end if
+\end{blockcode}
+
+Following the same logic as for \verb>usr_PBZNIT_M>, the \verb>tag_TERPA3CO3_NO2_ndx> reaction is identified as:
+
+\begin{blockcode}
+        {
+          "type": "TROE",
+          "k0_A": 9.7e-29,
+          "k0_B": -5.6,
+          "kinf_A": 9.3e-12,
+          "N": 1.5,
+          "reactants": {
+            "TERPA3CO3": { },
+            "NO2": { },
+            "M": { }
+          },
+          "products": {
+            "TERPA3PAN": { },
+            "M": { }
+          }
+        },
+\end{blockcode}
+
+\noindent and can be rearranged as a Troe reaction:
+
+\begin{equation}
+\begin{split}
+k & = \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{(1+1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \\
+k_0 & = A_0 e^{\left( \frac{C_0}{T} \right)} \left( \frac{T}{300} \right)^{B_0} \\
+k_{inf} & = A_{inf} e^{\left( \frac{C_{inf}}{T} \right)} \left( \frac{T}{300} \right)^{B_{inf}}
+\end{split}
+\end{equation}
+
+\noindent where $F_C = 0.6$, $N = 1.5$, $A_0 = 9.7 \times 10^{-29} \times 1.111 \times 10^{28}$, $B_0 = -5.6$, $C_0 = -14000$, $A_{inf} = 9.3 \times 10^{-12} \times 1.111 \times 10^{28}$, $B_{inf} = 0$, and $C_{inf} = -14000$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_ISOPZD4O2}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/mozart/mo_usrrxt.F90 (1090,1098)
+!-----------------------------------------------------------------
+!       ... ISOPZD4O2 --> HPALD etc. Wennberg 2018 for rate
+!-----------------------------------------------------------------
+       if( usr_ISOPZD4O2_ndx > 0 ) then
+          call comp_exp( exp_fac, -7160._r8*tinv, ncol )
+          ko(:) = 2.22e9_r8 * exp_fac(:)
+          call comp_exp( exp_fac, 1.e8_r8*tinv**3._r8, ncol )
+          rxt(:,k,usr_ISOPZD4O2_ndx) = ko(:)*exp_fac(:)
+       end if
+\end{blockcode}
+
+This appears to be a \verb>WENNBERG_TUNNELING> reaction:
+
+\begin{equation}
+k_{tunneling} = A e^{-B/T} e^{C/T^3}
+\end{equation}
+
+\noindent with $A = 2.22 \times 10^{9}$, $B = 7160$, and $C = 1 \times 10^8$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{References}
+
+\printbibliography
+
+\end{document}

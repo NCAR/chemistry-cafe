@@ -5,7 +5,7 @@ include_once("CampReaction.php");
 //
 // Generator of CAMP configuration data for Troe reactions
 //
-//   k = k0 [M] / ( 1 + k0 [M] / kinf ) Fc^( 1 + ( 1/N ( log10( k0 [M] / kinf ) )^2 )^-1
+//   k = k0 [M] / ( 1 + k0 [M] / kinf ) Fc^( 1 + ( 1/N ( log10( k0 [M] / kinf ) )^2 )^-1 )
 //
 //   k0 = k0_A * exp( k0_C / T ) * ( T / 300 )^k0_B
 //
@@ -13,16 +13,16 @@ include_once("CampReaction.php");
 //
 class CampReactionTroe extends CampReaction
 {
-    private $reactants_;
-    private $products_;
-    private $k0_A_;
-    private $k0_B_;
-    private $k0_C_;
-    private $kinf_A_;
-    private $kinf_B_;
-    private $kinf_C_;
-    private $Fc_;
-    private $N_;
+    protected $reactants_;
+    protected $products_;
+    protected $k0_A_;
+    protected $k0_B_;
+    protected $k0_C_;
+    protected $kinf_A_;
+    protected $kinf_B_;
+    protected $kinf_C_;
+    protected $Fc_;
+    protected $N_;
 
     protected function __construct(array $reactants, array $products, $k0_A,
         $k0_B, $k0_C, $kinf_A, $kinf_B, $kinf_C, $Fc, $N) {
@@ -47,13 +47,18 @@ class CampReactionTroe extends CampReaction
         };
     }
 
+    // Music box reaction name
+    protected function getReactionType( ): string {
+        return "TROE";
+    }
+
     // Returns the CAMP configuration json object for the reaction
     // as a string with the specified indent.
     public function getCampConfiguration(int $indent = 0): string {
         $prefix = "";
         for($i = 0; $i < $indent; ++$i) $prefix .= " ";
         $config  = $prefix."{\n";
-        $config .= $prefix."  \"type\": \"TROE\",\n";
+        $config .= $prefix."  \"type\": \"".$this->getReactionType( )."\",\n";
         if($this->k0_A_    != 1)   $config .= $prefix."  \"k0_A\": ".  $this->k0_A_.  ",\n";
         if($this->k0_B_    != 0)   $config .= $prefix."  \"k0_B\": ".  $this->k0_B_.  ",\n";
         if($this->k0_C_    != 0)   $config .= $prefix."  \"k0_C\": ".  $this->k0_C_.  ",\n";
@@ -77,7 +82,7 @@ class CampReactionTroe extends CampReaction
         $config .= $prefix."  \"products\": {\n";
         $product_strings = array( );
         foreach($this->products_ as $name => $props) {
-            if(is_null($props['yield'])) {
+            if($props['yield'] == 1) {
                 $product_strings[] = $prefix."    \"".$name."\": { }";
             } else {
                 $product_strings[] = $prefix."    \"".$name."\": { \"yield\": "
@@ -88,6 +93,26 @@ class CampReactionTroe extends CampReaction
         $config .= "\n".$prefix."  }\n";
         $config .= $prefix."}";
         return $config;
+    }
+
+    // Returns the rate for the reaction under given conditions
+    public function getRate($environment, string $label = '') {
+        $kinf =$this->kinf_A_ *
+               exp( $this->kinf_C_ / $environment[ 'temperature' ] ) *
+               pow( $environment[ 'temperature' ] / 300.0, $this->kinf_B_ );
+        $k0 =  $this->k0_A_ *
+               exp( $this->k0_C_ / $environment[ 'temperature' ] ) *
+               pow( $environment[ 'temperature' ] / 300.0, $this->k0_B_ );
+        $rate = $k0 * $environment[ 'M' ] /
+               ( 1 + $k0 * $environment[ 'M' ] / $kinf ) *
+               pow( $this->Fc_, pow( 1 + 1 / $this->N_ *
+                    pow( log10( $k0 * $environment[ 'M' ] / $kinf ), 2), -1 ) );
+        foreach($this->reactants_ as $reactant => $props) {
+            for($i = 0; $i < $props['qty']; ++$i) {
+                $rate *= $environment[ $reactant ];
+            }
+        }
+        return $rate;
     }
 }
 
@@ -110,11 +135,21 @@ abstract class CampReactionTroeBuilder
 
     public function reactants(array $reactants): CampReactionTroeBuilder {
         $this->reactants_ = $reactants;
+        foreach($this->reactants_ as $reactant => $props) {
+            if(!array_key_exists('qty', $props) || is_null($props['qty'])) {
+                $this->reactants_[$reactant]['qty'] = 1;
+            }
+        }
         return $this;
     }
 
     public function products(array $products): CampReactionTroeBuilder {
         $this->products_ = $products;
+        foreach($this->products_ as $product => $props) {
+            if(!array_key_exists('yield', $props) || is_null($props['yield'])) {
+                $this->products_[$product]['yield'] = 1;
+            }
+        }
         return $this;
     }
 

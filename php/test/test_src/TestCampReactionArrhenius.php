@@ -2,7 +2,7 @@
 //
 // Tests for the CampReactionArrhenius class
 //
-include("CampReactionArrhenius.php");
+include("../../CampReactionArrhenius.php");
 
 function testCampReactionArrhenius( ) {
 

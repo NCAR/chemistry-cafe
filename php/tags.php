@@ -37,12 +37,12 @@ switch($_GET['action'])  {
 
     case 'tstfilewrite' :
             global $con;
-            $id = 288;
+            $id = 289;
             $branch_id = 78;
             $tags = pg_query($con,"SELECT filename FROM tags WHERE id = ".$id.";");
             $tagref= pg_fetch_array($tags,0,$result_type = PGSQL_ASSOC);
             //print_r($tagref['filename']);
-            $tagdir = '/home/some_test_dir/testdir/'.$tagref['filename'];
+            $tagdir = '/home/some-test-dir/testdir/'.$tagref['filename'];
             mkdir($tagdir);
             write_cesm_tag_file($tagdir,$tagref['filename'],$id, $branch_id);
             write_kpp_tag_file($tagdir,$tagref['filename'],$id, $branch_id);
@@ -287,7 +287,7 @@ function create_tag() {
     write_cesm_tag_file($target_dir,$target_file_name, $tag_id, $branch_id);
     write_kpp_tag_file($target_dir, $target_file_name, $tag_id, $branch_id);
     write_tex($target_dir,$target_file_name, $tag_id, $branch_id);
-    write_music_box_tag_file($target_dir, $tagret_file_name, $tag_id, $branch_id);
+    write_music_box_tag_file($target_dir, $target_file_name, $tag_id, $branch_id);
 
     //tar up the files
     exec("cd ../tag_files ; tar -cf ".$target_file_name.".tar ".$target_file_name);
@@ -1995,9 +1995,18 @@ function write_camp_species_file($con, $file, $tag_id) {
 
 // Writes the CAMP reactions file for a tagged mechanism
 function write_camp_reactions_file($con, $file, $tag_id, $mechanism_name) {
+    // get the md5 checksum of the version of mo_usrrxt.F90 used in the tests for custom rates
+    $md5_file = file("md5_checksum_mo_usrrxt");
+    $line     = explode(" ", $md5_file[0]);
+    $checksum = $line[0];
 
     $gas_reactions = tag_gas_reactions($con, $tag_id);
     fwrite($file, "{\n");
+    fwrite($file, "  \"comments\": [ \"This mechanism may contain refactored reactions based on custom\",\n");
+    fwrite($file, "                \"rate constant functions in mo_usrrxt.F90 in the CAM source code.\",\n");
+    fwrite($file, "                \"As this file could change at any time, it is important that you\",\n");
+    fwrite($file, "                \"do an md5 checksum of mo_usrrxt.F90 from the version of CAM you\",\n");
+    fwrite($file, "                \"are using. The value should be: ".$checksum."\" ],\n");
     fwrite($file, "  \"pmc-data\": [\n");
     fwrite($file, "    {\n");
     fwrite($file, "      \"name\": \"".$mechanism_name."\",\n");
@@ -2018,7 +2027,7 @@ function write_camp_reactions_file($con, $file, $tag_id, $mechanism_name) {
                 $reaction_objects[] = get_reaction_object_troe($con, $reaction, $reaction_indent);
                 break;
             default:
-                $rxn = new CustomReaction($con, $reaction);
+                $rxn = custom_reaction_from_database($con, $reaction);
                 $camp_rxns = $rxn->getCampReactions( );
                 if(count($camp_rxns)>0) {
                     foreach($camp_rxns as $camp_rxn) {
@@ -2046,6 +2055,29 @@ function write_camp_reactions_file($con, $file, $tag_id, $mechanism_name) {
     }
     fwrite($file, "  ]\n");
     fwrite($file, "}\n");
+}
+
+// Creates a new CustomReaction object from the database
+function custom_reaction_from_database($con, $reaction) : CustomReaction {
+    $reactants_query = "SELECT moleculename AS name,
+                               COUNT(moleculename) AS qty
+                          FROM reactionreactants
+                          WHERE reaction_id = ".$reaction['id']."
+                          GROUP BY moleculename";
+    $reactants_results = pg_query($con, $reactants_query);
+    $reactants = array( );
+    while($reactant = pg_fetch_array($reactants_results)) {
+        $reactants[$reactant['name']] = array('qty' => $reactant['qty']);
+    }
+    $products_query = "SELECT moleculename AS name, coefficient AS yield
+                         FROM reactionproducts
+                         WHERE reaction_id = ".$reaction['id'];
+    $products_results = pg_query($con, $products_query);
+    $products = array( );
+    while($product = pg_fetch_array($products_results)) {
+        $products[$product['name']] = array('yield' => $product['yield']);
+    }
+    return new CustomReaction($reaction['label'], $reactants, $products);
 }
 
 // Returns query results for gas-phase chemical species in a tagged mechanism
