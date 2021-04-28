@@ -11,7 +11,8 @@ function testCustomReaction( ) {
                                 'usr_HO2NO2_M', 'usr_HO2_HO2', 'usr_MPAN_M', 'usr_SO2_OH',
                                 'usr_CO_OH_a', 'usr_O_O', 'usr_PAN_M', 'usr_HNO3_OH',
                                 'usr_CH3COCH3_OH', 'usr_CL2O2_M', 'usr_SO3_H2O',
-                                'usr_CO_OH_b' ];
+                                'usr_CO_OH_b', 'usr_ISOPZD1O2', 'usr_TERPAPAN_M',
+                                'usr_TERPA2PAN_M', 'usr_TERPA3PAN_M', 'usr_ISOPZD4O2' ];
     $stratosphere_reactions = array( );
     $file_dict = loadDictionaryFromCsvFile( 'out/original_rate_constants.csv' );
 

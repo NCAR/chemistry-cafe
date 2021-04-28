@@ -117,6 +117,12 @@ contains
                             9.7e-29_R8, -5.6_R8, 9.3e-12_R8, 1.5_R8, 0.6_R8 )
     call add_troe_reaction( 'tag_CH3CO3_NO2', &
                             9.7e-29_R8, -5.6_R8, 9.3e-12_R8, 1.5_R8, 0.6_R8 )
+    call add_troe_reaction( 'tag_TERPACO3_NO2', &
+                            9.7e-29_R8, -5.6_R8, 9.3e-12_R8, 1.5_R8, 0.6_R8 )
+    call add_troe_reaction( 'tag_TERPA2CO3_NO2', &
+                            9.7e-29_R8, -5.6_R8, 9.3e-12_R8, 1.5_R8, 0.6_R8 )
+    call add_troe_reaction( 'tag_TERPA3CO3_NO2', &
+                            9.7e-29_R8, -5.6_R8, 9.3e-12_R8, 1.5_R8, 0.6_R8 )
     call add_arrhenius_reaction( 'tag_CLO_CLO_M', &
                                  3e-11_R8, 0.0_R8, 2450.0_R8 )
   end subroutine add_reaction_dependencies

@@ -4,6 +4,7 @@ include_once('CampReactionArrhenius.php');
 include_once('CampReactionTernaryChemicalActivation.php');
 include_once('CampReactionTroe.php');
 include_once('CampReactionWennbergNoRo2.php');
+include_once('CampReactionWennbergTunneling.php');
 
 //
 // Generator of CAMP reaction objects for custom rate constant function
@@ -191,6 +192,21 @@ class CustomReaction
                 break;
             case "usr_NC4CHOO2_NOn":
                 $reactions = $this->getReactionsNc4choo2NoN( );
+                break;
+            case "usr_ISOPZD1O2":
+                $reactions = $this->getReactionsIsopzd1o2( );
+                break;
+            case "usr_TERPAPAN_M":
+                $reactions = $this->getReactionsTerpapanM( );
+                break;
+            case "usr_TERPA2PAN_M":
+                $reactions = $this->getReactionsTerpa2panM( );
+                break;
+            case "usr_TERPA3PAN_M":
+                $reactions = $this->getReactionsTerpa3panM( );
+                break;
+            case "usr_ISOPZD4O2":
+                $reactions = $this->getReactionsIsopzd4o2( );
                 break;
             default:
                 print "\nWarning: Custom function $this->custom_rate_constant_name_ is unsupported.";
@@ -1035,6 +1051,88 @@ class CustomReaction
                           ->Y( -360 )
                           ->a0( 0.021 )
                           ->n( 11 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_ISOPZD1O2
+    //
+    private function getReactionsIsopzd1o2( ) {
+        return array( CampReactionWennbergTunneling::builder( )
+                          ->reactants( $this->original_reactants_ )
+                          ->products(  $this->original_products_  )
+                          ->A( 5.05e15 )
+                          ->B( 12200 )
+                          ->C( 1e8 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_TERPAPAN_M
+    //
+    private function getReactionsTerpapanM( ) {
+        return array( CampReactionTroe::builder( )
+                          ->reactants( $this->original_reactants_ )
+                          ->products(  $this->original_products_  )
+                          ->k0_A( 9.7e-29 * 1.111e28 )
+                          ->k0_B( -5.6 )
+                          ->k0_C( -14000 )
+                          ->kinf_A( 9.3e-12 * 1.111e28 )
+                          ->kinf_C( -14000 )
+                          ->Fc( 0.6 )
+                          ->N( 1.5 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_TERPA2PAN_M
+    //
+    private function getReactionsTerpa2panM( ) {
+        return array( CampReactionTroe::builder( )
+                          ->reactants( $this->original_reactants_ )
+                          ->products(  $this->original_products_  )
+                          ->k0_A( 9.7e-29 * 1.111e28 )
+                          ->k0_B( -5.6 )
+                          ->k0_C( -14000 )
+                          ->kinf_A( 9.3e-12 * 1.111e28 )
+                          ->kinf_C( -14000 )
+                          ->Fc( 0.6 )
+                          ->N( 1.5 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_TERPA3PAN_M
+    //
+    private function getReactionsTerpa3panM( ) {
+        return array( CampReactionTroe::builder( )
+                          ->reactants( $this->original_reactants_ )
+                          ->products(  $this->original_products_  )
+                          ->k0_A( 9.7e-29 * 1.111e28 )
+                          ->k0_B( -5.6 )
+                          ->k0_C( -14000 )
+                          ->kinf_A( 9.3e-12 * 1.111e28 )
+                          ->kinf_C( -14000 )
+                          ->Fc( 0.6 )
+                          ->N( 1.5 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_ISOPZD4O2
+    //
+    private function getReactionsIsopzd4o2( ) {
+        return array( CampReactionWennbergTunneling::builder( )
+                          ->reactants( $this->original_reactants_ )
+                          ->products(  $this->original_products_  )
+                          ->A( 2.22e9 )
+                          ->B( 7160 )
+                          ->C( 1e8 )
                           ->build( ) );
     }
 }
