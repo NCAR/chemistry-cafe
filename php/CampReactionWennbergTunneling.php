@@ -2,8 +2,6 @@
 
 include_once("CampReaction.php");
 
-//
-// Generator of CAMP configuration data for Wennberg tunneling reactions.
 // See eq (12) in:
 // Paul O. Wennberg et al. “Gas-Phase Reactions of Isoprene and Its Major
 //    Oxidation Products”. In: Chemical Reviews 118.7 (2018). PMID: 29522327,
@@ -47,9 +45,9 @@ class CampReactionWennbergTunneling extends CampReaction
         for($i = 0; $i < $indent; ++$i) $prefix .= " ";
         $config  = $prefix."{\n";
         $config .= $prefix."  \"type\": \"WENNBERG_TUNNELING\",\n";
-        $config .= $prefix."  \"A\": ". $this->A_. ",\n";
-        $config .= $prefix."  \"B\": ". $this->B_. ",\n";
-        $config .= $prefix."  \"C\": ". $this->C_. ",\n";
+        $config .= $prefix."  \"A\": ". sprintf( '%lg', $this->A_ ).",\n";
+        $config .= $prefix."  \"B\": ". sprintf( '%lg', $this->B_ ).",\n";
+        $config .= $prefix."  \"C\": ". sprintf( '%lg', $this->C_ ).",\n";
         $config .= $prefix."  \"reactants\": {\n";
         $reactant_strings = array( );
         foreach($this->reactants_ as $name => $props) {

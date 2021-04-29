@@ -55,11 +55,11 @@ EOD;
     $expected_string = <<<'EOD'
 {
   "type": "ARRHENIUS",
-  "A": 1.25E-22,
+  "A": 1.25e-22,
   "B": 3.2,
   "D": 301,
   "E": 92034.2,
-  "Ea": 1.24E-18,
+  "Ea": 1.24e-18,
   "reactants": {
     "FOO": { },
     "BAR": { "qty": 3 }

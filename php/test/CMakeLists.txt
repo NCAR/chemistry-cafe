@@ -16,6 +16,7 @@ add_test(test_arrhenius                   ${CMAKE_BINARY_DIR}/TestCampReactionAr
 add_test(test_troe                        ${CMAKE_BINARY_DIR}/TestCampReactionTroe.sh)
 add_test(test_ternary_chemical_activation ${CMAKE_BINARY_DIR}/TestCampReactionTernaryChemicalActivation.sh)
 add_test(test_wennberg_no_ro2             ${CMAKE_BINARY_DIR}/TestCampReactionWennbergNoRo2.sh)
+add_test(test_wennberg_tunneling          ${CMAKE_BINARY_DIR}/TestCampReactionWennbergTunneling.sh)
 add_test(test_custom_reaction             ${CMAKE_BINARY_DIR}/TestCustomReaction.sh)
 
 ######################################################################
