@@ -41,18 +41,23 @@ class CustomReaction
                 $reactions = $this->getReactionsPbznitM( );
                 break;
             case "usr_O_O2":
+            case "usr_OA_O2":
                 $reactions = $this->getReactionsOO2( );
                 break;
             case "usr_N2O5_M":
+            case "usr_XNO2NO3_M":
+            case "usr_NO2XNO3_M":
                 $reactions = $this->getReactionsN2o5M( );
                 break;
             case "usr_HO2NO2_M":
+            case "usr_XHO2NO2_M":
                 $reactions = $this->getReactionsHo2no2M( );
                 break;
             case "usr_HO2_HO2":
                 $reactions = $this->getReactionsHo2Ho2( );
                 break;
             case "usr_MPAN_M":
+            case "usr_XMPAN_M":
                 $reactions = $this->getReactionsMpanM( );
                 break;
             case "usr_SO2_OH":
@@ -65,9 +70,11 @@ class CustomReaction
                 $reactions = $this->getReactionsOO( );
                 break;
             case "usr_PAN_M":
+            case "usr_XPAN_M":
                 $reactions = $this->getReactionsPanM( );
                 break;
             case "usr_HNO3_OH":
+            case "usr_XHNO3_OH":
                 $reactions = $this->getReactionsHno3Oh( );
                 break;
             case "usr_MCO3_NO2":
@@ -83,6 +90,50 @@ class CustomReaction
                 $reactions = $this->getReactionsSo3H2o( );
                 break;
             case "usr_CO_OH_b":
+            case "usr_COhc_OH":
+            case "usr_COme_OH":
+            case "usr_CO01_OH":
+            case "usr_CO02_OH":
+            case "usr_CO03_OH":
+            case "usr_CO04_OH":
+            case "usr_CO05_OH":
+            case "usr_CO06_OH":
+            case "usr_CO07_OH":
+            case "usr_CO08_OH":
+            case "usr_CO09_OH":
+            case "usr_CO10_OH":
+            case "usr_CO11_OH":
+            case "usr_CO12_OH":
+            case "usr_CO13_OH":
+            case "usr_CO14_OH":
+            case "usr_CO15_OH":
+            case "usr_CO16_OH":
+            case "usr_CO17_OH":
+            case "usr_CO18_OH":
+            case "usr_CO19_OH":
+            case "usr_CO20_OH":
+            case "usr_CO21_OH":
+            case "usr_CO22_OH":
+            case "usr_CO23_OH":
+            case "usr_CO24_OH":
+            case "usr_CO25_OH":
+            case "usr_CO26_OH":
+            case "usr_CO27_OH":
+            case "usr_CO28_OH":
+            case "usr_CO29_OH":
+            case "usr_CO30_OH":
+            case "usr_CO31_OH":
+            case "usr_CO32_OH":
+            case "usr_CO33_OH":
+            case "usr_CO34_OH":
+            case "usr_CO35_OH":
+            case "usr_CO36_OH":
+            case "usr_CO37_OH":
+            case "usr_CO38_OH":
+            case "usr_CO39_OH":
+            case "usr_CO40_OH":
+            case "usr_CO41_OH":
+            case "usr_CO42_OH":
                 $reactions = $this->getReactionsCoOhB( );
                 break;
             case "usr_ISOPB1O2_NOa":
@@ -207,6 +258,27 @@ class CustomReaction
                 break;
             case "usr_ISOPZD4O2":
                 $reactions = $this->getReactionsIsopzd4o2( );
+                break;
+            case "usr_XOOH_OH":
+                $reactions = $this->getReactionsXoohOh( );
+                break;
+            case "usr_C2O3_NO2":
+                $reactions = $this->getReactionsC2o3No2( );
+                break;
+            case "usr_C2H4_OH":
+                $reactions = $this->getReactionsC2h4Oh( );
+                break;
+            case "usr_C2O3_XNO2":
+                $reactions = $this->getReactionsC2o3Xno2( );
+                break;
+            case "usr_CLm_H2O_M":
+                $reactions = $this->getReactionsClmH2oM( );
+                break;
+            case "usr_CLm_HCL_M":
+                $reactions = $this->getReactionsClmHclM( );
+                break;
+            case "usr_oh_co":
+                $reactions = $this->getReactionsOhCo( );
                 break;
             default:
                 print "\nWarning: Custom function $this->custom_rate_constant_name_ is unsupported.";
@@ -1135,5 +1207,111 @@ class CustomReaction
                           ->C( 1e8 )
                           ->build( ) );
     }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_XOOH_OH
+    //
+    private function getReactionsXoohOh( ) {
+        return array( CampReactionArrhenius::builder( )
+                          ->reactants( $this->original_reactants_ )
+                          ->products(  $this->original_products_  )
+                          ->A( 7.69e-17 )
+                          ->B( 2 )
+                          ->C( 253 )
+                          ->D( 1 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_C2O3_NO2
+    //
+    private function getReactionsC2o3No2( ) {
+        return array( CampReactionTroe::builder( )
+                          ->reactants( $this->original_reactants_ )
+                          ->products(  $this->original_products_  )
+                          ->k0_A( 2.6e-28 )
+                          ->kinf_A( 1.2e-11 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_C2H4_OH
+    //
+    private function getReactionsC2h4Oh( ) {
+        return array( CampReactionTroe::builder( )
+                          ->reactants( $this->original_reactants_ )
+                          ->products(  $this->original_products_  )
+                          ->k0_A( 1.0e-28 )
+                          ->kinf_A( 8.8e-12 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_C2O3_XNO2
+    //
+    private function getReactionsC2o3Xno2( ) {
+        return array( CampReactionTroe::builder( )
+                          ->reactants( $this->original_reactants_ )
+                          ->products(  $this->original_products_  )
+                          ->k0_A( 2.6e-28 )
+                          ->kinf_A( 1.2e-11 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_CLm_H2O_M
+    //
+    private function getReactionsClmH2oM( ) {
+        return array( CampReactionArrhenius::builder( )
+                          ->reactants( $this->original_reactants_ )
+                          ->products(  $this->original_products_  )
+                          ->A( 2e-8 )
+                          ->C( -6600 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_CLm_HCL_M
+    //
+    private function getReactionsClmHclM( ) {
+        return array( CampReactionArrhenius::builder( )
+                          ->reactants( $this->original_reactants_ )
+                          ->products(  $this->original_products_  )
+                          ->A( 1 )
+                          ->B( -1 )
+                          ->C( -11926 )
+                          ->D( 1 )
+                          ->build( ) );
+    }
+
+    // Returns a set of CAMP reactions for the custom rate constant function:
+    //
+    //   usr_oh_co
+    //
+    private function getReactionsOhCo( ) {
+        return array( CampReactionTroe::builder( )
+                          ->reactants( $this->original_reactants_ )
+                          ->products(  $this->original_products_  )
+                          ->k0_A( 5.9e-33 )
+                          ->k0_B( -1.4 )
+                          ->kinf_A( 1.1e-12 )
+                          ->kinf_B( 1.3 )
+                          ->build( ),
+                       CampReactionTernaryChemicalActivation::builder( )
+                          ->reactants( $this->original_reactants_ )
+                          ->products(  $this->original_products_  )
+                          ->k0_A( 1.5e-13 )
+                          ->k0_B( 0.6 )
+                          ->kinf_A( 2.1e9 )
+                          ->kinf_B( 6.1 )
+                          ->build( ) );
+    }
+
 }
 ?>
