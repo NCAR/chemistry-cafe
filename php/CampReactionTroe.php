@@ -59,14 +59,14 @@ class CampReactionTroe extends CampReaction
         for($i = 0; $i < $indent; ++$i) $prefix .= " ";
         $config  = $prefix."{\n";
         $config .= $prefix."  \"type\": \"".$this->getReactionType( )."\",\n";
-        if($this->k0_A_    != 1)   $config .= $prefix."  \"k0_A\": ".  $this->k0_A_.  ",\n";
-        if($this->k0_B_    != 0)   $config .= $prefix."  \"k0_B\": ".  $this->k0_B_.  ",\n";
-        if($this->k0_C_    != 0)   $config .= $prefix."  \"k0_C\": ".  $this->k0_C_.  ",\n";
-        if($this->kinf_A_  != 1)   $config .= $prefix."  \"kinf_A\": ".$this->kinf_A_.",\n";
-        if($this->kinf_B_  != 0)   $config .= $prefix."  \"kinf_B\": ".$this->kinf_B_.",\n";
-        if($this->kinf_C_  != 0)   $config .= $prefix."  \"kinf_C\": ".$this->kinf_C_.",\n";
-        if($this->Fc_      != 0.6) $config .= $prefix."  \"Fc\": ".    $this->Fc_.    ",\n";
-        if($this->N_       != 1)   $config .= $prefix."  \"N\": ".     $this->N_.     ",\n";
+        if($this->k0_A_    != 1)   $config .= $prefix."  \"k0_A\": ".  sprintf( '%lg', $this->k0_A_ ).  ",\n";
+        if($this->k0_B_    != 0)   $config .= $prefix."  \"k0_B\": ".  sprintf( '%lg', $this->k0_B_ ).  ",\n";
+        if($this->k0_C_    != 0)   $config .= $prefix."  \"k0_C\": ".  sprintf( '%lg', $this->k0_C_ ).  ",\n";
+        if($this->kinf_A_  != 1)   $config .= $prefix."  \"kinf_A\": ".sprintf( '%lg', $this->kinf_A_ ).",\n";
+        if($this->kinf_B_  != 0)   $config .= $prefix."  \"kinf_B\": ".sprintf( '%lg', $this->kinf_B_ ).",\n";
+        if($this->kinf_C_  != 0)   $config .= $prefix."  \"kinf_C\": ".sprintf( '%lg', $this->kinf_C_ ).",\n";
+        if($this->Fc_      != 0.6) $config .= $prefix."  \"Fc\": ".    sprintf( '%lg', $this->Fc_ ).    ",\n";
+        if($this->N_       != 1)   $config .= $prefix."  \"N\": ".     sprintf( '%lg', $this->N_ ).     ",\n";
         $config .= $prefix."  \"reactants\": {\n";
         $reactant_strings = array( );
         foreach($this->reactants_ as $name => $props) {
@@ -140,6 +140,8 @@ abstract class CampReactionTroeBuilder
                 $this->reactants_[$reactant]['qty'] = 1;
             }
         }
+        // The CAM preprocessor appears to ignore 'M'
+        unset($this->reactants_['M']);
         return $this;
     }
 
@@ -150,6 +152,8 @@ abstract class CampReactionTroeBuilder
                 $this->products_[$product]['yield'] = 1;
             }
         }
+        // The CAM preprocessor appears to ignore 'M' as a species
+        unset($this->products_['M']);
         return $this;
     }
 

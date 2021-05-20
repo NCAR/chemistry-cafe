@@ -45,11 +45,11 @@ class CampReactionArrhenius extends CampReaction
         for($i = 0; $i < $indent; ++$i) $prefix .= " ";
         $config  = $prefix."{\n";
         $config .= $prefix."  \"type\": \"ARRHENIUS\",\n";
-        if($this->A_  != 1)   $config .= $prefix."  \"A\": ". $this->A_. ",\n";
-        if($this->B_  != 0)   $config .= $prefix."  \"B\": ". $this->B_. ",\n";
-        if($this->D_  != 300) $config .= $prefix."  \"D\": ". $this->D_. ",\n";
-        if($this->E_  != 0)   $config .= $prefix."  \"E\": ". $this->E_. ",\n";
-        if($this->Ea_ != 0)   $config .= $prefix."  \"Ea\": ".$this->Ea_.",\n";
+        if($this->A_  != 1)   $config .= $prefix."  \"A\": ". sprintf( '%lg', $this->A_ ).",\n";
+        if($this->B_  != 0)   $config .= $prefix."  \"B\": ". sprintf( '%lg', $this->B_ ).",\n";
+        if($this->D_  != 300) $config .= $prefix."  \"D\": ". sprintf( '%lg', $this->D_ ).",\n";
+        if($this->E_  != 0)   $config .= $prefix."  \"E\": ". sprintf( '%lg', $this->E_ ).",\n";
+        if($this->Ea_ != 0)   $config .= $prefix."  \"Ea\": ".sprintf( '%lg', $this->Ea_).",\n";
         $config .= $prefix."  \"reactants\": {\n";
         $reactant_strings = array( );
         foreach($this->reactants_ as $name => $props) {

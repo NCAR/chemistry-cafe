@@ -4,6 +4,7 @@
 \usepackage{biblatex}
 \usepackage{chemformula}
 \usepackage{fancyvrb}
+\usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage{lipsum}
 \usepackage[margin=1in]{geometry}
@@ -28,6 +29,80 @@
 This document builds on the TS1 Custom Rate Constants document, adding treatments for custom rate constant
 functions used in the TS2 mechanism that are not also present in TS1.
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Note on [M] in Troe reactions}
+
+\begin{figure}[h]
+\centerline{\includegraphics[width=7in]{M_in_Troe.png}}
+\caption{Example of a Troe reaction in the Chemistry Caf\'{e}.}
+\label{fig:TroeM}
+\end{figure}
+
+The species `M' seems to be included in most (maybe all?) standard Troe reactions as a reactant and a product.
+However, the CAM preprocessor appears to ignore `M' as a species, and instead includes it in the calculation of the
+rate constant:
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/pp_trop_strat_mam4_ts2/m_spc_id.F90 (27,27)
+      integer, parameter :: id_C2H2 = 25
+\end{blockcode}
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/pp_trop_strat_mam4_ts2/m_spc_id.F90 (295,295)
+      integer, parameter :: id_OH = 293
+\end{blockcode}
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/pp_trop_strat_mam4_ts2/m_rxt_id.F90 (324,324)
+      integer, parameter :: rid_C2H2_OH_M = 322
+\end{blockcode}
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/pp_trop_strat_mam4_ts2/mo_setrxt.F90 (928,930)
+      ko(:) = 5.5e-30_r8
+      kinf(:) = 8.3e-13_r8 * itemp(:)**(-2._r8)
+      call jpl( rate(:,322), m, 0.6_r8, ko, kinf, n )
+\end{blockcode}
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/mozart/mo_jpl.F90 (9,39)
+      subroutine jpl( rate, m, factor, ko, kinf, ncol )
+!-----------------------------------------------------------------
+!        ... Calculate JPL troe rate
+!-----------------------------------------------------------------
+
+      use shr_kind_mod, only : r8 => shr_kind_r8
+
+      implicit none
+
+!-----------------------------------------------------------------
+!        ... Dummy args
+!-----------------------------------------------------------------
+      integer, intent(in)   ::   ncol
+      real(r8), intent(in)  ::   factor
+      real(r8), intent(in)  ::   ko(ncol)
+      real(r8), intent(in)  ::   kinf(ncol)
+      real(r8), intent(in)  ::   m(ncol)
+      real(r8), intent(out) ::   rate(ncol)
+
+!-----------------------------------------------------------------
+!        ... Local variables
+!-----------------------------------------------------------------
+      real(r8)  ::  xpo(ncol)
+
+      xpo(:)  = ko(:) * m(:) / kinf(:)
+      rate(:) = ko(:) / (1._r8 + xpo(:))
+      xpo(:)  = log10( xpo(:) )
+      xpo(:)  = 1._r8 / (1._r8 + xpo(:)*xpo(:))
+      rate(:) = rate(:) * factor**xpo(:)
+
+      end subroutine jpl
+\end{blockcode}
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/pp_trop_strat_mam4_ts2/mo_prod_loss.F90 (197,198)
+         loss(k,84) = (rxt(k,321)* y(k,57) +rxt(k,322)* y(k,293) + het_rates(k,25)) &
+                 * y(k,25)
+\end{blockcode}
+
+\textit{\Large Is it ok to always ignore 'M' as a species in Troe reactions (with it included in the rate constant calculation)?}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -84,24 +159,24 @@ Similar custom rate constant functions are summarized in Table~\ref{tab:wennberg
 \begin{tabular}{l c c c c}
 Function name & $X$ & $Y$ & $a_0$ & $n$ \\
 \hline
-usr\_ISOPB1O2\_NO   & $2.7 \times 10^{-12}$ & 360 & 0.14   & 6 \\
-usr\_ISOPB4O2\_NO   & $2.7 \times 10^{-12}$ & 360 & 0.13   & 6 \\
-usr\_ISOPD1O2\_NO   & $2.7 \times 10^{-12}$ & 360 & 0.12   & 6 \\
-usr\_ISOPD4O2\_NO   & $2.7 \times 10^{-12}$ & 360 & 0.12   & 6 \\
-usr\_ISOPZD1O2\_NO & $2.7 \times 10^{-12}$ & 360 & 0.12   & 6 \\
-usr\_ISOPZD4O2\_NO & $2.7 \times 10^{-12}$ & 360 & 0.12   & 6 \\
-usr\_ISOPNO3\_NO     & $2.7 \times 10^{-12}$ & 360 & 0.135 & 9 \\
-usr\_MVKO2\_NO        & $2.7 \times 10^{-12}$ & 360 & 0.04   & 6 \\
-usr\_MACRO2\_NO      & $2.7 \times 10^{-12}$ & 360 & 0.06  & 6 \\
-usr\_IEPOXOO\_NO     & $2.7 \times 10^{-12}$ & 360 & 0.025 & 8 \\
-usr\_ISOPN1DO2\_NO & $2.7 \times 10^{-12}$ & 360 & 0.084 & 11 \\
-usr\_ISOPN2BO2\_NO & $2.7 \times 10^{-12}$ & 360 & 0.065 & 11 \\
-usr\_ISOPN3BO2\_NO & $2.7 \times 10^{-12}$ & 360 & 0.053 & 11 \\
-usr\_ISOPN4DO2\_NO & $2.7 \times 10^{-12}$ & 360 & 0.165 & 11 \\
-usr\_ISOPNBNO3O2\_NO & $2.7 \times 10^{-12}$ & 360 & 0.203 & 11 \\
-usr\_ISOPNOOHBO2\_NO & $2.7 \times 10^{-12}$ & 360 & 0.141 & 12 \\
-usr\_ISOPNOOHDO2\_NO & $2.7 \times 10^{-12}$ & 360 & 0.045 & 12 \\
-usr\_NC4CHOO2\_NO & $2.7 \times 10^{-12}$ & 360 & 0.021 & 11 \\
+usr\_ISOPB1O2\_NO   & $2.7 \times 10^{-12}$ & -360 & 0.14   & 6 \\
+usr\_ISOPB4O2\_NO   & $2.7 \times 10^{-12}$ & -360 & 0.13   & 6 \\
+usr\_ISOPD1O2\_NO   & $2.7 \times 10^{-12}$ & -360 & 0.12   & 6 \\
+usr\_ISOPD4O2\_NO   & $2.7 \times 10^{-12}$ & -360 & 0.12   & 6 \\
+usr\_ISOPZD1O2\_NO & $2.7 \times 10^{-12}$ & -360 & 0.12   & 6 \\
+usr\_ISOPZD4O2\_NO & $2.7 \times 10^{-12}$ & -360 & 0.12   & 6 \\
+usr\_ISOPNO3\_NO     & $2.7 \times 10^{-12}$ & -360 & 0.135 & 9 \\
+usr\_MVKO2\_NO        & $2.7 \times 10^{-12}$ & -360 & 0.04   & 6 \\
+usr\_MACRO2\_NO      & $2.7 \times 10^{-12}$ & -360 & 0.06  & 6 \\
+usr\_IEPOXOO\_NO     & $2.7 \times 10^{-12}$ & -360 & 0.025 & 8 \\
+usr\_ISOPN1DO2\_NO & $2.7 \times 10^{-12}$ & -360 & 0.084 & 11 \\
+usr\_ISOPN2BO2\_NO & $2.7 \times 10^{-12}$ & -360 & 0.065 & 11 \\
+usr\_ISOPN3BO2\_NO & $2.7 \times 10^{-12}$ & -360 & 0.053 & 11 \\
+usr\_ISOPN4DO2\_NO & $2.7 \times 10^{-12}$ & -360 & 0.165 & 11 \\
+usr\_ISOPNBNO3O2\_NO & $2.7 \times 10^{-12}$ & -360 & 0.203 & 11 \\
+usr\_ISOPNOOHBO2\_NO & $2.7 \times 10^{-12}$ & -360 & 0.141 & 12 \\
+usr\_ISOPNOOHDO2\_NO & $2.7 \times 10^{-12}$ & -360 & 0.045 & 12 \\
+usr\_NC4CHOO2\_NO & $2.7 \times 10^{-12}$ & -360 & 0.021 & 11 \\
 \hline
 \end{tabular}
 \end{table}

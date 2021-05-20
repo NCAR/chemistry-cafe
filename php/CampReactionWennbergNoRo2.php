@@ -55,10 +55,10 @@ class CampReactionWennbergNoRo2 extends CampReaction
         for($i = 0; $i < $indent; ++$i) $prefix .= " ";
         $config  = $prefix."{\n";
         $config .= $prefix."  \"type\": \"".$this->getReactionType( )."\",\n";
-        $config .= $prefix."  \"X\": ". $this->X_. ",\n";
-        $config .= $prefix."  \"Y\": ". $this->Y_. ",\n";
-        $config .= $prefix."  \"a0\": ".$this->A0_.",\n";
-        $config .= $prefix."  \"n\": ". $this->n_. ",\n";
+        $config .= $prefix."  \"X\": ". sprintf( '%lg', $this->X_ ). ",\n";
+        $config .= $prefix."  \"Y\": ". sprintf( '%lg', $this->Y_ ). ",\n";
+        $config .= $prefix."  \"a0\": ".sprintf( '%lg', $this->a0_ ).",\n";
+        $config .= $prefix."  \"n\": ". sprintf( '%lg', $this->n_ ). ",\n";
         $config .= $prefix."  \"reactants\": {\n";
         $reactant_strings = array( );
         foreach($this->reactants_ as $name => $props) {

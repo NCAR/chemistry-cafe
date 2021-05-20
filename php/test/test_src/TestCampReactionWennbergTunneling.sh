@@ -7,7 +7,7 @@ set -v
 # make sure the current directory is the one where this script is
 cd ${0%/*}
 
-exec_str="php TestCampReactionWennbergNoRo2.php"
+exec_str="php TestCampReactionWennbergTunneling.php"
 
 if ! $exec_str; then
   echo Failure

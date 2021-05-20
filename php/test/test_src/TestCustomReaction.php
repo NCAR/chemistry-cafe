@@ -12,7 +12,24 @@ function testCustomReaction( ) {
                                 'usr_CO_OH_a', 'usr_O_O', 'usr_PAN_M', 'usr_HNO3_OH',
                                 'usr_CH3COCH3_OH', 'usr_CL2O2_M', 'usr_SO3_H2O',
                                 'usr_CO_OH_b', 'usr_ISOPZD1O2', 'usr_TERPAPAN_M',
-                                'usr_TERPA2PAN_M', 'usr_TERPA3PAN_M', 'usr_ISOPZD4O2' ];
+                                'usr_TERPA2PAN_M', 'usr_TERPA3PAN_M', 'usr_ISOPZD4O2',
+                                'usr_XOOH_OH', 'usr_OA_O2', 'usr_XNO2NO3_M',
+                                'usr_NO2XNO3_M', 'usr_XHNO3_OH', 'usr_XHO2NO2_M',
+                                'usr_XPAN_M', 'usr_XMPAN_M', 'usr_C2O3_NO2',
+                                'usr_C2H4_OH', 'usr_C2O3_XNO2', 'usr_CLm_H2O_M',
+                                'usr_CLm_HCL_M', 'usr_oh_co', 'usr_COhc_OH', 'usr_COme_OH',
+                                'usr_CO01_OH', 'usr_CO02_OH', 'usr_CO03_OH', 'usr_CO04_OH',
+                                'usr_CO05_OH', 'usr_CO06_OH', 'usr_CO07_OH', 'usr_CO08_OH',
+                                'usr_CO09_OH', 'usr_CO10_OH',
+                                'usr_CO11_OH', 'usr_CO12_OH', 'usr_CO13_OH', 'usr_CO14_OH',
+                                'usr_CO15_OH', 'usr_CO16_OH', 'usr_CO17_OH', 'usr_CO18_OH',
+                                'usr_CO19_OH', 'usr_CO20_OH',
+                                'usr_CO21_OH', 'usr_CO22_OH', 'usr_CO23_OH', 'usr_CO24_OH',
+                                'usr_CO25_OH', 'usr_CO26_OH', 'usr_CO27_OH', 'usr_CO28_OH',
+                                'usr_CO29_OH', 'usr_CO30_OH',
+                                'usr_CO31_OH', 'usr_CO32_OH', 'usr_CO33_OH', 'usr_CO34_OH',
+                                'usr_CO35_OH', 'usr_CO36_OH', 'usr_CO37_OH', 'usr_CO38_OH',
+                                'usr_CO39_OH', 'usr_CO40_OH', 'usr_CO41_OH', 'usr_CO42_OH' ];
     $stratosphere_reactions = array( );
     $file_dict = loadDictionaryFromCsvFile( 'out/original_rate_constants.csv' );
 
@@ -54,6 +71,8 @@ function testCustomReaction( ) {
     test_troposphere_reaction( 'usr_ISOPNOOHDO2_NOa', $file_dict, 'alkoxy'  );
     test_troposphere_reaction( 'usr_NC4CHOO2_NOn',    $file_dict, 'nitrate' );
     test_troposphere_reaction( 'usr_NC4CHOO2_NOa',    $file_dict, 'alkoxy'  );
+    test_troposphere_reaction( 'usr_IEPOXOO_NOn',     $file_dict, 'nitrate' );
+    test_troposphere_reaction( 'usr_IEPOXOO_NOa',     $file_dict, 'alkoxy'  );
 
     print "\nPassed!\n\n";
 }

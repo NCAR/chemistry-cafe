@@ -20,10 +20,10 @@ function testCampReactionWennbergNoRo2( ) {
     $expected_string = <<<'EOD'
 {
   "type": "WENNBERG_NO_RO2",
-  "X": 1.0,
-  "Y": 0.0,
-  "a0": 1.0,
-  "n": 1.0,
+  "X": 1,
+  "Y": 0,
+  "a0": 1,
+  "n": 1,
   "reactants": {
 
   },
@@ -41,10 +41,10 @@ EOD;
     $expected_string = <<<'EOD'
     {
       "type": "WENNBERG_NO_RO2",
-      "X": 1.0,
-      "Y": 0.0,
-      "a0": 1.0,
-      "n": 1.0,
+      "X": 1,
+      "Y": 0,
+      "a0": 1,
+      "n": 1,
       "reactants": {
 
       },

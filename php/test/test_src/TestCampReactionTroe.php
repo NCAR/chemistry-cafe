@@ -60,12 +60,12 @@ EOD;
     $expected_string = <<<'EOD'
 {
   "type": "TROE",
-  "k0_A": 2.5E-23,
+  "k0_A": 2.5e-23,
   "k0_B": 3.2,
-  "k0_C": 2.4E-10,
-  "kinf_A": 5.2E-22,
+  "k0_C": 2.4e-10,
+  "kinf_A": 5.2e-22,
   "kinf_B": 4.3,
-  "kinf_C": 4.2E-9,
+  "kinf_C": 4.2e-9,
   "Fc": 0.9,
   "N": 1.6,
   "reactants": {
