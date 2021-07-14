@@ -37,12 +37,12 @@ switch($_GET['action'])  {
 
     case 'tstfilewrite' :
             global $con;
-            $id = 289;
-            $branch_id = 78;
-            $tags = pg_query($con,"SELECT filename FROM tags WHERE id = ".$id.";");
+            $id = 295;
+            $tags = pg_query($con,"SELECT filename,branch_id FROM tags WHERE id = ".$id.";");
             $tagref= pg_fetch_array($tags,0,$result_type = PGSQL_ASSOC);
-            //print_r($tagref['filename']);
-            $tagdir = '/home/some-test-dir/testdir/'.$tagref['filename'];
+            $tagdir = '/home/some_testers_dir/testdir/'.$tagref['filename'];
+            $branch_id = $tagref['branch_id'];
+            if( is_dir( $tagdir )) die ('directory exists: '.$tagdir."\n");
             mkdir($tagdir);
             write_cesm_tag_file($tagdir,$tagref['filename'],$id, $branch_id);
             write_kpp_tag_file($tagdir,$tagref['filename'],$id, $branch_id);
@@ -2167,10 +2167,21 @@ function get_reaction_object_arrhenius($con, $reaction, $indent) {
     $products_results = pg_query($con, $products_query);
     $products = array();
     while($product = pg_fetch_array($products_results)) {
-        if(is_null($product['yield'])) {
-            $products[$product['name']] = array( );
+        // if the product is not yet present in list of names
+        if( !array_key_exists($product['name'], $products)) {
+            // if there is no stoichiometric coefficient
+            if(is_null($product['yield'])) {
+                $products[$product['name']] = array( "yield" => 1);
+            } else {
+                $products[$product['name']] = array( "yield" => $product['yield'] );
+            }
+        // but if the product is already present in list of names
         } else {
-            $products[$product['name']] = array( "yield" => $product['yield'] );
+            if(is_null($product['yield'])) {
+                $products[$product['name']]['yield'] += 1;
+            } else {
+                $products[$product['name']]['yield'] += $product['yield'];
+            }
         }
     }
 
@@ -2178,7 +2189,7 @@ function get_reaction_object_arrhenius($con, $reaction, $indent) {
                ->reactants($reactants)
                ->products( $products )
                ->A(is_null($params['a']) ? 1 :  $params['a'])
-               ->C(is_null($params['c']) ? 0 : -$params['c'])
+               ->C(is_null($params['c']) ? 0 :  $params['c'])
                ->build( );
 
     return $rxn->getCampConfiguration( $indent );
@@ -2223,13 +2234,23 @@ function get_reaction_object_troe($con, $reaction, $indent) {
     $products_results = pg_query($con, $products_query);
     $products = array();
     while($product = pg_fetch_array($products_results)) {
-        if(is_null($product['yield'])) {
-            $products[$product['name']] = array( );
+        // if the product is not yet present in list of names
+        if( !array_key_exists($product['name'], $products)) {
+            // if there is no stoichiometric coefficient
+            if(is_null($product['yield'])) {
+                $products[$product['name']] = array( "yield" => 1);
+            } else {
+                $products[$product['name']] = array( "yield" => $product['yield'] );
+            }
+        // but if the product is already present in list of names
         } else {
-            $products[$product['name']] = array( "yield" => $product['yield'] );
+            if(is_null($product['yield'])) {
+                $products[$product['name']]['yield'] += 1;
+            } else {
+                $products[$product['name']]['yield'] += $product['yield'];
+            }
         }
     }
-
     $rxn = CampReactionTroe::builder( )
                ->reactants($reactants)
                ->products( $products )
@@ -2270,13 +2291,33 @@ function get_reaction_object_photolysis($con, $reaction, $indent) {
     $object .= $prefix."  \"products\": {\n";
     $product_objects = array();
     while($product = pg_fetch_array($products)) {
-      if(is_null($product['yield'])) {
-        $product_objects[] = $prefix."    \"".$product['name']."\": { }";
+        // if the product is not yet present in list of names
+        if( !array_key_exists($product['name'], $product_objects)) {
+            // if there is no stoichiometric coefficient
+            if(is_null($product['yield'])) {
+                $product_objects[$product['name']] = array( "yield" => 1);
+            } else {
+                $product_objects[$product['name']] = array( "yield" => $product['yield'] );
+            }
+        // but if the product is already present in list of names
+        } else {
+            if(is_null($product['yield'])) {
+                $product_objects[$product['name']]['yield'] += 1;
+            } else {
+                $product_objects[$product['name']]['yield'] += $product['yield'];
+            }
+        }
+    }
+    $product_list = array();
+    foreach($product_objects as $key => $value){
+      if($value['yield'] == 1) {
+        $product_list[] = $prefix."    \"".$key."\": { }";
       } else {
-        $product_objects[] = $prefix."    \"".$product['name']."\": { \"yield\": ".$product['yield']." }";
+        $product_list[] = $prefix."    \"".$key."\": { \"yield\": ".$value['yield']." }";
       }
     }
-    $object .= implode(",\n", $product_objects);
+
+    $object .= implode(",\n", $product_list);
     $object .= "\n".$prefix."  }\n";
     $object .= $prefix."}";
 
