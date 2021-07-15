@@ -141,7 +141,7 @@ abstract class CampReactionTroeBuilder
             }
         }
         // The CAM preprocessor appears to ignore 'M'
-        unset($this->reactants_['M']);
+        // unset($this->reactants_['M']);
         return $this;
     }
 
@@ -153,7 +153,7 @@ abstract class CampReactionTroeBuilder
             }
         }
         // The CAM preprocessor appears to ignore 'M' as a species
-        unset($this->products_['M']);
+        // unset($this->products_['M']);
         return $this;
     }
 

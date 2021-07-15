@@ -43,7 +43,7 @@ switch($_GET['action'])  {
             $tagdir = '/home/some_testers_dir/testdir/'.$tagref['filename'];
             $branch_id = $tagref['branch_id'];
             if( is_dir( $tagdir )) die ('directory exists: '.$tagdir."\n");
-            mkdir($tagdir);
+            if( !mkdir($tagdir)) die ('Can not make directory: '.$tagdir."\n");
             write_cesm_tag_file($tagdir,$tagref['filename'],$id, $branch_id);
             write_kpp_tag_file($tagdir,$tagref['filename'],$id, $branch_id);
             write_tex($tagdir,$tagref['filename'],$id, $branch_id);
