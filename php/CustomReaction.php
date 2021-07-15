@@ -549,11 +549,15 @@ class CustomReaction
     //   usr_CL2O2_M
     //
     private function getReactionsCl2o2M( ) {
-        return array( CampReactionArrhenius::builder( )
+        return array( CampReactionTroe::builder( ) 
                           ->reactants( $this->original_reactants_ )
                           ->products(  $this->original_products_  )
-                          ->A( 3e-11 / 2.16e-27 )
-                          ->C( 2450 - 8537 )
+                          ->k0_A( 1.9e-32 / 2.16e-27)
+                          ->k0_B( -3.6 )
+                          ->k0_C( -8573 )
+                          ->kinf_A( 3.7e-12 / 2.16e-27) 
+                          ->kinf_C( -8573 )
+                          ->N( 1.6 )
                           ->build( ) );
     }
 
