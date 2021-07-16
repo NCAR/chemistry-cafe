@@ -492,9 +492,13 @@ class CustomReaction
     //   usr_HNO3_OH
     //
     private function getReactionsHno3Oh( ) {
+        $reactants = $this->original_reactants_;
+        $products  = $this->original_products_;
+        unset( $reactants['M'] );
+        unset(  $products['M'] );
         return array( CampReactionArrhenius::builder( )
-                          ->reactants( $this->original_reactants_ )
-                          ->products(  $this->original_products_  )
+                          ->reactants( $reactants )
+                          ->products(  $products  )
                           ->A( 2.4e-14 )
                           ->C( 460 )
                           ->build( ),
