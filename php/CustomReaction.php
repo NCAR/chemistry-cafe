@@ -496,6 +496,8 @@ class CustomReaction
         $products  = $this->original_products_;
         unset( $reactants['M'] );
         unset(  $products['M'] );
+        $react_2 = array_merge($reactants, ['M' => [ ]] ) ;
+        $prod_2 = array_merge($products, ['M' => [ ]] ) ;
         return array( CampReactionArrhenius::builder( )
                           ->reactants( $reactants )
                           ->products(  $products  )
@@ -503,8 +505,8 @@ class CustomReaction
                           ->C( 460 )
                           ->build( ),
                       CampReactionTroe::builder( )
-                          ->reactants( $this->original_reactants_ )
-                          ->products(  $this->original_products_  )
+                          ->reactants( $react_2 )
+                          ->products(  $prod_2 )
                           ->k0_A( 6.5e-34 )
                           ->k0_C( 1335 )
                           ->kinf_A( 2.7e-17 )
