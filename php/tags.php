@@ -2077,7 +2077,7 @@ function custom_reaction_from_database($con, $reaction) : CustomReaction {
     while($product = pg_fetch_array($products_results)) {
         $yield = $product['yield'];
         if(array_key_exists($product['name'], $products) {
-            $yield += $products[$product['name']['yield'];
+            $yield += $products[$product['name']]['yield'];
         }
         $products[$product['name']] = array('yield' => $yield);
     }
