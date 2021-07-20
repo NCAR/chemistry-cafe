@@ -2075,7 +2075,11 @@ function custom_reaction_from_database($con, $reaction) : CustomReaction {
     $products_results = pg_query($con, $products_query);
     $products = array( );
     while($product = pg_fetch_array($products_results)) {
-        $products[$product['name']] = array('yield' => $product['yield']);
+        $yield = $product['yield'];
+        if(array_key_exists($product['name'], $products) {
+            $yield += $products[$product['name']['yield'];
+        }
+        $products[$product['name']] = array('yield' => $yield);
     }
     return new CustomReaction($reaction['label'], $reactants, $products);
 }
@@ -2177,8 +2181,8 @@ function get_reaction_object_arrhenius($con, $reaction, $indent) {
     $rxn = CampReactionArrhenius::builder( )
                ->reactants($reactants)
                ->products( $products )
-               ->A(is_null($params['a']) ? 1 :  $params['a'])
-               ->C(is_null($params['c']) ? 0 : -$params['c'])
+               ->A(is_null($params['a']) ? 1 : $params['a'])
+               ->C(is_null($params['c']) ? 0 : $params['c'])
                ->build( );
 
     return $rxn->getCampConfiguration( $indent );
