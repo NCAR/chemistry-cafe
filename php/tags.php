@@ -37,16 +37,17 @@ switch($_GET['action'])  {
 
     case 'tstfilewrite' :
             global $con;
-            $id = 289;
+            $id = 298;
             $branch_id = 78;
-            $tags = pg_query($con,"SELECT filename FROM tags WHERE id = ".$id.";");
+            $tags = pg_query($con,"SELECT filename,branch_id FROM tags WHERE id = ".$id.";");
             $tagref= pg_fetch_array($tags,0,$result_type = PGSQL_ASSOC);
-            //print_r($tagref['filename']);
-            $tagdir = '/home/some-test-dir/testdir/'.$tagref['filename'];
-            mkdir($tagdir);
-            write_cesm_tag_file($tagdir,$tagref['filename'],$id, $branch_id);
-            write_kpp_tag_file($tagdir,$tagref['filename'],$id, $branch_id);
-            write_tex($tagdir,$tagref['filename'],$id, $branch_id);
+            $tagdir = '/home/some_testers_dir/testdir/'.$tagref['filename'];
+            $branch_id = $tagref['branch_id'];
+            if( is_dir( $tagdir )) die ('directory exists: '.$tagdir."\n");
+            if( !mkdir($tagdir)) die ('Can not make directory: '.$tagdir."\n");
+            //write_cesm_tag_file($tagdir,$tagref['filename'],$id, $branch_id);
+            //write_kpp_tag_file($tagdir,$tagref['filename'],$id, $branch_id);
+            //write_tex($tagdir,$tagref['filename'],$id, $branch_id);
             write_music_box_tag_file($tagdir, $tagref['filename'], $id, $branch_id);
             break;
 
@@ -2075,7 +2076,11 @@ function custom_reaction_from_database($con, $reaction) : CustomReaction {
     $products_results = pg_query($con, $products_query);
     $products = array( );
     while($product = pg_fetch_array($products_results)) {
-        $products[$product['name']] = array('yield' => $product['yield']);
+        $yield = (is_null($product['yield']) ? 1.0 : $product['yield']);
+        if(array_key_exists($product['name'], $products)) {
+            $yield += $products[$product['name']]['yield'];
+        }
+        $products[$product['name']] = array('yield' => $yield);
     }
     return new CustomReaction($reaction['label'], $reactants, $products);
 }
@@ -2177,8 +2182,8 @@ function get_reaction_object_arrhenius($con, $reaction, $indent) {
     $rxn = CampReactionArrhenius::builder( )
                ->reactants($reactants)
                ->products( $products )
-               ->A(is_null($params['a']) ? 1 :  $params['a'])
-               ->C(is_null($params['c']) ? 0 : -$params['c'])
+               ->A(is_null($params['a']) ? 1 : $params['a'])
+               ->C(is_null($params['c']) ? 0 : $params['c'])
                ->build( );
 
     return $rxn->getCampConfiguration( $indent );
