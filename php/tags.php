@@ -37,16 +37,17 @@ switch($_GET['action'])  {
 
     case 'tstfilewrite' :
             global $con;
-            $id = 289;
+            $id = 298;
             $branch_id = 78;
-            $tags = pg_query($con,"SELECT filename FROM tags WHERE id = ".$id.";");
+            $tags = pg_query($con,"SELECT filename,branch_id FROM tags WHERE id = ".$id.";");
             $tagref= pg_fetch_array($tags,0,$result_type = PGSQL_ASSOC);
-            //print_r($tagref['filename']);
-            $tagdir = '/home/some-test-dir/testdir/'.$tagref['filename'];
-            mkdir($tagdir);
-            write_cesm_tag_file($tagdir,$tagref['filename'],$id, $branch_id);
-            write_kpp_tag_file($tagdir,$tagref['filename'],$id, $branch_id);
-            write_tex($tagdir,$tagref['filename'],$id, $branch_id);
+            $tagdir = '/home/some_testers_dir/testdir/'.$tagref['filename'];
+            $branch_id = $tagref['branch_id'];
+            if( is_dir( $tagdir )) die ('directory exists: '.$tagdir."\n");
+            if( !mkdir($tagdir)) die ('Can not make directory: '.$tagdir."\n");
+            //write_cesm_tag_file($tagdir,$tagref['filename'],$id, $branch_id);
+            //write_kpp_tag_file($tagdir,$tagref['filename'],$id, $branch_id);
+            //write_tex($tagdir,$tagref['filename'],$id, $branch_id);
             write_music_box_tag_file($tagdir, $tagref['filename'], $id, $branch_id);
             break;
 
