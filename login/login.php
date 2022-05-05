@@ -35,6 +35,7 @@ if (isset($_POST['submit'])) {
     if(!$_POST['pass']){
         die('You did not fill in a password.');
     }
+    $_POST['username'] = pg_escape_string($_POST['username']);
     $check = pg_query("SELECT * FROM users WHERE username = '".$_POST['username']."'")or die("user not available from db");
     $check2 = pg_num_rows($check);
     if ($check2 != 1){

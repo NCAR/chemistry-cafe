@@ -450,7 +450,7 @@ function add_photolysis_and_products (){
     global $con;
 
     $result = pg_prepare($con, "add_photolysis", 
-            "INSERT INTO photolysis (rate, moleculename, wrf_photo_rates_id, wrf_photo_rates_coeff, micm_js_id, micm_js_coeff, group_id) VALUES ($1, $2, $3, $4, $5) RETURNING id;"); 
+            "INSERT INTO photolysis (rate, moleculename, wrf_photo_rates_id, wrf_photo_rates_coeff, group_id) VALUES ($1, $2, $3, $4, $5) RETURNING id;"); 
 
     $result = pg_prepare($con, "add_photolysis_products",
             "INSERT INTO photolysisproducts (photolysisid, moleculename, coefficient) VALUES ($1,$2, $3);");
@@ -467,8 +467,6 @@ function add_photolysis_and_products (){
     $molecule       = $data->molecule;
     $rate           = $data->rate;
     $productArray   = $data->productArray;
-    $micm_js_id    = $data->micm_js_id;
-    $micm_js_coeff = $data->micm_js_coeff;
     $wrf_photo_rates_id    = $data->wrf_photo_rates_id;
     $wrf_photo_rates_coeff = $data->wrf_photo_rates_coeff;
     $newComment            = $data->newComment;
@@ -480,7 +478,7 @@ function add_photolysis_and_products (){
     $out .= "Begin Transaction, safe:".$safe_to_commit."\n";
 
     // add photolysis
-    $result = pg_execute($con, "add_photolysis", array($rate, $molecule, $wrf_photo_rates_id, $wrf_photo_rates_coeff, $micm_js_id, $micm_js_coeff, $group_id));
+    $result = pg_execute($con, "add_photolysis", array($rate, $molecule, $wrf_photo_rates_id, $wrf_photo_rates_coeff, $group_id));
     $out = $out . "molecule:".$molecule.":rate:".$rate.":\n";
     $new_photolysis_id = pg_fetch_array($result)[0];
     $out = $out . "pid:".$new_photolysis_id."\n";
