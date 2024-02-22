@@ -21,3 +21,4 @@ node_processes/test/kinetics_init.F90
 node_processes/test/terminator.json.LU
 node_processes/test/terminator.json.jac
 node_processes/test/terminator.json.jac.init
+node_modules/
