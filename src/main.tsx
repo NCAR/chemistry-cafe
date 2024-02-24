@@ -4,6 +4,10 @@ import App from './App';
 import { createRoot } from 'react-dom/client';
 import DynamicScrollableList from './DynamicScrollableList';
 import { Button } from 'react-bootstrap';
+import ReactDOM from "react-dom";
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+// npm install react-router-dom
+import loggedIn from "./loggedIn";
 
 interface ButtonInfo {
   id: number;
@@ -34,3 +38,12 @@ root.render(
     </React.StrictMode>
   </GoogleOAuthProvider>,
 );
+
+// ReactDOM.render(
+//   <BrowserRouter>
+//    <Routes>
+//     <Route path='/loggedIn' element={<loggedIn/>} />
+//   </Routes>
+//   </BrowserRouter>,
+//   rootElement
+// );

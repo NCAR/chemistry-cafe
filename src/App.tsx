@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { googleLogout, useGoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
+// import {Link } from "react-router-dom";
+// import ReactDOM from "react-dom";
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import LoggedIn from './loggedIn';
 
 interface User {
     access_token: string;
@@ -45,6 +49,15 @@ function App() {
         setProfile(null);
     };
 
+    function About() {
+        return (
+          <div style={{ padding: 20 }}>
+            <h2>About View</h2>
+            <p>Lorem ipsum dolor sit amet, consectetur adip.</p>
+          </div>
+        );
+      }
+
     return (
         <div>
             <h2>React Google Login</h2>
@@ -63,6 +76,24 @@ function App() {
             ) : (
                 <button onClick={() => login()}>Sign in with Google 🚀</button>
             )}
+
+            
+
+            <Router>
+                <Routes>
+                    <Route path="/about" element={<About />} />
+                    <Route path="/loggedIn" element={<LoggedIn />} />
+                </Routes>
+            </Router>
+            
+            
+
+            <button>
+                <Link>
+                    
+                </Link>
+            </button>
+
         </div>
     );
 }
