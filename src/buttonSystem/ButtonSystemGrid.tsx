@@ -1,21 +1,21 @@
-import React, { ReactNode, useEffect, useState } from 'react';
+import React, {useEffect, useState } from 'react';
 import { Container, Row, Col } from 'react-bootstrap';
-
+import {renderButton, ButtonData } from './RenderButtons';
 
 interface ButtonSystemGridProps {
-  buttonArray: Promise<any[]>[];
-  renderButton: (button: any) => ReactNode;
+  buttonArray: Promise<ButtonData[]>[];
+  category: string;
   cols: number;
   size: string;
 }
 
-const ButtonSystemGrid: React.FC<ButtonSystemGridProps> = ({ buttonArray, renderButton, cols, size }) => {
-  const [resolvedButtons, setResolvedButtons] = useState<any[]>([]);
+const ButtonSystemGrid: React.FC<ButtonSystemGridProps> = ({ buttonArray, category, cols, size }) => {
+  const [resolvedButtons, setResolvedButtons] = useState<ButtonData[]>([]);
 
   useEffect(() => {
     Promise.all(buttonArray)
       .then((resolved) => {
-        const flattenedButtons = resolved.flat();
+        const flattenedButtons: ButtonData[] = resolved.reduce((acc, curr) => acc.concat(curr), []);
         setResolvedButtons(flattenedButtons);
       })
       .catch((error) => {
@@ -31,7 +31,7 @@ const ButtonSystemGrid: React.FC<ButtonSystemGridProps> = ({ buttonArray, render
       <Row>
         {resolvedButtons.map((button, index) => (
           <Col key={index} xs={columnWidth}>
-            {renderButton(button)}
+            {renderButton(button, category)}
           </Col>
         ))}
       </Row>
