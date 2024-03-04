@@ -1,11 +1,13 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
-   function LoggedIn() {
-
+  const LoggedIn = () => {
+    const navigate = useNavigate();
+    const handleClick = () => navigate('/');
         return (
-          <div>
-            <p>This is the second page.</p>
-          </div>
+          <button type="button" onClick={handleClick}>
+            Hello
+          </button>
         );
 
     }

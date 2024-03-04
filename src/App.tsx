@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { googleLogout, useGoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
-// import {Link } from "react-router-dom";
-// import ReactDOM from "react-dom";
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Link, useNavigate } from 'react-router-dom';
 import LoggedIn from './loggedIn';
+import Settings from './settingsPage';
+import LandingPage from './landingPage.tsx';
+import {Button} from 'react-bootstrap';
 
 interface User {
     access_token: string;
@@ -18,7 +19,7 @@ interface Profile {
     // Add any other fields you expect to receive from the profile response
 }
 
-function App() {
+const App = () => {
     const [user, setUser] = useState<User | null>(null);
     const [profile, setProfile] = useState<Profile | null>(null);
 
@@ -49,14 +50,8 @@ function App() {
         setProfile(null);
     };
 
-    function About() {
-        return (
-          <div style={{ padding: 20 }}>
-            <h2>About View</h2>
-            <p>Lorem ipsum dolor sit amet, consectetur adip.</p>
-          </div>
-        );
-      }
+    // const navigate = useNavigate();
+    // const goToSettings = () => navigate('/settings');
 
     return (
         <div>
@@ -77,22 +72,21 @@ function App() {
                 <button onClick={() => login()}>Sign in with Google 🚀</button>
             )}
 
-            
+            {/* <button type="button" onClick={goToSettings}>
+                Settings!
+            </button> */}
 
-            <Router>
-                <Routes>
-                    <Route path="/about" element={<About />} />
-                    <Route path="/loggedIn" element={<LoggedIn />} />
-                </Routes>
-            </Router>
+            <div>
+                <Router>
+                    <Routes>
+                        <Route path="/loggedIn" element={<LoggedIn />} />
+                        <Route path="/settings" element={<Settings />} />
+                        <Route path="/landingPage" element={<LandingPage />} />
+                    </Routes>
+                </Router>
+            </div>
             
             
-
-            <button>
-                <Link>
-                    
-                </Link>
-            </button>
 
         </div>
     );

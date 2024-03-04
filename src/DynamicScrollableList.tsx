@@ -9,6 +9,7 @@ interface DynamicScrollableListProps {
   size: string;
 }
 
+
 const DynamicScrollableList: React.FC<DynamicScrollableListProps> = ({ buttonArray, renderButton, cols, size }) => {
   const columnWidth: number = 12 / cols;
 
