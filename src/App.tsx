@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { googleLogout, useGoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
+import Settings from './settings';
+import LoggedIn from './loggedIn';
 
 interface User {
     access_token: string;
@@ -63,6 +65,14 @@ function App() {
             ) : (
                 <button onClick={() => login()}>Sign in with Google 🚀</button>
             )}
+        </div>
+        <div>
+        <Router>
+            <Routes>
+                <Route path="/loggedIn" element={<LoggedIn />} />
+                <Route path="/settings" element={<Settings />} />
+            </Routes>
+        </Router>
         </div>
     );
 }
