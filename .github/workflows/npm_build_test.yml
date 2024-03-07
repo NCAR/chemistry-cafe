@@ -8,10 +8,12 @@ on:
     branches:
       - capstone_dev
       - master
+      - github_actions
   pull_request:
     branches:
       - master
       - capstone_dev
+      - github_actions
 
 jobs:
   build:
