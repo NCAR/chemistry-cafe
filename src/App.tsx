@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { googleLogout, useGoogleLogin } from '@react-oauth/google';
+import {Route, Routes, BrowserRouter} from 'react-router-dom';
 import axios from 'axios';
 import Settings from './settings';
 import LoggedIn from './loggedIn';
@@ -65,14 +66,13 @@ function App() {
             ) : (
                 <button onClick={() => login()}>Sign in with Google 🚀</button>
             )}
-        </div>
-        <div>
-        <Router>
+
+        <BrowserRouter>
             <Routes>
                 <Route path="/loggedIn" element={<LoggedIn />} />
                 <Route path="/settings" element={<Settings />} />
             </Routes>
-        </Router>
+        </BrowserRouter>
         </div>
     );
 }
