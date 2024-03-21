@@ -1,22 +1,23 @@
-import { useState, useEffect } from 'react';
-import { googleLogout, useGoogleLogin } from '@react-oauth/google';
-import {Route, Routes, useNavigate} from 'react-router-dom';
-import axios from 'axios';
+// import { useState, useEffect } from 'react';
+// import { googleLogout, useGoogleLogin } from '@react-oauth/google';
+import {Route, Routes} from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
+// import axios from 'axios';
 import Settings from './settings';
 import LoggedIn from './loggedIn';
 import FamilyPage from './webPages/family';
 
-interface User {
-    access_token: string;
-    // Add any other fields you expect to receive from the login response
-}
+// interface User {
+//     access_token: string;
+//     // Add any other fields you expect to receive from the login response
+// }
 
-interface Profile {
-    picture: string;
-    name: string;
-    email: string;
-    // Add any other fields you expect to receive from the profile response
-}
+// interface Profile {
+//     picture: string;
+//     name: string;
+//     email: string;
+//     // Add any other fields you expect to receive from the profile response
+// }
 
 function App() {
     // const [user, setUser] = useState<User | null>(null);
