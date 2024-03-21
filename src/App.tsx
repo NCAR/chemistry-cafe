@@ -4,6 +4,7 @@ import {Route, Routes, BrowserRouter, useNavigate, Navigate} from 'react-router-
 import axios from 'axios';
 import Settings from './settings';
 import LoggedIn from './loggedIn';
+import FamilyPage from './webPages/family';
 
 interface User {
     access_token: string;
@@ -58,6 +59,7 @@ function App() {
             </button> */}
 
             <Routes>
+                <Route path="/FamilyPage" element={<FamilyPage />} />
                 <Route path="/loggedIn" element={<LoggedIn />} />
                 <Route path="/settings" element={<Settings />} />
             </Routes>
