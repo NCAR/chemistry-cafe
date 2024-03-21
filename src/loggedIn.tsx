@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import ButtonSystemGrid from './buttonSystem/ButtonSystemGrid';
 import { getFamilies } from './buttonSystem/API_Methods';

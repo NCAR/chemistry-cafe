@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { googleLogout, useGoogleLogin } from '@react-oauth/google';
-import {Route, Routes, BrowserRouter, useNavigate, Navigate} from 'react-router-dom';
+import {Route, Routes, useNavigate} from 'react-router-dom';
 import axios from 'axios';
 import Settings from './settings';
 import LoggedIn from './loggedIn';
@@ -19,37 +19,37 @@ interface Profile {
 }
 
 function App() {
-    const [user, setUser] = useState<User | null>(null);
-    const [profile, setProfile] = useState<Profile | null>(null);
+    // const [user, setUser] = useState<User | null>(null);
+    // const [profile, setProfile] = useState<Profile | null>(null);
 
-    const login = useGoogleLogin({
-        onSuccess: (codeResponse) => setUser(codeResponse),
-        onError: (error) => console.log('Login Failed:', error)
-    });
+    // const login = useGoogleLogin({
+    //     onSuccess: (codeResponse) => setUser(codeResponse),
+    //     onError: (error) => console.log('Login Failed:', error)
+    // });
 
-    useEffect(() => {
-        if (user) {
-            axios
-                .get<Profile>(`https://www.googleapis.com/oauth2/v1/userinfo?access_token=${user.access_token}`, {
-                    headers: {
-                        Authorization: `Bearer ${user.access_token}`,
-                        Accept: 'application/json'
-                    }
-                })
-                .then((res) => {
-                    setProfile(res.data);
-                })
-                .catch((err) => console.log(err));
-        }
-    }, [user]);
+    // useEffect(() => {
+    //     if (user) {
+    //         axios
+    //             .get<Profile>(`https://www.googleapis.com/oauth2/v1/userinfo?access_token=${user.access_token}`, {
+    //                 headers: {
+    //                     Authorization: `Bearer ${user.access_token}`,
+    //                     Accept: 'application/json'
+    //                 }
+    //             })
+    //             .then((res) => {
+    //                 setProfile(res.data);
+    //             })
+    //             .catch((err) => console.log(err));
+    //     }
+    // }, [user]);
 
     // log out function to log the user out of google and set the profile array to null
-    const logOut = () => {
-        googleLogout();
-        setProfile(null);
-    };
+    // const logOut = () => {
+    //     googleLogout();
+    //     setProfile(null);
+    // };
 
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
 
     return (
         <div>
