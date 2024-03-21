@@ -8,9 +8,9 @@ export async function getFamilies(): Promise<Family[]> {
     } catch (error) {
         console.error(error);
         return [
-            { uuid: 1, name: 'MOZART', isdel: false},
-            { uuid: 2, name: 'RACM',  isdel: false},
-            { uuid: 3, name: 'Carbon Bond',  isdel: false},
+            { uuid: '1', name: 'MOZART', isdel: false},
+            { uuid: '2', name: 'RACM',  isdel: false},
+            { uuid: '3', name: 'Carbon Bond',  isdel: false},
         ];
     }
 }

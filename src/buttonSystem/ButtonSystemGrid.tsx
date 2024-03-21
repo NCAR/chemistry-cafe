@@ -5,11 +5,12 @@ import {renderButton, ButtonData } from './RenderButtons';
 interface ButtonSystemGridProps {
   buttonArray: Promise<ButtonData[]>[];
   category: string;
+  handleClick: (uuid: string) => void;
   cols: number;
   size: string;
 }
 
-const ButtonSystemGrid: React.FC<ButtonSystemGridProps> = ({ buttonArray, category, cols, size }) => {
+const ButtonSystemGrid: React.FC<ButtonSystemGridProps> = ({ buttonArray, category, handleClick, cols, size }) => {
   const [resolvedButtons, setResolvedButtons] = useState<ButtonData[]>([]);
 
   useEffect(() => {
@@ -31,7 +32,7 @@ const ButtonSystemGrid: React.FC<ButtonSystemGridProps> = ({ buttonArray, catego
       <Row>
         {resolvedButtons.map((button, index) => (
           <Col key={index} xs={columnWidth}>
-            {renderButton(button, category)}
+            {renderButton(button, category, handleClick)}
           </Col>
         ))}
       </Row>
