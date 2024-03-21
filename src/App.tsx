@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { googleLogout, useGoogleLogin } from '@react-oauth/google';
-import {Route, Routes, BrowserRouter} from 'react-router-dom';
+import {Route, Routes, BrowserRouter, useNavigate, Navigate} from 'react-router-dom';
 import axios from 'axios';
 import Settings from './settings';
 import LoggedIn from './loggedIn';
@@ -48,9 +48,21 @@ function App() {
         setProfile(null);
     };
 
+    const navigate = useNavigate();
+
     return (
         <div>
-            <h2>React Google Login</h2>
+
+            {/* <button type="button" onClick={() => navigate('/loggedIn')}>
+                Logged In
+            </button> */}
+
+            <Routes>
+                <Route path="/loggedIn" element={<LoggedIn />} />
+                <Route path="/settings" element={<Settings />} />
+            </Routes>
+            
+            {/* <h2>React Google Login</h2>
             <br />
             <br />
             {profile ? (
@@ -65,14 +77,9 @@ function App() {
                 </div>
             ) : (
                 <button onClick={() => login()}>Sign in with Google 🚀</button>
-            )}
+            )} */}
 
-        <BrowserRouter>
-            <Routes>
-                <Route path="/loggedIn" element={<LoggedIn />} />
-                <Route path="/settings" element={<Settings />} />
-            </Routes>
-        </BrowserRouter>
+        
         </div>
     );
 }
