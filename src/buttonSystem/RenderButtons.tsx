@@ -1,6 +1,7 @@
 import { Button } from 'react-bootstrap';
 import { Family, Mechanism, Reaction, Species, TagMechanism } from './API_Interfaces';
 import 'bootstrap/dist/css/bootstrap.css';
+import { StyledFamilyButton, StyledMechanismsFromFamilyButton } from './RenderButtonsStyling';
 
 export type ButtonData = Family | Mechanism | Reaction | Species | TagMechanism;
 
@@ -16,15 +17,15 @@ export const renderButton = (button: ButtonData, category: string, handleClick: 
 };
 
 const familiesButton = ({ uuid, name, isdel }: Family, handleClick: (uuid: string) => void) => (
-  <Button onClick={() => handleClick(uuid)} style={{ width: '100%' }} {...{ uuid, isdel }}>
+  <StyledFamilyButton onClick={() => handleClick(uuid)} style={{ width: '100%' }} {...{ uuid, isdel }}>
     {name}
-  </Button>
+  </StyledFamilyButton>
 );
 
 const mechanismsFromFamilyButton = ({ uuid, name, isdel }: Mechanism, handleClick: (uuid: string) => void) => (
-  <Button onClick={() => handleClick(uuid)} style={{ width: '100%' }} {...{ uuid, isdel }}>
+  <StyledMechanismsFromFamilyButton onClick={() => handleClick(uuid)} style={{ width: '100%' }} {...{ uuid, isdel }}>
     {name}
-  </Button>
+  </StyledMechanismsFromFamilyButton>
 );
 
 export default renderButton;
