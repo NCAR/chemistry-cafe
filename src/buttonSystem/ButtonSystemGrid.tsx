@@ -16,7 +16,9 @@ const ButtonSystemGrid: React.FC<ButtonSystemGridProps> = ({ buttonArray, catego
   useEffect(() => {
     Promise.all(buttonArray)
       .then((resolved) => {
-        const flattenedButtons: ButtonData[] = resolved.reduce((acc, curr) => acc.concat(curr), []);
+        const flattenedButtons: ButtonData[] = resolved
+          .reduce((acc, curr) => acc.concat(curr || []), [])
+          .filter(button => button !== null);
         setResolvedButtons(flattenedButtons);
       })
       .catch((error) => {
@@ -26,6 +28,10 @@ const ButtonSystemGrid: React.FC<ButtonSystemGridProps> = ({ buttonArray, catego
   }, [buttonArray]);
 
   const columnWidth: number = 12 / cols;
+
+  if (!resolvedButtons.length) {
+    return null;
+  }
 
   return (
     <Container fluid style={{ maxHeight: height, overflowY: 'auto' }}>

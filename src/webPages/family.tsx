@@ -10,7 +10,7 @@ const FamilyPage = () => {
     const handleClick = () => navigate('/');
 
     const { familyUuid, handleFamilyClick } = useFamilyUuid();
-    const { handleMechanismClick } = useMechanismUuid();
+    const { handleFamilyMechanismClick } = useMechanismUuid();
 
         return (
             <section className="layout">
@@ -35,7 +35,7 @@ const FamilyPage = () => {
                 </div>
 
                 <StyledDetailBox>
-                    <ButtonSystemGrid buttonArray={[getMechanismsFromFamily(familyUuid as string)]} handleClick={handleMechanismClick} category={'MechanismsFromFamily'} height={'80vh'} cols={1} />
+                    <ButtonSystemGrid buttonArray={[getMechanismsFromFamily(familyUuid as string)]} handleClick={handleFamilyMechanismClick} category={'MechanismsFromFamily'} height={'80vh'} cols={1} />
                 </StyledDetailBox>
             </section>
         );

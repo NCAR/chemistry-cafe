@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export const useFamilyUuid = () => {
     const [familyUuid, setFamilyUuid] = useState<string | null>(null);
@@ -12,7 +13,6 @@ export const useFamilyUuid = () => {
 
     const handleFamilyClick = (uuid: string) => {
         localStorage.setItem('family_uuid', uuid);
-        console.log(uuid);
         setFamilyUuid(uuid);
     };
 
@@ -21,6 +21,8 @@ export const useFamilyUuid = () => {
 
 
 export const useMechanismUuid = () => {
+    const navigate = useNavigate();
+    
     const [mechanismUuid, setMechanismUuid] = useState<string | null>(null);
 
     useEffect(() => {
@@ -30,13 +32,18 @@ export const useMechanismUuid = () => {
         }
     }, []);
 
-    const handleMechanismClick = (uuid: string) => {
+    const handleMechanismsClick = (uuid: string) => {
         localStorage.setItem('mechanism_uuid', uuid);
-        console.log(uuid);
         setMechanismUuid(uuid);
     };
 
-    return { mechanismUuid, handleMechanismClick };
+    const handleFamilyMechanismClick = (uuid: string) => {
+        localStorage.setItem('mechanism_uuid', uuid);
+        setMechanismUuid(uuid);
+        navigate('/MechanismPage')
+    };
+
+    return { mechanismUuid, handleMechanismsClick, handleFamilyMechanismClick };
 };
 
 export const useReactionUuid = () => {
@@ -51,7 +58,6 @@ export const useReactionUuid = () => {
 
     const handleReactionClick = (uuid: string) => {
         localStorage.setItem('reaction_uuid', uuid);
-        console.log(uuid);
         setReactionUuid(uuid);
     };
 
@@ -70,7 +76,6 @@ export const useSpeciesUuid = () => {
 
     const handleSpeciesClick = (uuid: string) => {
         localStorage.setItem('species_uuid', uuid);
-        console.log(uuid);
         setSpeciesUuid(uuid);
     };
 
@@ -89,7 +94,6 @@ export const useTagMechanismUuid = () => {
 
     const handleTagMechanismClick = (uuid: string) => {
         localStorage.setItem('tag_mechanism_uuid', uuid);
-        console.log(uuid);
         setTagMechanismUuid(uuid);
     };
 
