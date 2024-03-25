@@ -31,11 +31,11 @@ const FamilyPage = () => {
                 </StyledActionBar>
 
                 <div className="ML">
-                    <ButtonSystemGrid buttonArray={[getFamilies()]} handleClick={handleFamilyClick} category={'Families'} size={'30%'} cols={1}/>
+                    <ButtonSystemGrid buttonArray={[getFamilies()]} handleClick={handleFamilyClick} category={'Families'} height={'80vh'} cols={1}/>
                 </div>
 
                 <StyledDetailBox>
-                    <ButtonSystemGrid buttonArray={[getMechanismsFromFamily(familyUuid as string)]} handleClick={handleMechanismClick} category={'MechanismsFromFamily'} size={'30%'} cols={1} />
+                    <ButtonSystemGrid buttonArray={[getMechanismsFromFamily(familyUuid as string)]} handleClick={handleMechanismClick} category={'MechanismsFromFamily'} height={'80vh'} cols={1} />
                 </StyledDetailBox>
             </section>
         );

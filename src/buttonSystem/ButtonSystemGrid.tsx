@@ -1,16 +1,16 @@
-import React, {useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Container, Row, Col } from 'react-bootstrap';
-import {renderButton, ButtonData } from './RenderButtons';
+import { renderButton, ButtonData } from './RenderButtons';
 
 interface ButtonSystemGridProps {
   buttonArray: Promise<ButtonData[]>[];
   category: string;
   handleClick: (uuid: string) => void;
   cols: number;
-  size: string;
+  height: string;
 }
 
-const ButtonSystemGrid: React.FC<ButtonSystemGridProps> = ({ buttonArray, category, handleClick, cols, size }) => {
+const ButtonSystemGrid: React.FC<ButtonSystemGridProps> = ({ buttonArray, category, handleClick, cols, height }) => {
   const [resolvedButtons, setResolvedButtons] = useState<ButtonData[]>([]);
 
   useEffect(() => {
@@ -28,7 +28,7 @@ const ButtonSystemGrid: React.FC<ButtonSystemGridProps> = ({ buttonArray, catego
   const columnWidth: number = 12 / cols;
 
   return (
-    <Container fluid style={{ maxWidth: size }}>
+    <Container fluid style={{ maxHeight: height, overflowY: 'auto' }}>
       <Row>
         {resolvedButtons.map((button, index) => (
           <Col key={index} xs={columnWidth}>
