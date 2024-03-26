@@ -52,8 +52,7 @@ interface Profile {
     const handleClick = () => navigate('/LoggedIn');
 
         return (
-        <section className="body">
-          <div>
+          <div className="background-color">
             LOG IN
 
             <button type="button" onClick={handleClick}>
@@ -77,7 +76,6 @@ interface Profile {
                 <button onClick={() => login()}>Sign in with Google 🚀</button>
             )}
           </div>
-        </section>
         );
 
     }
