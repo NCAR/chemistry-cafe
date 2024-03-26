@@ -4,9 +4,13 @@ import { useNavigate } from 'react-router-dom';
     const navigate = useNavigate();
     const handleClick = () => navigate('/');
         return (
-          <button type="button" onClick={handleClick}>
+          <div>
+            SETTINGS
+            <button type="button" onClick={handleClick}>
             Home
           </button>
+          </div>
+          
         );
 
     }

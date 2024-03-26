@@ -8,14 +8,40 @@ export async function getFamilies(): Promise<Family[]> {
     } catch (error) {
         console.error(error);
         return [
-            { uuid: 1, name: 'MOZART', isdel: false},
-            { uuid: 2, name: 'RACM',  isdel: false},
-            { uuid: 3, name: 'Carbon Bond',  isdel: false},
+            { uuid: '1', name: 'MOZART', isdel: false},
+            { uuid: '2', name: 'RACM',  isdel: false},
+            { uuid: '3', name: 'Carbon Bond',  isdel: false},
+            { uuid: '1', name: 'MOZART', isdel: false},
+            { uuid: '2', name: 'RACM',  isdel: false},
+            { uuid: '3', name: 'Carbon Bond',  isdel: false},
+            { uuid: '1', name: 'MOZART', isdel: false},
+            { uuid: '2', name: 'RACM',  isdel: false},
+            { uuid: '3', name: 'Carbon Bond',  isdel: false},
+            { uuid: '1', name: 'MOZART', isdel: false},
+            { uuid: '2', name: 'RACM',  isdel: false},
+            { uuid: '3', name: 'Carbon Bond',  isdel: false},
+            { uuid: '1', name: 'MOZART', isdel: false},
+            { uuid: '2', name: 'RACM',  isdel: false},
+            { uuid: '3', name: 'Carbon Bond',  isdel: false},
+            { uuid: '1', name: 'MOZART', isdel: false},
+            { uuid: '2', name: 'RACM',  isdel: false},
+            { uuid: '3', name: 'Carbon Bond',  isdel: false},
+            { uuid: '1', name: 'MOZART', isdel: false},
+            { uuid: '2', name: 'RACM',  isdel: false},
+            { uuid: '3', name: 'Carbon Bond',  isdel: false},
+            { uuid: '1', name: 'MOZART', isdel: false},
+            { uuid: '2', name: 'RACM',  isdel: false},
+            { uuid: '3', name: 'Carbon Bond',  isdel: false},
+            { uuid: '1', name: 'MOZART', isdel: false},
+            { uuid: '2', name: 'RACM',  isdel: false},
+            { uuid: '3', name: 'Carbon Bond',  isdel: false},
         ];
     }
 }
 
-export async function getFamily(uuid: string): Promise<Family[]> {
+export async function getFamily(uuid?: string): Promise<Family[]> {
+    if (!uuid) return [];
+    
     try {
         const response = await axios.get<Family[]>(`http://localhost:5134/api/Family/${uuid}`);
         return response.data;
@@ -40,7 +66,9 @@ export async function getFamilyMechLists(): Promise<FamilyMechList[]> {
     }
 }
 
-export async function getFamilyMechList(uuid: string): Promise<FamilyMechList[]> {
+export async function getFamilyMechList(uuid?: string): Promise<FamilyMechList[]> {
+    if (!uuid) return [];
+    
     try {
         const response = await axios.get<FamilyMechList[]>(`http://localhost:5134/api/FamilyMechList/${uuid}`);
         return response.data;
@@ -60,7 +88,9 @@ export async function getMechanisms(): Promise<Mechanism[]> {
     }
 }
 
-export async function getMechanism(uuid: string): Promise<Mechanism[]> {
+export async function getMechanism(uuid?: string): Promise<Mechanism[]> {
+    if (!uuid) return [];
+    
     try {
         const response = await axios.get<Family[]>(`http://localhost:5134/api/Mechanism/${uuid}`);
         return response.data;
@@ -70,13 +100,19 @@ export async function getMechanism(uuid: string): Promise<Mechanism[]> {
     }
 }
 
-export async function getMechanismsFromFamily(family_uuid: string): Promise<Mechanism[]> {
+export async function getMechanismsFromFamily(family_uuid?: string): Promise<Mechanism[]> {
+    if (!family_uuid) return [];
+    
     try {
         const response = await axios.get<Mechanism[]>(`http://localhost:5134/api/Mechanism/Family/${family_uuid}`);
         return response.data;
     } catch (error) {
         console.error(error);
-        return [];
+        return [
+            { uuid: '1', name: 'TS1', isdel: false},
+            { uuid: '2', name: 'TS2',  isdel: false},
+            { uuid: '3', name: '...',  isdel: false},
+        ];
     }
 }
 
@@ -90,7 +126,9 @@ export async function getMechTagMechLists(): Promise<MechTagMechList[]> {
     }
 }
 
-export async function getMechTagMechList(uuid: string): Promise<MechTagMechList[]> {
+export async function getMechTagMechList(uuid?: string): Promise<MechTagMechList[]> {
+    if (!uuid) return [];
+    
     try {
         const response = await axios.get<MechTagMechList[]>(`http://localhost:5134/api/MechTagMechList/${uuid}`);
         return response.data;
@@ -110,7 +148,9 @@ export async function getReactions(): Promise<Reaction[]> {
     }
 }
 
-export async function getReaction(uuid: string): Promise<Reaction[]> {
+export async function getReaction(uuid?: string): Promise<Reaction[]> {
+    if (!uuid) return [];
+    
     try {
         const response = await axios.get<Reaction[]>(`http://localhost:5134/api/Reaction/${uuid}`);
         return response.data;
@@ -120,7 +160,9 @@ export async function getReaction(uuid: string): Promise<Reaction[]> {
     }
 }
 
-export async function getReactionsFromTagMechanism(tag_mechanism_uuid: string): Promise<Reaction[]> {
+export async function getReactionsFromTagMechanism(tag_mechanism_uuid?: string): Promise<Reaction[]> {
+    if (!tag_mechanism_uuid) return [];
+    
     try {
         const response = await axios.get<Reaction[]>(`http://localhost:5134/api/Reaction/TagMechanism/${tag_mechanism_uuid}`);
         return response.data;
@@ -140,7 +182,9 @@ export async function getAllSpecies(): Promise<Species[]> {
     }
 }
 
-export async function getSpecies(uuid: string): Promise<Species[]> {
+export async function getSpecies(uuid?: string): Promise<Species[]> {
+    if (!uuid) return [];
+    
     try {
         const response = await axios.get<Species[]>(`http://localhost:5134/api/Species/${uuid}`);
         return response.data;
@@ -150,7 +194,9 @@ export async function getSpecies(uuid: string): Promise<Species[]> {
     }
 }
 
-export async function getSpeciesFromTagMechanism(tag_mechanism_uuid: string): Promise<Species[]> {
+export async function getSpeciesFromTagMechanism(tag_mechanism_uuid?: string): Promise<Species[]> {
+    if (!tag_mechanism_uuid) return [];
+    
     try {
         const response = await axios.get<Species[]>(`http://localhost:5134/api/Species/TagMechanism/${tag_mechanism_uuid}`);
         return response.data;
@@ -170,7 +216,9 @@ export async function getTagMechanisms(): Promise<TagMechanism[]> {
     }
 }
 
-export async function getTagMechanism(uuid: string): Promise<TagMechanism[]> {
+export async function getTagMechanism(uuid?: string): Promise<TagMechanism[]> {
+    if (!uuid) return [];
+    
     try {
         const response = await axios.get<TagMechanism[]>(`http://localhost:5134/api/TagMechanism/${uuid}`);
         return response.data;
@@ -180,7 +228,9 @@ export async function getTagMechanism(uuid: string): Promise<TagMechanism[]> {
     }
 }
 
-export async function getTagMechanismsFromMechanism(mechanism_uuid: string): Promise<TagMechanism[]> {
+export async function getTagMechanismsFromMechanism(mechanism_uuid?: string): Promise<TagMechanism[]> {
+    if (!mechanism_uuid) return [];
+    
     try {
         const response = await axios.get<TagMechanism[]>(`http://localhost:5134/api/TagMechanism/Mechanism/${mechanism_uuid}`);
         return response.data;
@@ -200,7 +250,9 @@ export async function getTagMechanismReactionLists(): Promise<TagMechanismReacti
     }
 }
 
-export async function getTagMechanismReactionList(uuid: string): Promise<TagMechanismReactionList[]> {
+export async function getTagMechanismReactionList(uuid?: string): Promise<TagMechanismReactionList[]> {
+    if (!uuid) return [];
+    
     try {
         const response = await axios.get<TagMechanismReactionList[]>(`http://localhost:5134/api/TagMechanismReactionList/${uuid}`);
         return response.data;
@@ -220,7 +272,9 @@ export async function getTagMechanismSpeciesLists(): Promise<TagMechanismSpecies
     }
 }
 
-export async function getTagMechanismSpeciesList(uuid: string): Promise<TagMechanismSpeciesList[]> {
+export async function getTagMechanismSpeciesList(uuid?: string): Promise<TagMechanismSpeciesList[]> {
+    if (!uuid) return [];
+    
     try {
         const response = await axios.get<TagMechanismSpeciesList[]>(`http://localhost:5134/api/TagMechanismSpeciesList/${uuid}`);
         return response.data;

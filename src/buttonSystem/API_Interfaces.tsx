@@ -1,5 +1,5 @@
 export interface Family {
-    uuid: number;
+    uuid: string;
     name: string;
     isdel: boolean;
 }
@@ -13,7 +13,7 @@ export interface FamilyMechList {
 }
 
 export interface Mechanism {
-    uuid: number;
+    uuid: string;
     name: string;
     isdel: boolean;
 }
@@ -27,19 +27,19 @@ export interface MechTagMechList {
 }
 
 export interface Reaction {
-  uuid: number;
+  uuid: string;
   type: string;
   isdel: boolean;
 }
 
 export interface Species {
-  uuid: number;
+  uuid: string;
   type: string;
   isdel: boolean;
 }
 
 export interface TagMechanism {
-  uuid: number;
+  uuid: string;
   tag: string;
   isdel: boolean;
 }
@@ -61,7 +61,7 @@ export interface TagMechanismSpeciesList {
 }
 
 export interface ProperyType {
-  uuid: number;
+  uuid: string;
   name: string;
   units: string;
   validation: string;
