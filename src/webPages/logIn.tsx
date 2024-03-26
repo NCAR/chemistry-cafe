@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { googleLogout, useGoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
+import "./logIn.css";
 
 interface User {
     access_token: string;
@@ -51,6 +52,7 @@ interface Profile {
     const handleClick = () => navigate('/LoggedIn');
 
         return (
+        <section className="body">
           <div>
             LOG IN
 
@@ -75,6 +77,7 @@ interface Profile {
                 <button onClick={() => login()}>Sign in with Google 🚀</button>
             )}
           </div>
+        </section>
         );
 
     }

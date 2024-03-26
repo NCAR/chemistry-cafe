@@ -1,6 +1,6 @@
     .layout {
-    width: 1366px;
-    height: 768px;
+    flex: 1;
+    height: 100%;
   
     display: grid;
     grid:

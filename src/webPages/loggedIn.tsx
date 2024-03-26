@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import ButtonSystemGrid from '../buttonSystem/ButtonSystemGrid';
-import { getFamilies } from '../buttonSystem/API_Methods';
+import { StyledButton } from '../buttonSystem/RenderButtonsStyling';
 
   const LoggedIn = () => {
     const navigate = useNavigate();
@@ -9,12 +8,12 @@ import { getFamilies } from '../buttonSystem/API_Methods';
         return (
           <div>
             LOGGED IN
-            <button type="button" onClick={handleClickMech}>
+            <StyledButton onClick={handleClickMech}>
               Mechanisms
-            </button>
-            <button type="button" onClick={handleClickSettings}>
+            </StyledButton>
+            <StyledButton onClick={handleClickSettings}>
               Settings
-            </button>
+            </StyledButton>
           </div>
         );
 
