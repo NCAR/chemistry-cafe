@@ -4,30 +4,36 @@ import styled from 'styled-components';
 export const StyledHeader = styled.header`
 padding: 30px;
 text-align: left;
-text-decoration-line: underline
+border-bottom: 10px solid #53565A;
 `;
 
 export const StyledActionBar = styled.nav`
+display: flex;
 overflow: hidden;
-background-color: #333;
+background-color: #53565A;
+width: 100%;
+height: 100%;
+border-radius: 5px;
 grid-column: 2 / span 2;
 grid-row: 1;
 `;
 
-export const StyledActionBarA = styled(StyledActionBar)`
+export const StyledActionBarButton = styled.button`
 float: left;
 display: block;
+flex-grow: 1;
 color: #f2f2f2;
 text-align: center;
-padding: 14px 16px;
 text-decoration: none;
+border-style: solid;
+border-color: #012169;
 `;
 
 export const StyledDetailBox = styled.section`
 display: block;
 width: 100%;
 height: 100%;
-background-color: beige;
+background-color: #C3D7EE;
 border-style: solid;
 border-width: 5px;
 border-radius: 50px;
@@ -36,24 +42,26 @@ grid-column: 2 / span 2;
 grid-row: 2 / span 2;
 `;
 
-export const StyledFamilyButton = styled.button`
+export const StyledButton = styled.button`
 display: block;
+padding: 10px;
 width: 100%;
 height: 100%;
-background-color: maroon;
+background-color: #1A658F;
+border-style: solid;
+border-width: 2px;
+border-radius: 10px;
 position: relative;
 grid-column: 1;
 grid-row: 2 / span 2;
 `;
 
-export const StyledMechanismsFromFamilyButton = styled.button`
-display: block;
-width: 100%;
-height: 100%;
-background-color: blue;
-position: relative;
-grid-column: 1;
-grid-row: 2 / span 2;
+export const StyledFamilyButton = styled(StyledButton)`
+
+`;
+
+export const StyledMechanismsFromFamilyButton = styled(StyledButton)`
+
 `;
 
 

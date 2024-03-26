@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import ButtonSystemGrid from '.././buttonSystem/ButtonSystemGrid';
 import { getFamilies, getMechanismsFromFamily } from '.././buttonSystem/API_Methods';
 import { useFamilyUuid, useMechanismUuid } from '../buttonSystem/GlobalVariables';
-import { StyledHeader, StyledActionBar, StyledActionBarA, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
+import { StyledHeader, StyledActionBar, StyledActionBarButton, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
 import "./family.css";
 
 const FamilyPage = () => {
@@ -25,17 +25,18 @@ const FamilyPage = () => {
                 </div>
 
                 <StyledActionBar>
-                    <StyledActionBarA>
-                        HELLO
-                    </StyledActionBarA>
+                    <StyledActionBarButton as="a" href="/">Publish</StyledActionBarButton>
+                    <StyledActionBarButton as="a" href="/FamilyPage">Share</StyledActionBarButton>
+                    <StyledActionBarButton as="a" href="/">Get DOI</StyledActionBarButton> 
                 </StyledActionBar>
 
                 <div className="ML">
-                    <ButtonSystemGrid buttonArray={[getFamilies()]} handleClick={handleFamilyClick} category={'Families'} height={'80vh'} cols={1}/>
+                    <ButtonSystemGrid buttonArray={[getFamilies()]} handleClick={handleFamilyClick} category={'Families'} height={'60vh'} cols={1}/>
                 </div>
 
                 <StyledDetailBox>
-                    <ButtonSystemGrid buttonArray={[getMechanismsFromFamily(familyUuid as string)]} handleClick={handleFamilyMechanismClick} category={'MechanismsFromFamily'} height={'80vh'} cols={1} />
+                    {/* <ButtonSystemGrid buttonArray={[getMechanismsFromFamily(familyUuid as string)]} handleClick={handleFamilyMechanismClick} category={'MechanismsFromFamily'} height={'80vh'} cols={1} /> */}
+                    <ButtonSystemGrid buttonArray={[getFamilies()]} handleClick={handleFamilyClick} category={'Families'} height={'60vh'} cols={1}/>
                 </StyledDetailBox>
             </section>
         );

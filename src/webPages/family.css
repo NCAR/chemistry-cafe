@@ -9,10 +9,10 @@
       "BL BM BR" 1fr
       / 1fr 1fr 1fr;
     gap: 8px;
-    background-color: grey;
+    background-color: #C3D7EE;
   }
   
-  .TL { grid-area: TL; background-color: red; }
+  /* .TL { grid-area: TL; background-color: red; }
   .TM { grid-area: TM; background-color: green; }
   .TR { grid-area: TR; background-color: blue; }
   .ML { grid-area: ML; background-color: cyan; }
@@ -20,9 +20,9 @@
   .MR { grid-area: MR; background-color: yellow; }
   .BL { grid-area: BL; background-color: black; }
   .BM { grid-area: BM; background-color: maroon; }
-  .BR { grid-area: BR; background-color: darkorange; }
+  .BR { grid-area: BR; background-color: darkorange; } */
 
-/* .TL { grid-area: TL; }
+.TL { grid-area: TL; }
 .TM { grid-area: TM; }
 .TR { grid-area: TR; }
 .ML { grid-area: ML; }
@@ -30,7 +30,7 @@
 .MR { grid-area: MR; }
 .BL { grid-area: BL; }
 .BM { grid-area: BM; }
-.BR { grid-area: BR; } */
+.BR { grid-area: BR; }
 
 
   

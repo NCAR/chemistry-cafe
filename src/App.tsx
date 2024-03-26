@@ -3,9 +3,10 @@
 import {Route, Routes} from 'react-router-dom';
 // import { useNavigate } from 'react-router-dom';
 // import axios from 'axios';
-import Settings from './settings';
-import LoggedIn from './loggedIn';
+import Settings from './webPages/settings';
+import LoggedIn from './webPages/loggedIn';
 import FamilyPage from './webPages/family';
+import LogIn from './webPages/logIn';
 
 // interface User {
 //     access_token: string;
@@ -60,9 +61,10 @@ function App() {
             </button> */}
 
             <Routes>
+                <Route path="/" element={<LogIn />} />
+                <Route path="/LoggedIn" element={<LoggedIn />} />
                 <Route path="/FamilyPage" element={<FamilyPage />} />
-                <Route path="/loggedIn" element={<LoggedIn />} />
-                <Route path="/settings" element={<Settings />} />
+                <Route path="/Settings" element={<Settings />} />
             </Routes>
             
             {/* <h2>React Google Login</h2>
