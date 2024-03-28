@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import ButtonSystemGrid from '.././buttonSystem/ButtonSystemGrid';
-import { getFamilies, getMechanismsFromFamily } from '.././buttonSystem/API_Methods';
+import { getFamilies, getMechanismsFromFamily } from '../buttonSystem/API/API_GetMethods';
 import { useFamilyUuid, useMechanismUuid } from '../buttonSystem/GlobalVariables';
 import { StyledHeader, StyledActionBar, StyledActionBarButton, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
 import "./family.css";

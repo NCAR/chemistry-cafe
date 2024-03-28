@@ -1,4 +1,4 @@
-import { Family, Mechanism, Reaction, Species, TagMechanism } from './API_Interfaces';
+import { Family, Mechanism, Reaction, Species, TagMechanism } from './API/API_Interfaces';
 import 'bootstrap/dist/css/bootstrap.css';
 import { StyledFamilyButton, StyledMechanismsFromFamilyButton } from './RenderButtonsStyling';
 
