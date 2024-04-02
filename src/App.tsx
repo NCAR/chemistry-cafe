@@ -6,6 +6,7 @@ import {Route, Routes} from 'react-router-dom';
 import Settings from './webPages/settings';
 import LoggedIn from './webPages/loggedIn';
 import FamilyPage from './webPages/family';
+import MechanismPage from './webPages/mechanism';
 import LogIn from './webPages/logIn';
 
 // interface User {
@@ -64,6 +65,7 @@ function App() {
                 <Route path="/" element={<LogIn />} />
                 <Route path="/LoggedIn" element={<LoggedIn />} />
                 <Route path="/FamilyPage" element={<FamilyPage />} />
+                <Route path="/MechanismPage" element={<MechanismPage />} />
                 <Route path="/Settings" element={<Settings />} />
             </Routes>
             
