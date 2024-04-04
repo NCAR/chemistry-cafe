@@ -1,6 +1,6 @@
 import { Family, Mechanism, Reaction, Species, TagMechanism } from './API/API_Interfaces';
 import 'bootstrap/dist/css/bootstrap.css';
-import { StyledFamilyButton, StyledMechanismsFromFamilyButton, StyledTagMechanismsFromMechanismButton } from './RenderButtonsStyling';
+import { StyledFamilyButton, StyledMechanismsFromFamilyButton, StyledTagMechanismsFromMechanismButton, StyledSpeciesFromTagMechanismButton } from './RenderButtonsStyling';
 
 export type ButtonData = Family | Mechanism | Reaction | Species | TagMechanism;
 
@@ -12,6 +12,8 @@ export const renderButton = (button: ButtonData, category: string, handleClick: 
       return mechanismsFromFamilyButton(button as Mechanism, handleClick);
     case 'TagMechanismsFromMechanism':
       return tagMechanismsFromMechanismButton(button as TagMechanism, handleClick);
+    case 'SpeciesFromTagMechanism':
+      return speciesFromTagMechanismButton(button as Species, handleClick);
     default:
       return null;
   }
@@ -33,6 +35,12 @@ const tagMechanismsFromMechanismButton = ({ uuid, tag}: TagMechanism, handleClic
   <StyledTagMechanismsFromMechanismButton onClick={() => handleClick(uuid)} style={{ width: '100%' }} {...{ uuid}}>
     {tag}
   </StyledTagMechanismsFromMechanismButton>
+);
+
+const speciesFromTagMechanismButton = ({ uuid, type}: Species, handleClick: (uuid: string) => void) => (
+  <StyledSpeciesFromTagMechanismButton onClick={() => handleClick(uuid)} style={{ width: '100%' }} {...{ uuid}}>
+    {type}
+  </StyledSpeciesFromTagMechanismButton>
 );
 
 export default renderButton;

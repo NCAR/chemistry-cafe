@@ -69,5 +69,8 @@ export const StyledTagMechanismsFromMechanismButton = styled(StyledButton)`
 
 `;
 
+export const StyledSpeciesFromTagMechanismButton = styled(StyledButton)`
+
+`;
 
 
