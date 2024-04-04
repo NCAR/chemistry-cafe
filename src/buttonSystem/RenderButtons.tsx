@@ -17,20 +17,20 @@ export const renderButton = (button: ButtonData, category: string, handleClick: 
   }
 };
 
-const familiesButton = ({ uuid, name, isDel }: Family, handleClick: (uuid: string) => void) => (
-  <StyledFamilyButton onClick={() => handleClick(uuid)} style={{ width: '100%' }} {...{ uuid, isDel }}>
+const familiesButton = ({ uuid, name}: Family, handleClick: (uuid: string) => void) => (
+  <StyledFamilyButton onClick={() => handleClick(uuid)} style={{ width: '100%' }} {...{ uuid}}>
     {name}
   </StyledFamilyButton>
 );
 
-const mechanismsFromFamilyButton = ({ uuid, name, isDel }: Mechanism, handleClick: (uuid: string) => void) => (
-  <StyledMechanismsFromFamilyButton onClick={() => handleClick(uuid)} style={{ width: '100%' }} {...{ uuid, isDel }}>
+const mechanismsFromFamilyButton = ({ uuid, name}: Mechanism, handleClick: (uuid: string) => void) => (
+  <StyledMechanismsFromFamilyButton onClick={() => handleClick(uuid)} style={{ width: '100%' }} {...{ uuid}}>
     {name}
   </StyledMechanismsFromFamilyButton>
 );
 
-const tagMechanismsFromMechanismButton = ({ uuid, tag, isDel }: TagMechanism, handleClick: (uuid: string) => void) => (
-  <StyledTagMechanismsFromMechanismButton onClick={() => handleClick(uuid)} style={{ width: '100%' }} {...{ uuid, isDel }}>
+const tagMechanismsFromMechanismButton = ({ uuid, tag}: TagMechanism, handleClick: (uuid: string) => void) => (
+  <StyledTagMechanismsFromMechanismButton onClick={() => handleClick(uuid)} style={{ width: '100%' }} {...{ uuid}}>
     {tag}
   </StyledTagMechanismsFromMechanismButton>
 );

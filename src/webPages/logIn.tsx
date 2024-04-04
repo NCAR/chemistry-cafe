@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { googleLogout, useGoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
 import "./logIn.css";
+import Button from "@mui/material/Button";
 
 interface User {
     access_token: string;
@@ -52,30 +53,31 @@ interface Profile {
     const handleClick = () => navigate('/LoggedIn');
 
         return (
-          <div className="background-color">
-            LOG IN
-
-            <button type="button" onClick={handleClick}>
-              Go To Logged In
-            </button>
-
-            <h2>React Google Login</h2>
-            <br />
-            <br />
-            {profile ? (
-                <div>
-                    <img src={profile.picture} alt="user profile" />
-                    <h3>User Logged in</h3>
-                    <p>Name: {profile.name}</p>
-                    <p>Email Address: {profile.email}</p>
-                    <br />
-                    <br />
-                    <button onClick={logOut}>Log out</button>
-                </div>
-            ) : (
-                <button onClick={() => login()}>Sign in with Google 🚀</button>
-            )}
-          </div>
+          <section className="layout">
+            <div className='M3'>
+                <Button type="button" onClick={handleClick}>
+                    Go To Logged In
+                </Button>
+            </div>
+            <div className="M1">
+                <h2>React Google Login</h2>
+                <br />
+                <br />
+                {profile ? (
+                    <div>
+                        <img src={profile.picture} alt="user profile" />
+                        <h3>User Logged in</h3>
+                        <p>Name: {profile.name}</p>
+                        <p>Email Address: {profile.email}</p>
+                        <br />
+                        <br />
+                        <button onClick={logOut}>Log out</button>
+                    </div>
+                ) : (
+                    <button onClick={() => login()}>Sign in with Google 🚀</button>
+                )}
+            </div>
+          </section>
         );
 
     }

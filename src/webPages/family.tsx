@@ -1,19 +1,21 @@
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useRef } from 'react';
 import ButtonSystemGrid from '.././buttonSystem/ButtonSystemGrid';
 import { getFamilies, getMechanismsFromFamily } from '../buttonSystem/API/API_GetMethods';
+import { createFamily } from '../buttonSystem/API/API_CreateMethods';
 import { useFamilyUuid, useMechanismUuid } from '../buttonSystem/GlobalVariables';
 import { StyledHeader, StyledActionBar, StyledActionBarButton, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
 import Button from "@mui/material/Button";
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+import { TextField } from '@mui/material';
 
 import "./family.css";
 
 const FamilyPage = () => {
-    const navigate = useNavigate();
-    const handleClick = () => navigate('/');
+    const createFamRef = useRef("");
 
     const { familyUuid, handleFamilyClick } = useFamilyUuid();
     const { handleFamilyMechanismClick } = useMechanismUuid();
@@ -27,6 +29,16 @@ const FamilyPage = () => {
     const handleShareClose = () => setShareOpen(false);
     const handleDOIOpen = () => setDOIOpen(true);
     const handleDOIClose = () => setDOIOpen(false);
+
+    const [createFamOpen, setCreateFamOpen] = React.useState(false);
+    const handleCreateFamOpen = () => setCreateFamOpen(true);
+    const handleCreateFamClose = () => setCreateFamOpen(false);
+
+    const handleCreateFamClick = () => {
+        createFamily(createFamRef.current);
+        setCreateFamOpen(false);
+    }
+    
 
     const style = {
         position: 'absolute' as 'absolute',
@@ -84,10 +96,37 @@ const FamilyPage = () => {
                             DOI!
                         </Box>
                     </Modal>
+                    <Modal
+                        open={createFamOpen}
+                        onClose={handleCreateFamClose}
+                    >
+                        <Box sx={style}>
+                            Enter name for new Family below.
+                            <TextField id="textField" label="Name" onChange={ e => createFamRef.current = e.target.value}>
+
+                            </TextField>
+                            <Button onClick={handleCreateFamClick}>
+                                Submit
+                            </Button>
+                        </Box>
+                    </Modal>
+                    <Modal
+                        open={createFamOpen}
+                        onClose={handleCreateFamClose}
+                    >
+                        <Box sx={style}>
+                            
+                        </Box>
+                    </Modal>
                 </div>
                 
-
                 <div className="L2">
+                    <Button onClick = {handleCreateFamOpen}>
+                        Create Family
+                    </Button>
+                </div>
+
+                <div className="L3">
                     <ButtonSystemGrid buttonArray={[getFamilies()]} handleClick={handleFamilyClick} category={'Families'} height={'60vh'} cols={1}/>
                 </div>
 
