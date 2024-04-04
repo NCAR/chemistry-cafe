@@ -48,11 +48,11 @@ const MechanismPage = () => {
                     </div>
 
                 <div className="ML">
-                    <ButtonSystemGrid buttonArray={[getMechanismsFromFamily(familyUuid as string)]} handleClick={handleMechanismsClick} category={'Families'} height={'60vh'} cols={1}/>
+                    <ButtonSystemGrid buttonArray={[getMechanismsFromFamily(familyUuid as string)]} handleClick={handleMechanismsClick} category={'MechanismsFromFamily'} height={'60vh'} cols={1}/>
                 </div>
 
                 <StyledDetailBox>
-                    <ButtonSystemGrid buttonArray={[getTagMechanismsFromMechanism(mechanismUuid as string)]} handleClick={handleTagMechanismClick} category={'MechanismsFromFamily'} height={'80vh'} cols={1} />
+                    <ButtonSystemGrid buttonArray={[getTagMechanismsFromMechanism(mechanismUuid as string)]} handleClick={handleTagMechanismClick} category={'TagMechanismsFromMechanism'} height={'80vh'} cols={1} />
                 </StyledDetailBox>
             </section>
         );

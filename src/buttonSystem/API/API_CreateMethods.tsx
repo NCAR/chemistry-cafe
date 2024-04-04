@@ -1,11 +1,16 @@
 import axios from 'axios';
 import { FamilyMechList, MechTagMechList, TagMechanismReactionList, TagMechanismSpeciesList} from "./API_Interfaces";
 
-async function createFamily(name: string) {
+export async function createFamily(name: string) {
     try {
         const response = await axios.post(
             'http://localhost:5134/api/Family/create',
-            name ,
+            "\"" + name + "\"",
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
         );
         return response.data;
     } catch (error) {
@@ -14,11 +19,16 @@ async function createFamily(name: string) {
     }
 }
 
-async function createFamilyMechList(familyMechListData: FamilyMechList) {
+export async function createFamilyMechList(familyMechListData: FamilyMechList) {
     try {
         const response = await axios.post(
             'http://localhost:5134/api/FamilyMechList/create',
-            familyMechListData,
+            JSON.stringify(familyMechListData),
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
         );
         return response.data;
     } catch (error) {
@@ -27,11 +37,16 @@ async function createFamilyMechList(familyMechListData: FamilyMechList) {
     }
 }
 
-async function createMechanism(name: string) {
+export async function createMechanism(name: string) {
     try {
         const response = await axios.post(
             'http://localhost:5134/api/Mechanism/create',
-            name,
+            "\"" + name + "\"",
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
         );
         return response.data;
     } catch (error) {
@@ -40,11 +55,16 @@ async function createMechanism(name: string) {
     }
 }
 
-async function createMechTagMechList(mechTagMechListData: MechTagMechList) {
+export async function createMechTagMechList(mechTagMechListData: MechTagMechList) {
     try {
         const response = await axios.post(
             'http://localhost:5134/api/MechTagMechList/create',
-            mechTagMechListData,
+            JSON.stringify(mechTagMechListData),
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
         );
         return response.data;
     } catch (error) {
@@ -53,11 +73,16 @@ async function createMechTagMechList(mechTagMechListData: MechTagMechList) {
     }
 }
 
-async function createReaction(type: string) {
+export async function createReaction(type: string) {
     try {
         const response = await axios.post(
             'http://localhost:5134/api/Mechanism/create',
-            type,
+            "\"" + type + "\"",
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
         );
         return response.data;
     } catch (error) {
@@ -66,11 +91,16 @@ async function createReaction(type: string) {
     }
 }
 
-async function createSpecies(type: string) {
+export async function createSpecies(type: string) {
     try {
         const response = await axios.post(
             'http://localhost:5134/api/Species/create',
-            type,
+            "\"" + type + "\"",
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
         );
         return response.data;
     } catch (error) {
@@ -79,11 +109,16 @@ async function createSpecies(type: string) {
     }
 }
 
-async function createTagMechanism(tag: string) {
+export async function createTagMechanism(tag: string) {
     try {
         const response = await axios.post(
             'http://localhost:5134/api/TagMechanism/create',
-            tag,
+            "\"" + tag + "\"",
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
         );
         return response.data;
     } catch (error) {
@@ -92,11 +127,16 @@ async function createTagMechanism(tag: string) {
     }
 }
 
-async function createTagMechanismReactionList(tagMechanismReactionListData: TagMechanismReactionList) {
+export async function createTagMechanismReactionList(tagMechanismReactionListData: TagMechanismReactionList) {
     try {
         const response = await axios.post(
             'http://localhost:5134/api/TagMechanismReactionList/create',
-            tagMechanismReactionListData,
+            JSON.stringify(tagMechanismReactionListData),
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
         );
         return response.data;
     } catch (error) {
@@ -105,11 +145,16 @@ async function createTagMechanismReactionList(tagMechanismReactionListData: TagM
     }
 }
 
-async function createTagMechanismSpeciesList(tagMechanismSpeciesListData: TagMechanismSpeciesList) {
+export async function createTagMechanismSpeciesList(tagMechanismSpeciesListData: TagMechanismSpeciesList) {
     try {
         const response = await axios.post(
             'http://localhost:5134/api/TagMechanismSpeciesList/create',
-            tagMechanismSpeciesListData,
+            JSON.stringify(tagMechanismSpeciesListData),
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
         );
         return response.data;
     } catch (error) {

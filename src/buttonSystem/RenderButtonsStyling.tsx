@@ -65,5 +65,9 @@ export const StyledMechanismsFromFamilyButton = styled(StyledButton)`
 
 `;
 
+export const StyledTagMechanismsFromMechanismButton = styled(StyledButton)`
+
+`;
+
 
 

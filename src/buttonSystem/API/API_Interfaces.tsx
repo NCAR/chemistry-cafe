@@ -1,7 +1,7 @@
 export interface Family {
     uuid: string;
     name: string;
-    isdel: boolean;
+    isDel: boolean;
 }
 
 export interface FamilyMechList {
@@ -9,13 +9,13 @@ export interface FamilyMechList {
     family_uuid: string;
     mechanism_uuid: string;
     version: string;
-    isdel: boolean;
+    isDel: boolean;
 }
 
 export interface Mechanism {
     uuid: string;
     name: string;
-    isdel: boolean;
+    isDel: boolean;
 }
 
 export interface MechTagMechList {
@@ -23,25 +23,34 @@ export interface MechTagMechList {
   family_uuid: string;
   mechanism_uuid: string;
   version: string;
-  isdel: boolean;
+  isDel: boolean;
+}
+
+export interface ReactantProductList {
+  reactant_product_uuid: string;
+  reaction_uuid: string;
+  species_uuid: string;
+  quantity: Int16Array;
 }
 
 export interface Reaction {
   uuid: string;
   type: string;
-  isdel: boolean;
+  isDel: boolean;
+  reactant_list_uuid: string;
+  product_list_uuid: string;
 }
 
 export interface Species {
   uuid: string;
   type: string;
-  isdel: boolean;
+  isDel: boolean;
 }
 
 export interface TagMechanism {
   uuid: string;
   tag: string;
-  isdel: boolean;
+  isDel: boolean;
 }
 
 export interface TagMechanismReactionList {
@@ -49,7 +58,7 @@ export interface TagMechanismReactionList {
   reaction_uuid: string;
   tag_mechanism_uuid: string;
   version: string;
-  isdel: boolean;
+  isDel: boolean;
 }
 
 export interface TagMechanismSpeciesList {
@@ -57,7 +66,7 @@ export interface TagMechanismSpeciesList {
   species_uuid: string;
   tag_mechanism_uuid: string;
   version: string;
-  isdel: boolean;
+  isDel: boolean;
 }
 
 export interface ProperyType {
