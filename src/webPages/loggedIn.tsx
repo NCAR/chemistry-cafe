@@ -1,20 +1,30 @@
 import { useNavigate } from 'react-router-dom';
 import { StyledButton } from '../buttonSystem/RenderButtonsStyling';
+import "./loggedIn.css";
 
   const LoggedIn = () => {
     const navigate = useNavigate();
-    const handleClickMech = () => navigate('/FamilyPage');
+    const handleClickFam = () => navigate('/FamilyPage');
+    const handleClickMech = () => navigate('/Mechanisms');
     const handleClickSettings = () => navigate('/Settings');
         return (
-          <div>
-            LOGGED IN
-            <StyledButton onClick={handleClickMech}>
-              Mechanisms
-            </StyledButton>
-            <StyledButton onClick={handleClickSettings}>
-              Settings
-            </StyledButton>
-          </div>
+          <section className='layout'>
+            <div className="M2">
+              <StyledButton onClick={handleClickFam}>
+                Family
+              </StyledButton>
+            </div>
+            <div className="M3">
+              <StyledButton onClick={handleClickMech}>
+                Mechanisms
+              </StyledButton>
+            </div>
+            <div className="M4">
+              <StyledButton onClick={handleClickSettings}>
+                Settings
+              </StyledButton>
+            </div>
+          </section>
         );
 
     }

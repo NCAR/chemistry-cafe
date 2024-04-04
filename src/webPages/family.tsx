@@ -34,6 +34,10 @@ const FamilyPage = () => {
     const handleCreateFamOpen = () => setCreateFamOpen(true);
     const handleCreateFamClose = () => setCreateFamOpen(false);
 
+    const [addMToFOpen, setAddMtoFOpen] = React.useState(false);
+    const handleAddMtoFOpen = () => setCreateFamOpen(true);
+    const handleAddMtoFClose = () => setCreateFamOpen(false);
+
     const handleCreateFamClick = () => {
         createFamily(createFamRef.current);
         setCreateFamOpen(false);
@@ -110,19 +114,22 @@ const FamilyPage = () => {
                             </Button>
                         </Box>
                     </Modal>
-                    <Modal
+                    {/* <Modal
                         open={createFamOpen}
                         onClose={handleCreateFamClose}
                     >
                         <Box sx={style}>
                             
                         </Box>
-                    </Modal>
+                    </Modal> */}
                 </div>
                 
                 <div className="L2">
                     <Button onClick = {handleCreateFamOpen}>
                         Create Family
+                    </Button>
+                    <Button onClick = {handleCreateFamOpen}>
+                        Add Mechanism to Family
                     </Button>
                 </div>
 
