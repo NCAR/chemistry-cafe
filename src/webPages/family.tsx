@@ -73,7 +73,24 @@ const FamilyPage = () => {
                     </StyledActionBar>
                 </div>
                 
-                
+                <div className="L2">
+                    <Button onClick = {handleCreateFamOpen}>
+                        Create Family
+                    </Button>
+                    <Button onClick = {handleCreateFamOpen}>
+                        Add Mechanism to Family
+                    </Button>
+                </div>
+
+                <div className="L3">
+                    <ButtonSystemGrid buttonArray={[getFamilies()]} handleClick={handleFamilyClick} category={'Families'} height={'60vh'} cols={1}/>
+                </div>
+
+                <StyledDetailBox>
+                    <p></p>
+                    <ButtonSystemGrid buttonArray={[getMechanismsFromFamily(familyUuid as string)]} handleClick={handleFamilyMechanismClick} category={'MechanismsFromFamily'} height={'80vh'} cols={1} />
+                    <p></p>
+                </StyledDetailBox>
 
                 <div>
                     <Modal
@@ -114,34 +131,7 @@ const FamilyPage = () => {
                             </Button>
                         </Box>
                     </Modal>
-                    {/* <Modal
-                        open={createFamOpen}
-                        onClose={handleCreateFamClose}
-                    >
-                        <Box sx={style}>
-                            
-                        </Box>
-                    </Modal> */}
                 </div>
-                
-                <div className="L2">
-                    <Button onClick = {handleCreateFamOpen}>
-                        Create Family
-                    </Button>
-                    <Button onClick = {handleCreateFamOpen}>
-                        Add Mechanism to Family
-                    </Button>
-                </div>
-
-                <div className="L3">
-                    <ButtonSystemGrid buttonArray={[getFamilies()]} handleClick={handleFamilyClick} category={'Families'} height={'60vh'} cols={1}/>
-                </div>
-
-                <StyledDetailBox>
-                    <p></p>
-                    <ButtonSystemGrid buttonArray={[getMechanismsFromFamily(familyUuid as string)]} handleClick={handleFamilyMechanismClick} category={'MechanismsFromFamily'} height={'80vh'} cols={1} />
-                    <p></p>
-                </StyledDetailBox>
             </section>
         );
 }

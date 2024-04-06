@@ -13,12 +13,18 @@ import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
+import { ListSubheader } from '@mui/material';
+import ListItemText from '@mui/material/ListItemText';
+
 import CalculateSharpIcon from '@mui/icons-material/CalculateSharp';
 import ScienceSharpIcon from '@mui/icons-material/ScienceSharp';
 import HistoryEduSharpIcon from '@mui/icons-material/HistoryEduSharp';
-import ListItemText from '@mui/material/ListItemText';
+import InsertLinkSharpIcon from '@mui/icons-material/InsertLinkSharp';
+import IosShareSharpIcon from '@mui/icons-material/IosShareSharp';
+import TaskSharpIcon from '@mui/icons-material/TaskSharp';
+
 import "./mechanisms.css";
-import { ListSubheader } from '@mui/material';
+
 
 const MechanismPage = () => {
     const navigate = useNavigate();
@@ -82,14 +88,31 @@ const MechanismPage = () => {
                     </StyledHeader>
                 </div>
 
-                <div className="M1">
+                <div className="L2">
+                    <Button>
+                        Create Mechanism
+                    </Button>
+                </div>
+
+                <div className='M1'>
+                    <div style={{height: "40%"}}></div>
+                    <BottomNavigation 
+                        showLabels
+                    >
+                        <BottomNavigationAction label="Publish" icon={<TaskSharpIcon/>} onClick={handlePublishOpen}></BottomNavigationAction>
+                        <BottomNavigationAction label="Share" icon={<IosShareSharpIcon/>} onClick={handleShareOpen}></BottomNavigationAction>
+                        <BottomNavigationAction label="Get DOI" icon={<InsertLinkSharpIcon/>} onClick={handleDOIOpen}></BottomNavigationAction>
+                    </BottomNavigation>
+                </div>
+
+                {/* <div className="M1">
                     <div style={{height: "60%"}}></div>
                     <StyledActionBar>
                         <StyledActionBarButton onClick={handlePublishOpen}>Publish</StyledActionBarButton>
                         <StyledActionBarButton onClick={handleShareOpen}>Share</StyledActionBarButton>
                         <StyledActionBarButton onClick={handleDOIOpen}>Get DOI</StyledActionBarButton> 
                     </StyledActionBar>
-                </div>
+                </div> */}
 
                 <div className="L3">
                     <ButtonSystemGrid buttonArray={[getMechanisms()]} handleClick={handleMechanismsClick} category={'MechanismsFromFamily'} height={'60vh'} cols={1}/>
@@ -100,16 +123,6 @@ const MechanismPage = () => {
                     <ButtonSystemGrid buttonArray={[getTagMechanismsFromMechanism(mechanismUuid as string)]} handleClick={masterHandleTagMechanismClick} category={'TagMechanismsFromMechanism'} height={'80vh'} cols={1} />
                     <p></p>
                 </StyledDetailBox>
-
-                {/* <div className='M4'>
-                    <BottomNavigation 
-                        showLabels
-                        value={value}
-                        
-                    >
-                        <BottomNavigationAction label="Label!"></BottomNavigationAction>
-                    </BottomNavigation>
-                </div> */}
                 
                 <div>
                     <Modal
