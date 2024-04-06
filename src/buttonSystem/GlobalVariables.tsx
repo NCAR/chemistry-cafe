@@ -83,7 +83,6 @@ export const useSpeciesUuid = () => {
 };
 
 export const useTagMechanismUuid = () => {
-    const navigate = useNavigate();
     
     const [tagMechanismUuid, setTagMechanismUuid] = useState<string | null>(null);
 
@@ -97,7 +96,6 @@ export const useTagMechanismUuid = () => {
     const handleTagMechanismClick = (uuid: string) => {
         localStorage.setItem('tag_mechanism_uuid', uuid);
         setTagMechanismUuid(uuid);
-        navigate('/TagMechanismPage');
     };
 
     return { tagMechanismUuid, handleTagMechanismClick };

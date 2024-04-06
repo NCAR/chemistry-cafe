@@ -180,8 +180,9 @@ export async function getTagMechanisms(): Promise<TagMechanism[]> {
 }
 
 export async function getTagMechanism(uuid?: string): Promise<TagMechanism[]> {
-    if (!uuid) return [];
-    
+    if (!uuid){
+        return [];
+    }
     try {
         const response = await axios.get<TagMechanism[]>(`http://localhost:5134/api/TagMechanism/${uuid}`);
         return response.data;
