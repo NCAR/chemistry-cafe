@@ -7,6 +7,7 @@ import { createFamily } from '../buttonSystem/API/API_CreateMethods';
 import { useFamilyUuid, useMechanismUuid } from '../buttonSystem/GlobalVariables';
 import { StyledHeader, StyledActionBar, StyledActionBarButton, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
 import Button from "@mui/material/Button";
+import ButtonGroup from '@mui/material/ButtonGroup';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -73,13 +74,20 @@ const FamilyPage = () => {
                     </StyledActionBar>
                 </div>
                 
-                <div className="L2">
-                    <Button onClick = {handleCreateFamOpen}>
-                        Create Family
-                    </Button>
-                    <Button onClick = {handleCreateFamOpen}>
-                        Add Mechanism to Family
-                    </Button>
+                <div className="L2" style={{padding: "20px"}}>
+                    <p></p>
+                    <Box>
+                        <ButtonGroup orientation='vertical' variant='contained'>
+                            <Button onClick = {handleCreateFamOpen}>
+                                Create Family
+                            </Button>
+                            <Button onClick = {handleCreateFamOpen}>
+                                Add Mechanism to Family
+                            </Button>
+                        </ButtonGroup>
+                        <ButtonGroup></ButtonGroup>
+                    </Box>
+                    <p></p>
                 </div>
 
                 <div className="L3">

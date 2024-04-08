@@ -4,6 +4,8 @@ import { googleLogout, useGoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
 import "./logIn.css";
 import Button from "@mui/material/Button";
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
 
 interface User {
     access_token: string;
@@ -22,6 +24,9 @@ interface Profile {
     const [user, setUser] = useState<User | null>(null);
     const [profile, setProfile] = useState<Profile | null>(null);
 
+    const navigate = useNavigate();
+    const handleClick = () => navigate('/LoggedIn');
+
     const login = useGoogleLogin({
         onSuccess: (codeResponse) => setUser(codeResponse),
         onError: (error) => console.log('Login Failed:', error)
@@ -38,6 +43,7 @@ interface Profile {
                 })
                 .then((res) => {
                     setProfile(res.data);
+                    // navigate('/LoggedIn');
                 })
                 .catch((err) => console.log(err));
         }
@@ -49,20 +55,25 @@ interface Profile {
         setProfile(null);
     };
 
-    const navigate = useNavigate();
-    const handleClick = () => navigate('/LoggedIn');
-
         return (
           <section className="layout">
-            <div className='M3'>
-                <Button type="button" onClick={handleClick}>
-                    Go To Logged In
-                </Button>
+            <div className="L1">
+                <Box component="img" src={"src/assets/TAMULogo.png"} alt={"Texas A&M"} sx={{ height: "300px", width: "auto" }} />
             </div>
             <div className="M1">
-                <h2>React Google Login</h2>
+                <Box component="img" src={"src/assets/NSF-NCAR_Lockup-UCAR-Dark.png"} alt={"Texas A&M"} sx={{ height: "275px", width: "auto" }} />
+            </div>
+            <div className="M3">
+                <Box sx={{ width: '100%', maxWidth: 700 }}>
+                    <Typography variant="h1">
+                        Chemistry Cafe
+                    </Typography>
+                </Box>
+            </div>
+            <div className="M4">
                 <br />
                 <br />
+                <p></p>
                 {profile ? (
                     <div>
                         <img src={profile.picture} alt="user profile" />
@@ -71,12 +82,21 @@ interface Profile {
                         <p>Email Address: {profile.email}</p>
                         <br />
                         <br />
-                        <button onClick={logOut}>Log out</button>
+                        <Button onClick={handleClick}>PROCEED</Button>
+                        <Button onClick={logOut}>Log out</Button>
+                        
                     </div>
                 ) : (
-                    <button onClick={() => login()}>Sign in with Google 🚀</button>
+                    <Button onClick={() => login()}>Sign in with Google 🚀</Button>
                 )}
             </div>
+
+            <div className='M5'>
+                <Button type="button" onClick={handleClick}>
+                    Continue as Guest
+                </Button>
+            </div>
+
           </section>
         );
 
