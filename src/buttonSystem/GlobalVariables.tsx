@@ -14,6 +14,7 @@ export const useFamilyUuid = () => {
     const handleFamilyClick = (uuid: string) => {
         localStorage.setItem('family_uuid', uuid);
         setFamilyUuid(uuid);
+        console.log(uuid);
     };
 
     return { familyUuid, handleFamilyClick };
@@ -40,7 +41,7 @@ export const useMechanismUuid = () => {
     const handleFamilyMechanismClick = (uuid: string) => {
         localStorage.setItem('mechanism_uuid', uuid);
         setMechanismUuid(uuid);
-        navigate('/FamilyMechanismPage')
+        navigate('/FamilyMechanismPage');
     };
 
     return { mechanismUuid, handleMechanismsClick, handleFamilyMechanismClick };

@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useRef } from 'react';
 import ButtonSystemGrid from '.././buttonSystem/ButtonSystemGrid';
 import { getFamilies, getMechanismsFromFamily } from '../buttonSystem/API/API_GetMethods';
-import { createFamily } from '../buttonSystem/API/API_CreateMethods';
+import { createFamily, createFamilyMechList } from '../buttonSystem/API/API_CreateMethods';
 import { useFamilyUuid, useMechanismUuid } from '../buttonSystem/GlobalVariables';
+import { FamilyMechList } from '../buttonSystem/API/API_Interfaces';
 import { StyledHeader, StyledActionBar, StyledActionBarButton, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
 import Button from "@mui/material/Button";
 import ButtonGroup from '@mui/material/ButtonGroup';
@@ -12,6 +13,12 @@ import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import { TextField } from '@mui/material';
+import BottomNavigation from '@mui/material/BottomNavigation';
+import BottomNavigationAction from '@mui/material/BottomNavigationAction';
+
+import InsertLinkSharpIcon from '@mui/icons-material/InsertLinkSharp';
+import IosShareSharpIcon from '@mui/icons-material/IosShareSharp';
+import TaskSharpIcon from '@mui/icons-material/TaskSharp';
 
 import "./family.css";
 
@@ -36,12 +43,31 @@ const FamilyPage = () => {
     const handleCreateFamClose = () => setCreateFamOpen(false);
 
     const [addMToFOpen, setAddMtoFOpen] = React.useState(false);
-    const handleAddMtoFOpen = () => setCreateFamOpen(true);
-    const handleAddMtoFClose = () => setCreateFamOpen(false);
+    const handleAddMtoFOpen = () => setAddMtoFOpen(true);
+    const handleAddMtoFClose = () => setAddMtoFOpen(false);
 
     const handleCreateFamClick = () => {
         createFamily(createFamRef.current);
         setCreateFamOpen(false);
+    }
+    const handleCreateMtoFClick = () => {
+        let obj = { uuid: "", family_uuid: createFamRef.current, mechanism_uuid: "", version: "", isDel: false};
+        createFamilyMechList(obj);
+        setAddMtoFOpen(false);
+    }
+    const handleFamSelect = (uuid: string) => {
+        handleFamilyClick(uuid);
+        if(familyUuid){
+            createFamRef.current = familyUuid;
+        }
+    }
+
+    const [delFamOpen, setDelFamOpen] = React.useState(false);
+    const handleDelFamOpen = () => setDelFamOpen(true);
+    const handleDelFamClose = () => setDelFamOpen(false);
+
+    const handleDeleteFamClick = () => {
+        console.log("Delete not rdy yet!");
     }
     
 
@@ -65,13 +91,16 @@ const FamilyPage = () => {
                         Family/
                     </StyledHeader>
                 </div>
-                <div className="M1">
-                    <div style={{height: "60%"}}></div>
-                    <StyledActionBar>
-                        <StyledActionBarButton onClick={handlePublishOpen}>Publish</StyledActionBarButton>
-                        <StyledActionBarButton onClick={handleShareOpen}>Share</StyledActionBarButton>
-                        <StyledActionBarButton onClick={handleDOIOpen}>Get DOI</StyledActionBarButton> 
-                    </StyledActionBar>
+                
+                <div className='M1'>
+                    <div style={{height: "40%"}}></div>
+                    <BottomNavigation 
+                        showLabels
+                    >
+                        <BottomNavigationAction label="Publish" icon={<TaskSharpIcon/>} onClick={handlePublishOpen}></BottomNavigationAction>
+                        <BottomNavigationAction label="Share" icon={<IosShareSharpIcon/>} onClick={handleShareOpen}></BottomNavigationAction>
+                        <BottomNavigationAction label="Get DOI" icon={<InsertLinkSharpIcon/>} onClick={handleDOIOpen}></BottomNavigationAction>
+                    </BottomNavigation>
                 </div>
                 
                 <div className="L2" style={{padding: "20px"}}>
@@ -81,8 +110,11 @@ const FamilyPage = () => {
                             <Button onClick = {handleCreateFamOpen}>
                                 Create Family
                             </Button>
-                            <Button onClick = {handleCreateFamOpen}>
+                            <Button onClick = {handleAddMtoFOpen}>
                                 Add Mechanism to Family
+                            </Button>
+                            <Button onClick = {handleDelFamOpen}>
+                                Delete Family
                             </Button>
                         </ButtonGroup>
                         <ButtonGroup></ButtonGroup>
@@ -135,6 +167,35 @@ const FamilyPage = () => {
 
                             </TextField>
                             <Button onClick={handleCreateFamClick}>
+                                Submit
+                            </Button>
+                        </Box>
+                    </Modal>
+                    <Modal
+                        open={addMToFOpen}
+                        onClose={handleAddMtoFClose}
+                    >
+                        <Box sx={style}>
+                            Enter name for new Mechanism to selected Family.
+                            <p></p>
+                            <ButtonSystemGrid buttonArray={[getFamilies()]} handleClick={handleFamSelect} category={'Families'} height={'50vh'} cols={1}/>
+                            <TextField id="textFieldAddMtoF" label="Name" onChange={ e => createFamRef.current = e.target.value}>
+
+                            </TextField>
+                            <Button onClick={handleCreateMtoFClick}>
+                                Submit
+                            </Button>
+                        </Box>
+                    </Modal>
+                    <Modal
+                        open={delFamOpen}
+                        onClose={handleDelFamClose}
+                    >
+                        <Box sx={style}>
+                            Select Family to delete.
+                            <p></p>
+                            <ButtonSystemGrid buttonArray={[getFamilies()]} handleClick={handleFamilyClick} category={'Families'} height={'50vh'} cols={1}/>
+                            <Button onClick={handleDeleteFamClick}>
                                 Submit
                             </Button>
                         </Box>
