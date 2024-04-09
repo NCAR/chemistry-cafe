@@ -32,6 +32,12 @@ const ReactionsPage = () => {
     const createPropertyNameRef = useRef("");
     const createPropertyUnitsRef = useRef("");
     const createPropertyValidationRef = useRef("");
+    const [propertyType, setPropertyType] = useState<string>('');
+
+    const handlePropertyTypeChange = (event: SelectChangeEvent<string>) => {
+        setPropertyType(event.target.value);
+    };
+
     const createPropertyVersionValueRef = useRef("");
 
     const createReactantQuantityRef = useRef("");
@@ -64,7 +70,7 @@ const ReactionsPage = () => {
 
     const [createPropertyOpen, setCreatePropertyOpen] = React.useState(false);
     const handleCreatePropertyOpen = () => setCreatePropertyOpen(true);
-    const handleCreatePropertyClose = () => setCreatePropertyOpen(false);
+    const handleCreatePropertyClose = () => { setCreatePropertyOpen(false); setPropertyType('')}
 
     const [createReactantOpen, setCreateReactantOpen] = React.useState(false);
     const handleCreateReactantOpen = () => setCreateReactantOpen(true);
@@ -386,8 +392,19 @@ const ReactionsPage = () => {
                             Enter units for new Property's Units below.
                             <TextField id="textField" label="PropertyUnits" onChange={ e => createPropertyUnitsRef.current = e.target.value}/>
                             <p></p>
-                            Enter type for new value's type below.
-                            <TextField id="textField" label="PropertyType" onChange={ e => createPropertyValidationRef.current = e.target.value}/>
+                            Select type for new value's type below.
+                            <Select
+                                labelId="propertyTypeLabel"
+                                id="propertyType"
+                                value={propertyType}
+                                onChange={handlePropertyTypeChange}
+                                label="PropertyType"
+                            >
+                                <MenuItem value="string">Text</MenuItem>
+                                <MenuItem value="int">Integer Number</MenuItem>
+                                <MenuItem value="double">Decimal Number</MenuItem>
+                                <MenuItem value="float">Scientific Number</MenuItem>
+                            </Select>
                             <p></p>
                             Enter value for new Property value below.
                             <TextField id="textField" label="PropertyValue" onChange={ e => createPropertyVersionValueRef.current = e.target.value}/>
