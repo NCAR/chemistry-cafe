@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { googleLogout, useGoogleLogin } from '@react-oauth/google';
@@ -5,6 +6,7 @@ import axios from 'axios';
 import "./logIn.css";
 import Button from "@mui/material/Button";
 import Box from '@mui/material/Box';
+import Modal from '@mui/material/Modal';
 import Typography from '@mui/material/Typography';
 
 interface User {
@@ -26,6 +28,14 @@ interface Profile {
 
     const navigate = useNavigate();
     const handleClick = () => navigate('/LoggedIn');
+
+    const [aboutOpen, setAboutOpen] = React.useState(false);
+    const handleAboutOpen = () => setAboutOpen(true);
+    const handleAboutClose = () => setAboutOpen(false);
+
+    const handleAbout = () => {
+        handleAboutOpen();
+    };
 
     const login = useGoogleLogin({
         onSuccess: (codeResponse) => setUser(codeResponse),
@@ -53,6 +63,18 @@ interface Profile {
     const logOut = () => {
         googleLogout();
         setProfile(null);
+    };
+
+    const style = {
+        position: 'absolute' as 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: 400,
+        bgcolor: 'background.paper',
+        border: '2px solid #000',
+        boxShadow: 24,
+        p: 4,
     };
 
         return (
@@ -97,6 +119,22 @@ interface Profile {
                 </Button>
             </div>
 
+            <div className='M7'>
+                <Button onClick={handleAbout}>
+                    About
+                </Button>
+            </div>
+
+            <div>
+                    <Modal
+                        open={aboutOpen}
+                        onClose={handleAboutClose}
+                    >
+                        <Box sx={style}>
+                            About
+                        </Box>
+                    </Modal>
+            </div>
           </section>
         );
 
