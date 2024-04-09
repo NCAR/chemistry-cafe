@@ -6,6 +6,7 @@ import FamilyMechanismPage from './webPages/familyMechanism';
 import LogIn from './webPages/logIn';
 import Mechanisms from './webPages/mechanisms';
 import SpeciesPage from './webPages/species';
+import ReactionsPage from './webPages/reactions';
 
 function App() {
 
@@ -18,6 +19,7 @@ function App() {
                 <Route path="/FamilyPage" element={<FamilyPage />} />
                 <Route path="/FamilyMechanismPage" element={<FamilyMechanismPage />} />
                 <Route path="/SpeciesPage" element={<SpeciesPage />} />
+                <Route path="/ReactionsPage" element={<ReactionsPage />} />
                 <Route path="/Settings" element={<Settings />} />
                 <Route path="/Mechanisms" element={<Mechanisms />} />
             </Routes>

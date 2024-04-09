@@ -2,12 +2,13 @@ import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRef } from 'react';
 import ButtonSystemGrid from '../buttonSystem/ButtonSystemGrid';
-import { getMechanismsFromFamily, getTagMechanismsFromMechanism, getTagMechanism } from '../buttonSystem/API/API_GetMethods';
-import { createMechanism } from '../buttonSystem/API/API_CreateMethods';
+import { getMechanismsFromFamily, getTagMechanismsFromMechanism, getTagMechanism } from '../API/API_GetMethods';
+import { createMechanism } from '../API/API_CreateMethods';
 import { useFamilyUuid, useMechanismUuid, useTagMechanismUuid} from '../buttonSystem/GlobalVariables';
 import { StyledHeader, StyledActionBar, StyledActionBarButton, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
 
 import Button from "@mui/material/Button";
+import ButtonGroup from '@mui/material/ButtonGroup';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 import { TextField } from '@mui/material';
@@ -53,8 +54,12 @@ const FamilyMechanismPage = () => {
     const handleTagOpen = () => setTagOpen(true);
     const handleTagClose = () => setTagOpen(false);
     const handleSpeciesClick = () => navigate('/SpeciesPage');
-    const handleReactionClick = () => navigate('/SpeciesPage');
+    const handleReactionClick = () => navigate('/ReactionsPage');
     const handleHistoryClick = () => navigate('/SpeciesPage');
+    const handleDownlaodClick = () => {
+        navigate('/'); // Addd the download of the config
+    };
+
 
     const { familyUuid } = useFamilyUuid();
     const { mechanismUuid, handleMechanismsClick } = useMechanismUuid();
@@ -65,10 +70,8 @@ const FamilyMechanismPage = () => {
         listName += getTagMechanism(tagMechanismUuid as string);
     }
 
-    const masterHandleTagMechanismClick = () => {
-        if(tagMechanismUuid){
-            handleTagMechanismClick(tagMechanismUuid);
-        }
+    const masterHandleTagMechanismClick = (uuid: string) => {
+        handleTagMechanismClick(uuid);
         handleTagOpen();
     }  
 
@@ -97,10 +100,17 @@ const FamilyMechanismPage = () => {
                     </StyledHeader>
                 </div>
 
-                <div className="L2">
-                    <Button onClick={handleCreateMechOpen}>
-                        Create Mechanism For This Family
-                    </Button>
+                <div className="L2" style={{padding: "20px"}}>
+                    <p></p>
+                    <Box>
+                        <ButtonGroup orientation='vertical' variant='contained'>
+                            <Button onClick = {handleCreateMechOpen}>
+                                Add Tag Mechanism to Mechanism
+                            </Button>
+                        </ButtonGroup>
+                        <ButtonGroup></ButtonGroup>
+                    </Box>
+                    <p></p>
                 </div>
 
                 <div className='M1'>
@@ -198,6 +208,15 @@ const FamilyMechanismPage = () => {
                                             <HistoryEduSharpIcon></HistoryEduSharpIcon>
                                         </ListItemIcon>
                                         <ListItemText primary="History">   
+                                        </ListItemText>
+                                    </ListItemButton>
+                                </ListItem>
+                                <ListItem>
+                                    <ListItemButton onClick={handleDownlaodClick}>
+                                        <ListItemIcon>
+                                            <HistoryEduSharpIcon></HistoryEduSharpIcon>
+                                        </ListItemIcon>
+                                        <ListItemText primary="Downlaod">   
                                         </ListItemText>
                                     </ListItemButton>
                                 </ListItem>

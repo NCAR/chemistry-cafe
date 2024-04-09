@@ -41,6 +41,7 @@ border-radius: 50px;
 position: relative;
 grid-column: 2 / span 2;
 grid-row: 2 / span 2;
+overflow: auto;
 `;
 
 export const StyledButton = styled.button`
@@ -70,6 +71,10 @@ export const StyledTagMechanismsFromMechanismButton = styled(StyledButton)`
 `;
 
 export const StyledSpeciesFromTagMechanismButton = styled(StyledButton)`
+
+`;
+
+export const StyledReactionsFromTagMechanismButton = styled(StyledButton)`
 
 `;
 

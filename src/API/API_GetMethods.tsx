@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Family, FamilyMechList, Mechanism, MechTagMechList, Reaction, Species, TagMechanism, TagMechanismReactionList, TagMechanismSpeciesList} from "./API_Interfaces";
+import { Family, FamilyMechList, Mechanism, MechTagMechList, PropertyVersion, Reaction, Species, TagMechanism, TagMechanismReactionList, TagMechanismSpeciesList, ReactantProductList} from "./API_Interfaces";
 
 export async function getFamilies(): Promise<Family[]> {
     try {
@@ -115,15 +115,13 @@ export async function getReactions(): Promise<Reaction[]> {
     }
 }
 
-export async function getReaction(uuid?: string): Promise<Reaction[]> {
-    if (!uuid) return [];
-    
+export async function getReaction(uuid?: string): Promise<Reaction> {
     try {
-        const response = await axios.get<Reaction[]>(`http://localhost:5134/api/Reaction/${uuid}`);
+        const response = await axios.get<Reaction>(`http://localhost:5134/api/Reaction/${uuid}`);
         return response.data;
     } catch (error) {
         console.error(error);
-        return [];
+        throw new Error('Failed to fetch reaction');
     }
 }
 
@@ -245,6 +243,42 @@ export async function getTagMechanismSpeciesList(uuid?: string): Promise<TagMech
     
     try {
         const response = await axios.get<TagMechanismSpeciesList[]>(`http://localhost:5134/api/TagMechanismSpeciesList/${uuid}`);
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        return [];
+    }
+}
+
+export async function getPropertyiesFromParent(parent_uuid: string): Promise<PropertyVersion[]> {
+    if (!parent_uuid) return [];
+    
+    try {
+        const response = await axios.get<PropertyVersion[]>(`http://localhost:5134/api/PropertyList/Properties/${parent_uuid}`);
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        return [];
+    }
+}
+
+export async function getReactantsFromReactionReactantList(reaction_reactant_list_uuid: string): Promise<ReactantProductList[]> {
+    if (!reaction_reactant_list_uuid) return [];
+    
+    try {
+        const response = await axios.get<ReactantProductList[]>(`http://localhost:5134/api/ReactantProductList/Reactants/${reaction_reactant_list_uuid}`);
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        return [];
+    }
+}
+
+export async function getProductsFromReactionReactantList(reaction_product_list_uuid: string): Promise<ReactantProductList[]> {
+    if (!reaction_product_list_uuid) return [];
+    
+    try {
+        const response = await axios.get<ReactantProductList[]>(`http://localhost:5134/api/ReactantProductList/Reactants/${reaction_product_list_uuid}`);
         return response.data;
     } catch (error) {
         console.error(error);

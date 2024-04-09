@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
 import ButtonSystemGrid from '../buttonSystem/ButtonSystemGrid';
-import { getMechanisms, getTagMechanism, getTagMechanismsFromMechanism } from '../buttonSystem/API/API_GetMethods';
+import { getMechanisms, getTagMechanism, getTagMechanismsFromMechanism } from '../API/API_GetMethods';
 import { useFamilyUuid, useMechanismUuid, useTagMechanismUuid} from '../buttonSystem/GlobalVariables';
 import { StyledHeader, StyledActionBar, StyledActionBarButton, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
 import Button from "@mui/material/Button";

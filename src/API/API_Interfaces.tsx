@@ -20,8 +20,8 @@ export interface Mechanism {
 
 export interface MechTagMechList {
   uuid: string;
-  family_uuid: string;
   mechanism_uuid: string;
+  tag_mechanism_uuid: string;
   version: string;
   isDel: boolean;
 }
@@ -30,7 +30,8 @@ export interface ReactantProductList {
   reactant_product_uuid: string;
   reaction_uuid: string;
   species_uuid: string;
-  quantity: Int16Array;
+  quantity: number;
+  type: string;
 }
 
 export interface Reaction {
@@ -69,10 +70,42 @@ export interface TagMechanismSpeciesList {
   isDel: boolean;
 }
 
-export interface ProperyType {
+export interface PropertyType {
   uuid: string;
   name: string;
   units: string;
   validation: string;
-  isdel: boolean;
+  isDel: boolean;
+}
+
+export interface PropertyList {
+  uuid: string;
+  parent_uuid: string;
+  version: string;
+  isDel: boolean;
+}
+
+export interface PropertyVersion {
+  property_list_uuid: string;
+  parent_uuid: string;
+  version: string;
+  property_list_isDel: boolean;
+  property_version_uuid: string;
+  parent_property_uuid: string;
+  frozen_version: string;
+  mechanism_uuid: string;
+  property_type: string;
+  float_value: number | null;
+  double_value: number | null;
+  int_value: number | null;
+  string_value: string | null;
+  action: string;
+  user_uuid: string;
+  datetime: string;
+  property_version_isDel: boolean;
+  property_type_uuid: string;
+  name: string;
+  units: string;
+  validation: string;
+  property_type_isDel: boolean;
 }
