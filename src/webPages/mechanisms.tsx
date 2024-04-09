@@ -26,6 +26,7 @@ import TaskSharpIcon from '@mui/icons-material/TaskSharp';
 import "./mechanisms.css";
 import { createMechanism } from '../API/API_CreateMethods';
 import { useRef } from 'react';
+import { downloadOA } from '../API/API_DeleteMethods';
 
 
 const MechanismPage = () => {
@@ -62,7 +63,22 @@ const MechanismPage = () => {
         setCreateMechanismOpen(false);
     }
 
+    const handleDownlaodClick = async () => {
+        const link = document.createElement("a");
+        const body = await downloadOA(tagMechanismUuid as string);
 
+        const blob = new Blob([body], { type: 'application/json' });
+
+        const blobUrl = window.URL.createObjectURL(blob);
+
+        link.download = 'openAtmos.json';
+        link.href = blobUrl;
+
+        link.click();
+
+        window.URL.revokeObjectURL(blobUrl);
+    };
+    
     var listName = "Options for ";
     if(tagMechanismUuid){
         listName += getTagMechanism(tagMechanismUuid as string);
@@ -202,6 +218,15 @@ const MechanismPage = () => {
                                             <HistoryEduSharpIcon></HistoryEduSharpIcon>
                                         </ListItemIcon>
                                         <ListItemText primary="History">   
+                                        </ListItemText>
+                                    </ListItemButton>
+                                </ListItem>
+                                <ListItem>
+                                    <ListItemButton onClick={handleDownlaodClick}>
+                                        <ListItemIcon>
+                                            <HistoryEduSharpIcon></HistoryEduSharpIcon>
+                                        </ListItemIcon>
+                                        <ListItemText primary="Downlaod">   
                                         </ListItemText>
                                     </ListItemButton>
                                 </ListItem>
