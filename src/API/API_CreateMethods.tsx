@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { FamilyMechList, MechTagMechList, TagMechanismReactionList, TagMechanismSpeciesList, ProperyType, ProperyList, PropertyVersion } from "./API_Interfaces";
+import { FamilyMechList, MechTagMechList, TagMechanismReactionList, TagMechanismSpeciesList, PropertyType, PropertyList, PropertyVersion, ReactantProductList } from "./API_Interfaces";
 
 export async function createFamily(name: string) {
     try {
@@ -82,7 +82,7 @@ export async function createMechTagMechList(mechTagMechListData: MechTagMechList
 export async function createReaction(type: string) {
     try {
         const response = await axios.post(
-            'http://localhost:5134/api/Mechanism/create',
+            'http://localhost:5134/api/Reaction/create',
             "\"" + type + "\"",
             {
                 headers: {
@@ -181,7 +181,7 @@ export async function createTagMechanismSpeciesList(tagMechanismSpeciesListData:
     }
 }
 
-export async function createPropertyType(propertyType: ProperyType) {
+export async function createPropertyType(propertyType: PropertyType) {
     try {
         const requestData = {
             name: propertyType.name,
@@ -205,7 +205,7 @@ export async function createPropertyType(propertyType: ProperyType) {
     }
 }
 
-export async function createPropertyList(propertyList: ProperyList) {
+export async function createPropertyList(propertyList: PropertyList) {
     try {
         const requestData = {
             parent_uuid: propertyList.parent_uuid,
@@ -260,3 +260,27 @@ export async function createPropertyVersion(propertyVersion: PropertyVersion) {
     }
 }
 
+export async function createReactantProduct(reactantProductList: ReactantProductList) {
+    try {
+        const requestData = {
+            reactant_product_uuid: reactantProductList.reactant_product_uuid,
+            reaction_uuid: reactantProductList.reaction_uuid,
+            species_uuid: reactantProductList.species_uuid,
+            quantity: reactantProductList.quantity,
+        };
+
+        const response = await axios.post(
+            'http://localhost:5134/api/ReactantProductList/create',
+            requestData,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}

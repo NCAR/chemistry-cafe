@@ -1,18 +1,19 @@
 import * as React from 'react';
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import ButtonSystemGrid from '../buttonSystem/ButtonSystemGrid';
-import { createSpecies, createTagMechanismSpeciesList, createPropertyList, createPropertyType, createPropertyVersion } from '../API/API_CreateMethods';
-import { PropertyList, PropertyType, PropertyVersion, TagMechanismSpeciesList } from "../API/API_Interfaces";
-import { getSpeciesFromTagMechanism, getPropertyiesFromParent } from '../API/API_GetMethods';
-import { useSpeciesUuid, useTagMechanismUuid, useMechanismUuid } from '../buttonSystem/GlobalVariables';
+import { createReaction, createTagMechanismReactionList, createPropertyList, createPropertyType, createPropertyVersion, createReactantProduct } from '../API/API_CreateMethods';
+import { Species, PropertyList, PropertyType, PropertyVersion, TagMechanismReactionList, ReactantProductList} from "../API/API_Interfaces";
+import { getReaction, getReactantsFromReactionReactantList, getProductsFromReactionReactantList, getReactionsFromTagMechanism, getSpeciesFromTagMechanism, getPropertyiesFromParent } from '../API/API_GetMethods';
+import { useReactionUuid, useTagMechanismUuid, useMechanismUuid } from '../buttonSystem/GlobalVariables';
 import { StyledHeader, StyledActionBar, StyledActionBarButton, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
 import RenderProperties from './RenderPropeties/RenderProperties';
+import RenderReactantProducts from './RenderReactantsProducts/RenderReactantsProducts';
 
 import Button from "@mui/material/Button";
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
-import { TextField } from '@mui/material';
+import { TextField, Select, MenuItem, SelectChangeEvent } from '@mui/material';
 import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
 import List from '@mui/material/List';
@@ -31,13 +32,25 @@ import TaskSharpIcon from '@mui/icons-material/TaskSharp';
 
 import "./family.css";
 
-const SpeciesPage = () => {
-    const createSpeciesRef = useRef("");
+const ReactionsPage = () => {
+    const createReactionRef = useRef("");
+    const createReactantListRef = useRef("");
+    const createProductListRef = useRef("");
 
     const createPropertyNameRef = useRef("");
     const createPropertyUnitsRef = useRef("");
     const createPropertyValidationRef = useRef("");
     const createPropertyVersionValueRef = useRef("");
+
+    const createReactantQuantityRef = useRef("");
+    const [selectedSpecies, setSelectedSpecies] = useState('');
+    const [speciesOptions, setSpeciesOptions] = useState<Species[]>([]);
+
+    const handleSpeciesChange = (event: SelectChangeEvent<string>) => {
+        setSelectedSpecies(event.target.value);
+    };
+
+    const createProductQuantityRef = useRef("");
 
     const [publishOpen, setPublishOpen] = React.useState(false);
     const [shareOpen, setShareOpen] = React.useState(false);
@@ -51,31 +64,39 @@ const SpeciesPage = () => {
 
     const { mechanismUuid } = useMechanismUuid();
     const { tagMechanismUuid } = useTagMechanismUuid();
-    const { speciesUuid, handleSpeciesClick } = useSpeciesUuid();
+    const { reactionUuid, handleReactionClick } = useReactionUuid();
 
-    const [createSpeciesOpen, setCreateSpeciesOpen] = React.useState(false);
-    const handleCreateSpeciesOpen = () => setCreateSpeciesOpen(true);
-    const handleCreateSpeciesClose = () => setCreateSpeciesOpen(false);
+    const [createReactionOpen, setCreateReactionOpen] = React.useState(false);
+    const handleCreateReactionOpen = () => setCreateReactionOpen(true);
+    const handleCreateReactionClose = () => setCreateReactionOpen(false);
 
     const [createPropertyOpen, setCreatePropertyOpen] = React.useState(false);
     const handleCreatePropertyOpen = () => setCreatePropertyOpen(true);
     const handleCreatePropertyClose = () => setCreatePropertyOpen(false);
 
-    const handleCreateSpeciesClick = async () => {
+    const [createReactantOpen, setCreateReactantOpen] = React.useState(false);
+    const handleCreateReactantOpen = () => setCreateReactantOpen(true);
+    const handleCreateReactantClose = () => setCreateReactantOpen(false);
+
+    const [createProductOpen, setCreateProductOpen] = React.useState(false);
+    const handleCreateProductOpen = () => setCreateProductOpen(true);
+    const handleCreateProductClose = () => setCreateProductOpen(false);
+
+    const handleCreateReactionClick = async () => {
         try {
-            const species_uuid = await createSpecies(createSpeciesRef.current);
+            const reaction_uuid = await createReaction(createReactionRef.current);
     
-            const tagMechanismSpeciesListData: TagMechanismSpeciesList = {
+            const tagMechanismReactionListData: TagMechanismReactionList = {
                 uuid: '', // Auto creates
-                species_uuid: species_uuid,
+                reaction_uuid: reaction_uuid,
                 tag_mechanism_uuid: tagMechanismUuid as string,
                 version: '',
                 isDel: false, //Auto sets false
             };
     
-            await createTagMechanismSpeciesList(tagMechanismSpeciesListData);
+            await createTagMechanismReactionList(tagMechanismReactionListData);
     
-            setCreateSpeciesOpen(false);
+            setCreateReactionOpen(false);
         } catch (error) {
             console.error(error);
         }
@@ -85,7 +106,7 @@ const SpeciesPage = () => {
         try {
             const propertyList: PropertyList = {
                 uuid: '', // Auto creates
-                parent_uuid: speciesUuid as string,
+                parent_uuid: reactionUuid as string,
                 version: '1.0',
                 isDel: false, //Auto sets false
             };
@@ -119,7 +140,7 @@ const SpeciesPage = () => {
 
             const propertyVersion: PropertyVersion = {
                 property_list_uuid: propertyList_uuid,
-                parent_uuid: speciesUuid as string,
+                parent_uuid: reactionUuid as string,
                 version: '1.0',
                 property_list_isDel: false,
                 property_version_uuid: '',
@@ -132,7 +153,7 @@ const SpeciesPage = () => {
                 int_value: int_value,
                 string_value: string_value,
                 action: 'add',
-                user_uuid: 'f2a9b0bd-db88-4436-a9dc-eddf1c7257ad', // Test user from the database
+                user_uuid: 'f2a9b0bd-db88-4436-a9dc-eddf1c7257ad',
                 datetime: new Date().toISOString(),
                 property_version_isDel: false,
                 property_type_uuid: propertyType_uuid,
@@ -150,6 +171,69 @@ const SpeciesPage = () => {
         }
     }
 
+    const handleCreateReactantClick = async () => {
+        try {
+            const reactantProductList: ReactantProductList = {
+                reactant_product_uuid: createReactantListRef.current, 
+                reaction_uuid: reactionUuid as string,
+                species_uuid: selectedSpecies,
+                quantity: parseInt(createReactantQuantityRef.current),
+                type: '', //Doesn't matter
+            };
+            
+            await createReactantProduct(reactantProductList);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    const handleCreateProductClick = async () => {
+        try {
+            const reactantProductList: ReactantProductList = {
+                reactant_product_uuid: createProductListRef.current, 
+                reaction_uuid: reactionUuid as string,
+                species_uuid: selectedSpecies,
+                quantity: parseInt(createProductQuantityRef.current),
+                type: '', //Doesn't matter
+            };
+            
+            await createReactantProduct(reactantProductList);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    const masterhandleReactionClick = (uuid: string) => {
+        handleReactionClick(uuid);
+        getReactionProperties();
+    }  
+    
+    useEffect(() => {
+        const fetchSpecies = async () => {
+            try {
+                const species = await getSpeciesFromTagMechanism(tagMechanismUuid as string);
+                setSpeciesOptions(species);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        fetchSpecies();
+    }, [tagMechanismUuid]);
+
+    const getReactionProperties = async () => {
+        try {
+            const reaction = await getReaction(reactionUuid as string);
+            
+            createReactantListRef.current = reaction.reactant_list_uuid;
+            createProductListRef.current = reaction.product_list_uuid;
+    
+        } catch (error) {
+            console.error(error);
+            return null;
+        }
+    }
+
     const style = {
         position: 'absolute' as 'absolute',
         top: '50%',
@@ -161,12 +245,12 @@ const SpeciesPage = () => {
         boxShadow: 24,
         p: 4,
       };
-
+    
         return (
             <section className="layout">
                 <div className="L1">
                     <StyledHeader>
-                        TagMechanism/Species
+                        TagMechanism/Reactions
                     </StyledHeader>
                 </div>
 
@@ -174,11 +258,11 @@ const SpeciesPage = () => {
                     <p></p>
                     <Box>
                         <ButtonGroup orientation='vertical' variant='contained'>
-                            <Button onClick = {handleCreateSpeciesOpen}>
-                                Add Species
+                            <Button onClick = {handleCreateReactionOpen}>
+                                Add Reaction
                             </Button>
                             <Button onClick = {handleCreatePropertyOpen}>
-                                Add Property to Species
+                                Add Property to Reaction
                             </Button>
                         </ButtonGroup>
                         <ButtonGroup></ButtonGroup>
@@ -198,12 +282,14 @@ const SpeciesPage = () => {
                 </div>
 
                 <div className="L3">
-                    <ButtonSystemGrid buttonArray={[getSpeciesFromTagMechanism(tagMechanismUuid as string)]} handleClick={handleSpeciesClick} category={'SpeciesFromTagMechanism'} height={'60vh'} cols={1}/>
+                    <ButtonSystemGrid buttonArray={[getReactionsFromTagMechanism(tagMechanismUuid as string)]} handleClick={masterhandleReactionClick} category={'ReactionsFromTagMechanism'} height={'60vh'} cols={1}/>
                 </div>
 
                 <StyledDetailBox>
                     <p></p>
-                        <RenderProperties properties={[getPropertyiesFromParent(speciesUuid as string)]} />
+                        <RenderReactantProducts reactantProducts={[getReactantsFromReactionReactantList(createReactantListRef.current)]} reactants_or_products='Reactants' handleClick={handleCreateReactantOpen}/>
+                        <RenderReactantProducts reactantProducts={[getProductsFromReactionReactantList(createProductListRef.current)]} reactants_or_products='Products' handleClick={handleCreateProductOpen}/>
+                        <RenderProperties properties={[getPropertyiesFromParent(reactionUuid as string)]} />
                     <p></p>
                 </StyledDetailBox>
 
@@ -234,15 +320,71 @@ const SpeciesPage = () => {
                         </Box>
                     </Modal>
                     <Modal
-                        open={createSpeciesOpen}
-                        onClose={handleCreateSpeciesClose}
+                        open={createReactionOpen}
+                        onClose={handleCreateReactionClose}
                     >
                         <Box sx={style}>
-                            Enter name for new Species below.
-                            <TextField id="textField" label="Name" onChange={ e => createSpeciesRef.current = e.target.value}>
+                            Enter type for new Reaction below.
+                            <TextField id="textField" label="Name" onChange={ e => createReactionRef.current = e.target.value}>
 
                             </TextField>
-                            <Button onClick={handleCreateSpeciesClick}>
+                            <Button onClick={handleCreateReactionClick}>
+                                Submit
+                            </Button>
+                        </Box>
+                    </Modal>
+                    <Modal
+                        open={createReactantOpen}
+                        onClose={handleCreateReactantClose}
+                    >
+                        <Box sx={style}>
+                            <div>
+                                Enter Species.
+                                <Select
+                                    value={selectedSpecies}
+                                    onChange={handleSpeciesChange}
+                                    label="Species"
+                                    style={{ minWidth: 200 }}
+                                >
+                                    {speciesOptions.map((species: Species) => (
+                                        <MenuItem key={species.uuid} value={species.uuid}>
+                                            {species.type}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </div>
+                            <p></p>
+                            Enter quantity for reactant below.
+                            <TextField id="quantity" label="Quantity" onChange={(e) => createReactantQuantityRef.current = e.target.value} />
+                            <Button onClick={handleCreateReactantClick}>
+                                Submit
+                            </Button>
+                        </Box>
+                    </Modal>
+                    <Modal
+                        open={createProductOpen}
+                        onClose={handleCreateProductClose}
+                    >
+                        <Box sx={style}>
+                            <div>
+                                Enter Species.
+                                <Select
+                                    value={selectedSpecies}
+                                    onChange={handleSpeciesChange}
+                                    label="Species"
+                                    style={{ minWidth: 200 }}
+                                >
+                                    {speciesOptions.map((species: Species) => (
+                                        <MenuItem key={species.uuid} value={species.uuid}>
+                                            {species.type}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </div>
+                            <p></p>
+                            Enter quantity for product below.
+                            <TextField id="quantity" label="Quantity" onChange={(e) => createProductQuantityRef.current = e.target.value} />
+                            <Button onClick={handleCreateProductClick}>
                                 Submit
                             </Button>
                         </Box>
@@ -273,4 +415,4 @@ const SpeciesPage = () => {
         );
 }
 
-export default SpeciesPage;
+export default ReactionsPage;

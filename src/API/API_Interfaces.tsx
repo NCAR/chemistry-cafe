@@ -30,7 +30,8 @@ export interface ReactantProductList {
   reactant_product_uuid: string;
   reaction_uuid: string;
   species_uuid: string;
-  quantity: Int16Array;
+  quantity: number;
+  type: string;
 }
 
 export interface Reaction {
