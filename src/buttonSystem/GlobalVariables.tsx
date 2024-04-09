@@ -40,7 +40,7 @@ export const useMechanismUuid = () => {
     const handleFamilyMechanismClick = (uuid: string) => {
         localStorage.setItem('mechanism_uuid', uuid);
         setMechanismUuid(uuid);
-        navigate('/MechanismPage')
+        navigate('/FamilyMechanismPage');
     };
 
     return { mechanismUuid, handleMechanismsClick, handleFamilyMechanismClick };
@@ -83,6 +83,7 @@ export const useSpeciesUuid = () => {
 };
 
 export const useTagMechanismUuid = () => {
+    
     const [tagMechanismUuid, setTagMechanismUuid] = useState<string | null>(null);
 
     useEffect(() => {

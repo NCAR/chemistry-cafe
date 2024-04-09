@@ -7,35 +7,7 @@ export async function getFamilies(): Promise<Family[]> {
         return response.data;
     } catch (error) {
         console.error(error);
-        return [
-            { uuid: '1', name: 'MOZART', isdel: false},
-            { uuid: '2', name: 'RACM',  isdel: false},
-            { uuid: '3', name: 'Carbon Bond',  isdel: false},
-            { uuid: '1', name: 'MOZART', isdel: false},
-            { uuid: '2', name: 'RACM',  isdel: false},
-            { uuid: '3', name: 'Carbon Bond',  isdel: false},
-            { uuid: '1', name: 'MOZART', isdel: false},
-            { uuid: '2', name: 'RACM',  isdel: false},
-            { uuid: '3', name: 'Carbon Bond',  isdel: false},
-            { uuid: '1', name: 'MOZART', isdel: false},
-            { uuid: '2', name: 'RACM',  isdel: false},
-            { uuid: '3', name: 'Carbon Bond',  isdel: false},
-            { uuid: '1', name: 'MOZART', isdel: false},
-            { uuid: '2', name: 'RACM',  isdel: false},
-            { uuid: '3', name: 'Carbon Bond',  isdel: false},
-            { uuid: '1', name: 'MOZART', isdel: false},
-            { uuid: '2', name: 'RACM',  isdel: false},
-            { uuid: '3', name: 'Carbon Bond',  isdel: false},
-            { uuid: '1', name: 'MOZART', isdel: false},
-            { uuid: '2', name: 'RACM',  isdel: false},
-            { uuid: '3', name: 'Carbon Bond',  isdel: false},
-            { uuid: '1', name: 'MOZART', isdel: false},
-            { uuid: '2', name: 'RACM',  isdel: false},
-            { uuid: '3', name: 'Carbon Bond',  isdel: false},
-            { uuid: '1', name: 'MOZART', isdel: false},
-            { uuid: '2', name: 'RACM',  isdel: false},
-            { uuid: '3', name: 'Carbon Bond',  isdel: false},
-        ];
+        return [];
     }
 }
 
@@ -47,12 +19,7 @@ export async function getFamily(uuid?: string): Promise<Family[]> {
         return response.data;
     } catch (error) {
         console.error(error);
-        return [
-            // { uuid: 1, name: 'B1', isdel: false},
-            // { uuid: 2, name: 'B2',  isdel: false},
-            // { uuid: 3, name: 'B3',  isdel: false},
-            // { uuid: 4, name: 'B4', isdel: false},
-        ];
+        return [];
     }
 }
 
@@ -217,8 +184,9 @@ export async function getTagMechanisms(): Promise<TagMechanism[]> {
 }
 
 export async function getTagMechanism(uuid?: string): Promise<TagMechanism[]> {
-    if (!uuid) return [];
-    
+    if (!uuid){
+        return [];
+    }
     try {
         const response = await axios.get<TagMechanism[]>(`http://localhost:5134/api/TagMechanism/${uuid}`);
         return response.data;

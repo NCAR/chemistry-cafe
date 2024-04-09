@@ -1,0 +1,36 @@
+.layout {
+    width: 100vh;
+    height: 100vh;
+  
+    display: grid;
+    grid:
+      "TL TM TR" 1fr
+      "ML MM MR" 1fr
+      "BL BM BR" 1fr
+      / 1fr 1fr 1fr;
+    gap: 8px;
+    background-color: #C3D7EE;
+  }
+  
+  /* .TL { grid-area: TL; background-color: red; }
+  .TM { grid-area: TM; background-color: green; }
+  .TR { grid-area: TR; background-color: blue; }
+  .ML { grid-area: ML; background-color: cyan; }
+  .MM { grid-area: MM; background-color: magenta; }
+  .MR { grid-area: MR; background-color: yellow; }
+  .BL { grid-area: BL; background-color: black; }
+  .BM { grid-area: BM; background-color: maroon; }
+  .BR { grid-area: BR; background-color: darkorange; } */
+
+.TL { grid-area: TL; }
+.TM { grid-area: TM; }
+.TR { grid-area: TR; }
+.ML { grid-area: ML; }
+.MM { grid-area: MM; }
+.MR { grid-area: MR; }
+.BL { grid-area: BL; }
+.BM { grid-area: BM; }
+.BR { grid-area: BR; }
+
+
+  
