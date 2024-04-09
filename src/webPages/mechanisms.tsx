@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
 import ButtonSystemGrid from '../buttonSystem/ButtonSystemGrid';
+import { MechTagMechList } from '../API/API_Interfaces';
 import { getMechanisms, getTagMechanism, getTagMechanismsFromMechanism } from '../API/API_GetMethods';
 import { useMechanismUuid, useTagMechanismUuid} from '../buttonSystem/GlobalVariables';
 import { StyledHeader, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
@@ -24,8 +25,8 @@ import IosShareSharpIcon from '@mui/icons-material/IosShareSharp';
 import TaskSharpIcon from '@mui/icons-material/TaskSharp';
 
 import "./mechanisms.css";
-import { createMechanism } from '../API/API_CreateMethods';
-import { useRef } from 'react';
+import { createMechTagMechList, createMechanism, createTagMechanism } from '../API/API_CreateMethods';
+import { useEffect, useRef, useState } from 'react';
 import { downloadOA } from '../API/API_DeleteMethods';
 
 
@@ -33,6 +34,7 @@ const MechanismPage = () => {
     const navigate = useNavigate();
 
     const createMechanismRef = useRef("");
+    const createTagMechRef = useRef("");
 
     const [publishOpen, setPublishOpen] = React.useState(false);
     const [shareOpen, setShareOpen] = React.useState(false);
@@ -63,6 +65,29 @@ const MechanismPage = () => {
         setCreateMechanismOpen(false);
     }
 
+    const [createTagMechOpen, setCreateTagMechOpen] = React.useState(false);
+    const handleCreateTagMechOpen = () => setCreateTagMechOpen(true);
+    const handleCreateTagMechClose = () => setCreateTagMechOpen(false);
+
+    const handleCreateTagMechClick = async () => {
+        try {
+            const tag_mechanism_uuid = await createTagMechanism(createTagMechRef.current);
+            
+            const mechTagMechList: MechTagMechList = {
+                uuid: '', 
+                tag_mechanism_uuid: tag_mechanism_uuid,
+                mechanism_uuid: mechanismUuid as string,
+                version: '1.0',
+                isDel: false, //Doesn't matter
+            };
+            
+            await createMechTagMechList(mechTagMechList);
+            setCreateTagMechOpen(false);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
     const handleDownlaodClick = async () => {
         const link = document.createElement("a");
         const body = await downloadOA(tagMechanismUuid as string);
@@ -78,18 +103,30 @@ const MechanismPage = () => {
 
         window.URL.revokeObjectURL(blobUrl);
     };
-    
-    var listName = "Options for ";
-    if(tagMechanismUuid){
-        listName += getTagMechanism(tagMechanismUuid as string);
-    }
 
-    const masterHandleTagMechanismClick = () => {
-        if(tagMechanismUuid){
-            handleTagMechanismClick(tagMechanismUuid);
-        }
+    const masterHandleTagMechanismClick = (uuid: string) => {
+        handleTagMechanismClick(uuid);
         handleTagOpen();
-    }  
+    } 
+
+    const [listName, setListName] = useState<string | null>(null);
+    useEffect(() => {
+        const fetchData = async () => {
+            let newName = "Options for ";
+            if(tagMechanismUuid){
+                try {
+                    const tagMechanism = await getTagMechanism(tagMechanismUuid as string);
+                    newName += tagMechanism.tag;
+                    setListName(newName);
+                } catch (error) {
+                    console.error(error);
+                    setListName(null);
+                }
+            }
+        };
+
+        fetchData();
+    }, [tagMechanismUuid]);
 
     const style = {
         position: 'absolute' as 'absolute',
@@ -117,6 +154,9 @@ const MechanismPage = () => {
                         <ButtonGroup orientation='vertical' variant='contained'>
                             <Button onClick = {handleCreateMechanismOpen}>
                                 Create Mechanism
+                            </Button>
+                            <Button onClick = {handleCreateTagMechOpen}>
+                                Add Tag Mechanism to Mechanism
                             </Button>
                         </ButtonGroup>
                         <ButtonGroup></ButtonGroup>
@@ -180,6 +220,20 @@ const MechanismPage = () => {
 
                             </TextField>
                             <Button onClick={handleCreateMechanismClick}>
+                                Submit
+                            </Button>
+                        </Box>
+                    </Modal>
+                    <Modal
+                        open={createTagMechOpen}
+                        onClose={handleCreateTagMechClose}
+                    >
+                        <Box sx={style}>
+                            Enter name for new Tag Mechanism below.
+                            <TextField id="textField" label="Tag" onChange={ e => createTagMechRef.current = e.target.value}>
+
+                            </TextField>
+                            <Button onClick={handleCreateTagMechClick}>
                                 Submit
                             </Button>
                         </Box>

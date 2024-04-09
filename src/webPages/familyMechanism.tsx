@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ButtonSystemGrid from '../buttonSystem/ButtonSystemGrid';
 import { getMechanismsFromFamily, getTagMechanismsFromMechanism, getTagMechanism } from '../API/API_GetMethods';
 import { downloadOA } from '../API/API_DeleteMethods';
@@ -56,7 +56,7 @@ const FamilyMechanismPage = () => {
     const handleTagClose = () => setTagOpen(false);
     const handleSpeciesClick = () => navigate('/SpeciesPage');
     const handleReactionClick = () => navigate('/ReactionsPage');
-    const handleHistoryClick = () => navigate('/SpeciesPage');
+    const handleHistoryClick = () => console.log('History Not implemented');
     
     const handleDownlaodClick = async () => {
         const link = document.createElement("a");
@@ -79,14 +79,27 @@ const FamilyMechanismPage = () => {
     const { mechanismUuid, handleMechanismsClick } = useMechanismUuid();
     const { tagMechanismUuid, handleTagMechanismClick } = useTagMechanismUuid();
 
-    var listName = "Options for ";
-    if(tagMechanismUuid){
-        listName += getTagMechanism(tagMechanismUuid as string);
-    }
+    const [listName, setListName] = useState<string | null>(null);
+    useEffect(() => {
+        const fetchData = async () => {
+            let newName = "Options for ";
+            if(tagMechanismUuid){
+                try {
+                    const tagMechanism = await getTagMechanism(tagMechanismUuid as string);
+                    newName += tagMechanism.tag;
+                    setListName(newName);
+                } catch (error) {
+                    console.error(error);
+                    setListName(null);
+                }
+            }
+        };
+
+        fetchData();
+    }, [tagMechanismUuid]);
 
     const masterHandleTagMechanismClick = (uuid: string) => {
         handleTagMechanismClick(uuid);
-        
         handleTagOpen();
     }  
 
