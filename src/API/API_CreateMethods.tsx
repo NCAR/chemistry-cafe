@@ -102,7 +102,7 @@ export async function createSpecies(type: string) {
                 },
             }
         );
-        return response.data;
+        return response.data as string;
     } catch (error) {
         console.error(error);
         throw error;
@@ -120,7 +120,7 @@ export async function createTagMechanism(tag: string) {
                 },
             }
         );
-        return response.data;
+        return response.data as string;
     } catch (error) {
         console.error(error);
         throw error;
@@ -129,9 +129,15 @@ export async function createTagMechanism(tag: string) {
 
 export async function createTagMechanismReactionList(tagMechanismReactionListData: TagMechanismReactionList) {
     try {
+        const requestData = {
+            reaction_uuid: tagMechanismReactionListData.reaction_uuid,
+            tag_mechanism_uuid: tagMechanismReactionListData.tag_mechanism_uuid,
+            version: tagMechanismReactionListData.version,
+        };
+        
         const response = await axios.post(
             'http://localhost:5134/api/TagMechanismReactionList/create',
-            JSON.stringify(tagMechanismReactionListData),
+            requestData,
             {
                 headers: {
                     'Content-Type': 'application/json',
@@ -147,9 +153,15 @@ export async function createTagMechanismReactionList(tagMechanismReactionListDat
 
 export async function createTagMechanismSpeciesList(tagMechanismSpeciesListData: TagMechanismSpeciesList) {
     try {
+        const requestData = {
+            species_uuid: tagMechanismSpeciesListData.species_uuid,
+            tag_mechanism_uuid: tagMechanismSpeciesListData.tag_mechanism_uuid,
+            version: tagMechanismSpeciesListData.version,
+        };
+
         const response = await axios.post(
             'http://localhost:5134/api/TagMechanismSpeciesList/create',
-            JSON.stringify(tagMechanismSpeciesListData),
+            requestData,
             {
                 headers: {
                     'Content-Type': 'application/json',

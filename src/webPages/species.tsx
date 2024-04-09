@@ -1,14 +1,33 @@
 import * as React from 'react';
 import { useRef } from 'react';
 import ButtonSystemGrid from '../buttonSystem/ButtonSystemGrid';
-import { createSpecies } from '../buttonSystem/API/API_CreateMethods';
-import { getSpeciesFromTagMechanism } from '../buttonSystem/API/API_GetMethods';
+import { createSpecies, createTagMechanismSpeciesList } from '../API/API_CreateMethods';
+import { ProperyVersion, TagMechanismSpeciesList } from "../API/API_Interfaces";
+import { getSpeciesFromTagMechanism, getPropertyiesFromParent } from '../API/API_GetMethods';
 import { useSpeciesUuid, useTagMechanismUuid} from '../buttonSystem/GlobalVariables';
 import { StyledHeader, StyledActionBar, StyledActionBarButton, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
+import RenderProperties from './RenderPropeties/RenderProperties';
+
 import Button from "@mui/material/Button";
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 import { TextField } from '@mui/material';
+import BottomNavigation from '@mui/material/BottomNavigation';
+import BottomNavigationAction from '@mui/material/BottomNavigationAction';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import { ListSubheader } from '@mui/material';
+import ListItemText from '@mui/material/ListItemText';
+
+import CalculateSharpIcon from '@mui/icons-material/CalculateSharp';
+import ScienceSharpIcon from '@mui/icons-material/ScienceSharp';
+import HistoryEduSharpIcon from '@mui/icons-material/HistoryEduSharp';
+import InsertLinkSharpIcon from '@mui/icons-material/InsertLinkSharp';
+import IosShareSharpIcon from '@mui/icons-material/IosShareSharp';
+import TaskSharpIcon from '@mui/icons-material/TaskSharp';
+
 import "./family.css";
 
 const SpeciesPage = () => {
@@ -25,15 +44,30 @@ const SpeciesPage = () => {
     const handleDOIClose = () => setDOIOpen(false);
 
     const { tagMechanismUuid } = useTagMechanismUuid();
-    const { handleSpeciesClick } = useSpeciesUuid();
+    const { speciesUuid, handleSpeciesClick } = useSpeciesUuid();
 
     const [createSpeciesOpen, setCreateSpeciesOpen] = React.useState(false);
     const handleCreateSpeciesOpen = () => setCreateSpeciesOpen(true);
     const handleCreateSpeciesClose = () => setCreateSpeciesOpen(false);
 
-    const handleCreateSpeciesClick = () => {
-        createSpecies(createSpeciesRef.current);
-        setCreateSpeciesOpen(false);
+    const handleCreateSpeciesClick = async () => {
+        try {
+            const species_uuid = await createSpecies(createSpeciesRef.current);
+    
+            const tagMechanismSpeciesListData: TagMechanismSpeciesList = {
+                uuid: '', // Auto creates
+                species_uuid: species_uuid,
+                tag_mechanism_uuid: tagMechanismUuid as string,
+                version: '',
+                isDel: false, //Auto sets false
+            };
+    
+            await createTagMechanismSpeciesList(tagMechanismSpeciesListData);
+    
+            setCreateSpeciesOpen(false);
+        } catch (error) {
+            console.error(error);
+        }
     }
 
     const style = {
@@ -50,20 +84,39 @@ const SpeciesPage = () => {
 
         return (
             <section className="layout">
-
                 <div className="L1">
                     <StyledHeader>
-                        Species/
+                        TagMechanism/Species
                     </StyledHeader>
                 </div>
-                <div className="M1">
-                    <div style={{height: "60%"}}></div>
-                    <StyledActionBar>
-                        <StyledActionBarButton onClick={handlePublishOpen}>Publish</StyledActionBarButton>
-                        <StyledActionBarButton onClick={handleShareOpen}>Share</StyledActionBarButton>
-                        <StyledActionBarButton onClick={handleDOIOpen}>Get DOI</StyledActionBarButton> 
-                    </StyledActionBar>
+
+                <div className="L2">
+                    <Button onClick={handleCreateSpeciesOpen}>
+                        Create Species For This Tag Mechanism
+                    </Button>
                 </div>
+
+                <div className='M1'>
+                    <div style={{height: "40%"}}></div>
+                    <BottomNavigation 
+                        showLabels
+                    >
+                        <BottomNavigationAction label="Publish" icon={<TaskSharpIcon/>} onClick={handlePublishOpen}></BottomNavigationAction>
+                        <BottomNavigationAction label="Share" icon={<IosShareSharpIcon/>} onClick={handleShareOpen}></BottomNavigationAction>
+                        <BottomNavigationAction label="Get DOI" icon={<InsertLinkSharpIcon/>} onClick={handleDOIOpen}></BottomNavigationAction>
+                    </BottomNavigation>
+                </div>
+
+                <div className="L3">
+                    <ButtonSystemGrid buttonArray={[getSpeciesFromTagMechanism(tagMechanismUuid as string)]} handleClick={handleSpeciesClick} category={'SpeciesFromTagMechanism'} height={'60vh'} cols={1}/>
+                </div>
+
+                <StyledDetailBox>
+                    <p></p>
+                        <RenderProperties properties={[getPropertyiesFromParent(speciesUuid as string)]} />
+                    <p></p>
+                </StyledDetailBox>
+
                 
                 <div>
                     <Modal
@@ -105,23 +158,6 @@ const SpeciesPage = () => {
                         </Box>
                     </Modal>
                 </div>
-                
-                <div className="L2">
-                    <Button onClick = {handleCreateSpeciesOpen}>
-                        Create Species
-                    </Button>
-                </div>
-
-                <div className="L3">
-                    <ButtonSystemGrid buttonArray={[getSpeciesFromTagMechanism(tagMechanismUuid as string)]} handleClick={handleSpeciesClick} category={'SpeciesFromTagMechanism'} height={'60vh'} cols={1}/>
-                </div>
-
-                <StyledDetailBox>
-                    <p></p>
-                    <ButtonSystemGrid buttonArray={[getSpeciesFromTagMechanism(tagMechanismUuid as string)]} handleClick={handleSpeciesClick} category={'SpeciesFromTagMechanism'} height={'60vh'} cols={1}/>
-                    <p></p>
-                </StyledDetailBox>
-
             </section>
         );
 }

@@ -76,3 +76,28 @@ export interface ProperyType {
   validation: string;
   isdel: boolean;
 }
+
+export interface ProperyVersion {
+  property_list_uuid: string;
+  parent_uuid: string;
+  version: string;
+  property_list_isDel: boolean;
+  property_version_uuid: string;
+  parent_property_uuid: string;
+  frozen_version: string;
+  mechanism_uuid: string;
+  property_type: string;
+  float_value: Float32Array;
+  double_value: Float32Array;
+  int_value: Int16Array;
+  string_value: string;
+  action: string;
+  user_uuid: string;
+  datetime: string;
+  property_version_isDel: boolean;
+  property_type_uuid: string;
+  name: string;
+  units: string;
+  validation: string;
+  property_type_isDel: boolean;
+}

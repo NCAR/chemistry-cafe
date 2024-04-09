@@ -2,8 +2,8 @@ import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRef } from 'react';
 import ButtonSystemGrid from '../buttonSystem/ButtonSystemGrid';
-import { getMechanismsFromFamily, getTagMechanismsFromMechanism, getTagMechanism } from '../buttonSystem/API/API_GetMethods';
-import { createMechanism } from '../buttonSystem/API/API_CreateMethods';
+import { getMechanismsFromFamily, getTagMechanismsFromMechanism, getTagMechanism } from '../API/API_GetMethods';
+import { createMechanism } from '../API/API_CreateMethods';
 import { useFamilyUuid, useMechanismUuid, useTagMechanismUuid} from '../buttonSystem/GlobalVariables';
 import { StyledHeader, StyledActionBar, StyledActionBarButton, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
 
@@ -65,10 +65,8 @@ const FamilyMechanismPage = () => {
         listName += getTagMechanism(tagMechanismUuid as string);
     }
 
-    const masterHandleTagMechanismClick = () => {
-        if(tagMechanismUuid){
-            handleTagMechanismClick(tagMechanismUuid);
-        }
+    const masterHandleTagMechanismClick = (uuid: string) => {
+        handleTagMechanismClick(uuid);
         handleTagOpen();
     }  
 
