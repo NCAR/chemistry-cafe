@@ -182,6 +182,7 @@ const ReactionsPage = () => {
             };
             
             await createReactantProduct(reactantProductList);
+            setCreateReactantOpen(false);
         } catch (error) {
             console.error(error);
         }
@@ -198,6 +199,7 @@ const ReactionsPage = () => {
             };
             
             await createReactantProduct(reactantProductList);
+            setCreateProductOpen(false);
         } catch (error) {
             console.error(error);
         }
@@ -287,8 +289,8 @@ const ReactionsPage = () => {
 
                 <StyledDetailBox>
                     <p></p>
-                        <RenderReactantProducts reactantProducts={[getReactantsFromReactionReactantList(createReactantListRef.current)]} reactants_or_products='Reactants' handleClick={handleCreateReactantOpen}/>
-                        <RenderReactantProducts reactantProducts={[getProductsFromReactionReactantList(createProductListRef.current)]} reactants_or_products='Products' handleClick={handleCreateProductOpen}/>
+                        <RenderReactantProducts reactantProducts={[getReactantsFromReactionReactantList(createReactantListRef.current as string)]} reactants_or_products='Reactants' handleClick={handleCreateReactantOpen}/>
+                        <RenderReactantProducts reactantProducts={[getProductsFromReactionReactantList(createProductListRef.current as string)]} reactants_or_products='Products' handleClick={handleCreateProductOpen}/>
                         <RenderProperties properties={[getPropertyiesFromParent(reactionUuid as string)]} />
                     <p></p>
                 </StyledDetailBox>
