@@ -1,6 +1,6 @@
 import { Family, Mechanism, Reaction, Species, TagMechanism } from '../API/API_Interfaces';
 import 'bootstrap/dist/css/bootstrap.css';
-import { StyledFamilyButton, StyledMechanismsFromFamilyButton, StyledTagMechanismsFromMechanismButton, StyledSpeciesFromTagMechanismButton, StyledReactionsFromTagMechanismButton } from './RenderButtonsStyling';
+import { StyledFamilyButton, StyledMechanismsFromFamilyButton, StyledTagMechanismsFromMechanismButton, StyledSpeciesFromTagMechanismButton, StyledReactionsFromTagMechanismButton, StyledMechanismsButton } from './RenderButtonsStyling';
 
 export type ButtonData = Family | Mechanism | Reaction | Species | TagMechanism;
 
@@ -8,6 +8,8 @@ export const renderButton = (button: ButtonData, category: string, handleClick: 
   switch (category) {
     case 'Families':
       return familiesButton(button as Family, handleClick);
+    case 'Mechanisms':
+      return mechanismsButton(button as Mechanism, handleClick);
     case 'MechanismsFromFamily':
       return mechanismsFromFamilyButton(button as Mechanism, handleClick);
     case 'TagMechanismsFromMechanism':
@@ -25,6 +27,12 @@ const familiesButton = ({ uuid, name}: Family, handleClick: (uuid: string) => vo
   <StyledFamilyButton onClick={() => handleClick(uuid)} style={{ width: '100%' }} {...{ uuid}}>
     {name}
   </StyledFamilyButton>
+);
+
+const mechanismsButton = ({ uuid, name}: Mechanism, handleClick: (uuid: string) => void) => (
+  <StyledMechanismsButton onClick={() => handleClick(uuid)} style={{ width: '100%' }} {...{ uuid}}>
+    {name}
+  </StyledMechanismsButton>
 );
 
 const mechanismsFromFamilyButton = ({ uuid, name}: Mechanism, handleClick: (uuid: string) => void) => (

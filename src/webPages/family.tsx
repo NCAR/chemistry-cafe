@@ -1,18 +1,18 @@
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ButtonSystemGrid from '.././buttonSystem/ButtonSystemGrid';
-import { getFamilies, getMechanismsFromFamily } from '../API/API_GetMethods';
-import { createFamily } from '../API/API_CreateMethods';
+import { getFamilies, getMechanisms, getMechanismsFromFamily } from '../API/API_GetMethods';
+import { createFamily, createFamilyMechList } from '../API/API_CreateMethods';
 import { useFamilyUuid, useMechanismUuid } from '../buttonSystem/GlobalVariables';
-import { FamilyMechList } from '../buttonSystem/API/API_Interfaces';
+import { FamilyMechList, Mechanism } from '../API/API_Interfaces';
 import { StyledHeader, StyledActionBar, StyledActionBarButton, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
 import Button from "@mui/material/Button";
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import { TextField } from '@mui/material';
+import { MenuItem, Select, SelectChangeEvent, TextField } from '@mui/material';
 import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
 
@@ -21,6 +21,7 @@ import IosShareSharpIcon from '@mui/icons-material/IosShareSharp';
 import TaskSharpIcon from '@mui/icons-material/TaskSharp';
 
 import "./family.css";
+
 
 const FamilyPage = () => {
     const createFamRef = useRef("");
@@ -42,6 +43,13 @@ const FamilyPage = () => {
     const handleCreateFamOpen = () => setCreateFamOpen(true);
     const handleCreateFamClose = () => setCreateFamOpen(false);
 
+    const [selectedMechanism, setSelectedMechanism] = useState('');
+    const [mechanismOptions, setMechanismOptions] = useState<Mechanism[]>([]);
+
+    const handleSpeciesChange = (event: SelectChangeEvent<string>) => {
+        setSelectedMechanism(event.target.value);
+    };
+
     const [addMToFOpen, setAddMtoFOpen] = React.useState(false);
     const handleAddMtoFOpen = () => setAddMtoFOpen(true);
     const handleAddMtoFClose = () => setAddMtoFOpen(false);
@@ -50,10 +58,21 @@ const FamilyPage = () => {
         createFamily(createFamRef.current);
         setCreateFamOpen(false);
     }
-    const handleCreateMtoFClick = () => {
-        let obj = { uuid: "", family_uuid: createFamRef.current, mechanism_uuid: "", version: "", isDel: false};
-        createFamilyMechList(obj);
-        setAddMtoFOpen(false);
+    const handleCreateMtoFClick = async () => {
+        try {
+            const familyMechList: FamilyMechList = {
+                uuid: '', 
+                family_uuid: familyUuid as string,
+                mechanism_uuid: selectedMechanism,
+                version: '1.0',
+                isDel: false, //Doesn't matter
+            };
+            
+            await createFamilyMechList(familyMechList);
+            setAddMtoFOpen(false);
+        } catch (error) {
+            console.error(error);
+        }
     }
     const handleFamSelect = (uuid: string) => {
         handleFamilyClick(uuid);
@@ -69,6 +88,19 @@ const FamilyPage = () => {
     const handleDeleteFamClick = () => {
         console.log("Delete not rdy yet!");
     }
+
+    useEffect(() => {
+        const fetchMechanisms = async () => {
+            try {
+                const mechanisms = await getMechanisms();
+                setMechanismOptions(mechanisms);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        fetchMechanisms();
+    }, [familyUuid]);
     
 
     const style = {
@@ -176,12 +208,22 @@ const FamilyPage = () => {
                         onClose={handleAddMtoFClose}
                     >
                         <Box sx={style}>
-                            Enter name for new Mechanism to selected Family.
-                            <p></p>
-                            <ButtonSystemGrid buttonArray={[getFamilies()]} handleClick={handleFamSelect} category={'Families'} height={'50vh'} cols={1}/>
-                            <TextField id="textFieldAddMtoF" label="Name" onChange={ e => createFamRef.current = e.target.value}>
-
-                            </TextField>
+                            Pick existing Mechanism
+                            <div>
+                                Enter Mechanism.
+                                <Select
+                                    value={selectedMechanism}
+                                    onChange={handleSpeciesChange}
+                                    label="Mechanism"
+                                    style={{ minWidth: 200 }}
+                                >
+                                    {mechanismOptions.map((mechanism: Mechanism) => (
+                                        <MenuItem key={mechanism.uuid} value={mechanism.uuid}>
+                                            {mechanism.name}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </div>
                             <Button onClick={handleCreateMtoFClick}>
                                 Submit
                             </Button>

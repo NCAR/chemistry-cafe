@@ -13,7 +13,7 @@ import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
-import { ListSubheader } from '@mui/material';
+import { ButtonGroup, ListSubheader, TextField } from '@mui/material';
 import ListItemText from '@mui/material/ListItemText';
 
 import CalculateSharpIcon from '@mui/icons-material/CalculateSharp';
@@ -24,11 +24,15 @@ import IosShareSharpIcon from '@mui/icons-material/IosShareSharp';
 import TaskSharpIcon from '@mui/icons-material/TaskSharp';
 
 import "./mechanisms.css";
+import { createMechanism } from '../API/API_CreateMethods';
+import { useRef } from 'react';
 
 
 const MechanismPage = () => {
     const navigate = useNavigate();
     const handleClick = () => navigate('/');
+
+    const createMechanismRef = useRef("");
 
     const [publishOpen, setPublishOpen] = React.useState(false);
     const [shareOpen, setShareOpen] = React.useState(false);
@@ -50,7 +54,16 @@ const MechanismPage = () => {
     const { mechanismUuid, handleMechanismsClick } = useMechanismUuid();
     const { tagMechanismUuid, handleTagMechanismClick } = useTagMechanismUuid();
 
-    
+    const [createMechanismOpen, setCreateMechanismOpen] = React.useState(false);
+    const handleCreateMechanismOpen = () => setCreateMechanismOpen(true);
+    const handleCreateMechanismClose = () => setCreateMechanismOpen(false);
+
+    const handleCreateMechanismClick = () => {
+        createMechanism(createMechanismRef.current);
+        setCreateMechanismOpen(false);
+    }
+
+
     var listName = "Options for ";
     if(tagMechanismUuid){
         // console.log(getTagMechanism(tagMechanismUuid as string).toString());
@@ -88,10 +101,17 @@ const MechanismPage = () => {
                     </StyledHeader>
                 </div>
 
-                <div className="L2">
-                    <Button>
-                        Create Mechanism
-                    </Button>
+                <div className="L2" style={{padding: "20px"}}>
+                    <p></p>
+                    <Box>
+                        <ButtonGroup orientation='vertical' variant='contained'>
+                            <Button onClick = {handleCreateMechanismOpen}>
+                                Create Mechanism
+                            </Button>
+                        </ButtonGroup>
+                        <ButtonGroup></ButtonGroup>
+                    </Box>
+                    <p></p>
                 </div>
 
                 <div className='M1'>
@@ -115,7 +135,7 @@ const MechanismPage = () => {
                 </div> */}
 
                 <div className="L3">
-                    <ButtonSystemGrid buttonArray={[getMechanisms()]} handleClick={handleMechanismsClick} category={'MechanismsFromFamily'} height={'60vh'} cols={1}/>
+                    <ButtonSystemGrid buttonArray={[getMechanisms()]} handleClick={handleMechanismsClick} category={'Mechanisms'} height={'60vh'} cols={1}/>
                 </div>
 
                 <StyledDetailBox>
@@ -147,6 +167,20 @@ const MechanismPage = () => {
                     >
                         <Box sx={style}>
                             DOI!
+                        </Box>
+                    </Modal>
+                    <Modal
+                        open={createMechanismOpen}
+                        onClose={handleCreateMechanismClose}
+                    >
+                        <Box sx={style}>
+                            Enter name for new Mechanism below.
+                            <TextField id="textField" label="Name" onChange={ e => createMechanismRef.current = e.target.value}>
+
+                            </TextField>
+                            <Button onClick={handleCreateMechanismClick}>
+                                Submit
+                            </Button>
                         </Box>
                     </Modal>
                     <Modal

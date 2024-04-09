@@ -62,6 +62,10 @@ export const StyledFamilyButton = styled(StyledButton)`
 
 `;
 
+export const StyledMechanismsButton = styled(StyledButton)`
+
+`;
+
 export const StyledMechanismsFromFamilyButton = styled(StyledButton)`
 
 `;

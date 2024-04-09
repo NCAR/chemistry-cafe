@@ -21,9 +21,15 @@ export async function createFamily(name: string) {
 
 export async function createFamilyMechList(familyMechListData: FamilyMechList) {
     try {
+        const requestData = {
+            family_uuid: familyMechListData.family_uuid,
+            mechanism_uuid: familyMechListData.mechanism_uuid,
+            version: familyMechListData.version,
+        };
+        
         const response = await axios.post(
             'http://localhost:5134/api/FamilyMechList/create',
-            JSON.stringify(familyMechListData),
+            requestData,
             {
                 headers: {
                     'Content-Type': 'application/json',

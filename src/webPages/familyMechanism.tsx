@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useRef } from 'react';
 import ButtonSystemGrid from '../buttonSystem/ButtonSystemGrid';
 import { getMechanismsFromFamily, getTagMechanismsFromMechanism, getTagMechanism } from '../API/API_GetMethods';
-import { createMechanism } from '../API/API_CreateMethods';
+import { createTagMechanism, createMechTagMechList } from '../API/API_CreateMethods';
 import { useFamilyUuid, useMechanismUuid, useTagMechanismUuid} from '../buttonSystem/GlobalVariables';
 import { StyledHeader, StyledActionBar, StyledActionBarButton, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
 
@@ -29,12 +29,13 @@ import IosShareSharpIcon from '@mui/icons-material/IosShareSharp';
 import TaskSharpIcon from '@mui/icons-material/TaskSharp';
 
 import "./family.css";
+import { MechTagMechList } from '../API/API_Interfaces';
 
 const FamilyMechanismPage = () => {
     const navigate = useNavigate();
     const handleClick = () => navigate('/');
 
-    const createMechRef = useRef("");
+    const createTagMechRef = useRef("");
 
     const [publishOpen, setPublishOpen] = React.useState(false);
     const [shareOpen, setShareOpen] = React.useState(false);
@@ -46,9 +47,9 @@ const FamilyMechanismPage = () => {
     const handleDOIOpen = () => setDOIOpen(true);
     const handleDOIClose = () => setDOIOpen(false);
 
-    const [createMechOpen, setCreateMechOpen] = React.useState(false);
-    const handleCreateMechOpen = () => setCreateMechOpen(true);
-    const handleCreateMechClose = () => setCreateMechOpen(false);
+    const [createTagMechOpen, setCreateTagMechOpen] = React.useState(false);
+    const handleCreateTagMechOpen = () => setCreateTagMechOpen(true);
+    const handleCreateTagMechClose = () => setCreateTagMechOpen(false);
 
     const [tagOpen, setTagOpen] = React.useState(false);
     const handleTagOpen = () => setTagOpen(true);
@@ -72,12 +73,27 @@ const FamilyMechanismPage = () => {
 
     const masterHandleTagMechanismClick = (uuid: string) => {
         handleTagMechanismClick(uuid);
+        
         handleTagOpen();
     }  
 
-    const handleCreateMechClick = () => {
-        createMechanism(createMechRef.current);
-        setCreateMechOpen(false);
+    const handleCreateTagMechClick = async () => {
+        try {
+            const tag_mechanism_uuid = await createTagMechanism(createTagMechRef.current);
+            
+            const mechTagMechList: MechTagMechList = {
+                uuid: '', 
+                tag_mechanism_uuid: tag_mechanism_uuid,
+                mechanism_uuid: mechanismUuid as string,
+                version: '1.0',
+                isDel: false, //Doesn't matter
+            };
+            
+            await createMechTagMechList(mechTagMechList);
+            setCreateTagMechOpen(false);
+        } catch (error) {
+            console.error(error);
+        }
     }
 
     const style = {
@@ -104,7 +120,7 @@ const FamilyMechanismPage = () => {
                     <p></p>
                     <Box>
                         <ButtonGroup orientation='vertical' variant='contained'>
-                            <Button onClick = {handleCreateMechOpen}>
+                            <Button onClick = {handleCreateTagMechOpen}>
                                 Add Tag Mechanism to Mechanism
                             </Button>
                         </ButtonGroup>
@@ -161,15 +177,15 @@ const FamilyMechanismPage = () => {
                         </Box>
                     </Modal>
                     <Modal
-                        open={createMechOpen}
-                        onClose={handleCreateMechClose}
+                        open={createTagMechOpen}
+                        onClose={handleCreateTagMechClose}
                     >
                         <Box sx={style}>
-                            Enter name for new Mechanism below.
-                            <TextField id="textField" label="Name" onChange={ e => createMechRef.current = e.target.value}>
+                            Enter name for new Tag Mechanism below.
+                            <TextField id="textField" label="Tag" onChange={ e => createTagMechRef.current = e.target.value}>
 
                             </TextField>
-                            <Button onClick={handleCreateMechClick}>
+                            <Button onClick={handleCreateTagMechClick}>
                                 Submit
                             </Button>
                         </Box>
