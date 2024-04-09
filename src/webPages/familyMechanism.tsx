@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useRef } from 'react';
 import ButtonSystemGrid from '../buttonSystem/ButtonSystemGrid';
 import { getMechanismsFromFamily, getTagMechanismsFromMechanism, getTagMechanism } from '../API/API_GetMethods';
+import { downloadOA } from '../API/API_DeleteMethods';
 import { createTagMechanism, createMechTagMechList } from '../API/API_CreateMethods';
 import { useFamilyUuid, useMechanismUuid, useTagMechanismUuid} from '../buttonSystem/GlobalVariables';
 import { StyledHeader, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
@@ -56,8 +57,21 @@ const FamilyMechanismPage = () => {
     const handleSpeciesClick = () => navigate('/SpeciesPage');
     const handleReactionClick = () => navigate('/ReactionsPage');
     const handleHistoryClick = () => navigate('/SpeciesPage');
-    const handleDownlaodClick = () => {
-        navigate('/'); // Addd the download of the config
+    
+    const handleDownlaodClick = async () => {
+        const link = document.createElement("a");
+        const body = await downloadOA(tagMechanismUuid as string);
+
+        const blob = new Blob([body], { type: 'application/json' });
+
+        const blobUrl = window.URL.createObjectURL(blob);
+
+        link.download = 'openAtmos.json';
+        link.href = blobUrl;
+
+        link.click();
+
+        window.URL.revokeObjectURL(blobUrl);
     };
 
 
