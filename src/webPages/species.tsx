@@ -5,7 +5,7 @@ import { createSpecies, createTagMechanismSpeciesList, createPropertyList, creat
 import { PropertyList, PropertyType, PropertyVersion, TagMechanismSpeciesList } from "../API/API_Interfaces";
 import { getSpeciesFromTagMechanism, getPropertyiesFromParent } from '../API/API_GetMethods';
 import { useSpeciesUuid, useTagMechanismUuid, useMechanismUuid } from '../buttonSystem/GlobalVariables';
-import { StyledHeader, StyledActionBar, StyledActionBarButton, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
+import { StyledHeader, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
 import RenderProperties from './RenderPropeties/RenderProperties';
 
 import Button from "@mui/material/Button";
@@ -15,16 +15,7 @@ import Box from '@mui/material/Box';
 import { TextField } from '@mui/material';
 import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import { ListSubheader } from '@mui/material';
-import ListItemText from '@mui/material/ListItemText';
 
-import CalculateSharpIcon from '@mui/icons-material/CalculateSharp';
-import ScienceSharpIcon from '@mui/icons-material/ScienceSharp';
-import HistoryEduSharpIcon from '@mui/icons-material/HistoryEduSharp';
 import InsertLinkSharpIcon from '@mui/icons-material/InsertLinkSharp';
 import IosShareSharpIcon from '@mui/icons-material/IosShareSharp';
 import TaskSharpIcon from '@mui/icons-material/TaskSharp';

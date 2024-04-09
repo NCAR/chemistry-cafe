@@ -5,7 +5,7 @@ import ButtonSystemGrid from '../buttonSystem/ButtonSystemGrid';
 import { getMechanismsFromFamily, getTagMechanismsFromMechanism, getTagMechanism } from '../API/API_GetMethods';
 import { createTagMechanism, createMechTagMechList } from '../API/API_CreateMethods';
 import { useFamilyUuid, useMechanismUuid, useTagMechanismUuid} from '../buttonSystem/GlobalVariables';
-import { StyledHeader, StyledActionBar, StyledActionBarButton, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
+import { StyledHeader, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
 
 import Button from "@mui/material/Button";
 import ButtonGroup from '@mui/material/ButtonGroup';
@@ -33,7 +33,6 @@ import { MechTagMechList } from '../API/API_Interfaces';
 
 const FamilyMechanismPage = () => {
     const navigate = useNavigate();
-    const handleClick = () => navigate('/');
 
     const createTagMechRef = useRef("");
 

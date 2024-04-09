@@ -1,17 +1,15 @@
 import * as React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import ButtonSystemGrid from '.././buttonSystem/ButtonSystemGrid';
 import { getFamilies, getMechanisms, getMechanismsFromFamily } from '../API/API_GetMethods';
 import { createFamily, createFamilyMechList } from '../API/API_CreateMethods';
 import { useFamilyUuid, useMechanismUuid } from '../buttonSystem/GlobalVariables';
 import { FamilyMechList, Mechanism } from '../API/API_Interfaces';
-import { StyledHeader, StyledActionBar, StyledActionBarButton, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
+import { StyledHeader, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
 import Button from "@mui/material/Button";
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
 import { MenuItem, Select, SelectChangeEvent, TextField } from '@mui/material';
 import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
@@ -72,12 +70,6 @@ const FamilyPage = () => {
             setAddMtoFOpen(false);
         } catch (error) {
             console.error(error);
-        }
-    }
-    const handleFamSelect = (uuid: string) => {
-        handleFamilyClick(uuid);
-        if(familyUuid){
-            createFamRef.current = familyUuid;
         }
     }
 

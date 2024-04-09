@@ -2,8 +2,8 @@ import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
 import ButtonSystemGrid from '../buttonSystem/ButtonSystemGrid';
 import { getMechanisms, getTagMechanism, getTagMechanismsFromMechanism } from '../API/API_GetMethods';
-import { useFamilyUuid, useMechanismUuid, useTagMechanismUuid} from '../buttonSystem/GlobalVariables';
-import { StyledHeader, StyledActionBar, StyledActionBarButton, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
+import { useMechanismUuid, useTagMechanismUuid} from '../buttonSystem/GlobalVariables';
+import { StyledHeader, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
 import Button from "@mui/material/Button";
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
@@ -30,7 +30,6 @@ import { useRef } from 'react';
 
 const MechanismPage = () => {
     const navigate = useNavigate();
-    const handleClick = () => navigate('/');
 
     const createMechanismRef = useRef("");
 
@@ -66,7 +65,6 @@ const MechanismPage = () => {
 
     var listName = "Options for ";
     if(tagMechanismUuid){
-        // console.log(getTagMechanism(tagMechanismUuid as string).toString());
         listName += getTagMechanism(tagMechanismUuid as string);
     }
 
@@ -76,10 +74,6 @@ const MechanismPage = () => {
         }
         handleTagOpen();
     }  
-
-    
-
-    const [value, setValue] = React.useState(0);
 
     const style = {
         position: 'absolute' as 'absolute',
@@ -124,15 +118,6 @@ const MechanismPage = () => {
                         <BottomNavigationAction label="Get DOI" icon={<InsertLinkSharpIcon/>} onClick={handleDOIOpen}></BottomNavigationAction>
                     </BottomNavigation>
                 </div>
-
-                {/* <div className="M1">
-                    <div style={{height: "60%"}}></div>
-                    <StyledActionBar>
-                        <StyledActionBarButton onClick={handlePublishOpen}>Publish</StyledActionBarButton>
-                        <StyledActionBarButton onClick={handleShareOpen}>Share</StyledActionBarButton>
-                        <StyledActionBarButton onClick={handleDOIOpen}>Get DOI</StyledActionBarButton> 
-                    </StyledActionBar>
-                </div> */}
 
                 <div className="L3">
                     <ButtonSystemGrid buttonArray={[getMechanisms()]} handleClick={handleMechanismsClick} category={'Mechanisms'} height={'60vh'} cols={1}/>

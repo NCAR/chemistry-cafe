@@ -75,11 +75,7 @@ export async function getMechanismsFromFamily(family_uuid?: string): Promise<Mec
         return response.data;
     } catch (error) {
         console.error(error);
-        return [
-            { uuid: '1', name: 'TS1', isdel: false},
-            { uuid: '2', name: 'TS2',  isdel: false},
-            { uuid: '3', name: '...',  isdel: false},
-        ];
+        return [];
     }
 }
 
