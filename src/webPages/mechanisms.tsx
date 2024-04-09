@@ -107,7 +107,7 @@ const MechanismPage = () => {
             <section className="layout">
                 <div className="L1">
                     <StyledHeader>
-                        Mechanisms
+                        Mechanisms/{mechanismUuid}
                     </StyledHeader>
                 </div>
 

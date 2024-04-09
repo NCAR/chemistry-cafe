@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import ButtonSystemGrid from '.././buttonSystem/ButtonSystemGrid';
 import { getFamilies, getMechanisms, getMechanismsFromFamily } from '../API/API_GetMethods';
-import { createFamily, createFamilyMechList } from '../API/API_CreateMethods';
+import { createFamily, createFamilyMechList, createMechanism } from '../API/API_CreateMethods';
 import { useFamilyUuid, useMechanismUuid } from '../buttonSystem/GlobalVariables';
 import { FamilyMechList, Mechanism } from '../API/API_Interfaces';
 import { StyledHeader, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
@@ -23,6 +23,7 @@ import "./family.css";
 
 const FamilyPage = () => {
     const createFamRef = useRef("");
+    const createMechanismRef = useRef("");
 
     const { familyUuid, handleFamilyClick } = useFamilyUuid();
     const { handleFamilyMechanismClick } = useMechanismUuid();
@@ -47,6 +48,16 @@ const FamilyPage = () => {
     const handleSpeciesChange = (event: SelectChangeEvent<string>) => {
         setSelectedMechanism(event.target.value);
     };
+
+    const [createMechanismOpen, setCreateMechanismOpen] = React.useState(false);
+    const handleCreateMechanismOpen = () => setCreateMechanismOpen(true);
+    const handleCreateMechanismClose = () => setCreateMechanismOpen(false);
+
+    const handleCreateMechanismClick = () => {
+        createMechanism(createMechanismRef.current);
+        setCreateMechanismOpen(false);
+    }
+
 
     const [addMToFOpen, setAddMtoFOpen] = React.useState(false);
     const handleAddMtoFOpen = () => setAddMtoFOpen(true);
@@ -112,7 +123,7 @@ const FamilyPage = () => {
 
                 <div className="L1">
                     <StyledHeader>
-                        Family/
+                        Family/{familyUuid}
                     </StyledHeader>
                 </div>
                 
@@ -133,6 +144,9 @@ const FamilyPage = () => {
                         <ButtonGroup orientation='vertical' variant='contained'>
                             <Button onClick = {handleCreateFamOpen}>
                                 Create Family
+                            </Button>
+                            <Button onClick = {handleCreateMechanismOpen}>
+                                Create Mechanism
                             </Button>
                             <Button onClick = {handleAddMtoFOpen}>
                                 Add Mechanism to Family
@@ -191,6 +205,20 @@ const FamilyPage = () => {
 
                             </TextField>
                             <Button onClick={handleCreateFamClick}>
+                                Submit
+                            </Button>
+                        </Box>
+                    </Modal>
+                    <Modal
+                        open={createMechanismOpen}
+                        onClose={handleCreateMechanismClose}
+                    >
+                        <Box sx={style}>
+                            Enter name for new Mechanism below.
+                            <TextField id="textField" label="Name" onChange={ e => createMechanismRef.current = e.target.value}>
+
+                            </TextField>
+                            <Button onClick={handleCreateMechanismClick}>
                                 Submit
                             </Button>
                         </Box>

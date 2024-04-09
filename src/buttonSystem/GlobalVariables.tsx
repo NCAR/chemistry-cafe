@@ -48,20 +48,34 @@ export const useMechanismUuid = () => {
 
 export const useReactionUuid = () => {
     const [reactionUuid, setReactionUuid] = useState<string | null>(null);
+    const [reactantListUuid, setReactantListUuid] = useState<string | null>(null);
+    const [productListUuid, setProductListUuid] = useState<string | null>(null);
 
     useEffect(() => {
         const storedReactionUuid = localStorage.getItem('reaction_uuid');
+        const storedReactantListUuid = localStorage.getItem('reactant_list_uuid');
+        const storedProductListUuid = localStorage.getItem('product_list_uuid');
         if (storedReactionUuid) {
             setReactionUuid(storedReactionUuid);
         }
+        if (storedReactantListUuid) {
+            setReactantListUuid(storedReactantListUuid);
+        }
+        if (storedProductListUuid) {
+            setProductListUuid(storedProductListUuid);
+        }
     }, []);
 
-    const handleReactionClick = (uuid: string) => {
+    const handleReactionClick = (uuid: string, reactant_list_uuid: string, product_list_uuid: string) => {
         localStorage.setItem('reaction_uuid', uuid);
         setReactionUuid(uuid);
+        localStorage.setItem('reactant_list_uuid', reactant_list_uuid);
+        setReactantListUuid(reactant_list_uuid);
+        localStorage.setItem('product_list_uuid', product_list_uuid);
+        setProductListUuid(product_list_uuid);
     };
 
-    return { reactionUuid, handleReactionClick };
+    return { reactionUuid, setReactionUuid, reactantListUuid, setReactantListUuid, productListUuid, setProductListUuid, handleReactionClick };
 };
 
 export const useSpeciesUuid = () => {
@@ -79,7 +93,7 @@ export const useSpeciesUuid = () => {
         setSpeciesUuid(uuid);
     };
 
-    return { speciesUuid, handleSpeciesClick };
+    return { speciesUuid, setSpeciesUuid, handleSpeciesClick };
 };
 
 export const useTagMechanismUuid = () => {

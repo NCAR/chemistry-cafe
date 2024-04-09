@@ -4,7 +4,7 @@ import { StyledFamilyButton, StyledMechanismsFromFamilyButton, StyledTagMechanis
 
 export type ButtonData = Family | Mechanism | Reaction | Species | TagMechanism;
 
-export const renderButton = (button: ButtonData, category: string, handleClick: (uuid: string) => void) => {
+export const renderButton = (button: ButtonData, category: string, handleClick: (uuid: string, reactant_list_uuid?: string, product_list_uuid?: string) => void) => {
   switch (category) {
     case 'Families':
       return familiesButton(button as Family, handleClick);
@@ -53,8 +53,8 @@ const speciesFromTagMechanismButton = ({ uuid, type}: Species, handleClick: (uui
   </StyledSpeciesFromTagMechanismButton>
 );
 
-const reactionsFromTagMechanismButton = ({ uuid, type, reactant_list_uuid, product_list_uuid}: Reaction, handleClick: (uuid: string) => void) => (
-  <StyledReactionsFromTagMechanismButton onClick={() => handleClick(uuid)} style={{ width: '100%' }} {...{ uuid, reactant_list_uuid, product_list_uuid}}>
+const reactionsFromTagMechanismButton = ({ uuid, type, reactant_list_uuid, product_list_uuid}: Reaction, handleClick: (uuid: string, reactant_list_uuid?: string, product_list_uuid?: string) => void) => (
+  <StyledReactionsFromTagMechanismButton onClick={() => handleClick(uuid, reactant_list_uuid, product_list_uuid)} style={{ width: '100%' }} {...{ uuid, reactant_list_uuid, product_list_uuid}}>
     {type}
   </StyledReactionsFromTagMechanismButton>
 );

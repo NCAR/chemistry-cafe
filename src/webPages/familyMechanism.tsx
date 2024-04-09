@@ -125,7 +125,7 @@ const FamilyMechanismPage = () => {
             <section className="layout">
                 <div className="L1">
                     <StyledHeader>
-                        Family/Mechanism
+                        Family/{familyUuid}/Mechanism/{mechanismUuid}
                     </StyledHeader>
                 </div>
 

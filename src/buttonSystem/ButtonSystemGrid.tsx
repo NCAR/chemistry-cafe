@@ -5,7 +5,7 @@ import { renderButton, ButtonData } from './RenderButtons';
 interface ButtonSystemGridProps {
   buttonArray: Promise<ButtonData[]>[];
   category: string;
-  handleClick: (uuid: string) => void;
+  handleClick: (uuid: string, reactant_list_uuid?: string, product_list_uuid?: string) => void;
   cols: number;
   height: string;
 }

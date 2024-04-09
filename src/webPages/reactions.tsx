@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useLocation } from 'react-router-dom';
 import { useRef, useState, useEffect } from 'react';
 import ButtonSystemGrid from '../buttonSystem/ButtonSystemGrid';
 import { createReaction, createTagMechanismReactionList, createPropertyList, createPropertyType, createPropertyVersion, createReactantProduct } from '../API/API_CreateMethods';
@@ -24,9 +25,9 @@ import TaskSharpIcon from '@mui/icons-material/TaskSharp';
 import "./family.css";
 
 const ReactionsPage = () => {
+    const location = useLocation();
+    
     const createReactionRef = useRef("");
-    const createReactantListRef = useRef("");
-    const createProductListRef = useRef("");
 
     const createPropertyNameRef = useRef("");
     const createPropertyUnitsRef = useRef("");
@@ -55,7 +56,7 @@ const ReactionsPage = () => {
 
     const { mechanismUuid } = useMechanismUuid();
     const { tagMechanismUuid } = useTagMechanismUuid();
-    const { reactionUuid, handleReactionClick } = useReactionUuid();
+    const { reactionUuid, setReactionUuid, reactantListUuid, setReactantListUuid, productListUuid, setProductListUuid, handleReactionClick } = useReactionUuid();
 
     const [createReactionOpen, setCreateReactionOpen] = React.useState(false);
     const handleCreateReactionOpen = () => setCreateReactionOpen(true);
@@ -67,11 +68,17 @@ const ReactionsPage = () => {
 
     const [createReactantOpen, setCreateReactantOpen] = React.useState(false);
     const handleCreateReactantOpen = () => setCreateReactantOpen(true);
-    const handleCreateReactantClose = () => setCreateReactantOpen(false);
+    const handleCreateReactantClose = () => { setCreateReactantOpen(false); setSelectedSpecies('')};
 
     const [createProductOpen, setCreateProductOpen] = React.useState(false);
     const handleCreateProductOpen = () => setCreateProductOpen(true);
-    const handleCreateProductClose = () => setCreateProductOpen(false);
+    const handleCreateProductClose = () => { setCreateProductOpen(false); setSelectedSpecies('')};
+
+    useEffect(() => {
+        setReactionUuid('');
+        setReactantListUuid('');
+        setProductListUuid('');
+    }, [location]);
 
     const handleCreateReactionClick = async () => {
         try {
@@ -165,7 +172,7 @@ const ReactionsPage = () => {
     const handleCreateReactantClick = async () => {
         try {
             const reactantProductList: ReactantProductList = {
-                reactant_product_uuid: createReactantListRef.current, 
+                reactant_product_uuid: reactantListUuid as string, 
                 reaction_uuid: reactionUuid as string,
                 species_uuid: selectedSpecies,
                 quantity: parseInt(createReactantQuantityRef.current),
@@ -182,7 +189,7 @@ const ReactionsPage = () => {
     const handleCreateProductClick = async () => {
         try {
             const reactantProductList: ReactantProductList = {
-                reactant_product_uuid: createProductListRef.current, 
+                reactant_product_uuid: productListUuid as string, 
                 reaction_uuid: reactionUuid as string,
                 species_uuid: selectedSpecies,
                 quantity: parseInt(createProductQuantityRef.current),
@@ -196,9 +203,8 @@ const ReactionsPage = () => {
         }
     }
 
-    const masterhandleReactionClick = (uuid: string) => {
-        handleReactionClick(uuid);
-        getReactionProperties();
+    const masterhandleReactionClick = (uuid: string, reactant_list_uuid?: string, product_list_uuid?: string) => {
+        handleReactionClick(uuid, reactant_list_uuid as string, product_list_uuid as string);
     }  
     
     useEffect(() => {
@@ -213,19 +219,6 @@ const ReactionsPage = () => {
 
         fetchSpecies();
     }, [tagMechanismUuid]);
-
-    const getReactionProperties = async () => {
-        try {
-            const reaction = await getReaction(reactionUuid as string);
-            
-            createReactantListRef.current = reaction.reactant_list_uuid;
-            createProductListRef.current = reaction.product_list_uuid;
-    
-        } catch (error) {
-            console.error(error);
-            return null;
-        }
-    }
 
     const style = {
         position: 'absolute' as 'absolute',
@@ -243,7 +236,7 @@ const ReactionsPage = () => {
             <section className="layout">
                 <div className="L1">
                     <StyledHeader>
-                        TagMechanism/Reactions
+                        TagMechanism/{tagMechanismUuid}/Reactions/{reactionUuid}
                     </StyledHeader>
                 </div>
 
@@ -280,8 +273,8 @@ const ReactionsPage = () => {
 
                 <StyledDetailBox>
                     <p></p>
-                        <RenderReactantProducts reactantProducts={[getReactantsFromReactionReactantList(createReactantListRef.current as string)]} reactants_or_products='Reactants' handleClick={handleCreateReactantOpen}/>
-                        <RenderReactantProducts reactantProducts={[getProductsFromReactionReactantList(createProductListRef.current as string)]} reactants_or_products='Products' handleClick={handleCreateProductOpen}/>
+                        <RenderReactantProducts reactantProducts={[getReactantsFromReactionReactantList(reactantListUuid as string)]} reactants_or_products='Reactants' handleClick={handleCreateReactantOpen}/>
+                        <RenderReactantProducts reactantProducts={[getProductsFromReactionReactantList(productListUuid as string)]} reactants_or_products='Products' handleClick={handleCreateProductOpen}/>
                         <RenderProperties properties={[getPropertyiesFromParent(reactionUuid as string)]} />
                     <p></p>
                 </StyledDetailBox>

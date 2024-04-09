@@ -64,7 +64,10 @@ const getPropertyInputType = (validation: string): string => {
 const getPropertyValue = (property: PropertyVersion): string | undefined=> {
     if (property.validation === 'string') {
       return property.string_value?.toString();
-    } else if (property.validation === 'float') {
+    }else if (property.validation === 'int') {
+      return property.int_value?.toString(); 
+    } 
+    else if (property.validation === 'float') {
       return property.float_value?.toString(); 
     } else if (property.validation === 'double') {
       return property.double_value?.toString(); 
