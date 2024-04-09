@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { FamilyMechList, MechTagMechList, TagMechanismReactionList, TagMechanismSpeciesList} from "./API_Interfaces";
+import { FamilyMechList, MechTagMechList, TagMechanismReactionList, TagMechanismSpeciesList, ProperyType, ProperyList, PropertyVersion } from "./API_Interfaces";
 
 export async function createFamily(name: string) {
     try {
@@ -57,9 +57,15 @@ export async function createMechanism(name: string) {
 
 export async function createMechTagMechList(mechTagMechListData: MechTagMechList) {
     try {
+        const requestData = {
+            mechanism_uuid: mechTagMechListData.mechanism_uuid,
+            tag_mechanism_uuid: mechTagMechListData.tag_mechanism_uuid,
+            version: mechTagMechListData.version,
+        };
+        
         const response = await axios.post(
             'http://localhost:5134/api/MechTagMechList/create',
-            JSON.stringify(mechTagMechListData),
+            requestData,
             {
                 headers: {
                     'Content-Type': 'application/json',
@@ -174,3 +180,83 @@ export async function createTagMechanismSpeciesList(tagMechanismSpeciesListData:
         throw error;
     }
 }
+
+export async function createPropertyType(propertyType: ProperyType) {
+    try {
+        const requestData = {
+            name: propertyType.name,
+            units: propertyType.units,
+            validation: propertyType.validation,
+        };
+
+        const response = await axios.post(
+            'http://localhost:5134/api/PropertyType/create',
+            requestData,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+export async function createPropertyList(propertyList: ProperyList) {
+    try {
+        const requestData = {
+            parent_uuid: propertyList.parent_uuid,
+            version: propertyList.version,
+        };
+
+        const response = await axios.post(
+            'http://localhost:5134/api/PropertyList/create',
+            requestData,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+export async function createPropertyVersion(propertyVersion: PropertyVersion) {
+    try {
+        const requestData = {
+            parent_property_uuid: propertyVersion.parent_property_uuid,
+            frozen_version: propertyVersion.frozen_version,
+            mechanism_uuid: propertyVersion.mechanism_uuid,
+            property_type: propertyVersion.property_type,
+            float_value: propertyVersion.float_value,
+            double_value: propertyVersion.double_value,
+            int_value: propertyVersion.int_value,
+            string_value: propertyVersion.string_value,
+            action: propertyVersion.action,
+            user_uuid: propertyVersion.user_uuid,
+            datetime: propertyVersion.datetime,
+        };
+
+        const response = await axios.post(
+            'http://localhost:5134/api/PropertyVersion/create',
+            requestData,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+

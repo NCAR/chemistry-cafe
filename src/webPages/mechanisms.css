@@ -1,4 +1,4 @@
-.layout {
+    .layout {
     height: 100vh;
     width: 100vw;
   
@@ -29,9 +29,6 @@
 .L3 { grid-area: L3; }
 .M3 { grid-area: M3; }
 .R3 { grid-area: R3; }
-.L4 { grid-area: L4; }
-.M4 { grid-area: M4; }
-.R4 { grid-area: R4; }
 
 
   

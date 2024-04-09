@@ -20,8 +20,8 @@ export interface Mechanism {
 
 export interface MechTagMechList {
   uuid: string;
-  family_uuid: string;
   mechanism_uuid: string;
+  tag_mechanism_uuid: string;
   version: string;
   isDel: boolean;
 }
@@ -69,15 +69,22 @@ export interface TagMechanismSpeciesList {
   isDel: boolean;
 }
 
-export interface ProperyType {
+export interface PropertyType {
   uuid: string;
   name: string;
   units: string;
   validation: string;
-  isdel: boolean;
+  isDel: boolean;
 }
 
-export interface ProperyVersion {
+export interface PropertyList {
+  uuid: string;
+  parent_uuid: string;
+  version: string;
+  isDel: boolean;
+}
+
+export interface PropertyVersion {
   property_list_uuid: string;
   parent_uuid: string;
   version: string;
@@ -87,10 +94,10 @@ export interface ProperyVersion {
   frozen_version: string;
   mechanism_uuid: string;
   property_type: string;
-  float_value: Float32Array;
-  double_value: Float32Array;
-  int_value: Int16Array;
-  string_value: string;
+  float_value: number | null;
+  double_value: number | null;
+  int_value: number | null;
+  string_value: string | null;
   action: string;
   user_uuid: string;
   datetime: string;

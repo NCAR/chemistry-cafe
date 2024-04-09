@@ -1,18 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Row, Col } from 'react-bootstrap';
-import { ProperyVersion } from '../../API/API_Interfaces'; 
+import { Container, Row} from 'react-bootstrap';
+import { PropertyVersion } from '../../API/API_Interfaces'; 
+import { StyledLabel, StyledInput, StyledUnitLabel, StyledColumn } from './RenderPropertiesStyling';
 
 interface RenderPropertiesProps {
-  properties: Promise<ProperyVersion[]>[];
+  properties: Promise<PropertyVersion[]>[];
 }
 
 const RenderProperties: React.FC<RenderPropertiesProps> = ({ properties }) => {
-    const [resolvedProperties, setResolvedProperties] = useState<ProperyVersion[]>([]);
+    const [resolvedProperties, setResolvedProperties] = useState<PropertyVersion[]>([]);
 
     useEffect(() => {
       Promise.all(properties)
         .then((resolved) => {
-          const flattenedProperties: ProperyVersion[] = resolved
+          const flattenedProperties: PropertyVersion[] = resolved
             .reduce((acc, curr) => acc.concat(curr || []), [])
             .filter(button => button !== null);
             setResolvedProperties(flattenedProperties);
@@ -28,18 +29,19 @@ const RenderProperties: React.FC<RenderPropertiesProps> = ({ properties }) => {
     <Container fluid style={{ maxHeight: '60vh', overflowY: 'auto' }}>
       {resolvedProperties.map((property) => (
         <Row key={property.property_version_uuid}>
-          <Col>
-            <label>{property.name}</label>
-          </Col>
-          <Col>
-            <input
+          <StyledColumn>
+            <StyledLabel>{property.name}</StyledLabel>
+          </StyledColumn>
+          <StyledColumn>
+            <StyledInput
               type={getPropertyInputType(property.validation)}
               value={getPropertyValue(property)}
+              readOnly={true}
             />
-          </Col>
-          <Col>
-            <div className="unit-label">{property.units}</div>
-          </Col>
+          </StyledColumn>
+          <StyledColumn>
+            <StyledUnitLabel>{property.units ? property.units : 'N/A'}</StyledUnitLabel>
+          </StyledColumn>
         </Row>
       ))}
     </Container>
@@ -51,6 +53,7 @@ const getPropertyInputType = (validation: string): string => {
     case 'string':
       return 'text';
     case 'double':
+    case 'int':
     case 'float':
       return 'number';
     default:
@@ -58,13 +61,13 @@ const getPropertyInputType = (validation: string): string => {
   }
 };
 
-const getPropertyValue = (property: ProperyVersion): string => {
+const getPropertyValue = (property: PropertyVersion): string | undefined=> {
     if (property.validation === 'string') {
-      return property.string_value;
+      return property.string_value?.toString();
     } else if (property.validation === 'float') {
-      return property.float_value.toString(); 
+      return property.float_value?.toString(); 
     } else if (property.validation === 'double') {
-      return property.double_value.toString(); 
+      return property.double_value?.toString(); 
     } 
     else {
       return '';
