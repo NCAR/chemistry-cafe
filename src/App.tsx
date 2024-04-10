@@ -9,23 +9,17 @@ import SpeciesPage from './webPages/species';
 import ReactionsPage from './webPages/reactions';
 
 function App() {
-
     return (
-        <div>
-
-            <Routes>
-                <Route path="/" element={<LogIn />} />
-                <Route path="/LoggedIn" element={<LoggedIn />} />
-                <Route path="/FamilyPage" element={<FamilyPage />} />
-                <Route path="/FamilyMechanismPage" element={<FamilyMechanismPage />} />
-                <Route path="/SpeciesPage" element={<SpeciesPage />} />
-                <Route path="/ReactionsPage" element={<ReactionsPage />} />
-                <Route path="/Settings" element={<Settings />} />
-                <Route path="/Mechanisms" element={<Mechanisms />} />
-            </Routes>
-
-        
-        </div>
+        <Routes>
+            <Route path="/" element={<LogIn />} />
+            <Route path="/LoggedIn" element={<LoggedIn />} />
+            <Route path="/FamilyPage" element={<FamilyPage />} />
+            <Route path="/Mechanisms" element={<Mechanisms />} />
+            <Route path="/FamilyMechanismPage" element={<FamilyMechanismPage />} />
+            <Route path="/SpeciesPage" element={<SpeciesPage />} />
+            <Route path="/ReactionsPage" element={<ReactionsPage />} />
+            <Route path="/Settings" element={<Settings />} />
+        </Routes>
     );
 }
 

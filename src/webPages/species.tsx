@@ -209,7 +209,7 @@ const SpeciesPage = () => {
                 </div>
 
                 <div className="L3">
-                    <ButtonSystemGrid buttonArray={[getSpeciesFromTagMechanism(tagMechanismUuid as string)]} handleClick={handleSpeciesClick} category={'SpeciesFromTagMechanism'} height={'60vh'} cols={1}/>
+                    <ButtonSystemGrid buttonArray={[getSpeciesFromTagMechanism(tagMechanismUuid as string)]} uuid={speciesUuid as string} handleClick={handleSpeciesClick} category={'SpeciesFromTagMechanism'} height={'40vh'} cols={1}/>
                 </div>
 
                 <StyledDetailBox>

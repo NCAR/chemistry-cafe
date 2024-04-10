@@ -4,7 +4,7 @@ import ButtonSystemGrid from '.././buttonSystem/ButtonSystemGrid';
 import { getFamilies, getMechanisms, getMechanismsFromFamily } from '../API/API_GetMethods';
 import { createFamily, createFamilyMechList, createMechanism } from '../API/API_CreateMethods';
 import { useFamilyUuid, useMechanismUuid } from '../buttonSystem/GlobalVariables';
-import { FamilyMechList, Mechanism } from '../API/API_Interfaces';
+import { Family, FamilyMechList, Mechanism } from '../API/API_Interfaces';
 import { StyledHeader, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
 import Button from "@mui/material/Button";
 import ButtonGroup from '@mui/material/ButtonGroup';
@@ -21,12 +21,12 @@ import TaskSharpIcon from '@mui/icons-material/TaskSharp';
 import "./family.css";
 
 
-const FamilyPage = () => {
+const FamilyPage = () => {    
     const createFamRef = useRef("");
     const createMechanismRef = useRef("");
 
-    const { familyUuid, handleFamilyClick } = useFamilyUuid();
-    const { handleFamilyMechanismClick } = useMechanismUuid();
+    const { familyUuid, setFamilyUuid, handleFamilyClick } = useFamilyUuid();
+    const { mechanismUuid, setMechanismUuid, handleFamilyMechanismClick } = useMechanismUuid();
     
     const [publishOpen, setPublishOpen] = React.useState(false);
     const [shareOpen, setShareOpen] = React.useState(false);
@@ -45,7 +45,7 @@ const FamilyPage = () => {
     const [selectedMechanism, setSelectedMechanism] = useState('');
     const [mechanismOptions, setMechanismOptions] = useState<Mechanism[]>([]);
 
-    const handleSpeciesChange = (event: SelectChangeEvent<string>) => {
+    const handleMechanismChange = (event: SelectChangeEvent<string>) => {
         setSelectedMechanism(event.target.value);
     };
 
@@ -88,6 +88,13 @@ const FamilyPage = () => {
     const handleDelFamOpen = () => setDelFamOpen(true);
     const handleDelFamClose = () => setDelFamOpen(false);
 
+    const [selectedFamily, setSelectedFamily] = useState('');
+    const [familyOptions, setFamilyOptions] = useState<Mechanism[]>([]);
+
+    const handleFamilyChange = (event: SelectChangeEvent<string>) => {
+        setSelectedFamily(event.target.value);
+    };
+
     const handleDeleteFamClick = () => {
         console.log("Delete not rdy yet!");
     }
@@ -104,7 +111,19 @@ const FamilyPage = () => {
 
         fetchMechanisms();
     }, [familyUuid]);
-    
+
+    useEffect(() => {
+        const fetchFamilies = async () => {
+            try {
+                const families = await getFamilies();
+                setFamilyOptions(families);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        fetchFamilies();
+    }, []);
 
     const style = {
         position: 'absolute' as 'absolute',
@@ -161,12 +180,12 @@ const FamilyPage = () => {
                 </div>
 
                 <div className="L3">
-                    <ButtonSystemGrid buttonArray={[getFamilies()]} handleClick={handleFamilyClick} category={'Families'} height={'60vh'} cols={1}/>
+                    <ButtonSystemGrid buttonArray={[getFamilies()]} uuid={familyUuid as string} handleClick={handleFamilyClick} category={'Families'} height={'40vh'} cols={1}/>
                 </div>
 
                 <StyledDetailBox>
                     <p></p>
-                    <ButtonSystemGrid buttonArray={[getMechanismsFromFamily(familyUuid as string)]} handleClick={handleFamilyMechanismClick} category={'MechanismsFromFamily'} height={'80vh'} cols={1} />
+                    <ButtonSystemGrid buttonArray={[getMechanismsFromFamily(familyUuid as string)]} uuid={mechanismUuid as string} handleClick={handleFamilyMechanismClick} category={'MechanismsFromFamily'} height={'60vh'} cols={1} />
                     <p></p>
                 </StyledDetailBox>
 
@@ -229,21 +248,18 @@ const FamilyPage = () => {
                     >
                         <Box sx={style}>
                             Pick existing Mechanism
-                            <div>
-                                Enter Mechanism.
-                                <Select
-                                    value={selectedMechanism}
-                                    onChange={handleSpeciesChange}
-                                    label="Mechanism"
-                                    style={{ minWidth: 200 }}
-                                >
-                                    {mechanismOptions.map((mechanism: Mechanism) => (
-                                        <MenuItem key={mechanism.uuid} value={mechanism.uuid}>
-                                            {mechanism.name}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </div>
+                            <Select
+                                value={selectedMechanism}
+                                onChange={handleMechanismChange}
+                                label="Mechanism"
+                                style={{ minWidth: 200 }}
+                            >
+                                {mechanismOptions.map((mechanism: Mechanism) => (
+                                    <MenuItem key={mechanism.uuid} value={mechanism.uuid}>
+                                        {mechanism.name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
                             <Button onClick={handleCreateMtoFClick}>
                                 Submit
                             </Button>
@@ -255,8 +271,18 @@ const FamilyPage = () => {
                     >
                         <Box sx={style}>
                             Select Family to delete.
-                            <p></p>
-                            <ButtonSystemGrid buttonArray={[getFamilies()]} handleClick={handleFamilyClick} category={'Families'} height={'50vh'} cols={1}/>
+                            <Select
+                                value={selectedFamily}
+                                onChange={handleFamilyChange}
+                                label="Family"
+                                style={{ minWidth: 200 }}
+                            >
+                                {familyOptions.map((family: Family) => (
+                                    <MenuItem key={family.uuid} value={family.uuid}>
+                                        {family.name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
                             <Button onClick={handleDeleteFamClick}>
                                 Submit
                             </Button>

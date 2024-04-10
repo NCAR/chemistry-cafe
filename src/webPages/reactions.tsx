@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from 'react';
 import ButtonSystemGrid from '../buttonSystem/ButtonSystemGrid';
 import { createReaction, createTagMechanismReactionList, createPropertyList, createPropertyType, createPropertyVersion, createReactantProduct } from '../API/API_CreateMethods';
 import { Species, PropertyList, PropertyType, PropertyVersion, TagMechanismReactionList, ReactantProductList} from "../API/API_Interfaces";
-import { getReaction, getReactantsFromReactionReactantList, getProductsFromReactionReactantList, getReactionsFromTagMechanism, getSpeciesFromTagMechanism, getPropertyiesFromParent } from '../API/API_GetMethods';
+import { getReactantsFromReactionReactantList, getProductsFromReactionReactantList, getReactionsFromTagMechanism, getSpeciesFromTagMechanism, getPropertyiesFromParent } from '../API/API_GetMethods';
 import { useReactionUuid, useTagMechanismUuid, useMechanismUuid } from '../buttonSystem/GlobalVariables';
 import { StyledHeader, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
 import RenderProperties from './RenderPropeties/RenderProperties';
@@ -274,7 +274,7 @@ const ReactionsPage = () => {
                 </div>
 
                 <div className="L3">
-                    <ButtonSystemGrid buttonArray={[getReactionsFromTagMechanism(tagMechanismUuid as string)]} handleClick={masterhandleReactionClick} category={'ReactionsFromTagMechanism'} height={'60vh'} cols={1}/>
+                    <ButtonSystemGrid buttonArray={[getReactionsFromTagMechanism(tagMechanismUuid as string)]} uuid={reactionUuid as string} handleClick={masterhandleReactionClick} category={'ReactionsFromTagMechanism'} height={'40vh'} cols={1}/>
                 </div>
 
                 <StyledDetailBox>

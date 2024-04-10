@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { Container, Row, Col } from 'react-bootstrap';
 import { renderButton, ButtonData } from './RenderButtons';
+import './ButtonSystemGrid.css';
 
 interface ButtonSystemGridProps {
   buttonArray: Promise<ButtonData[]>[];
+  uuid: string;
   category: string;
   handleClick: (uuid: string, reactant_list_uuid?: string, product_list_uuid?: string) => void;
   cols: number;
   height: string;
 }
 
-const ButtonSystemGrid: React.FC<ButtonSystemGridProps> = ({ buttonArray, category, handleClick, cols, height }) => {
+const ButtonSystemGrid: React.FC<ButtonSystemGridProps> = ({ buttonArray, uuid, category, handleClick, cols, height }) => {
   const [resolvedButtons, setResolvedButtons] = useState<ButtonData[]>([]);
 
   useEffect(() => {
@@ -34,11 +36,11 @@ const ButtonSystemGrid: React.FC<ButtonSystemGridProps> = ({ buttonArray, catego
   }
 
   return (
-    <Container fluid style={{ maxHeight: height, overflowY: 'auto' }}>
+    <Container fluid className="button-system-grid-container" style={{ maxHeight: height }}>
       <Row>
         {resolvedButtons.map((button, index) => (
           <Col key={index} xs={columnWidth}>
-            {renderButton(button, category, handleClick)}
+            {renderButton(button, category, handleClick, uuid)}
           </Col>
         ))}
       </Row>

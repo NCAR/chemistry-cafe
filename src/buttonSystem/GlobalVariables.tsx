@@ -16,7 +16,7 @@ export const useFamilyUuid = () => {
         setFamilyUuid(uuid);
     };
 
-    return { familyUuid, handleFamilyClick };
+    return { familyUuid, setFamilyUuid, handleFamilyClick };
 };
 
 
@@ -43,7 +43,26 @@ export const useMechanismUuid = () => {
         navigate('/FamilyMechanismPage');
     };
 
-    return { mechanismUuid, handleMechanismsClick, handleFamilyMechanismClick };
+    return { mechanismUuid, setMechanismUuid, handleMechanismsClick, handleFamilyMechanismClick };
+};
+
+export const useTagMechanismUuid = () => {
+    
+    const [tagMechanismUuid, setTagMechanismUuid] = useState<string | null>(null);
+
+    useEffect(() => {
+        const storedTagMechanismUuid = localStorage.getItem('tag_mechanism_uuid');
+        if (storedTagMechanismUuid) {
+            setTagMechanismUuid(storedTagMechanismUuid);
+        }
+    }, []);
+
+    const handleTagMechanismClick = (uuid: string) => {
+        localStorage.setItem('tag_mechanism_uuid', uuid);
+        setTagMechanismUuid(uuid);
+    };
+
+    return { tagMechanismUuid, handleTagMechanismClick };
 };
 
 export const useReactionUuid = () => {
@@ -94,23 +113,4 @@ export const useSpeciesUuid = () => {
     };
 
     return { speciesUuid, setSpeciesUuid, handleSpeciesClick };
-};
-
-export const useTagMechanismUuid = () => {
-    
-    const [tagMechanismUuid, setTagMechanismUuid] = useState<string | null>(null);
-
-    useEffect(() => {
-        const storedTagMechanismUuid = localStorage.getItem('tag_mechanism_uuid');
-        if (storedTagMechanismUuid) {
-            setTagMechanismUuid(storedTagMechanismUuid);
-        }
-    }, []);
-
-    const handleTagMechanismClick = (uuid: string) => {
-        localStorage.setItem('tag_mechanism_uuid', uuid);
-        setTagMechanismUuid(uuid);
-    };
-
-    return { tagMechanismUuid, handleTagMechanismClick };
 };

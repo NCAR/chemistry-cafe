@@ -167,12 +167,12 @@ const FamilyMechanismPage = () => {
                 </div>
 
                 <div className="L3">
-                    <ButtonSystemGrid buttonArray={[getMechanismsFromFamily(familyUuid as string)]} handleClick={handleMechanismsClick} category={'MechanismsFromFamily'} height={'60vh'} cols={1}/>
+                    <ButtonSystemGrid buttonArray={[getMechanismsFromFamily(familyUuid as string)]} uuid={mechanismUuid as string} handleClick={handleMechanismsClick} category={'MechanismsFromFamily'} height={'40vh'} cols={1}/>
                 </div>
 
                 <StyledDetailBox>
                     <p></p>
-                    <ButtonSystemGrid buttonArray={[getTagMechanismsFromMechanism(mechanismUuid as string)]} handleClick={masterHandleTagMechanismClick} category={'TagMechanismsFromMechanism'} height={'80vh'} cols={1} />
+                    <ButtonSystemGrid buttonArray={[getTagMechanismsFromMechanism(mechanismUuid as string)]} uuid={tagMechanismUuid as string} handleClick={masterHandleTagMechanismClick} category={'TagMechanismsFromMechanism'} height={'60vh'} cols={1} />
                     <p></p>
                 </StyledDetailBox>
 
