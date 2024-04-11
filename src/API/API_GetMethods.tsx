@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Family, FamilyMechList, Mechanism, MechTagMechList, PropertyVersion, Reaction, Species, TagMechanism, TagMechanismReactionList, TagMechanismSpeciesList, ReactantProductList} from "./API_Interfaces";
+import { Family, FamilyMechList, PropertyVersion, Reaction, Species, TagMechanism, TagMechanismReactionList, TagMechanismSpeciesList, ReactantProductList} from "./API_Interfaces";
 
 export async function getFamilies(): Promise<Family[]> {
     try {
@@ -38,62 +38,6 @@ export async function getFamilyMechList(uuid?: string): Promise<FamilyMechList[]
     
     try {
         const response = await axios.get<FamilyMechList[]>(`http://localhost:5134/api/FamilyMechList/${uuid}`);
-        return response.data;
-    } catch (error) {
-        console.error(error);
-        return [];
-    }
-}
-
-export async function getMechanisms(): Promise<Mechanism[]> {
-    try {
-        const response = await axios.get<Mechanism[]>(`http://localhost:5134/api/Mechanism/all`);
-        return response.data;
-    } catch (error) {
-        console.error(error);
-        return [];
-    }
-}
-
-export async function getMechanism(uuid?: string): Promise<Mechanism[]> {
-    if (!uuid) return [];
-    
-    try {
-        const response = await axios.get<Family[]>(`http://localhost:5134/api/Mechanism/${uuid}`);
-        return response.data;
-    } catch (error) {
-        console.error(error);
-        return [];
-    }
-}
-
-export async function getMechanismsFromFamily(family_uuid?: string): Promise<Mechanism[]> {
-    if (!family_uuid) return [];
-    
-    try {
-        const response = await axios.get<Mechanism[]>(`http://localhost:5134/api/Mechanism/Family/${family_uuid}`);
-        return response.data;
-    } catch (error) {
-        console.error(error);
-        return [];
-    }
-}
-
-export async function getMechTagMechLists(): Promise<MechTagMechList[]> {
-    try {
-        const response = await axios.get<MechTagMechList[]>(`http://localhost:5134/api/MechTagMechList/all`);
-        return response.data;
-    } catch (error) {
-        console.error(error);
-        return [];
-    }
-}
-
-export async function getMechTagMechList(uuid?: string): Promise<MechTagMechList[]> {
-    if (!uuid) return [];
-    
-    try {
-        const response = await axios.get<MechTagMechList[]>(`http://localhost:5134/api/MechTagMechList/${uuid}`);
         return response.data;
     } catch (error) {
         console.error(error);
@@ -187,15 +131,15 @@ export async function getTagMechanism(uuid?: string): Promise<TagMechanism> {
     }
 }
 
-export async function getTagMechanismsFromMechanism(mechanism_uuid?: string): Promise<TagMechanism[]> {
-    if (!mechanism_uuid) return [];
+export async function getTagMechanismsFromFamily(family_uuid?: string): Promise<TagMechanism[]> {
+    if (!family_uuid) return [];
     
     try {
-        const response = await axios.get<TagMechanism[]>(`http://localhost:5134/api/TagMechanism/Mechanism/${mechanism_uuid}`);
+        const response = await axios.get<TagMechanism[]>(`http://localhost:5134/api/TagMechanism/Family/${family_uuid}`);
         return response.data;
     } catch (error) {
         console.error(error);
-        return [];
+        throw new Error('Failed to fetch TagMechanism');
     }
 }
 
@@ -271,7 +215,7 @@ export async function getProductsFromReactionReactantList(reaction_product_list_
     if (!reaction_product_list_uuid) return [];
     
     try {
-        const response = await axios.get<ReactantProductList[]>(`http://localhost:5134/api/ReactantProductList/Reactants/${reaction_product_list_uuid}`);
+        const response = await axios.get<ReactantProductList[]>(`http://localhost:5134/api/ReactantProductList/Products/${reaction_product_list_uuid}`);
         return response.data;
     } catch (error) {
         console.error(error);

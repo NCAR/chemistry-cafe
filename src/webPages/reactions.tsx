@@ -5,7 +5,7 @@ import ButtonSystemGrid from '../buttonSystem/ButtonSystemGrid';
 import { createReaction, createTagMechanismReactionList, createPropertyList, createPropertyType, createPropertyVersion, createReactantProduct } from '../API/API_CreateMethods';
 import { Species, PropertyList, PropertyType, PropertyVersion, TagMechanismReactionList, ReactantProductList} from "../API/API_Interfaces";
 import { getReactantsFromReactionReactantList, getProductsFromReactionReactantList, getReactionsFromTagMechanism, getSpeciesFromTagMechanism, getPropertyiesFromParent } from '../API/API_GetMethods';
-import { useReactionUuid, useTagMechanismUuid, useMechanismUuid } from '../buttonSystem/GlobalVariables';
+import { useReactionUuid, useTagMechanismUuid } from '../buttonSystem/GlobalVariables';
 import { StyledHeader, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
 import RenderProperties from './RenderPropeties/RenderProperties';
 import RenderReactantProducts from './RenderReactantsProducts/RenderReactantsProducts';
@@ -39,6 +39,10 @@ const ReactionsPage = () => {
         setPropertyType(event.target.value);
     };
 
+    useEffect(() => {
+        createPropertyValidationRef.current = propertyType;
+    }, [propertyType]);
+
     const createPropertyVersionValueRef = useRef("");
 
     const createReactantQuantityRef = useRef("");
@@ -61,7 +65,6 @@ const ReactionsPage = () => {
     const handleDOIOpen = () => setDOIOpen(true);
     const handleDOIClose = () => setDOIOpen(false);
 
-    const { mechanismUuid } = useMechanismUuid();
     const { tagMechanismUuid } = useTagMechanismUuid();
     const { reactionUuid, setReactionUuid, reactantListUuid, setReactantListUuid, productListUuid, setProductListUuid, handleReactionClick } = useReactionUuid();
 
@@ -151,7 +154,7 @@ const ReactionsPage = () => {
                 property_version_uuid: '',
                 parent_property_uuid: propertyList_uuid,
                 frozen_version: '1.0',
-                mechanism_uuid: mechanismUuid as string,
+                tag_mechanism_uuid: tagMechanismUuid as string,
                 property_type: propertyType_uuid,
                 float_value: float_value,
                 double_value: double_value,
@@ -405,7 +408,6 @@ const ReactionsPage = () => {
                                 <MenuItem value="string">Text</MenuItem>
                                 <MenuItem value="int">Integer Number</MenuItem>
                                 <MenuItem value="double">Decimal Number</MenuItem>
-                                <MenuItem value="float">Scientific Number</MenuItem>
                             </Select>
                             <p></p>
                             Enter value for Property below.

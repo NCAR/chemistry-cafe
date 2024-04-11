@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { FamilyMechList, MechTagMechList, TagMechanismReactionList, TagMechanismSpeciesList, PropertyType, PropertyList, PropertyVersion, ReactantProductList } from "./API_Interfaces";
+import { FamilyMechList, TagMechanismReactionList, TagMechanismSpeciesList, PropertyType, PropertyList, PropertyVersion, ReactantProductList } from "./API_Interfaces";
 
 export async function createFamily(name: string) {
     try {
@@ -23,7 +23,7 @@ export async function createFamilyMechList(familyMechListData: FamilyMechList) {
     try {
         const requestData = {
             family_uuid: familyMechListData.family_uuid,
-            mechanism_uuid: familyMechListData.mechanism_uuid,
+            tag_mechanism_uuid: familyMechListData.tag_mechanism_uuid,
             version: familyMechListData.version,
         };
         
@@ -43,35 +43,11 @@ export async function createFamilyMechList(familyMechListData: FamilyMechList) {
     }
 }
 
-export async function createMechanism(name: string) {
+export async function createTagMechanism(name: string) {
     try {
         const response = await axios.post(
-            'http://localhost:5134/api/Mechanism/create',
+            'http://localhost:5134/api/TagMechanism/create',
             "\"" + name + "\"",
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
-        return response.data;
-    } catch (error) {
-        console.error(error);
-        throw error;
-    }
-}
-
-export async function createMechTagMechList(mechTagMechListData: MechTagMechList) {
-    try {
-        const requestData = {
-            mechanism_uuid: mechTagMechListData.mechanism_uuid,
-            tag_mechanism_uuid: mechTagMechListData.tag_mechanism_uuid,
-            version: mechTagMechListData.version,
-        };
-        
-        const response = await axios.post(
-            'http://localhost:5134/api/MechTagMechList/create',
-            requestData,
             {
                 headers: {
                     'Content-Type': 'application/json',
@@ -108,24 +84,6 @@ export async function createSpecies(type: string) {
         const response = await axios.post(
             'http://localhost:5134/api/Species/create',
             "\"" + type + "\"",
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
-        return response.data as string;
-    } catch (error) {
-        console.error(error);
-        throw error;
-    }
-}
-
-export async function createTagMechanism(tag: string) {
-    try {
-        const response = await axios.post(
-            'http://localhost:5134/api/TagMechanism/create',
-            "\"" + tag + "\"",
             {
                 headers: {
                     'Content-Type': 'application/json',
@@ -239,7 +197,7 @@ export async function createPropertyVersion(propertyVersion: PropertyVersion) {
         const requestData = {
             parent_property_uuid: propertyVersion.parent_property_uuid,
             frozen_version: propertyVersion.frozen_version,
-            mechanism_uuid: propertyVersion.mechanism_uuid,
+            tag_mechanism_uuid: propertyVersion.tag_mechanism_uuid,
             property_type: propertyVersion.property_type,
             float_value: propertyVersion.float_value,
             double_value: propertyVersion.double_value,

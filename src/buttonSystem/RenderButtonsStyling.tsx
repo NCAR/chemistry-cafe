@@ -72,11 +72,7 @@ export const StyledButton = styled.button<StyledButtonProps>`
 
 export const StyledFamilyButton = styled(StyledButton)``;
 
-export const StyledMechanismsButton = styled(StyledButton)``;
-
-export const StyledMechanismsFromFamilyButton = styled(StyledButton)``;
-
-export const StyledTagMechanismsFromMechanismButton = styled(StyledButton)``;
+export const StyledTagMechanismsFromFamilyButton = styled(StyledButton)``;
 
 export const StyledSpeciesFromTagMechanismButton = styled(StyledButton)``;
 

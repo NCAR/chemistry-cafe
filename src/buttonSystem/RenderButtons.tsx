@@ -1,19 +1,15 @@
-import { Family, Mechanism, Reaction, Species, TagMechanism } from '../API/API_Interfaces';
-import { StyledFamilyButton, StyledMechanismsFromFamilyButton, StyledTagMechanismsFromMechanismButton, StyledSpeciesFromTagMechanismButton, StyledReactionsFromTagMechanismButton, StyledMechanismsButton } from './RenderButtonsStyling';
+import { Family, Reaction, Species, TagMechanism } from '../API/API_Interfaces';
+import { StyledFamilyButton, StyledTagMechanismsFromFamilyButton, StyledSpeciesFromTagMechanismButton, StyledReactionsFromTagMechanismButton } from './RenderButtonsStyling';
 import 'bootstrap/dist/css/bootstrap.css';
 
-export type ButtonData = Family | Mechanism | Reaction | Species | TagMechanism;
+export type ButtonData = Family | Reaction | Species | TagMechanism;
 
 export const renderButton = (button: ButtonData, category: string, handleClick: (uuid: string) => void, uuid: string) => {
   switch (category) {
     case 'Families':
       return familiesButton(button as Family, handleClick, uuid);
-    case 'Mechanisms':
-      return mechanismsButton(button as Mechanism, handleClick, uuid);
-    case 'MechanismsFromFamily':
-      return mechanismsFromFamilyButton(button as Mechanism, handleClick, uuid);
-    case 'TagMechanismsFromMechanism':
-      return tagMechanismsFromMechanismButton(button as TagMechanism, handleClick);
+    case 'TagMechanismsFromFamily':
+      return tagMechanismsFromFamilyButton(button as TagMechanism, handleClick);
     case 'SpeciesFromTagMechanism':
       return speciesFromTagMechanismButton(button as Species, handleClick, uuid);
     case 'ReactionsFromTagMechanism':
@@ -30,22 +26,10 @@ const familiesButton = ({ uuid, name}: Family, handleClick: (uuid: string) => vo
   </StyledFamilyButton>
 );
 
-const mechanismsButton = ({ uuid, name}: Mechanism, handleClick: (uuid: string) => void, mechanismUuid: string) => (
-  <StyledMechanismsButton active={mechanismUuid === uuid ? 'true' : 'false'} onClick={() => handleClick(uuid)} style={{ width: '100%' }}>
-    {name}
-  </StyledMechanismsButton>
-);
-
-const mechanismsFromFamilyButton = ({ uuid, name}: Mechanism, handleClick: (uuid: string) => void, mechanismUuid: string) => (
-  <StyledMechanismsFromFamilyButton active={mechanismUuid === uuid ? 'true' : 'false'} onClick={() => handleClick(uuid)} style={{ width: '100%' }}>
-    {name}
-  </StyledMechanismsFromFamilyButton>
-);
-
-const tagMechanismsFromMechanismButton = ({ uuid, tag}: TagMechanism, handleClick: (uuid: string) => void) => (
-  <StyledTagMechanismsFromMechanismButton active={'false'} onClick={() => handleClick(uuid)} style={{ width: '100%' }}>
+const tagMechanismsFromFamilyButton = ({ uuid, tag}: TagMechanism, handleClick: (uuid: string) => void) => (
+  <StyledTagMechanismsFromFamilyButton active={'false'} onClick={() => handleClick(uuid)} style={{ width: '100%' }}>
     {tag}
-  </StyledTagMechanismsFromMechanismButton>
+  </StyledTagMechanismsFromFamilyButton>
 );
 
 const speciesFromTagMechanismButton = ({ uuid, type}: Species, handleClick: (uuid: string) => void, speciesUuid: string) => (
@@ -59,7 +43,5 @@ const reactionsFromTagMechanismButton = ({ uuid, type, reactant_list_uuid, produ
     {type}
   </StyledReactionsFromTagMechanismButton>
 );
-
-
 
 export default renderButton;

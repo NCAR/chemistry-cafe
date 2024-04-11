@@ -34,7 +34,6 @@ const RenderProperties: React.FC<RenderPropertiesProps> = ({ properties }) => {
           </StyledColumn>
           <StyledColumn>
             <StyledInput
-              type={getPropertyInputType(property.validation)}
               value={getPropertyValue(property)}
               readOnly={true}
             />
@@ -48,28 +47,12 @@ const RenderProperties: React.FC<RenderPropertiesProps> = ({ properties }) => {
   );
 };
 
-const getPropertyInputType = (validation: string): string => {
-  switch (validation) {
-    case 'string':
-      return 'text';
-    case 'double':
-    case 'int':
-    case 'float':
-      return 'number';
-    default:
-      return 'text';
-  }
-};
-
 const getPropertyValue = (property: PropertyVersion): string | undefined=> {
     if (property.validation === 'string') {
       return property.string_value?.toString();
     }else if (property.validation === 'int') {
       return property.int_value?.toString(); 
-    } 
-    else if (property.validation === 'float') {
-      return property.float_value?.toString(); 
-    } else if (property.validation === 'double') {
+    }else if (property.validation === 'double') {
       return property.double_value?.toString(); 
     } 
     else {

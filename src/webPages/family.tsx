@@ -1,32 +1,41 @@
 import * as React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import ButtonSystemGrid from '.././buttonSystem/ButtonSystemGrid';
-import { getFamilies, getMechanisms, getMechanismsFromFamily } from '../API/API_GetMethods';
-import { createFamily, createFamilyMechList, createMechanism } from '../API/API_CreateMethods';
-import { useFamilyUuid, useMechanismUuid } from '../buttonSystem/GlobalVariables';
-import { Family, FamilyMechList, Mechanism } from '../API/API_Interfaces';
+import { getFamilies, getTagMechanism, getTagMechanisms, getTagMechanismsFromFamily } from '../API/API_GetMethods';
+import { createFamily, createFamilyMechList, createTagMechanism } from '../API/API_CreateMethods';
+import { downloadOA } from '../API/API_DeleteMethods';
+import { useFamilyUuid, useTagMechanismUuid } from '../buttonSystem/GlobalVariables';
+import { Family, FamilyMechList, TagMechanism } from '../API/API_Interfaces';
 import { StyledHeader, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
 import Button from "@mui/material/Button";
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
-import { MenuItem, Select, SelectChangeEvent, TextField } from '@mui/material';
+import { Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, ListSubheader, MenuItem, Select, SelectChangeEvent, TextField } from '@mui/material';
 import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
+import NavDropDown from './NavDropDown/NavDropDown';
 
 import InsertLinkSharpIcon from '@mui/icons-material/InsertLinkSharp';
 import IosShareSharpIcon from '@mui/icons-material/IosShareSharp';
 import TaskSharpIcon from '@mui/icons-material/TaskSharp';
+import DensitySmallSharpIcon from '@mui/icons-material/DensitySmallSharp';
+import CalculateSharpIcon from '@mui/icons-material/CalculateSharp';
+import ScienceSharpIcon from '@mui/icons-material/ScienceSharp';
+import HistoryEduSharpIcon from '@mui/icons-material/HistoryEduSharp';
 
 import "./family.css";
 
 
 const FamilyPage = () => {    
+    const navigate = useNavigate();
+    
     const createFamRef = useRef("");
-    const createMechanismRef = useRef("");
+    const createTagMechanismRef = useRef("");
 
     const { familyUuid, handleFamilyClick } = useFamilyUuid();
-    const { mechanismUuid, handleFamilyMechanismClick } = useMechanismUuid();
+    const { tagMechanismUuid, handleTagMechanismClick } = useTagMechanismUuid();
     
     const [publishOpen, setPublishOpen] = React.useState(false);
     const [shareOpen, setShareOpen] = React.useState(false);
@@ -42,20 +51,20 @@ const FamilyPage = () => {
     const handleCreateFamOpen = () => setCreateFamOpen(true);
     const handleCreateFamClose = () => setCreateFamOpen(false);
 
-    const [selectedMechanism, setSelectedMechanism] = useState('');
-    const [mechanismOptions, setMechanismOptions] = useState<Mechanism[]>([]);
+    const [selectedTagMechanism, setSelectedTagMechanism] = useState('');
+    const [tagMechanismOptions, setTagMechanismOptions] = useState<TagMechanism[]>([]);
 
-    const handleMechanismChange = (event: SelectChangeEvent<string>) => {
-        setSelectedMechanism(event.target.value);
+    const handleTagMechanismChange = (event: SelectChangeEvent<string>) => {
+        setSelectedTagMechanism(event.target.value);
     };
 
-    const [createMechanismOpen, setCreateMechanismOpen] = React.useState(false);
-    const handleCreateMechanismOpen = () => setCreateMechanismOpen(true);
-    const handleCreateMechanismClose = () => setCreateMechanismOpen(false);
+    const [createTagMechanismOpen, setCreateTagMechanismOpen] = React.useState(false);
+    const handleCreateTagMechanismOpen = () => setCreateTagMechanismOpen(true);
+    const handleCreateTagMechanismClose = () => setCreateTagMechanismOpen(false);
 
-    const handleCreateMechanismClick = () => {
-        createMechanism(createMechanismRef.current);
-        setCreateMechanismOpen(false);
+    const handleCreateTagMechanismClick = () => {
+        createTagMechanism(createTagMechanismRef.current);
+        setCreateTagMechanismOpen(false);
     }
 
 
@@ -72,7 +81,7 @@ const FamilyPage = () => {
             const familyMechList: FamilyMechList = {
                 uuid: '', 
                 family_uuid: familyUuid as string,
-                mechanism_uuid: selectedMechanism,
+                tag_mechanism_uuid: selectedTagMechanism,
                 version: '1.0',
                 isDel: false, //Doesn't matter
             };
@@ -89,7 +98,7 @@ const FamilyPage = () => {
     const handleDelFamClose = () => setDelFamOpen(false);
 
     const [selectedFamily, setSelectedFamily] = useState('');
-    const [familyOptions, setFamilyOptions] = useState<Mechanism[]>([]);
+    const [familyOptions, setFamilyOptions] = useState<Family[]>([]);
 
     const handleFamilyChange = (event: SelectChangeEvent<string>) => {
         setSelectedFamily(event.target.value);
@@ -99,18 +108,65 @@ const FamilyPage = () => {
         console.log("Delete not rdy yet!");
     }
 
+    const [tagOpen, setTagOpen] = React.useState(false);
+    const handleTagOpen = () => setTagOpen(true);
+    const handleTagClose = () => setTagOpen(false);
+    const handleSpeciesClick = () => navigate('/SpeciesPage');
+    const handleReactionClick = () => navigate('/ReactionsPage');
+    const handleHistoryClick = () => console.log('History Not implemented');
+
+    const handleDownlaodClick = async () => {
+        const link = document.createElement("a");
+        const body = await downloadOA(tagMechanismUuid as string);
+
+        const blob = new Blob([body], { type: 'application/json' });
+
+        const blobUrl = window.URL.createObjectURL(blob);
+
+        link.download = 'openAtmos.json';
+        link.href = blobUrl;
+
+        link.click();
+
+        window.URL.revokeObjectURL(blobUrl);
+    };
+
+    const [listName, setListName] = useState<string | null>(null);
     useEffect(() => {
-        const fetchMechanisms = async () => {
+        const fetchData = async () => {
+            let newName = "Options for ";
+            if(tagMechanismUuid){
+                try {
+                    const tagMechanism = await getTagMechanism(tagMechanismUuid as string);
+                    newName += tagMechanism.tag;
+                    setListName(newName);
+                } catch (error) {
+                    console.error(error);
+                    setListName(null);
+                }
+            }
+        };
+
+        fetchData();
+    }, [tagMechanismUuid]);
+
+    const masterHandleTagMechanismClick = (uuid: string) => {
+        handleTagMechanismClick(uuid);
+        handleTagOpen();
+    }  
+
+    useEffect(() => {
+        const fetchTagMechanisms = async () => {
             try {
-                const mechanisms = await getMechanisms();
-                setMechanismOptions(mechanisms);
+                const tagMechanisms = await getTagMechanisms();
+                setTagMechanismOptions(tagMechanisms);
             } catch (error) {
                 console.error(error);
             }
         };
 
-        fetchMechanisms();
-    }, [familyUuid]);
+        fetchTagMechanisms();
+    }, [addMToFOpen]);
 
     useEffect(() => {
         const fetchFamilies = async () => {
@@ -124,6 +180,11 @@ const FamilyPage = () => {
 
         fetchFamilies();
     }, []);
+
+    const [openDrawer, setOpenDrawer] = React.useState(false);
+    const toggleDrawer = (newOpenDrawer: boolean) => () => {
+      setOpenDrawer(newOpenDrawer);
+    };
 
     const style = {
         position: 'absolute' as 'absolute',
@@ -141,6 +202,9 @@ const FamilyPage = () => {
             <section className="layout">
 
                 <div className="L1">
+                    <Button onClick={toggleDrawer(true)}>
+                        <DensitySmallSharpIcon sx={{fontSize: 50}}></DensitySmallSharpIcon>
+                    </Button> 
                     <StyledHeader>
                         Family/{familyUuid}
                     </StyledHeader>
@@ -164,11 +228,11 @@ const FamilyPage = () => {
                             <Button onClick = {handleCreateFamOpen}>
                                 Create Family
                             </Button>
-                            <Button onClick = {handleCreateMechanismOpen}>
-                                Create Mechanism
+                            <Button onClick = {handleCreateTagMechanismOpen}>
+                                Create Tag Mechanism
                             </Button>
                             <Button onClick = {handleAddMtoFOpen}>
-                                Add Mechanism to Family
+                                Add Tag Mechanism to Family
                             </Button>
                             <Button onClick = {handleDelFamOpen}>
                                 Delete Family
@@ -185,10 +249,16 @@ const FamilyPage = () => {
 
                 <StyledDetailBox>
                     <p></p>
-                    <ButtonSystemGrid buttonArray={[getMechanismsFromFamily(familyUuid as string)]} uuid={mechanismUuid as string} handleClick={handleFamilyMechanismClick} category={'MechanismsFromFamily'} height={'60vh'} cols={1} />
+                    <ButtonSystemGrid buttonArray={[getTagMechanismsFromFamily(familyUuid as string)]} uuid={tagMechanismUuid as string} handleClick={masterHandleTagMechanismClick} category={'TagMechanismsFromFamily'} height={'60vh'} cols={1} />
                     <p></p>
                 </StyledDetailBox>
 
+
+                <div>
+                    <Drawer open={openDrawer} onClose={toggleDrawer(false)}>
+                        <NavDropDown />
+                    </Drawer>
+                </div>
                 <div>
                     <Modal
                         open={publishOpen}
@@ -229,15 +299,15 @@ const FamilyPage = () => {
                         </Box>
                     </Modal>
                     <Modal
-                        open={createMechanismOpen}
-                        onClose={handleCreateMechanismClose}
+                        open={createTagMechanismOpen}
+                        onClose={handleCreateTagMechanismClose}
                     >
                         <Box sx={style}>
-                            Enter name for Mechanism below.
-                            <TextField id="textField" label="Name" onChange={ e => createMechanismRef.current = e.target.value}>
+                            Enter name for Tag Mechanism below.
+                            <TextField id="textField" label="Name" onChange={ e => createTagMechanismRef.current = e.target.value}>
 
                             </TextField>
-                            <Button onClick={handleCreateMechanismClick}>
+                            <Button onClick={handleCreateTagMechanismClick}>
                                 Submit
                             </Button>
                         </Box>
@@ -247,16 +317,16 @@ const FamilyPage = () => {
                         onClose={handleAddMtoFClose}
                     >
                         <Box sx={style}>
-                            Pick existing Mechanism
+                            Pick existing Tag Mechanism
                             <Select
-                                value={selectedMechanism}
-                                onChange={handleMechanismChange}
-                                label="Mechanism"
+                                value={selectedTagMechanism}
+                                onChange={handleTagMechanismChange}
+                                label="TagMechanism"
                                 style={{ minWidth: 200 }}
                             >
-                                {mechanismOptions.map((mechanism: Mechanism) => (
-                                    <MenuItem key={mechanism.uuid} value={mechanism.uuid}>
-                                        {mechanism.name}
+                                {tagMechanismOptions.map((tagMechanism: TagMechanism) => (
+                                    <MenuItem key={tagMechanism.uuid} value={tagMechanism.uuid}>
+                                        {tagMechanism.tag}
                                     </MenuItem>
                                 ))}
                             </Select>
@@ -286,6 +356,55 @@ const FamilyPage = () => {
                             <Button onClick={handleDeleteFamClick}>
                                 Submit
                             </Button>
+                        </Box>
+                    </Modal>
+                    <Modal
+                        open={tagOpen}
+                        onClose={handleTagClose}
+                    >
+                        <Box sx={style}>
+                            <List subheader={
+                                <ListSubheader>
+                                    {listName}
+                                </ListSubheader>
+                            }>
+                                <ListItem>
+                                    <ListItemButton onClick={handleReactionClick}>
+                                        <ListItemIcon>
+                                            <CalculateSharpIcon ></CalculateSharpIcon>
+                                        </ListItemIcon>
+                                        <ListItemText primary="Reactions">   
+                                        </ListItemText>
+                                    </ListItemButton>
+                                </ListItem>
+                                <ListItem>
+                                    <ListItemButton onClick={handleSpeciesClick}>
+                                        <ListItemIcon>
+                                            <ScienceSharpIcon></ScienceSharpIcon>
+                                        </ListItemIcon>
+                                        <ListItemText primary="Species">   
+                                        </ListItemText>
+                                    </ListItemButton>
+                                </ListItem>
+                                <ListItem>
+                                    <ListItemButton onClick={handleHistoryClick}>
+                                        <ListItemIcon>
+                                            <HistoryEduSharpIcon></HistoryEduSharpIcon>
+                                        </ListItemIcon>
+                                        <ListItemText primary="History">   
+                                        </ListItemText>
+                                    </ListItemButton>
+                                </ListItem>
+                                <ListItem>
+                                    <ListItemButton onClick={handleDownlaodClick}>
+                                        <ListItemIcon>
+                                            <HistoryEduSharpIcon></HistoryEduSharpIcon>
+                                        </ListItemIcon>
+                                        <ListItemText primary="Downlaod">   
+                                        </ListItemText>
+                                    </ListItemButton>
+                                </ListItem>
+                            </List>
                         </Box>
                     </Modal>
                 </div>

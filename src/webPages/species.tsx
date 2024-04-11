@@ -5,7 +5,7 @@ import ButtonSystemGrid from '../buttonSystem/ButtonSystemGrid';
 import { createSpecies, createTagMechanismSpeciesList, createPropertyList, createPropertyType, createPropertyVersion } from '../API/API_CreateMethods';
 import { PropertyList, PropertyType, PropertyVersion, TagMechanismSpeciesList } from "../API/API_Interfaces";
 import { getSpeciesFromTagMechanism, getPropertyiesFromParent } from '../API/API_GetMethods';
-import { useSpeciesUuid, useTagMechanismUuid, useMechanismUuid } from '../buttonSystem/GlobalVariables';
+import { useSpeciesUuid, useTagMechanismUuid } from '../buttonSystem/GlobalVariables';
 import { StyledHeader, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
 import RenderProperties from './RenderPropeties/RenderProperties';
 
@@ -37,6 +37,10 @@ const SpeciesPage = () => {
         setPropertyType(event.target.value);
     };
 
+    useEffect(() => {
+        createPropertyValidationRef.current = propertyType;
+    }, [propertyType]);
+
     const createPropertyVersionValueRef = useRef("");
 
     const [publishOpen, setPublishOpen] = React.useState(false);
@@ -49,7 +53,6 @@ const SpeciesPage = () => {
     const handleDOIOpen = () => setDOIOpen(true);
     const handleDOIClose = () => setDOIOpen(false);
 
-    const { mechanismUuid } = useMechanismUuid();
     const { tagMechanismUuid } = useTagMechanismUuid();
     const { speciesUuid, setSpeciesUuid, handleSpeciesClick } = useSpeciesUuid();
 
@@ -113,9 +116,7 @@ const SpeciesPage = () => {
                 let int_value: number | null = null;
                 let string_value: string | null = null;
 
-                if (createPropertyValidationRef.current == 'float') {
-                    float_value = parseFloat(createPropertyVersionValueRef.current);
-                } else if (createPropertyValidationRef.current == 'double') {
+                if (createPropertyValidationRef.current == 'double') {
                     double_value = parseFloat(createPropertyVersionValueRef.current);
                 } else if (createPropertyValidationRef.current == 'int') {
                     int_value = parseInt(createPropertyVersionValueRef.current);
@@ -131,7 +132,7 @@ const SpeciesPage = () => {
                     property_version_uuid: '',
                     parent_property_uuid: propertyList_uuid,
                     frozen_version: '1.0',
-                    mechanism_uuid: mechanismUuid as string,
+                    tag_mechanism_uuid: tagMechanismUuid as string,
                     property_type: propertyType_uuid,
                     float_value: float_value,
                     double_value: double_value,
@@ -148,7 +149,7 @@ const SpeciesPage = () => {
                     property_type_isDel: false,
                 };
 
-                createPropertyVersion(propertyVersion);
+                await createPropertyVersion(propertyVersion);
         
                 createPropertyNameRef.current = '';
                 createPropertyUnitsRef.current = '';
@@ -280,7 +281,6 @@ const SpeciesPage = () => {
                                 <MenuItem value="string">Text</MenuItem>
                                 <MenuItem value="int">Integer Number</MenuItem>
                                 <MenuItem value="double">Decimal Number</MenuItem>
-                                <MenuItem value="float">Scientific Number</MenuItem>
                             </Select>
                             <p></p>
                             Enter value for Property below.

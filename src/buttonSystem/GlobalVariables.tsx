@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 export const useFamilyUuid = () => {
     const [familyUuid, setFamilyUuid] = useState<string | null>(null);
@@ -19,35 +18,7 @@ export const useFamilyUuid = () => {
     return { familyUuid, setFamilyUuid, handleFamilyClick };
 };
 
-
-export const useMechanismUuid = () => {
-    const navigate = useNavigate();
-    
-    const [mechanismUuid, setMechanismUuid] = useState<string | null>(null);
-
-    useEffect(() => {
-        const storedMechanismUuid = localStorage.getItem('mechanism_uuid');
-        if (storedMechanismUuid) {
-            setMechanismUuid(storedMechanismUuid);
-        }
-    }, []);
-
-    const handleMechanismsClick = (uuid: string) => {
-        localStorage.setItem('mechanism_uuid', uuid);
-        setMechanismUuid(uuid);
-    };
-
-    const handleFamilyMechanismClick = (uuid: string) => {
-        localStorage.setItem('mechanism_uuid', uuid);
-        setMechanismUuid(uuid);
-        navigate('/FamilyMechanismPage');
-    };
-
-    return { mechanismUuid, setMechanismUuid, handleMechanismsClick, handleFamilyMechanismClick };
-};
-
 export const useTagMechanismUuid = () => {
-    
     const [tagMechanismUuid, setTagMechanismUuid] = useState<string | null>(null);
 
     useEffect(() => {

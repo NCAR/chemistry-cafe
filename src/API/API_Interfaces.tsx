@@ -7,23 +7,9 @@ export interface Family {
 export interface FamilyMechList {
     uuid: string;
     family_uuid: string;
-    mechanism_uuid: string;
+    tag_mechanism_uuid: string;
     version: string;
     isDel: boolean;
-}
-
-export interface Mechanism {
-    uuid: string;
-    name: string;
-    isDel: boolean;
-}
-
-export interface MechTagMechList {
-  uuid: string;
-  mechanism_uuid: string;
-  tag_mechanism_uuid: string;
-  version: string;
-  isDel: boolean;
 }
 
 export interface ReactantProductList {
@@ -93,7 +79,7 @@ export interface PropertyVersion {
   property_version_uuid: string;
   parent_property_uuid: string;
   frozen_version: string;
-  mechanism_uuid: string;
+  tag_mechanism_uuid: string;
   property_type: string;
   float_value: number | null;
   double_value: number | null;
