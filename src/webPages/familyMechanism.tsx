@@ -207,7 +207,7 @@ const FamilyMechanismPage = () => {
                         onClose={handleCreateTagMechClose}
                     >
                         <Box sx={style}>
-                            Enter name for new Tag Mechanism below.
+                            Enter name for Tag Mechanism below.
                             <TextField id="textField" label="Tag" onChange={ e => createTagMechRef.current = e.target.value}>
 
                             </TextField>

@@ -318,7 +318,7 @@ const ReactionsPage = () => {
                         onClose={handleCreateReactionClose}
                     >
                         <Box sx={style}>
-                            Enter type for new Reaction below.
+                            Enter type for Reaction below.
                             <TextField id="textField" label="Name" onChange={ e => createReactionRef.current = e.target.value}>
 
                             </TextField>
@@ -388,13 +388,13 @@ const ReactionsPage = () => {
                         onClose={handleCreatePropertyClose}
                     >
                         <Box sx={style}>
-                            Enter name for new Property Name below.
+                            Enter name for Property below.
                             <TextField id="textField" label="PropertyName" onChange={ e => createPropertyNameRef.current = e.target.value}/>
                             <p></p>
-                            Enter units for new Property's Units below.
+                            Enter units for Property below.
                             <TextField id="textField" label="PropertyUnits" onChange={ e => createPropertyUnitsRef.current = e.target.value}/>
                             <p></p>
-                            Select type for new value's type below.
+                            Select type for value below.
                             <Select
                                 labelId="propertyTypeLabel"
                                 id="propertyType"
@@ -408,7 +408,7 @@ const ReactionsPage = () => {
                                 <MenuItem value="float">Scientific Number</MenuItem>
                             </Select>
                             <p></p>
-                            Enter value for new Property value below.
+                            Enter value for Property below.
                             <TextField id="textField" label="PropertyValue" onChange={ e => createPropertyVersionValueRef.current = e.target.value}/>
                             <Button onClick={handleCreatePropertyClick}>
                                 Submit

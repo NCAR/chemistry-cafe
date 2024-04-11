@@ -219,7 +219,7 @@ const FamilyPage = () => {
                         onClose={handleCreateFamClose}
                     >
                         <Box sx={style}>
-                            Enter name for new Family below.
+                            Enter name for Family below.
                             <TextField id="textField" label="Name" onChange={ e => createFamRef.current = e.target.value}>
 
                             </TextField>
@@ -233,7 +233,7 @@ const FamilyPage = () => {
                         onClose={handleCreateMechanismClose}
                     >
                         <Box sx={style}>
-                            Enter name for new Mechanism below.
+                            Enter name for Mechanism below.
                             <TextField id="textField" label="Name" onChange={ e => createMechanismRef.current = e.target.value}>
 
                             </TextField>
