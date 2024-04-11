@@ -31,4 +31,22 @@
 .R3 { grid-area: R3; }
 
 
+.modal-visible {
+  position: absolute;
+  animation: slideIn 2.5s cubic-bezier(0,-0.01,.01,1) infinite;
+}
+
+.modal-hidden {
+  display: none;
+}
+
+@keyframes slideIn {
+  from {
+    left: -10%;
+  }
+  to {
+    left: 0%;
+  }
+}
+
   

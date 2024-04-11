@@ -1,42 +1,37 @@
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
-import ButtonSystemGrid from '.././buttonSystem/ButtonSystemGrid';
-import { getFamilies, getTagMechanism, getTagMechanisms, getTagMechanismsFromFamily } from '../API/API_GetMethods';
-import { createFamily, createFamilyMechList, createTagMechanism } from '../API/API_CreateMethods';
-import { downloadOA } from '../API/API_DeleteMethods';
-import { useFamilyUuid, useTagMechanismUuid } from '../buttonSystem/GlobalVariables';
-import { Family, FamilyMechList, TagMechanism } from '../API/API_Interfaces';
+import { getFamilies, getTagMechanismsFromFamily } from '../API/API_GetMethods';
+import { createFamily, } from '../API/API_CreateMethods';
+import { Family, TagMechanism } from '../API/API_Interfaces';
 import { StyledHeader, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
 import Button from "@mui/material/Button";
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
-import { Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, ListSubheader, MenuItem, Select, SelectChangeEvent, TextField } from '@mui/material';
+import { CircularProgress, Drawer, TextField } from '@mui/material';
 import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
+import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
+import { TreeItem } from '@mui/x-tree-view/TreeItem';
 import NavDropDown from './NavDropDown/NavDropDown';
 
 import InsertLinkSharpIcon from '@mui/icons-material/InsertLinkSharp';
 import IosShareSharpIcon from '@mui/icons-material/IosShareSharp';
 import TaskSharpIcon from '@mui/icons-material/TaskSharp';
 import DensitySmallSharpIcon from '@mui/icons-material/DensitySmallSharp';
-import CalculateSharpIcon from '@mui/icons-material/CalculateSharp';
-import ScienceSharpIcon from '@mui/icons-material/ScienceSharp';
-import HistoryEduSharpIcon from '@mui/icons-material/HistoryEduSharp';
+
 
 import "./family.css";
+import { Margin } from '@mui/icons-material';
 
 
 const FamilyPage = () => {    
-    const navigate = useNavigate();
-    
-    const createFamRef = useRef("");
-    const createTagMechanismRef = useRef("");
+    const [openDrawer, setOpenDrawer] = React.useState(false);
+    const toggleDrawer = (newOpenDrawer: boolean) => () => {
+      setOpenDrawer(newOpenDrawer);
+    };
 
-    const { familyUuid, handleFamilyClick } = useFamilyUuid();
-    const { tagMechanismUuid, handleTagMechanismClick } = useTagMechanismUuid();
-    
     const [publishOpen, setPublishOpen] = React.useState(false);
     const [shareOpen, setShareOpen] = React.useState(false);
     const [doiOpen, setDOIOpen] = React.useState(false);
@@ -46,145 +41,76 @@ const FamilyPage = () => {
     const handleShareClose = () => setShareOpen(false);
     const handleDOIOpen = () => setDOIOpen(true);
     const handleDOIClose = () => setDOIOpen(false);
-
-    const [createFamOpen, setCreateFamOpen] = React.useState(false);
-    const handleCreateFamOpen = () => setCreateFamOpen(true);
-    const handleCreateFamClose = () => setCreateFamOpen(false);
-
-    const [selectedTagMechanism, setSelectedTagMechanism] = useState('');
-    const [tagMechanismOptions, setTagMechanismOptions] = useState<TagMechanism[]>([]);
-
-    const handleTagMechanismChange = (event: SelectChangeEvent<string>) => {
-        setSelectedTagMechanism(event.target.value);
-    };
-
-    const [createTagMechanismOpen, setCreateTagMechanismOpen] = React.useState(false);
-    const handleCreateTagMechanismOpen = () => setCreateTagMechanismOpen(true);
-    const handleCreateTagMechanismClose = () => setCreateTagMechanismOpen(false);
-
-    const handleCreateTagMechanismClick = () => {
-        createTagMechanism(createTagMechanismRef.current);
-        setCreateTagMechanismOpen(false);
-    }
-
-
-    const [addMToFOpen, setAddMtoFOpen] = React.useState(false);
-    const handleAddMtoFOpen = () => setAddMtoFOpen(true);
-    const handleAddMtoFClose = () => setAddMtoFOpen(false);
-
-    const handleCreateFamClick = () => {
-        createFamily(createFamRef.current);
-        setCreateFamOpen(false);
-    }
-    const handleCreateMtoFClick = async () => {
-        try {
-            const familyMechList: FamilyMechList = {
-                uuid: '', 
-                family_uuid: familyUuid as string,
-                tag_mechanism_uuid: selectedTagMechanism,
-                version: '1.0',
-                isDel: false, //Doesn't matter
-            };
-            
-            await createFamilyMechList(familyMechList);
-            setAddMtoFOpen(false);
-        } catch (error) {
-            console.error(error);
-        }
-    }
-
-    const [delFamOpen, setDelFamOpen] = React.useState(false);
-    const handleDelFamOpen = () => setDelFamOpen(true);
-    const handleDelFamClose = () => setDelFamOpen(false);
-
-    const [selectedFamily, setSelectedFamily] = useState('');
-    const [familyOptions, setFamilyOptions] = useState<Family[]>([]);
-
-    const handleFamilyChange = (event: SelectChangeEvent<string>) => {
-        setSelectedFamily(event.target.value);
-    };
-
-    const handleDeleteFamClick = () => {
-        console.log("Delete not rdy yet!");
-    }
-
-    const [tagOpen, setTagOpen] = React.useState(false);
-    const handleTagOpen = () => setTagOpen(true);
-    const handleTagClose = () => setTagOpen(false);
-    const handleSpeciesClick = () => navigate('/SpeciesPage');
-    const handleReactionClick = () => navigate('/ReactionsPage');
-    const handleHistoryClick = () => console.log('History Not implemented');
-
-    const handleDownlaodClick = async () => {
-        const link = document.createElement("a");
-        const body = await downloadOA(tagMechanismUuid as string);
-
-        const blob = new Blob([body], { type: 'application/json' });
-
-        const blobUrl = window.URL.createObjectURL(blob);
-
-        link.download = 'openAtmos.json';
-        link.href = blobUrl;
-
-        link.click();
-
-        window.URL.revokeObjectURL(blobUrl);
-    };
-
-    const [listName, setListName] = useState<string | null>(null);
+    
+    const [selectedFamily, setSelectedFamily] = useState<string | null>(null);
+    const [selectedTagMechanism, setSelectedTagMechanism] = useState<string | null>(null);
+    const [families, setFamilies] = useState<Family[]>([]);
+    const [tagMechanismsMap, setTagMechanismsMap] = useState<Record<string, TagMechanism[]>>({});
+    const [loading, setLoading] = useState<boolean>(true);
+    
     useEffect(() => {
         const fetchData = async () => {
-            let newName = "Options for ";
-            if(tagMechanismUuid){
-                try {
-                    const tagMechanism = await getTagMechanism(tagMechanismUuid as string);
-                    newName += tagMechanism.tag;
-                    setListName(newName);
-                } catch (error) {
-                    console.error(error);
-                    setListName(null);
-                }
+            try {
+                const fetchedFamilies = await getFamilies();
+                setFamilies(fetchedFamilies);
+                setLoading(false);
+
+                const tagMechanismsPromises = fetchedFamilies.map(family => getTagMechanismsFromFamily(family.uuid));
+                const tagMechanisms = await Promise.all(tagMechanismsPromises);
+                const tagMechanismsMap: Record<string, TagMechanism[]> = {};
+                fetchedFamilies.forEach((family, index) => {
+                    tagMechanismsMap[family.uuid] = tagMechanisms[index];
+                });
+                setTagMechanismsMap(tagMechanismsMap);
+            } catch (error) {
+                console.error(error);
             }
         };
 
         fetchData();
-    }, [tagMechanismUuid]);
+    }, [families]);
 
-    const masterHandleTagMechanismClick = (uuid: string) => {
-        handleTagMechanismClick(uuid);
-        handleTagOpen();
-    }  
+    const createFamilyRef = useRef("");
 
-    useEffect(() => {
-        const fetchTagMechanisms = async () => {
-            try {
-                const tagMechanisms = await getTagMechanisms();
-                setTagMechanismOptions(tagMechanisms);
-            } catch (error) {
-                console.error(error);
-            }
-        };
+    const [createFamilyOpen, setCreateFamilyOpen] = React.useState(false);
+    const handleCreateFamilyOpen = () => setCreateFamilyOpen(true);
+    const handleCreateFamilyClose = () => setCreateFamilyOpen(false);
 
-        fetchTagMechanisms();
-    }, [addMToFOpen]);
+    const [familySuccessOpen, setFamilySuccessOpen] = React.useState(false);
+    const [familyFailOpen, setFamilyFailOpen] = React.useState(false);
 
-    useEffect(() => {
-        const fetchFamilies = async () => {
-            try {
-                const families = await getFamilies();
-                setFamilyOptions(families);
-            } catch (error) {
-                console.error(error);
-            }
-        };
-
-        fetchFamilies();
-    }, []);
-
-    const [openDrawer, setOpenDrawer] = React.useState(false);
-    const toggleDrawer = (newOpenDrawer: boolean) => () => {
-      setOpenDrawer(newOpenDrawer);
+    const handleCreateFamilySuccessClose = () => {
+        setFamilySuccessOpen(false);
     };
+
+    const handleCreateFamilySuccess = () => {
+        setFamilySuccessOpen(true);
+        setTimeout(() => {
+            setFamilySuccessOpen(false);
+        }, 2500);
+    };
+
+    const handleCreateFamilyFailClose = () => {
+        setFamilyFailOpen(false);
+    };
+
+    const handleCreateFamilyFail = () => {
+        setFamilyFailOpen(true);
+        setTimeout(() => {
+            setFamilyFailOpen(false);
+        }, 2500);
+    };
+
+    const handleCreateFamilyClick = async () => {
+        try {
+            await createFamily(createFamilyRef.current);
+            createFamilyRef.current = '';
+            handleCreateFamilySuccess();
+        } catch (error) {
+            console.error(error);
+            handleCreateFamilyFail();
+        }
+    }
 
     const style = {
         position: 'absolute' as 'absolute',
@@ -196,7 +122,32 @@ const FamilyPage = () => {
         border: '2px solid #000',
         boxShadow: 24,
         p: 4,
-      };
+    };
+
+    const successFail = {
+        position: 'absolute',
+        bottom: '0',
+        left: '0',
+        width: 'auto',
+        height: 'auto',
+        fontSize: '1.2rem',
+        fontWeight: 'bold',
+        color: '#000',
+        borderRadius: '4px',
+        border: '2px solid #000',
+        boxShadow: 24,
+        margin: '1%',
+    };
+
+    const treeItemStyle = {
+        fontSize: '1.2rem',
+        backgroundColor: '#f0f0f0',
+        border: '1px solid #ccc',
+        borderRadius: '4px',
+        padding: '8px 12px',
+        margin: '4px',
+        cursor: 'pointer',
+    };
 
         return (
             <section className="layout">
@@ -206,7 +157,6 @@ const FamilyPage = () => {
                         <DensitySmallSharpIcon sx={{fontSize: 50}}></DensitySmallSharpIcon>
                     </Button> 
                     <StyledHeader>
-                        Family/{familyUuid}
                     </StyledHeader>
                 </div>
                 
@@ -220,37 +170,48 @@ const FamilyPage = () => {
                         <BottomNavigationAction label="Get DOI" icon={<InsertLinkSharpIcon/>} onClick={handleDOIOpen}></BottomNavigationAction>
                     </BottomNavigation>
                 </div>
-                
-                <div className="L2" style={{padding: "20px"}}>
-                    <p></p>
-                    <Box>
-                        <ButtonGroup orientation='vertical' variant='contained'>
-                            <Button onClick = {handleCreateFamOpen}>
-                                Create Family
-                            </Button>
-                            <Button onClick = {handleCreateTagMechanismOpen}>
-                                Create Tag Mechanism
-                            </Button>
-                            <Button onClick = {handleAddMtoFOpen}>
-                                Add Tag Mechanism to Family
-                            </Button>
-                            <Button onClick = {handleDelFamOpen}>
-                                Delete Family
-                            </Button>
-                        </ButtonGroup>
-                        <ButtonGroup></ButtonGroup>
-                    </Box>
-                    <p></p>
-                </div>
 
-                <div className="L3">
-                    <ButtonSystemGrid buttonArray={[getFamilies()]} uuid={familyUuid as string} handleClick={handleFamilyClick} category={'Families'} height={'40vh'} cols={1}/>
+                <div className="L2">
+                    {loading ? (
+                        <CircularProgress />
+                    ) : (
+                        <>
+                            <div>
+                                <ButtonGroup orientation='vertical' variant='contained'>
+                                    <Button onClick = {handleCreateFamilyOpen}>
+                                        Create Family
+                                    </Button>
+                                </ButtonGroup>
+                                <h2 style={{textAlign: 'center'}}>Families</h2>
+                            </div>
+                            <SimpleTreeView>
+                                {families.map((family) => (
+                                    <TreeItem
+                                        key={family.uuid}
+                                        itemId={family.uuid}
+                                        label={family.name}
+                                        sx={treeItemStyle}
+                                        onClick={() => setSelectedFamily(family.uuid)}
+                                    >
+                                        <h3 style={{textAlign: 'center'}}>Tag Mechanisms</h3>
+                                        {tagMechanismsMap[family.uuid]?.map((tagMechanism) => (
+                                            <TreeItem
+                                                key={tagMechanism.uuid}
+                                                itemId={tagMechanism.uuid}
+                                                label={tagMechanism.tag}
+                                                sx={treeItemStyle}
+                                                onClick={() => setSelectedTagMechanism(tagMechanism.uuid)}
+                                            />
+                                        ))}
+                                    </TreeItem>
+                                ))}
+                            </SimpleTreeView>
+                        </>
+                    )}
                 </div>
 
                 <StyledDetailBox>
-                    <p></p>
-                    <ButtonSystemGrid buttonArray={[getTagMechanismsFromFamily(familyUuid as string)]} uuid={tagMechanismUuid as string} handleClick={masterHandleTagMechanismClick} category={'TagMechanismsFromFamily'} height={'60vh'} cols={1} />
-                    <p></p>
+
                 </StyledDetailBox>
 
 
@@ -285,126 +246,26 @@ const FamilyPage = () => {
                         </Box>
                     </Modal>
                     <Modal
-                        open={createFamOpen}
-                        onClose={handleCreateFamClose}
+                        open={createFamilyOpen}
+                        onClose={handleCreateFamilyClose}
                     >
                         <Box sx={style}>
                             Enter name for Family below.
-                            <TextField id="textField" label="Name" onChange={ e => createFamRef.current = e.target.value}>
-
-                            </TextField>
-                            <Button onClick={handleCreateFamClick}>
+                            <TextField id="textField" label="Name" onChange={ e => createFamilyRef.current = e.target.value}/>
+                            
+                            <Button onClick={handleCreateFamilyClick}>
                                 Submit
                             </Button>
                         </Box>
                     </Modal>
                     <Modal
-                        open={createTagMechanismOpen}
-                        onClose={handleCreateTagMechanismClose}
+                        open={familySuccessOpen || familyFailOpen}
+                        onClose={familySuccessOpen ? handleCreateFamilySuccessClose : handleCreateFamilyFailClose}
+                        BackdropProps={{ invisible: true }}
+                        className={familySuccessOpen || familyFailOpen ? 'modal-visible' : 'modal-hidden'}
                     >
-                        <Box sx={style}>
-                            Enter name for Tag Mechanism below.
-                            <TextField id="textField" label="Name" onChange={ e => createTagMechanismRef.current = e.target.value}>
-
-                            </TextField>
-                            <Button onClick={handleCreateTagMechanismClick}>
-                                Submit
-                            </Button>
-                        </Box>
-                    </Modal>
-                    <Modal
-                        open={addMToFOpen}
-                        onClose={handleAddMtoFClose}
-                    >
-                        <Box sx={style}>
-                            Pick existing Tag Mechanism
-                            <Select
-                                value={selectedTagMechanism}
-                                onChange={handleTagMechanismChange}
-                                label="TagMechanism"
-                                style={{ minWidth: 200 }}
-                            >
-                                {tagMechanismOptions.map((tagMechanism: TagMechanism) => (
-                                    <MenuItem key={tagMechanism.uuid} value={tagMechanism.uuid}>
-                                        {tagMechanism.tag}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                            <Button onClick={handleCreateMtoFClick}>
-                                Submit
-                            </Button>
-                        </Box>
-                    </Modal>
-                    <Modal
-                        open={delFamOpen}
-                        onClose={handleDelFamClose}
-                    >
-                        <Box sx={style}>
-                            Select Family to delete.
-                            <Select
-                                value={selectedFamily}
-                                onChange={handleFamilyChange}
-                                label="Family"
-                                style={{ minWidth: 200 }}
-                            >
-                                {familyOptions.map((family: Family) => (
-                                    <MenuItem key={family.uuid} value={family.uuid}>
-                                        {family.name}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                            <Button onClick={handleDeleteFamClick}>
-                                Submit
-                            </Button>
-                        </Box>
-                    </Modal>
-                    <Modal
-                        open={tagOpen}
-                        onClose={handleTagClose}
-                    >
-                        <Box sx={style}>
-                            <List subheader={
-                                <ListSubheader>
-                                    {listName}
-                                </ListSubheader>
-                            }>
-                                <ListItem>
-                                    <ListItemButton onClick={handleReactionClick}>
-                                        <ListItemIcon>
-                                            <CalculateSharpIcon ></CalculateSharpIcon>
-                                        </ListItemIcon>
-                                        <ListItemText primary="Reactions">   
-                                        </ListItemText>
-                                    </ListItemButton>
-                                </ListItem>
-                                <ListItem>
-                                    <ListItemButton onClick={handleSpeciesClick}>
-                                        <ListItemIcon>
-                                            <ScienceSharpIcon></ScienceSharpIcon>
-                                        </ListItemIcon>
-                                        <ListItemText primary="Species">   
-                                        </ListItemText>
-                                    </ListItemButton>
-                                </ListItem>
-                                <ListItem>
-                                    <ListItemButton onClick={handleHistoryClick}>
-                                        <ListItemIcon>
-                                            <HistoryEduSharpIcon></HistoryEduSharpIcon>
-                                        </ListItemIcon>
-                                        <ListItemText primary="History">   
-                                        </ListItemText>
-                                    </ListItemButton>
-                                </ListItem>
-                                <ListItem>
-                                    <ListItemButton onClick={handleDownlaodClick}>
-                                        <ListItemIcon>
-                                            <HistoryEduSharpIcon></HistoryEduSharpIcon>
-                                        </ListItemIcon>
-                                        <ListItemText primary="Downlaod">   
-                                        </ListItemText>
-                                    </ListItemButton>
-                                </ListItem>
-                            </List>
+                        <Box sx={{ ...successFail, backgroundColor: familySuccessOpen ? '#00FF00' : '#FF0000' }}>
+                            {familySuccessOpen ? 'Family created successfully!' : 'Failed to create family!'}
                         </Box>
                     </Modal>
                 </div>
