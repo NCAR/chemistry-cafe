@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { Col } from 'react-bootstrap';
+import { Col, Row} from 'react-bootstrap';
 
 export const StyledLabel = styled.label`
   display: flex;
@@ -8,7 +8,23 @@ export const StyledLabel = styled.label`
   margin-bottom: 5px;
   color: #53565A;
   font-size: 18px; /* Bigger font size */
+  font-weight: normal;
+`;
+
+export const ReactionLabels = styled.div`
+  display: flex; 
+  justify-content: center; 
+  font-size: 3rem;
+`;
+
+export const BoldQuantity = styled.span`
   font-weight: bold;
+`;
+
+export const StyledRow = styled(Row)`
+  padding: 10px;
+  width: 80%;
+  margin: 0 auto;
 `;
 
 export const StyledInput = styled.input`

@@ -23,6 +23,7 @@ import IosShareSharpIcon from '@mui/icons-material/IosShareSharp';
 import TaskSharpIcon from '@mui/icons-material/TaskSharp';
 
 import "./family.css";
+import RenderReaction from './RenderReactantsProducts/RenderReaction';
 
 const ReactionsPage = () => {
     const location = useLocation();
@@ -279,6 +280,7 @@ const ReactionsPage = () => {
 
                 <StyledDetailBox>
                     <p></p>
+                        <RenderReaction reactants={[getReactantsFromReactionReactantList(reactantListUuid as string)]} products={[getProductsFromReactionReactantList(productListUuid as string)]}/>
                         <RenderReactantProducts reactantProducts={[getReactantsFromReactionReactantList(reactantListUuid as string)]} reactants_or_products='Reactants' handleClick={handleCreateReactantOpen}/>
                         <RenderReactantProducts reactantProducts={[getProductsFromReactionReactantList(productListUuid as string)]} reactants_or_products='Products' handleClick={handleCreateProductOpen}/>
                         <RenderProperties properties={[getPropertyiesFromParent(reactionUuid as string)]} />

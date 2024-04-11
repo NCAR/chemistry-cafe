@@ -25,8 +25,8 @@ const FamilyPage = () => {
     const createFamRef = useRef("");
     const createMechanismRef = useRef("");
 
-    const { familyUuid, setFamilyUuid, handleFamilyClick } = useFamilyUuid();
-    const { mechanismUuid, setMechanismUuid, handleFamilyMechanismClick } = useMechanismUuid();
+    const { familyUuid, handleFamilyClick } = useFamilyUuid();
+    const { mechanismUuid, handleFamilyMechanismClick } = useMechanismUuid();
     
     const [publishOpen, setPublishOpen] = React.useState(false);
     const [shareOpen, setShareOpen] = React.useState(false);

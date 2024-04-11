@@ -13,7 +13,7 @@ export const renderButton = (button: ButtonData, category: string, handleClick: 
     case 'MechanismsFromFamily':
       return mechanismsFromFamilyButton(button as Mechanism, handleClick, uuid);
     case 'TagMechanismsFromMechanism':
-      return tagMechanismsFromMechanismButton(button as TagMechanism, handleClick, uuid);
+      return tagMechanismsFromMechanismButton(button as TagMechanism, handleClick);
     case 'SpeciesFromTagMechanism':
       return speciesFromTagMechanismButton(button as Species, handleClick, uuid);
     case 'ReactionsFromTagMechanism':
@@ -42,8 +42,8 @@ const mechanismsFromFamilyButton = ({ uuid, name}: Mechanism, handleClick: (uuid
   </StyledMechanismsFromFamilyButton>
 );
 
-const tagMechanismsFromMechanismButton = ({ uuid, tag}: TagMechanism, handleClick: (uuid: string) => void, tagMechanismUuid: string) => (
-  <StyledTagMechanismsFromMechanismButton active={tagMechanismUuid === uuid ? 'true' : 'false'} onClick={() => handleClick(uuid)} style={{ width: '100%' }}>
+const tagMechanismsFromMechanismButton = ({ uuid, tag}: TagMechanism, handleClick: (uuid: string) => void) => (
+  <StyledTagMechanismsFromMechanismButton active={'false'} onClick={() => handleClick(uuid)} style={{ width: '100%' }}>
     {tag}
   </StyledTagMechanismsFromMechanismButton>
 );

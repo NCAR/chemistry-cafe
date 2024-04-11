@@ -17,7 +17,7 @@ const RenderReactantProducts: React.FC<RenderReactantProductsProps> = ({ reactan
         .then((resolved) => {
           const flattenedReactantProducts: ReactantProductList[] = resolved
             .reduce((acc, curr) => acc.concat(curr || []), [])
-            .filter(button => button !== null);
+            .filter(reactantproducts => reactantproducts !== null);
             setResolvedReactantProducts(flattenedReactantProducts);
         })
         .catch((error) => {
@@ -29,7 +29,7 @@ const RenderReactantProducts: React.FC<RenderReactantProductsProps> = ({ reactan
     const title = reactants_or_products === 'Reactants' ? 'Reactants' : 'Products';
 
     return (
-      <Container fluid style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+      <Container fluid style={{ overflowY: 'auto' }}>
         <Row>
           <StyledColumn>
             <StyledLabel>{title}</StyledLabel>
