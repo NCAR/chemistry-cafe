@@ -14,7 +14,7 @@ import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
 import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
 import { TreeItem } from '@mui/x-tree-view/TreeItem';
-import NavDropDown from './NavDropDown/NavDropDown';
+import NavDropDown from './Components/NavDropDown';
 
 import InsertLinkSharpIcon from '@mui/icons-material/InsertLinkSharp';
 import IosShareSharpIcon from '@mui/icons-material/IosShareSharp';
@@ -24,6 +24,7 @@ import DensitySmallSharpIcon from '@mui/icons-material/DensitySmallSharp';
 
 import "./family.css";
 import { Margin } from '@mui/icons-material';
+import RenderSpeciesReactionTable from './Components/RenderSpeciesReactionTable';
 
 
 const FamilyPage = () => {    
@@ -42,7 +43,6 @@ const FamilyPage = () => {
     const handleDOIOpen = () => setDOIOpen(true);
     const handleDOIClose = () => setDOIOpen(false);
     
-    const [selectedFamily, setSelectedFamily] = useState<string | null>(null);
     const [selectedTagMechanism, setSelectedTagMechanism] = useState<string | null>(null);
     const [families, setFamilies] = useState<Family[]>([]);
     const [tagMechanismsMap, setTagMechanismsMap] = useState<Record<string, TagMechanism[]>>({});
@@ -105,9 +105,11 @@ const FamilyPage = () => {
         try {
             await createFamily(createFamilyRef.current);
             createFamilyRef.current = '';
+            handleCreateFamilyClose();
             handleCreateFamilySuccess();
         } catch (error) {
             console.error(error);
+            handleCreateFamilyClose();
             handleCreateFamilyFail();
         }
     }
@@ -191,7 +193,7 @@ const FamilyPage = () => {
                                         itemId={family.uuid}
                                         label={family.name}
                                         sx={treeItemStyle}
-                                        onClick={() => setSelectedFamily(family.uuid)}
+                                        onClick={() => setSelectedTagMechanism(family.super_tag_mechanism_uuid)}
                                     >
                                         <h3 style={{textAlign: 'center'}}>Tag Mechanisms</h3>
                                         {tagMechanismsMap[family.uuid]?.map((tagMechanism) => (
@@ -211,7 +213,7 @@ const FamilyPage = () => {
                 </div>
 
                 <StyledDetailBox>
-
+                    <RenderSpeciesReactionTable selectedTagMechanism={selectedTagMechanism} />
                 </StyledDetailBox>
 
 

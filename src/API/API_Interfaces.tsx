@@ -1,6 +1,7 @@
 export interface Family {
     uuid: string;
     name: string;
+    super_tag_mechanism_uuid: string;
     isDel: boolean;
 }
 
