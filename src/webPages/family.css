@@ -1,22 +1,22 @@
-    .layout {
-    height: 100vh;
-    width: 100vw;
-  
-    display: grid;
-    grid:
-      "L1 M1 R1" 1fr
-      "L2 M2 R2" 1fr
-      "L3 M3 R3" 1fr
-      "L4 M4 R4" 1fr
-      "L5 M5 R5" 1fr
-      "L6 M6 R6" 1fr
-      "L7 M7 R7" 1fr
-      "L8 M8 R8" 1fr
-      "L9 M9 R9" 1fr
-      / 1fr 1fr 1fr;
-    gap: 8px;
-    background-color: #C3D7EE;
-  }
+.layout {
+  height: 100vh;
+  width: 100vw;
+
+  display: grid;
+  grid:
+    "L1 M1 R1" 1fr
+    "L2 M2 R2" 1fr
+    "L3 M3 R3" 1fr
+    "L4 M4 R4" 1fr
+    "L5 M5 R5" 1fr
+    "L6 M6 R6" 1fr
+    "L7 M7 R7" 1fr
+    "L8 M8 R8" 1fr
+    "L9 M9 R9" 1fr
+    / 1fr 1fr 1fr;
+  gap: 8px;
+  background-color: #C3D7EE;
+}
   
 
 
@@ -49,4 +49,3 @@
   }
 }
 
-  

@@ -1,35 +1,17 @@
-import * as React from 'react';
-import { useEffect, useState } from 'react';
-import { getSpeciesFromTagMechanism, getReactionsFromTagMechanism } from '../../API/API_GetMethods';
+import React, { useEffect, useState } from 'react';
+
 import { Species, Reaction} from '../../API/API_Interfaces';
-import { Table, TableBody, TableCell, TableContainer, TableRow, Paper, ButtonGroup, Button } from '@mui/material';
+import { getSpeciesFromTagMechanism, getReactionsFromTagMechanism } from '../../API/API_GetMethods';
+
 import { CreateReactionModal, CreateSpeciesModal } from './Modals';
+
+import { Table, TableBody, TableCell, TableContainer, TableRow, Paper, ButtonGroup, Button } from '@mui/material';
 
 interface Props {
     selectedTagMechanism: string | null;
 }
 
 const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedTagMechanism }) => {
-    const [species, setSpecies] = useState<Species[]>([]);
-    const [reactions, setReactions] = useState<Reaction[]>([]);
-    
-    useEffect(() => {
-        const fetchData = async () => {
-            if (selectedTagMechanism) {
-                const fetchedSpecies = await getSpeciesFromTagMechanism(selectedTagMechanism);
-                const fetchedReactions = await getReactionsFromTagMechanism(selectedTagMechanism);
-                setSpecies(fetchedSpecies);
-                setReactions(fetchedReactions);
-            } else {
-                // Clear species and reactions if no tag mechanism is selected
-                setSpecies([]);
-                setReactions([]);
-            }
-        };
-
-        fetchData();
-    }, [selectedTagMechanism, species, reactions]);
-
     const [createSpeciesOpen, setCreateSpeciesOpen] = React.useState(false);
     const handleCreateSpeciesOpen = () => setCreateSpeciesOpen(true);
     const handleCreateSpeciesClose = () => setCreateSpeciesOpen(false);
@@ -37,6 +19,30 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedTagMechanism }) =
     const [createReactionOpen, setCreateReactionOpen] = React.useState(false);
     const handleCreateReactionOpen = () => setCreateReactionOpen(true);
     const handleCreateReactionClose = () => setCreateReactionOpen(false);
+    
+    const [species, setSpecies] = useState<Species[]>([]);
+    const [reactions, setReactions] = useState<Reaction[]>([]);
+
+    const [speciesCreated, setSpeciesCreated] = useState<boolean>(false);
+    const [reactionCreated, setReactionCreated] = useState<boolean>(false);
+    
+    useEffect(() => {
+        const fetchData = async () => {
+            if (selectedTagMechanism ) {
+                const fetchedSpecies = await getSpeciesFromTagMechanism(selectedTagMechanism);
+                const fetchedReactions = await getReactionsFromTagMechanism(selectedTagMechanism);
+                setSpecies(fetchedSpecies);
+                setReactions(fetchedReactions);
+                setSpeciesCreated(false);
+                setReactionCreated(false);
+            } else {
+                setSpecies([]);
+                setReactions([]);
+            }
+        };
+
+        fetchData();
+    }, [selectedTagMechanism, speciesCreated == true, reactionCreated == true]);
 
     return (
         <div style={{ display: 'flex' }}>
@@ -83,8 +89,8 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedTagMechanism }) =
                 </TableContainer>
             </div>
 
-            <CreateSpeciesModal open={createSpeciesOpen} onClose={handleCreateSpeciesClose} selectedTagMechanism={selectedTagMechanism} />
-            <CreateReactionModal open={createReactionOpen} onClose={handleCreateReactionClose} selectedTagMechanism={selectedTagMechanism} />
+            <CreateSpeciesModal open={createSpeciesOpen} onClose={handleCreateSpeciesClose} selectedTagMechanism={selectedTagMechanism} setSpeciesCreated={setSpeciesCreated}/>
+            <CreateReactionModal open={createReactionOpen} onClose={handleCreateReactionClose} selectedTagMechanism={selectedTagMechanism} setReactionCreated={setReactionCreated}/>
         </div>
     );
 }
