@@ -25,13 +25,33 @@ interface RenderFamilyTreeProps {
     setSelectedFamily: React.Dispatch<React.SetStateAction<string | null>>;
     setSelectedTagMechanism: React.Dispatch<React.SetStateAction<string | null>>;
     handleCreateFamilyOpen: () => void;
+    handleCreateTagMechanismOpen: () => void;
+    selectedFamily: string | null;
+    createdFamilyBool: boolean;
+    setCreatedFamilyBool: React.Dispatch<React.SetStateAction<boolean>>;
+    createdTagMechanismBool: boolean;
+    setCreatedTagMechanismBool: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({ setSelectedFamily, setSelectedTagMechanism, handleCreateFamilyOpen}) => {
+const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({ 
+    selectedFamily, 
+    setSelectedFamily, 
+    setSelectedTagMechanism, 
+    handleCreateFamilyOpen, 
+    handleCreateTagMechanismOpen,
+    createdFamilyBool,
+    setCreatedFamilyBool,
+    createdTagMechanismBool,
+    setCreatedTagMechanismBool
+}) => {
+    const [expandedItems, setExpandedItems] = useState<string[]>([]);
+    
     const [families, setFamilies] = useState<Family[]>([]);
     const [tagMechanismsMap, setTagMechanismsMap] = useState<Record<string, TagMechanism[]>>({});
 
     const [loading, setLoading] = useState<boolean>(true);
+
+    const [popUpOpen, setPopUpOpen] = useState<boolean>(false);
     
     useEffect(() => {
         const fetchData = async () => {
@@ -47,13 +67,30 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({ setSelectedFamily, 
                     tagMechanismsMap[family.uuid] = tagMechanisms[index];
                 });
                 setTagMechanismsMap(tagMechanismsMap);
+                setCreatedFamilyBool(false);
+                setCreatedTagMechanismBool(false);
             } catch (error) {
                 console.error(error);
             }
         };
 
         fetchData();
-    }, []);
+    }, [createdFamilyBool == true, createdTagMechanismBool == true]);
+
+    const handleCreateTagMechanismClick = () => {
+        if (selectedFamily === null) {
+            setPopUpOpen(true);
+            setTimeout(() => {
+                setPopUpOpen(false);
+            }, 1500);
+        } else {
+            handleCreateTagMechanismOpen();
+        }
+    };
+
+    const handleItemExpansionToggle = (event: React.SyntheticEvent, itemId: string, isExpanded: boolean) => {
+        setExpandedItems(isExpanded ? [itemId] : []);
+    };
     
     return (
         <>
@@ -66,10 +103,21 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({ setSelectedFamily, 
                             <Button onClick={handleCreateFamilyOpen}>
                                 Create Family
                             </Button>
+                            <Button onClick={handleCreateTagMechanismClick}>
+                                Create Tag Mechanism
+                            </Button>
                         </ButtonGroup>
+                        {popUpOpen && (
+                            <div className="popup">
+                                <span className="popuptext">Family Not Selected</span>
+                            </div>
+                        )}
                         <h2 style={{textAlign: 'center'}}>Families</h2>
                     </div>
-                    <SimpleTreeView>
+                    <SimpleTreeView
+                        expandedItems={expandedItems}
+                        onItemExpansionToggle={handleItemExpansionToggle}
+                    >
                         {families.map((family) => (
                             <TreeItem
                                 key={family.uuid}

@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 
-import { TagMechanismReactionList, TagMechanismSpeciesList } from '../../API/API_Interfaces';
-import { createSpecies, createReaction, createTagMechanismSpeciesList, createTagMechanismReactionList, createFamily } from '../../API/API_CreateMethods';
+import { FamilyMechList, TagMechanismReactionList, TagMechanismSpeciesList } from '../../API/API_Interfaces';
+import { createSpecies, createReaction, createTagMechanismSpeciesList, createTagMechanismReactionList, createFamily, createFamilyMechList, createTagMechanism } from '../../API/API_CreateMethods';
 
 import { Modal, Box, TextField, Button } from '@mui/material';
 
@@ -35,6 +35,14 @@ interface CreateDOIModalProps {
 interface CreateFamilyModalProps {
     open: boolean;
     onClose: () => void;
+    setCreatedFamilyBool: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+interface CreateTagMechanismModalProps {
+    open: boolean;
+    onClose: () => void;
+    selectedFamily: string | null;
+    setCreatedTagMechanismBool: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface CreateSpeciesModalProps {
@@ -90,13 +98,15 @@ export const CreateDOIModal: React.FC<CreateDOIModalProps> = ({ open, onClose })
     );
 }
 
-export const CreateFamilyModal: React.FC<CreateFamilyModalProps> = ({ open, onClose }) => {
+export const CreateFamilyModal: React.FC<CreateFamilyModalProps> = ({ open, onClose, setCreatedFamilyBool}) => {
     const createFamilyRef = useRef("");
 
     const handleCreateFamilyClick = async () => {
         try {
             await createFamily(createFamilyRef.current);
             createFamilyRef.current = '';
+            onClose();
+            setCreatedFamilyBool(true);
         } catch (error) {
             console.error(error);
         }
@@ -113,6 +123,50 @@ export const CreateFamilyModal: React.FC<CreateFamilyModalProps> = ({ open, onCl
                     <TextField id="textField" label="Name" onChange={ e => createFamilyRef.current = e.target.value}/>
                     
                     <Button onClick={handleCreateFamilyClick}>
+                        Submit
+                    </Button>
+                </Box>
+            </Modal>
+        </div>
+    );
+}
+
+export const CreateTagMechanismModal: React.FC<CreateTagMechanismModalProps> = ({ open, onClose, selectedFamily, setCreatedTagMechanismBool }) => {
+    const createTagMechanismRef = useRef("");
+
+    const handleCreateTagMechanismClick = async () => {
+        try {
+
+            const tagMechanism = await createTagMechanism(createTagMechanismRef.current);
+
+            const familyMechList: FamilyMechList = {
+                uuid: '', // Auto creates in API
+                family_uuid: selectedFamily as string,
+                tag_mechanism_uuid: tagMechanism,
+                version: '1.0',
+                isDel: false, // Auto creates in API
+            };
+
+            await createFamilyMechList(familyMechList);
+            createTagMechanismRef.current = '';
+            onClose();
+            setCreatedTagMechanismBool(true);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    return (
+        <div>
+            <Modal
+                open={open}
+                onClose={onClose}
+            >
+                <Box sx={style}>
+                    Enter tag for Tag Mechanism below.
+                    <TextField id="textField" label="Name" onChange={ e => createTagMechanismRef.current = e.target.value}/>
+                    
+                    <Button onClick={handleCreateTagMechanismClick}>
                         Submit
                     </Button>
                 </Box>

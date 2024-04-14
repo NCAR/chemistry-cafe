@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import NavDropDown from './Components/NavDropDown';
 import RenderFamilyTree from './Components/RenderFamilyTree';
 import RenderSpeciesReactionTable from './Components/RenderSpeciesReactionTable';
-import { CreateDOIModal, CreateFamilyModal, CreatePublishModal, CreateShareModal } from './Components/Modals';
+import { CreateDOIModal, CreateFamilyModal, CreatePublishModal, CreateShareModal, CreateTagMechanismModal } from './Components/Modals';
 
 import { StyledHeader, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
 
@@ -35,12 +35,18 @@ const FamilyPage = () => {
     const handleDOIOpen = () => setDOIOpen(true);
     const handleDOIClose = () => setDOIOpen(false);
 
+    const [selectedFamily, setSelectedFamily] = useState<string | null>(null);
+    const [selectedTagMechanism, setSelectedTagMechanism] = useState<string | null>(null);
+
+    const [createdFamilyBool, setCreatedFamilyBool] = useState<boolean>(false);
     const [createFamilyOpen, setCreateFamilyOpen] = React.useState(false);
     const handleCreateFamilyOpen = () => setCreateFamilyOpen(true);
     const handleCreateFamilyClose = () => setCreateFamilyOpen(false);
 
-    const [selectedFamily, setSelectedFamily] = useState<string | null>(null);
-    const [selectedTagMechanism, setSelectedTagMechanism] = useState<string | null>(null);
+    const [createdTagMechanismBool, setCreatedTagMechanismBool] = useState<boolean>(false);
+    const [createTagMechanismOpen, setCreateTagMechanismOpen] = React.useState(false);
+    const handleCreateTagMechanismOpen = () => setCreateTagMechanismOpen(true);
+    const handleCreateTagMechanismClose = () => setCreateTagMechanismOpen(false);
 
     return (
         <section className="layout">
@@ -65,7 +71,17 @@ const FamilyPage = () => {
             </div>
 
             <div className="L2">
-                <RenderFamilyTree setSelectedFamily={setSelectedFamily} setSelectedTagMechanism={setSelectedTagMechanism} handleCreateFamilyOpen={handleCreateFamilyOpen}/>
+                <RenderFamilyTree 
+                    selectedFamily={selectedFamily}
+                    setSelectedFamily={setSelectedFamily} 
+                    setSelectedTagMechanism={setSelectedTagMechanism} 
+                    handleCreateFamilyOpen={handleCreateFamilyOpen} 
+                    handleCreateTagMechanismOpen={handleCreateTagMechanismOpen}
+                    createdFamilyBool={createdFamilyBool}
+                    setCreatedFamilyBool={setCreatedFamilyBool}
+                    createdTagMechanismBool={createdTagMechanismBool}
+                    setCreatedTagMechanismBool={setCreatedTagMechanismBool}
+                />
             </div>
 
             <StyledDetailBox>
@@ -80,7 +96,8 @@ const FamilyPage = () => {
             <CreatePublishModal open={publishOpen} onClose={handlePublishClose}/>
             <CreateShareModal open={shareOpen} onClose={handleShareClose}/>
             <CreateDOIModal open={doiOpen} onClose={handleDOIClose}/>
-            <CreateFamilyModal open={createFamilyOpen} onClose={handleCreateFamilyClose}/>
+            <CreateFamilyModal open={createFamilyOpen} onClose={handleCreateFamilyClose} setCreatedFamilyBool={setCreatedFamilyBool}/>
+            <CreateTagMechanismModal open={createTagMechanismOpen} onClose={handleCreateTagMechanismClose} selectedFamily={selectedFamily} setCreatedTagMechanismBool={setCreatedTagMechanismBool}/>
         </section>
     );
 }

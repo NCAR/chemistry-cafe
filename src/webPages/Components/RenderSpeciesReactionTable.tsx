@@ -80,7 +80,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedTagMechanism }) =
                             <TableBody>
                                 {reactions.map(reaction => (
                                     <TableRow key={reaction.uuid}>
-                                        <TableCell align="center" style={{ border: '1px solid black', padding: '1%', margin: '1%', fontWeight: 'bold' }}>{reaction.type}</TableCell>
+                                        <TableCell align="center" style={{ border: '1px solid black', padding: '1%', margin: '1%', fontWeight: 'bold' }}>{reaction.reaction_string}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>

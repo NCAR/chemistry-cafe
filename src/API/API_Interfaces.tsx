@@ -27,6 +27,7 @@ export interface Reaction {
   isDel: boolean;
   reactant_list_uuid: string;
   product_list_uuid: string;
+  reaction_string: string;
 }
 
 export interface Species {
