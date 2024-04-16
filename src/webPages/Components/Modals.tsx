@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 
-import { FamilyMechList, TagMechanismReactionList, TagMechanismSpeciesList } from '../../API/API_Interfaces';
+import { FamilyMechList, Reaction, Species, TagMechanismReactionList, TagMechanismSpeciesList } from '../../API/API_Interfaces';
 import { createSpecies, createReaction, createTagMechanismSpeciesList, createTagMechanismReactionList, createFamily, createFamilyMechList, createTagMechanism } from '../../API/API_CreateMethods';
 
 import { Modal, Box, TextField, Button } from '@mui/material';
@@ -57,6 +57,18 @@ interface CreateReactionModalProps {
     onClose: () => void;
     selectedTagMechanism: string | null;
     setReactionCreated: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+interface SpeciesPropertiesModalProps {
+    open: boolean;
+    onClose: () => void;
+    selectedSpecies: Species | null;
+}
+
+interface ReactionPropertiesModalProps {
+    open: boolean;
+    onClose: () => void;
+    selectedReaction: Reaction | null;
 }
 
 export const CreatePublishModal: React.FC<CreatePublishModalProps> = ({ open, onClose }) => {
@@ -248,6 +260,50 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({ open, 
                 Enter type for Reaction below.
                 <TextField id="textField" label="Name" onChange={ e => createReactionRef.current = e.target.value} />
                 <Button onClick={handleCreateReactionClick}>Submit</Button>
+            </Box>
+        </Modal>
+    );
+}
+
+export const SpeciesPropertiesModal: React.FC<SpeciesPropertiesModalProps> = ({ open, onClose, selectedSpecies}) => {
+    const handleSpeciesClick = async () => {
+        try {
+            onClose();
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    return (
+        <Modal 
+            open={open} 
+            onClose={onClose}
+        >
+            <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 400, bgcolor: 'background.paper', border: '2px solid #000', boxShadow: 24, p: 4 }}>
+                <h2>Properties</h2>
+                <Button onClick={handleSpeciesClick}>Submit</Button>
+            </Box>
+        </Modal>
+    );
+}
+
+export const ReactionPropertiesModal: React.FC<ReactionPropertiesModalProps> = ({ open, onClose, selectedReaction}) => {
+    const handleReactionClick = async () => {
+        try {
+            onClose();
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    return (
+        <Modal 
+            open={open} 
+            onClose={onClose}
+        >
+            <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 400, bgcolor: 'background.paper', border: '2px solid #000', boxShadow: 24, p: 4 }}>
+                <h2>Properties</h2>
+                <Button onClick={handleReactionClick}>Submit</Button>
             </Box>
         </Modal>
     );

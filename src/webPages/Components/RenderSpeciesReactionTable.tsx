@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Species, Reaction} from '../../API/API_Interfaces';
 import { getSpeciesFromTagMechanism, getReactionsFromTagMechanism } from '../../API/API_GetMethods';
 
-import { CreateReactionModal, CreateSpeciesModal } from './Modals';
+import { CreateReactionModal, CreateSpeciesModal, SpeciesPropertiesModal } from './Modals';
 
 import { Table, TableBody, TableCell, TableContainer, TableRow, Paper, ButtonGroup, Button } from '@mui/material';
 
@@ -25,6 +25,27 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedTagMechanism }) =
 
     const [speciesCreated, setSpeciesCreated] = useState<boolean>(false);
     const [reactionCreated, setReactionCreated] = useState<boolean>(false);
+
+    const [selectedSpecies, setSelectedSpecies] = useState<Species | null>(null);
+    const [selectedReaction, setSelectedReaction] = useState<Reaction | null>(null);
+
+    const [speciesPropertiesOpen, setSpeciesPropertiesOpen] = React.useState(false);
+    const handleSpeciesPropertiesOpen = () => setSpeciesPropertiesOpen(true);
+    const handleSpeciesPropertiesClose = () => setSpeciesPropertiesOpen(false);
+
+    const [reactionPropertiesOpen, setReactionPropertiesOpen] = React.useState(false);
+    const handleReactionPropertiesOpen = () => setReactionPropertiesOpen(true);
+    const handleReactionPropertiesClose = () => setReactionPropertiesOpen(false);
+
+    const handleSpeciesCellClick = (species: Species) => {
+        setSelectedSpecies(species);
+        handleSpeciesPropertiesOpen();
+    };
+    
+    const handleReactionCellClick = (reaction: Reaction) => {
+        setSelectedReaction(reaction);
+        handleReactionPropertiesOpen();
+    };
     
     useEffect(() => {
         const fetchData = async () => {
@@ -59,7 +80,11 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedTagMechanism }) =
                             <TableBody>
                                 {species.map(species => (
                                     <TableRow key={species.uuid}>
-                                        <TableCell align="center" style={{ border: '1px solid black', padding: '1%', margin: '1%', fontWeight: 'bold' }}>{species.type}</TableCell>
+                                        <TableCell align="center" style={{ border: '1px solid black', padding: '1%', margin: '1%', fontWeight: 'bold' }}>
+                                            <div onClick={() => handleSpeciesCellClick(species)}>
+                                                {species.type}
+                                            </div>
+                                        </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -80,7 +105,11 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedTagMechanism }) =
                             <TableBody>
                                 {reactions.map(reaction => (
                                     <TableRow key={reaction.uuid}>
-                                        <TableCell align="center" style={{ border: '1px solid black', padding: '1%', margin: '1%', fontWeight: 'bold' }}>{reaction.reaction_string}</TableCell>
+                                        <TableCell align="center" style={{ border: '1px solid black', padding: '1%', margin: '1%', fontWeight: 'bold' }}>
+                                            <div onClick={() => handleReactionCellClick(reaction)}>
+                                                {reaction.reaction_string}
+                                            </div>
+                                        </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -91,6 +120,8 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedTagMechanism }) =
 
             <CreateSpeciesModal open={createSpeciesOpen} onClose={handleCreateSpeciesClose} selectedTagMechanism={selectedTagMechanism} setSpeciesCreated={setSpeciesCreated}/>
             <CreateReactionModal open={createReactionOpen} onClose={handleCreateReactionClose} selectedTagMechanism={selectedTagMechanism} setReactionCreated={setReactionCreated}/>
+            <SpeciesPropertiesModal open={speciesPropertiesOpen} onClose={handleSpeciesPropertiesClose} selectedSpecies={selectedSpecies}/>
+            <SpeciesPropertiesModal open={reactionPropertiesOpen} onClose={handleReactionPropertiesClose} selectedSpecies={selectedReaction}/>
         </div>
     );
 }
