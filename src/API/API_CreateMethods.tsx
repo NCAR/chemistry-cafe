@@ -97,53 +97,61 @@ export async function createSpecies(type: string) {
     }
 }
 
-export async function createTagMechanismReactionList(tagMechanismReactionListData: TagMechanismReactionList) {
+export async function createTagMechanismReactionList(tagMechanismReactionListDataArray: TagMechanismReactionList[]) {
     try {
-        const requestData = {
-            reaction_uuid: tagMechanismReactionListData.reaction_uuid,
-            tag_mechanism_uuid: tagMechanismReactionListData.tag_mechanism_uuid,
-            version: tagMechanismReactionListData.version,
-        };
-        
-        const response = await axios.post(
-            'http://localhost:5134/api/TagMechanismReactionList/create',
-            requestData,
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
-        return response.data;
+        const requests = tagMechanismReactionListDataArray.map((tagMechanismReactionListData) => {
+            const requestData = {
+                reaction_uuid: tagMechanismReactionListData.reaction_uuid,
+                tag_mechanism_uuid: tagMechanismReactionListData.tag_mechanism_uuid,
+                version: tagMechanismReactionListData.version,
+            };
+            return axios.post(
+                'http://localhost:5134/api/TagMechanismReactionList/create',
+                requestData,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+        });
+
+        const responses = await Promise.all(requests);
+        return responses.map((response) => response.data);
     } catch (error) {
         console.error(error);
         throw error;
     }
 }
 
-export async function createTagMechanismSpeciesList(tagMechanismSpeciesListData: TagMechanismSpeciesList) {
-    try {
-        const requestData = {
-            species_uuid: tagMechanismSpeciesListData.species_uuid,
-            tag_mechanism_uuid: tagMechanismSpeciesListData.tag_mechanism_uuid,
-            version: tagMechanismSpeciesListData.version,
-        };
 
-        const response = await axios.post(
-            'http://localhost:5134/api/TagMechanismSpeciesList/create',
-            requestData,
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
-        return response.data;
+export async function createTagMechanismSpeciesList(tagMechanismSpeciesListDataArray: TagMechanismSpeciesList[]) {
+    try {
+        const requests = tagMechanismSpeciesListDataArray.map((tagMechanismSpeciesListData) => {
+            const requestData = {
+                species_uuid: tagMechanismSpeciesListData.species_uuid,
+                tag_mechanism_uuid: tagMechanismSpeciesListData.tag_mechanism_uuid,
+                version: tagMechanismSpeciesListData.version,
+            };
+            return axios.post(
+                'http://localhost:5134/api/TagMechanismSpeciesList/create',
+                requestData,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+        });
+
+        const responses = await Promise.all(requests);
+        return responses.map((response) => response.data);
     } catch (error) {
         console.error(error);
         throw error;
     }
 }
+
 
 export async function createPropertyType(propertyType: PropertyType) {
     try {

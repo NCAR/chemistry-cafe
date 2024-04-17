@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 import { getFamily, getProductsFromReactionReactantList, getPropertyTypesFromValidation, getPropertyiesFromParent, getReactantsFromReactionReactantList, getReactionsFromTagMechanism, getSpeciesFromTagMechanism } from '../../API/API_GetMethods';
-import { FamilyMechList, PropertyList, PropertyType, PropertyVersion, ReactantProductList, Reaction, Species, TagMechanismReactionList, TagMechanismSpeciesList } from '../../API/API_Interfaces';
+import { Family, FamilyMechList, PropertyList, PropertyType, PropertyVersion, ReactantProductList, Reaction, Species, TagMechanismReactionList, TagMechanismSpeciesList } from '../../API/API_Interfaces';
 import { createSpecies, createReaction, createTagMechanismSpeciesList, createTagMechanismReactionList, createFamily, createFamilyMechList, createTagMechanism, createPropertyList, createPropertyVersion, createReactantProduct } from '../../API/API_CreateMethods';
 
 import { Modal, Box, TextField, Button, Typography, TableContainer, Table, TableBody, TableRow, TableCell, Paper, IconButton, Select, MenuItem, TableHead } from '@mui/material';
@@ -212,29 +212,26 @@ export const CreateTagMechanismModal: React.FC<CreateTagMechanismModalProps> = (
 
             await createFamilyMechList(familyMechList);
 
-            selectedSpeciesList.forEach(async species_uuid => {
-                const tagMechanismSpeciesListData: TagMechanismSpeciesList = {
-                    uuid: '', // Auto creates
-                    species_uuid: species_uuid,
-                    tag_mechanism_uuid: tagMechanism as string,
-                    version: '',
-                    isDel: false, //Auto sets false
-                };
+            const tagMechanismSpeciesListData: TagMechanismSpeciesList[] = selectedSpeciesList.map((species_uuid) => ({
+                uuid: '',
+                species_uuid,
+                tag_mechanism_uuid: tagMechanism as string,
+                version: '',
+                isDel: false,
+            }));
 
-                await createTagMechanismSpeciesList(tagMechanismSpeciesListData);
-            });
+            const tagMechanismReactionListData: TagMechanismReactionList[] = selectedReactionList.map((reaction_uuid) => ({
+                uuid: '', // Auto creates
+                reaction_uuid,
+                tag_mechanism_uuid: tagMechanism as string,
+                version: '',
+                isDel: false, //Auto sets false
+            }));
 
-            selectedReactionList.forEach(async reaction_uuid => {
-                const tagMechanismReactionListData: TagMechanismReactionList = {
-                    uuid: '', // Auto creates
-                    reaction_uuid: reaction_uuid,
-                    tag_mechanism_uuid: tagMechanism as string,
-                    version: '',
-                    isDel: false, //Auto sets false
-                };
-
-                await createTagMechanismReactionList(tagMechanismReactionListData);
-            });
+            await Promise.all([
+                createTagMechanismSpeciesList(tagMechanismSpeciesListData),
+                createTagMechanismReactionList(tagMechanismReactionListData),
+            ]);
 
             createTagMechanismRef.current = '';
             setSelectedSpeciesList([]);
@@ -299,53 +296,99 @@ export const CreateTagMechanismModal: React.FC<CreateTagMechanismModalProps> = (
 export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({ open, onClose, selectedFamily, selectedTagMechanism, setSpeciesCreated }) => {
     const createSpeciesRef = useRef("");
 
+    const [family, setFamily] = useState<Family>();
+
+    const [speciesList, setSpeciesList] = useState<Species[]>([]);
+    const [selectedSpeciesList, setSelectedSpeciesList] = useState<string[]>([]);
+
+    useEffect(() => {
+        const fetchSpecies = async () => {
+            try {
+                if (selectedFamily && selectedTagMechanism) {
+                    const family = await getFamily(selectedFamily);
+                    setFamily(family);
+                    
+                    const speciesFamily = await getSpeciesFromTagMechanism(family.super_tag_mechanism_uuid);
+                    const speciesTagMechanism = await getSpeciesFromTagMechanism(selectedTagMechanism);
+        
+                    const uniqueSpecies = speciesFamily.filter(species =>
+                        !speciesTagMechanism.some(tagSpecies => tagSpecies.uuid === species.uuid)
+                    );
+        
+                    setSpeciesList(uniqueSpecies);
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        fetchSpecies();
+    }, [open, selectedFamily, selectedTagMechanism]);
+
     const handleCreateSpeciesClick = async () => {
         try {
-            if (selectedFamily && selectedTagMechanism)
-            {
-                const family = await getFamily(selectedFamily);
-            
-                const species_uuid = await createSpecies(createSpeciesRef.current);
-        
-                if (family.super_tag_mechanism_uuid != selectedTagMechanism) {
-                    const familySpeciesListData: TagMechanismSpeciesList = {
-                        uuid: '', // Auto creates
-                        species_uuid: species_uuid,
-                        tag_mechanism_uuid: family.super_tag_mechanism_uuid as string,
-                        version: '',
-                        isDel: false, //Auto sets false
-                    };
-                    
-                    const tagMechanismSpeciesListData: TagMechanismSpeciesList = {
-                        uuid: '', // Auto creates
-                        species_uuid: species_uuid,
-                        tag_mechanism_uuid: selectedTagMechanism as string,
-                        version: '',
-                        isDel: false, //Auto sets false
-                    };
-                    
-                    await createTagMechanismSpeciesList(familySpeciesListData);
-                    await createTagMechanismSpeciesList(tagMechanismSpeciesListData);
-                }else if (family.super_tag_mechanism_uuid == selectedTagMechanism){
-                    const tagMechanismSpeciesListData: TagMechanismSpeciesList = {
-                        uuid: '', // Auto creates
-                        species_uuid: species_uuid,
-                        tag_mechanism_uuid: selectedTagMechanism as string,
-                        version: '',
-                        isDel: false, //Auto sets false
-                    };
-            
-                    await createTagMechanismSpeciesList(tagMechanismSpeciesListData);
-                }
+            if (selectedFamily && selectedTagMechanism) {
+                if (family?.super_tag_mechanism_uuid !== selectedTagMechanism) {
+                    if (createSpeciesRef.current !== ""){
+                        const species_uuid = await createSpecies(createSpeciesRef.current);
 
+                        const textFamilySpeciesListData: TagMechanismSpeciesList[] = [{
+                            uuid: '',
+                            species_uuid,
+                            tag_mechanism_uuid: family?.super_tag_mechanism_uuid as string,
+                            version: '',
+                            isDel: false,
+                        }];
+                        const textTagMechanismSpeciesListData: TagMechanismSpeciesList[] = [{
+                            uuid: '',
+                            species_uuid,
+                            tag_mechanism_uuid: selectedTagMechanism as string,
+                            version: '',
+                            isDel: false,
+                        }];
+                        
+                        await Promise.all([
+                            await createTagMechanismSpeciesList(textFamilySpeciesListData),
+                            await createTagMechanismSpeciesList(textTagMechanismSpeciesListData),
+                        ]);              
+                    }
+                    
+                    const selectedTagMechanismSpeciesListData: TagMechanismSpeciesList[] = selectedSpeciesList.map((species_uuid) => ({
+                        uuid: '',
+                        species_uuid,
+                        tag_mechanism_uuid: selectedTagMechanism as string,
+                        version: '',
+                        isDel: false,
+                    }));
+                    await Promise.all([
+                        createTagMechanismSpeciesList(selectedTagMechanismSpeciesListData),
+                    ]);
+                } else {
+                    if (createSpeciesRef.current !== ""){
+                        const species_uuid = await createSpecies(createSpeciesRef.current);
+
+                        const tagMechanismSpeciesListData: TagMechanismSpeciesList[] = [{
+                            uuid: '',
+                            species_uuid,
+                            tag_mechanism_uuid: selectedTagMechanism as string,
+                            version: '',
+                            isDel: false,
+                        }];
+                        
+                        await Promise.all([
+                            await createTagMechanismSpeciesList(tagMechanismSpeciesListData),
+                        ]);
+                    }
+                }
                 createSpeciesRef.current = '';
+                setSelectedSpeciesList([]);
                 onClose();
                 setSpeciesCreated(true);
             }
         } catch (error) {
             console.error(error);
         }
-    }
+    };    
 
     return (
         <Modal 
@@ -353,57 +396,132 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({ open, on
             onClose={onClose}
         >
             <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 400, bgcolor: 'background.paper', border: '2px solid #000', boxShadow: 24, p: 4 }}>
-                Enter Name for Species below.
-                <TextField id="textField" label="Name" onChange={e => createSpeciesRef.current = e.target.value} />
-                <Button onClick={handleCreateSpeciesClick}>Submit</Button>
+                <div>
+                    Enter Name for New Species
+                    <TextField id="textField" label="Name" onChange={(e) => (createSpeciesRef.current = e.target.value)} />
+                    {(family?.super_tag_mechanism_uuid !== selectedTagMechanism && speciesList.length > 0) && (
+                        <>
+                            <Typography variant="subtitle1">Or Pick Existing Species in Family (Multiple Selection)</Typography>
+                            <Select
+                                label="Pick Existing Species"
+                                multiple
+                                value={selectedSpeciesList}
+                                onChange={(e) => setSelectedSpeciesList(e.target.value as string[])}
+                                style={{ minWidth: 200, marginTop: '1rem' }}
+                            >
+                                {speciesList.map((species) => (
+                                    <MenuItem key={species.uuid} value={species.uuid}>
+                                        {species.type}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </>
+                    )}
+                    {(family?.super_tag_mechanism_uuid !== selectedTagMechanism && speciesList.length === 0) && (
+                        <Typography variant="subtitle1" style={{ marginTop: '1rem' }}>Contains all Family's Species</Typography>
+                    )}
+                    <Button onClick={handleCreateSpeciesClick} style={{ marginTop: '1rem' }}>
+                        Submit
+                    </Button>
+                </div>
             </Box>
         </Modal>
-    );
+    );    
 }
 
 export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({ open, onClose, selectedFamily, selectedTagMechanism, setReactionCreated }) => {
     const [selectedReaction, setSelectedReaction] = useState<string>("");
 
+    const [family, setFamily] = useState<Family>();
+
+    const [reactionList, setReactionList] = useState<Reaction[]>([]);
+    const [selectedReactionList, setSelectedReactionList] = useState<string[]>([]);
+
+    useEffect(() => {
+        const fetchReactions = async () => {
+            try {
+                if (selectedFamily && selectedTagMechanism) {
+                    const family = await getFamily(selectedFamily);
+                    setFamily(family);
+                    
+                    const reactionsFamily = await getReactionsFromTagMechanism(family.super_tag_mechanism_uuid);
+                    const reactionsTagMechanism = await getReactionsFromTagMechanism(selectedTagMechanism);
+        
+                    const uniqueReactions = reactionsFamily.filter(reaction =>
+                        !reactionsTagMechanism.some(tagReaction => tagReaction.uuid === reaction.uuid)
+                    );
+        
+                    setReactionList(uniqueReactions);
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        fetchReactions();
+    }, [open, selectedFamily, selectedTagMechanism]);
+
     const handleCreateReactionClick = async () => {
         try {
             if (selectedFamily && selectedTagMechanism)
-                {
-                    const family = await getFamily(selectedFamily);
-            
-                    const reaction_uuid = await createReaction(selectedReaction);
+                {  
+                    if (family?.super_tag_mechanism_uuid != selectedTagMechanism) {
+                        if (selectedReaction !== ""){
+                            const reaction_uuid = await createReaction(selectedReaction);
+                            
+                            const familyReactionListData: TagMechanismReactionList[] = [{
+                                uuid: '', // Auto creates
+                                reaction_uuid: reaction_uuid,
+                                tag_mechanism_uuid: family?.super_tag_mechanism_uuid as string,
+                                version: '',
+                                isDel: false, //Auto sets false
+                            }];
+                            
+                            const tagMechanismReactionListData: TagMechanismReactionList[] = [{
+                                uuid: '', // Auto creates
+                                reaction_uuid: reaction_uuid,
+                                tag_mechanism_uuid: selectedTagMechanism as string,
+                                version: '',
+                                isDel: false, //Auto sets false
+                            }];
 
-                    if (family.super_tag_mechanism_uuid != selectedTagMechanism) {
-                        const familyReactionListData: TagMechanismReactionList = {
-                            uuid: '', // Auto creates
-                            reaction_uuid: reaction_uuid,
-                            tag_mechanism_uuid: family.super_tag_mechanism_uuid as string,
-                            version: '',
-                            isDel: false, //Auto sets false
-                        };
+                            await Promise.all([
+                                createTagMechanismReactionList(familyReactionListData),
+                                createTagMechanismReactionList(tagMechanismReactionListData),
+                            ]);
+                        }
                         
-                        const tagMechanismReactionListData: TagMechanismReactionList = {
-                            uuid: '', // Auto creates
-                            reaction_uuid: reaction_uuid,
+                        const selectedTagMechanismReactionListData: TagMechanismReactionList[] = selectedReactionList.map((reaction_uuid) => ({
+                            uuid: '',
+                            reaction_uuid,
                             tag_mechanism_uuid: selectedTagMechanism as string,
                             version: '',
-                            isDel: false, //Auto sets false
-                        };
+                            isDel: false,
+                        }));
 
-                        await createTagMechanismReactionList(familyReactionListData);
-                        await createTagMechanismReactionList(tagMechanismReactionListData);
+                        await Promise.all([
+                            createTagMechanismReactionList(selectedTagMechanismReactionListData),
+                        ]);
                     }else if (family.super_tag_mechanism_uuid == selectedTagMechanism) {
-                        const tagMechanismReactionListData: TagMechanismReactionList = {
-                            uuid: '', // Auto creates
-                            reaction_uuid: reaction_uuid,
-                            tag_mechanism_uuid: selectedTagMechanism as string,
-                            version: '',
-                            isDel: false, //Auto sets false
-                        };
+                        if (selectedReaction !== ""){
+                            const reaction_uuid = await createReaction(selectedReaction);
+                            
+                            const tagMechanismReactionListData: TagMechanismReactionList[] = [{
+                                uuid: '', // Auto creates
+                                reaction_uuid: reaction_uuid,
+                                tag_mechanism_uuid: selectedTagMechanism as string,
+                                version: '',
+                                isDel: false, //Auto sets false
+                            }];
 
-                        await createTagMechanismReactionList(tagMechanismReactionListData);
+                            await Promise.all([
+                                createTagMechanismReactionList(tagMechanismReactionListData),
+                            ]);
+                        }
                     }
 
-                    setSelectedReaction(''); // Resetting the selected reaction state
+                    setSelectedReaction('');
+                    setSelectedReactionList([]);
                     setReactionCreated(true);
                     onClose();
                 }
@@ -418,19 +536,41 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({ open, 
             onClose={onClose}
         >
             <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 400, bgcolor: 'background.paper', border: '2px solid #000', boxShadow: 24, p: 4 }}>
-                Pick a Reaction Type
+                Pick a Reaction Type For new reaction
                 <Select
                     labelId="reaction-type-select-label"
                     id="reaction-type-select"
                     value={selectedReaction}
                     onChange={(e) => setSelectedReaction(e.target.value as string)}
                 >
+                    <MenuItem value="">N/A</MenuItem>
                     <MenuItem value="Arrhenius">Arrhenius</MenuItem>
                     <MenuItem value="Ternary Chemical Activation">Ternary Chemical Activation</MenuItem>
                     <MenuItem value="Troe (Fall-Off)">Troe (Fall-Off)</MenuItem>
                     <MenuItem value="Tunneling">Tunneling</MenuItem>
                 </Select>
                 <p/>
+                {(family?.super_tag_mechanism_uuid !== selectedTagMechanism && reactionList.length > 0) && (
+                <>
+                    <Typography variant="subtitle1">Or Pick Existing Reactions in Family (Multiple Selection)</Typography>
+                    <Select
+                        label="Pick Existing Reactions"
+                        multiple
+                        value={selectedReactionList}
+                        onChange={(e) => setSelectedReactionList(e.target.value as string[])}
+                        style={{ minWidth: 200, marginTop: '1rem' }}
+                    >
+                        {reactionList.map((reaction) => (
+                            <MenuItem key={reaction.uuid} value={reaction.uuid}>
+                                {reaction.reaction_string}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </>
+            )}
+            {(family?.super_tag_mechanism_uuid !== selectedTagMechanism && reactionList.length === 0) && (
+                <Typography variant="subtitle1" style={{ marginTop: '1rem' }}>Contains all Family's Reactions</Typography>
+            )}
                 <Button onClick={handleCreateReactionClick}>Submit</Button>
             </Box>
         </Modal>
