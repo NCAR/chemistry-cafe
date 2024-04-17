@@ -51,6 +51,7 @@ interface CreateTagMechanismModalProps {
 interface CreateSpeciesModalProps {
     open: boolean;
     onClose: () => void;
+    selectedFamily: string | null;
     selectedTagMechanism: string | null;
     setSpeciesCreated: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -58,6 +59,7 @@ interface CreateSpeciesModalProps {
 interface CreateReactionModalProps {
     open: boolean;
     onClose: () => void;
+    selectedFamily: string | null;
     selectedTagMechanism: string | null;
     setReactionCreated: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -294,26 +296,52 @@ export const CreateTagMechanismModal: React.FC<CreateTagMechanismModalProps> = (
     );
 }
 
-export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({ open, onClose, selectedTagMechanism, setSpeciesCreated }) => {
+export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({ open, onClose, selectedFamily, selectedTagMechanism, setSpeciesCreated }) => {
     const createSpeciesRef = useRef("");
 
     const handleCreateSpeciesClick = async () => {
         try {
-            const species_uuid = await createSpecies(createSpeciesRef.current);
-    
-            const tagMechanismSpeciesListData: TagMechanismSpeciesList = {
-                uuid: '', // Auto creates
-                species_uuid: species_uuid,
-                tag_mechanism_uuid: selectedTagMechanism as string,
-                version: '',
-                isDel: false, //Auto sets false
-            };
-    
-            await createTagMechanismSpeciesList(tagMechanismSpeciesListData);
-    
-            createSpeciesRef.current = '';
-            onClose();
-            setSpeciesCreated(true);
+            if (selectedFamily && selectedTagMechanism)
+            {
+                const family = await getFamily(selectedFamily);
+            
+                const species_uuid = await createSpecies(createSpeciesRef.current);
+        
+                if (family.super_tag_mechanism_uuid != selectedTagMechanism) {
+                    const familySpeciesListData: TagMechanismSpeciesList = {
+                        uuid: '', // Auto creates
+                        species_uuid: species_uuid,
+                        tag_mechanism_uuid: family.super_tag_mechanism_uuid as string,
+                        version: '',
+                        isDel: false, //Auto sets false
+                    };
+                    
+                    const tagMechanismSpeciesListData: TagMechanismSpeciesList = {
+                        uuid: '', // Auto creates
+                        species_uuid: species_uuid,
+                        tag_mechanism_uuid: selectedTagMechanism as string,
+                        version: '',
+                        isDel: false, //Auto sets false
+                    };
+                    
+                    await createTagMechanismSpeciesList(familySpeciesListData);
+                    await createTagMechanismSpeciesList(tagMechanismSpeciesListData);
+                }else if (family.super_tag_mechanism_uuid == selectedTagMechanism){
+                    const tagMechanismSpeciesListData: TagMechanismSpeciesList = {
+                        uuid: '', // Auto creates
+                        species_uuid: species_uuid,
+                        tag_mechanism_uuid: selectedTagMechanism as string,
+                        version: '',
+                        isDel: false, //Auto sets false
+                    };
+            
+                    await createTagMechanismSpeciesList(tagMechanismSpeciesListData);
+                }
+
+                createSpeciesRef.current = '';
+                onClose();
+                setSpeciesCreated(true);
+            }
         } catch (error) {
             console.error(error);
         }
@@ -333,27 +361,52 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({ open, on
     );
 }
 
-export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({ open, onClose, selectedTagMechanism, setReactionCreated }) => {
+export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({ open, onClose, selectedFamily, selectedTagMechanism, setReactionCreated }) => {
     const [selectedReaction, setSelectedReaction] = useState<string>("");
-    const createReactionRef = useRef<string>("");
 
     const handleCreateReactionClick = async () => {
         try {
-            const reaction_uuid = await createReaction(selectedReaction);
+            if (selectedFamily && selectedTagMechanism)
+                {
+                    const family = await getFamily(selectedFamily);
+            
+                    const reaction_uuid = await createReaction(selectedReaction);
 
-            const tagMechanismReactionListData: TagMechanismReactionList = {
-                uuid: '', // Auto creates
-                reaction_uuid: reaction_uuid,
-                tag_mechanism_uuid: selectedTagMechanism as string,
-                version: '',
-                isDel: false, //Auto sets false
-            };
+                    if (family.super_tag_mechanism_uuid != selectedTagMechanism) {
+                        const familyReactionListData: TagMechanismReactionList = {
+                            uuid: '', // Auto creates
+                            reaction_uuid: reaction_uuid,
+                            tag_mechanism_uuid: family.super_tag_mechanism_uuid as string,
+                            version: '',
+                            isDel: false, //Auto sets false
+                        };
+                        
+                        const tagMechanismReactionListData: TagMechanismReactionList = {
+                            uuid: '', // Auto creates
+                            reaction_uuid: reaction_uuid,
+                            tag_mechanism_uuid: selectedTagMechanism as string,
+                            version: '',
+                            isDel: false, //Auto sets false
+                        };
 
-            await createTagMechanismReactionList(tagMechanismReactionListData);
+                        await createTagMechanismReactionList(familyReactionListData);
+                        await createTagMechanismReactionList(tagMechanismReactionListData);
+                    }else if (family.super_tag_mechanism_uuid == selectedTagMechanism) {
+                        const tagMechanismReactionListData: TagMechanismReactionList = {
+                            uuid: '', // Auto creates
+                            reaction_uuid: reaction_uuid,
+                            tag_mechanism_uuid: selectedTagMechanism as string,
+                            version: '',
+                            isDel: false, //Auto sets false
+                        };
 
-            setSelectedReaction(''); // Resetting the selected reaction state
-            setReactionCreated(true);
-            onClose();
+                        await createTagMechanismReactionList(tagMechanismReactionListData);
+                    }
+
+                    setSelectedReaction(''); // Resetting the selected reaction state
+                    setReactionCreated(true);
+                    onClose();
+                }
         } catch (error) {
             console.error(error);
         }

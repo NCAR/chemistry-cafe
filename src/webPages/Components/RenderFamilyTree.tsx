@@ -51,7 +51,7 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
 
     const [loading, setLoading] = useState<boolean>(true);
 
-    const [popUpOpen, setPopUpOpen] = useState<boolean>(false);
+    const [, setPopUpOpen] = useState<boolean>(false);
     
     useEffect(() => {
         const fetchData = async () => {
@@ -104,7 +104,7 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
         window.URL.revokeObjectURL(blobUrl);
     };
 
-    const handleItemExpansionToggle = (event: React.SyntheticEvent, itemId: string, isExpanded: boolean) => {
+    const handleItemExpansionToggle = (_event: React.SyntheticEvent, itemId: string, isExpanded: boolean) => {
         setExpandedItems(isExpanded ? [itemId] : []);
     };
     

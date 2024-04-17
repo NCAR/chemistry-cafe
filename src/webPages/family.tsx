@@ -5,7 +5,7 @@ import RenderFamilyTree from './Components/RenderFamilyTree';
 import RenderSpeciesReactionTable from './Components/RenderSpeciesReactionTable';
 import { CreateDOIModal, CreateFamilyModal, CreatePublishModal, CreateShareModal, CreateTagMechanismModal } from './Components/Modals';
 
-import { StyledHeader, StyledDetailBox } from '../buttonSystem/RenderButtonsStyling';
+import { StyledHeader, StyledDetailBox } from './familyStyling';
 
 import { Drawer } from '@mui/material';
 import Button from "@mui/material/Button";
@@ -85,7 +85,7 @@ const FamilyPage = () => {
             </div>
 
             <StyledDetailBox>
-                <RenderSpeciesReactionTable selectedTagMechanism={selectedTagMechanism} />
+                <RenderSpeciesReactionTable selectedFamily={selectedFamily} selectedTagMechanism={selectedTagMechanism} />
             </StyledDetailBox>
 
 

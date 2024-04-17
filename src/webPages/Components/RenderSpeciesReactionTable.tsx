@@ -5,16 +5,17 @@ import { getSpeciesFromTagMechanism, getReactionsFromTagMechanism } from '../../
 
 import { CreateReactionModal, CreateSpeciesModal, ReactionPropertiesModal, SpeciesPropertiesModal } from './Modals';
 
-import { Table, TableBody, TableCell, TableContainer, TableRow, Paper, ButtonGroup, Button } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableRow, Paper } from '@mui/material';
 
 import IconButton from '@mui/material/IconButton';
 import { Add } from '@mui/icons-material';
 
 interface Props {
+    selectedFamily: string | null;
     selectedTagMechanism: string | null;
 }
 
-const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedTagMechanism }) => {
+const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamily, selectedTagMechanism }) => {
     const [createSpeciesOpen, setCreateSpeciesOpen] = React.useState(false);
     const handleCreateSpeciesOpen = () => setCreateSpeciesOpen(true);
     const handleCreateSpeciesClose = () => setCreateSpeciesOpen(false);
@@ -131,8 +132,8 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedTagMechanism }) =
                 </TableContainer>
             </div>
 
-            <CreateSpeciesModal open={createSpeciesOpen} onClose={handleCreateSpeciesClose} selectedTagMechanism={selectedTagMechanism} setSpeciesCreated={setSpeciesCreated}/>
-            <CreateReactionModal open={createReactionOpen} onClose={handleCreateReactionClose} selectedTagMechanism={selectedTagMechanism} setReactionCreated={setReactionCreated}/>
+            <CreateSpeciesModal open={createSpeciesOpen} onClose={handleCreateSpeciesClose} selectedFamily={selectedFamily} selectedTagMechanism={selectedTagMechanism} setSpeciesCreated={setSpeciesCreated}/>
+            <CreateReactionModal open={createReactionOpen} onClose={handleCreateReactionClose} selectedFamily={selectedFamily} selectedTagMechanism={selectedTagMechanism} setReactionCreated={setReactionCreated}/>
             <SpeciesPropertiesModal open={speciesPropertiesOpen} onClose={handleSpeciesPropertiesClose} selectedTagMechanism={selectedTagMechanism} selectedSpecies={selectedSpecies}/>
             <ReactionPropertiesModal open={reactionPropertiesOpen} onClose={handleReactionPropertiesClose} selectedTagMechanism={selectedTagMechanism} selectedReaction={selectedReaction} setReactionUpdated={setReactionUpdated}/>
         </div>
