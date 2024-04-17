@@ -3,9 +3,12 @@ import React, { useEffect, useState } from 'react';
 import { Species, Reaction} from '../../API/API_Interfaces';
 import { getSpeciesFromTagMechanism, getReactionsFromTagMechanism } from '../../API/API_GetMethods';
 
-import { CreateReactionModal, CreateSpeciesModal, SpeciesPropertiesModal } from './Modals';
+import { CreateReactionModal, CreateSpeciesModal, ReactionPropertiesModal, SpeciesPropertiesModal } from './Modals';
 
 import { Table, TableBody, TableCell, TableContainer, TableRow, Paper, ButtonGroup, Button } from '@mui/material';
+
+import IconButton from '@mui/material/IconButton';
+import { Add } from '@mui/icons-material';
 
 interface Props {
     selectedTagMechanism: string | null;
@@ -25,6 +28,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedTagMechanism }) =
 
     const [speciesCreated, setSpeciesCreated] = useState<boolean>(false);
     const [reactionCreated, setReactionCreated] = useState<boolean>(false);
+    const [reactionUpdated, setReactionUpdated] = useState<boolean>(false);
 
     const [selectedSpecies, setSelectedSpecies] = useState<Species | null>(null);
     const [selectedReaction, setSelectedReaction] = useState<Reaction | null>(null);
@@ -56,6 +60,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedTagMechanism }) =
                 setReactions(fetchedReactions);
                 setSpeciesCreated(false);
                 setReactionCreated(false);
+                setReactionUpdated(false);
             } else {
                 setSpecies([]);
                 setReactions([]);
@@ -63,7 +68,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedTagMechanism }) =
         };
 
         fetchData();
-    }, [selectedTagMechanism, speciesCreated == true, reactionCreated == true]);
+    }, [selectedTagMechanism, speciesCreated == true, reactionCreated == true, reactionUpdated == true]);
 
     return (
         <div style={{ display: 'flex' }}>
@@ -72,9 +77,13 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedTagMechanism }) =
                     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
                             <h2 style={{ textAlign: 'center', margin: '0' }}>Species</h2>
-                            <ButtonGroup orientation='vertical' variant='contained' style={{ marginLeft: '1rem' }}>
-                                <Button onClick={handleCreateSpeciesOpen}>Add Species</Button>
-                            </ButtonGroup>
+                            <IconButton 
+                                onClick={handleCreateSpeciesOpen} 
+                                aria-label="create species" 
+                                style={{ color: 'blue', margin: '5px' }}
+                            >
+                                <Add sx={{ fontSize: 32, fontWeight: 'bold' }} />
+                            </IconButton>
                         </div>
                         <Table>
                             <TableBody>
@@ -97,9 +106,13 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedTagMechanism }) =
                     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
                             <h2 style={{ textAlign: 'center', margin: '0' }}>Reactions</h2>
-                            <ButtonGroup orientation='vertical' variant='contained' style={{ marginLeft: '1rem' }}>
-                            <Button onClick = {handleCreateReactionOpen}>Add Reaction</Button>
-                            </ButtonGroup>
+                            <IconButton 
+                                onClick={handleCreateReactionOpen} 
+                                aria-label="create reaction" 
+                                style={{ color: 'blue', margin: '5px' }}
+                            >
+                                <Add sx={{ fontSize: 32, fontWeight: 'bold' }} />
+                            </IconButton>
                         </div>
                         <Table>
                             <TableBody>
@@ -120,8 +133,8 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedTagMechanism }) =
 
             <CreateSpeciesModal open={createSpeciesOpen} onClose={handleCreateSpeciesClose} selectedTagMechanism={selectedTagMechanism} setSpeciesCreated={setSpeciesCreated}/>
             <CreateReactionModal open={createReactionOpen} onClose={handleCreateReactionClose} selectedTagMechanism={selectedTagMechanism} setReactionCreated={setReactionCreated}/>
-            <SpeciesPropertiesModal open={speciesPropertiesOpen} onClose={handleSpeciesPropertiesClose} selectedSpecies={selectedSpecies}/>
-            <SpeciesPropertiesModal open={reactionPropertiesOpen} onClose={handleReactionPropertiesClose} selectedSpecies={selectedReaction}/>
+            <SpeciesPropertiesModal open={speciesPropertiesOpen} onClose={handleSpeciesPropertiesClose} selectedTagMechanism={selectedTagMechanism} selectedSpecies={selectedSpecies}/>
+            <ReactionPropertiesModal open={reactionPropertiesOpen} onClose={handleReactionPropertiesClose} selectedTagMechanism={selectedTagMechanism} selectedReaction={selectedReaction} setReactionUpdated={setReactionUpdated}/>
         </div>
     );
 }

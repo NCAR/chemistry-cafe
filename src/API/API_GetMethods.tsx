@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Family, FamilyMechList, PropertyVersion, Reaction, Species, TagMechanism, TagMechanismReactionList, TagMechanismSpeciesList, ReactantProductList} from "./API_Interfaces";
+import { Family, FamilyMechList, PropertyType, PropertyVersion, Reaction, Species, TagMechanism, TagMechanismReactionList, TagMechanismSpeciesList, ReactantProductList} from "./API_Interfaces";
 
 export async function getFamilies(): Promise<Family[]> {
     try {
@@ -180,6 +180,16 @@ export async function getTagMechanismSpeciesList(uuid?: string): Promise<TagMech
     
     try {
         const response = await axios.get<TagMechanismSpeciesList[]>(`http://localhost:5134/api/TagMechanismSpeciesList/${uuid}`);
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        return [];
+    }
+}
+
+export async function getPropertyTypesFromValidation(validation: string): Promise<PropertyType[]> {
+try {
+        const response = await axios.get<PropertyType[]>(`http://localhost:5134/api/PropertyType/Validation/${validation}`);
         return response.data;
     } catch (error) {
         console.error(error);

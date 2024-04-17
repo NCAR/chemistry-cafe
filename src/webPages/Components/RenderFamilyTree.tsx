@@ -6,8 +6,8 @@ import { getFamilies, getTagMechanismsFromFamily } from '../../API/API_GetMethod
 import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
 import { TreeItem } from '@mui/x-tree-view/TreeItem';
 
-import ButtonGroup from '@mui/material/ButtonGroup';
-import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
+import { Add } from '@mui/icons-material';
 
 import CircularProgress from '@mui/material/CircularProgress';
 
@@ -93,26 +93,20 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
     };
     
     return (
-        <>
+        <div style={{ margin: '5px' }}>
             {loading ? (
                 <CircularProgress />
             ) : (
                 <>
-                    <div>
-                        <ButtonGroup orientation='vertical' variant='contained'>
-                            <Button onClick={handleCreateFamilyOpen}>
-                                Create Family
-                            </Button>
-                            <Button onClick={handleCreateTagMechanismClick}>
-                                Create Tag Mechanism
-                            </Button>
-                        </ButtonGroup>
-                        {popUpOpen && (
-                            <div className="popup">
-                                <span className="popuptext">Family Not Selected</span>
-                            </div>
-                        )}
-                        <h2 style={{textAlign: 'center'}}>Families</h2>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <h2 style={{ textAlign: 'center', margin: '0' }}>Families</h2>
+                        <IconButton 
+                            onClick={handleCreateFamilyOpen} 
+                            aria-label="create family" 
+                            style={{ color: 'blue', margin: '5px' }}
+                        >
+                            <Add sx={{ fontSize: 32, fontWeight: 'bold' }} />
+                        </IconButton>
                     </div>
                     <SimpleTreeView
                         expandedItems={expandedItems}
@@ -129,7 +123,16 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                                     setSelectedTagMechanism(family.super_tag_mechanism_uuid);
                                 }}
                             >
-                                <h3 style={{textAlign: 'center'}}>Tag Mechanisms</h3>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                    <h2 style={{ textAlign: 'left', margin: '0' }}>Tag Mechanisms</h2>
+                                    <IconButton 
+                                        onClick={handleCreateTagMechanismClick} 
+                                        aria-label="create tag mechanism" 
+                                        style={{ color: 'blue', margin: '5px' }}
+                                    >
+                                        <Add sx={{ fontSize: 32, fontWeight: 'bold' }} />
+                                    </IconButton>
+                                </div>
                                 {tagMechanismsMap[family.uuid]?.map((tagMechanism) => (
                                     <TreeItem
                                         key={tagMechanism.uuid}
@@ -144,7 +147,7 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                     </SimpleTreeView>
                 </>
             )}
-        </>
+        </div>
     );
 }
 
