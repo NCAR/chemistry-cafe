@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 
 import { Family, TagMechanism } from '../../API/API_Interfaces';
-import { getFamilies, getTagMechanismsFromFamily } from '../../API/API_GetMethods';
+import { downloadOA, getFamilies, getTagMechanismsFromFamily } from '../../API/API_GetMethods';
 
 import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
 import { TreeItem } from '@mui/x-tree-view/TreeItem';
 
 import IconButton from '@mui/material/IconButton';
-import { Add } from '@mui/icons-material';
+import { Add, GetApp } from '@mui/icons-material';
 
 import CircularProgress from '@mui/material/CircularProgress';
 
@@ -88,6 +88,22 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
         }
     };
 
+    const handleDownloadClick = async (tag_mechanism_uuid: string) => {
+        const link = document.createElement("a");
+        const body = await downloadOA(tag_mechanism_uuid as string);
+
+        const blob = new Blob([body], { type: 'application/json' });
+
+        const blobUrl = window.URL.createObjectURL(blob);
+
+        link.download = 'openAtmos.json';
+        link.href = blobUrl;
+
+        link.click();
+
+        window.URL.revokeObjectURL(blobUrl);
+    };
+
     const handleItemExpansionToggle = (event: React.SyntheticEvent, itemId: string, isExpanded: boolean) => {
         setExpandedItems(isExpanded ? [itemId] : []);
     };
@@ -116,7 +132,20 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                             <TreeItem
                                 key={family.uuid}
                                 itemId={family.uuid}
-                                label={family.name}
+                                label={
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span>{family.name}</span>
+                                        <IconButton
+                                            onClick={() => {
+                                                handleDownloadClick(family.super_tag_mechanism_uuid);
+                                            }}
+                                            aria-label="download"
+                                            style={{ color: 'green' }}
+                                        >
+                                            <GetApp />
+                                        </IconButton>
+                                    </div>
+                                }
                                 sx={treeItemStyle}
                                 onClick={() => {
                                     setSelectedFamily(family.uuid);
@@ -137,7 +166,18 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                                     <TreeItem
                                         key={tagMechanism.uuid}
                                         itemId={tagMechanism.uuid}
-                                        label={tagMechanism.tag}
+                                        label={<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <span>{tagMechanism.tag}</span>
+                                            <IconButton
+                                                onClick={() => {
+                                                    handleDownloadClick(tagMechanism.uuid);
+                                                }}
+                                                aria-label="download"
+                                                style={{ color: 'green' }}
+                                            >
+                                                <GetApp />
+                                            </IconButton>
+                                        </div>}
                                         sx={treeItemStyle}
                                         onClick={() => setSelectedTagMechanism(tagMechanism.uuid)}
                                     />

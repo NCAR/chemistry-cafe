@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import { getProductsFromReactionReactantList, getPropertyTypesFromValidation, getPropertyiesFromParent, getReactantsFromReactionReactantList, getSpeciesFromTagMechanism } from '../../API/API_GetMethods';
+import { getFamily, getProductsFromReactionReactantList, getPropertyTypesFromValidation, getPropertyiesFromParent, getReactantsFromReactionReactantList, getReactionsFromTagMechanism, getSpeciesFromTagMechanism } from '../../API/API_GetMethods';
 import { FamilyMechList, PropertyList, PropertyType, PropertyVersion, ReactantProductList, Reaction, Species, TagMechanismReactionList, TagMechanismSpeciesList } from '../../API/API_Interfaces';
 import { createSpecies, createReaction, createTagMechanismSpeciesList, createTagMechanismReactionList, createFamily, createFamilyMechList, createTagMechanism, createPropertyList, createPropertyVersion, createReactantProduct } from '../../API/API_CreateMethods';
 
@@ -168,11 +168,36 @@ export const CreateFamilyModal: React.FC<CreateFamilyModalProps> = ({ open, onCl
 }
 
 export const CreateTagMechanismModal: React.FC<CreateTagMechanismModalProps> = ({ open, onClose, selectedFamily, setCreatedTagMechanismBool }) => {
+    const [speciesList, setSpeciesList] = useState<Species[]>([]);
+    const [selectedSpeciesList, setSelectedSpeciesList] = useState<string[]>([]);
+
+    const [reactionList, setReactionList] = useState<Reaction[]>([]);
+    const [selectedReactionList, setSelectedReactionList] = useState<string[]>([]);
+
     const createTagMechanismRef = useRef("");
+
+    useEffect(() => {
+        const fetchSpeciesReactions = async () => {
+            try {
+                if (selectedFamily) {
+                    const family = await getFamily(selectedFamily);
+                    
+                    const species = await getSpeciesFromTagMechanism(family.super_tag_mechanism_uuid);
+                    setSpeciesList(species);
+
+                    const reactions = await getReactionsFromTagMechanism(family.super_tag_mechanism_uuid);
+                    setReactionList(reactions);
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        fetchSpeciesReactions();
+    }, [open, selectedFamily]);
 
     const handleCreateTagMechanismClick = async () => {
         try {
-
             const tagMechanism = await createTagMechanism(createTagMechanismRef.current);
 
             const familyMechList: FamilyMechList = {
@@ -184,7 +209,35 @@ export const CreateTagMechanismModal: React.FC<CreateTagMechanismModalProps> = (
             };
 
             await createFamilyMechList(familyMechList);
+
+            selectedSpeciesList.forEach(async species_uuid => {
+                const tagMechanismSpeciesListData: TagMechanismSpeciesList = {
+                    uuid: '', // Auto creates
+                    species_uuid: species_uuid,
+                    tag_mechanism_uuid: tagMechanism as string,
+                    version: '',
+                    isDel: false, //Auto sets false
+                };
+
+                await createTagMechanismSpeciesList(tagMechanismSpeciesListData);
+            });
+
+            selectedReactionList.forEach(async reaction_uuid => {
+                const tagMechanismReactionListData: TagMechanismReactionList = {
+                    uuid: '', // Auto creates
+                    reaction_uuid: reaction_uuid,
+                    tag_mechanism_uuid: tagMechanism as string,
+                    version: '',
+                    isDel: false, //Auto sets false
+                };
+
+                await createTagMechanismReactionList(tagMechanismReactionListData);
+            });
+
             createTagMechanismRef.current = '';
+            setSelectedSpeciesList([]);
+            setSelectedReactionList([]);
+
             onClose();
             setCreatedTagMechanismBool(true);
         } catch (error) {
@@ -199,9 +252,39 @@ export const CreateTagMechanismModal: React.FC<CreateTagMechanismModalProps> = (
                 onClose={onClose}
             >
                 <Box sx={style}>
-                    Enter Tag for Tag Mechanism below.
-                    <TextField id="textField" label="Tag" onChange={ e => createTagMechanismRef.current = e.target.value}/>
-                    
+                    Enter Tag for Tag Mechanism
+                    <TextField id="textField" label="Tag" onChange={(e) => createTagMechanismRef.current = e.target.value} />
+                    <p />
+                    Select species (Multiple Selection)
+                    <Select
+                        label="Species"
+                        multiple 
+                        value={selectedSpeciesList}
+                        onChange={(e) => setSelectedSpeciesList(e.target.value as string[])} // Casting to string array
+                        style={{ minWidth: 200 }}
+                    >
+                        {speciesList.map((species) => (
+                            <MenuItem key={species.uuid} value={species.uuid}>
+                                {species.type}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                    <p/>
+                    Select reactions (Multiple Selection)
+                    <Select
+                        label="Reactions"
+                        multiple 
+                        value={selectedReactionList}
+                        onChange={(e) => setSelectedReactionList(e.target.value as string[])} // Casting to string array
+                        style={{ minWidth: 200 }}
+                    >
+                        {reactionList.map((reaction) => (
+                            <MenuItem key={reaction.uuid} value={reaction.uuid}>
+                                {reaction.reaction_string}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                    <p/>
                     <Button onClick={handleCreateTagMechanismClick}>
                         Submit
                     </Button>
@@ -250,13 +333,14 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({ open, on
     );
 }
 
-export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({ open, onClose, selectedTagMechanism, setReactionCreated}) => {
-    const createReactionRef = useRef("");
+export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({ open, onClose, selectedTagMechanism, setReactionCreated }) => {
+    const [selectedReaction, setSelectedReaction] = useState<string>("");
+    const createReactionRef = useRef<string>("");
 
     const handleCreateReactionClick = async () => {
         try {
-            const reaction_uuid = await createReaction(createReactionRef.current);
-    
+            const reaction_uuid = await createReaction(selectedReaction);
+
             const tagMechanismReactionListData: TagMechanismReactionList = {
                 uuid: '', // Auto creates
                 reaction_uuid: reaction_uuid,
@@ -264,10 +348,10 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({ open, 
                 version: '',
                 isDel: false, //Auto sets false
             };
-    
+
             await createTagMechanismReactionList(tagMechanismReactionListData);
-    
-            createReactionRef.current = '';
+
+            setSelectedReaction(''); // Resetting the selected reaction state
             setReactionCreated(true);
             onClose();
         } catch (error) {
@@ -276,18 +360,31 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({ open, 
     }
 
     return (
-        <Modal 
-            open={open} 
+        <Modal
+            open={open}
             onClose={onClose}
         >
             <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 400, bgcolor: 'background.paper', border: '2px solid #000', boxShadow: 24, p: 4 }}>
-                Enter Type for Reaction below.
-                <TextField id="textField" label="Type" onChange={ e => createReactionRef.current = e.target.value} />
+                Pick a Reaction Type
+                <Select
+                    labelId="reaction-type-select-label"
+                    id="reaction-type-select"
+                    value={selectedReaction}
+                    onChange={(e) => setSelectedReaction(e.target.value as string)}
+                >
+                    <MenuItem value="Arrhenius">Arrhenius</MenuItem>
+                    <MenuItem value="Ternary Chemical Activation">Ternary Chemical Activation</MenuItem>
+                    <MenuItem value="Troe (Fall-Off)">Troe (Fall-Off)</MenuItem>
+                    <MenuItem value="Tunneling">Tunneling</MenuItem>
+                </Select>
+                <p/>
                 <Button onClick={handleCreateReactionClick}>Submit</Button>
             </Box>
         </Modal>
     );
 }
+
+
 
 export const SpeciesPropertiesModal: React.FC<SpeciesPropertiesModalProps> = ({ open, onClose, selectedTagMechanism, selectedSpecies }) => {
     const [propertyTypes, setPropertyTypes] = useState<PropertyType[]>([]);
@@ -460,7 +557,7 @@ export const SpeciesPropertiesModal: React.FC<SpeciesPropertiesModalProps> = ({ 
                 maxHeight: '80vh', // Set maximum height to 80% of viewport height
                 overflowY: 'auto' // Enable vertical scrolling if content overflows
             }}>
-                <h1>Properties</h1>
+                <h1>Properties of Species: "{selectedSpecies?.type}"</h1>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     <Box sx={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #ccc', pb: '0.5rem', fontWeight: 'bold' }}>
                         <Typography sx={{ flex: 1 }}>Name</Typography>
@@ -739,7 +836,8 @@ export const ReactionPropertiesModal: React.FC<ReactionPropertiesModalProps> = (
                     maxHeight: '80vh', // Set maximum height to 80% of viewport height
                     overflowY: 'auto' // Enable vertical scrolling if content overflows
                 }}>
-                    <h2 style={{ textAlign: 'center', margin: '0' }}>{updatedReactionString}</h2>
+                    <h2> "{selectedReaction?.type}"</h2>
+                    <h3 style={{ textAlign: 'center', margin: '0' }}>{updatedReactionString}</h3>
                     <div>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <Typography variant="h6" gutterBottom>Reactants</Typography>

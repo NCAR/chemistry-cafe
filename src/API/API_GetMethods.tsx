@@ -1,6 +1,23 @@
 import axios from 'axios';
 import { Family, FamilyMechList, PropertyType, PropertyVersion, Reaction, Species, TagMechanism, TagMechanismReactionList, TagMechanismSpeciesList, ReactantProductList} from "./API_Interfaces";
 
+export async function downloadOA(tag_mechanism_uuid?: string){
+    if (!tag_mechanism_uuid) return "";
+    
+    try {
+        const response = await axios.get(`http://localhost:5134/api/OpenAtmos/JSON/${tag_mechanism_uuid}`, {
+            responseType: 'text', 
+            headers: {
+                'Content-Type': 'text/plain',
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
 export async function getFamilies(): Promise<Family[]> {
     try {
         const response = await axios.get<Family[]>(`http://localhost:5134/api/Family/all`);
@@ -11,15 +28,13 @@ export async function getFamilies(): Promise<Family[]> {
     }
 }
 
-export async function getFamily(uuid?: string): Promise<Family[]> {
-    if (!uuid) return [];
-    
+export async function getFamily(uuid?: string): Promise<Family> {
     try {
-        const response = await axios.get<Family[]>(`http://localhost:5134/api/Family/${uuid}`);
+        const response = await axios.get<Family>(`http://localhost:5134/api/Family/${uuid}`);
         return response.data;
     } catch (error) {
         console.error(error);
-        return [];
+        throw error;
     }
 }
 
