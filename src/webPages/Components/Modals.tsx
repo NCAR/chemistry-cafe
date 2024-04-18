@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import { getFamily, getProductsFromReactionReactantList, getPropertyTypesFromValidation, getPropertyiesFromParent, getReactantsFromReactionReactantList, getReactionsFromTagMechanism, getSpeciesFromTagMechanism } from '../../API/API_GetMethods';
+import { getFamily, getProductsFromReactionReactantList, getPropertyTypesFromValidation, getPropertiesFromParent, getReactantsFromReactionReactantList, getReactionsFromTagMechanism, getSpeciesFromTagMechanism } from '../../API/API_GetMethods';
 import { Family, FamilyMechList, PropertyList, PropertyType, PropertyVersion, ReactantProductList, Reaction, Species, TagMechanismReactionList, TagMechanismSpeciesList } from '../../API/API_Interfaces';
 import { createSpecies, createReaction, createTagMechanismSpeciesList, createTagMechanismReactionList, createFamily, createFamilyMechList, createTagMechanism, createPropertyList, createPropertyVersion, createReactantProduct } from '../../API/API_CreateMethods';
 
@@ -588,7 +588,7 @@ export const SpeciesPropertiesModal: React.FC<SpeciesPropertiesModalProps> = ({ 
         const fetchData = async () => {
             try {
                 const propertyTypesData = await getPropertyTypesFromValidation('Species');
-                const speciesPropertiesData = await getPropertyiesFromParent(selectedSpecies?.uuid as string);
+                const speciesPropertiesData = await getPropertiesFromParent(selectedSpecies?.uuid as string);
                 setPropertyTypes(propertyTypesData);
                 setSpeciesProperties(speciesPropertiesData);
 
@@ -800,7 +800,7 @@ export const ReactionPropertiesModal: React.FC<ReactionPropertiesModalProps> = (
         const fetchData = async () => {
             try {
                 const propertyTypesData = await getPropertyTypesFromValidation(selectedReaction?.type as string);
-                const reactionPropertiesData = await getPropertyiesFromParent(selectedReaction?.uuid as string);
+                const reactionPropertiesData = await getPropertiesFromParent(selectedReaction?.uuid as string);
                 const reactantsData = await getReactantsFromReactionReactantList(selectedReaction?.reactant_list_uuid as string);
                 const productsData = await getProductsFromReactionReactantList(selectedReaction?.product_list_uuid as string);
 

@@ -73,7 +73,7 @@ const FamilyPage = () => {
             <div className="L2">
                 <RenderFamilyTree 
                     selectedFamily={selectedFamily}
-                    setSelectedFamily={setSelectedFamily} 
+                    setSelectedFamily={setSelectedFamily}
                     setSelectedTagMechanism={setSelectedTagMechanism} 
                     handleCreateFamilyOpen={handleCreateFamilyOpen} 
                     handleCreateTagMechanismOpen={handleCreateTagMechanismOpen}
@@ -96,8 +96,17 @@ const FamilyPage = () => {
             <CreatePublishModal open={publishOpen} onClose={handlePublishClose}/>
             <CreateShareModal open={shareOpen} onClose={handleShareClose}/>
             <CreateDOIModal open={doiOpen} onClose={handleDOIClose}/>
-            <CreateFamilyModal open={createFamilyOpen} onClose={handleCreateFamilyClose} setCreatedFamilyBool={setCreatedFamilyBool}/>
-            <CreateTagMechanismModal open={createTagMechanismOpen} onClose={handleCreateTagMechanismClose} selectedFamily={selectedFamily} setCreatedTagMechanismBool={setCreatedTagMechanismBool}/>
+            <CreateFamilyModal 
+                open={createFamilyOpen}
+                onClose={handleCreateFamilyClose} 
+                setCreatedFamilyBool={setCreatedFamilyBool}
+            />
+            <CreateTagMechanismModal 
+                open={createTagMechanismOpen} 
+                onClose={handleCreateTagMechanismClose} 
+                selectedFamily={selectedFamily} 
+                setCreatedTagMechanismBool={setCreatedTagMechanismBool}
+                />
         </section>
     );
 }

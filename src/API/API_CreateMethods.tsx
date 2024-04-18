@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { FamilyMechList, TagMechanismReactionList, TagMechanismSpeciesList, PropertyType, PropertyList, PropertyVersion, ReactantProductList } from "./API_Interfaces";
+import { FamilyMechList, TagMechanismReactionList, TagMechanismSpeciesList, PropertyList, PropertyVersion, ReactantProductList } from "./API_Interfaces";
 
 export async function createFamily(name: string) {
     try {
@@ -146,31 +146,6 @@ export async function createTagMechanismSpeciesList(tagMechanismSpeciesListDataA
 
         const responses = await Promise.all(requests);
         return responses.map((response) => response.data);
-    } catch (error) {
-        console.error(error);
-        throw error;
-    }
-}
-
-
-export async function createPropertyType(propertyType: PropertyType) {
-    try {
-        const requestData = {
-            name: propertyType.name,
-            units: propertyType.units,
-            validation: propertyType.validation,
-        };
-
-        const response = await axios.post(
-            'http://localhost:5134/api/PropertyType/create',
-            requestData,
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
-        return response.data;
     } catch (error) {
         console.error(error);
         throw error;

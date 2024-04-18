@@ -38,28 +38,6 @@ export async function getFamily(uuid?: string): Promise<Family> {
     }
 }
 
-export async function getFamilyMechLists(): Promise<FamilyMechList[]> {
-    try {
-        const response = await axios.get<FamilyMechList[]>(`http://localhost:5134/api/FamilyMechList/all`);
-        return response.data;
-    } catch (error) {
-        console.error(error);
-        return [];
-    }
-}
-
-export async function getFamilyMechList(uuid?: string): Promise<FamilyMechList[]> {
-    if (!uuid) return [];
-    
-    try {
-        const response = await axios.get<FamilyMechList[]>(`http://localhost:5134/api/FamilyMechList/${uuid}`);
-        return response.data;
-    } catch (error) {
-        console.error(error);
-        return [];
-    }
-}
-
 export async function getReactions(): Promise<Reaction[]> {
     try {
         const response = await axios.get<Reaction[]>(`http://localhost:5134/api/Reaction/all`);
@@ -158,50 +136,6 @@ export async function getTagMechanismsFromFamily(family_uuid?: string): Promise<
     }
 }
 
-export async function getTagMechanismReactionLists(): Promise<TagMechanismReactionList[]> {
-    try {
-        const response = await axios.get<TagMechanismReactionList[]>(`http://localhost:5134/api/TagMechanismReactionList/all`);
-        return response.data;
-    } catch (error) {
-        console.error(error);
-        return [];
-    }
-}
-
-export async function getTagMechanismReactionList(uuid?: string): Promise<TagMechanismReactionList[]> {
-    if (!uuid) return [];
-    
-    try {
-        const response = await axios.get<TagMechanismReactionList[]>(`http://localhost:5134/api/TagMechanismReactionList/${uuid}`);
-        return response.data;
-    } catch (error) {
-        console.error(error);
-        return [];
-    }
-}
-
-export async function getTagMechanismSpeciesLists(): Promise<TagMechanismSpeciesList[]> {
-    try {
-        const response = await axios.get<TagMechanismSpeciesList[]>(`http://localhost:5134/api/TagMechanismSpeciesList/all`);
-        return response.data;
-    } catch (error) {
-        console.error(error);
-        return [];
-    }
-}
-
-export async function getTagMechanismSpeciesList(uuid?: string): Promise<TagMechanismSpeciesList[]> {
-    if (!uuid) return [];
-    
-    try {
-        const response = await axios.get<TagMechanismSpeciesList[]>(`http://localhost:5134/api/TagMechanismSpeciesList/${uuid}`);
-        return response.data;
-    } catch (error) {
-        console.error(error);
-        return [];
-    }
-}
-
 export async function getPropertyTypesFromValidation(validation: string): Promise<PropertyType[]> {
 try {
         const response = await axios.get<PropertyType[]>(`http://localhost:5134/api/PropertyType/Validation/${validation}`);
@@ -212,7 +146,7 @@ try {
     }
 }
 
-export async function getPropertyiesFromParent(parent_uuid: string): Promise<PropertyVersion[]> {
+export async function getPropertiesFromParent(parent_uuid: string): Promise<PropertyVersion[]> {
     if (!parent_uuid) return [];
     
     try {
