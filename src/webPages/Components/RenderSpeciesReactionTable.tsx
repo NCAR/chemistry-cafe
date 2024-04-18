@@ -79,9 +79,10 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamily, selectedT
                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
                             <h2 style={{ textAlign: 'center', margin: '0' }}>Species</h2>
                             <IconButton 
-                                onClick={handleCreateSpeciesOpen} 
+                                onClick={ handleCreateSpeciesOpen} 
                                 aria-label="create species" 
                                 style={{ color: 'blue', margin: '5px' }}
+                                disabled={selectedFamily === null || selectedTagMechanism === null}
                             >
                                 <Add sx={{ fontSize: 32, fontWeight: 'bold' }} />
                             </IconButton>
@@ -111,6 +112,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamily, selectedT
                                 onClick={handleCreateReactionOpen} 
                                 aria-label="create reaction" 
                                 style={{ color: 'blue', margin: '5px' }}
+                                disabled={selectedFamily === null || selectedTagMechanism === null}
                             >
                                 <Add sx={{ fontSize: 32, fontWeight: 'bold' }} />
                             </IconButton>
