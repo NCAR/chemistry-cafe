@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 
 import { Family, TagMechanism } from '../../API/API_Interfaces';
 import { downloadOA, getFamilies, getTagMechanismsFromFamily } from '../../API/API_GetMethods';
+import { deleteFamily, deleteTagMechanism } from '../../API/API_DeleteMethods';
 
 import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
 import { TreeItem } from '@mui/x-tree-view/TreeItem';
 
 import IconButton from '@mui/material/IconButton';
-import { Add, GetApp } from '@mui/icons-material';
+import { Add, GetApp, Delete } from '@mui/icons-material';
 
 import CircularProgress from '@mui/material/CircularProgress';
 
@@ -52,6 +53,8 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
     const [loading, setLoading] = useState<boolean>(true);
 
     const [, setPopUpOpen] = useState<boolean>(false);
+
+    const [deleteBool, setDeleteBool] = useState<boolean>(false);
     
     useEffect(() => {
         const fetchData = async () => {
@@ -69,13 +72,14 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                 setTagMechanismsMap(tagMechanismsMap);
                 setCreatedFamilyBool(false);
                 setCreatedTagMechanismBool(false);
+                setDeleteBool(false);
             } catch (error) {
                 console.error(error);
             }
         };
 
         fetchData();
-    }, [createdFamilyBool == true, createdTagMechanismBool == true]);
+    }, [createdFamilyBool == true, createdTagMechanismBool == true, deleteBool == true]);
 
     const handleCreateTagMechanismClick = () => {
         if (selectedFamily === null) {
@@ -107,6 +111,16 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
     const handleItemExpansionToggle = (_event: React.SyntheticEvent, itemId: string, isExpanded: boolean) => {
         setExpandedItems(isExpanded ? [itemId] : []);
     };
+
+    const handleFamilyDelete= async (family_uuid: string) => {
+        const ret = await deleteFamily(family_uuid);
+        setDeleteBool(true);
+    };
+
+    const handleTagMechanismDelete= async (tag_mechanism_uuid: string) => {
+        const ret = await deleteTagMechanism(tag_mechanism_uuid);
+        setDeleteBool(true);
+    };
     
     return (
         <div style={{ margin: '5px' }}>
@@ -135,15 +149,29 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                                 label={
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <span>{family.name}</span>
-                                        <IconButton
-                                            onClick={() => {
-                                                handleDownloadClick(family.super_tag_mechanism_uuid);
-                                            }}
-                                            aria-label="download"
-                                            style={{ color: 'green' }}
-                                        >
-                                            <GetApp />
-                                        </IconButton>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', width: 80}}>
+                                            <IconButton
+                                                onClick={() => {
+                                                    handleDownloadClick(family.super_tag_mechanism_uuid);
+                                                }}
+                                                aria-label="download"
+                                                style={{ color: 'green' }}
+                                                edge= 'end'
+                                            >
+                                                <GetApp />
+                                            </IconButton>
+                                            <IconButton
+                                                onClick={() => {
+                                                    handleFamilyDelete(family.uuid);
+                                                }}
+                                                aria-label="delete"
+                                                style={{ color: 'red' }}
+                                                edge= 'start'
+                                            >
+                                                <Delete />
+                                            </IconButton>
+                                        </div>
+                                        
                                     </div>
                                 }
                                 sx={treeItemStyle}
@@ -168,15 +196,27 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                                         itemId={tagMechanism.uuid}
                                         label={<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <span>{tagMechanism.tag}</span>
-                                            <IconButton
-                                                onClick={() => {
-                                                    handleDownloadClick(tagMechanism.uuid);
-                                                }}
-                                                aria-label="download"
-                                                style={{ color: 'green' }}
-                                            >
-                                                <GetApp />
-                                            </IconButton>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', width: 80}}>
+                                                <IconButton
+                                                    onClick={() => {
+                                                        handleDownloadClick(tagMechanism.uuid);
+                                                    }}
+                                                    aria-label="download"
+                                                    style={{ color: 'green' }}
+                                                >
+                                                    <GetApp />
+                                                </IconButton>
+                                                <IconButton
+                                                    onClick={() => {
+                                                        handleTagMechanismDelete(tagMechanism.uuid);
+                                                    }}
+                                                    aria-label="delete"
+                                                    style={{ color: 'red' }}
+                                                    edge= 'start'
+                                                >
+                                                    <Delete />
+                                                </IconButton>
+                                            </div>
                                         </div>}
                                         sx={treeItemStyle}
                                         onClick={() => setSelectedTagMechanism(tagMechanism.uuid)}
