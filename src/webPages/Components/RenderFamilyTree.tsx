@@ -113,12 +113,12 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
     };
 
     const handleFamilyDelete= async (family_uuid: string) => {
-        const ret = await deleteFamily(family_uuid);
+        await deleteFamily(family_uuid);
         setDeleteBool(true);
     };
 
     const handleTagMechanismDelete= async (tag_mechanism_uuid: string) => {
-        const ret = await deleteTagMechanism(tag_mechanism_uuid);
+        await deleteTagMechanism(tag_mechanism_uuid);
         setDeleteBool(true);
     };
     
