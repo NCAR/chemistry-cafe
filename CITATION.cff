@@ -9,5 +9,11 @@ authors:
     given-names: Kyle
   - family-names: Conley
     given-names: Andrew
+  - family-names: Longuet
+    given-names: Brandon
+  - family-names: Cyr
+    given-names: Paul
+  - family-names: Nguyen
+    given-names: Brian
 license: Apache-2.0
 url: "https://github.com/NCAR/music-box-interactive-client"
