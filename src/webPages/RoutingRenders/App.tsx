@@ -1,8 +1,8 @@
 import {Route, Routes} from 'react-router-dom';
-import Settings from './webPages/settings';
-import LoggedIn from './webPages/loggedIn';
-import FamilyPage from './webPages/family';
-import LogIn from './webPages/logIn';
+import Settings from '../Settings/settings';
+import LoggedIn from '../LogIn/loggedIn';
+import FamilyPage from '../Family/family';
+import LogIn from '../LogIn/logIn';
 
 function App() {
     return (

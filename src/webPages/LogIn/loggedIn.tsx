@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Button from "@mui/material/Button";
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Drawer from '@mui/material/Drawer';
-import NavDropDown from './Components/NavDropDown';
+import NavDropDown from '../Components/NavDropDown';
 
 import DensitySmallSharpIcon from '@mui/icons-material/DensitySmallSharp';
 
