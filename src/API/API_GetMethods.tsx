@@ -1,11 +1,28 @@
 import axios from 'axios';
-import { Family, FamilyMechList, PropertyType, PropertyVersion, Reaction, Species, TagMechanism, TagMechanismReactionList, TagMechanismSpeciesList, ReactantProductList} from "./API_Interfaces";
+import { Family, FamilyTagMechList, PropertyType, PropertyVersion, Reaction, Species, TagMechanism, TagMechanismReactionList, TagMechanismSpeciesList, ReactantProductList} from "./API_Interfaces";
 
-export async function downloadOA(tag_mechanism_uuid?: string){
+export async function downloadOAJSON(tag_mechanism_uuid?: string){
     if (!tag_mechanism_uuid) return "";
     
     try {
         const response = await axios.get(`http://localhost:5134/api/OpenAtmos/JSON/${tag_mechanism_uuid}`, {
+            responseType: 'text', 
+            headers: {
+                'Content-Type': 'text/plain',
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+export async function downloadOAYAML(tag_mechanism_uuid?: string){
+    if (!tag_mechanism_uuid) return "";
+    
+    try {
+        const response = await axios.get(`http://localhost:5134/api/OpenAtmos/YAML/${tag_mechanism_uuid}`, {
             responseType: 'text', 
             headers: {
                 'Content-Type': 'text/plain',

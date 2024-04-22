@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { FamilyMechList, TagMechanismReactionList, TagMechanismSpeciesList, PropertyList, PropertyVersion, ReactantProductList } from "./API_Interfaces";
+import { FamilyTagMechList, TagMechanismReactionList, TagMechanismSpeciesList, PropertyList, PropertyVersion, ReactantProductList } from "./API_Interfaces";
 
 export async function createFamily(name: string) {
     try {
@@ -19,7 +19,7 @@ export async function createFamily(name: string) {
     }
 }
 
-export async function createFamilyMechList(familyMechListData: FamilyMechList) {
+export async function createFamilyTagMechList(familyMechListData: FamilyTagMechList) {
     try {
         const requestData = {
             family_uuid: familyMechListData.family_uuid,
@@ -28,7 +28,7 @@ export async function createFamilyMechList(familyMechListData: FamilyMechList) {
         };
         
         const response = await axios.post(
-            'http://localhost:5134/api/FamilyMechList/create',
+            'http://localhost:5134/api/FamilyTagMechList/create',
             requestData,
             {
                 headers: {

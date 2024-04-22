@@ -58,17 +58,6 @@ const FamilyPage = () => {
                 <StyledHeader>
                 </StyledHeader>
             </div>
-            
-            <div className='M1'>
-                <div style={{height: "40%"}}></div>
-                <BottomNavigation 
-                    showLabels
-                >
-                    <BottomNavigationAction label="Publish" icon={<TaskSharpIcon/>} onClick={handlePublishOpen}></BottomNavigationAction>
-                    <BottomNavigationAction label="Share" icon={<IosShareSharpIcon/>} onClick={handleShareOpen}></BottomNavigationAction>
-                    <BottomNavigationAction label="Get DOI" icon={<InsertLinkSharpIcon/>} onClick={handleDOIOpen}></BottomNavigationAction>
-                </BottomNavigation>
-            </div>
 
             <div className="L2">
                 <RenderFamilyTree 

@@ -13,8 +13,8 @@ export const StyledDetailBox = styled.section`
   height: 60vh;
   background-color: #C3D7EE;
   border-style: solid;
-  border-width: 5px;
-  border-radius: 50px;
+  border-width: 1px;
+  border-radius: 5px;
   position: relative;
   grid-column: 2 / span 2;
   grid-row: 2 / span 2;

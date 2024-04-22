@@ -5,7 +5,7 @@ export interface Family {
     isDel: boolean;
 }
 
-export interface FamilyMechList {
+export interface FamilyTagMechList {
     uuid: string;
     family_uuid: string;
     tag_mechanism_uuid: string;

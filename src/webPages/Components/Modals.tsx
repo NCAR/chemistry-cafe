@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 import { getFamily, getProductsFromReactionReactantList, getPropertyTypesFromValidation, getPropertiesFromParent, getReactantsFromReactionReactantList, getReactionsFromTagMechanism, getSpeciesFromTagMechanism } from '../../API/API_GetMethods';
-import { Family, FamilyMechList, PropertyList, PropertyType, PropertyVersion, ReactantProductList, Reaction, Species, TagMechanismReactionList, TagMechanismSpeciesList } from '../../API/API_Interfaces';
-import { createSpecies, createReaction, createTagMechanismSpeciesList, createTagMechanismReactionList, createFamily, createFamilyMechList, createTagMechanism, createPropertyList, createPropertyVersion, createReactantProduct } from '../../API/API_CreateMethods';
+import { Family, FamilyTagMechList, PropertyList, PropertyType, PropertyVersion, ReactantProductList, Reaction, Species, TagMechanismReactionList, TagMechanismSpeciesList } from '../../API/API_Interfaces';
+import { createSpecies, createReaction, createTagMechanismSpeciesList, createTagMechanismReactionList, createFamily, createFamilyTagMechList, createTagMechanism, createPropertyList, createPropertyVersion, createReactantProduct } from '../../API/API_CreateMethods';
 
 import { Modal, Box, TextField, Button, Typography, TableContainer, Table, TableBody, TableRow, TableCell, Paper, IconButton, Select, MenuItem, TableHead } from '@mui/material';
 import { updatePropertyList, updateReactantProductList } from '../../API/API_UpdateMethods';
@@ -202,7 +202,7 @@ export const CreateTagMechanismModal: React.FC<CreateTagMechanismModalProps> = (
         try {
             const tagMechanism = await createTagMechanism(createTagMechanismRef.current);
 
-            const familyMechList: FamilyMechList = {
+            const familyMechList: FamilyTagMechList = {
                 uuid: '', // Auto creates in API
                 family_uuid: selectedFamily as string,
                 tag_mechanism_uuid: tagMechanism,
@@ -210,7 +210,7 @@ export const CreateTagMechanismModal: React.FC<CreateTagMechanismModalProps> = (
                 isDel: false, // Auto creates in API
             };
 
-            await createFamilyMechList(familyMechList);
+            await createFamilyTagMechList(familyMechList);
 
             const tagMechanismSpeciesListData: TagMechanismSpeciesList[] = selectedSpeciesList.map((species_uuid) => ({
                 uuid: '',

@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 import { Family, TagMechanism } from '../../API/API_Interfaces';
-import { downloadOA, getFamilies, getTagMechanismsFromFamily } from '../../API/API_GetMethods';
+import { downloadOAYAML, downloadOAJSON, getFamilies, getTagMechanismsFromFamily } from '../../API/API_GetMethods';
 import { deleteFamily, deleteTagMechanism } from '../../API/API_DeleteMethods';
 
 import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
@@ -12,6 +12,9 @@ import { Add, GetApp, Delete } from '@mui/icons-material';
 
 import CircularProgress from '@mui/material/CircularProgress';
 
+import Popover from '@mui/material/Popover';
+import Button from '@mui/material/Button';
+
 const treeItemStyle = {
     fontSize: '1.2rem',
     backgroundColor: '#f0f0f0',
@@ -20,6 +23,7 @@ const treeItemStyle = {
     padding: '8px 12px',
     margin: '4px',
     cursor: 'pointer',
+    boxShadow: '3',
 };
 
 interface RenderFamilyTreeProps {
@@ -55,6 +59,16 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
     const [, setPopUpOpen] = useState<boolean>(false);
 
     const [deleteBool, setDeleteBool] = useState<boolean>(false);
+
+    const ref = useRef("");
+
+    /* Popover for Downloads */
+    const [popOver, setPopOver] = useState<HTMLButtonElement | null>(null);
+    const handlePopOverClose = () => {
+        setPopOver(null);
+    }
+    const popOverOpen = Boolean(popOver);
+
     
     useEffect(() => {
         const fetchData = async () => {
@@ -92,21 +106,32 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
         }
     };
 
-    const handleDownloadClick = async (tag_mechanism_uuid: string) => {
+    const handleDownloadClick = async (tag_mechanism_uuid: string, isJSON: boolean) => {
         const link = document.createElement("a");
-        const body = await downloadOA(tag_mechanism_uuid as string);
+        var blobUrl = "";
+        if(isJSON){
+            const body = await downloadOAJSON(tag_mechanism_uuid as string);
+            const blob = new Blob([body], { type: 'application/json' });
+            blobUrl = window.URL.createObjectURL(blob);
+            link.download = 'openAtmos.json';
+        }
+        else{
+            const body = await downloadOAYAML(tag_mechanism_uuid as string);
+            const blob = new Blob([body], { type: 'application/json' });
+            blobUrl = window.URL.createObjectURL(blob);
+            link.download = 'openAtmos.yaml';
+        }
 
-        const blob = new Blob([body], { type: 'application/json' });
-
-        const blobUrl = window.URL.createObjectURL(blob);
-
-        link.download = 'openAtmos.json';
         link.href = blobUrl;
 
         link.click();
 
         window.URL.revokeObjectURL(blobUrl);
     };
+
+    const handlePopOverClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+        setPopOver(event.currentTarget);
+    }
 
     const handleItemExpansionToggle = (_event: React.SyntheticEvent, itemId: string, isExpanded: boolean) => {
         setExpandedItems(isExpanded ? [itemId] : []);
@@ -151,8 +176,9 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                                         <span>{family.name}</span>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', width: 80}}>
                                             <IconButton
-                                                onClick={() => {
-                                                    handleDownloadClick(family.super_tag_mechanism_uuid);
+                                                onClick={(obj) => {
+                                                    ref.current = family.super_tag_mechanism_uuid;
+                                                    handlePopOverClick(obj);
                                                 }}
                                                 aria-label="download"
                                                 style={{ color: 'green' }}
@@ -170,6 +196,18 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                                             >
                                                 <Delete />
                                             </IconButton>
+                                            <Popover
+                                                open={popOverOpen}
+                                                anchorEl={popOver}
+                                                onClose={handlePopOverClose}
+                                                anchorOrigin={{
+                                                    vertical: 'bottom',
+                                                    horizontal: 'left',
+                                                }}
+                                            >
+                                                <Button onClick={() => {handleDownloadClick(ref.current, false)}}>YAML</Button>
+                                                <Button onClick={() => {handleDownloadClick(ref.current, true)}}>JSON</Button>
+                                            </Popover>
                                         </div>
                                         
                                     </div>
@@ -181,7 +219,7 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                                 }}
                             >
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                    <h2 style={{ textAlign: 'left', margin: '0' }}>Tag Mechanisms</h2>
+                                    <h6 style={{ textAlign: 'left', margin: '0' }}>Tag Mechanisms</h6>
                                     <IconButton 
                                         onClick={handleCreateTagMechanismClick} 
                                         aria-label="create tag mechanism" 
@@ -198,8 +236,9 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                                             <span>{tagMechanism.tag}</span>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', width: 80}}>
                                                 <IconButton
-                                                    onClick={() => {
-                                                        handleDownloadClick(tagMechanism.uuid);
+                                                    onClick={(obj) => {
+                                                        ref.current = tagMechanism.uuid;
+                                                        handlePopOverClick(obj);
                                                     }}
                                                     aria-label="download"
                                                     style={{ color: 'green' }}
@@ -216,6 +255,18 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                                                 >
                                                     <Delete />
                                                 </IconButton>
+                                                <Popover
+                                                    open={popOverOpen}
+                                                    anchorEl={popOver}
+                                                    onClose={handlePopOverClose}
+                                                    anchorOrigin={{
+                                                        vertical: 'bottom',
+                                                        horizontal: 'left',
+                                                    }}
+                                                >
+                                                    <Button onClick={() => {handleDownloadClick(ref.current, false)}}>YAML</Button>
+                                                    <Button onClick={() => {handleDownloadClick(ref.current, true)}}>JSON</Button>
+                                                </Popover>
                                             </div>
                                         </div>}
                                         sx={treeItemStyle}
