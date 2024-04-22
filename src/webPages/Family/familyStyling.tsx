@@ -18,5 +18,5 @@ export const StyledDetailBox = styled.section`
   position: relative;
   grid-column: 2 / span 2;
   grid-row: 2 / span 2;
-  overflow: auto;
+  overflow: hidden;
 `;

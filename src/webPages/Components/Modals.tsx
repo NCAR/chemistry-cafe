@@ -69,6 +69,7 @@ interface SpeciesPropertiesModalProps {
     onClose: () => void;
     selectedTagMechanism: string | null;
     selectedSpecies: Species | null;
+    setSpeciesUpdated: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface ReactionPropertiesModalProps {
@@ -579,7 +580,7 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({ open, 
 
 
 
-export const SpeciesPropertiesModal: React.FC<SpeciesPropertiesModalProps> = ({ open, onClose, selectedTagMechanism, selectedSpecies }) => {
+export const SpeciesPropertiesModal: React.FC<SpeciesPropertiesModalProps> = ({ open, onClose, selectedTagMechanism, selectedSpecies, setSpeciesUpdated }) => {
     const [propertyTypes, setPropertyTypes] = useState<PropertyType[]>([]);
     const [speciesProperties, setSpeciesProperties] = useState<PropertyVersion[]>([]);
     const [fieldValues, setFieldValues] = useState<{ [key: string]: string }>({});
@@ -722,6 +723,7 @@ export const SpeciesPropertiesModal: React.FC<SpeciesPropertiesModalProps> = ({ 
                 }
             }
         }
+        setSpeciesUpdated(true);
         onClose();
     }
     

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Family, FamilyTagMechList, PropertyType, PropertyVersion, Reaction, Species, TagMechanism, TagMechanismReactionList, TagMechanismSpeciesList, ReactantProductList} from "./API_Interfaces";
+import { Family, PropertyType, PropertyVersion, Reaction, Species, TagMechanism, ReactantProductList} from "./API_Interfaces";
 
 export async function downloadOAJSON(tag_mechanism_uuid?: string){
     if (!tag_mechanism_uuid) return "";
