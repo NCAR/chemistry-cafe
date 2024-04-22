@@ -39,7 +39,6 @@ interface RenderFamilyTreeProps {
 };
 
 const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({ 
-    selectedFamily, 
     setSelectedFamily, 
     setSelectedTagMechanism, 
     handleCreateFamilyOpen, 
@@ -55,8 +54,6 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
     const [tagMechanismsMap, setTagMechanismsMap] = useState<Record<string, TagMechanism[]>>({});
 
     const [loading, setLoading] = useState<boolean>(true);
-
-    const [, setPopUpOpen] = useState<boolean>(false);
 
     const [deleteBool, setDeleteBool] = useState<boolean>(false);
 
@@ -94,17 +91,6 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
 
         fetchData();
     }, [createdFamilyBool == true, createdTagMechanismBool == true, deleteBool == true]);
-
-    const handleCreateTagMechanismClick = () => {
-        if (selectedFamily === null) {
-            setPopUpOpen(true);
-            setTimeout(() => {
-                setPopUpOpen(false);
-            }, 1500);
-        } else {
-            handleCreateTagMechanismOpen();
-        }
-    };
 
     const handleDownloadClick = async (tag_mechanism_uuid: string, isJSON: boolean) => {
         const link = document.createElement("a");
@@ -221,7 +207,7 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                     <h6 style={{ textAlign: 'left', margin: '0' }}>Tag Mechanisms</h6>
                                     <IconButton 
-                                        onClick={handleCreateTagMechanismClick} 
+                                        onClick={handleCreateTagMechanismOpen} 
                                         aria-label="create tag mechanism" 
                                         style={{ color: 'blue', margin: '5px' }}
                                     >
