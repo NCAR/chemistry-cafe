@@ -5,7 +5,7 @@
   display: grid;
   grid:
     "L1Fam M1 R1" 1fr
-    "L2 M2 R2" 1fr
+    "L2Fam M2 R2" 1fr
     "L3 M3 R3" 1fr
     "L4Fam M4 R4" 1fr
     "L5 M5 R5" 1fr
@@ -23,7 +23,7 @@
 .L1Fam { grid-area: L1Fam; grid-column: span 3;}
 .M1 { grid-area: M1; grid-column: span 2;}
 .R1 { grid-area: R1; }
-.L2 { grid-area: L2; }
+.L2Fam { grid-area: L2Fam; height: 80vh; }
 .M2 { grid-area: M2; }
 .R2 { grid-area: R2; }
 .L3 { grid-area: L3; }

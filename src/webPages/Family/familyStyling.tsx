@@ -4,13 +4,12 @@ import styled from 'styled-components';
 export const StyledHeader = styled.header`
   padding: 20px;
   text-align: left;
-  border-bottom: 10px solid #53565A;
 `;
 
 export const StyledDetailBox = styled.section`
   display: block;
   width: 98%;
-  height: 60vh;
+  height: 80vh;
   background-color: #C3D7EE;
   border-style: solid;
   border-width: 1px;

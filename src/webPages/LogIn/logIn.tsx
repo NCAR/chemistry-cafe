@@ -9,6 +9,8 @@ import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import Typography from '@mui/material/Typography';
 import { colors } from '@mui/material';
+import GoogleIcon from '@mui/icons-material/Google';
+import NoAccountsIcon from '@mui/icons-material/NoAccounts';
 
 interface User {
     access_token: string;
@@ -78,22 +80,18 @@ interface Profile {
         p: 4,
     };
 
-    const textStyle = {
-        
-    };
-
         return (
           <section className="layoutLogIn">
             <div className="M2">
                 <Box sx={{ width: '100%', maxWidth: 700 }}>
-                    <Typography variant="h2">
+                    <Typography variant="h2" sx={{color: 'white'}}>
                         Chemistry Cafe
                     </Typography>
                 </Box>
             </div>
             <div className='M3'>
                 <Box>
-                    <Typography variant="h6">
+                    <Typography variant="h6" sx={{color: '#C3D7EE'}}>
                         A collaborative tool to share, edit, manage, and export chemical mechanisms across the scientific community
                         and into MusicBox Interactive. <br></br>
 
@@ -106,29 +104,32 @@ interface Profile {
                 <p></p>
                 {profile ? (
                     <div>
-                        <img src={profile.picture} alt="user profile" />
-                        <h3>User Logged in</h3>
-                        <p>Name: {profile.name}</p>
-                        <p>Email Address: {profile.email}</p>
-                        <br />
-                        <br />
-                        <Button onClick={handleClick}>PROCEED</Button>
-                        <Button onClick={logOut}>Log out</Button>
-                        
+                        <Box sx={{bgcolor: '#C3D7EE', borderWidth: '2px' }}>
+                            <img src={profile.picture} alt="user profile" />
+                            <h3>User Logged in</h3>
+                            <p>Name: {profile.name}</p>
+                            <p>Email Address: {profile.email}</p>
+                            <br />
+                            <br />
+                        </Box>
+                        <p></p>
+                        <Button variant='contained' onClick={handleClick} color='success' sx={{width: '50%'}}>PROCEED</Button>
+                        <Button variant='contained' onClick={logOut} color='error' sx={{width: '50%'}}>Log out</Button>
+                        <p></p>
                     </div>
                 ) : (
-                    <Button onClick={() => login()}>Sign in with Google 🚀</Button>
+                    <Button variant='contained' onClick={() => login()} endIcon={<GoogleIcon />} sx={{width: '50%'}}>Sign in</Button>
                 )}
             </div>
 
             <div className='M5'>
-                <Button type="button" onClick={handleClick}>
+                <Button variant='contained' onClick={handleClick} endIcon={<NoAccountsIcon />} sx={{width: '50%'}}>
                     Continue as Guest
                 </Button>
             </div>
 
             <div className='M7'>
-                <Button onClick={handleAbout}>
+                <Button variant='contained' onClick={handleAbout} sx={{width: '50%'}}>
                     About
                 </Button>
             </div>

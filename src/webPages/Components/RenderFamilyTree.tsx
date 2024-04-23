@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 import { Family, TagMechanism } from '../../API/API_Interfaces';
 import { downloadOAYAML, downloadOAJSON, getFamilies, getTagMechanismsFromFamily } from '../../API/API_GetMethods';
@@ -24,6 +24,38 @@ const treeItemStyle = {
     margin: '4px',
     cursor: 'pointer',
     boxShadow: '3',
+};
+
+// const stickyContainerStyle = {
+//     display: 'flex',
+//     justifyContent: 'space-between',
+//     alignItems: 'center',
+//     position: 'sticky',
+//     top: 0,
+//     backgroundColor: 'white',
+//     padding: '10px',
+//     zIndex: 1,  
+//    };
+
+const containerStyle: React.CSSProperties = {
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100vh',
+}; 
+const stickyHeaderStyle: React.CSSProperties = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    position: 'sticky',
+    top: 0,
+    backgroundColor: '#f0f0f0',
+    zIndex: 1,
+    padding: '10px',
+    borderBottom: '1px solid #ccc', 
+}; 
+const treeViewContainerStyle = { 
+    overflow: 'auto', 
+    flexGrow: 1, 
 };
 
 interface RenderFamilyTreeProps {
@@ -134,13 +166,13 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
     };
     
     return (
-        <div style={{ margin: '5px' }}>
+        <div style={containerStyle}>
             {loading ? (
                 <CircularProgress />
             ) : (
                 <>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <h2 style={{ textAlign: 'center', margin: '0' }}>Families</h2>
+                    <div style={stickyHeaderStyle}>
+                        <h2 style={{ textAlign: 'center', margin: '0'}}>Families</h2>
                         <IconButton 
                             onClick={handleCreateFamilyOpen} 
                             aria-label="create family" 
@@ -149,91 +181,33 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                             <Add sx={{ fontSize: 32, fontWeight: 'bold' }} />
                         </IconButton>
                     </div>
-                    <SimpleTreeView
-                        expandedItems={expandedItems}
-                        onItemExpansionToggle={handleItemExpansionToggle}
-                    >
-                        {families.map((family) => (
-                            <TreeItem
-                                key={family.uuid}
-                                itemId={family.uuid}
-                                label={
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <span>{family.name}</span>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', width: 80}}>
-                                            <IconButton
-                                                onClick={(obj) => {
-                                                    ref.current = family.super_tag_mechanism_uuid;
-                                                    handlePopOverClick(obj);
-                                                }}
-                                                aria-label="download"
-                                                style={{ color: 'green' }}
-                                                edge= 'end'
-                                            >
-                                                <GetApp />
-                                            </IconButton>
-                                            <IconButton
-                                                onClick={() => {
-                                                    handleFamilyDelete(family.uuid);
-                                                }}
-                                                aria-label="delete"
-                                                style={{ color: 'red' }}
-                                                edge= 'start'
-                                            >
-                                                <Delete />
-                                            </IconButton>
-                                            <Popover
-                                                open={popOverOpen}
-                                                anchorEl={popOver}
-                                                onClose={handlePopOverClose}
-                                                anchorOrigin={{
-                                                    vertical: 'bottom',
-                                                    horizontal: 'left',
-                                                }}
-                                            >
-                                                <Button onClick={() => {handleDownloadClick(ref.current, false)}}>YAML</Button>
-                                                <Button onClick={() => {handleDownloadClick(ref.current, true)}}>JSON</Button>
-                                            </Popover>
-                                        </div>
-                                        
-                                    </div>
-                                }
-                                sx={treeItemStyle}
-                                onClick={() => {
-                                    setSelectedFamily(family.uuid);
-                                    setSelectedTagMechanism(family.super_tag_mechanism_uuid);
-                                }}
-                            >
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                    <h6 style={{ textAlign: 'left', margin: '0' }}>Tag Mechanisms</h6>
-                                    <IconButton 
-                                        onClick={handleCreateTagMechanismOpen} 
-                                        aria-label="create tag mechanism" 
-                                        style={{ color: 'blue', margin: '5px' }}
-                                    >
-                                        <Add sx={{ fontSize: 32, fontWeight: 'bold' }} />
-                                    </IconButton>
-                                </div>
-                                {tagMechanismsMap[family.uuid]?.map((tagMechanism) => (
-                                    <TreeItem
-                                        key={tagMechanism.uuid}
-                                        itemId={tagMechanism.uuid}
-                                        label={<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <span>{tagMechanism.tag}</span>
+                    <div style={treeViewContainerStyle}>
+                        <SimpleTreeView
+                            expandedItems={expandedItems}
+                            onItemExpansionToggle={handleItemExpansionToggle}
+                        >
+                            {families.map((family) => (
+                                <TreeItem
+                                    key={family.uuid}
+                                    itemId={family.uuid}
+                                    label={
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <span>{family.name}</span>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', width: 80}}>
                                                 <IconButton
                                                     onClick={(obj) => {
-                                                        ref.current = tagMechanism.uuid;
+                                                        ref.current = family.super_tag_mechanism_uuid;
                                                         handlePopOverClick(obj);
                                                     }}
                                                     aria-label="download"
                                                     style={{ color: 'green' }}
+                                                    edge= 'end'
                                                 >
                                                     <GetApp />
                                                 </IconButton>
                                                 <IconButton
                                                     onClick={() => {
-                                                        handleTagMechanismDelete(tagMechanism.uuid);
+                                                        handleFamilyDelete(family.uuid);
                                                     }}
                                                     aria-label="delete"
                                                     style={{ color: 'red' }}
@@ -254,14 +228,75 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                                                     <Button onClick={() => {handleDownloadClick(ref.current, true)}}>JSON</Button>
                                                 </Popover>
                                             </div>
-                                        </div>}
-                                        sx={treeItemStyle}
-                                        onClick={() => setSelectedTagMechanism(tagMechanism.uuid)}
-                                    />
-                                ))}
-                            </TreeItem>
-                        ))}
-                    </SimpleTreeView>
+                                            
+                                        </div>
+                                    }
+                                    sx={treeItemStyle}
+                                    onClick={() => {
+                                        setSelectedFamily(family.uuid);
+                                        setSelectedTagMechanism(family.super_tag_mechanism_uuid);
+                                    }}
+                                >
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <h6 style={{ textAlign: 'left', margin: '0' }}>Tag Mechanisms</h6>
+                                        <IconButton 
+                                            onClick={handleCreateTagMechanismOpen} 
+                                            aria-label="create tag mechanism" 
+                                            style={{ color: 'blue', margin: '5px' }}
+                                        >
+                                            <Add sx={{ fontSize: 32, fontWeight: 'bold' }} />
+                                        </IconButton>
+                                    </div>
+                                    {tagMechanismsMap[family.uuid]?.map((tagMechanism) => (
+                                        <TreeItem
+                                            key={tagMechanism.uuid}
+                                            itemId={tagMechanism.uuid}
+                                            label={<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <span>{tagMechanism.tag}</span>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', width: 80}}>
+                                                    <IconButton
+                                                        onClick={(obj) => {
+                                                            ref.current = tagMechanism.uuid;
+                                                            handlePopOverClick(obj);
+                                                        }}
+                                                        aria-label="download"
+                                                        style={{ color: 'green' }}
+                                                    >
+                                                        <GetApp />
+                                                    </IconButton>
+                                                    <IconButton
+                                                        onClick={() => {
+                                                            handleTagMechanismDelete(tagMechanism.uuid);
+                                                        }}
+                                                        aria-label="delete"
+                                                        style={{ color: 'red' }}
+                                                        edge= 'start'
+                                                    >
+                                                        <Delete />
+                                                    </IconButton>
+                                                    <Popover
+                                                        open={popOverOpen}
+                                                        anchorEl={popOver}
+                                                        onClose={handlePopOverClose}
+                                                        anchorOrigin={{
+                                                            vertical: 'bottom',
+                                                            horizontal: 'left',
+                                                        }}
+                                                    >
+                                                        <Button onClick={() => {handleDownloadClick(ref.current, false)}}>YAML</Button>
+                                                        <Button onClick={() => {handleDownloadClick(ref.current, true)}}>JSON</Button>
+                                                    </Popover>
+                                                </div>
+                                            </div>}
+                                            sx={treeItemStyle}
+                                            onClick={() => setSelectedTagMechanism(tagMechanism.uuid)}
+                                        />
+                                    ))}
+                                </TreeItem>
+                            ))}
+                        </SimpleTreeView>
+                    </div>
+                    
                 </>
             )}
         </div>
