@@ -8,6 +8,7 @@ import Button from "@mui/material/Button";
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import Typography from '@mui/material/Typography';
+import { colors } from '@mui/material';
 
 interface User {
     access_token: string;
@@ -77,18 +78,25 @@ interface Profile {
         p: 4,
     };
 
+    const textStyle = {
+        
+    };
+
         return (
-          <section className="layout">
-            <div className="L1">
-                <Box component="img" src={"src/assets/TAMULogo.png"} alt={"Texas A&M"} sx={{ height: "300px", width: "auto" }} />
-            </div>
-            <div className="M1">
-                <Box component="img" src={"src/assets/NSF-NCAR_Lockup-UCAR-Dark.png"} alt={"Texas A&M"} sx={{ height: "275px", width: "auto" }} />
-            </div>
-            <div className="M3">
+          <section className="layoutLogIn">
+            <div className="M2">
                 <Box sx={{ width: '100%', maxWidth: 700 }}>
-                    <Typography variant="h1">
+                    <Typography variant="h2">
                         Chemistry Cafe
+                    </Typography>
+                </Box>
+            </div>
+            <div className='M3'>
+                <Box>
+                    <Typography variant="h6">
+                        A collaborative tool to share, edit, manage, and export chemical mechanisms across the scientific community
+                        and into MusicBox Interactive. <br></br>
+
                     </Typography>
                 </Box>
             </div>
@@ -131,7 +139,21 @@ interface Profile {
                         onClose={handleAboutClose}
                     >
                         <Box sx={style}>
-                            About
+                            <Typography variant='h4'>About</Typography>
+                            <Box component="img" src={"src/assets/NSF-NCAR_Lockup-UCAR-Dark.png"} alt={"Texas A&M"} sx={{ height: "100px", width: "auto" }} />
+                            <Box component="img" src={"src/assets/TAMULogo.png"} alt={"Texas A&M"} sx={{ height: "100px", width: "auto" }} />
+                            <Typography variant='body1'>
+                                The Chemistry Cafe tool was made possible by the collaboration between NCAR and Texas A&M through the
+                                CSCE Capstone program.
+                            </Typography>
+                            <p></p>
+                            <Typography variant='h6'>
+                                Credits
+                            </Typography>
+                            <Typography variant='body1'>
+                                Paul Cyr, Brandon Longuet, Brian Nguyen <br></br> Spring 2024 Capstone Team <br></br> <p></p>
+                                Kyle Shores <br></br> Spring 2024 Capstone Sponsor Representative
+                            </Typography>
                         </Box>
                     </Modal>
             </div>

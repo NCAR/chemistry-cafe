@@ -7,6 +7,8 @@ import NavDropDown from '../Components/NavDropDown';
 
 import DensitySmallSharpIcon from '@mui/icons-material/DensitySmallSharp';
 
+import "./loggedIn.css";
+
   const LoggedIn = () => {
     const navigate = useNavigate();
     const handleClickFam = () => navigate('/FamilyPage');
@@ -22,7 +24,7 @@ import DensitySmallSharpIcon from '@mui/icons-material/DensitySmallSharp';
       width: '500px',
     };
         return (
-          <section className='layout'>
+          <section className='layoutLoggedIn'>
 
             <div className='L1'>
               <Button onClick={toggleDrawer(true)}>

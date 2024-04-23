@@ -9,14 +9,15 @@ export const StyledHeader = styled.header`
 
 export const StyledDetailBox = styled.section`
   display: block;
-  width: 100%;
+  width: 98%;
   height: 60vh;
   background-color: #C3D7EE;
   border-style: solid;
   border-width: 1px;
   border-radius: 5px;
   position: relative;
-  grid-column: 2 / span 2;
+  padding: 10px;
+  grid-column: 2 / span 5;
   grid-row: 2 / span 2;
   overflow: hidden;
 `;

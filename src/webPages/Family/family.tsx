@@ -9,13 +9,9 @@ import { StyledHeader, StyledDetailBox } from './familyStyling';
 
 import { Drawer } from '@mui/material';
 import Button from "@mui/material/Button";
-import BottomNavigation from '@mui/material/BottomNavigation';
-import BottomNavigationAction from '@mui/material/BottomNavigationAction';
-
-import InsertLinkSharpIcon from '@mui/icons-material/InsertLinkSharp';
-import IosShareSharpIcon from '@mui/icons-material/IosShareSharp';
-import TaskSharpIcon from '@mui/icons-material/TaskSharp';
 import DensitySmallSharpIcon from '@mui/icons-material/DensitySmallSharp';
+
+import { Header, Footer } from '../Components/HeaderFooter';
 
 import "./family.css";
 
@@ -24,16 +20,6 @@ const FamilyPage = () => {
     const toggleDrawer = (newOpenDrawer: boolean) => () => {
       setOpenDrawer(newOpenDrawer);
     };
-
-    const [publishOpen, setPublishOpen] = React.useState(false);
-    const [shareOpen, setShareOpen] = React.useState(false);
-    const [doiOpen, setDOIOpen] = React.useState(false);
-    const handlePublishOpen = () => setPublishOpen(true);
-    const handlePublishClose = () => setPublishOpen(false);
-    const handleShareOpen = () => setShareOpen(true);
-    const handleShareClose = () => setShareOpen(false);
-    const handleDOIOpen = () => setDOIOpen(true);
-    const handleDOIClose = () => setDOIOpen(false);
 
     const [selectedFamily, setSelectedFamily] = useState<string | null>(null);
     const [selectedTagMechanism, setSelectedTagMechanism] = useState<string | null>(null);
@@ -49,9 +35,12 @@ const FamilyPage = () => {
     const handleCreateTagMechanismClose = () => setCreateTagMechanismOpen(false);
 
     return (
-        <section className="layout">
+        <section className="layoutFam">
+            <div className='L1Fam'>
+                <Header></Header>
+            </div>
 
-            <div className="L1">
+            <div className="L2">
                 <Button onClick={toggleDrawer(true)}>
                     <DensitySmallSharpIcon sx={{fontSize: 50}}></DensitySmallSharpIcon>
                 </Button> 
@@ -59,7 +48,7 @@ const FamilyPage = () => {
                 </StyledHeader>
             </div>
 
-            <div className="L2">
+            <div className="L3">
                 <RenderFamilyTree 
                     selectedFamily={selectedFamily}
                     setSelectedFamily={setSelectedFamily}
@@ -73,6 +62,12 @@ const FamilyPage = () => {
                 />
             </div>
 
+            <div className='L9Fam'>
+                <Footer>
+
+                </Footer>
+            </div>
+
             <StyledDetailBox>
                 <RenderSpeciesReactionTable selectedFamily={selectedFamily} selectedTagMechanism={selectedTagMechanism} />
             </StyledDetailBox>
@@ -82,9 +77,6 @@ const FamilyPage = () => {
                 <NavDropDown />
             </Drawer>
 
-            <CreatePublishModal open={publishOpen} onClose={handlePublishClose}/>
-            <CreateShareModal open={shareOpen} onClose={handleShareClose}/>
-            <CreateDOIModal open={doiOpen} onClose={handleDOIClose}/>
             <CreateFamilyModal 
                 open={createFamilyOpen}
                 onClose={handleCreateFamilyClose} 
