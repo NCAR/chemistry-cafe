@@ -1115,6 +1115,10 @@ export const ReactionPropertiesModal: React.FC<ReactionPropertiesModalProps> = (
                         </div>
                     </div>
                     <h1 style={{marginTop: '20px'}}>Properties</h1>
+                    
+                    {/* <img src="./src/assets/" */}
+                    
+
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         <Box sx={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #ccc', pb: '0.5rem', fontWeight: 'bold' }}>
                             <Typography sx={{ flex: 1 }}>Name</Typography>
