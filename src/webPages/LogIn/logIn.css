@@ -12,7 +12,7 @@
       "L6 M6 R6" 1fr
       "L7 M7 R7" 1fr
       "L8 M8 R8" 1fr
-      "L9 M9 R9" 1fr
+      "L9LogIn M9 R9" 1fr
       / 1fr 1fr 1fr;
     background-color: #C3D7EE;
     /* background-color: black; */
@@ -43,5 +43,8 @@
 .L7 { grid-area: L7; }
 .M7 { grid-area: M7; }
 .R7 { grid-area: R7; }
+.L9LogIn {grid-area: L9LogIn; grid-column: span 3;}
+.M9 { grid-area: M9; }
+.R9 { grid-area: R9; }
 
   

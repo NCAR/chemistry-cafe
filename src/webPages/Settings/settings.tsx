@@ -1,6 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 import Button from "@mui/material/Button";
 import ButtonGroup from '@mui/material/ButtonGroup';
+import { Header, Footer } from '../Components/HeaderFooter';
+
+import "./settings.css"
 
   const Settings = () => {
     const navigate = useNavigate();
@@ -12,8 +15,12 @@ import ButtonGroup from '@mui/material/ButtonGroup';
     };
 
         return (
-          <section className='layout'>
-            <div className='M3'>
+          <section className='layoutSettings'>
+            <div className='L1Settings'>
+              <Header></Header>
+            </div>
+
+            <div className='M3Settings'>
               <ButtonGroup orientation='vertical' variant='contained'>
                 <Button sx={style} onClick={handleClick}>
                   Back
@@ -22,6 +29,10 @@ import ButtonGroup from '@mui/material/ButtonGroup';
                   WIP
                 </Button>
               </ButtonGroup>
+            </div>
+
+            <div className='L9Settings'>
+              <Footer></Footer>
             </div>
           </section>
         );

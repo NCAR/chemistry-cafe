@@ -8,9 +8,10 @@ import Button from "@mui/material/Button";
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import Typography from '@mui/material/Typography';
-import { colors } from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
 import NoAccountsIcon from '@mui/icons-material/NoAccounts';
+import { Footer } from '../Components/HeaderFooter';
+
 
 interface User {
     access_token: string;
@@ -82,6 +83,7 @@ interface Profile {
 
         return (
           <section className="layoutLogIn">
+
             <div className="M2">
                 <Box sx={{ width: '100%', maxWidth: 700 }}>
                     <Typography variant="h2" sx={{color: 'white'}}>
@@ -157,6 +159,10 @@ interface Profile {
                             </Typography>
                         </Box>
                     </Modal>
+            </div>
+
+            <div className='L9LogIn'>
+                <Footer></Footer>
             </div>
           </section>
         );

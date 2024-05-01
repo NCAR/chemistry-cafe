@@ -1116,7 +1116,7 @@ export const ReactionPropertiesModal: React.FC<ReactionPropertiesModalProps> = (
                     </div>
                     <h1 style={{marginTop: '20px'}}>Properties</h1>
                     
-                    {/* <img src="./src/assets/" */}
+                   
                     
 
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

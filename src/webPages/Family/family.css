@@ -6,7 +6,7 @@
   grid:
     "L1Fam M1 R1" 1fr
     "L2Fam M2 R2" 1fr
-    "L3 M3 R3" 1fr
+    "L3Fam M3 R3" 1fr
     "L4Fam M4 R4" 1fr
     "L5 M5 R5" 1fr
     "L6 M6 R6" 1fr
@@ -20,21 +20,11 @@
   
 
 
-.L1Fam { grid-area: L1Fam; grid-column: span 3;}
-.M1 { grid-area: M1; grid-column: span 2;}
-.R1 { grid-area: R1; }
-.L2Fam { grid-area: L2Fam; height: 80vh; }
-.M2 { grid-area: M2; }
-.R2 { grid-area: R2; }
-.L3 { grid-area: L3; }
-.M3 { grid-area: M3; }
-.R3 { grid-area: R3; }
-.L4Fam { grid-area: L4Fam; grid-column: 1 / 4;}
-.M4 { grid-area: M4; }
-.R4 { grid-area: R4; }
-.L9Fam { grid-area: L9Fam; grid-column: 1 / 4;}
-.M9 { grid-area: M9; }
-.R9 { grid-area: R9; }
+.L1Fam { grid-area: L1Fam; grid-column: span 3; }
+.L2Fam { grid-area: L2Fam; grid-row: span 2; }
+.L3Fam { grid-area: L3Fam; }
+.L8Fam { grid-area: L9Fam; grid-column: 1 / 4; }
+.L9Fam { grid-area: L9Fam; grid-column: 1 / 4; }
 
 
 .modal-visible {

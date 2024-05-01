@@ -7,19 +7,11 @@ import { CreateDOIModal, CreateFamilyModal, CreatePublishModal, CreateShareModal
 
 import { StyledHeader, StyledDetailBox } from './familyStyling';
 
-import { Drawer } from '@mui/material';
-import Button from "@mui/material/Button";
-import DensitySmallSharpIcon from '@mui/icons-material/DensitySmallSharp';
-
 import { Header, Footer } from '../Components/HeaderFooter';
 
 import "./family.css";
 
 const FamilyPage = () => {    
-    const [openDrawer, setOpenDrawer] = React.useState(false);
-    const toggleDrawer = (newOpenDrawer: boolean) => () => {
-      setOpenDrawer(newOpenDrawer);
-    };
 
     const [selectedFamily, setSelectedFamily] = useState<string | null>(null);
     const [selectedTagMechanism, setSelectedTagMechanism] = useState<string | null>(null);
@@ -36,16 +28,9 @@ const FamilyPage = () => {
 
     return (
         <section className="layoutFam">
-            {/* <div className='L1Fam'>
-                <Header></Header>
-            </div> */}
-
-            <div className="L1Fam">
-                <Button onClick={toggleDrawer(true)}>
-                    <DensitySmallSharpIcon sx={{fontSize: 50}}></DensitySmallSharpIcon>
-                </Button> 
-                <StyledHeader>
-                </StyledHeader>
+            <div className='L1Fam'>
+                <Header>
+                </Header>
             </div>
 
             <div className="L2Fam" style={{overflow: 'auto'}}>
@@ -62,20 +47,14 @@ const FamilyPage = () => {
                 />
             </div>
 
-            {/* <div className='L9Fam'>
+            <div className='L9Fam'>
                 <Footer>
-
                 </Footer>
-            </div> */}
+            </div>
 
             <StyledDetailBox>
                 <RenderSpeciesReactionTable selectedFamily={selectedFamily} selectedTagMechanism={selectedTagMechanism} />
             </StyledDetailBox>
-
-
-            <Drawer open={openDrawer} onClose={toggleDrawer(false)}>
-                <NavDropDown />
-            </Drawer>
 
             <CreateFamilyModal 
                 open={createFamilyOpen}
