@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { googleLogout, useGoogleLogin } from '@react-oauth/google';
@@ -33,7 +32,7 @@ interface Profile {
     const navigate = useNavigate();
     const handleClick = () => navigate('/LoggedIn');
 
-    const [aboutOpen, setAboutOpen] = React.useState(false);
+    const [aboutOpen, setAboutOpen] = useState(false);
     const handleAboutOpen = () => setAboutOpen(true);
     const handleAboutClose = () => setAboutOpen(false);
 

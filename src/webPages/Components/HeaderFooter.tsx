@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from "@mui/material/Button";
 import NavDropDown from './NavDropDown';
@@ -10,7 +10,7 @@ import DensitySmallSharpIcon from '@mui/icons-material/DensitySmallSharp';
 // import Typography from '@mui/material/Typography';
 
 export const Header = () => {
-    const [openDrawer, setOpenDrawer] = React.useState(false);
+    const [openDrawer, setOpenDrawer] = useState(false);
     const toggleDrawer = (newOpenDrawer: boolean) => () => {
       setOpenDrawer(newOpenDrawer);
     };
@@ -37,23 +37,20 @@ export const Footer = () => {
         window.open("https://www.ucar.edu/accessibility", "_blank");
     }
 
-    const [aboutOpen, setAboutOpen] = React.useState(false);
+    const [, setAboutOpen] = useState(false);
     const handleAboutOpen = () => setAboutOpen(true);
-    const handleAboutClose = () => setAboutOpen(false);
     const handleAbout = () => {
         handleAboutOpen();
     };
 
-    const [collabOpen, setCollabOpen] = React.useState(false);
+    const [, setCollabOpen] = useState(false);
     const handleCollabOpen = () => setCollabOpen(true);
-    const handleCollabClose = () => setCollabOpen(false);
     const handleCollab = () => {
         handleCollabOpen();
     };
 
-    const [sponsorOpen, setSponsorOpen] = React.useState(false);
+    const [, setSponsorOpen] = useState(false);
     const handleSponsorOpen = () => setSponsorOpen(true);
-    const handleSponsorClose = () => setSponsorOpen(false);
     const handleSponsor = () => {
         handleSponsorOpen();
     };

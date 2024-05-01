@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 
-import NavDropDown from '../Components/NavDropDown';
 import RenderFamilyTree from '../Components/RenderFamilyTree';
 import RenderSpeciesReactionTable from '../Components/RenderSpeciesReactionTable';
-import { CreateDOIModal, CreateFamilyModal, CreatePublishModal, CreateShareModal, CreateTagMechanismModal } from '../Components/Modals';
+import { CreateFamilyModal, CreateTagMechanismModal } from '../Components/Modals';
 
-import { StyledHeader, StyledDetailBox } from './familyStyling';
+import { StyledDetailBox } from './familyStyling';
 
 import { Header, Footer } from '../Components/HeaderFooter';
 
