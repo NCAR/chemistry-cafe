@@ -129,9 +129,9 @@ interface Profile {
                 </Button>
             </div>
 
-            <div className='M7'>
-                <Button variant='contained' onClick={handleAbout} sx={{width: '50%'}}>
-                    About
+            <div className='M7LogIn'>
+                <Button variant='contained' onClick={handleAbout} sx={{width: '25%', justifyContent: 'center'}}>
+                    Credits
                 </Button>
             </div>
 

@@ -10,7 +10,7 @@
       "L4 M4 R4" 1fr
       "L5 M5 R5" 1fr
       "L6 M6 R6" 1fr
-      "L7 M7 R7" 1fr
+      "L7 M7LogIn R7" 1fr
       "L8 M8 R8" 1fr
       "L9LogIn M9 R9" 1fr
       / 1fr 1fr 1fr;
@@ -41,7 +41,7 @@
 .M5 { grid-area: M5; }
 .R5 { grid-area: R5; }
 .L7 { grid-area: L7; }
-.M7 { grid-area: M7; }
+.M7LogIn { grid-area: M7LogIn; }
 .R7 { grid-area: R7; }
 .L9LogIn {grid-area: L9LogIn; grid-column: span 3;}
 .M9 { grid-area: M9; }

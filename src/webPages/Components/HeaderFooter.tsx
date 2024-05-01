@@ -16,7 +16,7 @@ export const Header = () => {
     };
 
     return(
-        <Paper square={true} variant='outlined'>
+        <Paper square={true} variant='outlined' sx={{backgroundColor: '#dbdbdb'}}>
             <Button onClick={toggleDrawer(true)}>
                 <DensitySmallSharpIcon sx={{fontSize: 50}}></DensitySmallSharpIcon>
             </Button> 
@@ -56,32 +56,32 @@ export const Footer = () => {
     };
 
     return(
-        <Paper component="footer" square={true} variant='outlined'>
+        <Paper component="footer" square={true} variant='outlined' sx={{backgroundColor: '#dbdbdb'}}>
             <Container maxWidth="lg" sx={{display: "flex"}}>
-                <Box component="img" src={"src/assets/nsf-stackseal-logo-lockup-dark.png"} sx={{height: "100px", width: "auto", pr: 10}}>
+                <Box component="img" src={"src/assets/nsf-stackseal-logo-lockup-dark.png"} sx={{height: "75px", width: "auto", pr: 10}}>
                 </Box>
                 <Box sx={{pr: 10}}>
-                    <Button onClick={handleAbout}>
+                    <Button onClick={handleAbout} sx={{color: 'black'}}>
                         About
                     </Button>
                 </Box>
                 <Box sx={{pr: 10}}>
-                    <Button onClick={handleCollab}>
+                    <Button onClick={handleCollab} sx={{color: 'black'}}>
                         Collaborators
                     </Button>
                 </Box>
                 <Box sx={{pr: 10}}>
-                    <Button onClick={handleSponsor}>
+                    <Button onClick={handleSponsor} sx={{color: 'black'}}>
                         Sponsors
                     </Button>
                 </Box>
                 <Box sx={{pr: 10}}>
-                    <Button onClick={handleBugClick} variant="text">
+                    <Button onClick={handleBugClick} sx={{color: 'black'}}>
                         Report a bug
                     </Button>
                 </Box>
                 <Box sx={{pr: 10}}>
-                    <Button onClick={handleAccessabilityClick}>
+                    <Button onClick={handleAccessabilityClick} sx={{color: 'black'}}>
                         Accessability
                     </Button>
                 </Box>
