@@ -26,7 +26,7 @@ describe('LogIn Component Test', () => {
     });
 
     it('should open and close the About modal', async () => {
-        const aboutButton = screen.getByRole('button', { name: 'About' });
+        const aboutButton = screen.getAllByRole('button', { name: 'About' })[0];
         fireEvent.click(aboutButton);
 
         // Assert that modal is open
