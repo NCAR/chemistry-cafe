@@ -61,7 +61,6 @@ ChemistryCafe is a web application built with React, Vite, and TypeScript. The a
 - **Bootstrap & React Bootstrap**: For styling and UI components.
 - **React & React DOM**: JavaScript library and DOM support.
 - **React Router DOM**: Client-side routing.
-- **Styled-Components**: Another styling library.
 
 ## Setup
 
