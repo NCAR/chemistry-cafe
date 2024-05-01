@@ -1,0 +1,47 @@
+.layoutFam {
+  height: 100vh;
+  width: 100vw;
+
+  display: grid;
+  grid:
+    "L1Fam M1 R1" 1fr
+    "L2Fam M2 R2" 1fr
+    "L3Fam M3 R3" 1fr
+    "L4Fam M4 R4" 1fr
+    "L5 M5 R5" 1fr
+    "L6 M6 R6" 1fr
+    "L7 M7 R7" 1fr
+    "L8 M8 R8" 1fr
+    "L9Fam M9 R9" 1fr
+    / 1fr 1fr 1fr;
+  /* gap: 8px; */
+  background-color: #C3D7EE;
+}
+  
+
+
+.L1Fam { grid-area: L1Fam; grid-column: span 3; }
+.L2Fam { grid-area: L2Fam; grid-row: span 2; }
+.L3Fam { grid-area: L3Fam; }
+.L8Fam { grid-area: L9Fam; grid-column: 1 / 4; }
+.L9Fam { grid-area: L9Fam; grid-column: 1 / 4; }
+
+
+.modal-visible {
+  position: absolute;
+  animation: slideIn 2.5s cubic-bezier(0,-0.01,.01,1) infinite;
+}
+
+.modal-hidden {
+  display: none;
+}
+
+@keyframes slideIn {
+  from {
+    left: -10%;
+  }
+  to {
+    left: 0%;
+  }
+}
+
