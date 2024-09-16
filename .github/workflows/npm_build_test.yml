@@ -9,6 +9,7 @@ on:
       - capstone_dev
       - master
       - github_actions
+      - Add_Docker_Image_Action
   pull_request:
     branches:
       - master
