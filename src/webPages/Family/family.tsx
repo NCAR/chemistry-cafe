@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 import RenderFamilyTree from '../Components/RenderFamilyTree';
 import RenderSpeciesReactionTable from '../Components/RenderSpeciesReactionTable';
+import RenderFamilyDataModal from '../Components/RenderFamilyDataModal';
 import { CreateFamilyModal, CreateTagMechanismModal } from '../Components/Modals';
 
 import { StyledDetailBox } from './familyStyling';

@@ -10,6 +10,8 @@ import { DataGrid, GridRowParams, GridColDef, GridToolbar } from '@mui/x-data-gr
 import IconButton from '@mui/material/IconButton';
 import { Add } from '@mui/icons-material';
 import { Typography } from '@mui/material';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
 
 interface Props {
     selectedFamily: string | null;
@@ -46,6 +48,14 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamily, selectedT
     const [reactionPropertiesOpen, setReactionPropertiesOpen] = React.useState(false);
     const handleReactionPropertiesOpen = () => setReactionPropertiesOpen(true);
     const handleReactionPropertiesClose = () => setReactionPropertiesOpen(false);
+
+
+    const [currentTab, setCurrentTab] = useState<number>(0);
+    
+    // Event needed as parameter to ensure correct value recieved in tabValue
+    const handleTabSwitch = (event: React.ChangeEvent<unknown>, tabValue: number) => {
+        setCurrentTab(tabValue);
+    };
 
     const handleSpeciesCellClick = (params: GridRowParams<Species>) => {
         const species = params.row;
@@ -187,6 +197,21 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamily, selectedT
                         >
                             <Add sx={{ fontSize: 32, fontWeight: 'bold' }} />
                         </IconButton>
+                    </div>
+
+                    <div>
+                    <Tabs value={currentTab} onChange={handleTabSwitch}>
+                        <Tab label="test1" />
+                        <Tab label="test2" />
+                    </Tabs>
+
+                    {currentTab === 0 && 
+                    <div>hi test1 here</div>
+                    }
+                    {currentTab === 1 && 
+                    <div>hi test2 here</div>
+                    }
+                    
                     </div>
 
                     <DataGrid
