@@ -201,20 +201,13 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamily, selectedT
 
                     <div>
                     <Tabs value={currentTab} onChange={handleTabSwitch}>
-                        <Tab label="test1" />
-                        <Tab label="test2" />
+                        <Tab label="Species" />
+                        <Tab label="Reactions" />
                     </Tabs>
 
                     {currentTab === 0 && 
-                    <div>hi test1 here</div>
-                    }
-                    {currentTab === 1 && 
-                    <div>hi test2 here</div>
-                    }
-                    
-                    </div>
-
-                    <DataGrid
+                    <div>
+                        <DataGrid
                         rows={combineSpeciesAndProperties(species, speciesProperties)}
                         columns={createSpeciesColumns()}
                         getRowId={(row: Species) => row.uuid}
@@ -235,24 +228,11 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamily, selectedT
                             },
                         }}
                     />
-                </div>
-            </div>
-
-            <div style={{ height: '100%', width: '50%' }}>
-                <div style={{ height: '100%' }}>
-                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                        <h2>Reactions</h2>
-                        <IconButton
-                            onClick={handleCreateReactionOpen}
-                            aria-label="create reaction"
-                            style={{ color: 'blue', margin: '5px' }}
-                            disabled={selectedFamily === null || selectedTagMechanism === null}
-                        >
-                            <Add sx={{ fontSize: 32, fontWeight: 'bold' }} />
-                        </IconButton>
                     </div>
-                    
-                    <DataGrid
+                    }
+                    {currentTab === 1 && 
+                    <div>
+                         <DataGrid
                         rows={reactions}
                         columns={reactionColumns}
                         getRowId={(row: Reaction) => row.uuid}
@@ -273,6 +253,27 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamily, selectedT
                             },
                         }}
                     />
+                    </div>
+                    }
+
+                    </div>
+
+                </div>
+            </div>
+
+            <div style={{ height: '100%', width: '50%' }}>
+                <div style={{ height: '100%' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <h2>Reactions</h2>
+                        <IconButton
+                            onClick={handleCreateReactionOpen}
+                            aria-label="create reaction"
+                            style={{ color: 'blue', margin: '5px' }}
+                            disabled={selectedFamily === null || selectedTagMechanism === null}
+                        >
+                            <Add sx={{ fontSize: 32, fontWeight: 'bold' }} />
+                        </IconButton>
+                    </div>
                 </div>
             </div>
             <CreateSpeciesModal open={createSpeciesOpen} onClose={handleCreateSpeciesClose} selectedFamily={selectedFamily} selectedTagMechanism={selectedTagMechanism} setSpeciesCreated={setSpeciesCreated} />
