@@ -13,6 +13,20 @@ import { Typography } from '@mui/material';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 
+const tabsHeaderStyle: React.CSSProperties = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    position: 'sticky',
+    top: 0,
+    backgroundColor: '#f0f0f0',
+    zIndex: 1,
+    padding: '10px',
+    borderBottom: '1px solid #ccc',
+
+};
+
+
 interface Props {
     selectedFamily: string | null;
     selectedTagMechanism: string | null;
@@ -199,11 +213,12 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamily, selectedT
                         </IconButton>
                     </div>
 
-                    <div>
+                    <div className='familyTabs' style={tabsHeaderStyle}>
                     <Tabs value={currentTab} onChange={handleTabSwitch}>
                         <Tab label="Species" />
                         <Tab label="Reactions" />
                     </Tabs>
+                    </div>
 
                     {currentTab === 0 && 
                     <div>
@@ -256,7 +271,6 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamily, selectedT
                     </div>
                     }
 
-                    </div>
 
                 </div>
             </div>
@@ -275,7 +289,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamily, selectedT
                         </IconButton>
                     </div>
                 </div>
-            </div>
+            </div> 
             <CreateSpeciesModal open={createSpeciesOpen} onClose={handleCreateSpeciesClose} selectedFamily={selectedFamily} selectedTagMechanism={selectedTagMechanism} setSpeciesCreated={setSpeciesCreated} />
             <CreateReactionModal open={createReactionOpen} onClose={handleCreateReactionClose} selectedFamily={selectedFamily} selectedTagMechanism={selectedTagMechanism} setReactionCreated={setReactionCreated} />
             <SpeciesPropertiesModal open={speciesPropertiesOpen} onClose={handleSpeciesPropertiesClose} selectedTagMechanism={selectedTagMechanism} selectedSpecies={selectedSpecies} setSpeciesUpdated={setSpeciesUpdated} />
