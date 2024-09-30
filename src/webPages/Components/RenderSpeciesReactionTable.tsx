@@ -1,26 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { Children, ReactNode, useEffect, useState } from 'react';
 
 import { Species, Reaction, PropertyType, PropertyVersion} from '../../API/API_Interfaces';
 import { getSpeciesFromTagMechanism, getReactionsFromTagMechanism, getPropertyTypesFromValidation, getPropertiesFromParent } from '../../API/API_GetMethods';
 
 import { CreateReactionModal, CreateSpeciesModal, ReactionPropertiesModal, SpeciesPropertiesModal } from './Modals';
 
-import { DataGrid, GridRowParams, GridColDef, GridToolbar } from '@mui/x-data-grid';
+import { DataGrid, GridRowParams, GridColDef, GridToolbar, GridToolbarContainer, GridToolbarColumnsButton, GridToolbarFilterButton, GridToolbarDensitySelector, GridToolbarExport } from '@mui/x-data-grid';
 
 import IconButton from '@mui/material/IconButton';
-import { Add } from '@mui/icons-material';
+import { Add, ChildCare } from '@mui/icons-material';
 import { Typography } from '@mui/material';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 
 const tabsHeaderStyle: React.CSSProperties = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    position: 'sticky',
-    top: 0,
     backgroundColor: '#f0f0f0',
-    zIndex: 1,
     padding: '10px',
     borderBottom: '1px solid #ccc',
 
@@ -31,6 +25,7 @@ interface Props {
     selectedFamily: string | null;
     selectedTagMechanism: string | null;
 }
+
 
 const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamily, selectedTagMechanism }) => {
     const [createSpeciesOpen, setCreateSpeciesOpen] = React.useState(false);
@@ -196,100 +191,111 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamily, selectedT
             ),
         },
     ];
+    /** toolbar that takes in a button and adds it, used for datagrids below 
+    to include add item buttons */
+    const FamilyReactionToolbar: React.FC<{ customButton?: React.ReactNode }> = ({ customButton }) =>  {
+        return (
+            <GridToolbarContainer>
+                <GridToolbarColumnsButton></GridToolbarColumnsButton>
+                <GridToolbarFilterButton />
+                <GridToolbarDensitySelector 
+                    slotProps={{ tooltip: { title: 'Change density' } }}
+                />
+                {customButton && customButton}
+                <GridToolbarExport 
+                    slotProps={{
+                        tooltip: { title: 'Export data' },
+                        button: { variant: 'outlined' },
+                    }}
+                />
+                
+            </GridToolbarContainer>
+        );
+    };
 
+
+    const addSpeciesButton = (<IconButton onClick={handleCreateSpeciesOpen} 
+            aria-label="create species" 
+            style={{ color: 'blue', margin: '5px' }} 
+            disabled={selectedFamily === null || selectedTagMechanism === null}
+            > 
+            <Add sx={{ fontSize: 32, fontWeight: 'bold' }} /> 
+        </IconButton>);
+
+    const addReactionButton = (
+        <IconButton
+            onClick={handleCreateReactionOpen}
+            aria-label="create reaction"
+            style={{ color: 'blue', margin: '5px' }}
+            disabled={selectedFamily === null || selectedTagMechanism === null}
+        >
+            <Add sx={{ fontSize: 32, fontWeight: 'bold' }} />
+        </IconButton>);
     return (
-        <div style={{ display:'flex', height: '100%', width: '100%' }}>
-            <div style={{ height: '100%', width: '50%' }}>
-                <div style={{ height: '100%' }}>
-                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                        <h2>Species</h2>
-                        <IconButton
-                            onClick={handleCreateSpeciesOpen}
-                            aria-label="create species"
-                            style={{ color: 'blue', margin: '5px' }}
-                            disabled={selectedFamily === null || selectedTagMechanism === null}
-                        >
-                            <Add sx={{ fontSize: 32, fontWeight: 'bold' }} />
-                        </IconButton>
-                    </div>
-
-                    <div className='familyTabs' style={tabsHeaderStyle}>
+        <div style={{ display:'flex', flexDirection:'column', height: '100%', width: '100%' }}>
+            <div className='familyTabs' style={tabsHeaderStyle}>
                     <Tabs value={currentTab} onChange={handleTabSwitch}>
                         <Tab label="Species" />
                         <Tab label="Reactions" />
                     </Tabs>
-                    </div>
-
-                    {currentTab === 0 && 
-                    <div>
-                        <DataGrid
-                        rows={combineSpeciesAndProperties(species, speciesProperties)}
-                        columns={createSpeciesColumns()}
-                        getRowId={(row: Species) => row.uuid}
-                        onRowClick={handleSpeciesCellClick}
-                        autoPageSize
-                        pagination
-                        style={{ height: '80%' }}
-                        slots={{ toolbar: GridToolbar }}
-                        sx={{
-                            '& .MuiDataGrid-cell': {
-                                borderRight: '3px solid #ddd',
-                                borderBottom: '3px solid #ddd',
-                                padding: '8px',
-                            },
-                            '& .MuiDataGrid-columnHeader': {
-                                borderBottom: '3px solid #ccc',
-                                padding: '10px',
-                            },
-                        }}
-                    />
-                    </div>
-                    }
-                    {currentTab === 1 && 
-                    <div>
-                         <DataGrid
-                        rows={reactions}
-                        columns={reactionColumns}
-                        getRowId={(row: Reaction) => row.uuid}
-                        onRowClick={handleReactionCellClick}
-                        autoPageSize
-                        pagination
-                        style={{ height: '80%' }}
-                        slots={{ toolbar: GridToolbar }}
-                        sx={{
-                            '& .MuiDataGrid-cell': {
-                                borderRight: '3px solid #ddd',
-                                borderBottom: '3px solid #ddd',
-                                padding: '8px',
-                            },
-                            '& .MuiDataGrid-columnHeader': {
-                                borderBottom: '3px solid #ccc',
-                                padding: '10px',
-                            },
-                        }}
-                    />
-                    </div>
-                    }
-
-
-                </div>
             </div>
 
-            <div style={{ height: '100%', width: '50%' }}>
-                <div style={{ height: '100%' }}>
-                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                        <h2>Reactions</h2>
-                        <IconButton
-                            onClick={handleCreateReactionOpen}
-                            aria-label="create reaction"
-                            style={{ color: 'blue', margin: '5px' }}
-                            disabled={selectedFamily === null || selectedTagMechanism === null}
-                        >
-                            <Add sx={{ fontSize: 32, fontWeight: 'bold' }} />
-                        </IconButton>
-                    </div>
-                </div>
-            </div> 
+            <div className='dataGrids' style={ { display:'flex', flexGrow:'1', overflowY: 'auto'} }>
+                {currentTab === 0 && 
+                        <div style={{ flexGrow: 1 }}>
+                            <DataGrid
+                            rows={combineSpeciesAndProperties(species, speciesProperties)}
+                            columns={createSpeciesColumns()}
+                            getRowId={(row: Species) => row.uuid}
+                            onRowClick={handleSpeciesCellClick}
+                            autoPageSize
+                            pagination
+                            style={{ height: '100%' }}
+                            slots={{ 
+                                toolbar: () => <FamilyReactionToolbar customButton={addSpeciesButton} />
+                            }}
+                            sx={{
+                                '& .MuiDataGrid-cell': {
+                                    borderRight: '3px solid #ddd',
+                                    borderBottom: '3px solid #ddd',
+                                    padding: '8px',
+                                },
+                                '& .MuiDataGrid-columnHeader': {
+                                    borderBottom: '3px solid #ccc',
+                                    padding: '10px',
+                                },
+                            }}
+                        />
+                        </div>
+                        }
+                        {currentTab === 1 && 
+                        <div style={{ flexGrow: 1 }}>
+                            <DataGrid
+                            rows={reactions}
+                            columns={reactionColumns}
+                            getRowId={(row: Reaction) => row.uuid}
+                            onRowClick={handleReactionCellClick}
+                            autoPageSize
+                            pagination
+                            style={{ height: '100%' }}
+                            slots={{
+                                toolbar: () => <FamilyReactionToolbar customButton={addReactionButton} />
+                            }}
+                            sx={{
+                                '& .MuiDataGrid-cell': {
+                                    borderRight: '3px solid #ddd',
+                                    borderBottom: '3px solid #ddd',
+                                    padding: '8px',
+                                },
+                                '& .MuiDataGrid-columnHeader': {
+                                    borderBottom: '3px solid #ccc',
+                                    padding: '10px',
+                                },
+                            }}
+                        />
+                        </div>
+                        }
+            </div>
             <CreateSpeciesModal open={createSpeciesOpen} onClose={handleCreateSpeciesClose} selectedFamily={selectedFamily} selectedTagMechanism={selectedTagMechanism} setSpeciesCreated={setSpeciesCreated} />
             <CreateReactionModal open={createReactionOpen} onClose={handleCreateReactionClose} selectedFamily={selectedFamily} selectedTagMechanism={selectedTagMechanism} setReactionCreated={setReactionCreated} />
             <SpeciesPropertiesModal open={speciesPropertiesOpen} onClose={handleSpeciesPropertiesClose} selectedTagMechanism={selectedTagMechanism} selectedSpecies={selectedSpecies} setSpeciesUpdated={setSpeciesUpdated} />
