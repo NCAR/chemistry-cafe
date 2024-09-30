@@ -15,7 +15,7 @@ services:
 
   backend:
     build:
-      context: ./backend  # Path to your back-end repository
+      context: ./Backend  # Path to your back-end repository
       dockerfile: Dockerfile
     ports:
       - "8080:80"  # Map host port to container port
