@@ -1,0 +1,23 @@
+services:
+  frontend:
+    build:
+      context: ./chemistrycafe  # Path to your front-end repository
+      dockerfile: Dockerfile
+    ports:
+      #- "8080:80"  # Map host port to container port
+      - "4173:4173"
+    depends_on:
+      - backend  # Ensure the backend service starts before frontend
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - API_URL=http://backend:80  # This points to the backend service within the Docker network
+
+
+  backend:
+    build:
+      context: ./chemistry-cafe-api  # Path to your back-end repository
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"  # Map host port to container port
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
