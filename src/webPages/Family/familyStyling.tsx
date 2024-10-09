@@ -13,10 +13,10 @@ export const StyledDetailBox = styled.section`
   background-color: #C3D7EE;
   border-style: solid;
   border-width: 1px;
-  border-radius: 5px;
+  border-radius: 10px;
   position: relative;
   padding: 10px;
   grid-column: 2 / span 5;
-  grid-row: 2 / span 2;
+  grid-row: 2 / span 1;
   overflow: hidden;
 `;

@@ -27,12 +27,12 @@ const FamilyPage = () => {
 
     return (
         <section className="layoutFam">
-            <div className='L1Fam'>
+            <div className='headerBar'>
                 <Header>
                 </Header>
             </div>
 
-            <div className="L2Fam" style={{overflow: 'auto'}}>
+            <div className="familiesMenu" style={{overflow: 'auto'}}>
                 <RenderFamilyTree 
                     selectedFamily={selectedFamily}
                     setSelectedFamily={setSelectedFamily}
@@ -46,14 +46,15 @@ const FamilyPage = () => {
                 />
             </div>
 
-            <div className='L9Fam'>
+            <div className='footerBar'>
                 <Footer>
                 </Footer>
             </div>
-
-            <StyledDetailBox>
-                <RenderSpeciesReactionTable selectedFamily={selectedFamily} selectedTagMechanism={selectedTagMechanism} />
-            </StyledDetailBox>
+            <div className='speciesReactions'>
+                <StyledDetailBox>
+                    <RenderSpeciesReactionTable selectedFamily={selectedFamily} selectedTagMechanism={selectedTagMechanism} />
+                </StyledDetailBox>
+            </div>
 
             <CreateFamilyModal 
                 open={createFamilyOpen}
