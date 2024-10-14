@@ -1,0 +1,3 @@
+[submodule "test/chemistry-cafe-api"]
+	path = test/chemistry-cafe-api
+	url = https://github.com/NCAR/chemistry-cafe-api.git
