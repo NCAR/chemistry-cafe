@@ -1,0 +1,32 @@
+services:
+  frontend:
+    build:
+      context: ./frontend  # Path to your front-end repository
+      dockerfile: Dockerfile
+    ports:
+      #- "8080:80"  # Map host port to container port
+      - "5173:5173"
+    depends_on:
+      - backend  # Ensure the backend service starts before frontend
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - API_URL=http://backend:8080  # This points to the backend service within the Docker network
+      - ASPNETCORE_URLS=http://0.0.0.0:8080
+    networks:
+      - app-network
+
+
+  backend:
+    build:
+      context: .  # Path to your back-end repository
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"  # Map host port to container port
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it as below.
+title: Chemistry Cafe API
+version: 0.0.0
+authors:
+  - family-names: Shores
+    given-names: Kyle
+  - family-names: Longuet
+    given-names: Brandon
+  - family-names: Cyr
+    given-names: Paul
+  - family-names: Nguyen
+    given-names: Brian
+license: Apache-2.0
+url: "https://github.com/NCAR/chemistry-cafe-api"
