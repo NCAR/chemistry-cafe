@@ -1,0 +1,32 @@
+name: Auto format javascript code with prettier
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  prettier:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Install packages
+        run: npm install
+
+      - name: Format code
+        run: npm run format
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: prettier action fixes
+          title: Fixes by prettier action
+          body: This is an auto-generated PR with fixes by prettier.
+          branch: prettier-patches
