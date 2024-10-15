@@ -11,8 +11,8 @@ RUN npm install
 # Copy the rest of the code
 COPY . .
 
-# Expose the API port (e.g., 5000)
-EXPOSE 5000
+# Expose the API port (e.g., 5173)
+EXPOSE 5173
 
 # Start the Node.js server
 CMD ["npm", "run", "preview"]
