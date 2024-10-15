@@ -11,7 +11,7 @@ export async function updatePropertyList(propertyList: PropertyList) {
         };
 
         const response = await axios.put(
-            'http://localhost:5134/api/PropertyList/update',
+            'http://localhost:8080/api/PropertyList/update',
             requestData,
             {
                 headers: {
@@ -36,7 +36,7 @@ export async function updateReactantProductList(reactantProductList: ReactantPro
         };
 
         const response = await axios.put(
-            'http://localhost:5134/api/ReactantProductList/update',
+            'http://localhost:8080/api/ReactantProductList/update',
             requestData,
             {
                 headers: {

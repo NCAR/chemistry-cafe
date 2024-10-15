@@ -37,7 +37,7 @@ describe('API methods', () => {
         const result = await createFamily(name);
 
         expect(mockedCreate).toHaveBeenCalledWith(
-            `http://localhost:5134/api/Family/create`,
+            `http://localhost:8080/api/Family/create`,
             `"${name}"`,
             {
                 headers: { 'Content-Type': 'application/json' },
@@ -60,7 +60,7 @@ describe('API methods', () => {
         const result = await createFamilyTagMechList(familyMechListData);
 
         expect(mockedPost).toHaveBeenCalledWith(
-            'http://localhost:5134/api/FamilyTagMechList/create',
+            'http://localhost:8080/api/FamilyTagMechList/create',
             familyMechListData,
             {
                 headers: { 'Content-Type': 'application/json' },
@@ -77,7 +77,7 @@ describe('API methods', () => {
         const result = await createTagMechanism(name);
 
         expect(mockedPost).toHaveBeenCalledWith(
-            'http://localhost:5134/api/TagMechanism/create',
+            'http://localhost:8080/api/TagMechanism/create',
             `"${name}"`,
             {
                 headers: { 'Content-Type': 'application/json' },
@@ -94,7 +94,7 @@ describe('API methods', () => {
         const result = await createReaction(type);
 
         expect(mockedPost).toHaveBeenCalledWith(
-            'http://localhost:5134/api/Reaction/create',
+            'http://localhost:8080/api/Reaction/create',
             `"${type}"`,
             {
                 headers: { 'Content-Type': 'application/json' },
@@ -111,7 +111,7 @@ describe('API methods', () => {
         const result = await createSpecies(type);
 
         expect(mockedPost).toHaveBeenCalledWith(
-            'http://localhost:5134/api/Species/create',
+            'http://localhost:8080/api/Species/create',
             `"${type}"`,
             {
                 headers: { 'Content-Type': 'application/json' },
@@ -132,7 +132,7 @@ describe('API methods', () => {
         const result = await createPropertyList(propertyList);
 
         expect(mockedPost).toHaveBeenCalledWith(
-            'http://localhost:5134/api/PropertyList/create',
+            'http://localhost:8080/api/PropertyList/create',
             propertyList,
             {
                 headers: { 'Content-Type': 'application/json' },
@@ -162,7 +162,7 @@ describe('API methods', () => {
         const result = await createPropertyVersion(propertyVersion);
 
         expect(mockedPost).toHaveBeenCalledWith(
-            'http://localhost:5134/api/PropertyVersion/create',
+            'http://localhost:8080/api/PropertyVersion/create',
             propertyVersion,
             {
                 headers: { 'Content-Type': 'application/json' },
@@ -185,7 +185,7 @@ describe('API methods', () => {
         const result = await createReactantProduct(reactantProduct);
 
         expect(mockedPost).toHaveBeenCalledWith(
-            'http://localhost:5134/api/ReactantProductList/create',
+            'http://localhost:8080/api/ReactantProductList/create',
             reactantProduct,
             {
                 headers: { 'Content-Type': 'application/json' },

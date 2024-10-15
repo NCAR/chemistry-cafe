@@ -35,7 +35,7 @@ describe('API delete functions tests', () => {
         const result = await updatePropertyList(propertyList);
 
         expect(mockedPost).toHaveBeenCalledWith(
-            'http://localhost:5134/api/PropertyList/update',
+            'http://localhost:8080/api/PropertyList/update',
             propertyList,
             {
                 headers: { 'Content-Type': 'application/json' },
@@ -58,7 +58,7 @@ describe('API delete functions tests', () => {
         const result = await updateReactantProductList(reactantProduct);
 
         expect(mockedPost).toHaveBeenCalledWith(
-            'http://localhost:5134/api/ReactantProductList/update',
+            'http://localhost:8080/api/ReactantProductList/update',
             reactantProduct,
             {
                 headers: { 'Content-Type': 'application/json' },

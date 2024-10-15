@@ -4,7 +4,7 @@ import axios from 'axios';
 export async function deleteFamily(uuid: string) {
     try {
         const response = await axios.delete(
-            `http://localhost:5134/api/Family/delete/${uuid}`,
+            `http://localhost:8080/api/Family/delete/${uuid}`,
             {
                 headers: {
                     'Content-Type': 'application/json',
@@ -21,7 +21,7 @@ export async function deleteFamily(uuid: string) {
 export async function deleteFamMechList(uuid: string) {
     try {
         const response = await axios.delete(
-            `http://localhost:5134/api/FamilyMechList/delete/${uuid}`,
+            `http://localhost:8080/api/FamilyMechList/delete/${uuid}`,
             {
                 headers: {
                     'Content-Type': 'application/json',
@@ -38,7 +38,7 @@ export async function deleteFamMechList(uuid: string) {
 export async function deleteTagMechanism(uuid: string) {
     try {
         const response = await axios.delete(
-            `http://localhost:5134/api/TagMechanism/delete/${uuid}`,
+            `http://localhost:8080/api/TagMechanism/delete/${uuid}`,
             {
                 headers: {
                     'Content-Type': 'application/json',

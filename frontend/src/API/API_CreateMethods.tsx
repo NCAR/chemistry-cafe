@@ -4,7 +4,7 @@ import { FamilyTagMechList, TagMechanismReactionList, TagMechanismSpeciesList, P
 export async function createFamily(name: string) {
     try {
         const response = await axios.post(
-            'http://localhost:5134/api/Family/create',
+            'http://localhost:8080/api/Family/create',
             "\"" + name + "\"",
             {
                 headers: {
@@ -28,7 +28,7 @@ export async function createFamilyTagMechList(familyMechListData: FamilyTagMechL
         };
         
         const response = await axios.post(
-            'http://localhost:5134/api/FamilyTagMechList/create',
+            'http://localhost:8080/api/FamilyTagMechList/create',
             requestData,
             {
                 headers: {
@@ -46,7 +46,7 @@ export async function createFamilyTagMechList(familyMechListData: FamilyTagMechL
 export async function createTagMechanism(name: string) {
     try {
         const response = await axios.post(
-            'http://localhost:5134/api/TagMechanism/create',
+            'http://localhost:8080/api/TagMechanism/create',
             "\"" + name + "\"",
             {
                 headers: {
@@ -64,7 +64,7 @@ export async function createTagMechanism(name: string) {
 export async function createReaction(type: string) {
     try {
         const response = await axios.post(
-            'http://localhost:5134/api/Reaction/create',
+            'http://localhost:8080/api/Reaction/create',
             "\"" + type + "\"",
             {
                 headers: {
@@ -82,7 +82,7 @@ export async function createReaction(type: string) {
 export async function createSpecies(type: string) {
     try {
         const response = await axios.post(
-            'http://localhost:5134/api/Species/create',
+            'http://localhost:8080/api/Species/create',
             "\"" + type + "\"",
             {
                 headers: {
@@ -106,7 +106,7 @@ export async function createTagMechanismReactionList(tagMechanismReactionListDat
                 version: tagMechanismReactionListData.version,
             };
             return axios.post(
-                'http://localhost:5134/api/TagMechanismReactionList/create',
+                'http://localhost:8080/api/TagMechanismReactionList/create',
                 requestData,
                 {
                     headers: {
@@ -134,7 +134,7 @@ export async function createTagMechanismSpeciesList(tagMechanismSpeciesListDataA
                 version: tagMechanismSpeciesListData.version,
             };
             return axios.post(
-                'http://localhost:5134/api/TagMechanismSpeciesList/create',
+                'http://localhost:8080/api/TagMechanismSpeciesList/create',
                 requestData,
                 {
                     headers: {
@@ -160,7 +160,7 @@ export async function createPropertyList(propertyList: PropertyList) {
         };
 
         const response = await axios.post(
-            'http://localhost:5134/api/PropertyList/create',
+            'http://localhost:8080/api/PropertyList/create',
             requestData,
             {
                 headers: {
@@ -192,7 +192,7 @@ export async function createPropertyVersion(propertyVersion: PropertyVersion) {
         };
 
         const response = await axios.post(
-            'http://localhost:5134/api/PropertyVersion/create',
+            'http://localhost:8080/api/PropertyVersion/create',
             requestData,
             {
                 headers: {
@@ -217,7 +217,7 @@ export async function createReactantProduct(reactantProductList: ReactantProduct
         };
 
         const response = await axios.post(
-            'http://localhost:5134/api/ReactantProductList/create',
+            'http://localhost:8080/api/ReactantProductList/create',
             requestData,
             {
                 headers: {

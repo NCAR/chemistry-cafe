@@ -30,7 +30,7 @@ describe('API delete functions tests', () => {
 
         // Verify axios.delete was called with the correct URL and headers
         expect(mockedDelete).toHaveBeenCalledWith(
-            `http://localhost:5134/api/Family/delete/${uuid}`,
+            `http://localhost:8080/api/Family/delete/${uuid}`,
             {
                 headers: { 'Content-Type': 'application/json' },
             }
@@ -49,7 +49,7 @@ describe('API delete functions tests', () => {
 
         // Verify axios.delete was called with the correct URL and headers
         expect(mockedDelete).toHaveBeenCalledWith(
-            `http://localhost:5134/api/FamilyMechList/delete/${uuid}`,
+            `http://localhost:8080/api/FamilyMechList/delete/${uuid}`,
             {
                 headers: { 'Content-Type': 'application/json' },
             }
@@ -68,7 +68,7 @@ describe('API delete functions tests', () => {
 
         // Verify axios.delete was called with the correct URL and headers
         expect(mockedDelete).toHaveBeenCalledWith(
-            `http://localhost:5134/api/TagMechanism/delete/${uuid}`,
+            `http://localhost:8080/api/TagMechanism/delete/${uuid}`,
             {
                 headers: { 'Content-Type': 'application/json' },
             }
