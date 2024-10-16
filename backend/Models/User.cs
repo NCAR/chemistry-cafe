@@ -5,5 +5,7 @@
         public Guid uuid { get; set; }
         public string? log_in_info { get; set; }
         public bool isDel {  get; set; }
+
+        public string? role {get; set;} = "unverified";
     }
 }
