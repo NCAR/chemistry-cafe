@@ -2,9 +2,13 @@ name: .NET Build and Test
 
 on:
   push:
-    branches: [ "main", "workflows" ]
+    branches:
+      - main
+      #- workflows
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
+      #- workflows
 
 jobs:
   build:
