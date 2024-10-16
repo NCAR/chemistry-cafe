@@ -25,14 +25,22 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+
+    # Set up Node.js  
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
-        context: ./frontend
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    - run: npm ci ./frontend
-    - run: npm run build ./frontend --if-present
-    - run: npm test ./frontend
+
+    - run: npm ci
+      working-directory: ./chemistry-cafe/frontend
+
+    - run: npm run build --if-present
+      working-directory: ./chemistry-cafe/frontend
+      
+    - run: npm test
+      working-directory: ./chemistry-cafe/frontend
+
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
