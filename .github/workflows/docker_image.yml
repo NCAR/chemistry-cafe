@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - docker_workflow
+      - workflows
     tags:
       - 'v*.*.*'
   workflow_dispatch:
@@ -30,7 +30,7 @@ jobs:
     - name: Build Docker image
       uses: docker/build-push-action@v4
       with:
-        context: .
+        context: ./backend
         file: Dockerfile
         push: false
         tags: ghcr.io/ncar/chemistry-cafe-api:build-temp
@@ -39,7 +39,7 @@ jobs:
       if: github.ref == 'refs/heads/main'
       uses: docker/build-push-action@v4
       with:
-        context: .
+        context: ./backend
         file: Dockerfile
         push: true
         tags: ghcr.io/ncar/chemistry-cafe-api:latest
@@ -48,7 +48,7 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       uses: docker/build-push-action@v4
       with:
-        context: .
+        context: ./backend
         file: Dockerfile
         push: true
         tags: ghcr.io/ncar/chemistry-cafe-api:${{ github.ref_name }}

@@ -6,14 +6,12 @@ name: Node.js CI
 on:
   push:
     branches:
-      - capstone_dev
-      - master
-      - github_actions
+      - main
+      - workflows
   pull_request:
     branches:
-      - master
-      - capstone_dev
-      - github_actions
+      - main
+      - workflows
 
 jobs:
   build:
@@ -30,6 +28,7 @@ jobs:
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
+        context: ./frontend
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - run: npm ci

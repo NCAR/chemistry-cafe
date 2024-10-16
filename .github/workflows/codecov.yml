@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - codecov-workflows
+      - workflows
   pull_request:
     branches:
       - main
@@ -22,6 +23,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
+          context: ./backend
           dotnet-version: 6.0.x  # Use the version your project requires
 
       # Restore dependencies
@@ -43,6 +45,7 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
+          context: ./backend
           token: ${{ secrets.CODECOV_TOKEN }}  # Add the Codecov token in the GitHub secrets
           files: ./TestResults/coverage.opencover.xml  # Ensure the correct path for the coverage file
           flags: unittests
