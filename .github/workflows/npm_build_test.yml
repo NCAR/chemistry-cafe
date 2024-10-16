@@ -31,8 +31,8 @@ jobs:
         context: ./frontend
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    - run: npm ci
-    - run: npm run build --if-present
-    - run: npm test
+    - run: npm ci ./frontend
+    - run: npm run build ./frontend --if-present
+    - run: npm test ./frontend
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
