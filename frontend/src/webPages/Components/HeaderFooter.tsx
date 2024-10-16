@@ -33,7 +33,7 @@ export const Footer = () => {
         window.open("https://github.com/NCAR/chemistrycafe/issues", "_blank");
     };
 
-    const handleAccessabilityClick = () => {
+    const handleAccessibilityClick = () => {
         window.open("https://www.ucar.edu/accessibility", "_blank");
     }
 
@@ -81,8 +81,8 @@ export const Footer = () => {
                     </Button>
                 </Box>
                 <Box sx={{pr: 10}}>
-                    <Button onClick={handleAccessabilityClick}>
-                        Accessability
+                    <Button onClick={handleAccessibilityClick}>
+                        Accessibility
                     </Button>
                 </Box>
             </Container>        
