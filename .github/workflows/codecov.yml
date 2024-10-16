@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - codecov-workflows
+      #- workflows
   pull_request:
     branches:
       - main
@@ -22,20 +23,21 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
+          context: ./backend
           dotnet-version: 6.0.x  # Use the version your project requires
 
       # Restore dependencies
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore ./backend
 
       # Build the project
       - name: Build
-        run: dotnet build --no-restore
+        run: dotnet build ./backend --no-restore
 
      # Step 5: Run tests and collect code coverage
       - name: Test and calculate coverage
         run: |
-          dotnet test --no-build --verbosity normal \
+          dotnet test ./backend --no-build --verbosity normal \
           /p:CollectCoverage=true /p:CoverletOutputFormat=opencover \
           /p:CoverletOutput=./TestResults/coverage.opencover.xml
 
@@ -43,6 +45,7 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
+          context: ./backend
           token: ${{ secrets.CODECOV_TOKEN }}  # Add the Codecov token in the GitHub secrets
           files: ./TestResults/coverage.opencover.xml  # Ensure the correct path for the coverage file
           flags: unittests
