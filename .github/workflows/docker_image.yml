@@ -32,7 +32,7 @@ jobs:
         context: ./backend
         file: ./backend/Dockerfile
         push: false
-        tags: ghcr.io/ncar/chemistry-cafe-api:build-temp
+        tags: ghcr.io/ncar/chemistry-cafe:build-temp
 
     - name: Build and push Docker image (latest)
       if: github.ref == 'refs/heads/main'
@@ -41,7 +41,7 @@ jobs:
         context: ./backend
         file: ./backend/Dockerfile
         push: true
-        tags: ghcr.io/ncar/chemistry-cafe-api:latest
+        tags: ghcr.io/ncar/chemistry-cafe:latest
 
     - name: Build and push Docker image (tagged)
       if: startsWith(github.ref, 'refs/tags/')
@@ -50,4 +50,4 @@ jobs:
         context: ./backend
         file: ./backend/Dockerfile
         push: true
-        tags: ghcr.io/ncar/chemistry-cafe-api:${{ github.ref_name }}
+        tags: ghcr.io/ncar/chemistry-cafe:${{ github.ref_name }}
