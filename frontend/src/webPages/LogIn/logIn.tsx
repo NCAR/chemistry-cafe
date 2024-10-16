@@ -55,12 +55,32 @@ interface Profile {
                     }
                 })
                 .then((res) => {
-                    setProfile(res.data);
-                    // navigate('/LoggedIn');
+                    const profileData = res.data;
+                    setProfile(profileData);
+    
+                    // Send the email to the backend to create or retrieve the user
+                    axios.post('http://localhost:8080/api/User/create', JSON.stringify(profileData.email), {
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then((response) => {
+                        console.log('User ID:', response.data);
+                        // Navigate to the logged-in page if needed
+                        // navigate('/LoggedIn');
+                    })
+                    .catch((error) => {
+                        console.error('Error creating user:', error);
+                        alert('error catching user');
+                    });
                 })
-                .catch((err) => console.log(err));
+                .catch((err) => {
+                    console.error('Error fetching user profile:', err);
+                    alert('error fetching profile');
+                });
         }
     }, [user]);
+    
 
     // log out function to log the user out of google and set the profile array to null
     const logOut = () => {

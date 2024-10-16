@@ -36,10 +36,11 @@ namespace Chemistry_Cafe_API.Services
 
             Guid userID = Guid.NewGuid();
 
-            command.CommandText = @"INSERT INTO User (uuid, log_in_info) VALUES (@uuid, @log_in_info);";
+            command.CommandText = @"INSERT INTO User (uuid, log_in_info, role) VALUES (@uuid, @log_in_info, @role);";
 
             command.Parameters.AddWithValue("@uuid", userID);
             command.Parameters.AddWithValue("@log_in_info", log_in_info);
+            command.Parameters.AddWithValue("@role", "unverified");
 
             await command.ExecuteNonQueryAsync();
 
@@ -50,11 +51,12 @@ namespace Chemistry_Cafe_API.Services
             using var connection = await database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
-            command.CommandText = @"UPDATE User SET log_in_info = @log_in_info, isDel = @isDel WHERE uuid = @uuid;";
+            command.CommandText = @"UPDATE User SET log_in_info = @log_in_info, isDel = @isDel, role = @role WHERE uuid = @uuid;";
 
             command.Parameters.AddWithValue("@uuid", user.uuid);
             command.Parameters.AddWithValue("@log_in_info", user.log_in_info);
             command.Parameters.AddWithValue("@isDel", user.isDel);
+            command.Parameters.AddWithValue("@role", user.role);
 
             await command.ExecuteNonQueryAsync();
         }
@@ -81,8 +83,9 @@ namespace Chemistry_Cafe_API.Services
                     var user = new User
                     {
                         uuid = reader.GetGuid(0),
-                        log_in_info = reader.GetString(1),
-                        isDel = reader.GetBoolean(2),
+                        log_in_info = reader.IsDBNull(1) ? string.Empty : reader.GetString(1),
+                        isDel = !reader.IsDBNull(2) && reader.GetBoolean(2),
+                        role = reader.IsDBNull(3) ? "unverified" : reader.GetString(3)
                     };
                     users.Add(user);
                 }
