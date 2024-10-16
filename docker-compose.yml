@@ -1,32 +1,54 @@
 services:
+  mysql:
+    image: mysql:9.0
+    env_file:
+      - .env
+    ports:
+      - "3307:3306" # MySQL default port
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql # run initial sql script
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD} # Set in your .env file
+      MYSQL_DATABASE: ${MYSQL_DATABASE} # Set in your .env file
+      MYSQL_USER: ${MYSQL_USER} # Set in your .env file
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD} # Set in your .env file
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
   frontend:
     build:
-      context: ./frontend  # Path to your front-end repository
+      context: ./frontend # Path to your front-end repository
       dockerfile: Dockerfile
     ports:
       #- "8080:80"  # Map host port to container port
       - "5173:5173"
     depends_on:
-      - backend  # Ensure the backend service starts before frontend
+      - backend # Ensure the backend service starts before frontend
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - API_URL=http://backend:8080  # This points to the backend service within the Docker network
+      - API_URL=http://backend:8080 # This points to the backend service within the Docker network
       - ASPNETCORE_URLS=http://0.0.0.0:8080
     networks:
       - app-network
 
-
   backend:
     build:
-      context: ./backend  # Path to your back-end repository
+      context: ./backend # Path to your back-end repository
       dockerfile: Dockerfile
     ports:
-      - "8080:8080"  # Map host port to container port
+      - "8080:8080" # Map host port to container port
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     networks:
       - app-network
 
+volumes:
+  db_data:
 networks:
   app-network:
     driver: bridge
