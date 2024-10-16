@@ -31,7 +31,7 @@ jobs:
       uses: docker/build-push-action@v4
       with:
         context: ./backend
-        file: Dockerfile
+        file: ./backend/Dockerfile
         push: false
         tags: ghcr.io/ncar/chemistry-cafe-api:build-temp
 
@@ -40,7 +40,7 @@ jobs:
       uses: docker/build-push-action@v4
       with:
         context: ./backend
-        file: Dockerfile
+        file: ./backend/Dockerfile
         push: true
         tags: ghcr.io/ncar/chemistry-cafe-api:latest
 
@@ -49,6 +49,6 @@ jobs:
       uses: docker/build-push-action@v4
       with:
         context: ./backend
-        file: Dockerfile
+        file: ./backend/Dockerfile
         push: true
         tags: ghcr.io/ncar/chemistry-cafe-api:${{ github.ref_name }}
