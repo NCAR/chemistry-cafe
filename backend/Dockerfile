@@ -9,18 +9,18 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Chemistry Cafe API.csproj", "."]
-RUN dotnet restore "./Chemistry Cafe API.csproj"
+COPY ["ChemistryCafeAPI.csproj", "."]
+RUN dotnet restore "./ChemistryCafeAPI.csproj"
 COPY . .
 WORKDIR "/src/."
-RUN dotnet build "./Chemistry Cafe API.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "./ChemistryCafeAPI.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./Chemistry Cafe API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./ChemistryCafeAPI.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Chemistry Cafe API.dll"]
+ENTRYPOINT ["dotnet", "ChemistryCafeAPI.dll"]
 

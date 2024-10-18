@@ -9,22 +9,23 @@ using Chemistry_Cafe_API.Models;
 
 namespace Chemistry_Cafe_API.Controllers
 {
-    public class UserController : Controller
+    public class UserMechanismsController : Controller
     {
         private readonly ChemistryDbContext _context;
 
-        public UserController(ChemistryDbContext context)
+        public UserMechanismsController(ChemistryDbContext context)
         {
             _context = context;
         }
 
-        // GET: User
+        // GET: UserMechanisms
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Users.ToListAsync());
+            var chemistryDbContext = _context.UserMechanisms.Include(u => u.Mechanism).Include(u => u.User);
+            return View(await chemistryDbContext.ToListAsync());
         }
 
-        // GET: User/Details/5
+        // GET: UserMechanisms/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -32,39 +33,45 @@ namespace Chemistry_Cafe_API.Controllers
                 return NotFound();
             }
 
-            var user = await _context.Users
+            var userMechanism = await _context.UserMechanisms
+                .Include(u => u.Mechanism)
+                .Include(u => u.User)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (user == null)
+            if (userMechanism == null)
             {
                 return NotFound();
             }
 
-            return View(user);
+            return View(userMechanism);
         }
 
-        // GET: User/Create
+        // GET: UserMechanisms/Create
         public IActionResult Create()
         {
+            ViewData["MechanismId"] = new SelectList(_context.Mechanisms, "Id", "Id");
+            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id");
             return View();
         }
 
-        // POST: User/Create
+        // POST: UserMechanisms/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Username,Role,Email,CreatedDate")] User user)
+        public async Task<IActionResult> Create([Bind("Id,UserId,MechanismId,Role")] UserMechanism userMechanism)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(user);
+                _context.Add(userMechanism);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(user);
+            ViewData["MechanismId"] = new SelectList(_context.Mechanisms, "Id", "Id", userMechanism.MechanismId);
+            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", userMechanism.UserId);
+            return View(userMechanism);
         }
 
-        // GET: User/Edit/5
+        // GET: UserMechanisms/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -72,22 +79,24 @@ namespace Chemistry_Cafe_API.Controllers
                 return NotFound();
             }
 
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
+            var userMechanism = await _context.UserMechanisms.FindAsync(id);
+            if (userMechanism == null)
             {
                 return NotFound();
             }
-            return View(user);
+            ViewData["MechanismId"] = new SelectList(_context.Mechanisms, "Id", "Id", userMechanism.MechanismId);
+            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", userMechanism.UserId);
+            return View(userMechanism);
         }
 
-        // POST: User/Edit/5
+        // POST: UserMechanisms/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Username,Role,Email,CreatedDate")] User user)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,UserId,MechanismId,Role")] UserMechanism userMechanism)
         {
-            if (id != user.Id)
+            if (id != userMechanism.Id)
             {
                 return NotFound();
             }
@@ -96,12 +105,12 @@ namespace Chemistry_Cafe_API.Controllers
             {
                 try
                 {
-                    _context.Update(user);
+                    _context.Update(userMechanism);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!UserExists(user.Id))
+                    if (!UserMechanismExists(userMechanism.Id))
                     {
                         return NotFound();
                     }
@@ -112,10 +121,12 @@ namespace Chemistry_Cafe_API.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(user);
+            ViewData["MechanismId"] = new SelectList(_context.Mechanisms, "Id", "Id", userMechanism.MechanismId);
+            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", userMechanism.UserId);
+            return View(userMechanism);
         }
 
-        // GET: User/Delete/5
+        // GET: UserMechanisms/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -123,34 +134,36 @@ namespace Chemistry_Cafe_API.Controllers
                 return NotFound();
             }
 
-            var user = await _context.Users
+            var userMechanism = await _context.UserMechanisms
+                .Include(u => u.Mechanism)
+                .Include(u => u.User)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (user == null)
+            if (userMechanism == null)
             {
                 return NotFound();
             }
 
-            return View(user);
+            return View(userMechanism);
         }
 
-        // POST: User/Delete/5
+        // POST: UserMechanisms/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var user = await _context.Users.FindAsync(id);
-            if (user != null)
+            var userMechanism = await _context.UserMechanisms.FindAsync(id);
+            if (userMechanism != null)
             {
-                _context.Users.Remove(user);
+                _context.UserMechanisms.Remove(userMechanism);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool UserExists(int id)
+        private bool UserMechanismExists(int id)
         {
-            return _context.Users.Any(e => e.Id == id);
+            return _context.UserMechanisms.Any(e => e.Id == id);
         }
     }
 }

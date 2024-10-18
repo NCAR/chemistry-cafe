@@ -9,22 +9,23 @@ using Chemistry_Cafe_API.Models;
 
 namespace Chemistry_Cafe_API.Controllers
 {
-    public class UserController : Controller
+    public class ReactionSpecyController : Controller
     {
         private readonly ChemistryDbContext _context;
 
-        public UserController(ChemistryDbContext context)
+        public ReactionSpecyController(ChemistryDbContext context)
         {
             _context = context;
         }
 
-        // GET: User
+        // GET: ReactionSpecy
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Users.ToListAsync());
+            var chemistryDbContext = _context.ReactionSpecies.Include(r => r.Reaction).Include(r => r.Species);
+            return View(await chemistryDbContext.ToListAsync());
         }
 
-        // GET: User/Details/5
+        // GET: ReactionSpecy/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -32,39 +33,45 @@ namespace Chemistry_Cafe_API.Controllers
                 return NotFound();
             }
 
-            var user = await _context.Users
+            var reactionSpecy = await _context.ReactionSpecies
+                .Include(r => r.Reaction)
+                .Include(r => r.Species)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (user == null)
+            if (reactionSpecy == null)
             {
                 return NotFound();
             }
 
-            return View(user);
+            return View(reactionSpecy);
         }
 
-        // GET: User/Create
+        // GET: ReactionSpecy/Create
         public IActionResult Create()
         {
+            ViewData["ReactionId"] = new SelectList(_context.Reactions, "Id", "Id");
+            ViewData["SpeciesId"] = new SelectList(_context.Species, "Id", "Id");
             return View();
         }
 
-        // POST: User/Create
+        // POST: ReactionSpecy/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Username,Role,Email,CreatedDate")] User user)
+        public async Task<IActionResult> Create([Bind("Id,ReactionId,SpeciesId,Role")] ReactionSpecy reactionSpecy)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(user);
+                _context.Add(reactionSpecy);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(user);
+            ViewData["ReactionId"] = new SelectList(_context.Reactions, "Id", "Id", reactionSpecy.ReactionId);
+            ViewData["SpeciesId"] = new SelectList(_context.Species, "Id", "Id", reactionSpecy.SpeciesId);
+            return View(reactionSpecy);
         }
 
-        // GET: User/Edit/5
+        // GET: ReactionSpecy/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -72,22 +79,24 @@ namespace Chemistry_Cafe_API.Controllers
                 return NotFound();
             }
 
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
+            var reactionSpecy = await _context.ReactionSpecies.FindAsync(id);
+            if (reactionSpecy == null)
             {
                 return NotFound();
             }
-            return View(user);
+            ViewData["ReactionId"] = new SelectList(_context.Reactions, "Id", "Id", reactionSpecy.ReactionId);
+            ViewData["SpeciesId"] = new SelectList(_context.Species, "Id", "Id", reactionSpecy.SpeciesId);
+            return View(reactionSpecy);
         }
 
-        // POST: User/Edit/5
+        // POST: ReactionSpecy/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Username,Role,Email,CreatedDate")] User user)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,ReactionId,SpeciesId,Role")] ReactionSpecy reactionSpecy)
         {
-            if (id != user.Id)
+            if (id != reactionSpecy.Id)
             {
                 return NotFound();
             }
@@ -96,12 +105,12 @@ namespace Chemistry_Cafe_API.Controllers
             {
                 try
                 {
-                    _context.Update(user);
+                    _context.Update(reactionSpecy);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!UserExists(user.Id))
+                    if (!ReactionSpecyExists(reactionSpecy.Id))
                     {
                         return NotFound();
                     }
@@ -112,10 +121,12 @@ namespace Chemistry_Cafe_API.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(user);
+            ViewData["ReactionId"] = new SelectList(_context.Reactions, "Id", "Id", reactionSpecy.ReactionId);
+            ViewData["SpeciesId"] = new SelectList(_context.Species, "Id", "Id", reactionSpecy.SpeciesId);
+            return View(reactionSpecy);
         }
 
-        // GET: User/Delete/5
+        // GET: ReactionSpecy/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -123,34 +134,36 @@ namespace Chemistry_Cafe_API.Controllers
                 return NotFound();
             }
 
-            var user = await _context.Users
+            var reactionSpecy = await _context.ReactionSpecies
+                .Include(r => r.Reaction)
+                .Include(r => r.Species)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (user == null)
+            if (reactionSpecy == null)
             {
                 return NotFound();
             }
 
-            return View(user);
+            return View(reactionSpecy);
         }
 
-        // POST: User/Delete/5
+        // POST: ReactionSpecy/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var user = await _context.Users.FindAsync(id);
-            if (user != null)
+            var reactionSpecy = await _context.ReactionSpecies.FindAsync(id);
+            if (reactionSpecy != null)
             {
-                _context.Users.Remove(user);
+                _context.ReactionSpecies.Remove(reactionSpecy);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool UserExists(int id)
+        private bool ReactionSpecyExists(int id)
         {
-            return _context.Users.Any(e => e.Id == id);
+            return _context.ReactionSpecies.Any(e => e.Id == id);
         }
     }
 }

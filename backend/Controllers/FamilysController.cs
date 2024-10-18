@@ -9,22 +9,22 @@ using Chemistry_Cafe_API.Models;
 
 namespace Chemistry_Cafe_API.Controllers
 {
-    public class UserController : Controller
+    public class FamilysController : Controller
     {
         private readonly ChemistryDbContext _context;
 
-        public UserController(ChemistryDbContext context)
+        public FamilysController(ChemistryDbContext context)
         {
             _context = context;
         }
 
-        // GET: User
+        // GET: Familys
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Users.ToListAsync());
+            return View(await _context.Families.ToListAsync());
         }
 
-        // GET: User/Details/5
+        // GET: Familys/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -32,39 +32,39 @@ namespace Chemistry_Cafe_API.Controllers
                 return NotFound();
             }
 
-            var user = await _context.Users
+            var family = await _context.Families
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (user == null)
+            if (family == null)
             {
                 return NotFound();
             }
 
-            return View(user);
+            return View(family);
         }
 
-        // GET: User/Create
+        // GET: Familys/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: User/Create
+        // POST: Familys/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Username,Role,Email,CreatedDate")] User user)
+        public async Task<IActionResult> Create([Bind("Id,Name,Description,CreatedBy,CreatedDate")] Family family)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(user);
+                _context.Add(family);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(user);
+            return View(family);
         }
 
-        // GET: User/Edit/5
+        // GET: Familys/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -72,22 +72,22 @@ namespace Chemistry_Cafe_API.Controllers
                 return NotFound();
             }
 
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
+            var family = await _context.Families.FindAsync(id);
+            if (family == null)
             {
                 return NotFound();
             }
-            return View(user);
+            return View(family);
         }
 
-        // POST: User/Edit/5
+        // POST: Familys/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Username,Role,Email,CreatedDate")] User user)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,CreatedBy,CreatedDate")] Family family)
         {
-            if (id != user.Id)
+            if (id != family.Id)
             {
                 return NotFound();
             }
@@ -96,12 +96,12 @@ namespace Chemistry_Cafe_API.Controllers
             {
                 try
                 {
-                    _context.Update(user);
+                    _context.Update(family);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!UserExists(user.Id))
+                    if (!FamilyExists(family.Id))
                     {
                         return NotFound();
                     }
@@ -112,10 +112,10 @@ namespace Chemistry_Cafe_API.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(user);
+            return View(family);
         }
 
-        // GET: User/Delete/5
+        // GET: Familys/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -123,34 +123,34 @@ namespace Chemistry_Cafe_API.Controllers
                 return NotFound();
             }
 
-            var user = await _context.Users
+            var family = await _context.Families
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (user == null)
+            if (family == null)
             {
                 return NotFound();
             }
 
-            return View(user);
+            return View(family);
         }
 
-        // POST: User/Delete/5
+        // POST: Familys/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var user = await _context.Users.FindAsync(id);
-            if (user != null)
+            var family = await _context.Families.FindAsync(id);
+            if (family != null)
             {
-                _context.Users.Remove(user);
+                _context.Families.Remove(family);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool UserExists(int id)
+        private bool FamilyExists(int id)
         {
-            return _context.Users.Any(e => e.Id == id);
+            return _context.Families.Any(e => e.Id == id);
         }
     }
 }

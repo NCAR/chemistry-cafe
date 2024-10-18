@@ -12,11 +12,12 @@ CREATE TABLE species (
 -- Table to store chemical reactions
 CREATE TABLE reactions (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    equation TEXT NOT NULL UNIQUE, -- UNIQUE constraint to prevent duplicate reactions
+    equation VARCHAR(512) NOT NULL UNIQUE, -- Changed from TEXT to VARCHAR(1024)
     description TEXT,
     created_by VARCHAR(255),
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 
 -- Table to store families of mechanisms
 CREATE TABLE families (

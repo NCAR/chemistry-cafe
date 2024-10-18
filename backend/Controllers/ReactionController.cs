@@ -1,72 +1,156 @@
-﻿using Chemistry_Cafe_API.Models;
-using Chemistry_Cafe_API.Services;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using MySqlConnector;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using Chemistry_Cafe_API.Models;
 
 namespace Chemistry_Cafe_API.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ReactionController : ControllerBase
+    public class ReactionController : Controller
     {
-        private ReactionService reactionService;
+        private readonly ChemistryDbContext _context;
 
-        //Injects sql data source setup in Program.cs
-        public ReactionController([FromServices] MySqlDataSource db)
+        public ReactionController(ChemistryDbContext context)
         {
-            this.reactionService = new ReactionService(db);
+            _context = context;
         }
 
-        // GET: api/Reaction/all
-        [HttpGet("all")]
-        public async Task<IReadOnlyList<Reaction>> Get()
+        // GET: Reaction
+        public async Task<IActionResult> Index()
         {
-            return await reactionService.GetReactionsAsync();
+            return View(await _context.Reactions.ToListAsync());
         }
 
-        // GET api/Reaction/5
-        [HttpGet("{uuid}")]
-        public async Task<Reaction?> Get(Guid uuid)
+        // GET: Reaction/Details/5
+        public async Task<IActionResult> Details(int? id)
         {
-            return await reactionService.GetReactionAsync(uuid);
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var reaction = await _context.Reactions
+                .FirstOrDefaultAsync(m => m.Id == id);
+            if (reaction == null)
+            {
+                return NotFound();
+            }
+
+            return View(reaction);
         }
 
-        // GET api/Reaction/String/5
-        [HttpGet("String/{uuid}")]
-        public async Task<String?> GetString(Guid uuid)
+        // GET: Reaction/Create
+        public IActionResult Create()
         {
-            return await reactionService.GetReactionStringAsync(uuid);
+            return View();
         }
 
-        // GET api/Reaction/TagMechanism/5
-        [HttpGet("TagMechanism/{tag_mechanism_uuid}")]
-        public async Task<IReadOnlyList<Reaction>> GetTags(Guid tag_mechanism_uuid)
+        // POST: Reaction/Create
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("Id,Equation,Description,CreatedBy,CreatedDate")] Reaction reaction)
         {
-            return await reactionService.GetTags(tag_mechanism_uuid);
+            if (ModelState.IsValid)
+            {
+                _context.Add(reaction);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            return View(reaction);
         }
 
-        // POST api/Reaction/create
-        [HttpPost("create")]
-
-        public async Task<Guid> Create([FromBody] string type)
+        // GET: Reaction/Edit/5
+        public async Task<IActionResult> Edit(int? id)
         {
-            return await reactionService.CreateReactionAsync(type);
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var reaction = await _context.Reactions.FindAsync(id);
+            if (reaction == null)
+            {
+                return NotFound();
+            }
+            return View(reaction);
         }
 
-        // PUT api/Reaction/5
-        [HttpPut("update")]
-        public async Task Put([FromBody] Reaction reaction)
+        // POST: Reaction/Edit/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Equation,Description,CreatedBy,CreatedDate")] Reaction reaction)
         {
-            await reactionService.UpdateReactionAsync(reaction);
+            if (id != reaction.Id)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(reaction);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!ReactionExists(reaction.Id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            return View(reaction);
         }
 
-        // DELETE api/Reaction/delete/5
-        [HttpDelete("delete/{uuid}")]
-        public async Task Delete(Guid uuid)
+        // GET: Reaction/Delete/5
+        public async Task<IActionResult> Delete(int? id)
         {
-            await reactionService.DeleteReactionAsync(uuid);
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var reaction = await _context.Reactions
+                .FirstOrDefaultAsync(m => m.Id == id);
+            if (reaction == null)
+            {
+                return NotFound();
+            }
+
+            return View(reaction);
+        }
+
+        // POST: Reaction/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var reaction = await _context.Reactions.FindAsync(id);
+            if (reaction != null)
+            {
+                _context.Reactions.Remove(reaction);
+            }
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
+        private bool ReactionExists(int id)
+        {
+            return _context.Reactions.Any(e => e.Id == id);
         }
     }
 }

@@ -1,64 +1,156 @@
-﻿using Chemistry_Cafe_API.Models;
-using Chemistry_Cafe_API.Services;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using MySqlConnector;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using Chemistry_Cafe_API.Models;
 
 namespace Chemistry_Cafe_API.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class SpeciesController : ControllerBase
+    public class SpeciesController : Controller
     {
-        private SpeciesService speciesService;
+        private readonly ChemistryDbContext _context;
 
-        //Injects sql data source setup in Program.cs
-        public SpeciesController([FromServices] MySqlDataSource db)
+        public SpeciesController(ChemistryDbContext context)
         {
-            this.speciesService = new SpeciesService(db);
+            _context = context;
         }
 
-        // GET: api/Species/all
-        [HttpGet("all")]
-        public async Task<IReadOnlyList<Species>> Get()
+        // GET: Species
+        public async Task<IActionResult> Index()
         {
-            return await speciesService.GetSpeciesAsync();
+            return View(await _context.Species.ToListAsync());
         }
 
-        // GET api/Species/TagMechanism/5
-        [HttpGet("TagMechanism/{tag_mechanism_uuid}")]
-        public async Task<IReadOnlyList<Species>> GetTags(Guid tag_mechanism_uuid)
+        // GET: Species/Details/5
+        public async Task<IActionResult> Details(int? id)
         {
-            return await speciesService.GetTags(tag_mechanism_uuid);
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var species = await _context.Species
+                .FirstOrDefaultAsync(m => m.Id == id);
+            if (species == null)
+            {
+                return NotFound();
+            }
+
+            return View(species);
         }
 
-        // GET api/Species/5
-        [HttpGet("{uuid}")]
-        public async Task<Species?> Get(Guid uuid)
+        // GET: Species/Create
+        public IActionResult Create()
         {
-            return await speciesService.GetSpeciesAsync(uuid);
+            return View();
         }
 
-        // POST api/Species/create
-        [HttpPost("create")]
-        public async Task<Guid> Create([FromBody] string type)
+        // POST: Species/Create
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("Id,Name,Description,CreatedBy,CreatedDate")] Species species)
         {
-            return await speciesService.CreateSpeciesAsync(type);
+            if (ModelState.IsValid)
+            {
+                _context.Add(species);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            return View(species);
         }
 
-        // PUT api/Species/5
-        [HttpPut("update")]
-        public async Task Put([FromBody] Species species)
+        // GET: Species/Edit/5
+        public async Task<IActionResult> Edit(int? id)
         {
-            await speciesService.UpdateSpeciesAsync(species);
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var species = await _context.Species.FindAsync(id);
+            if (species == null)
+            {
+                return NotFound();
+            }
+            return View(species);
         }
 
-        // DELETE api/Species/delete/5
-        [HttpDelete("delete/{uuid}")]
-        public async Task Delete(Guid uuid)
+        // POST: Species/Edit/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,CreatedBy,CreatedDate")] Species species)
         {
-            await speciesService.DeleteSpeciesAsync(uuid);
+            if (id != species.Id)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(species);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!SpeciesExists(species.Id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            return View(species);
+        }
+
+        // GET: Species/Delete/5
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var species = await _context.Species
+                .FirstOrDefaultAsync(m => m.Id == id);
+            if (species == null)
+            {
+                return NotFound();
+            }
+
+            return View(species);
+        }
+
+        // POST: Species/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var species = await _context.Species.FindAsync(id);
+            if (species != null)
+            {
+                _context.Species.Remove(species);
+            }
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
+        private bool SpeciesExists(int id)
+        {
+            return _context.Species.Any(e => e.Id == id);
         }
     }
 }

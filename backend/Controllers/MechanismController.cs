@@ -9,22 +9,23 @@ using Chemistry_Cafe_API.Models;
 
 namespace Chemistry_Cafe_API.Controllers
 {
-    public class UserController : Controller
+    public class MechanismController : Controller
     {
         private readonly ChemistryDbContext _context;
 
-        public UserController(ChemistryDbContext context)
+        public MechanismController(ChemistryDbContext context)
         {
             _context = context;
         }
 
-        // GET: User
+        // GET: Mechanism
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Users.ToListAsync());
+            var chemistryDbContext = _context.Mechanisms.Include(m => m.Family);
+            return View(await chemistryDbContext.ToListAsync());
         }
 
-        // GET: User/Details/5
+        // GET: Mechanism/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -32,39 +33,42 @@ namespace Chemistry_Cafe_API.Controllers
                 return NotFound();
             }
 
-            var user = await _context.Users
+            var mechanism = await _context.Mechanisms
+                .Include(m => m.Family)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (user == null)
+            if (mechanism == null)
             {
                 return NotFound();
             }
 
-            return View(user);
+            return View(mechanism);
         }
 
-        // GET: User/Create
+        // GET: Mechanism/Create
         public IActionResult Create()
         {
+            ViewData["FamilyId"] = new SelectList(_context.Families, "Id", "Id");
             return View();
         }
 
-        // POST: User/Create
+        // POST: Mechanism/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Username,Role,Email,CreatedDate")] User user)
+        public async Task<IActionResult> Create([Bind("Id,FamilyId,Name,Description,CreatedBy,CreatedDate")] Mechanism mechanism)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(user);
+                _context.Add(mechanism);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(user);
+            ViewData["FamilyId"] = new SelectList(_context.Families, "Id", "Id", mechanism.FamilyId);
+            return View(mechanism);
         }
 
-        // GET: User/Edit/5
+        // GET: Mechanism/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -72,22 +76,23 @@ namespace Chemistry_Cafe_API.Controllers
                 return NotFound();
             }
 
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
+            var mechanism = await _context.Mechanisms.FindAsync(id);
+            if (mechanism == null)
             {
                 return NotFound();
             }
-            return View(user);
+            ViewData["FamilyId"] = new SelectList(_context.Families, "Id", "Id", mechanism.FamilyId);
+            return View(mechanism);
         }
 
-        // POST: User/Edit/5
+        // POST: Mechanism/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Username,Role,Email,CreatedDate")] User user)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,FamilyId,Name,Description,CreatedBy,CreatedDate")] Mechanism mechanism)
         {
-            if (id != user.Id)
+            if (id != mechanism.Id)
             {
                 return NotFound();
             }
@@ -96,12 +101,12 @@ namespace Chemistry_Cafe_API.Controllers
             {
                 try
                 {
-                    _context.Update(user);
+                    _context.Update(mechanism);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!UserExists(user.Id))
+                    if (!MechanismExists(mechanism.Id))
                     {
                         return NotFound();
                     }
@@ -112,10 +117,11 @@ namespace Chemistry_Cafe_API.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(user);
+            ViewData["FamilyId"] = new SelectList(_context.Families, "Id", "Id", mechanism.FamilyId);
+            return View(mechanism);
         }
 
-        // GET: User/Delete/5
+        // GET: Mechanism/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -123,34 +129,35 @@ namespace Chemistry_Cafe_API.Controllers
                 return NotFound();
             }
 
-            var user = await _context.Users
+            var mechanism = await _context.Mechanisms
+                .Include(m => m.Family)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (user == null)
+            if (mechanism == null)
             {
                 return NotFound();
             }
 
-            return View(user);
+            return View(mechanism);
         }
 
-        // POST: User/Delete/5
+        // POST: Mechanism/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var user = await _context.Users.FindAsync(id);
-            if (user != null)
+            var mechanism = await _context.Mechanisms.FindAsync(id);
+            if (mechanism != null)
             {
-                _context.Users.Remove(user);
+                _context.Mechanisms.Remove(mechanism);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool UserExists(int id)
+        private bool MechanismExists(int id)
         {
-            return _context.Users.Any(e => e.Id == id);
+            return _context.Mechanisms.Any(e => e.Id == id);
         }
     }
 }

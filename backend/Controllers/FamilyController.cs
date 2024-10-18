@@ -1,57 +1,156 @@
-﻿using Chemistry_Cafe_API.Models;
-using Chemistry_Cafe_API.Services;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using MySqlConnector;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using Chemistry_Cafe_API.Models;
 
 namespace Chemistry_Cafe_API.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class FamilyController : ControllerBase
+    public class FamilyController : Controller
     {
-        private FamilyService familyService;
+        private readonly ChemistryDbContext _context;
 
-        //Injects sql data source setup in Program.cs
-        public FamilyController([FromServices] MySqlDataSource db)
+        public FamilyController(ChemistryDbContext context)
         {
-            this.familyService = new FamilyService(db);
+            _context = context;
         }
 
-        // GET: api/Family/all
-        [HttpGet("all")]
-        public async Task<IReadOnlyList<Family>> Get()
+        // GET: Family
+        public async Task<IActionResult> Index()
         {
-            return await familyService.GetFamiliesAsync();
+            return View(await _context.Families.ToListAsync());
         }
 
-        // GET api/Family/5
-        [HttpGet("{uuid}")]
-        public async Task<Family?> Get(Guid uuid)
+        // GET: Family/Details/5
+        public async Task<IActionResult> Details(int? id)
         {
-            return await familyService.GetFamilyAsync(uuid);
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var family = await _context.Families
+                .FirstOrDefaultAsync(m => m.Id == id);
+            if (family == null)
+            {
+                return NotFound();
+            }
+
+            return View(family);
         }
 
-        // POST api/Family/create
-        [HttpPost("create")]
-        public async Task<Family> Create([FromBody] string name)
+        // GET: Family/Create
+        public IActionResult Create()
         {
-            return await familyService.CreateFamilyAsync(name);
+            return View();
         }
 
-        // PUT api/Family/5
-        [HttpPut("update")]
-        public async Task Put([FromBody] Family family)
+        // POST: Family/Create
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("Id,Name,Description,CreatedBy,CreatedDate")] Family family)
         {
-            await familyService.UpdateFamilyAsync(family);
+            if (ModelState.IsValid)
+            {
+                _context.Add(family);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            return View(family);
         }
 
-        // DELETE api/Family/delete/5
-        [HttpDelete("delete/{uuid}")]
-        public async Task Delete(Guid uuid)
+        // GET: Family/Edit/5
+        public async Task<IActionResult> Edit(int? id)
         {
-            await familyService.DeleteFamilyAsync(uuid);
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var family = await _context.Families.FindAsync(id);
+            if (family == null)
+            {
+                return NotFound();
+            }
+            return View(family);
+        }
+
+        // POST: Family/Edit/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,CreatedBy,CreatedDate")] Family family)
+        {
+            if (id != family.Id)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(family);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!FamilyExists(family.Id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            return View(family);
+        }
+
+        // GET: Family/Delete/5
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var family = await _context.Families
+                .FirstOrDefaultAsync(m => m.Id == id);
+            if (family == null)
+            {
+                return NotFound();
+            }
+
+            return View(family);
+        }
+
+        // POST: Family/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var family = await _context.Families.FindAsync(id);
+            if (family != null)
+            {
+                _context.Families.Remove(family);
+            }
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
+        private bool FamilyExists(int id)
+        {
+            return _context.Families.Any(e => e.Id == id);
         }
     }
 }
