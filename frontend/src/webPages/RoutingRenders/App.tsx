@@ -7,8 +7,12 @@ import RoleManagement from '../Roles/RoleManagement';
 import { AccessibilityWidget } from 'react-accessibility';
 import { AuthProvider } from '../contexts/AuthContext';
 import ProtectedRoute from '../Components/ProtectedRoute'; // The ProtectedRoute you created earlier
+import React from 'react';
+import './App.css'; // Assuming CSS is applied globally
+import Banner from '../Components/CookieBanner';
 
 function App() {
+
     return (
         <div>
             <AccessibilityWidget /><AuthProvider>
@@ -31,6 +35,14 @@ function App() {
                  
                 </Routes>
             </AuthProvider>
+            <Banner />
+            <Routes>
+                <Route path="/" element={<LogIn />} />
+                <Route path="/LoggedIn" element={<LoggedIn />} />
+                <Route path="/FamilyPage" element={<FamilyPage />} />
+                <Route path="/Roles" element={<RoleManagement />} />
+                <Route path="/Settings" element={<Settings />} />
+            </Routes>
         </div>
     );
 }

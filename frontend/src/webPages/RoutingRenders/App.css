@@ -25,3 +25,36 @@ div {
         margin-bottom: 15px; /* Adjust margin on smaller screens */
     }
 }
+
+/* Style for the banner */
+.banner {
+    background-color: #ffeb3b;
+    color: #333;
+    text-align: center;
+    padding: 15px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .acceptBtn {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    margin-left: 20px;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  .content {
+    padding: 100px;
+  }
+  
+  .hidden {
+    display: none;
+  }
+  
