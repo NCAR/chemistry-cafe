@@ -1,11 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/DeleteOutlined';
+import SaveIcon from '@mui/icons-material/Save';
+import CancelIcon from '@mui/icons-material/Close';
+import { DataGrid, GridRowParams, GridColDef, GridToolbar, GridToolbarContainer, 
+  GridToolbarColumnsButton, GridToolbarFilterButton, GridToolbarDensitySelector, 
+  GridToolbarExport, GridRowsProp, GridToolbarQuickFilter 
+} from '@mui/x-data-grid';
+
 
 interface User {
   uuid: string;
   log_in_info: string;
   role: string;
 }
+
+function RolesToolbar() {
+  return (
+    <Box
+      sx={{
+        p: 0.5,
+        pb: 0,
+      }}
+    >
+      <GridToolbarQuickFilter />
+    </Box>
+  );
+}
+
+const Roles = ['Unverified', 'Verified', 'Admin'];
 
 const RoleManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -74,9 +101,43 @@ const RoleManagement: React.FC = () => {
   if (error) {
     return <div>{error}</div>;
   }
+  console.log(users)
+
+
+  // defining columns displayed
+  const userColumns: GridColDef[] = [
+    {
+      field: 'log_in_info',
+      headerName: 'Email',
+      width: 150,
+      editable: true
+    },
+
+    {
+      field: 'role',
+      headerName: 'Role',
+      width: 150,
+      editable: true,
+      type: 'singleSelect',
+      valueOptions: ['unverified', 'verified', 'admin']
+    },
+
+  
+  ];
+
 
   return (
     <div>
+      {/* test div britt */}
+      <div>
+        <DataGrid
+          rows={users}
+          columns={userColumns}
+          // specifying the primary key to track each entry by
+          getRowId={(row) => row.uuid}
+          slots={{ toolbar: RolesToolbar }}
+        />
+      </div>
       <h1>Role Management</h1>
       <div style={{ marginBottom: '10px' }}>
         <input
