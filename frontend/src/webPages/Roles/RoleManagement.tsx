@@ -9,8 +9,8 @@ import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Close';
 import { DataGrid, GridRowParams, GridColDef, GridToolbar, GridToolbarContainer, 
   GridToolbarColumnsButton, GridToolbarFilterButton, GridToolbarDensitySelector, 
-  GridToolbarExport, GridRowsProp, GridToolbarQuickFilter 
-} from '@mui/x-data-grid';
+  GridToolbarExport, GridRowsProp, GridToolbarQuickFilter, 
+  GridActionsCellItem, GridRowModesModel, GridRowModes, GridRowId} from '@mui/x-data-grid';
 
 
 interface User {
@@ -41,6 +41,9 @@ const RoleManagement: React.FC = () => {
   const [selectedRoles, setSelectedRoles] = useState<{ [key: string]: string }>({});
   const [search, setSearch] = useState<string>(''); // State for search input
   const [roleFilter, setRoleFilter] = useState<string>('all'); // State for role filter
+
+  const [rowModesModel, setRowModesModel] = React.useState<GridRowModesModel>({});
+
 
   // Fetch users from the backend when the component mounts
   useEffect(() => {
@@ -101,15 +104,39 @@ const RoleManagement: React.FC = () => {
   if (error) {
     return <div>{error}</div>;
   }
-  console.log(users)
 
+  //  handling editing actions  
+  const handleEditClick = (id: GridRowId) => () => {
+    setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.Edit } });
+    console.log(rowModesModel)
+  };
+
+  const handleSaveClick = (id: GridRowId) => () => {
+    setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.View } });
+  };
+
+  const handleDeleteClick = (id: GridRowId) => () => {
+    setUsers(users.filter((row) => row.uuid !== id));
+  };
+
+  const handleCancelClick = (id: GridRowId) => () => {
+    setRowModesModel({
+      ...rowModesModel,
+      [id]: { mode: GridRowModes.View, ignoreModifications: true },
+    });
+
+  // const editedRow = rows.find((row) => row.id === id);
+  //   if (editedRow!.isNew) {
+  //     setRows(rows.filter((row) => row.id !== id));
+  //   }
+  };
 
   // defining columns displayed
   const userColumns: GridColDef[] = [
     {
       field: 'log_in_info',
       headerName: 'Email',
-      width: 150,
+      width: 250,
       editable: true
     },
 
@@ -121,6 +148,54 @@ const RoleManagement: React.FC = () => {
       type: 'singleSelect',
       valueOptions: ['unverified', 'verified', 'admin']
     },
+
+    {
+      field: 'actions',
+      type: 'actions',
+      headerName: 'Actions',
+      width: 100,
+      cellClassName: 'actions',
+      getActions: ({ id }) => {
+
+        const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit;
+
+        if (isInEditMode) {
+          return [
+            <GridActionsCellItem
+              icon={<SaveIcon />}
+              label="Save"
+              sx={{
+                color: 'primary.main',
+              }}
+              onClick={handleSaveClick(id)}
+            />,
+            <GridActionsCellItem
+              icon={<CancelIcon />}
+              label="Cancel"
+              className="textPrimary"
+              onClick={handleCancelClick(id)}
+              color="inherit"
+            />,
+          ];
+        }
+
+        return [
+          <GridActionsCellItem
+            icon={<EditIcon />}
+            label="Edit"
+            className="textPrimary"
+            onClick={handleEditClick(id)}
+            color="inherit"
+          />,
+          <GridActionsCellItem
+            icon={<DeleteIcon />}
+            label="Delete"
+            onClick={handleDeleteClick(id)}
+            color="inherit"
+          />,
+        ];
+      }
+    }
 
   
   ];
