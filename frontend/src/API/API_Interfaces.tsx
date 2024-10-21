@@ -1,99 +1,76 @@
 export interface Family {
-    uuid: string;
-    name: string;
-    super_tag_mechanism_uuid: string;
-    isDel: boolean;
+  id: number;
+  name: string;
+  description: string;
+  createdBy: string;
+  createdDate: string;
 }
 
-export interface FamilyTagMechList {
-    uuid: string;
-    family_uuid: string;
-    tag_mechanism_uuid: string;
-    version: string;
-    isDel: boolean;
-}
-
-export interface ReactantProductList {
-  reactant_product_uuid: string;
-  reaction_uuid: string;
-  species_uuid: string;
-  quantity: number;
-  type: string;
-}
-
-export interface Reaction {
-  uuid: string;
-  type: string;
-  isDel: boolean;
-  reactant_list_uuid: string;
-  product_list_uuid: string;
-  reaction_string: string;
+export interface Mechanism {
+  id: number;
+  familyId: number;
+  name: string;
+  description: string;
+  createdBy: string;
+  createdDate: string;
 }
 
 export interface Species {
-  uuid: string;
-  type: string;
-  isDel: boolean;
-}
-
-export interface TagMechanism {
-  uuid: string;
-  tag: string;
-  isDel: boolean;
-}
-
-export interface TagMechanismReactionList {
-  uuid: string;
-  reaction_uuid: string;
-  tag_mechanism_uuid: string;
-  version: string;
-  isDel: boolean;
-}
-
-export interface TagMechanismSpeciesList {
-  uuid: string;
-  species_uuid: string;
-  tag_mechanism_uuid: string;
-  version: string;
-  isDel: boolean;
-}
-
-export interface PropertyType {
-  uuid: string;
+  id: number;
   name: string;
-  units: string;
-  validation: string;
-  isDel: boolean;
+  description: string | null;
+  createdBy: string | null;
+  createdDate: string;
 }
 
-export interface PropertyList {
-  uuid: string;
-  parent_uuid: string;
-  version: string;
-  isDel: boolean;
+export interface Reaction {
+  id: number;
+  equation: string;
+  description: string | null;
+  createdBy: string;
+  createdDate: string;
 }
 
-export interface PropertyVersion {
-  property_list_uuid: string;
-  parent_uuid: string;
-  version: string;
-  property_list_isDel: boolean;
-  property_version_uuid: string;
-  parent_property_uuid: string;
-  frozen_version: string;
-  tag_mechanism_uuid: string;
-  property_type: string;
-  float_value: number | null;
-  double_value: number | null;
-  int_value: number | null;
-  string_value: string | null;
-  action: string;
-  user_uuid: string;
-  datetime: string;
-  property_version_isDel: boolean;
-  property_type_uuid: string;
-  name: string;
-  units: string;
-  validation: string;
-  property_type_isDel: boolean;
+export interface ReactionSpecies {
+  id?: number;
+  reaction_id: number;
+  species_id: number;
+  role: "reactant" | "product";
+}
+
+export interface MechanismReaction {
+  id?: number;
+  mechanism_id: number;
+  reaction_id: number;
+}
+
+export interface MechanismSpecies {
+  id?: number;
+  mechanism_id: number;
+  species_id: number;
+}
+
+export interface InitialConditionSpecies {
+  id?: number;
+  mechanism_id: number;
+  species_id: number;
+  concentration?: number;
+  temperature?: number;
+  pressure?: number;
+  additional_conditions?: string;
+}
+
+export interface User {
+  id?: number;
+  username: string;
+  role: string;
+  email?: string | null;
+  created_date?: string;
+}
+
+export interface UserMechanism {
+  id?: number;
+  user_id: number;
+  mechanism_id: number;
+  role?: string;
 }
