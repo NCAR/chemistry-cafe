@@ -25,7 +25,10 @@ const CookieBanner: React.FC = () => {
       {isBannerVisible && (
         <div className="banner">
             <p>
-                UCAR uses cookies to make our website function; however, UCAR cookies do not collect personal information about you. When using our website, you may encounter embedded content, such as YouTube videos and other social media links, that use their own cookies. To learn more about third-party cookies on this website, and to set your cookie preferences, click here.
+                UCAR uses cookies to make our website function; however, UCAR cookies do not collect personal information about you. When using our website, you may encounter embedded content, such as YouTube videos and other social media links, that use their own cookies. 
+            </p>
+            <p>
+                To learn more about third-party cookies on this website, and to set your cookie preferences, click here.
             </p>
             <p>  
                 <a href="https://www.ucar.edu/cookie-other-tracking-technologies-notice">Learn more</a>
