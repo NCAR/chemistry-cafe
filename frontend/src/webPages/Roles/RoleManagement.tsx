@@ -118,7 +118,6 @@ const RoleManagement: React.FC = () => {
 
   const handleEditClick = (id: GridRowId) => () => {
     setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.Edit } });
-    console.log(rowModesModel)
   };
 
   const handleSaveClick = (id: GridRowId) => () => {
@@ -140,27 +139,25 @@ const RoleManagement: React.FC = () => {
 
 
   // This function handles syncing changes with database 
-  const processRowUpdate = React.useCallback(
-    async (selectedUser: GridRowModel) => {
-      let uuidTemp = selectedUser.uuid
+  const processRowUpdate = async (updatedUser: GridRowModel) => {
+      let uuidTemp = updatedUser.uuid
       try {
         const user: User | undefined = users.find((u) => u.uuid === uuidTemp);
-        if (!user) return;
-  
-        const updatedUser: User = {
-          ...user,
-          role: selectedRoles[uuidTemp],
-        };
+        if (!user) {console.log("user did not exist")
+          return updatedUser};
+
+
+        console.log(updatedUser)
   
         await axios.put(`http://localhost:8080/api/User/update`, updatedUser);
         alert('Role updated successfully!');
+        return updatedUser;
+
       } catch (error) {
         console.error('Error updating role:', error);
         alert('Failed to update role');
       }
-    }, 
-    [users],
-  );
+    }
 
   const handleRowModesModelChange = (newRowModesModel: GridRowModesModel) => {
     setRowModesModel(newRowModesModel);
@@ -172,7 +169,7 @@ const RoleManagement: React.FC = () => {
       field: 'log_in_info',
       headerName: 'Email',
       width: 250,
-      editable: true
+      editable: false
     },
 
     {
@@ -250,6 +247,7 @@ const RoleManagement: React.FC = () => {
           onRowModesModelChange={handleRowModesModelChange}
           onRowEditStop={handleRowEditStop}
           processRowUpdate={processRowUpdate}
+          onProcessRowUpdateError={(error) => console.log(error)}
           slots={{ toolbar: RolesToolbar }}
         />
       </div>
