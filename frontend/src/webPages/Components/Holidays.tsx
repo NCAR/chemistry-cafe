@@ -1,13 +1,5 @@
 import React, { useEffect, useState } from 'react';
 
-// Define the structure of the holiday object
-interface Holiday {
-    name: string;
-    date: {
-        iso: string;
-    };
-}
-
 // Mapping holiday names to icons
 const holidayIcons: { [key: string]: string } = {
     "Christmas Day": "🎄",                // Christmas tree icon
@@ -43,12 +35,6 @@ const Holidays: React.FC = () => {
     useEffect(() => {
         const fetchHolidays = async () => {
             try {
-                const response = await fetch(`https://calendarific.com/api/v2/holidays?api_key=CMUYEkm7VaaPlBqvRKXmppwSyO3GC7aa&country=US&year=2024`);
-                const data = await response.json();
-
-                // Ensure we are working with the correct type
-                const holidaysList: Holiday[] = data.response.holidays;
-
                 // Get the representative holiday for the current month
                 const holidayThisMonth = holidaysByMonth[currentMonth];
 
