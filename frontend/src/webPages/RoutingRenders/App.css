@@ -28,33 +28,55 @@ div {
 
 /* Style for the banner */
 .banner {
-    background-color: #A8C700;
-    color: #333;
-    text-align: center;
-    padding: 15px;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 1000;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  }
+  background-color: #00797C;
+  color: #FFF;
+  font-size: 14px;
+  text-align: center;
+  padding: 15px;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  min-height: fit-content;
+  z-index: 1000;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.banner a {
+  color: #fff; /* Default link color */
+  text-decoration: underline; /* Optional: underline to emphasize it's a link */
+}
+
+.banner a:hover {
+  color: #003366; /* Color on hover */
+  text-decoration: none; /* Optional: remove underline on hover */
+}
+
+.banner-text {
+  flex-grow: 1;
+  padding: 0 10px;
+}
+
+.acceptBtn {
+  background: none;
+  border: 3px solid #fff;
+  box-shadow: none;
+  color: #fff;
+  font-family: Poppins, sans-serif;
+  font-size: .9375rem;
+  margin-top: 10px;
+  padding: 7px 10px;
+  text-shadow: none;
+  text-transform: uppercase;
+  appearance: none;
+  border-radius: 0;
+}
+
   
-  .acceptBtn {
-    background-color: #4caf50;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    margin-left: 20px;
-    cursor: pointer;
-    border-radius: 5px;
-  }
-  
-  .content {
-    padding: 100px;
-  }
-  
-  .hidden {
-    display: none;
-  }
-  
+.hidden {
+  display: none;
+}

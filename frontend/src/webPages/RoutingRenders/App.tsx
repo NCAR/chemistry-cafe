@@ -10,31 +10,21 @@ import ProtectedRoute from '../Components/ProtectedRoute'; // The ProtectedRoute
 import React from 'react';
 import './App.css'; // Assuming CSS is applied globally
 import Banner from '../Components/CookieBanner';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+
+// Create a custom theme with your font
+const theme = createTheme({
+  typography: {
+    fontFamily: "'Poppins', sans-serif",
+    
+  },
+});
+
 
 function App() {
 
     return (
         <div>
-            <AccessibilityWidget /><AuthProvider>
-                <Routes>
-                    <Route path="/" element={<LogIn />} />
-                    <Route path="/LoggedIn" element={<LoggedIn />} />
-                    <Route path="/FamilyPage" element={<FamilyPage />} />
-                    <Route path="/Settings" element={<Settings />} />
-                    
-                    {/* Protected route for the Roles page */}
-                    <Route 
-                        path="/Roles" 
-                        element={
-                            <ProtectedRoute requiredRole="admin">
-                                <RoleManagement />
-                            </ProtectedRoute>
-                        } 
-                    />
-
-                 
-                </Routes>
-            </AuthProvider>
             <Banner />
             <Routes>
                 <Route path="/" element={<LogIn />} />
