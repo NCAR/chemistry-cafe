@@ -10,28 +10,23 @@ import Typography from '@mui/material/Typography';
 import GoogleIcon from '@mui/icons-material/Google';
 import NoAccountsIcon from '@mui/icons-material/NoAccounts';
 import { Footer } from '../Components/HeaderFooter';
-
+import Holidays from '../Components/Holidays';  // Import the Holidays component
 
 interface User {
     access_token: string;
-    // Add any other fields you expect to receive from the login response
 }
 
 interface Profile {
     picture: string;
     name: string;
     email: string;
-    // Add any other fields you expect to receive from the profile response
 }
 
-  const LogIn = () => {
-
+const LogIn = () => {
     const [user, setUser] = useState<User | null>(null);
     const [profile, setProfile] = useState<Profile | null>(null);
-
     const navigate = useNavigate();
     const handleClick = () => navigate('/LoggedIn');
-
     const [aboutOpen, setAboutOpen] = useState(false);
     const handleAboutOpen = () => setAboutOpen(true);
     const handleAboutClose = () => setAboutOpen(false);
@@ -57,7 +52,6 @@ interface Profile {
                 .then((res) => {
                     const profileData = res.data;
                     setProfile(profileData);
-    
                     // Send the email to the backend to create or retrieve the user
                     axios.post('http://localhost:8080/api/User/create', JSON.stringify(profileData.email), {
                         headers: {
@@ -66,23 +60,19 @@ interface Profile {
                     })
                     .then((response) => {
                         console.log('User ID:', response.data);
-                        // Navigate to the logged-in page if needed
-                        // navigate('/LoggedIn');
                     })
                     .catch((error) => {
                         console.error('Error creating user:', error);
-                        alert('error catching user');
+                        alert('Error creating user');
                     });
                 })
                 .catch((err) => {
                     console.error('Error fetching user profile:', err);
-                    alert('error fetching profile');
+                    alert('Error fetching profile');
                 });
         }
     }, [user]);
-    
 
-    // log out function to log the user out of google and set the profile array to null
     const logOut = () => {
         googleLogout();
         setProfile(null);
@@ -100,9 +90,9 @@ interface Profile {
         p: 4,
     };
 
-        return (
-          <section className="layoutLogIn">
-
+    return (
+        <section className="layoutLogIn">
+            <Holidays /> {/* Include the Holidays component here */}
             <div className="M2">
                 <Box sx={{ width: '100%', maxWidth: 700 }}>
                     <Typography variant="h2" sx={{color: 'white'}}>
@@ -115,7 +105,6 @@ interface Profile {
                     <Typography variant="h6" sx={{color: '#C3D7EE'}}>
                         A collaborative tool to share, edit, manage, and export chemical mechanisms across the scientific community
                         and into MusicBox Interactive. <br></br>
-
                     </Typography>
                 </Box>
             </div>
@@ -156,36 +145,35 @@ interface Profile {
             </div>
 
             <div>
-                    <Modal
-                        open={aboutOpen}
-                        onClose={handleAboutClose}
-                    >
-                        <Box sx={style}>
-                            <Typography variant='h4'>About</Typography>
-                            <Box component="img" src={"src/assets/NSF-NCAR_Lockup-UCAR-Dark.png"} alt={"Texas A&M"} sx={{ height: "100px", width: "auto" }} />
-                            <Box component="img" src={"src/assets/TAMULogo.png"} alt={"Texas A&M"} sx={{ height: "100px", width: "auto" }} />
-                            <Typography variant='body1'>
-                                The Chemistry Cafe tool was made possible by the collaboration between NCAR and Texas A&M through the
-                                CSCE Capstone program.
-                            </Typography>
-                            <p></p>
-                            <Typography variant='h6'>
-                                Credits
-                            </Typography>
-                            <Typography variant='body1'>
-                                Paul Cyr, Brandon Longuet, Brian Nguyen <br></br> Spring 2024 Capstone Team <br></br> <p></p>
-                                Kyle Shores <br></br> Spring 2024 Capstone Sponsor Representative
-                            </Typography>
-                        </Box>
-                    </Modal>
+                <Modal
+                    open={aboutOpen}
+                    onClose={handleAboutClose}
+                >
+                    <Box sx={style}>
+                        <Typography variant='h4'>About</Typography>
+                        <Box component="img" src={"src/assets/NSF-NCAR_Lockup-UCAR-Dark.png"} alt={"Texas A&M"} sx={{ height: "100px", width: "auto" }} />
+                        <Box component="img" src={"src/assets/TAMULogo.png"} alt={"Texas A&M"} sx={{ height: "100px", width: "auto" }} />
+                        <Typography variant='body1'>
+                            The Chemistry Cafe tool was made possible by the collaboration between NCAR and Texas A&M through the
+                            CSCE Capstone program.
+                        </Typography>
+                        <p></p>
+                        <Typography variant='h6'>
+                            Credits
+                        </Typography>
+                        <Typography variant='body1'>
+                            Paul Cyr, Brandon Longuet, Brian Nguyen <br></br> Spring 2024 Capstone Team <br></br> <p></p>
+                            Kyle Shores <br></br> Spring 2024 Capstone Sponsor Representative
+                        </Typography>
+                    </Box>
+                </Modal>
             </div>
 
             <div className='L9LogIn'>
                 <Footer></Footer>
             </div>
-          </section>
-        );
+        </section>
+    );
+};
 
-    }
-
-    export default LogIn;
+export default LogIn;

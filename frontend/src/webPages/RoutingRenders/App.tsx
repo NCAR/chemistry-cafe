@@ -6,6 +6,7 @@ import LogIn from '../LogIn/logIn';
 import RoleManagement from '../Roles/RoleManagement';
 import { AccessibilityWidget } from 'react-accessibility';
 
+
 function App() {
     return (
         <div>
