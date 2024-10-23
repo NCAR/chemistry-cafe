@@ -10,7 +10,8 @@ import CancelIcon from '@mui/icons-material/Close';
 import { DataGrid, GridRowParams, GridColDef, GridToolbar, GridToolbarContainer, 
   GridToolbarColumnsButton, GridToolbarFilterButton, GridToolbarDensitySelector, 
   GridToolbarExport, GridRowsProp, GridToolbarQuickFilter, 
-  GridActionsCellItem, GridRowModesModel, GridRowModes, GridRowId} from '@mui/x-data-grid';
+  GridActionsCellItem, GridRowModesModel, 
+  GridRowModes, GridRowId, GridRowModel} from '@mui/x-data-grid';
 
 
 interface User {
@@ -129,6 +130,16 @@ const RoleManagement: React.FC = () => {
   //   if (editedRow!.isNew) {
   //     setRows(rows.filter((row) => row.id !== id));
   //   }
+  };
+
+  const processRowUpdate = (newRow: GridRowModel) => {
+    const updatedRow = { ...newRow, isNew: false };
+    setUsers(users.map((row) => (row.uuid === newRow.id ? updatedRow : row)));
+    return updatedRow;
+  };
+
+  const handleRowModesModelChange = (newRowModesModel: GridRowModesModel) => {
+    setRowModesModel(newRowModesModel);
   };
 
   // defining columns displayed
