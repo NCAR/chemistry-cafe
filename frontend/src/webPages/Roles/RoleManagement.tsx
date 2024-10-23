@@ -11,7 +11,8 @@ import { DataGrid, GridRowParams, GridColDef, GridToolbar, GridToolbarContainer,
   GridToolbarColumnsButton, GridToolbarFilterButton, GridToolbarDensitySelector, 
   GridToolbarExport, GridRowsProp, GridToolbarQuickFilter, 
   GridActionsCellItem, GridRowModesModel, 
-  GridRowModes, GridRowId, GridRowModel} from '@mui/x-data-grid';
+  GridRowModes, GridRowId, GridRowModel, GridRowEditStopReasons,  
+  GridEventListener} from '@mui/x-data-grid';
 
 
 interface User {
@@ -34,6 +35,8 @@ function RolesToolbar() {
 }
 
 const Roles = ['Unverified', 'Verified', 'Admin'];
+
+
 
 const RoleManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -106,7 +109,13 @@ const RoleManagement: React.FC = () => {
     return <div>{error}</div>;
   }
 
-  //  handling editing actions  
+  //  handling editing actions
+  const handleRowEditStop: GridEventListener<'rowEditStop'> = (params, event) => {
+    if (params.reason === GridRowEditStopReasons.rowFocusOut) {
+      event.defaultMuiPrevented = true;
+    }
+  };
+
   const handleEditClick = (id: GridRowId) => () => {
     setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.Edit } });
     console.log(rowModesModel)
@@ -120,23 +129,38 @@ const RoleManagement: React.FC = () => {
     setUsers(users.filter((row) => row.uuid !== id));
   };
 
-  const handleCancelClick = (id: GridRowId) => () => {
+  const handleCancelClick = (uuid: GridRowId) => () => {
     setRowModesModel({
       ...rowModesModel,
-      [id]: { mode: GridRowModes.View, ignoreModifications: true },
+      [uuid]: { mode: GridRowModes.View, ignoreModifications: true },
     });
 
-  // const editedRow = rows.find((row) => row.id === id);
-  //   if (editedRow!.isNew) {
-  //     setRows(rows.filter((row) => row.id !== id));
-  //   }
+  const editedRow = users.find((row) => row.uuid === uuid);
   };
 
-  const processRowUpdate = (newRow: GridRowModel) => {
-    const updatedRow = { ...newRow, isNew: false };
-    setUsers(users.map((row) => (row.uuid === newRow.id ? updatedRow : row)));
-    return updatedRow;
-  };
+
+  // This function handles syncing changes with database 
+  const processRowUpdate = React.useCallback(
+    async (selectedUser: GridRowModel) => {
+      let uuidTemp = selectedUser.uuid
+      try {
+        const user: User | undefined = users.find((u) => u.uuid === uuidTemp);
+        if (!user) return;
+  
+        const updatedUser: User = {
+          ...user,
+          role: selectedRoles[uuidTemp],
+        };
+  
+        await axios.put(`http://localhost:8080/api/User/update`, updatedUser);
+        alert('Role updated successfully!');
+      } catch (error) {
+        console.error('Error updating role:', error);
+        alert('Failed to update role');
+      }
+    }, 
+    [users],
+  );
 
   const handleRowModesModelChange = (newRowModesModel: GridRowModesModel) => {
     setRowModesModel(newRowModesModel);
@@ -221,6 +245,11 @@ const RoleManagement: React.FC = () => {
           columns={userColumns}
           // specifying the primary key to track each entry by
           getRowId={(row) => row.uuid}
+          editMode='row'
+          rowModesModel={rowModesModel}
+          onRowModesModelChange={handleRowModesModelChange}
+          onRowEditStop={handleRowEditStop}
+          processRowUpdate={processRowUpdate}
           slots={{ toolbar: RolesToolbar }}
         />
       </div>
