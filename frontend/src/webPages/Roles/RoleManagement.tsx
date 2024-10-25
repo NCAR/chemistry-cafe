@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext'; // Import the AuthContext
+import { Header } from '../Components/HeaderFooter';
+
 
 interface User {
   uuid: string;
@@ -94,21 +96,13 @@ const RoleManagement: React.FC = () => {
 
   return (
     <div>
+       <div className='headerBar'>
+                <Header>
+                </Header>
+            </div>
       <h1>Role Management</h1>
 
-      {/* Display the current logged-in user's information */}
-      <div style={{ marginBottom: '20px', padding: '10px', backgroundColor: '#f4f4f4', borderRadius: '8px' }}>
-        <h2>Logged-in User Information</h2>
-        {loggedInUser ? (
-          <div>
-            <p><strong>UUID:</strong> {loggedInUser.uuid}</p>
-            <p><strong>Email:</strong> {loggedInUser.log_in_info}</p>
-            <p><strong>Role:</strong> {loggedInUser.role}</p>
-          </div>
-        ) : (
-          <p>No user is logged in</p>
-        )}
-      </div>
+     
 
       <div style={{ marginBottom: '10px' }}>
         <input
