@@ -13,7 +13,7 @@ namespace Chemistry_Cafe_API.Services
             using var connection = await database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
-            command.CommandText = "SELECT * FROM User WHERE isDel = 0";
+            command.CommandText = "SELECT * FROM User";
             return await ReadAllAsync(await command.ExecuteReaderAsync());
         }
 
@@ -29,6 +29,18 @@ namespace Chemistry_Cafe_API.Services
             return result.FirstOrDefault();
         }
 
+        public async Task<User?> GetUserAsync(string email)
+        {
+            using var connection = await database.OpenConnectionAsync();
+            using var command = connection.CreateCommand();
+
+            command.CommandText = @"SELECT * FROM User WHERE log_in_info = @email";
+            command.Parameters.AddWithValue("@email", email);
+
+            var result = await ReadAllAsync(await command.ExecuteReaderAsync());
+            return result.FirstOrDefault();
+        }
+
         public async Task<Guid> CreateUserAsync(string log_in_info)
         {
             using var connection = await database.OpenConnectionAsync();
@@ -36,10 +48,11 @@ namespace Chemistry_Cafe_API.Services
 
             Guid userID = Guid.NewGuid();
 
-            command.CommandText = @"INSERT INTO User (uuid, log_in_info, role) VALUES (@uuid, @log_in_info, @role);";
+            command.CommandText = @"INSERT INTO User (uuid, log_in_info, isDel, role) VALUES (@uuid, @log_in_info, @isDel, @role);";
 
             command.Parameters.AddWithValue("@uuid", userID);
             command.Parameters.AddWithValue("@log_in_info", log_in_info);
+            command.Parameters.AddWithValue("@isDel", 0);
             command.Parameters.AddWithValue("@role", "unverified");
 
             await command.ExecuteNonQueryAsync();
@@ -66,7 +79,7 @@ namespace Chemistry_Cafe_API.Services
             using var connection = await database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
-            command.CommandText = @"UPDATE User SET isDel = 1 WHERE uuid = @uuid;";
+            command.CommandText = @"DELETE FROM User WHERE uuid = @uuid;";
 
             command.Parameters.AddWithValue("@uuid", uuid);
 

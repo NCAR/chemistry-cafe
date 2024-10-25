@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useAuth } from '../contexts/AuthContext'; // Import the AuthContext
 
 interface User {
   uuid: string;
@@ -14,6 +15,9 @@ const RoleManagement: React.FC = () => {
   const [selectedRoles, setSelectedRoles] = useState<{ [key: string]: string }>({});
   const [search, setSearch] = useState<string>(''); // State for search input
   const [roleFilter, setRoleFilter] = useState<string>('all'); // State for role filter
+
+  // Fetch the current logged-in user from the AuthContext
+  const { user: loggedInUser } = useAuth(); // Access the logged-in user
 
   // Fetch users from the backend when the component mounts
   useEffect(() => {
@@ -53,12 +57,25 @@ const RoleManagement: React.FC = () => {
         ...user,
         role: selectedRoles[uuid],
       };
-
-      await axios.put(`http://localhost:8080/api/User/update`, updatedUser);
+      alert(updatedUser.role)
+      const r = await axios.put(`http://localhost:8080/api/User/update`, updatedUser);
+      alert(r.status)
       alert('Role updated successfully!');
     } catch (error) {
       console.error('Error updating role:', error);
       alert('Failed to update role');
+    }
+  };
+
+  const deleteUser = async (uuid: string) => {
+    try {
+      await axios.delete(`http://localhost:8080/api/User/delete/${uuid}`);
+      // Remove the deleted user from the state
+      setUsers((prevUsers) => prevUsers.filter((user) => user.uuid !== uuid));
+      alert('User deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      alert('Failed to delete user: ' + error);
     }
   };
 
@@ -78,6 +95,21 @@ const RoleManagement: React.FC = () => {
   return (
     <div>
       <h1>Role Management</h1>
+
+      {/* Display the current logged-in user's information */}
+      <div style={{ marginBottom: '20px', padding: '10px', backgroundColor: '#f4f4f4', borderRadius: '8px' }}>
+        <h2>Logged-in User Information</h2>
+        {loggedInUser ? (
+          <div>
+            <p><strong>UUID:</strong> {loggedInUser.uuid}</p>
+            <p><strong>Email:</strong> {loggedInUser.log_in_info}</p>
+            <p><strong>Role:</strong> {loggedInUser.role}</p>
+          </div>
+        ) : (
+          <p>No user is logged in</p>
+        )}
+      </div>
+
       <div style={{ marginBottom: '10px' }}>
         <input
           type="text"
@@ -97,6 +129,7 @@ const RoleManagement: React.FC = () => {
           <option value="admin">Admin</option>
         </select>
       </div>
+
       <table>
         <thead>
           <tr>
@@ -121,6 +154,16 @@ const RoleManagement: React.FC = () => {
               </td>
               <td>
                 <button onClick={() => updateRole(user.uuid)}>Update Role</button>
+                <button
+                  onClick={() => {
+                    if (window.confirm('Are you sure you want to delete this user?')) {
+                      deleteUser(user.uuid);
+                    }
+                  }}
+                  style={{ marginLeft: '10px', backgroundColor: 'red', color: 'white' }}
+                >
+                  Delete User
+                </button>
               </td>
             </tr>
           ))}
