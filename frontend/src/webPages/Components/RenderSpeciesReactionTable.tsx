@@ -9,7 +9,7 @@ import { DataGrid, GridRowParams, GridColDef, GridToolbar, GridToolbarContainer,
 
 import IconButton from '@mui/material/IconButton';
 import { Add, ChildCare } from '@mui/icons-material';
-import { Typography } from '@mui/material';
+import { Typography, Box } from '@mui/material';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 
@@ -196,12 +196,14 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamily, selectedT
     const FamilyReactionToolbar: React.FC<{ customButton?: React.ReactNode }> = ({ customButton }) =>  {
         return (
             <GridToolbarContainer>
+                {customButton && customButton}
                 <GridToolbarColumnsButton></GridToolbarColumnsButton>
                 <GridToolbarFilterButton />
                 <GridToolbarDensitySelector 
                     slotProps={{ tooltip: { title: 'Change density' } }}
                 />
-                {customButton && customButton}
+
+                <Box sx={{ flexGrow: 1 }} />
                 <GridToolbarExport 
                     slotProps={{
                         tooltip: { title: 'Export data' },

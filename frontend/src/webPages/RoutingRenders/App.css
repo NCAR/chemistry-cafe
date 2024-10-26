@@ -1,0 +1,27 @@
+/* Ensure the main container takes full width and height */
+div {
+    display: flex;
+    flex-direction: column; /* Arrange children vertically */
+    min-height: 100vh; /* Full height of the viewport */
+}
+
+/* Style for the AccessibilityWidget */
+.accessibility-widget {
+    padding: 16px; /* Add some padding */
+    background-color: #f0f0f0; /* Light background color for visibility */
+    border: 1px solid #ccc; /* Border for definition */
+    border-radius: 4px; /* Rounded corners */
+    margin-bottom: 20px; /* Space below the widget */
+}
+
+/* Additional styles for responsiveness */
+@media (max-width: 768px) {
+    div {
+        flex-direction: column; /* Keep the layout responsive */
+    }
+
+    .accessibility-widget {
+        padding: 12px; /* Adjust padding on smaller screens */
+        margin-bottom: 15px; /* Adjust margin on smaller screens */
+    }
+}

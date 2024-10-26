@@ -4,13 +4,14 @@ import LoggedIn from '../LogIn/loggedIn';
 import FamilyPage from '../Family/family';
 import LogIn from '../LogIn/logIn';
 import RoleManagement from '../Roles/RoleManagement';
+import { AccessibilityWidget } from 'react-accessibility';
 import { AuthProvider } from '../contexts/AuthContext';
 import ProtectedRoute from '../Components/ProtectedRoute'; // The ProtectedRoute you created earlier
 
 function App() {
     return (
         <div>
-            <AuthProvider>
+            <AccessibilityWidget /><AuthProvider>
                 <Routes>
                     <Route path="/" element={<LogIn />} />
                     <Route path="/LoggedIn" element={<LoggedIn />} />
@@ -35,3 +36,5 @@ function App() {
 }
 
 export default App;
+
+
