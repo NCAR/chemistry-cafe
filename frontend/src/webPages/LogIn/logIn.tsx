@@ -115,7 +115,7 @@ const LogIn = () => {
                         })
                         .catch((error) => {
                             console.error('Error checking user existence:', error);
-                            alert('Error checking user existence');
+                            alert('Error checking user existence'+ error);
                         });
                 })
                 .catch((err) => {
