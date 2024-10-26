@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import AddIcon from '@mui/icons-material/Add';
+
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import SaveIcon from '@mui/icons-material/Save';
@@ -18,6 +17,8 @@ import { Header, Footer } from '../Components/HeaderFooter';
 
 import "./roles.css";
 import { stringify } from 'querystring';
+import { useAuth } from '../contexts/AuthContext'; // Import the AuthContext
+
 
 interface User {
   uuid: string;
@@ -52,6 +53,9 @@ const RoleManagement: React.FC = () => {
 
   const [rowModesModel, setRowModesModel] = React.useState<GridRowModesModel>({});
 
+
+  // Fetch the current logged-in user from the AuthContext
+  const { user: loggedInUser } = useAuth(); // Access the logged-in user
 
   // Fetch users from the backend when the component mounts
   useEffect(() => {
@@ -91,12 +95,25 @@ const RoleManagement: React.FC = () => {
         ...user,
         role: selectedRoles[uuid],
       };
-
-      await axios.put(`http://localhost:8080/api/User/update`, updatedUser);
+      alert(updatedUser.role)
+      const r = await axios.put(`http://localhost:8080/api/User/update`, updatedUser);
+      alert(r.status)
       alert('Role updated successfully!');
     } catch (error) {
       console.error('Error updating role:', error);
       alert('Failed to update role');
+    }
+  };
+
+  const deleteUser = async (uuid: string) => {
+    try {
+      await axios.delete(`http://localhost:8080/api/User/delete/${uuid}`);
+      // Remove the deleted user from the state
+      setUsers((prevUsers) => prevUsers.filter((user) => user.uuid !== uuid));
+      alert('User deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      alert('Failed to delete user: ' + error);
     }
   };
 

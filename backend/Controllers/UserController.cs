@@ -33,6 +33,13 @@ namespace Chemistry_Cafe_API.Controllers
             return await userService.GetUserAsync(uuid);
         }
 
+        // GET api/User/email/{email}
+        [HttpGet("email={email}")]
+        public async Task<User?> Get(string email)
+        {
+            return await userService.GetUserAsync(email);
+        }
+
         // POST api/User/create
         [HttpPost("create")]
         public async Task<Guid> Create([FromBody] string log_in_info)
