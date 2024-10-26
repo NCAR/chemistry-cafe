@@ -17,6 +17,7 @@ import { DataGrid, GridRowParams, GridColDef, GridToolbar, GridToolbarContainer,
 import { Header, Footer } from '../Components/HeaderFooter';
 
 import "./roles.css";
+import { stringify } from 'querystring';
 
 interface User {
   uuid: string;
@@ -127,8 +128,18 @@ const RoleManagement: React.FC = () => {
     setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.View } });
   };
 
-  const handleDeleteClick = (id: GridRowId) => () => {
-    setUsers(users.filter((row) => row.uuid !== id));
+  const handleDeleteClick = (uuid: GridRowId) => async () => {
+    try {
+      await axios.delete(`http://localhost:8080/api/User/delete/${uuid}`);
+      // Remove the deleted user from the state
+      setUsers((prevUsers) => prevUsers.filter((user) => user.uuid !== uuid));
+      alert('User deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      alert('Failed to delete user: ' + error);
+    }
+
+    
   };
 
   const handleCancelClick = (uuid: GridRowId) => () => {
@@ -139,7 +150,8 @@ const RoleManagement: React.FC = () => {
   };
 
 
-  // This function handles syncing changes with database 
+  // This function handles syncing edits with database 
+  // Note: this does not handle syncing deleting from DB: see handleDeleteClick
   const processRowUpdate = async (updatedUser: GridRowModel) => {
       let uuidTemp = updatedUser.uuid
       try {
@@ -147,8 +159,6 @@ const RoleManagement: React.FC = () => {
         if (!user) {console.log("user did not exist")
           return updatedUser};
 
-
-        console.log(updatedUser)
   
         await axios.put(`http://localhost:8080/api/User/update`, updatedUser);
         alert('Role updated successfully!');
