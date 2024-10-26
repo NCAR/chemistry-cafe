@@ -6,7 +6,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Close';
-import { DataGrid, GridToolbarQuickFilter, 
+import { DataGrid, GridColDef, GridToolbarQuickFilter, 
   GridActionsCellItem, GridRowModesModel, 
   GridRowModes, GridRowId, GridRowModel, GridRowEditStopReasons,  
   GridEventListener} from '@mui/x-data-grid';
@@ -14,7 +14,6 @@ import { DataGrid, GridToolbarQuickFilter,
 import { Header, Footer } from '../Components/HeaderFooter';
 
 import "./roles.css";
-
 
 
 interface User {
@@ -36,7 +35,6 @@ function RolesToolbar() {
   );
 }
 
-const Roles = ['Unverified', 'Verified', 'Admin'];
 
 
 
@@ -44,12 +42,11 @@ const RoleManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [ setSelectedRoles] = useState<{ [key: string]: string }>({});
-  // const [search ] = useState<string>(''); // State for search input
-  // const [roleFilter ] = useState<string>('all'); // State for role filter
+  const [selectedRoles, setSelectedRoles] = useState<{ [key: string]: string }>({}); //??
+  // const [search] = useState<string>(''); // State for search input
+  // const [roleFilter] = useState<string>('all'); // State for role filter
 
   const [rowModesModel, setRowModesModel] = React.useState<GridRowModesModel>({});
-
 
 
 
@@ -66,6 +63,9 @@ const RoleManagement: React.FC = () => {
         }, {} as { [key: string]: string });
         setSelectedRoles(initialRoles);
       } catch (error) {
+        if (Object.keys(selectedRoles).length === 0) {
+          // No operation needed, just a usage check
+      }
         console.error('Error fetching users:', error);
         setError('Failed to fetch users');
       } finally {
