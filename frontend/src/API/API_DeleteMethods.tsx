@@ -24,7 +24,7 @@ export async function deleteFamily(id: number) {
 export async function deleteMechanism(id: number) {
   try {
     const response = await axios.delete(
-      `http://localhost:8080/api/mechanisms/${id}`,
+      `http://localhost:8080/api/mechanism/${id}`,
       {
         headers: {
           "Content-Type": "application/json",

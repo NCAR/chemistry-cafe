@@ -32,5 +32,5 @@ public partial class Reaction
     public virtual ICollection<MechanismReaction> MechanismReactions { get; set; } = new List<MechanismReaction>();
 
     [InverseProperty("Reaction")]
-    public virtual ICollection<ReactionSpecy> ReactionSpecies { get; set; } = new List<ReactionSpecy>();
+    public virtual ICollection<ReactionSpecies> ReactionSpecies { get; set; } = new List<ReactionSpecies>();
 }

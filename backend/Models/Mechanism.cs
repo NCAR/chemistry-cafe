@@ -36,13 +36,13 @@ public partial class Mechanism
     public virtual Family Family { get; set; } = null!;
 
     [InverseProperty("Mechanism")]
-    public virtual ICollection<InitialConditionsSpecy> InitialConditionsSpecies { get; set; } = new List<InitialConditionsSpecy>();
+    public virtual ICollection<InitialConditionsSpecies> InitialConditionsSpecies { get; set; } = new List<InitialConditionsSpecies>();
 
     [InverseProperty("Mechanism")]
     public virtual ICollection<MechanismReaction> MechanismReactions { get; set; } = new List<MechanismReaction>();
 
     [InverseProperty("Mechanism")]
-    public virtual ICollection<MechanismSpecy> MechanismSpecies { get; set; } = new List<MechanismSpecy>();
+    public virtual ICollection<MechanismSpecies> MechanismSpecies { get; set; } = new List<MechanismSpecies>();
 
     [InverseProperty("Mechanism")]
     public virtual ICollection<MechanismVersion> MechanismVersions { get; set; } = new List<MechanismVersion>();

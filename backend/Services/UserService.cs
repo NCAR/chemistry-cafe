@@ -1,74 +1,86 @@
 ﻿using Chemistry_Cafe_API.Models;
 using System.Data.Common;
 using MySqlConnector;
-using Microsoft.AspNetCore.Mvc;
-
 
 namespace Chemistry_Cafe_API.Services
 {
-    public class UserService(MySqlDataSource database)
+    public class UserService
     {
+        private readonly MySqlDataSource _database;
+
+        public UserService(MySqlDataSource database)
+        {
+            _database = database;
+        }
+
         public async Task<IReadOnlyList<User>> GetUsersAsync()
         {
-            using var connection = await database.OpenConnectionAsync();
+            using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
-            command.CommandText = "SELECT * FROM User WHERE isDel = 0";
+            command.CommandText = "SELECT * FROM users";
             return await ReadAllAsync(await command.ExecuteReaderAsync());
         }
 
-        public async Task<User?> GetUserAsync(Guid uuid)
+        public async Task<User?> GetUserAsync(int id)
         {
-            using var connection = await database.OpenConnectionAsync();
+            using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
-            command.CommandText = @"SELECT * FROM User WHERE uuid = @id";
-            command.Parameters.AddWithValue("@id", uuid);
+            command.CommandText = "SELECT * FROM users WHERE id = @id";
+            command.Parameters.AddWithValue("@id", id);
 
             var result = await ReadAllAsync(await command.ExecuteReaderAsync());
             return result.FirstOrDefault();
         }
 
-        public async Task<Guid> CreateUserAsync(string log_in_info)
+        public async Task<User> CreateUserAsync(User user)
         {
-            using var connection = await database.OpenConnectionAsync();
+            using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
-            Guid userID = Guid.NewGuid();
+            command.CommandText = @"
+                INSERT INTO users (username, role, email)
+                VALUES (@username, @role, @email);
+                SELECT LAST_INSERT_ID();";
 
-            command.CommandText = @"INSERT INTO User (uuid, log_in_info, role) VALUES (@uuid, @log_in_info, @role);";
+            command.Parameters.AddWithValue("@username", user.Username);
+            command.Parameters.AddWithValue("@role", user.Role);
+            command.Parameters.AddWithValue("@email", user.Email ?? (object)DBNull.Value);
 
-            command.Parameters.AddWithValue("@uuid", userID);
-            command.Parameters.AddWithValue("@log_in_info", log_in_info);
-            command.Parameters.AddWithValue("@role", "unverified");
+            var userId = Convert.ToInt32(await command.ExecuteScalarAsync());
+            user.Id = userId;
 
-            await command.ExecuteNonQueryAsync();
-
-            return userID;
+            return user;
         }
+
         public async Task UpdateUserAsync(User user)
         {
-            using var connection = await database.OpenConnectionAsync();
+            using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
-            command.CommandText = @"UPDATE User SET log_in_info = @log_in_info, isDel = @isDel, role = @role WHERE uuid = @uuid;";
+            command.CommandText = @"
+                UPDATE users 
+                SET username = @username, 
+                    role = @role, 
+                    email = @email
+                WHERE id = @id;";
 
-            command.Parameters.AddWithValue("@uuid", user.uuid);
-            command.Parameters.AddWithValue("@log_in_info", user.log_in_info);
-            command.Parameters.AddWithValue("@isDel", user.isDel);
-            command.Parameters.AddWithValue("@role", user.role);
+            command.Parameters.AddWithValue("@id", user.Id);
+            command.Parameters.AddWithValue("@username", user.Username);
+            command.Parameters.AddWithValue("@role", user.Role);
+            command.Parameters.AddWithValue("@email", user.Email ?? (object)DBNull.Value);
 
             await command.ExecuteNonQueryAsync();
         }
 
-        public async Task DeleteUserAsync(Guid uuid)
+        public async Task DeleteUserAsync(int id)
         {
-            using var connection = await database.OpenConnectionAsync();
+            using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
-            command.CommandText = @"UPDATE User SET isDel = 1 WHERE uuid = @uuid;";
-
-            command.Parameters.AddWithValue("@uuid", uuid);
+            command.CommandText = "DELETE FROM users WHERE id = @id";
+            command.Parameters.AddWithValue("@id", id);
 
             await command.ExecuteNonQueryAsync();
         }
@@ -82,10 +94,11 @@ namespace Chemistry_Cafe_API.Services
                 {
                     var user = new User
                     {
-                        uuid = reader.GetGuid(0),
-                        log_in_info = reader.IsDBNull(1) ? string.Empty : reader.GetString(1),
-                        isDel = !reader.IsDBNull(2) && reader.GetBoolean(2),
-                        role = reader.IsDBNull(3) ? "unverified" : reader.GetString(3)
+                        Id = reader.GetInt32(reader.GetOrdinal("id")),
+                        Username = reader.GetString(reader.GetOrdinal("username")),
+                        Role = reader.GetString(reader.GetOrdinal("role")),
+                        Email = reader.IsDBNull(reader.GetOrdinal("email")) ? null : reader.GetString(reader.GetOrdinal("email")),
+                        CreatedDate = reader.GetDateTime(reader.GetOrdinal("created_date"))
                     };
                     users.Add(user);
                 }

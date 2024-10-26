@@ -1,17 +1,15 @@
 import axios from "axios";
 import {
-  FamilyTagMechList,
-  TagMechanismReactionList,
-  TagMechanismSpeciesList,
-  PropertyList,
-  PropertyVersion,
-  ReactantProductList,
   Family,
   Mechanism,
   Species,
   Reaction,
   ReactionSpecies,
   MechanismReaction,
+  MechanismSpecies,
+  InitialConditionSpecies,
+  User,
+  UserMechanism,
 } from "./API_Interfaces";
 
 export async function createFamily(familyData: Family) {
@@ -35,7 +33,7 @@ export async function createFamily(familyData: Family) {
 export async function createMechanism(mechanismData: Mechanism) {
   try {
     const response = await axios.post(
-      "http://localhost:8080/api/species",
+      "http://localhost:8080/api/mechanism",
       mechanismData,
       {
         headers: {
@@ -91,7 +89,7 @@ export async function addSpeciesToReaction(
 ) {
   try {
     const response = await axios.post(
-      "http://localhost:8080/api/reaction_species",
+      "http://localhost:8080/api/reactionspecies",
       reactionSpeciesData,
       {
         headers: {
@@ -111,7 +109,7 @@ export async function addReactionToMechanism(
 ) {
   try {
     const response = await axios.post(
-      "http://localhost:8080/api/mechanism_reactions",
+      "http://localhost:8080/api/mechanismreactions",
       mechanismReactionData,
       {
         headers: {
@@ -126,113 +124,76 @@ export async function addReactionToMechanism(
   }
 }
 
-export async function createTagMechanismSpeciesList(
-  tagMechanismSpeciesListDataArray: TagMechanismSpeciesList[]
+export async function addSpeciesToMechanism(
+  mechanismSpeciesData: MechanismSpecies
 ) {
   try {
-    const requests = tagMechanismSpeciesListDataArray.map(
-      (tagMechanismSpeciesListData) => {
-        const requestData = {
-          species_uuid: tagMechanismSpeciesListData.species_uuid,
-          tag_mechanism_uuid: tagMechanismSpeciesListData.tag_mechanism_uuid,
-          version: tagMechanismSpeciesListData.version,
-        };
-        return axios.post(
-          "http://localhost:8080/api/TagMechanismSpeciesList/create",
-          requestData,
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-      }
-    );
-
-    const responses = await Promise.all(requests);
-    return responses.map((response) => response.data);
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
-}
-
-export async function createPropertyList(propertyList: PropertyList) {
-  try {
-    const requestData = {
-      parent_uuid: propertyList.parent_uuid,
-      version: propertyList.version,
-    };
-
     const response = await axios.post(
-      "http://localhost:8080/api/PropertyList/create",
-      requestData,
+      "http://localhost:8080/api/mechanismspecies",
+      mechanismSpeciesData,
       {
         headers: {
           "Content-Type": "application/json",
         },
       }
     );
-    return response.data;
+    return response.data as MechanismSpecies;
   } catch (error) {
     console.error(error);
     throw error;
   }
 }
 
-export async function createPropertyVersion(propertyVersion: PropertyVersion) {
-  try {
-    const requestData = {
-      parent_property_uuid: propertyVersion.parent_property_uuid,
-      frozen_version: propertyVersion.frozen_version,
-      tag_mechanism_uuid: propertyVersion.tag_mechanism_uuid,
-      property_type: propertyVersion.property_type,
-      float_value: propertyVersion.float_value,
-      double_value: propertyVersion.double_value,
-      int_value: propertyVersion.int_value,
-      string_value: propertyVersion.string_value,
-      action: propertyVersion.action,
-      user_uuid: propertyVersion.user_uuid,
-      datetime: propertyVersion.datetime,
-    };
-
-    const response = await axios.post(
-      "http://localhost:8080/api/PropertyVersion/create",
-      requestData,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    return response.data;
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
-}
-
-export async function createReactantProduct(
-  reactantProductList: ReactantProductList
+export async function createInitialConditionSpecies(
+  initialConditionData: InitialConditionSpecies
 ) {
   try {
-    const requestData = {
-      reactant_product_uuid: reactantProductList.reactant_product_uuid,
-      reaction_uuid: reactantProductList.reaction_uuid,
-      species_uuid: reactantProductList.species_uuid,
-      quantity: reactantProductList.quantity,
-    };
-
     const response = await axios.post(
-      "http://localhost:8080/api/ReactantProductList/create",
-      requestData,
+      "http://localhost:8080/api/initialconditionspecies",
+      initialConditionData,
       {
         headers: {
           "Content-Type": "application/json",
         },
       }
     );
-    return response.data;
+    return response.data as InitialConditionSpecies;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function createUser(userData: User) {
+  try {
+    const response = await axios.post(
+      "http://localhost:8080/api/users",
+      userData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data as User;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function addUserToMechanism(userMechanismData: UserMechanism) {
+  try {
+    const response = await axios.post(
+      "http://localhost:8080/api/usermechanism",
+      userMechanismData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data as UserMechanism;
   } catch (error) {
     console.error(error);
     throw error;

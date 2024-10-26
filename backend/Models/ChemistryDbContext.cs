@@ -18,19 +18,19 @@ public partial class ChemistryDbContext : DbContext
 
     public virtual DbSet<Family> Families { get; set; }
 
-    public virtual DbSet<InitialConditionsSpecy> InitialConditionsSpecies { get; set; }
+    public virtual DbSet<InitialConditionsSpecies> InitialConditionsSpecies { get; set; }
 
     public virtual DbSet<Mechanism> Mechanisms { get; set; }
 
     public virtual DbSet<MechanismReaction> MechanismReactions { get; set; }
 
-    public virtual DbSet<MechanismSpecy> MechanismSpecies { get; set; }
+    public virtual DbSet<MechanismSpecies> MechanismSpecies { get; set; }
 
     public virtual DbSet<MechanismVersion> MechanismVersions { get; set; }
 
     public virtual DbSet<Reaction> Reactions { get; set; }
 
-    public virtual DbSet<ReactionSpecy> ReactionSpecies { get; set; }
+    public virtual DbSet<ReactionSpecies> ReactionSpecies { get; set; }
 
     public virtual DbSet<Species> Species { get; set; }
 
@@ -63,7 +63,7 @@ public partial class ChemistryDbContext : DbContext
             entity.Property(e => e.CreatedDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
         });
 
-        modelBuilder.Entity<InitialConditionsSpecy>(entity =>
+        modelBuilder.Entity<InitialConditionsSpecies>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
@@ -90,7 +90,7 @@ public partial class ChemistryDbContext : DbContext
             entity.HasOne(d => d.Reaction).WithMany(p => p.MechanismReactions).HasConstraintName("mechanism_reactions_ibfk_2");
         });
 
-        modelBuilder.Entity<MechanismSpecy>(entity =>
+        modelBuilder.Entity<MechanismSpecies>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
@@ -113,7 +113,7 @@ public partial class ChemistryDbContext : DbContext
             entity.Property(e => e.CreatedDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
         });
 
-        modelBuilder.Entity<ReactionSpecy>(entity =>
+        modelBuilder.Entity<ReactionSpecies>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 

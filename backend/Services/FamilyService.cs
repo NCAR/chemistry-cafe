@@ -3,85 +3,94 @@ using System.Data.Common;
 using MySqlConnector;
 using Microsoft.AspNetCore.Mvc;
 
-
 namespace Chemistry_Cafe_API.Services
 {
-    public class FamilyService(MySqlDataSource database)
+    public class FamilyService
     {
+        private readonly MySqlDataSource _database;
+
+        public FamilyService(MySqlDataSource database)
+        {
+            _database = database;
+        }
+
         public async Task<IReadOnlyList<Family>> GetFamiliesAsync()
         {
-            using var connection = await database.OpenConnectionAsync();
+            using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
-            command.CommandText = "SELECT * FROM Family WHERE isDel = FALSE";
+            command.CommandText = "SELECT * FROM families";
             return await ReadAllAsync(await command.ExecuteReaderAsync());
         }
 
-        public async Task<Family?> GetFamilyAsync(Guid uuid)
+        public async Task<Family?> GetFamilyAsync(int id)
         {
-            using var connection = await database.OpenConnectionAsync();
+            using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
-            command.CommandText = @"SELECT * FROM Family WHERE uuid = @id";
-            command.Parameters.AddWithValue("@id", uuid);
+            command.CommandText = @"SELECT * FROM families WHERE id = @id";
+            command.Parameters.AddWithValue("@id", id);
 
             var result = await ReadAllAsync(await command.ExecuteReaderAsync());
             return result.FirstOrDefault();
         }
 
-        public async Task<Family> CreateFamilyAsync(string name)
+        public async Task<Family> CreateFamilyAsync(string name, string? description, string? createdBy)
         {
-            using var connection = await database.OpenConnectionAsync();
+            using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
-            Guid tagMechanismID = Guid.NewGuid();
+            command.CommandText = @"
+                INSERT INTO families (name, description, created_by) 
+                VALUES (@name, @description, @created_by);
+                SELECT LAST_INSERT_ID();";
 
-            command.CommandText = @"INSERT INTO TagMechanism (uuid, tag) VALUES (@tag_mechanism_uuid, @tag);";
-
-            command.Parameters.AddWithValue("@tag_mechanism_uuid", tagMechanismID);
-            command.Parameters.AddWithValue("@tag", name + "-FamilySuperMechanism");
-
-            Guid familyID = Guid.NewGuid();
-            
-            command.CommandText += @"INSERT INTO Family (uuid, name, super_tag_mechanism_uuid) VALUES (@uuid, @name, @super_tag_mechanism_uuid);";
-
-            command.Parameters.AddWithValue("@uuid", familyID);
             command.Parameters.AddWithValue("@name", name);
-            command.Parameters.AddWithValue("@super_tag_mechanism_uuid", tagMechanismID);
+            command.Parameters.AddWithValue("@description", description ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@created_by", createdBy ?? (object)DBNull.Value);
 
-            Family family = new Family();
-            family.uuid = familyID;
-            family.name = name;
-            family.super_tag_mechanism_uuid = tagMechanismID;
-            family.isDel = false;
+            var familyId = Convert.ToInt32(await command.ExecuteScalarAsync());
 
-            await command.ExecuteNonQueryAsync();
+            var family = new Family
+            {
+                Id = familyId,
+                Name = name,
+                Description = description,
+                CreatedBy = createdBy,
+                CreatedDate = DateTime.UtcNow
+            };
 
             return family;
         }
+
         public async Task UpdateFamilyAsync(Family family)
         {
-            using var connection = await database.OpenConnectionAsync();
+            using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
-            command.CommandText = @"UPDATE Family SET name = @name, super_tag_mechanism_uuid = @super_tag_mechanism_uuid, isDel = @isDel WHERE uuid = @uuid;";
+            command.CommandText = @"
+                UPDATE families 
+                SET name = @name, 
+                    description = @description, 
+                    created_by = @created_by 
+                WHERE id = @id;";
 
-            command.Parameters.AddWithValue("@uuid", family.uuid);
-            command.Parameters.AddWithValue("@name", family.name);
-            command.Parameters.AddWithValue("@super_tag_mechanism_uuid", family.super_tag_mechanism_uuid);
-            command.Parameters.AddWithValue("@isDel", family.isDel);
+            command.Parameters.AddWithValue("@id", family.Id);
+            command.Parameters.AddWithValue("@name", family.Name);
+            command.Parameters.AddWithValue("@description", family.Description ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@created_by", family.CreatedBy ?? (object)DBNull.Value);
 
             await command.ExecuteNonQueryAsync();
         }
 
-        public async Task DeleteFamilyAsync(Guid uuid)
+        public async Task DeleteFamilyAsync(int id)
         {
-            using var connection = await database.OpenConnectionAsync();
+            using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
-            command.CommandText = @"UPDATE Family SET isDel = 1 WHERE uuid = @uuid;";
+            command.CommandText = @"DELETE FROM families WHERE id = @id;";
 
-            command.Parameters.AddWithValue("@uuid", uuid);
+            command.Parameters.AddWithValue("@id", id);
 
             await command.ExecuteNonQueryAsync();
         }
@@ -95,10 +104,11 @@ namespace Chemistry_Cafe_API.Services
                 {
                     var family = new Family
                     {
-                        uuid = reader.GetGuid(0),
-                        name = reader.GetString(1),
-                        super_tag_mechanism_uuid = reader.GetGuid(2),
-                        isDel = reader.GetBoolean(3),
+                        Id = reader.GetInt32(reader.GetOrdinal("id")),
+                        Name = reader.GetString(reader.GetOrdinal("name")),
+                        Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString(reader.GetOrdinal("description")),
+                        CreatedBy = reader.IsDBNull(reader.GetOrdinal("created_by")) ? null : reader.GetString(reader.GetOrdinal("created_by")),
+                        CreatedDate = reader.IsDBNull(reader.GetOrdinal("created_date")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("created_date"))
                     };
                     families.Add(family);
                 }

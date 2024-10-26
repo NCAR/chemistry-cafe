@@ -1,17 +1,16 @@
 export interface Family {
-  id: number;
+  id?: number;
   name: string;
   description: string;
-  createdBy: string;
-  createdDate: string;
+  created_by: string;
 }
 
 export interface Mechanism {
   id: number;
-  familyId: number;
+  family_id: number;
   name: string;
   description: string;
-  createdBy: string;
+  created_by: string;
   createdDate: string;
 }
 
@@ -19,8 +18,8 @@ export interface Species {
   id: number;
   name: string;
   description: string | null;
-  createdBy: string | null;
-  createdDate: string;
+  created_by: string | null;
+  created_date: string;
 }
 
 export interface Reaction {
@@ -35,6 +34,7 @@ export interface ReactionSpecies {
   id?: number;
   reaction_id: number;
   species_id: number;
+  quantity?: number;
   role: "reactant" | "product";
 }
 

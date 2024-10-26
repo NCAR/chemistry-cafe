@@ -1,163 +1,80 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Chemistry_Cafe_API.Models;
+using Chemistry_Cafe_API.Services;
 
 namespace Chemistry_Cafe_API.Controllers
 {
-    public class MechanismController : Controller
+    [ApiController]
+    [Route("api/mechanism")]
+    public class MechanismsController : ControllerBase
     {
-        private readonly ChemistryDbContext _context;
+        private readonly MechanismService _mechanismService;
 
-        public MechanismController(ChemistryDbContext context)
+        public MechanismsController(MechanismService mechanismService)
         {
-            _context = context;
+            _mechanismService = mechanismService;
         }
 
-        // GET: Mechanism
-        public async Task<IActionResult> Index()
+        // GET: api/Mechanisms
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Mechanism>>> GetMechanisms()
         {
-            var chemistryDbContext = _context.Mechanisms.Include(m => m.Family);
-            return View(await chemistryDbContext.ToListAsync());
+            var mechanisms = await _mechanismService.GetMechanismsAsync();
+            return Ok(mechanisms);
         }
 
-        // GET: Mechanism/Details/5
-        public async Task<IActionResult> Details(int? id)
+        // GET: api/Mechanisms/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Mechanism>> GetMechanism(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            var mechanism = await _mechanismService.GetMechanismAsync(id);
 
-            var mechanism = await _context.Mechanisms
-                .Include(m => m.Family)
-                .FirstOrDefaultAsync(m => m.Id == id);
             if (mechanism == null)
             {
                 return NotFound();
             }
 
-            return View(mechanism);
+            return Ok(mechanism);
         }
 
-        // GET: Mechanism/Create
-        public IActionResult Create()
+        // GET: api/Mechanisms/family/5
+        [HttpGet("family/{familyId}")]
+        public async Task<ActionResult<IEnumerable<Mechanism>>> GetMechanismsByFamilyId(int familyId)
         {
-            ViewData["FamilyId"] = new SelectList(_context.Families, "Id", "Id");
-            return View();
+            var mechanisms = await _mechanismService.GetMechanismsByFamilyIdAsync(familyId);
+            return Ok(mechanisms);
         }
 
-        // POST: Mechanism/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST: api/Mechanisms
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,FamilyId,Name,Description,CreatedBy,CreatedDate")] Mechanism mechanism)
+        public async Task<ActionResult<Mechanism>> CreateMechanism(Mechanism mechanism)
         {
-            if (ModelState.IsValid)
-            {
-                _context.Add(mechanism);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["FamilyId"] = new SelectList(_context.Families, "Id", "Id", mechanism.FamilyId);
-            return View(mechanism);
+            var createdMechanism = await _mechanismService.CreateMechanismAsync(mechanism);
+            return CreatedAtAction(nameof(GetMechanism), new { id = createdMechanism.Id }, createdMechanism);
         }
 
-        // GET: Mechanism/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var mechanism = await _context.Mechanisms.FindAsync(id);
-            if (mechanism == null)
-            {
-                return NotFound();
-            }
-            ViewData["FamilyId"] = new SelectList(_context.Families, "Id", "Id", mechanism.FamilyId);
-            return View(mechanism);
-        }
-
-        // POST: Mechanism/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,FamilyId,Name,Description,CreatedBy,CreatedDate")] Mechanism mechanism)
+        // PUT: api/Mechanisms/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateMechanism(int id, Mechanism mechanism)
         {
             if (id != mechanism.Id)
             {
-                return NotFound();
+                return BadRequest();
             }
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(mechanism);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!MechanismExists(mechanism.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["FamilyId"] = new SelectList(_context.Families, "Id", "Id", mechanism.FamilyId);
-            return View(mechanism);
+            await _mechanismService.UpdateMechanismAsync(mechanism);
+
+            return NoContent();
         }
 
-        // GET: Mechanism/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        // DELETE: api/Mechanisms/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteMechanism(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var mechanism = await _context.Mechanisms
-                .Include(m => m.Family)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (mechanism == null)
-            {
-                return NotFound();
-            }
-
-            return View(mechanism);
-        }
-
-        // POST: Mechanism/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var mechanism = await _context.Mechanisms.FindAsync(id);
-            if (mechanism != null)
-            {
-                _context.Mechanisms.Remove(mechanism);
-            }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool MechanismExists(int id)
-        {
-            return _context.Mechanisms.Any(e => e.Id == id);
+            await _mechanismService.DeleteMechanismAsync(id);
+            return NoContent();
         }
     }
 }

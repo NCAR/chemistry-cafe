@@ -28,11 +28,11 @@ public partial class Species
     public DateTime? CreatedDate { get; set; }
 
     [InverseProperty("Species")]
-    public virtual ICollection<InitialConditionsSpecy> InitialConditionsSpecies { get; set; } = new List<InitialConditionsSpecy>();
+    public virtual ICollection<InitialConditionsSpecies> InitialConditionsSpecies { get; set; } = new List<InitialConditionsSpecies>();
 
     [InverseProperty("Species")]
-    public virtual ICollection<MechanismSpecy> MechanismSpecies { get; set; } = new List<MechanismSpecy>();
+    public virtual ICollection<MechanismSpecies> MechanismSpecies { get; set; } = new List<MechanismSpecies>();
 
     [InverseProperty("Species")]
-    public virtual ICollection<ReactionSpecy> ReactionSpecies { get; set; } = new List<ReactionSpecy>();
+    public virtual ICollection<ReactionSpecies> ReactionSpecies { get; set; } = new List<ReactionSpecies>();
 }
