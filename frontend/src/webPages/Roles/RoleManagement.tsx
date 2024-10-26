@@ -14,6 +14,9 @@ import { DataGrid, GridRowParams, GridColDef, GridToolbar, GridToolbarContainer,
   GridRowModes, GridRowId, GridRowModel, GridRowEditStopReasons,  
   GridEventListener} from '@mui/x-data-grid';
 
+import { Header, Footer } from '../Components/HeaderFooter';
+
+import "./roles.css";
 
 interface User {
   uuid: string;
@@ -133,8 +136,6 @@ const RoleManagement: React.FC = () => {
       ...rowModesModel,
       [uuid]: { mode: GridRowModes.View, ignoreModifications: true },
     });
-
-  const editedRow = users.find((row) => row.uuid === uuid);
   };
 
 
@@ -168,6 +169,7 @@ const RoleManagement: React.FC = () => {
     {
       field: 'log_in_info',
       headerName: 'Email',
+      headerClassName: 'roleDataHeader',
       width: 250,
       editable: false
     },
@@ -175,6 +177,7 @@ const RoleManagement: React.FC = () => {
     {
       field: 'role',
       headerName: 'Role',
+      headerClassName: 'roleDataHeader',
       width: 150,
       editable: true,
       type: 'singleSelect',
@@ -185,6 +188,7 @@ const RoleManagement: React.FC = () => {
       field: 'actions',
       type: 'actions',
       headerName: 'Actions',
+      headerClassName: 'roleDataHeader',
       width: 100,
       cellClassName: 'actions',
       getActions: ({ id }) => {
@@ -234,72 +238,31 @@ const RoleManagement: React.FC = () => {
 
 
   return (
-    <div>
-      {/* test div britt */}
-      <div>
-        <DataGrid
-          rows={users}
-          columns={userColumns}
-          // specifying the primary key to track each entry by
-          getRowId={(row) => row.uuid}
-          editMode='row'
-          rowModesModel={rowModesModel}
-          onRowModesModelChange={handleRowModesModelChange}
-          onRowEditStop={handleRowEditStop}
-          processRowUpdate={processRowUpdate}
-          onProcessRowUpdateError={(error) => console.log(error)}
-          slots={{ toolbar: RolesToolbar }}
-        />
+    <div className='totalPage'>
+      <div className='headerBar'>
+        <Header></Header>
       </div>
-      <h1>Role Management</h1>
-      <div style={{ marginBottom: '10px' }}>
-        <input
-          type="text"
-          placeholder="Search by email"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ marginRight: '10px', padding: '5px', width: '200px' }}
-        />
-        <select
-          value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value)}
-          style={{ padding: '5px' }}
-        >
-          <option value="all">All</option>
-          <option value="unverified">Unverified</option>
-          <option value="verified">Verified</option>
-          <option value="admin">Admin</option>
-        </select>
+      <div className='mainContent'>
+        <div className='userDataGrid'>
+          <DataGrid
+            rows={users}
+            columns={userColumns}
+            // specifying the primary key to track each entry by
+            getRowId={(row) => row.uuid}
+            editMode='row'
+            rowModesModel={rowModesModel}
+            onRowModesModelChange={handleRowModesModelChange}
+            onRowEditStop={handleRowEditStop}
+            processRowUpdate={processRowUpdate}
+            onProcessRowUpdateError={(error) => console.log(error)}
+            slots={{ toolbar: RolesToolbar }}
+          />
+        </div>
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Email</th>
-            <th>Role</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredUsers.map((user) => (
-            <tr key={user.uuid}>
-              <td>{user.log_in_info}</td>
-              <td>
-                <select
-                  value={selectedRoles[user.uuid]}
-                  onChange={(e) => handleRoleChange(user.uuid, e.target.value)}
-                >
-                  <option value="unverified">Unverified</option>
-                  <option value="verified">Verified</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </td>
-              <td>
-                <button onClick={() => updateRole(user.uuid)}>Update Role</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+
+      <div className='footerBar'>
+        <Footer></Footer>
+      </div>
     </div>
   );
 };
