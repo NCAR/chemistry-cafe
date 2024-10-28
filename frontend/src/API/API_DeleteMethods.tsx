@@ -24,12 +24,7 @@ export async function deleteFamily(id: number) {
 export async function deleteMechanism(id: number) {
   try {
     const response = await axios.delete(
-      `http://localhost:8080/api/mechanism/${id}`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
+      `http://localhost:8080/api/mechanism/${id}`
     );
     return response.data;
   } catch (error) {

@@ -17,12 +17,14 @@ namespace Chemistry_Cafe_API.Controllers
             _mechanismSpeciesService = mechanismSpeciesService;
         }
 
+        
         // GET: api/MechanismSpecies/mechanism/5
         [HttpGet("mechanism/{mechanismId}")]
         public async Task<ActionResult<IEnumerable<Species>>> GetSpeciesByMechanismId(int mechanismId)
         {
-            var species = await _mechanismSpeciesService.GetSpeciesByMechanismIdAsync(mechanismId);
-            return Ok(species);
+            var mechanismSpeciesList = await _mechanismSpeciesService.GetMechanismSpeciesByMechanismIdAsync(mechanismId);
+            var speciesList = mechanismSpeciesList.Select(ms => ms.Species).ToList();
+            return Ok(speciesList);
         }
 
         // POST: api/MechanismSpecies

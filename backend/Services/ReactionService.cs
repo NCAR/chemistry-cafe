@@ -13,13 +13,79 @@ namespace Chemistry_Cafe_API.Services
             _database = database;
         }
 
-        public async Task<IReadOnlyList<Reaction>> GetReactionsAsync()
+       public async Task<IReadOnlyList<Reaction>> GetReactionsAsync()
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
-            command.CommandText = "SELECT * FROM reactions";
-            return await ReadAllAsync(await command.ExecuteReaderAsync());
+            command.CommandText = @"
+                SELECT 
+                    reactions.id AS ReactionId,
+                    reactions.equation AS ReactionEquation,
+                    reactions.description AS ReactionDescription,
+                    reactions.created_by AS ReactionCreatedBy,
+                    reactions.created_date AS ReactionCreatedDate,
+                    mechanism_reactions.id AS MechanismReactionId,
+                    mechanism_reactions.mechanism_id AS MechanismReactionMechanismId,
+                    mechanism_reactions.reaction_id AS MechanismReactionReactionId,
+                    reaction_species.id AS ReactionSpeciesId,
+                    reaction_species.reaction_id AS ReactionSpeciesReactionId,
+                    reaction_species.species_id AS ReactionSpeciesSpeciesId,
+                    reaction_species.role AS ReactionSpeciesRole
+                FROM reactions
+                LEFT JOIN mechanism_reactions ON reactions.id = mechanism_reactions.reaction_id
+                LEFT JOIN reaction_species ON reactions.id = reaction_species.reaction_id";
+
+            var reactionList = new List<Reaction>();
+            var reactionDictionary = new Dictionary<int, Reaction>();
+
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                int reactionId = reader.GetInt32(reader.GetOrdinal("ReactionId"));
+                if (!reactionDictionary.TryGetValue(reactionId, out var reaction))
+                {
+                    reaction = new Reaction
+                    {
+                        Id = reactionId,
+                        Equation = reader.GetString(reader.GetOrdinal("ReactionEquation")),
+                        Description = reader.IsDBNull(reader.GetOrdinal("ReactionDescription")) ? null : reader.GetString(reader.GetOrdinal("ReactionDescription")),
+                        CreatedBy = reader.IsDBNull(reader.GetOrdinal("ReactionCreatedBy")) ? null : reader.GetString(reader.GetOrdinal("ReactionCreatedBy")),
+                        CreatedDate = reader.GetDateTime(reader.GetOrdinal("ReactionCreatedDate")),
+                        MechanismReactions = new List<MechanismReaction>(),
+                        ReactionSpecies = new List<ReactionSpecies>()
+                    };
+                    reactionList.Add(reaction);
+                    reactionDictionary[reactionId] = reaction;
+                }
+
+                // Add MechanismReactions
+                if (!reader.IsDBNull(reader.GetOrdinal("MechanismReactionId")))
+                {
+                    var mechanismReaction = new MechanismReaction
+                    {
+                        Id = reader.GetInt32(reader.GetOrdinal("MechanismReactionId")),
+                        MechanismId = reader.GetInt32(reader.GetOrdinal("MechanismReactionMechanismId")),
+                        ReactionId = reader.GetInt32(reader.GetOrdinal("MechanismReactionReactionId"))
+                    };
+                    reaction.MechanismReactions.Add(mechanismReaction);
+                }
+
+                // Add ReactionSpecies
+                if (!reader.IsDBNull(reader.GetOrdinal("ReactionSpeciesId")))
+                {
+                    var reactionSpecies = new ReactionSpecies
+                    {
+                        Id = reader.GetInt32(reader.GetOrdinal("ReactionSpeciesId")),
+                        ReactionId = reader.GetInt32(reader.GetOrdinal("ReactionSpeciesReactionId")),
+                        SpeciesId = reader.GetInt32(reader.GetOrdinal("ReactionSpeciesSpeciesId")),
+                        Role = reader.GetString(reader.GetOrdinal("ReactionSpeciesRole")),
+                    };
+                    reaction.ReactionSpecies.Add(reactionSpecies);
+                }
+            }
+
+            return reactionList;
         }
 
         public async Task<Reaction?> GetReactionAsync(int id)

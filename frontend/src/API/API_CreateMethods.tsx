@@ -144,26 +144,6 @@ export async function addSpeciesToMechanism(
   }
 }
 
-export async function createInitialConditionSpecies(
-  initialConditionData: InitialConditionSpecies
-) {
-  try {
-    const response = await axios.post(
-      "http://localhost:8080/api/initialconditionspecies",
-      initialConditionData,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    return response.data as InitialConditionSpecies;
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
-}
-
 export async function createUser(userData: User) {
   try {
     const response = await axios.post(

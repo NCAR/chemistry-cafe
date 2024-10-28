@@ -10,8 +10,9 @@
     <DockerfileContext>.</DockerfileContext>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <CollectCoverage>true</CollectCoverage>
-    <CoverletOutputFormat>opencover</CoverletOutputFormat>
+    <CoverletOutputFormat>cobertura</CoverletOutputFormat>
     <CoverletOutput>../TestResults/</CoverletOutput>
+    <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
   <ItemGroup>

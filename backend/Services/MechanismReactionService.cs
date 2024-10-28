@@ -28,18 +28,45 @@ namespace Chemistry_Cafe_API.Services
             await command.ExecuteNonQueryAsync();
         }
 
-        public async Task<IReadOnlyList<Reaction>> GetReactionsByMechanismIdAsync(int mechanismId)
+        public async Task<IReadOnlyList<MechanismReaction>> GetMechanismReactionsByMechanismIdAsync(int mechanismId)
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
             command.CommandText = @"
-                SELECT r.* FROM reactions r
-                INNER JOIN mechanism_reactions mr ON r.id = mr.reaction_id
-                WHERE mr.mechanism_id = @mechanism_id";
+                SELECT 
+                    mechanism_reactions.id AS MechanismReactionId,
+                    mechanism_reactions.mechanism_id AS MechanismId,
+                    mechanism_reactions.reaction_id AS ReactionId,
+                    reactions.equation AS ReactionEquation,
+                    reactions.description AS ReactionDescription
+                FROM mechanism_reactions
+                INNER JOIN reactions ON mechanism_reactions.reaction_id = reactions.id
+                WHERE mechanism_reactions.mechanism_id = @mechanismId";
 
-            command.Parameters.AddWithValue("@mechanism_id", mechanismId);
-            return await ReadReactionsAsync(await command.ExecuteReaderAsync());
+            command.Parameters.AddWithValue("@mechanismId", mechanismId);
+
+            var mechanismReactionsList = new List<MechanismReaction>();
+
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                var mechanismReaction = new MechanismReaction
+                {
+                    Id = reader.GetInt32(reader.GetOrdinal("MechanismReactionId")),
+                    MechanismId = reader.GetInt32(reader.GetOrdinal("MechanismId")),
+                    ReactionId = reader.GetInt32(reader.GetOrdinal("ReactionId")),
+                    Reaction = new Reaction
+                    {
+                        Id = reader.GetInt32(reader.GetOrdinal("ReactionId")),
+                        Equation = reader.GetString(reader.GetOrdinal("ReactionEquation")),
+                        Description = reader.IsDBNull(reader.GetOrdinal("ReactionDescription")) ? null : reader.GetString(reader.GetOrdinal("ReactionDescription"))
+                    }
+                };
+                mechanismReactionsList.Add(mechanismReaction);
+            }
+
+            return mechanismReactionsList;
         }
 
         public async Task RemoveReactionFromMechanismAsync(int id)
@@ -72,6 +99,31 @@ namespace Chemistry_Cafe_API.Services
                 }
             }
             return reactions;
+        }
+
+        private async Task<IReadOnlyList<MechanismReaction>> ReadAllAsync(DbDataReader reader)
+        {
+            var mechanismReactions = new List<MechanismReaction>();
+            using (reader)
+            {
+                while (await reader.ReadAsync())
+                {
+                    var mr = new MechanismReaction
+                    {
+                        Id = reader.GetInt32(reader.GetOrdinal("id")),
+                        MechanismId = reader.GetInt32(reader.GetOrdinal("mechanism_id")),
+                        ReactionId = reader.GetInt32(reader.GetOrdinal("reaction_id")),
+                        Reaction = new Reaction
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("reaction_id")),
+                            Equation = reader.GetString(reader.GetOrdinal("equation")),
+                            Description = reader.IsDBNull(reader.GetOrdinal("ReactionDescription")) ? null : reader.GetString(reader.GetOrdinal("ReactionDescription"))
+                        }
+                    };
+                    mechanismReactions.Add(mr);
+                }
+            }
+            return mechanismReactions;
         }
     }
 }

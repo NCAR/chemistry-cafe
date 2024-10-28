@@ -48,7 +48,7 @@ export async function getMechanismsByFamilyId(
 ): Promise<Mechanism[]> {
   try {
     const response = await axios.get<Mechanism[]>(
-      `http://localhost:8080/api/mechanism?familyId=${familyId}`
+      `http://localhost:8080/api/mechanism/family/${familyId}`
     );
     return response.data;
   } catch (error) {
@@ -102,7 +102,7 @@ export async function getSpeciesByMechanismId(
 ): Promise<Species[]> {
   try {
     const response = await axios.get<Species[]>(
-      `http://localhost:8080/api/mechanismspecies?mechanismId=${mechanismId}`
+      `http://localhost:8080/api/mechanismspecies/mechanism/${mechanismId}`
     );
     return response.data;
   } catch (error) {
@@ -116,7 +116,7 @@ export async function getSpeciesByFamilyId(
 ): Promise<Species[]> {
   try {
     const response = await axios.get<Species[]>(
-      `http://localhost:8080/api/families?familyId=${familyId}`
+      `http://localhost:8080/api/species/family/${familyId}`
     );
     return response.data;
   } catch (error) {
@@ -157,7 +157,7 @@ export async function getReactionsByMechanismId(
 ): Promise<Reaction[]> {
   try {
     const response = await axios.get<Reaction[]>(
-      `http://localhost:8080/api/mechanismreactions?mechanismId=${mechanismId}`
+      `http://localhost:8080/api/reactions/mechanism/${mechanismId}`
     );
     return response.data;
   } catch (error) {
@@ -171,8 +171,9 @@ export async function getReactionsByFamilyId(
 ): Promise<Reaction[]> {
   try {
     const response = await axios.get<Reaction[]>(
-      `http:/localhost:8080/api/reactions?familyId=${familyId}`
+      `http://localhost:8080/api/reactions/family/${familyId}`
     );
+    console.log("Logging from getReactionsByFamilyId: ", response.data);
     return response.data;
   } catch (error) {
     console.error(error);

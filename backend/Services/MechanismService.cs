@@ -13,13 +13,77 @@ namespace Chemistry_Cafe_API.Services
             _database = database;
         }
 
-        public async Task<IReadOnlyList<Mechanism>> GetMechanismsAsync()
+      public async Task<IReadOnlyList<Mechanism>> GetMechanismsAsync()
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
-            command.CommandText = "SELECT * FROM mechanisms";
-            return await ReadAllAsync(await command.ExecuteReaderAsync());
+            command.CommandText = @"
+                SELECT 
+                    mechanisms.id AS MechanismId,
+                    mechanisms.family_id AS FamilyId,
+                    mechanisms.name AS MechanismName,
+                    mechanisms.description AS MechanismDescription,
+                    mechanisms.created_by AS MechanismCreatedBy,
+                    mechanisms.created_date AS MechanismCreatedDate,
+                    mechanism_reactions.id AS MechanismReactionId,
+                    mechanism_reactions.reaction_id AS ReactionId,
+                    mechanism_species.id AS MechanismSpeciesId,
+                    mechanism_species.species_id AS SpeciesId
+                FROM mechanisms
+                LEFT JOIN mechanism_reactions ON mechanisms.id = mechanism_reactions.mechanism_id
+                LEFT JOIN mechanism_species ON mechanisms.id = mechanism_species.mechanism_id";
+
+            var mechanismList = new List<Mechanism>();
+            var mechanismDictionary = new Dictionary<int, Mechanism>();
+
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                int mechanismId = reader.GetInt32(reader.GetOrdinal("MechanismId"));
+                if (!mechanismDictionary.TryGetValue(mechanismId, out var mechanism))
+                {
+                    mechanism = new Mechanism
+                    {
+                        Id = mechanismId,
+                        FamilyId = reader.GetInt32(reader.GetOrdinal("FamilyId")),
+                        Name = reader.GetString(reader.GetOrdinal("MechanismName")),
+                        Description = reader.IsDBNull(reader.GetOrdinal("MechanismDescription")) ? null : reader.GetString(reader.GetOrdinal("MechanismDescription")),
+                        CreatedBy = reader.IsDBNull(reader.GetOrdinal("MechanismCreatedBy")) ? null : reader.GetString(reader.GetOrdinal("MechanismCreatedBy")),
+                        CreatedDate = reader.GetDateTime(reader.GetOrdinal("MechanismCreatedDate")),
+                        MechanismReactions = new List<MechanismReaction>(),
+                        MechanismSpecies = new List<MechanismSpecies>()
+                    };
+                    mechanismList.Add(mechanism);
+                    mechanismDictionary[mechanismId] = mechanism;
+                }
+
+                // Add MechanismReactions
+                if (!reader.IsDBNull(reader.GetOrdinal("MechanismReactionId")))
+                {
+                    var mechanismReaction = new MechanismReaction
+                    {
+                        Id = reader.GetInt32(reader.GetOrdinal("MechanismReactionId")),
+                        MechanismId = mechanismId,
+                        ReactionId = reader.GetInt32(reader.GetOrdinal("ReactionId"))
+                    };
+                    mechanism.MechanismReactions.Add(mechanismReaction);
+                }
+
+                // Add MechanismSpecies
+                if (!reader.IsDBNull(reader.GetOrdinal("MechanismSpeciesId")))
+                {
+                    var mechanismSpecies = new MechanismSpecies
+                    {
+                        Id = reader.GetInt32(reader.GetOrdinal("MechanismSpeciesId")),
+                        MechanismId = mechanismId,
+                        SpeciesId = reader.GetInt32(reader.GetOrdinal("SpeciesId"))
+                    };
+                    mechanism.MechanismSpecies.Add(mechanismSpecies);
+                }
+            }
+
+            return mechanismList;
         }
 
         public async Task<Mechanism?> GetMechanismAsync(int id)

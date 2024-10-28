@@ -21,7 +21,7 @@ namespace Chemistry_Cafe_API.Controllers
         [HttpGet("mechanism/{mechanismId}")]
         public async Task<ActionResult<IEnumerable<Reaction>>> GetReactionsByMechanismId(int mechanismId)
         {
-            var reactions = await _mechanismReactionService.GetReactionsByMechanismIdAsync(mechanismId);
+            var reactions = await _mechanismReactionService.GetMechanismReactionsByMechanismIdAsync(mechanismId);
             return Ok(reactions);
         }
 

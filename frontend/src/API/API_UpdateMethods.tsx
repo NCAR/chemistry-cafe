@@ -26,7 +26,7 @@ export async function updateFamily(family: Family) {
 export async function updateMechanism(mechanism: Mechanism) {
   try {
     const response = await axios.put(
-      `http://localhost:8080/api/mechanisms/${mechanism.id}`,
+      `http://localhost:8080/api/mechanism/${mechanism.id}`,
       mechanism,
       {
         headers: {

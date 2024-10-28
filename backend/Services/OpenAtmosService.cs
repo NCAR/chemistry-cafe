@@ -80,7 +80,6 @@ public class OpenAtmosService
                 {
                     json.AppendLine("        {");
                     json.AppendLine($"          \"species name\": \"{reactant.SpeciesName}\",");
-                    json.AppendLine($"          \"coefficient\": {reactant.Quantity}");
                     json.AppendLine("        },");
                 }
                 json.Length -= 3;
@@ -97,7 +96,6 @@ public class OpenAtmosService
                 {
                     json.AppendLine("        {");
                     json.AppendLine($"          \"species name\": \"{product.SpeciesName}\",");
-                    json.AppendLine($"          \"coefficient\": {product.Quantity}");
                     json.AppendLine("        },");
                 }
                 json.Length -= 3;
@@ -169,7 +167,6 @@ public class OpenAtmosService
                 foreach (var reactant in reactants)
                 {
                     yaml.AppendLine("  - species name: " + reactant.SpeciesName);
-                    yaml.AppendLine("    coefficient: " + reactant.Quantity);
                 }
             }
 
@@ -181,7 +178,6 @@ public class OpenAtmosService
                 foreach (var product in products)
                 {
                     yaml.AppendLine("  - species name: " + product.SpeciesName);
-                    yaml.AppendLine("    coefficient: " + product.Quantity);
                 }
             }
         }
