@@ -1,9 +1,9 @@
 /* Ensure the main container takes full width and height */
-/* div {
-    display: flex;
-    flex-direction: column; /* Arrange children vertically */
-    min-height: 100vh; /* Full height of the viewport */
-} */
+/* div { */
+    /* display: flex; */
+    /* flex-direction: column; Arrange children vertically */
+    /* min-height: 100vh; Full height of the viewport */
+/* }  */
 
 /* Style for the AccessibilityWidget */
 .accessibility-widget {

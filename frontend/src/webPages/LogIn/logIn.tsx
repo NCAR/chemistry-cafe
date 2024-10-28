@@ -12,27 +12,24 @@ import Typography from '@mui/material/Typography';
 import GoogleIcon from '@mui/icons-material/Google';
 import NoAccountsIcon from '@mui/icons-material/NoAccounts';
 import { Footer } from '../Components/HeaderFooter';
+import Holidays from '../Components/Holidays';  // Import the Holidays component
 
 interface User {
     access_token: string;
-    // Add any other fields you expect to receive from the login response
 }
 
 interface Profile {
     picture: string;
     name: string;
     email: string;
-    // Add any other fields you expect to receive from the profile response
 }
 
 const LogIn = () => {
     const { setUser } = useAuth(); // Get setUser from AuthContext
     const [user, setLocalUser] = useState<User | null>(null);
     const [profile, setProfile] = useState<Profile | null>(null);
-
     const navigate = useNavigate();
     const handleClick = () => navigate('/LoggedIn');
-
     const [aboutOpen, setAboutOpen] = useState(false);
     const handleAboutOpen = () => setAboutOpen(true);
     const handleAboutClose = () => setAboutOpen(false);
@@ -146,6 +143,7 @@ const LogIn = () => {
 
     return (
         <section className="layoutLogIn">
+            <Holidays /> {/* Include the Holidays component here */}
             <div className="M2">
                 <Box sx={{ width: '100%', maxWidth: 700 }}>
                     <Typography variant="h2" sx={{ color: 'white' }}>
@@ -198,28 +196,28 @@ const LogIn = () => {
             </div>
 
             <div>
-                <Modal
-                    open={aboutOpen}
-                    onClose={handleAboutClose}
-                >
-                    <Box sx={style}>
-                        <Typography variant='h4'>About</Typography>
-                        <Box component="img" src={"src/assets/NSF-NCAR_Lockup-UCAR-Dark.png"} alt={"Texas A&M"} sx={{ height: "100px", width: "auto" }} />
-                        <Box component="img" src={"src/assets/TAMULogo.png"} alt={"Texas A&M"} sx={{ height: "100px", width: "auto" }} />
-                        <Typography variant='body1'>
-                            The Chemistry Cafe tool was made possible by the collaboration between NCAR and Texas A&M through the
-                            CSCE Capstone program.
-                        </Typography>
-                        <p></p>
-                        <Typography variant='h6'>
-                            Credits
-                        </Typography>
-                        <Typography variant='body1'>
-                            Paul Cyr, Brandon Longuet, Brian Nguyen <br /> Spring 2024 Capstone Team <br /><p></p>
-                            Kyle Shores <br /> Spring 2024 Capstone Sponsor Representative
-                        </Typography>
-                    </Box>
-                </Modal>
+                    <Modal
+                        open={aboutOpen}
+                        onClose={handleAboutClose}
+                    >
+                        <Box sx={style}>
+                            <Typography variant='h4'>About</Typography>
+                            <Box component="img" src={"src/assets/NSF-NCAR_Lockup-UCAR-Dark.png"} alt={"Texas A&M"} sx={{ height: "100px", width: "auto" }} />
+                            <Box component="img" src={"src/assets/TAMULogo.png"} alt={"Texas A&M"} sx={{ height: "100px", width: "auto" }} />
+                            <Typography variant='body1'>
+                                The Chemistry Cafe tool was made possible by the collaboration between NCAR and Texas A&M through the
+                                CSCE Capstone program.
+                            </Typography>
+                            <p></p>
+                            <Typography variant='h6'>
+                                Credits
+                            </Typography>
+                            <Typography variant='body1'>
+                                Paul Cyr, Brandon Longuet, Brian Nguyen <br></br> Spring 2024 Capstone Team <br></br> <p></p>
+                                Kyle Shores <br></br> Spring 2024 Capstone Sponsor Representative
+                            </Typography>
+                        </Box>
+                    </Modal>
             </div>
 
             <div className='L9LogIn'>
