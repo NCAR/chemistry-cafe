@@ -93,7 +93,7 @@ export const Footer = () => {
     return(
         <Paper component="footer" square={true} variant='outlined'>
             <Container maxWidth="lg" sx={{display: "flex"}}>
-                <Box component="img" src={"src/assets/nsf-stackseal-logo-lockup-dark.png"} sx={{height: "100px", width: "auto", pr: 10}}>
+                <Box component="img" src={"src/assets/nsf-stackseal-logo-lockup-dark.png"} sx={{height: "80px", width: "auto", pr: 10}}>
                 </Box>
                 <Box sx={{pr: 10}}>
                     <Button onClick={handleAbout}>
