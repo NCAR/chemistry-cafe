@@ -22,13 +22,24 @@ namespace Chemistry_Cafe_API.Services
             return await ReadAllAsync(await command.ExecuteReaderAsync());
         }
 
-        public async Task<User?> GetUserAsync(int id)
+        public async Task<User?> GetUserByIdAsync(int id) {
+            using var connection = await _database.OpenConnectionAsync();
+            using var command = connection.CreateCommand();
+
+            command.CommandText = "SELECT * from users WHERE id = @id";
+            command.Parameters.AddWithValue("@id", id);
+
+            var result = await ReadAllAsync(await command.ExecuteReaderAsync());
+            return result.FirstOrDefault();
+        }
+
+        public async Task<User?> GetUserByEmailAsync(string email)
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
-            command.CommandText = "SELECT * FROM users WHERE id = @id";
-            command.Parameters.AddWithValue("@id", id);
+            command.CommandText = "SELECT * FROM users WHERE email = @email";
+            command.Parameters.AddWithValue("@email", email);
 
             var result = await ReadAllAsync(await command.ExecuteReaderAsync());
             return result.FirstOrDefault();
@@ -37,22 +48,47 @@ namespace Chemistry_Cafe_API.Services
         public async Task<User> CreateUserAsync(User user)
         {
             using var connection = await _database.OpenConnectionAsync();
-            using var command = connection.CreateCommand();
+            using var transaction = await connection.BeginTransactionAsync();
 
-            command.CommandText = @"
-                INSERT INTO users (username, role, email)
-                VALUES (@username, @role, @email);
-                SELECT LAST_INSERT_ID();";
+            try
+            {
+                // Insert the new user
+                using (var insertCommand = connection.CreateCommand())
+                {
+                    insertCommand.Transaction = transaction;
+                    insertCommand.CommandText = @"
+                        INSERT INTO users (username, role, email)
+                        VALUES (@username, @role, @email);";
 
-            command.Parameters.AddWithValue("@username", user.Username);
-            command.Parameters.AddWithValue("@role", user.Role);
-            command.Parameters.AddWithValue("@email", user.Email ?? (object)DBNull.Value);
+                    insertCommand.Parameters.AddWithValue("@username", user.Username);
+                    insertCommand.Parameters.AddWithValue("@role", user.Role);
+                    insertCommand.Parameters.AddWithValue("@email", user.Email ?? (object)DBNull.Value);
 
-            var userId = Convert.ToInt32(await command.ExecuteScalarAsync());
-            user.Id = userId;
+                    await insertCommand.ExecuteNonQueryAsync();
+                }
 
-            return user;
+                // Retrieve the last inserted ID
+                using (var selectCommand = connection.CreateCommand())
+                {
+                    selectCommand.Transaction = transaction;
+                    selectCommand.CommandText = "SELECT LAST_INSERT_ID();";
+
+                    var result = await selectCommand.ExecuteScalarAsync();
+                    user.Id = Convert.ToInt32(result);
+                }
+
+                await transaction.CommitAsync();
+                return user;
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                // Log the exception for debugging
+                Console.Error.WriteLine($"Error creating user: {ex}");
+                throw; // Re-throw the exception to propagate the error
+            }
         }
+
 
         public async Task UpdateUserAsync(User user)
         {

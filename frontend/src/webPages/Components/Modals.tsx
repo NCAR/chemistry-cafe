@@ -462,11 +462,9 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
           const reactionsFamily = await getReactionsByFamilyId(
             selectedFamilyId
           );
-          console.log("Reactions Family: ", reactionsFamily);
           const reactionsMechanism = await getReactionsByMechanismId(
             selectedMechanismId
           );
-          console.log("Reactions mechanism: ", reactionsMechanism);
 
           const uniqueReactions = reactionsFamily.filter(
             (reaction: Reaction) =>

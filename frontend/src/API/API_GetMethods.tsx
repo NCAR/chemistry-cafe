@@ -173,7 +173,6 @@ export async function getReactionsByFamilyId(
     const response = await axios.get<Reaction[]>(
       `http://localhost:8080/api/reactions/family/${familyId}`
     );
-    console.log("Logging from getReactionsByFamilyId: ", response.data);
     return response.data;
   } catch (error) {
     console.error(error);
@@ -193,10 +192,27 @@ export async function getUsers(): Promise<User[]> {
 }
 
 // Get a specific user by ID
-export async function getUser(id: number): Promise<User> {
+export async function getUserByEmail(email: string): Promise<User | null> {
+  try {
+    // const encodedEmail = encodeURIComponent(email);
+    const response = await axios.get<User>(
+      `http://localhost:8080/api/users/email/${email}`
+    );
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
+      return null;
+    } else {
+      console.error(error);
+      throw error;
+    }
+  }
+}
+
+export async function getUserById(id: number): Promise<User> {
   try {
     const response = await axios.get<User>(
-      `http://localhost:8080/api/users/${id}`
+      `http://localhost:8080/api/users/id/${id}`
     );
     return response.data;
   } catch (error) {

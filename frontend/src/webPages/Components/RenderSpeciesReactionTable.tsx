@@ -68,11 +68,9 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
         const fetchedSpecies = await getSpeciesByMechanismId(
           selectedMechanismId
         );
-        console.log("fetched species: ", fetchedSpecies);
         const fetchedReactions = await getReactionsByMechanismId(
           selectedMechanismId
         );
-        console.log("Fetched reactions: ", fetchedReactions);
 
         setSpecies(fetchedSpecies);
         setReactions(fetchedReactions);

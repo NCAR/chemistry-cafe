@@ -13,20 +13,21 @@ import GoogleIcon from "@mui/icons-material/Google";
 import NoAccountsIcon from "@mui/icons-material/NoAccounts";
 import { Footer } from "../Components/HeaderFooter";
 import Holidays from "../Components/Holidays"; // Import the Holidays component
+import { getUserByEmail } from "../../API/API_GetMethods";
+import { createUser } from "../../API/API_CreateMethods";
 
-interface User {
+interface AuthUser {
   access_token: string;
 }
 
 interface Profile {
-  picture: string;
   name: string;
   email: string;
 }
 
 const LogIn = () => {
   const { setUser } = useAuth(); // Get setUser from AuthContext
-  const [user, setLocalUser] = useState<User | null>(null);
+  const [user, setLocalUser] = useState<AuthUser | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const navigate = useNavigate();
   const handleClick = () => navigate("/LoggedIn");
@@ -58,7 +59,7 @@ const LogIn = () => {
             },
           }
         )
-        .then((res) => {
+        .then(async (res) => {
           const profileData = res.data;
           setProfile(profileData);
 
@@ -69,64 +70,54 @@ const LogIn = () => {
           }
 
           // Check if the user already exists in the database
-          axios
-            .get(`http://localhost:8080/api/User/email=${profileData.email}`)
-            .then((response) => {
-              // If the status is 200, the user exists
-              if (response.status === 200 && response.data) {
-                // Set the user to the existing user data from the response
-                const updatedUser = {
-                  access_token: user.access_token,
-                  ...response.data,
-                };
-                setLocalUser(updatedUser);
-                const contextUser = {
-                  uuid: response.data.uuid, // Ensure this is coming from your API response
-                  log_in_info: response.data.log_in_info, // Populate this correctly
-                  role: response.data.role || "unverified", // Use default role if not present
-                };
-                setUser(contextUser); // Save user to AuthContext
-                //alert(contextUser.log_in_info)
-              } else {
-                axios
-                  .post(
-                    "http://localhost:8080/api/User/create",
-                    JSON.stringify(profileData.email),
-                    {
-                      headers: {
-                        "Content-Type": "application/json",
-                      },
-                    }
-                  )
-                  .then((response) => {
-                    const newUser = {
-                      access_token: user.access_token,
-                      ...response.data,
-                    };
-                    setLocalUser(newUser);
-                    const contextUser = {
-                      uuid: response.data.uuid, // Ensure this is coming from your API response
-                      log_in_info: response.data.log_in_info, // Populate this correctly
-                      role: response.data.role || "unverified", // Use default role if not present
-                    };
-                    setUser(contextUser); // Save user to AuthContext
-                    alert("New user created successfully");
-                  })
-                  .catch((error) => {
-                    console.error("Error creating user:", error);
-                    alert(
-                      "Error creating user:" + error + ":" + profileData.email
-                    );
-                  });
-              }
-            })
-            .catch((error) => {
-              console.error("Error checking user existence:", error);
-              alert("Error checking user existence" + error);
-            });
+          try {
+            const existingUser = await getUserByEmail(profileData.email);
+
+            if (existingUser) {
+              const updatedUser = {
+                access_token: user.access_token,
+                ...existingUser,
+              };
+              setLocalUser(updatedUser);
+
+              const contextUser = {
+                id: existingUser.id,
+                username: existingUser.username,
+                email: existingUser.email,
+                role: existingUser.role || "unverified",
+              };
+              setUser(contextUser);
+            } else {
+              const newUser = {
+                id: 0,
+                username: profileData.name,
+                email: profileData.email,
+                role: "unverified",
+              };
+              const createdUser = await createUser(newUser);
+              const updatedUser = {
+                access_token: user.access_token,
+                ...createdUser,
+              };
+              setLocalUser(updatedUser);
+
+              const contextUser = {
+                id: createdUser.id,
+                username: createdUser.username,
+                email: createdUser.email,
+                role: createdUser.role || "unverified",
+              };
+              setUser(contextUser);
+              console.log("Context user ", contextUser);
+              alert("New user created successfully");
+            }
+          } catch (error) {
+            console.error("Error checking or creating user:", error);
+            alert("Error checking or creating user");
+          }
         })
-        .catch((err) => {
-          console.error("Error fetching user profile:", err);
+        .catch((error) => {
+          console.error("Error fetching user profile:", error);
           alert("Error fetching profile");
         });
     }
@@ -177,7 +168,6 @@ const LogIn = () => {
         {profile ? (
           <div>
             <Box sx={{ bgcolor: "#C3D7EE", borderWidth: "2px" }}>
-              <img src={profile.picture} alt="user profile" />
               <h3>User Logged in</h3>
               <p>Name: {profile.name}</p>
               <p>Email Address: {profile.email}</p>

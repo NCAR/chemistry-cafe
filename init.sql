@@ -747,7 +747,12 @@ INSERT INTO initial_conditions_species (
 
 -- Insert users
 INSERT IGNORE INTO users (username, role, email) VALUES 
-    ('admin', 'admin', 'admin@ncar.org');
+    ('admin', 'admin', 'admin@ncar.org'),
+    ('Oreoluwa Ogunleye-Olawuyi', 'admin', 'ore2484@tamu.edu'),
+    ('Joshua Hare', 'admin', 'jmhhare@tamu.edu'),
+    ('Nishka Mittal', 'admin', 'nishka06@tamu.edu'),
+    ('Sydney Ferris', 'admin', 'sferris@tamu.edu'),
+    ('Kyle Shores', 'admin', 'kshores@ucar.edu');
 
 -- Link users to mechanisms
 INSERT INTO user_mechanisms (user_id, mechanism_id, role) VALUES

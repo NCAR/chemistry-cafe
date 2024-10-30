@@ -7,7 +7,6 @@ import {
   ReactionSpecies,
   MechanismReaction,
   MechanismSpecies,
-  InitialConditionSpecies,
   User,
   UserMechanism,
 } from "./API_Interfaces";

@@ -1,7 +1,7 @@
 // API_UpdateMethods.ts
 
 import axios from "axios";
-import { Family, Mechanism, Species, Reaction } from "./API_Interfaces";
+import { Family, Mechanism, Species, Reaction, User } from "./API_Interfaces";
 
 // Update a family
 export async function updateFamily(family: Family) {
@@ -73,6 +73,24 @@ export async function updateReaction(reaction: Reaction) {
       }
     );
     return response.data as Reaction;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function updateUser(id: number, user: User) {
+  try {
+    const response = await axios.put(
+      `http://localhost:8080/api/users/${id}`,
+      user,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data as User;
   } catch (error) {
     console.error(error);
     throw error;

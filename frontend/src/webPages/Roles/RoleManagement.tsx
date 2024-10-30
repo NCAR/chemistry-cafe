@@ -1,30 +1,31 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import Box from '@mui/material/Box';
+import React, { useState, useEffect } from "react";
+import Box from "@mui/material/Box";
 
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/DeleteOutlined';
-import SaveIcon from '@mui/icons-material/Save';
-import CancelIcon from '@mui/icons-material/Close';
-import { DataGrid, GridRowParams, GridColDef, GridToolbar, GridToolbarContainer, 
-  GridToolbarColumnsButton, GridToolbarFilterButton, GridToolbarDensitySelector, 
-  GridToolbarExport, GridRowsProp, GridToolbarQuickFilter, 
-  GridActionsCellItem, GridRowModesModel, 
-  GridRowModes, GridRowId, GridRowModel, GridRowEditStopReasons,  
-  GridEventListener} from '@mui/x-data-grid';
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/DeleteOutlined";
+import SaveIcon from "@mui/icons-material/Save";
+import CancelIcon from "@mui/icons-material/Close";
+import {
+  DataGrid,
+  GridColDef,
+  GridToolbarQuickFilter,
+  GridActionsCellItem,
+  GridRowModesModel,
+  GridRowModes,
+  GridRowId,
+  GridRowModel,
+  GridRowEditStopReasons,
+  GridEventListener,
+} from "@mui/x-data-grid";
 
-import { Header, Footer } from '../Components/HeaderFooter';
+import { Header, Footer } from "../Components/HeaderFooter";
 
 import "./roles.css";
-import { stringify } from 'querystring';
-import { useAuth } from '../contexts/AuthContext'; // Import the AuthContext
-
-
-interface User {
-  uuid: string;
-  log_in_info: string;
-  role: string;
-}
+import { useAuth } from "../contexts/AuthContext"; // Import the AuthContext
+import { getUsers } from "../../API/API_GetMethods";
+import { User } from "../../API/API_Interfaces";
+import { updateUser } from "../../API/API_UpdateMethods";
+import { deleteUser } from "../../API/API_DeleteMethods";
 
 function RolesToolbar() {
   return (
@@ -39,20 +40,19 @@ function RolesToolbar() {
   );
 }
 
-const Roles = ['Unverified', 'Verified', 'Admin'];
-
-
-
 const RoleManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedRoles, setSelectedRoles] = useState<{ [key: string]: string }>({});
-  const [search, setSearch] = useState<string>(''); // State for search input
-  const [roleFilter, setRoleFilter] = useState<string>('all'); // State for role filter
+  const [selectedRoles, setSelectedRoles] = useState<{ [key: string]: string }>(
+    {}
+  );
+  const [search, setSearch] = useState<string>(""); // State for search input
+  const [roleFilter, setRoleFilter] = useState<string>("all"); // State for role filter
 
-  const [rowModesModel, setRowModesModel] = React.useState<GridRowModesModel>({});
-
+  const [rowModesModel, setRowModesModel] = React.useState<GridRowModesModel>(
+    {}
+  );
 
   // Fetch the current logged-in user from the AuthContext
   const { user: loggedInUser } = useAuth(); // Access the logged-in user
@@ -61,66 +61,23 @@ const RoleManagement: React.FC = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get<User[]>('http://localhost:8080/api/User/all');
-        setUsers(response.data);
+        const response = await getUsers();
+        setUsers(response);
         // Initialize selectedRoles with each user's current role
-        const initialRoles = response.data.reduce((acc, user) => {
-          acc[user.uuid] = user.role;
+        const initialRoles = response.reduce((acc, user) => {
+          acc[user.id] = user.role;
           return acc;
-        }, {} as { [key: string]: string });
+        }, {} as { [key: number]: string });
         setSelectedRoles(initialRoles);
       } catch (error) {
-        console.error('Error fetching users:', error);
-        setError('Failed to fetch users');
+        console.error("Error fetching users:", error);
+        setError("Failed to fetch users");
       } finally {
         setLoading(false);
       }
     };
     fetchUsers();
   }, []);
-
-  const handleRoleChange = (uuid: string, newRole: string) => {
-    setSelectedRoles((prevRoles) => ({
-      ...prevRoles,
-      [uuid]: newRole,
-    }));
-  };
-
-  const updateRole = async (uuid: string) => {
-    try {
-      const user = users.find((u) => u.uuid === uuid);
-      if (!user) return;
-
-      const updatedUser = {
-        ...user,
-        role: selectedRoles[uuid],
-      };
-      alert(updatedUser.role)
-      const r = await axios.put(`http://localhost:8080/api/User/update`, updatedUser);
-      alert(r.status)
-      alert('Role updated successfully!');
-    } catch (error) {
-      console.error('Error updating role:', error);
-      alert('Failed to update role');
-    }
-  };
-
-  const deleteUser = async (uuid: string) => {
-    try {
-      await axios.delete(`http://localhost:8080/api/User/delete/${uuid}`);
-      // Remove the deleted user from the state
-      setUsers((prevUsers) => prevUsers.filter((user) => user.uuid !== uuid));
-      alert('User deleted successfully!');
-    } catch (error) {
-      console.error('Error deleting user:', error);
-      alert('Failed to delete user: ' + error);
-    }
-  };
-
-  const filteredUsers = users.filter((user) =>
-    user.log_in_info.toLowerCase().includes(search.toLowerCase()) &&
-    (roleFilter === 'all' || user.role === roleFilter)
-  );
 
   if (loading) {
     return <div>Loading users...</div>;
@@ -131,7 +88,10 @@ const RoleManagement: React.FC = () => {
   }
 
   //  handling editing actions
-  const handleRowEditStop: GridEventListener<'rowEditStop'> = (params, event) => {
+  const handleRowEditStop: GridEventListener<"rowEditStop"> = (
+    params,
+    event
+  ) => {
     if (params.reason === GridRowEditStopReasons.rowFocusOut) {
       event.defaultMuiPrevented = true;
     }
@@ -145,18 +105,16 @@ const RoleManagement: React.FC = () => {
     setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.View } });
   };
 
-  const handleDeleteClick = (uuid: GridRowId) => async () => {
+  const handleDeleteClick = (id: GridRowId) => async () => {
     try {
-      await axios.delete(`http://localhost:8080/api/User/delete/${uuid}`);
+      await deleteUser(id as number);
       // Remove the deleted user from the state
-      setUsers((prevUsers) => prevUsers.filter((user) => user.uuid !== uuid));
-      alert('User deleted successfully!');
+      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== id));
+      alert("User deleted successfully!");
     } catch (error) {
-      console.error('Error deleting user:', error);
-      alert('Failed to delete user: ' + error);
+      console.error("Error deleting user:", error);
+      alert("Failed to delete user: " + error);
     }
-
-    
   };
 
   const handleCancelClick = (uuid: GridRowId) => () => {
@@ -166,26 +124,17 @@ const RoleManagement: React.FC = () => {
     });
   };
 
-
-  // This function handles syncing edits with database 
+  // This function handles syncing edits with database
   // Note: this does not handle syncing deleting from DB: see handleDeleteClick
   const processRowUpdate = async (updatedUser: GridRowModel) => {
-      let uuidTemp = updatedUser.uuid
-      try {
-        const user: User | undefined = users.find((u) => u.uuid === uuidTemp);
-        if (!user) {console.log("user did not exist")
-          return updatedUser};
-
-  
-        await axios.put(`http://localhost:8080/api/User/update`, updatedUser);
-        alert('Role updated successfully!');
-        return updatedUser;
-
-      } catch (error) {
-        console.error('Error updating role:', error);
-        alert('Failed to update role');
-      }
+    try {
+      const response = await updateUser(updatedUser.id, updatedUser as User);
+      return response;
+    } catch (error) {
+      console.error("Error updating user: ", error);
+      throw error;
     }
+  };
 
   const handleRowModesModelChange = (newRowModesModel: GridRowModesModel) => {
     setRowModesModel(newRowModesModel);
@@ -194,32 +143,35 @@ const RoleManagement: React.FC = () => {
   // defining columns displayed
   const userColumns: GridColDef[] = [
     {
-      field: 'log_in_info',
-      headerName: 'Email',
-      headerClassName: 'roleDataHeader',
-      width: 250,
-      editable: false
+      field: "username",
+      headerName: "Username",
+      width: 200,
+      editable: false,
     },
 
     {
-      field: 'role',
-      headerName: 'Role',
-      headerClassName: 'roleDataHeader',
+      field: "email",
+      headerName: "Email",
+      width: 250,
+      editable: false,
+    },
+    {
+      field: "role",
+      headerName: "Role",
       width: 150,
       editable: true,
-      type: 'singleSelect',
-      valueOptions: ['unverified', 'verified', 'admin']
+      type: "singleSelect",
+      valueOptions: ["unverified", "verified", "admin"],
     },
 
     {
-      field: 'actions',
-      type: 'actions',
-      headerName: 'Actions',
-      headerClassName: 'roleDataHeader',
+      field: "actions",
+      type: "actions",
+      headerName: "Actions",
+      headerClassName: "roleDataHeader",
       width: 100,
-      cellClassName: 'actions',
+      cellClassName: "actions",
       getActions: ({ id }) => {
-
         const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit;
 
         if (isInEditMode) {
@@ -228,7 +180,7 @@ const RoleManagement: React.FC = () => {
               icon={<SaveIcon />}
               label="Save"
               sx={{
-                color: 'primary.main',
+                color: "primary.main",
               }}
               onClick={handleSaveClick(id)}
             />,
@@ -257,26 +209,23 @@ const RoleManagement: React.FC = () => {
             color="inherit"
           />,
         ];
-      }
-    }
-
-  
+      },
+    },
   ];
 
-
   return (
-    <div className='totalPage'>
-      <div className='headerBar'>
+    <div className="totalPage">
+      <div className="headerBar">
         <Header></Header>
       </div>
-      <div className='mainContent'>
-        <div className='userDataGrid'>
+      <div className="mainContent">
+        <div className="userDataGrid">
           <DataGrid
             rows={users}
             columns={userColumns}
             // specifying the primary key to track each entry by
             getRowId={(row) => row.uuid}
-            editMode='row'
+            editMode="row"
             rowModesModel={rowModesModel}
             onRowModesModelChange={handleRowModesModelChange}
             onRowEditStop={handleRowEditStop}
@@ -287,7 +236,7 @@ const RoleManagement: React.FC = () => {
         </div>
       </div>
 
-      <div className='footerBar'>
+      <div className="footerBar">
         <Footer></Footer>
       </div>
     </div>

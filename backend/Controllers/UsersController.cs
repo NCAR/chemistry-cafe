@@ -25,11 +25,22 @@ namespace Chemistry_Cafe_API.Controllers
             return Ok(users);
         }
 
-        // GET: api/Users/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(int id)
+        [HttpGet("id/{id}")]
+        public async Task<ActionResult<User>> GetUserById(int id) 
         {
-            var user = await _userService.GetUserAsync(id);
+            var user = await _userService.GetUserByIdAsync(id);
+
+            if (user == null) {
+                return NotFound();
+            }
+            return Ok(user);
+        }
+
+        // GET: api/Users/5
+        [HttpGet("email/{email}")]
+        public async Task<ActionResult<User>> GetUser(string email)
+        {
+            var user = await _userService.GetUserByEmailAsync(email);
 
             if (user == null)
             {
@@ -44,25 +55,23 @@ namespace Chemistry_Cafe_API.Controllers
         public async Task<ActionResult<User>> CreateUser(User user)
         {
             var createdUser = await _userService.CreateUserAsync(user);
-            return CreatedAtAction(nameof(GetUser), new { id = createdUser.Id }, createdUser);
+            return CreatedAtAction(nameof(GetUserById), new { id = createdUser.Id }, createdUser);
         }
 
         // PUT: api/Users/5
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(int id, User user)
         {
-            if (id != user.Id)
-            {
+            if(id != user.Id) {
                 return BadRequest();
             }
-
             await _userService.UpdateUserAsync(user);
 
             return NoContent();
         }
 
         // DELETE: api/Users/5
-        [HttpDelete("{id}")]
+        [HttpDelete("{email}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
             await _userService.DeleteUserAsync(id);
