@@ -17,7 +17,7 @@ export async function getFamilies(): Promise<Family[]> {
 }
 
 // Get a specific family by ID
-export async function getFamily(id: number): Promise<Family> {
+export async function getFamily(id: string): Promise<Family> {
   try {
     const response = await axios.get<Family>(
       `http://localhost:8080/api/families/${id}`
@@ -44,7 +44,7 @@ export async function getMechanisms(): Promise<Mechanism[]> {
 
 // Get mechanisms by family ID
 export async function getMechanismsByFamilyId(
-  familyId: number
+  familyId: string
 ): Promise<Mechanism[]> {
   try {
     const response = await axios.get<Mechanism[]>(
@@ -58,7 +58,7 @@ export async function getMechanismsByFamilyId(
 }
 
 // Get a specific mechanism by ID
-export async function getMechanism(id: number): Promise<Mechanism> {
+export async function getMechanism(id: string): Promise<Mechanism> {
   try {
     const response = await axios.get<Mechanism>(
       `http://localhost:8080/api/mechanism/${id}`
@@ -84,7 +84,7 @@ export async function getAllSpecies(): Promise<Species[]> {
 }
 
 // Get a specific species by ID
-export async function getSpecies(id: number): Promise<Species> {
+export async function getSpecies(id: string): Promise<Species> {
   try {
     const response = await axios.get<Species>(
       `http://localhost:8080/api/species/${id}`
@@ -98,7 +98,7 @@ export async function getSpecies(id: number): Promise<Species> {
 
 // Get species associated with a mechanism
 export async function getSpeciesByMechanismId(
-  mechanismId: number
+  mechanismId: string
 ): Promise<Species[]> {
   try {
     const response = await axios.get<Species[]>(
@@ -112,7 +112,7 @@ export async function getSpeciesByMechanismId(
 }
 
 export async function getSpeciesByFamilyId(
-  familyId: number
+  familyId: string
 ): Promise<Species[]> {
   try {
     const response = await axios.get<Species[]>(
@@ -139,7 +139,7 @@ export async function getReactions(): Promise<Reaction[]> {
 }
 
 // Get a specific reaction by ID
-export async function getReaction(id: number): Promise<Reaction> {
+export async function getReaction(id: string): Promise<Reaction> {
   try {
     const response = await axios.get<Reaction>(
       `http://localhost:8080/api/reactions/${id}`
@@ -153,7 +153,7 @@ export async function getReaction(id: number): Promise<Reaction> {
 
 // Get reactions associated with a mechanism
 export async function getReactionsByMechanismId(
-  mechanismId: number
+  mechanismId: string
 ): Promise<Reaction[]> {
   try {
     const response = await axios.get<Reaction[]>(
@@ -167,7 +167,7 @@ export async function getReactionsByMechanismId(
 }
 
 export async function getReactionsByFamilyId(
-  familyId: number
+  familyId: string
 ): Promise<Reaction[]> {
   try {
     const response = await axios.get<Reaction[]>(
@@ -209,7 +209,7 @@ export async function getUserByEmail(email: string): Promise<User | null> {
   }
 }
 
-export async function getUserById(id: number): Promise<User> {
+export async function getUserById(id: string): Promise<User> {
   try {
     const response = await axios.get<User>(
       `http://localhost:8080/api/users/id/${id}`
@@ -222,7 +222,7 @@ export async function getUserById(id: number): Promise<User> {
 }
 
 // Download OpenAtmos JSON for a mechanism
-export async function downloadOAJSON(mechanismId?: number) {
+export async function downloadOAJSON(mechanismId?: string) {
   if (!mechanismId) return "";
 
   try {
@@ -243,7 +243,7 @@ export async function downloadOAJSON(mechanismId?: number) {
 }
 
 // Download OpenAtmos YAML for a mechanism
-export async function downloadOAYAML(mechanismId?: number) {
+export async function downloadOAYAML(mechanismId?: string) {
   if (!mechanismId) return "";
 
   try {

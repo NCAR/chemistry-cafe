@@ -13,13 +13,13 @@ public partial class UserMechanism
 {
     [Key]
     [Column("id")]
-    public int Id { get; set; }
+    public Guid Id { get; set; }
 
     [Column("user_id")]
-    public int UserId { get; set; }
+    public Guid UserId { get; set; }
 
     [Column("mechanism_id")]
-    public int MechanismId { get; set; }
+    public Guid MechanismId { get; set; }
 
     [Column("role")]
     [StringLength(50)]

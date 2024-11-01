@@ -28,7 +28,7 @@ namespace Chemistry_Cafe_API.Services
             await command.ExecuteNonQueryAsync();
         }
 
-        public async Task<IReadOnlyList<MechanismSpecies>> GetMechanismSpeciesByMechanismIdAsync(int mechanismId)
+        public async Task<IReadOnlyList<MechanismSpecies>> GetMechanismSpeciesByMechanismIdAsync(Guid mechanismId)
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
@@ -53,12 +53,12 @@ namespace Chemistry_Cafe_API.Services
             {
                 var mechanismSpecies = new MechanismSpecies
                 {
-                    Id = reader.GetInt32(reader.GetOrdinal("MechanismSpeciesId")),
-                    MechanismId = reader.GetInt32(reader.GetOrdinal("MechanismId")),
-                    SpeciesId = reader.GetInt32(reader.GetOrdinal("SpeciesId")),
+                    Id = reader.GetGuid(reader.GetOrdinal("MechanismSpeciesId")),
+                    MechanismId = reader.GetGuid(reader.GetOrdinal("MechanismId")),
+                    SpeciesId = reader.GetGuid(reader.GetOrdinal("SpeciesId")),
                     Species = new Species
                     {
-                        Id = reader.GetInt32(reader.GetOrdinal("SpeciesId")),
+                        Id = reader.GetGuid(reader.GetOrdinal("SpeciesId")),
                         Name = reader.GetString(reader.GetOrdinal("SpeciesName")),
                         Description = reader.IsDBNull(reader.GetOrdinal("SpeciesDescription")) ? null : reader.GetString(reader.GetOrdinal("SpeciesDescription"))
                     }
@@ -69,8 +69,7 @@ namespace Chemistry_Cafe_API.Services
             return mechanismSpeciesList;
         }
 
-
-        public async Task RemoveSpeciesFromMechanismAsync(int id)
+        public async Task RemoveSpeciesFromMechanismAsync(Guid id)
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
@@ -90,7 +89,7 @@ namespace Chemistry_Cafe_API.Services
                 {
                     var species = new Species
                     {
-                        Id = reader.GetInt32(reader.GetOrdinal("id")),
+                        Id = reader.GetGuid(reader.GetOrdinal("id")),
                         Name = reader.GetString(reader.GetOrdinal("name")),
                         Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString(reader.GetOrdinal("description")),
                         CreatedBy = reader.IsDBNull(reader.GetOrdinal("created_by")) ? null : reader.GetString(reader.GetOrdinal("created_by")),
@@ -111,12 +110,12 @@ namespace Chemistry_Cafe_API.Services
                 {
                     var ms = new MechanismSpecies
                     {
-                        Id = reader.GetInt32(reader.GetOrdinal("id")),
-                        MechanismId = reader.GetInt32(reader.GetOrdinal("mechanism_id")),
-                        SpeciesId = reader.GetInt32(reader.GetOrdinal("species_id")),
+                        Id = reader.GetGuid(reader.GetOrdinal("id")),
+                        MechanismId = reader.GetGuid(reader.GetOrdinal("mechanism_id")),
+                        SpeciesId = reader.GetGuid(reader.GetOrdinal("species_id")),
                         Species = new Species
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("species_id")),
+                            Id = reader.GetGuid(reader.GetOrdinal("species_id")),
                             Name = reader.GetString(reader.GetOrdinal("SpeciesName")),
                             Description = reader.IsDBNull(reader.GetOrdinal("SpeciesDescription")) ? null : reader.GetString(reader.GetOrdinal("SpeciesDescription"))
                         }
@@ -126,6 +125,5 @@ namespace Chemistry_Cafe_API.Services
             }
             return mechanismSpeciesList;
         }
-
     }
 }

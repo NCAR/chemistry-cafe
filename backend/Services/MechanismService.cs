@@ -13,7 +13,7 @@ namespace Chemistry_Cafe_API.Services
             _database = database;
         }
 
-      public async Task<IReadOnlyList<Mechanism>> GetMechanismsAsync()
+        public async Task<IReadOnlyList<Mechanism>> GetMechanismsAsync()
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
@@ -35,18 +35,18 @@ namespace Chemistry_Cafe_API.Services
                 LEFT JOIN mechanism_species ON mechanisms.id = mechanism_species.mechanism_id";
 
             var mechanismList = new List<Mechanism>();
-            var mechanismDictionary = new Dictionary<int, Mechanism>();
+            var mechanismDictionary = new Dictionary<Guid, Mechanism>();
 
             using var reader = await command.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
-                int mechanismId = reader.GetInt32(reader.GetOrdinal("MechanismId"));
+                Guid mechanismId = reader.GetGuid(reader.GetOrdinal("MechanismId"));
                 if (!mechanismDictionary.TryGetValue(mechanismId, out var mechanism))
                 {
                     mechanism = new Mechanism
                     {
                         Id = mechanismId,
-                        FamilyId = reader.GetInt32(reader.GetOrdinal("FamilyId")),
+                        FamilyId = reader.GetGuid(reader.GetOrdinal("FamilyId")),
                         Name = reader.GetString(reader.GetOrdinal("MechanismName")),
                         Description = reader.IsDBNull(reader.GetOrdinal("MechanismDescription")) ? null : reader.GetString(reader.GetOrdinal("MechanismDescription")),
                         CreatedBy = reader.IsDBNull(reader.GetOrdinal("MechanismCreatedBy")) ? null : reader.GetString(reader.GetOrdinal("MechanismCreatedBy")),
@@ -63,9 +63,9 @@ namespace Chemistry_Cafe_API.Services
                 {
                     var mechanismReaction = new MechanismReaction
                     {
-                        Id = reader.GetInt32(reader.GetOrdinal("MechanismReactionId")),
+                        Id = reader.GetGuid(reader.GetOrdinal("MechanismReactionId")),
                         MechanismId = mechanismId,
-                        ReactionId = reader.GetInt32(reader.GetOrdinal("ReactionId"))
+                        ReactionId = reader.GetGuid(reader.GetOrdinal("ReactionId"))
                     };
                     mechanism.MechanismReactions.Add(mechanismReaction);
                 }
@@ -75,9 +75,9 @@ namespace Chemistry_Cafe_API.Services
                 {
                     var mechanismSpecies = new MechanismSpecies
                     {
-                        Id = reader.GetInt32(reader.GetOrdinal("MechanismSpeciesId")),
+                        Id = reader.GetGuid(reader.GetOrdinal("MechanismSpeciesId")),
                         MechanismId = mechanismId,
-                        SpeciesId = reader.GetInt32(reader.GetOrdinal("SpeciesId"))
+                        SpeciesId = reader.GetGuid(reader.GetOrdinal("SpeciesId"))
                     };
                     mechanism.MechanismSpecies.Add(mechanismSpecies);
                 }
@@ -86,7 +86,7 @@ namespace Chemistry_Cafe_API.Services
             return mechanismList;
         }
 
-        public async Task<Mechanism?> GetMechanismAsync(int id)
+        public async Task<Mechanism?> GetMechanismAsync(Guid id)
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
@@ -113,7 +113,7 @@ namespace Chemistry_Cafe_API.Services
             command.Parameters.AddWithValue("@description", mechanism.Description ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@created_by", mechanism.CreatedBy ?? (object)DBNull.Value);
 
-            var mechanismId = Convert.ToInt32(await command.ExecuteScalarAsync());
+            var mechanismId = Guid.NewGuid();
             mechanism.Id = mechanismId;
 
             return mechanism;
@@ -141,7 +141,7 @@ namespace Chemistry_Cafe_API.Services
             await command.ExecuteNonQueryAsync();
         }
 
-        public async Task DeleteMechanismAsync(int id)
+        public async Task DeleteMechanismAsync(Guid id)
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
@@ -152,7 +152,7 @@ namespace Chemistry_Cafe_API.Services
             await command.ExecuteNonQueryAsync();
         }
 
-        public async Task<IReadOnlyList<Mechanism>> GetMechanismsByFamilyIdAsync(int familyId)
+        public async Task<IReadOnlyList<Mechanism>> GetMechanismsByFamilyIdAsync(Guid familyId)
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
@@ -172,8 +172,8 @@ namespace Chemistry_Cafe_API.Services
                 {
                     var mechanism = new Mechanism
                     {
-                        Id = reader.GetInt32(reader.GetOrdinal("id")),
-                        FamilyId = reader.GetInt32(reader.GetOrdinal("family_id")),
+                        Id = reader.GetGuid(reader.GetOrdinal("id")),
+                        FamilyId = reader.GetGuid(reader.GetOrdinal("family_id")),
                         Name = reader.GetString(reader.GetOrdinal("name")),
                         Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString(reader.GetOrdinal("description")),
                         CreatedBy = reader.IsDBNull(reader.GetOrdinal("created_by")) ? null : reader.GetString(reader.GetOrdinal("created_by")),

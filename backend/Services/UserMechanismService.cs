@@ -29,7 +29,7 @@ namespace Chemistry_Cafe_API.Services
             await command.ExecuteNonQueryAsync();
         }
 
-        public async Task<IReadOnlyList<UserMechanism>> GetUserMechanismsByUserIdAsync(int userId)
+        public async Task<IReadOnlyList<UserMechanism>> GetUserMechanismsByUserIdAsync(Guid userId)
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
@@ -55,13 +55,13 @@ namespace Chemistry_Cafe_API.Services
             {
                 var userMechanism = new UserMechanism
                 {
-                    Id = reader.GetInt32(reader.GetOrdinal("UserMechanismId")),
-                    UserId = reader.GetInt32(reader.GetOrdinal("UserId")),
-                    MechanismId = reader.GetInt32(reader.GetOrdinal("MechanismId")),
+                    Id = reader.GetGuid(reader.GetOrdinal("UserMechanismId")),
+                    UserId = reader.GetGuid(reader.GetOrdinal("UserId")),
+                    MechanismId = reader.GetGuid(reader.GetOrdinal("MechanismId")),
                     Role = reader.IsDBNull(reader.GetOrdinal("Role")) ? null : reader.GetString(reader.GetOrdinal("Role")),
                     Mechanism = new Mechanism
                     {
-                        Id = reader.GetInt32(reader.GetOrdinal("MechanismId")),
+                        Id = reader.GetGuid(reader.GetOrdinal("MechanismId")),
                         Name = reader.GetString(reader.GetOrdinal("MechanismName")),
                         Description = reader.IsDBNull(reader.GetOrdinal("MechanismDescription")) ? null : reader.GetString(reader.GetOrdinal("MechanismDescription"))
                     }
@@ -72,7 +72,7 @@ namespace Chemistry_Cafe_API.Services
             return userMechanismList;
         }
 
-        public async Task<IReadOnlyList<User>> GetUsersByMechanismIdAsync(int mechanismId)
+        public async Task<IReadOnlyList<User>> GetUsersByMechanismIdAsync(Guid mechanismId)
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
@@ -86,7 +86,7 @@ namespace Chemistry_Cafe_API.Services
             return await ReadUsersAsync(await command.ExecuteReaderAsync());
         }
 
-        public async Task RemoveUserFromMechanismAsync(int id)
+        public async Task RemoveUserFromMechanismAsync(Guid id)
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
@@ -106,8 +106,8 @@ namespace Chemistry_Cafe_API.Services
                 {
                     var mechanism = new Mechanism
                     {
-                        Id = reader.GetInt32(reader.GetOrdinal("id")),
-                        FamilyId = reader.GetInt32(reader.GetOrdinal("family_id")),
+                        Id = reader.GetGuid(reader.GetOrdinal("id")),
+                        FamilyId = reader.GetGuid(reader.GetOrdinal("family_id")),
                         Name = reader.GetString(reader.GetOrdinal("name")),
                         Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString(reader.GetOrdinal("description")),
                         CreatedBy = reader.IsDBNull(reader.GetOrdinal("created_by")) ? null : reader.GetString(reader.GetOrdinal("created_by")),
@@ -128,7 +128,7 @@ namespace Chemistry_Cafe_API.Services
                 {
                     var user = new User
                     {
-                        Id = reader.GetInt32(reader.GetOrdinal("id")),
+                        Id = reader.GetGuid(reader.GetOrdinal("id")),
                         Username = reader.GetString(reader.GetOrdinal("username")),
                         Role = reader.GetString(reader.GetOrdinal("role")),
                         Email = reader.IsDBNull(reader.GetOrdinal("email")) ? null : reader.GetString(reader.GetOrdinal("email")),

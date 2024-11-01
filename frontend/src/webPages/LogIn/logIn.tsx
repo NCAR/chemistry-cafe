@@ -89,7 +89,7 @@ const LogIn = () => {
               setUser(contextUser);
             } else {
               const newUser = {
-                id: 0,
+                id: "",
                 username: profileData.name,
                 email: profileData.email,
                 role: "unverified",

@@ -19,7 +19,7 @@ namespace Chemistry_Cafe_API.Controllers
 
         // GET: api/InitialConditions/mechanism/5
         [HttpGet("mechanism/{mechanismId}")]
-        public async Task<ActionResult<IEnumerable<InitialConditionsSpecies>>> GetInitialConditionsByMechanismId(int mechanismId)
+        public async Task<ActionResult<IEnumerable<InitialConditionsSpecies>>> GetInitialConditionsByMechanismId(Guid mechanismId)
         {
             var initialConditions = await _initialConditionSpeciesService.GetInitialConditionsByMechanismIdAsync(mechanismId);
             return Ok(initialConditions);
@@ -35,7 +35,7 @@ namespace Chemistry_Cafe_API.Controllers
 
         // PUT: api/InitialConditions/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateInitialCondition(int id, InitialConditionsSpecies initialCondition)
+        public async Task<IActionResult> UpdateInitialCondition(Guid id, InitialConditionsSpecies initialCondition)
         {
             if (id != initialCondition.Id)
             {
@@ -49,7 +49,7 @@ namespace Chemistry_Cafe_API.Controllers
 
         // DELETE: api/InitialConditions/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteInitialCondition(int id)
+        public async Task<IActionResult> DeleteInitialCondition(Guid id)
         {
             await _initialConditionSpeciesService.DeleteInitialConditionAsync(id);
             return NoContent();

@@ -29,7 +29,7 @@ namespace Chemistry_Cafe_API.Services
             await command.ExecuteNonQueryAsync();
         }
 
-       public async Task<IReadOnlyList<ReactionSpecies>> GetSpeciesByReactionIdAsync(int reactionId)
+        public async Task<IReadOnlyList<ReactionSpecies>> GetSpeciesByReactionIdAsync(Guid reactionId)
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
@@ -55,14 +55,13 @@ namespace Chemistry_Cafe_API.Services
             {
                 var reactionSpecies = new ReactionSpecies
                 {
-                    Id = reader.GetInt32(reader.GetOrdinal("ReactionSpeciesId")),
-                    ReactionId = reader.GetInt32(reader.GetOrdinal("ReactionId")),
-                    SpeciesId = reader.GetInt32(reader.GetOrdinal("SpeciesId")),
+                    Id = reader.GetGuid(reader.GetOrdinal("ReactionSpeciesId")),
+                    ReactionId = reader.GetGuid(reader.GetOrdinal("ReactionId")),
+                    SpeciesId = reader.GetGuid(reader.GetOrdinal("SpeciesId")),
                     Role = reader.GetString(reader.GetOrdinal("Role")),
-                    // Quantity = reader.GetDecimal(reader.GetOrdinal("Quantity")),
                     Species = new Species
                     {
-                        Id = reader.GetInt32(reader.GetOrdinal("SpeciesId")),
+                        Id = reader.GetGuid(reader.GetOrdinal("SpeciesId")),
                         Name = reader.GetString(reader.GetOrdinal("SpeciesName")),
                         Description = reader.IsDBNull(reader.GetOrdinal("SpeciesDescription")) ? null : reader.GetString(reader.GetOrdinal("SpeciesDescription"))
                     }
@@ -72,7 +71,8 @@ namespace Chemistry_Cafe_API.Services
 
             return reactionSpeciesList;
         }
-        public async Task RemoveSpeciesFromReactionAsync(int id)
+
+        public async Task RemoveSpeciesFromReactionAsync(Guid id)
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
@@ -83,58 +83,54 @@ namespace Chemistry_Cafe_API.Services
             await command.ExecuteNonQueryAsync();
         }
 
-        // ReactionSpeciesService.cs
-public async Task<List<ReactionSpeciesDto>> GetReactantsByReactionIdAsync(int reactionId)
-{
-    using var connection = await _database.OpenConnectionAsync();
-    using var command = connection.CreateCommand();
-
-    command.CommandText = @"
-        SELECT s.name AS SpeciesName
-        FROM reaction_species rs
-        JOIN species s ON rs.species_id = s.id
-        WHERE rs.reaction_id = @reactionId AND rs.role = 'reactant'";
-
-    command.Parameters.AddWithValue("@reactionId", reactionId);
-
-    return await ReadReactionSpeciesDtoAsync(await command.ExecuteReaderAsync());
-}
-
-public async Task<List<ReactionSpeciesDto>> GetProductsByReactionIdAsync(int reactionId)
-{
-    using var connection = await _database.OpenConnectionAsync();
-    using var command = connection.CreateCommand();
-
-    command.CommandText = @"
-        SELECT s.name AS SpeciesName
-        FROM reaction_species rs
-        JOIN species s ON rs.species_id = s.id
-        WHERE rs.reaction_id = @reactionId AND rs.role = 'product'";
-
-    command.Parameters.AddWithValue("@reactionId", reactionId);
-
-    return await ReadReactionSpeciesDtoAsync(await command.ExecuteReaderAsync());
-}
-
-private async Task<List<ReactionSpeciesDto>> ReadReactionSpeciesDtoAsync(DbDataReader reader)
-{
-    var list = new List<ReactionSpeciesDto>();
-    using (reader)
-    {
-        while (await reader.ReadAsync())
+        public async Task<List<ReactionSpeciesDto>> GetReactantsByReactionIdAsync(Guid reactionId)
         {
-            var item = new ReactionSpeciesDto
-            {
-                SpeciesName = reader.GetString(reader.GetOrdinal("SpeciesName"))
-            };
-            list.Add(item);
+            using var connection = await _database.OpenConnectionAsync();
+            using var command = connection.CreateCommand();
+
+            command.CommandText = @"
+                SELECT s.name AS SpeciesName
+                FROM reaction_species rs
+                JOIN species s ON rs.species_id = s.id
+                WHERE rs.reaction_id = @reactionId AND rs.role = 'reactant'";
+
+            command.Parameters.AddWithValue("@reactionId", reactionId);
+
+            return await ReadReactionSpeciesDtoAsync(await command.ExecuteReaderAsync());
         }
-    }
-    return list;
-}
 
+        public async Task<List<ReactionSpeciesDto>> GetProductsByReactionIdAsync(Guid reactionId)
+        {
+            using var connection = await _database.OpenConnectionAsync();
+            using var command = connection.CreateCommand();
 
-        
+            command.CommandText = @"
+                SELECT s.name AS SpeciesName
+                FROM reaction_species rs
+                JOIN species s ON rs.species_id = s.id
+                WHERE rs.reaction_id = @reactionId AND rs.role = 'product'";
+
+            command.Parameters.AddWithValue("@reactionId", reactionId);
+
+            return await ReadReactionSpeciesDtoAsync(await command.ExecuteReaderAsync());
+        }
+
+        private async Task<List<ReactionSpeciesDto>> ReadReactionSpeciesDtoAsync(DbDataReader reader)
+        {
+            var list = new List<ReactionSpeciesDto>();
+            using (reader)
+            {
+                while (await reader.ReadAsync())
+                {
+                    var item = new ReactionSpeciesDto
+                    {
+                        SpeciesName = reader.GetString(reader.GetOrdinal("SpeciesName"))
+                    };
+                    list.Add(item);
+                }
+            }
+            return list;
+        }
 
         public async Task UpdateReactionSpeciesAsync(ReactionSpecies reactionSpecies)
         {
@@ -151,6 +147,7 @@ private async Task<List<ReactionSpeciesDto>> ReadReactionSpeciesDtoAsync(DbDataR
 
             await command.ExecuteNonQueryAsync();
         }
+
         private async Task<IReadOnlyList<ReactionSpecies>> ReadAllAsync(DbDataReader reader)
         {
             var reactionSpeciesList = new List<ReactionSpecies>();
@@ -160,14 +157,13 @@ private async Task<List<ReactionSpeciesDto>> ReadReactionSpeciesDtoAsync(DbDataR
                 {
                     var rs = new ReactionSpecies
                     {
-                        Id = reader.GetInt32(reader.GetOrdinal("id")),
-                        ReactionId = reader.GetInt32(reader.GetOrdinal("reaction_id")),
-                        SpeciesId = reader.GetInt32(reader.GetOrdinal("species_id")),
+                        Id = reader.GetGuid(reader.GetOrdinal("id")),
+                        ReactionId = reader.GetGuid(reader.GetOrdinal("reaction_id")),
+                        SpeciesId = reader.GetGuid(reader.GetOrdinal("species_id")),
                         Role = reader.GetString(reader.GetOrdinal("role")),
-                        // Quantity = reader.GetDecimal(reader.GetOrdinal("quantity")),
                         Species = new Species
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("species_id")),
+                            Id = reader.GetGuid(reader.GetOrdinal("species_id")),
                             Name = reader.GetString(reader.GetOrdinal("SpeciesName")),
                             Description = reader.IsDBNull(reader.GetOrdinal("SpeciesDescription")) ? null : reader.GetString(reader.GetOrdinal("SpeciesDescription"))
                         }
@@ -185,4 +181,3 @@ public class ReactionSpeciesDto
 {
     public string SpeciesName { get; set; } = string.Empty;
 }
-

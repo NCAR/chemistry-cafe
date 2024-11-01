@@ -53,11 +53,11 @@ const treeViewContainerStyle = {
 };
 
 interface RenderFamilyTreeProps {
-  setSelectedFamilyId: React.Dispatch<React.SetStateAction<number | null>>;
-  setSelectedMechanismId: React.Dispatch<React.SetStateAction<number | null>>;
+  setSelectedFamilyId: React.Dispatch<React.SetStateAction<string | null>>;
+  setSelectedMechanismId: React.Dispatch<React.SetStateAction<string | null>>;
   handleCreateFamilyOpen: () => void;
   handleCreateMechanismOpen: () => void;
-  selectedFamilyId: number | null;
+  selectedFamilyId: string | null;
   createdFamilyBool: boolean;
   setCreatedFamilyBool: React.Dispatch<React.SetStateAction<boolean>>;
   createdMechanismBool: boolean;
@@ -85,7 +85,7 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
 
   const [deleteBool, setDeleteBool] = useState<boolean>(false);
 
-  const ref = useRef<number | null>(null);
+  const ref = useRef<string | null>(null);
 
   /* Popover for Downloads */
   const [popOver, setPopOver] = useState<HTMLButtonElement | null>(null);
@@ -125,7 +125,7 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
     fetchData();
   }, [createdFamilyBool, createdMechanismBool, deleteBool]);
 
-  const handleDownloadClick = async (mechanismId: number, isJSON: boolean) => {
+  const handleDownloadClick = async (mechanismId: string, isJSON: boolean) => {
     const link = document.createElement("a");
     let blobUrl = "";
     if (isJSON) {
@@ -149,7 +149,7 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
 
   const handlePopOverClick = (
     event: React.MouseEvent<HTMLButtonElement>,
-    mechanismId: number
+    mechanismId: string
   ) => {
     ref.current = mechanismId;
     setPopOver(event.currentTarget);
@@ -169,12 +169,12 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
     });
   };
 
-  const handleFamilyDelete = async (familyId: number) => {
+  const handleFamilyDelete = async (familyId: string) => {
     await deleteFamily(familyId);
     setDeleteBool(true);
   };
 
-  const handleMechanismDelete = async (mechanismId: number) => {
+  const handleMechanismDelete = async (mechanismId: string) => {
     await deleteMechanism(mechanismId);
     setDeleteBool(true);
   };
@@ -203,7 +203,7 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
               {families.map((family) => (
                 <TreeItem
                   key={family.id}
-                  itemId={family.id!.toString()}
+                  itemId={family.id!}
                   label={
                     <div
                       style={{

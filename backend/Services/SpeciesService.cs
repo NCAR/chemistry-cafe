@@ -13,7 +13,7 @@ namespace Chemistry_Cafe_API.Services
             _database = database;
         }
 
-       public async Task<IReadOnlyList<Species>> GetSpeciesAsync()
+        public async Task<IReadOnlyList<Species>> GetSpeciesAsync()
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
@@ -45,12 +45,12 @@ namespace Chemistry_Cafe_API.Services
                 LEFT JOIN reaction_species ON species.id = reaction_species.species_id";
 
             var speciesList = new List<Species>();
-            var speciesDictionary = new Dictionary<int, Species>();
+            var speciesDictionary = new Dictionary<Guid, Species>();
 
             using var reader = await command.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
-                int speciesId = reader.GetInt32(reader.GetOrdinal("SpeciesId"));
+                Guid speciesId = reader.GetGuid(reader.GetOrdinal("SpeciesId"));
                 if (!speciesDictionary.TryGetValue(speciesId, out var species))
                 {
                     species = new Species
@@ -73,9 +73,9 @@ namespace Chemistry_Cafe_API.Services
                 {
                     var initialConditionSpecies = new InitialConditionsSpecies
                     {
-                        Id = reader.GetInt32(reader.GetOrdinal("InitialConditionSpeciesId")),
-                        MechanismId = reader.GetInt32(reader.GetOrdinal("InitialConditionMechanismId")),
-                        SpeciesId = reader.GetInt32(reader.GetOrdinal("InitialConditionSpeciesId")),
+                        Id = reader.GetGuid(reader.GetOrdinal("InitialConditionSpeciesId")),
+                        MechanismId = reader.GetGuid(reader.GetOrdinal("InitialConditionMechanismId")),
+                        SpeciesId = reader.GetGuid(reader.GetOrdinal("InitialConditionSpeciesId")),
                         Concentration = reader.IsDBNull(reader.GetOrdinal("InitialConditionConcentration")) ? (double?)null : reader.GetDouble(reader.GetOrdinal("InitialConditionConcentration")),
                         Temperature = reader.IsDBNull(reader.GetOrdinal("InitialConditionTemperature")) ? (double?)null : reader.GetDouble(reader.GetOrdinal("InitialConditionTemperature")),
                         Pressure = reader.IsDBNull(reader.GetOrdinal("InitialConditionPressure")) ? (double?)null : reader.GetDouble(reader.GetOrdinal("InitialConditionPressure")),
@@ -89,9 +89,9 @@ namespace Chemistry_Cafe_API.Services
                 {
                     var mechanismSpecies = new MechanismSpecies
                     {
-                        Id = reader.GetInt32(reader.GetOrdinal("MechanismSpeciesId")),
-                        MechanismId = reader.GetInt32(reader.GetOrdinal("MechanismSpeciesMechanismId")),
-                        SpeciesId = reader.GetInt32(reader.GetOrdinal("MechanismSpeciesSpeciesId"))
+                        Id = reader.GetGuid(reader.GetOrdinal("MechanismSpeciesId")),
+                        MechanismId = reader.GetGuid(reader.GetOrdinal("MechanismSpeciesMechanismId")),
+                        SpeciesId = reader.GetGuid(reader.GetOrdinal("MechanismSpeciesSpeciesId"))
                     };
                     species.MechanismSpecies.Add(mechanismSpecies);
                 }
@@ -101,10 +101,10 @@ namespace Chemistry_Cafe_API.Services
                 {
                     var reactionSpecies = new ReactionSpecies
                     {
-                        Id = reader.GetInt32(reader.GetOrdinal("ReactionSpeciesId")),
-                        ReactionId = reader.GetInt32(reader.GetOrdinal("ReactionSpeciesReactionId")),
-                        SpeciesId = reader.GetInt32(reader.GetOrdinal("ReactionSpeciesSpeciesId")),
-                        Role = reader.GetString(reader.GetOrdinal("ReactionSpeciesRole")),
+                        Id = reader.GetGuid(reader.GetOrdinal("ReactionSpeciesId")),
+                        ReactionId = reader.GetGuid(reader.GetOrdinal("ReactionSpeciesReactionId")),
+                        SpeciesId = reader.GetGuid(reader.GetOrdinal("ReactionSpeciesSpeciesId")),
+                        Role = reader.GetString(reader.GetOrdinal("ReactionSpeciesRole"))
                     };
                     species.ReactionSpecies.Add(reactionSpecies);
                 }
@@ -113,7 +113,7 @@ namespace Chemistry_Cafe_API.Services
             return speciesList;
         }
 
-        public async Task<Species?> GetSpeciesAsync(int id)
+        public async Task<Species?> GetSpeciesAsync(Guid id)
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
@@ -129,18 +129,19 @@ namespace Chemistry_Cafe_API.Services
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
+            
+            species.Id = Guid.NewGuid();
 
             command.CommandText = @"
-                INSERT INTO species (name, description, created_by)
-                VALUES (@name, @description, @created_by);
-                SELECT LAST_INSERT_ID();";
+                INSERT INTO species (id, name, description, created_by)
+                VALUES (@id, @name, @description, @created_by);";
 
+            command.Parameters.AddWithValue("@id", species.Id);
             command.Parameters.AddWithValue("@name", species.Name);
             command.Parameters.AddWithValue("@description", species.Description ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@created_by", species.CreatedBy ?? (object)DBNull.Value);
 
-            var speciesId = Convert.ToInt32(await command.ExecuteScalarAsync());
-            species.Id = speciesId;
+            await command.ExecuteNonQueryAsync();
 
             return species;
         }
@@ -165,7 +166,7 @@ namespace Chemistry_Cafe_API.Services
             await command.ExecuteNonQueryAsync();
         }
 
-        public async Task DeleteSpeciesAsync(int id)
+        public async Task DeleteSpeciesAsync(Guid id)
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
@@ -176,7 +177,7 @@ namespace Chemistry_Cafe_API.Services
             await command.ExecuteNonQueryAsync();
         }
 
-        public async Task<IReadOnlyList<Species>> GetSpeciesByFamilyIdAsync(int familyId)
+        public async Task<IReadOnlyList<Species>> GetSpeciesByFamilyIdAsync(Guid familyId)
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
@@ -193,41 +194,38 @@ namespace Chemistry_Cafe_API.Services
             return await ReadAllAsync(await command.ExecuteReaderAsync());
         }
 
-        // SpeciesService.cs
-    public async Task<List<Species>> GetSpeciesByMechanismIdAsync(int mechanismId)
-    {
-        var speciesList = new List<Species>();
-
-        using var connection = await _database.OpenConnectionAsync();
-        using var command = connection.CreateCommand();
-
-        command.CommandText = @"
-            SELECT s.id, s.name, s.description, s.created_by, s.created_date
-            FROM species s
-            JOIN mechanism_species ms ON s.id = ms.species_id
-            WHERE ms.mechanism_id = @mechanismId";
-
-        command.Parameters.AddWithValue("@mechanismId", mechanismId);
-
-        using var reader = await command.ExecuteReaderAsync();
-
-        while (await reader.ReadAsync())
+        public async Task<List<Species>> GetSpeciesByMechanismIdAsync(Guid mechanismId)
         {
-            var species = new Species
+            var speciesList = new List<Species>();
+
+            using var connection = await _database.OpenConnectionAsync();
+            using var command = connection.CreateCommand();
+
+            command.CommandText = @"
+                SELECT s.id, s.name, s.description, s.created_by, s.created_date
+                FROM species s
+                JOIN mechanism_species ms ON s.id = ms.species_id
+                WHERE ms.mechanism_id = @mechanismId";
+
+            command.Parameters.AddWithValue("@mechanismId", mechanismId);
+
+            using var reader = await command.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
             {
-                Id = reader.GetInt32(reader.GetOrdinal("id")),
-                Name = reader.GetString(reader.GetOrdinal("name")),
-                Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString(reader.GetOrdinal("description")),
-                CreatedBy = reader.IsDBNull(reader.GetOrdinal("created_by")) ? null : reader.GetString(reader.GetOrdinal("created_by")),
-                CreatedDate = reader.GetDateTime(reader.GetOrdinal("created_date"))
-            };
-            speciesList.Add(species);
+                var species = new Species
+                {
+                    Id = reader.GetGuid(reader.GetOrdinal("id")),
+                    Name = reader.GetString(reader.GetOrdinal("name")),
+                    Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString(reader.GetOrdinal("description")),
+                    CreatedBy = reader.IsDBNull(reader.GetOrdinal("created_by")) ? null : reader.GetString(reader.GetOrdinal("created_by")),
+                    CreatedDate = reader.GetDateTime(reader.GetOrdinal("created_date"))
+                };
+                speciesList.Add(species);
+            }
+
+            return speciesList;
         }
-
-        return speciesList;
-    }
-
-
 
         private async Task<IReadOnlyList<Species>> ReadAllAsync(DbDataReader reader)
         {
@@ -238,7 +236,7 @@ namespace Chemistry_Cafe_API.Services
                 {
                     var species = new Species
                     {
-                        Id = reader.GetInt32(reader.GetOrdinal("id")),
+                        Id = reader.GetGuid(reader.GetOrdinal("id")),
                         Name = reader.GetString(reader.GetOrdinal("name")),
                         Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString(reader.GetOrdinal("description")),
                         CreatedBy = reader.IsDBNull(reader.GetOrdinal("created_by")) ? null : reader.GetString(reader.GetOrdinal("created_by")),

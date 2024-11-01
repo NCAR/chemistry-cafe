@@ -28,7 +28,7 @@ namespace Chemistry_Cafe_API.Services
             await command.ExecuteNonQueryAsync();
         }
 
-        public async Task<IReadOnlyList<MechanismReaction>> GetMechanismReactionsByMechanismIdAsync(int mechanismId)
+        public async Task<IReadOnlyList<MechanismReaction>> GetMechanismReactionsByMechanismIdAsync(Guid mechanismId)
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
@@ -53,12 +53,12 @@ namespace Chemistry_Cafe_API.Services
             {
                 var mechanismReaction = new MechanismReaction
                 {
-                    Id = reader.GetInt32(reader.GetOrdinal("MechanismReactionId")),
-                    MechanismId = reader.GetInt32(reader.GetOrdinal("MechanismId")),
-                    ReactionId = reader.GetInt32(reader.GetOrdinal("ReactionId")),
+                    Id = reader.GetGuid(reader.GetOrdinal("MechanismReactionId")),
+                    MechanismId = reader.GetGuid(reader.GetOrdinal("MechanismId")),
+                    ReactionId = reader.GetGuid(reader.GetOrdinal("ReactionId")),
                     Reaction = new Reaction
                     {
-                        Id = reader.GetInt32(reader.GetOrdinal("ReactionId")),
+                        Id = reader.GetGuid(reader.GetOrdinal("ReactionId")),
                         Equation = reader.GetString(reader.GetOrdinal("ReactionEquation")),
                         Description = reader.IsDBNull(reader.GetOrdinal("ReactionDescription")) ? null : reader.GetString(reader.GetOrdinal("ReactionDescription"))
                     }
@@ -69,7 +69,7 @@ namespace Chemistry_Cafe_API.Services
             return mechanismReactionsList;
         }
 
-        public async Task RemoveReactionFromMechanismAsync(int id)
+        public async Task RemoveReactionFromMechanismAsync(Guid id)
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
@@ -89,7 +89,7 @@ namespace Chemistry_Cafe_API.Services
                 {
                     var reaction = new Reaction
                     {
-                        Id = reader.GetInt32(reader.GetOrdinal("id")),
+                        Id = reader.GetGuid(reader.GetOrdinal("id")),
                         Equation = reader.GetString(reader.GetOrdinal("equation")),
                         Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString(reader.GetOrdinal("description")),
                         CreatedBy = reader.IsDBNull(reader.GetOrdinal("created_by")) ? null : reader.GetString(reader.GetOrdinal("created_by")),
@@ -110,12 +110,12 @@ namespace Chemistry_Cafe_API.Services
                 {
                     var mr = new MechanismReaction
                     {
-                        Id = reader.GetInt32(reader.GetOrdinal("id")),
-                        MechanismId = reader.GetInt32(reader.GetOrdinal("mechanism_id")),
-                        ReactionId = reader.GetInt32(reader.GetOrdinal("reaction_id")),
+                        Id = reader.GetGuid(reader.GetOrdinal("id")),
+                        MechanismId = reader.GetGuid(reader.GetOrdinal("mechanism_id")),
+                        ReactionId = reader.GetGuid(reader.GetOrdinal("reaction_id")),
                         Reaction = new Reaction
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("reaction_id")),
+                            Id = reader.GetGuid(reader.GetOrdinal("reaction_id")),
                             Equation = reader.GetString(reader.GetOrdinal("equation")),
                             Description = reader.IsDBNull(reader.GetOrdinal("ReactionDescription")) ? null : reader.GetString(reader.GetOrdinal("ReactionDescription"))
                         }

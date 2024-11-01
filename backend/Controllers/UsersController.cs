@@ -26,7 +26,7 @@ namespace Chemistry_Cafe_API.Controllers
         }
 
         [HttpGet("id/{id}")]
-        public async Task<ActionResult<User>> GetUserById(int id) 
+        public async Task<ActionResult<User>> GetUserById(Guid id) 
         {
             var user = await _userService.GetUserByIdAsync(id);
 
@@ -60,7 +60,7 @@ namespace Chemistry_Cafe_API.Controllers
 
         // PUT: api/Users/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUser(int id, User user)
+        public async Task<IActionResult> UpdateUser(Guid id, User user)
         {
             if(id != user.Id) {
                 return BadRequest();
@@ -72,7 +72,7 @@ namespace Chemistry_Cafe_API.Controllers
 
         // DELETE: api/Users/5
         [HttpDelete("{email}")]
-        public async Task<IActionResult> DeleteUser(int id)
+        public async Task<IActionResult> DeleteUser(Guid id)
         {
             await _userService.DeleteUserAsync(id);
             return NoContent();

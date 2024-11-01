@@ -27,7 +27,7 @@ namespace Chemistry_Cafe_API.Controllers
 
         // GET: api/Families/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Family>> GetFamily(int id)
+        public async Task<ActionResult<Family>> GetFamily(Guid id)
         {
             var family = await _familyService.GetFamilyAsync(id);
 
@@ -49,7 +49,7 @@ namespace Chemistry_Cafe_API.Controllers
 
         // PUT: api/Families/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateFamily(int id, Family family)
+        public async Task<IActionResult> UpdateFamily(Guid id, Family family)
         {
             if (id != family.Id)
             {
@@ -63,7 +63,7 @@ namespace Chemistry_Cafe_API.Controllers
 
         // DELETE: api/Families/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteFamily(int id)
+        public async Task<IActionResult> DeleteFamily(Guid id)
         {
             await _familyService.DeleteFamilyAsync(id);
             return NoContent();

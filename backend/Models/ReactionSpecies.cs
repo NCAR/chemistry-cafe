@@ -13,13 +13,13 @@ public partial class ReactionSpecies
 {
     [Key]
     [Column("id")]
-    public int Id { get; set; }
+    public Guid Id { get; set; }
 
     [Column("reaction_id")]
-    public int ReactionId { get; set; }
+    public Guid ReactionId { get; set; }
 
     [Column("species_id")]
-    public int SpeciesId { get; set; }
+    public Guid SpeciesId { get; set; }
 
     [Column("role", TypeName = "enum('reactant','product')")]
     public string Role { get; set; } = null!;

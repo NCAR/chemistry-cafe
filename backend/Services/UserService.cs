@@ -22,11 +22,12 @@ namespace Chemistry_Cafe_API.Services
             return await ReadAllAsync(await command.ExecuteReaderAsync());
         }
 
-        public async Task<User?> GetUserByIdAsync(int id) {
+        public async Task<User?> GetUserByIdAsync(Guid id)
+        {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
-            command.CommandText = "SELECT * from users WHERE id = @id";
+            command.CommandText = "SELECT * FROM users WHERE id = @id";
             command.Parameters.AddWithValue("@id", id);
 
             var result = await ReadAllAsync(await command.ExecuteReaderAsync());
@@ -52,29 +53,23 @@ namespace Chemistry_Cafe_API.Services
 
             try
             {
+                // Generate a new UUID for the user
+                user.Id = Guid.NewGuid();
+
                 // Insert the new user
                 using (var insertCommand = connection.CreateCommand())
                 {
                     insertCommand.Transaction = transaction;
                     insertCommand.CommandText = @"
-                        INSERT INTO users (username, role, email)
-                        VALUES (@username, @role, @email);";
+                        INSERT INTO users (id, username, role, email)
+                        VALUES (@id, @username, @role, @email);";
 
+                    insertCommand.Parameters.AddWithValue("@id", user.Id);
                     insertCommand.Parameters.AddWithValue("@username", user.Username);
                     insertCommand.Parameters.AddWithValue("@role", user.Role);
                     insertCommand.Parameters.AddWithValue("@email", user.Email ?? (object)DBNull.Value);
 
                     await insertCommand.ExecuteNonQueryAsync();
-                }
-
-                // Retrieve the last inserted ID
-                using (var selectCommand = connection.CreateCommand())
-                {
-                    selectCommand.Transaction = transaction;
-                    selectCommand.CommandText = "SELECT LAST_INSERT_ID();";
-
-                    var result = await selectCommand.ExecuteScalarAsync();
-                    user.Id = Convert.ToInt32(result);
                 }
 
                 await transaction.CommitAsync();
@@ -110,7 +105,7 @@ namespace Chemistry_Cafe_API.Services
             await command.ExecuteNonQueryAsync();
         }
 
-        public async Task DeleteUserAsync(int id)
+        public async Task DeleteUserAsync(Guid id)
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
@@ -130,7 +125,7 @@ namespace Chemistry_Cafe_API.Services
                 {
                     var user = new User
                     {
-                        Id = reader.GetInt32(reader.GetOrdinal("id")),
+                        Id = reader.GetGuid(reader.GetOrdinal("id")),
                         Username = reader.GetString(reader.GetOrdinal("username")),
                         Role = reader.GetString(reader.GetOrdinal("role")),
                         Email = reader.IsDBNull(reader.GetOrdinal("email")) ? null : reader.GetString(reader.GetOrdinal("email")),

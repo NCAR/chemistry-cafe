@@ -79,7 +79,7 @@ export async function updateReaction(reaction: Reaction) {
   }
 }
 
-export async function updateUser(id: number, user: User) {
+export async function updateUser(id: string, user: User) {
   try {
     const response = await axios.put(
       `http://localhost:8080/api/users/${id}`,

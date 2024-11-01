@@ -12,10 +12,10 @@ public partial class MechanismVersion
 {
     [Key]
     [Column("id")]
-    public int Id { get; set; }
+    public Guid Id { get; set; }
 
     [Column("mechanism_id")]
-    public int MechanismId { get; set; }
+    public Guid MechanismId { get; set; }
 
     [Column("version_number")]
     public int VersionNumber { get; set; }

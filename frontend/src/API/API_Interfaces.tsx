@@ -1,13 +1,13 @@
 export interface Family {
-  id?: number;
+  id?: string;
   name: string;
   description: string;
   created_by: string;
 }
 
 export interface Mechanism {
-  id: number;
-  family_id: number;
+  id: string;
+  family_id: string;
   name: string;
   description: string;
   created_by: string;
@@ -15,7 +15,7 @@ export interface Mechanism {
 }
 
 export interface Species {
-  id: number;
+  id: string;
   name: string;
   description: string | null;
   created_by: string | null;
@@ -23,7 +23,7 @@ export interface Species {
 }
 
 export interface Reaction {
-  id: number;
+  id: string;
   equation: string;
   description: string | null;
   createdBy: string;
@@ -31,29 +31,29 @@ export interface Reaction {
 }
 
 export interface ReactionSpecies {
-  id?: number;
-  reaction_id: number;
-  species_id: number;
+  id?: string;
+  reaction_id: string;
+  species_id: string;
   quantity?: number;
   role: "reactant" | "product";
 }
 
 export interface MechanismReaction {
-  id?: number;
-  mechanism_id: number;
-  reaction_id: number;
+  id?: string;
+  mechanism_id: string;
+  reaction_id: string;
 }
 
 export interface MechanismSpecies {
-  id?: number;
-  mechanism_id: number;
-  species_id: number;
+  id?: string;
+  mechanism_id: string;
+  species_id: string;
 }
 
 export interface InitialConditionSpecies {
-  id?: number;
-  mechanism_id: number;
-  species_id: number;
+  id?: string;
+  mechanism_id: string;
+  species_id: string;
   concentration?: number;
   temperature?: number;
   pressure?: number;
@@ -61,7 +61,7 @@ export interface InitialConditionSpecies {
 }
 
 export interface User {
-  id: number;
+  id: string;
   username: string;
   role: string;
   email?: string | null;
@@ -69,8 +69,8 @@ export interface User {
 }
 
 export interface UserMechanism {
-  id?: number;
-  user_id: number;
-  mechanism_id: number;
+  id?: string;
+  user_id: string;
+  mechanism_id: string;
   role?: string;
 }

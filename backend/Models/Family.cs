@@ -12,7 +12,7 @@ public partial class Family
 {
     [Key]
     [Column("id")]
-    public int Id { get; set; }
+    public Guid Id { get; set; }
 
     [Column("name")]
     public string Name { get; set; } = null!;

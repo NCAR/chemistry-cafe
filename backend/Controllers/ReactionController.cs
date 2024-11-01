@@ -27,7 +27,7 @@ namespace Chemistry_Cafe_API.Controllers
 
         // GET: api/Reactions/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Reaction>> GetReaction(int id)
+        public async Task<ActionResult<Reaction>> GetReaction(Guid id)
         {
             var reaction = await _reactionService.GetReactionAsync(id);
 
@@ -41,14 +41,14 @@ namespace Chemistry_Cafe_API.Controllers
 
         // GET: api/Reactions/family/5
         [HttpGet("family/{familyId}")]
-        public async Task<ActionResult<IEnumerable<Reaction>>> GetReactionsByFamilyId(int familyId)
+        public async Task<ActionResult<IEnumerable<Reaction>>> GetReactionsByFamilyId(Guid familyId)
         {
             var reactions = await _reactionService.GetReactionsByFamilyIdAsync(familyId);
             return Ok(reactions);
         }
         
         [HttpGet("mechanism/{mechanismId}")]
-        public async Task<ActionResult<IEnumerable<Reaction>>> GetReactionsByMechanismId(int mechanismId)
+        public async Task<ActionResult<IEnumerable<Reaction>>> GetReactionsByMechanismId(Guid mechanismId)
         {
             var reactions = await _reactionService.GetReactionsByMechanismIdAsync(mechanismId);
             return Ok(reactions);
@@ -64,7 +64,7 @@ namespace Chemistry_Cafe_API.Controllers
 
         // PUT: api/Reactions/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateReaction(int id, Reaction reaction)
+        public async Task<IActionResult> UpdateReaction(Guid id, Reaction reaction)
         {
             if (id != reaction.Id)
             {
@@ -78,7 +78,7 @@ namespace Chemistry_Cafe_API.Controllers
 
         // DELETE: api/Reactions/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteReaction(int id)
+        public async Task<IActionResult> DeleteReaction(Guid id)
         {
             await _reactionService.DeleteReactionAsync(id);
             return NoContent();

@@ -13,7 +13,7 @@ namespace Chemistry_Cafe_API.Services
             _database = database;
         }
 
-        public async Task<IReadOnlyList<InitialConditionsSpecies>> GetInitialConditionsByMechanismIdAsync(int mechanismId)
+        public async Task<IReadOnlyList<InitialConditionsSpecies>> GetInitialConditionsByMechanismIdAsync(Guid mechanismId)
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
@@ -42,16 +42,16 @@ namespace Chemistry_Cafe_API.Services
             {
                 var initialCondition = new InitialConditionsSpecies
                 {
-                    Id = reader.GetInt32(reader.GetOrdinal("InitialConditionSpeciesId")),
-                    MechanismId = reader.GetInt32(reader.GetOrdinal("MechanismId")),
-                    SpeciesId = reader.GetInt32(reader.GetOrdinal("SpeciesId")),
+                    Id = reader.GetGuid(reader.GetOrdinal("InitialConditionSpeciesId")),
+                    MechanismId = reader.GetGuid(reader.GetOrdinal("MechanismId")),
+                    SpeciesId = reader.GetGuid(reader.GetOrdinal("SpeciesId")),
                     Concentration = reader.IsDBNull(reader.GetOrdinal("Concentration")) ? (double?)null : reader.GetDouble(reader.GetOrdinal("Concentration")),
                     Temperature = reader.IsDBNull(reader.GetOrdinal("Temperature")) ? (double?)null : reader.GetDouble(reader.GetOrdinal("Temperature")),
                     Pressure = reader.IsDBNull(reader.GetOrdinal("Pressure")) ? (double?)null : reader.GetDouble(reader.GetOrdinal("Pressure")),
                     AdditionalConditions = reader.IsDBNull(reader.GetOrdinal("AdditionalConditions")) ? null : reader.GetString(reader.GetOrdinal("AdditionalConditions")),
                     Species = new Species
                     {
-                        Id = reader.GetInt32(reader.GetOrdinal("SpeciesId")),
+                        Id = reader.GetGuid(reader.GetOrdinal("SpeciesId")),
                         Name = reader.GetString(reader.GetOrdinal("SpeciesName")),
                         Description = reader.IsDBNull(reader.GetOrdinal("SpeciesDescription")) ? null : reader.GetString(reader.GetOrdinal("SpeciesDescription"))
                     }
@@ -62,18 +62,18 @@ namespace Chemistry_Cafe_API.Services
             return initialConditionsList;
         }
 
-
         public async Task<InitialConditionsSpecies> CreateInitialConditionAsync(InitialConditionsSpecies initialCondition)
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
+            var id = Guid.NewGuid(); // Generate a new UUID for the ID
             command.CommandText = @"
                 INSERT INTO initial_conditions_species 
-                (mechanism_id, species_id, concentration, temperature, pressure, additional_conditions)
-                VALUES (@mechanism_id, @species_id, @concentration, @temperature, @pressure, @additional_conditions);
-                SELECT LAST_INSERT_ID();";
+                (id, mechanism_id, species_id, concentration, temperature, pressure, additional_conditions)
+                VALUES (@id, @mechanism_id, @species_id, @concentration, @temperature, @pressure, @additional_conditions);";
 
+            command.Parameters.AddWithValue("@id", id);
             command.Parameters.AddWithValue("@mechanism_id", initialCondition.MechanismId);
             command.Parameters.AddWithValue("@species_id", initialCondition.SpeciesId);
             command.Parameters.AddWithValue("@concentration", initialCondition.Concentration ?? (object)DBNull.Value);
@@ -81,9 +81,9 @@ namespace Chemistry_Cafe_API.Services
             command.Parameters.AddWithValue("@pressure", initialCondition.Pressure ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@additional_conditions", initialCondition.AdditionalConditions ?? (object)DBNull.Value);
 
-            var id = Convert.ToInt32(await command.ExecuteScalarAsync());
-            initialCondition.Id = id;
+            await command.ExecuteNonQueryAsync();
 
+            initialCondition.Id = id;
             return initialCondition;
         }
 
@@ -109,7 +109,7 @@ namespace Chemistry_Cafe_API.Services
             await command.ExecuteNonQueryAsync();
         }
 
-        public async Task DeleteInitialConditionAsync(int id)
+        public async Task DeleteInitialConditionAsync(Guid id)
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
@@ -129,16 +129,16 @@ namespace Chemistry_Cafe_API.Services
                 {
                     var ic = new InitialConditionsSpecies
                     {
-                        Id = reader.GetInt32(reader.GetOrdinal("id")),
-                        MechanismId = reader.GetInt32(reader.GetOrdinal("mechanism_id")),
-                        SpeciesId = reader.GetInt32(reader.GetOrdinal("species_id")),
+                        Id = reader.GetGuid(reader.GetOrdinal("id")),
+                        MechanismId = reader.GetGuid(reader.GetOrdinal("mechanism_id")),
+                        SpeciesId = reader.GetGuid(reader.GetOrdinal("species_id")),
                         Concentration = reader.IsDBNull(reader.GetOrdinal("concentration")) ? (double?)null : reader.GetDouble(reader.GetOrdinal("concentration")),
                         Temperature = reader.IsDBNull(reader.GetOrdinal("temperature")) ? (double?)null : reader.GetDouble(reader.GetOrdinal("temperature")),
                         Pressure = reader.IsDBNull(reader.GetOrdinal("pressure")) ? (double?)null : reader.GetDouble(reader.GetOrdinal("pressure")),
                         AdditionalConditions = reader.IsDBNull(reader.GetOrdinal("additional_conditions")) ? null : reader.GetString(reader.GetOrdinal("additional_conditions")),
                         Species = new Species
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("species_id")),
+                            Id = reader.GetGuid(reader.GetOrdinal("species_id")),
                             Name = reader.GetString(reader.GetOrdinal("SpeciesName")),
                             Description = reader.IsDBNull(reader.GetOrdinal("SpeciesDescription")) ? null : reader.GetString(reader.GetOrdinal("SpeciesDescription"))
                         }

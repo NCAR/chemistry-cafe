@@ -27,7 +27,7 @@ namespace Chemistry_Cafe_API.Controllers
 
         // GET: api/Mechanisms/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Mechanism>> GetMechanism(int id)
+        public async Task<ActionResult<Mechanism>> GetMechanism(Guid id)
         {
             var mechanism = await _mechanismService.GetMechanismAsync(id);
 
@@ -41,7 +41,7 @@ namespace Chemistry_Cafe_API.Controllers
 
         // GET: api/Mechanisms/family/5
         [HttpGet("family/{familyId}")]
-        public async Task<ActionResult<IEnumerable<Mechanism>>> GetMechanismsByFamilyId(int familyId)
+        public async Task<ActionResult<IEnumerable<Mechanism>>> GetMechanismsByFamilyId(Guid familyId)
         {
             var mechanisms = await _mechanismService.GetMechanismsByFamilyIdAsync(familyId);
             return Ok(mechanisms);
@@ -57,7 +57,7 @@ namespace Chemistry_Cafe_API.Controllers
 
         // PUT: api/Mechanisms/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateMechanism(int id, Mechanism mechanism)
+        public async Task<IActionResult> UpdateMechanism(Guid id, Mechanism mechanism)
         {
             if (id != mechanism.Id)
             {
@@ -71,7 +71,7 @@ namespace Chemistry_Cafe_API.Controllers
 
         // DELETE: api/Mechanisms/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteMechanism(int id)
+        public async Task<IActionResult> DeleteMechanism(Guid id)
         {
             await _mechanismService.DeleteMechanismAsync(id);
             return NoContent();

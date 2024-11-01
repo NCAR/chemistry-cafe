@@ -19,7 +19,7 @@ namespace Chemistry_Cafe_API.Controllers
 
         // GET: api/MechanismReactions/mechanism/5
         [HttpGet("mechanism/{mechanismId}")]
-        public async Task<ActionResult<IEnumerable<Reaction>>> GetReactionsByMechanismId(int mechanismId)
+        public async Task<ActionResult<IEnumerable<Reaction>>> GetReactionsByMechanismId(Guid mechanismId)
         {
             var reactions = await _mechanismReactionService.GetMechanismReactionsByMechanismIdAsync(mechanismId);
             return Ok(reactions);
@@ -35,7 +35,7 @@ namespace Chemistry_Cafe_API.Controllers
 
         // DELETE: api/MechanismReactions/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> RemoveReactionFromMechanism(int id)
+        public async Task<IActionResult> RemoveReactionFromMechanism(Guid id)
         {
             await _mechanismReactionService.RemoveReactionFromMechanismAsync(id);
             return NoContent();

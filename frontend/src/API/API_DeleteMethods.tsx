@@ -3,7 +3,7 @@
 import axios from "axios";
 
 // Delete a family
-export async function deleteFamily(id: number) {
+export async function deleteFamily(id: string) {
   try {
     const response = await axios.delete(
       `http://localhost:8080/api/families/${id}`,
@@ -21,7 +21,7 @@ export async function deleteFamily(id: number) {
 }
 
 // Delete a mechanism
-export async function deleteMechanism(id: number) {
+export async function deleteMechanism(id: string) {
   try {
     const response = await axios.delete(
       `http://localhost:8080/api/mechanism/${id}`
@@ -34,7 +34,7 @@ export async function deleteMechanism(id: number) {
 }
 
 // Delete a species
-export async function deleteSpecies(id: number) {
+export async function deleteSpecies(id: string) {
   try {
     const response = await axios.delete(
       `http://localhost:8080/api/species/${id}`,
@@ -52,7 +52,7 @@ export async function deleteSpecies(id: number) {
 }
 
 // Delete a reaction
-export async function deleteReaction(id: number) {
+export async function deleteReaction(id: string) {
   try {
     const response = await axios.delete(
       `http://localhost:8080/api/reactions/${id}`,
@@ -70,7 +70,7 @@ export async function deleteReaction(id: number) {
 }
 
 // Delete a user (if applicable)
-export async function deleteUser(id: number) {
+export async function deleteUser(id: string) {
   try {
     const response = await axios.delete(
       `http://localhost:8080/api/users/${id}`,

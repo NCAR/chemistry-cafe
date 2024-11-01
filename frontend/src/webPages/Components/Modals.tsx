@@ -71,30 +71,30 @@ interface CreateFamilyModalProps {
 interface CreateMechanismModalProps {
   open: boolean;
   onClose: () => void;
-  selectedFamilyId: number | null;
+  selectedFamilyId: string | null;
   setCreatedMechanismBool: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface CreateSpeciesModalProps {
   open: boolean;
   onClose: () => void;
-  selectedFamilyId: number | null;
-  selectedMechanismId: number | null;
+  selectedFamilyId: string | null;
+  selectedMechanismId: string | null;
   setSpeciesCreated: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface CreateReactionModalProps {
   open: boolean;
   onClose: () => void;
-  selectedFamilyId: number | null;
-  selectedMechanismId: number | null;
+  selectedFamilyId: string | null;
+  selectedMechanismId: string | null;
   setReactionCreated: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface CreateReactantModalProps {
   open: boolean;
   onClose: () => void;
-  selectedMechanismId: number | null;
+  selectedMechanismId: string | null;
   selectedReaction: Reaction | null;
   setCreatedReactantBool: React.Dispatch<React.SetStateAction<boolean>>;
   setReactionUpdated: React.Dispatch<React.SetStateAction<boolean>>;
@@ -103,7 +103,7 @@ interface CreateReactantModalProps {
 interface CreateProductModalProps {
   open: boolean;
   onClose: () => void;
-  selectedMechanismId: number | null;
+  selectedMechanismId: string | null;
   selectedReaction: Reaction | null;
   setCreatedProductBool: React.Dispatch<React.SetStateAction<boolean>>;
   setReactionUpdated: React.Dispatch<React.SetStateAction<boolean>>;
@@ -158,7 +158,7 @@ export const CreateFamilyModal: React.FC<CreateFamilyModalProps> = ({
   const handleCreateFamilyClick = async () => {
     try {
       const newFamily: Family = {
-        id: 0,
+        id: "",
         name: createFamilyRef.current,
         description: "",
         created_by: "current_user",
@@ -196,10 +196,10 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
   setCreatedMechanismBool,
 }) => {
   const [speciesList, setSpeciesList] = useState<Species[]>([]);
-  const [selectedSpeciesIds, setSelectedSpeciesIds] = useState<number[]>([]);
+  const [selectedSpeciesIds, setSelectedSpeciesIds] = useState<string[]>([]);
 
   const [reactionList, setReactionList] = useState<Reaction[]>([]);
-  const [selectedReactionIds, setSelectedReactionIds] = useState<number[]>([]);
+  const [selectedReactionIds, setSelectedReactionIds] = useState<string[]>([]);
 
   const createMechanismRef = useRef("");
 
@@ -224,7 +224,7 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
   const handleCreateMechanismClick = async () => {
     try {
       const mechanismData: Mechanism = {
-        id: 0,
+        id: "",
         family_id: selectedFamilyId!,
         name: createMechanismRef.current,
         description: "",
@@ -236,7 +236,7 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
 
       for (const speciesId of selectedSpeciesIds) {
         const mechanismSpecies: MechanismSpecies = {
-          id: 0,
+          id: "",
           mechanism_id: createdMechanism.id,
           species_id: speciesId,
         };
@@ -245,7 +245,7 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
 
       for (const reactionId of selectedReactionIds) {
         const mechanismReaction: MechanismReaction = {
-          id: 0,
+          id: "",
           mechanism_id: createdMechanism.id,
           reaction_id: reactionId,
         };
@@ -275,14 +275,13 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
         />
         <p />
         <Typography variant="h6" style={{ marginTop: "1rem" }}>
-          {" "}
           Select species (Multiple Selection)
         </Typography>
         <Select
           label="Species"
           multiple
           value={selectedSpeciesIds}
-          onChange={(e) => setSelectedSpeciesIds(e.target.value as number[])}
+          onChange={(e) => setSelectedSpeciesIds(e.target.value as string[])}
           fullWidth
         >
           {speciesList.map((species) => (
@@ -297,7 +296,7 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
         <Select
           multiple
           value={selectedReactionIds}
-          onChange={(e) => setSelectedReactionIds(e.target.value as number[])}
+          onChange={(e) => setSelectedReactionIds(e.target.value as string[])}
           fullWidth
         >
           {reactionList.map((reaction) => (
@@ -328,7 +327,7 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
   const createSpeciesRef = useRef("");
 
   const [speciesList, setSpeciesList] = useState<Species[]>([]);
-  const [selectedSpeciesIds, setSelectedSpeciesIds] = useState<number[]>([]);
+  const [selectedSpeciesIds, setSelectedSpeciesIds] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchSpecies = async () => {
@@ -360,7 +359,7 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
       if (selectedFamilyId && selectedMechanismId) {
         if (createSpeciesRef.current !== "") {
           const speciesData: Species = {
-            id: 0,
+            id: "",
             name: createSpeciesRef.current,
             description: "",
             created_by: "current_user",
@@ -369,7 +368,7 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
           const newSpecies = await createSpecies(speciesData);
 
           const mechanismSpecies: MechanismSpecies = {
-            id: 0,
+            id: "",
             mechanism_id: selectedMechanismId,
             species_id: newSpecies.id,
           };
@@ -377,7 +376,7 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
         }
         for (const speciesId of selectedSpeciesIds) {
           const mechanismSpecies: MechanismSpecies = {
-            id: 0,
+            id: "",
             mechanism_id: selectedMechanismId,
             species_id: speciesId,
           };
@@ -414,7 +413,7 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
               multiple
               value={selectedSpeciesIds}
               onChange={(e) =>
-                setSelectedSpeciesIds(e.target.value as number[])
+                setSelectedSpeciesIds(e.target.value as string[])
               }
               fullWidth
               style={{ marginTop: "1rem" }}
@@ -453,7 +452,7 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
 }) => {
   const [selectedReactionType, setSelectedReactionType] = useState<string>("");
   const [reactionList, setReactionList] = useState<Reaction[]>([]);
-  const [selectedReactionIds, setSelectedReactionIds] = useState<number[]>([]);
+  const [selectedReactionIds, setSelectedReactionIds] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchReactions = async () => {
@@ -486,7 +485,7 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
       if (selectedFamilyId && selectedMechanismId) {
         if (selectedReactionType !== "") {
           const reactionData: Reaction = {
-            id: 0,
+            id: "",
             equation: "",
             description: "",
             createdBy: "current_user",
@@ -495,25 +494,26 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
           const newReaction = await createReaction(reactionData);
 
           const mechanismReaction: MechanismReaction = {
-            id: 0,
+            id: "",
             mechanism_id: selectedMechanismId,
             reaction_id: newReaction.id,
           };
           await addReactionToMechanism(mechanismReaction);
-
-          for (const reactionId of selectedReactionIds) {
-            const mechanismReaction: MechanismReaction = {
-              id: 0,
-              mechanism_id: selectedMechanismId,
-              reaction_id: reactionId,
-            };
-            await addReactionToMechanism(mechanismReaction);
-          }
-          setSelectedReactionType("");
-          setSelectedReactionIds([]);
-          setReactionCreated(true);
-          onClose();
         }
+
+        for (const reactionId of selectedReactionIds) {
+          const mechanismReaction: MechanismReaction = {
+            id: "",
+            mechanism_id: selectedMechanismId,
+            reaction_id: reactionId,
+          };
+          await addReactionToMechanism(mechanismReaction);
+        }
+
+        setSelectedReactionType("");
+        setSelectedReactionIds([]);
+        setReactionCreated(true);
+        onClose();
       }
     } catch (error) {
       console.error(error);
@@ -551,7 +551,7 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
               multiple
               value={selectedReactionIds}
               onChange={(e) =>
-                setSelectedReactionIds(e.target.value as number[])
+                setSelectedReactionIds(e.target.value as string[])
               }
               fullWidth
               style={{ marginTop: "1rem" }}
@@ -581,7 +581,7 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
   );
 };
 
-const CreateReactantModal: React.FC<CreateReactantModalProps> = ({
+export const CreateReactantModal: React.FC<CreateReactantModalProps> = ({
   open,
   onClose,
   selectedMechanismId,
@@ -590,7 +590,7 @@ const CreateReactantModal: React.FC<CreateReactantModalProps> = ({
   setReactionUpdated,
 }) => {
   const [speciesList, setSpeciesList] = useState<Species[]>([]);
-  const [selectedSpeciesId, setSelectedSpeciesId] = useState<number | null>(
+  const [selectedSpeciesId, setSelectedSpeciesId] = useState<string | null>(
     null
   );
   const createReactantQuantityRef = useRef("");
@@ -617,9 +617,9 @@ const CreateReactantModal: React.FC<CreateReactantModalProps> = ({
   const handleCreateReactantClick = async () => {
     try {
       const reactionSpecies: ReactionSpecies = {
-        id: 0,
-        reaction_id: selectedReaction?.id as number,
-        species_id: selectedSpeciesId as number,
+        id: "",
+        reaction_id: selectedReaction?.id as string,
+        species_id: selectedSpeciesId as string,
         quantity: parseInt(createReactantQuantityRef.current),
         role: "reactant",
       };
@@ -639,11 +639,11 @@ const CreateReactantModal: React.FC<CreateReactantModalProps> = ({
   return (
     <Modal open={open} onClose={onClose}>
       <Box sx={style}>
-        <Typography variant="h6">Select a Species </Typography>
+        <Typography variant="h6">Select a Species</Typography>
         <Select
           label="Species"
           value={selectedSpeciesId || ""}
-          onChange={(e) => setSelectedSpeciesId(e.target.value as number)}
+          onChange={(e) => setSelectedSpeciesId(e.target.value as string)}
           fullWidth
           style={{ marginTop: "1rem" }}
         >
@@ -669,14 +669,14 @@ const CreateReactantModal: React.FC<CreateReactantModalProps> = ({
           onClick={handleCreateReactantClick}
           style={{ marginTop: "1rem" }}
         >
-          \ Submit
+          Submit
         </Button>
       </Box>
     </Modal>
   );
 };
 
-const CreateProductModal: React.FC<CreateProductModalProps> = ({
+export const CreateProductModal: React.FC<CreateProductModalProps> = ({
   open,
   onClose,
   selectedMechanismId,
@@ -685,7 +685,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
   setReactionUpdated,
 }) => {
   const [speciesList, setSpeciesList] = useState<Species[]>([]);
-  const [selectedSpeciesId, setSelectedSpeciesId] = useState<number | null>(
+  const [selectedSpeciesId, setSelectedSpeciesId] = useState<string | null>(
     null
   );
   const createProductQuantityRef = useRef("");
@@ -712,9 +712,9 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
   const handleCreateProductClick = async () => {
     try {
       const reactionSpecies: ReactionSpecies = {
-        id: 0,
-        reaction_id: selectedReaction?.id as number,
-        species_id: selectedSpeciesId as number,
+        id: "",
+        reaction_id: selectedReaction?.id as string,
+        species_id: selectedSpeciesId as string,
         quantity: parseInt(createProductQuantityRef.current),
         role: "product",
       };
@@ -734,11 +734,11 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
   return (
     <Modal open={open} onClose={onClose}>
       <Box sx={style}>
-        <Typography variant="h6"> Select a species</Typography>
+        <Typography variant="h6">Select a species</Typography>
         <Select
           label="Species"
           value={selectedSpeciesId || ""}
-          onChange={(e) => setSelectedSpeciesId(e.target.value as number)}
+          onChange={(e) => setSelectedSpeciesId(e.target.value as string)}
           fullWidth
           style={{ marginTop: "1rem" }}
         >

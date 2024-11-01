@@ -12,7 +12,7 @@ public partial class Reaction
 {
     [Key]
     [Column("id")]
-    public int Id { get; set; }
+    public Guid Id { get; set; }
 
     [Column("equation")]
     [StringLength(512)]

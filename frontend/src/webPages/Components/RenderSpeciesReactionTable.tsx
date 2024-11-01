@@ -31,8 +31,8 @@ const tabsHeaderStyle: React.CSSProperties = {
 };
 
 interface Props {
-  selectedFamilyId: number | null;
-  selectedMechanismId: number | null;
+  selectedFamilyId: string | null;
+  selectedMechanismId: string | null;
 }
 
 const RenderSpeciesReactionTable: React.FC<Props> = ({
@@ -115,7 +115,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
       ),
     },
     {
-      field: "equation", // Update if necessary
+      field: "equation",
       headerName: "Equation",
       flex: 1,
       renderCell: (params) => (

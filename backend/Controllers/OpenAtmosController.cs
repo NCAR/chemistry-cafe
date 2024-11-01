@@ -16,7 +16,7 @@ namespace Chemistry_Cafe_API.Controllers
         }
 
         [HttpGet("mechanism/{mechanismId}/json")]
-        public async Task<IActionResult> GetMechanismJson(int mechanismId)
+        public async Task<IActionResult> GetMechanismJson(Guid mechanismId)
         {
             var jsonResult = await _openAtmosService.GetJSON(mechanismId);
             if (jsonResult == null)
@@ -27,7 +27,7 @@ namespace Chemistry_Cafe_API.Controllers
         }
 
         [HttpGet("mechanism/{mechanismId}/yaml")]
-        public async Task<IActionResult> GetMechanismYaml(int mechanismId)
+        public async Task<IActionResult> GetMechanismYaml(Guid mechanismId)
         {
             var yamlResult = await _openAtmosService.GetYAML(mechanismId);
             if (yamlResult == null)

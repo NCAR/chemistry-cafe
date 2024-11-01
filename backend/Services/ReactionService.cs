@@ -37,12 +37,12 @@ namespace Chemistry_Cafe_API.Services
                 LEFT JOIN reaction_species ON reactions.id = reaction_species.reaction_id";
 
             var reactionList = new List<Reaction>();
-            var reactionDictionary = new Dictionary<int, Reaction>();
+            var reactionDictionary = new Dictionary<Guid, Reaction>();
 
             using var reader = await command.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
-                int reactionId = reader.GetInt32(reader.GetOrdinal("ReactionId"));
+                Guid reactionId = reader.GetGuid(reader.GetOrdinal("ReactionId"));
                 if (!reactionDictionary.TryGetValue(reactionId, out var reaction))
                 {
                     reaction = new Reaction
@@ -64,9 +64,9 @@ namespace Chemistry_Cafe_API.Services
                 {
                     var mechanismReaction = new MechanismReaction
                     {
-                        Id = reader.GetInt32(reader.GetOrdinal("MechanismReactionId")),
-                        MechanismId = reader.GetInt32(reader.GetOrdinal("MechanismReactionMechanismId")),
-                        ReactionId = reader.GetInt32(reader.GetOrdinal("MechanismReactionReactionId"))
+                        Id = reader.GetGuid(reader.GetOrdinal("MechanismReactionId")),
+                        MechanismId = reader.GetGuid(reader.GetOrdinal("MechanismReactionMechanismId")),
+                        ReactionId = reader.GetGuid(reader.GetOrdinal("MechanismReactionReactionId"))
                     };
                     reaction.MechanismReactions.Add(mechanismReaction);
                 }
@@ -76,9 +76,9 @@ namespace Chemistry_Cafe_API.Services
                 {
                     var reactionSpecies = new ReactionSpecies
                     {
-                        Id = reader.GetInt32(reader.GetOrdinal("ReactionSpeciesId")),
-                        ReactionId = reader.GetInt32(reader.GetOrdinal("ReactionSpeciesReactionId")),
-                        SpeciesId = reader.GetInt32(reader.GetOrdinal("ReactionSpeciesSpeciesId")),
+                        Id = reader.GetGuid(reader.GetOrdinal("ReactionSpeciesId")),
+                        ReactionId = reader.GetGuid(reader.GetOrdinal("ReactionSpeciesReactionId")),
+                        SpeciesId = reader.GetGuid(reader.GetOrdinal("ReactionSpeciesSpeciesId")),
                         Role = reader.GetString(reader.GetOrdinal("ReactionSpeciesRole")),
                     };
                     reaction.ReactionSpecies.Add(reactionSpecies);
@@ -88,7 +88,7 @@ namespace Chemistry_Cafe_API.Services
             return reactionList;
         }
 
-        public async Task<Reaction?> GetReactionAsync(int id)
+        public async Task<Reaction?> GetReactionAsync(Guid id)
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
@@ -105,20 +105,23 @@ namespace Chemistry_Cafe_API.Services
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
-            command.CommandText = @"
-                INSERT INTO reactions (equation, description, created_by)
-                VALUES (@equation, @description, @created_by);
-                SELECT LAST_INSERT_ID();";
+            // Generate a new UUID for the reaction
+            reaction.Id = Guid.NewGuid();
 
+            command.CommandText = @"
+                INSERT INTO reactions (id, equation, description, created_by)
+                VALUES (@id, @equation, @description, @created_by);";
+
+            command.Parameters.AddWithValue("@id", reaction.Id);
             command.Parameters.AddWithValue("@equation", reaction.Equation);
             command.Parameters.AddWithValue("@description", reaction.Description ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@created_by", reaction.CreatedBy ?? (object)DBNull.Value);
 
-            var reactionId = Convert.ToInt32(await command.ExecuteScalarAsync());
-            reaction.Id = reactionId;
+            await command.ExecuteNonQueryAsync();
 
             return reaction;
         }
+
 
         public async Task UpdateReactionAsync(Reaction reaction)
         {
@@ -140,80 +143,76 @@ namespace Chemistry_Cafe_API.Services
             await command.ExecuteNonQueryAsync();
         }
 
-        public async Task<List<Reaction>> GetReactionsByFamilyIdAsync(int familyId)
-    {
-        var reactions = new List<Reaction>();
-        
-        using var connection = await _database.OpenConnectionAsync();
-        using var command = connection.CreateCommand();
-
-        command.CommandText = @"
-            SELECT r.id, r.equation, r.description, r.created_by, r.created_date 
-            FROM reactions r
-            JOIN mechanism_reactions mr ON r.id = mr.reaction_id
-            JOIN mechanisms m ON mr.mechanism_id = m.id
-            WHERE m.family_id = @familyId";
-
-        command.Parameters.AddWithValue("@familyId", familyId);
-
-        using var reader = await command.ExecuteReaderAsync();
-
-        while (await reader.ReadAsync())
+        public async Task<List<Reaction>> GetReactionsByFamilyIdAsync(Guid familyId)
         {
-            var reaction = new Reaction
-            {
-                Id = reader.GetInt32(reader.GetOrdinal("id")),
-                Equation = reader.GetString(reader.GetOrdinal("equation")),
-                Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString(reader.GetOrdinal("description")),
-                CreatedBy = reader.IsDBNull(reader.GetOrdinal("created_by")) ? null : reader.GetString(reader.GetOrdinal("created_by")),
-                CreatedDate = reader.GetDateTime(reader.GetOrdinal("created_date"))
-            };
+            var reactions = new List<Reaction>();
             
-            reactions.Add(reaction);
+            using var connection = await _database.OpenConnectionAsync();
+            using var command = connection.CreateCommand();
+
+            command.CommandText = @"
+                SELECT r.id, r.equation, r.description, r.created_by, r.created_date 
+                FROM reactions r
+                JOIN mechanism_reactions mr ON r.id = mr.reaction_id
+                JOIN mechanisms m ON mr.mechanism_id = m.id
+                WHERE m.family_id = @familyId";
+
+            command.Parameters.AddWithValue("@familyId", familyId);
+
+            using var reader = await command.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                var reaction = new Reaction
+                {
+                    Id = reader.GetGuid(reader.GetOrdinal("id")),
+                    Equation = reader.GetString(reader.GetOrdinal("equation")),
+                    Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString(reader.GetOrdinal("description")),
+                    CreatedBy = reader.IsDBNull(reader.GetOrdinal("created_by")) ? null : reader.GetString(reader.GetOrdinal("created_by")),
+                    CreatedDate = reader.GetDateTime(reader.GetOrdinal("created_date"))
+                };
+                
+                reactions.Add(reaction);
+            }
+
+            return reactions;
         }
 
-        return reactions;
-    }
-
-        public async Task<List<Reaction>> GetReactionsByMechanismIdAsync(int mechanismId)
-    {
-        var reactions = new List<Reaction>();
-        
-        using var connection = await _database.OpenConnectionAsync();
-        using var command = connection.CreateCommand();
-
-        command.CommandText = @"
-            SELECT r.id, r.equation, r.description, r.created_by, r.created_date 
-            FROM reactions r
-            JOIN mechanism_reactions mr ON r.id = mr.reaction_id
-            WHERE mr.mechanism_id = @mechanismId";
-
-        command.Parameters.AddWithValue("@mechanismId", mechanismId);
-
-        using var reader = await command.ExecuteReaderAsync();
-
-        while (await reader.ReadAsync())
+        public async Task<List<Reaction>> GetReactionsByMechanismIdAsync(Guid mechanismId)
         {
-            var reaction = new Reaction
-            {
-                Id = reader.GetInt32(reader.GetOrdinal("id")),
-                Equation = reader.GetString(reader.GetOrdinal("equation")),
-                Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString(reader.GetOrdinal("description")),
-                CreatedBy = reader.IsDBNull(reader.GetOrdinal("created_by")) ? null : reader.GetString(reader.GetOrdinal("created_by")),
-                CreatedDate = reader.GetDateTime(reader.GetOrdinal("created_date"))
-            };
+            var reactions = new List<Reaction>();
             
-            reactions.Add(reaction);
+            using var connection = await _database.OpenConnectionAsync();
+            using var command = connection.CreateCommand();
+
+            command.CommandText = @"
+                SELECT r.id, r.equation, r.description, r.created_by, r.created_date 
+                FROM reactions r
+                JOIN mechanism_reactions mr ON r.id = mr.reaction_id
+                WHERE mr.mechanism_id = @mechanismId";
+
+            command.Parameters.AddWithValue("@mechanismId", mechanismId);
+
+            using var reader = await command.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                var reaction = new Reaction
+                {
+                    Id = reader.GetGuid(reader.GetOrdinal("id")),
+                    Equation = reader.GetString(reader.GetOrdinal("equation")),
+                    Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString(reader.GetOrdinal("description")),
+                    CreatedBy = reader.IsDBNull(reader.GetOrdinal("created_by")) ? null : reader.GetString(reader.GetOrdinal("created_by")),
+                    CreatedDate = reader.GetDateTime(reader.GetOrdinal("created_date"))
+                };
+                
+                reactions.Add(reaction);
+            }
+
+            return reactions;
         }
 
-        return reactions;
-    }
-
-
-    
-
-
-        public async Task DeleteReactionAsync(int id)
+        public async Task DeleteReactionAsync(Guid id)
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
@@ -233,7 +232,7 @@ namespace Chemistry_Cafe_API.Services
                 {
                     var reaction = new Reaction
                     {
-                        Id = reader.GetInt32(reader.GetOrdinal("id")),
+                        Id = reader.GetGuid(reader.GetOrdinal("id")),
                         Equation = reader.GetString(reader.GetOrdinal("equation")),
                         Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString(reader.GetOrdinal("description")),
                         CreatedBy = reader.IsDBNull(reader.GetOrdinal("created_by")) ? null : reader.GetString(reader.GetOrdinal("created_by")),

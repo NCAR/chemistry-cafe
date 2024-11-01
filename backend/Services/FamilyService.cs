@@ -14,7 +14,7 @@ namespace Chemistry_Cafe_API.Services
             _database = database;
         }
 
-       public async Task<IReadOnlyList<Family>> GetFamiliesAsync()
+        public async Task<IReadOnlyList<Family>> GetFamiliesAsync()
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
@@ -36,12 +36,12 @@ namespace Chemistry_Cafe_API.Services
                 LEFT JOIN mechanisms ON families.id = mechanisms.family_id";
 
             var familyList = new List<Family>();
-            var familyDictionary = new Dictionary<int, Family>();
+            var familyDictionary = new Dictionary<Guid, Family>();
 
             using var reader = await command.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
-                int familyId = reader.GetInt32(reader.GetOrdinal("FamilyId"));
+                Guid familyId = reader.GetGuid(reader.GetOrdinal("FamilyId"));
                 if (!familyDictionary.TryGetValue(familyId, out var family))
                 {
                     family = new Family
@@ -62,8 +62,8 @@ namespace Chemistry_Cafe_API.Services
                 {
                     var mechanism = new Mechanism
                     {
-                        Id = reader.GetInt32(reader.GetOrdinal("MechanismId")),
-                        FamilyId = reader.GetInt32(reader.GetOrdinal("MechanismFamilyId")),
+                        Id = reader.GetGuid(reader.GetOrdinal("MechanismId")),
+                        FamilyId = reader.GetGuid(reader.GetOrdinal("MechanismFamilyId")),
                         Name = reader.GetString(reader.GetOrdinal("MechanismName")),
                         Description = reader.IsDBNull(reader.GetOrdinal("MechanismDescription")) ? null : reader.GetString(reader.GetOrdinal("MechanismDescription")),
                         CreatedBy = reader.IsDBNull(reader.GetOrdinal("MechanismCreatedBy")) ? null : reader.GetString(reader.GetOrdinal("MechanismCreatedBy")),
@@ -76,7 +76,7 @@ namespace Chemistry_Cafe_API.Services
             return familyList;
         }
 
-        public async Task<Family?> GetFamilyAsync(int id)
+        public async Task<Family?> GetFamilyAsync(Guid id)
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
@@ -93,16 +93,18 @@ namespace Chemistry_Cafe_API.Services
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
+            var familyId = Guid.NewGuid();
             command.CommandText = @"
-                INSERT INTO families (name, description, created_by) 
-                VALUES (@name, @description, @created_by);
-                SELECT LAST_INSERT_ID();";
+                INSERT INTO families (id, name, description, created_by, created_date) 
+                VALUES (@id, @name, @description, @created_by, @created_date);";
 
+            command.Parameters.AddWithValue("@id", familyId);
             command.Parameters.AddWithValue("@name", name);
             command.Parameters.AddWithValue("@description", description ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@created_by", createdBy ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@created_date", DateTime.UtcNow);
 
-            var familyId = Convert.ToInt32(await command.ExecuteScalarAsync());
+            await command.ExecuteNonQueryAsync();
 
             var family = new Family
             {
@@ -136,13 +138,12 @@ namespace Chemistry_Cafe_API.Services
             await command.ExecuteNonQueryAsync();
         }
 
-        public async Task DeleteFamilyAsync(int id)
+        public async Task DeleteFamilyAsync(Guid id)
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
             command.CommandText = @"DELETE FROM families WHERE id = @id;";
-
             command.Parameters.AddWithValue("@id", id);
 
             await command.ExecuteNonQueryAsync();
@@ -157,7 +158,7 @@ namespace Chemistry_Cafe_API.Services
                 {
                     var family = new Family
                     {
-                        Id = reader.GetInt32(reader.GetOrdinal("id")),
+                        Id = reader.GetGuid(reader.GetOrdinal("id")),
                         Name = reader.GetString(reader.GetOrdinal("name")),
                         Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString(reader.GetOrdinal("description")),
                         CreatedBy = reader.IsDBNull(reader.GetOrdinal("created_by")) ? null : reader.GetString(reader.GetOrdinal("created_by")),

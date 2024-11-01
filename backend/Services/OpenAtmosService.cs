@@ -12,7 +12,7 @@ public class OpenAtmosService
         _database = database;
     }
 
-    public async Task<string> GetJSON(int mechanismId)
+    public async Task<string> GetJSON(Guid mechanismId)
     {
         var reactionService = new ReactionService(_database);
         var speciesService = new SpeciesService(_database);
@@ -118,7 +118,7 @@ public class OpenAtmosService
         return json.ToString();
     }
 
-    public async Task<string> GetYAML(int mechanismId)
+    public async Task<string> GetYAML(Guid mechanismId)
     {
         var reactionService = new ReactionService(_database);
         var speciesService = new SpeciesService(_database);

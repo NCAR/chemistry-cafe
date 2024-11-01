@@ -67,7 +67,7 @@ const RoleManagement: React.FC = () => {
         const initialRoles = response.reduce((acc, user) => {
           acc[user.id] = user.role;
           return acc;
-        }, {} as { [key: number]: string });
+        }, {} as { [key: string]: string });
         setSelectedRoles(initialRoles);
       } catch (error) {
         console.error("Error fetching users:", error);
@@ -87,7 +87,7 @@ const RoleManagement: React.FC = () => {
     return <div>{error}</div>;
   }
 
-  //  handling editing actions
+  // Handling editing actions
   const handleRowEditStop: GridEventListener<"rowEditStop"> = (
     params,
     event
@@ -107,7 +107,7 @@ const RoleManagement: React.FC = () => {
 
   const handleDeleteClick = (id: GridRowId) => async () => {
     try {
-      await deleteUser(id as number);
+      await deleteUser(id as string);
       // Remove the deleted user from the state
       setUsers((prevUsers) => prevUsers.filter((user) => user.id !== id));
       alert("User deleted successfully!");
@@ -117,18 +117,21 @@ const RoleManagement: React.FC = () => {
     }
   };
 
-  const handleCancelClick = (uuid: GridRowId) => () => {
+  const handleCancelClick = (id: GridRowId) => () => {
     setRowModesModel({
       ...rowModesModel,
-      [uuid]: { mode: GridRowModes.View, ignoreModifications: true },
+      [id]: { mode: GridRowModes.View, ignoreModifications: true },
     });
   };
 
-  // This function handles syncing edits with database
+  // This function handles syncing edits with the database
   // Note: this does not handle syncing deleting from DB: see handleDeleteClick
   const processRowUpdate = async (updatedUser: GridRowModel) => {
     try {
-      const response = await updateUser(updatedUser.id, updatedUser as User);
+      const response = await updateUser(
+        updatedUser.id as string,
+        updatedUser as User
+      ); // Ensure updatedUser.id is a string
       return response;
     } catch (error) {
       console.error("Error updating user: ", error);
@@ -140,7 +143,7 @@ const RoleManagement: React.FC = () => {
     setRowModesModel(newRowModesModel);
   };
 
-  // defining columns displayed
+  // Defining columns displayed
   const userColumns: GridColDef[] = [
     {
       field: "username",
@@ -148,7 +151,6 @@ const RoleManagement: React.FC = () => {
       width: 200,
       editable: false,
     },
-
     {
       field: "email",
       headerName: "Email",
@@ -163,7 +165,6 @@ const RoleManagement: React.FC = () => {
       type: "singleSelect",
       valueOptions: ["unverified", "verified", "admin"],
     },
-
     {
       field: "actions",
       type: "actions",
@@ -223,8 +224,8 @@ const RoleManagement: React.FC = () => {
           <DataGrid
             rows={users}
             columns={userColumns}
-            // specifying the primary key to track each entry by
-            getRowId={(row) => row.uuid}
+            // Specifying the primary key to track each entry by
+            getRowId={(row) => row.id}
             editMode="row"
             rowModesModel={rowModesModel}
             onRowModesModelChange={handleRowModesModelChange}

@@ -19,7 +19,7 @@ namespace Chemistry_Cafe_API.Controllers
 
         // GET: api/ReactionSpecies/reaction/5
         [HttpGet("reaction/{reactionId}")]
-        public async Task<ActionResult<IEnumerable<ReactionSpecies>>> GetSpeciesByReactionId(int reactionId)
+        public async Task<ActionResult<IEnumerable<ReactionSpecies>>> GetSpeciesByReactionId(Guid reactionId)
         {
             var reactionSpecies = await _reactionSpeciesService.GetSpeciesByReactionIdAsync(reactionId);
             return Ok(reactionSpecies);
@@ -35,7 +35,7 @@ namespace Chemistry_Cafe_API.Controllers
 
         // PUT: api/ReactionSpecies/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateReactionSpecies(int id, ReactionSpecies reactionSpecies)
+        public async Task<IActionResult> UpdateReactionSpecies(Guid id, ReactionSpecies reactionSpecies)
         {
             if (id != reactionSpecies.Id)
             {
@@ -49,7 +49,7 @@ namespace Chemistry_Cafe_API.Controllers
 
         // DELETE: api/ReactionSpecies/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> RemoveSpeciesFromReaction(int id)
+        public async Task<IActionResult> RemoveSpeciesFromReaction(Guid id)
         {
             await _reactionSpeciesService.RemoveSpeciesFromReactionAsync(id);
             return NoContent();

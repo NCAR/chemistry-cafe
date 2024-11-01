@@ -11,8 +11,8 @@ import { Header, Footer } from "../Components/HeaderFooter";
 import "./family.css";
 
 const FamilyPage = () => {
-  const [selectedFamilyId, setSelectedFamilyId] = useState<number | null>(null);
-  const [selectedMechanismId, setSelectedMechanismId] = useState<number | null>(
+  const [selectedFamilyId, setSelectedFamilyId] = useState<string | null>(null);
+  const [selectedMechanismId, setSelectedMechanismId] = useState<string | null>(
     null
   );
 

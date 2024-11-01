@@ -13,13 +13,13 @@ public partial class MechanismSpecies
 {
     [Key]
     [Column("id")]
-    public int Id { get; set; }
+    public Guid Id { get; set; }
 
     [Column("mechanism_id")]
-    public int MechanismId { get; set; }
+    public Guid MechanismId { get; set; }
 
     [Column("species_id")]
-    public int SpeciesId { get; set; }
+    public Guid SpeciesId { get; set; }
 
     [ForeignKey("MechanismId")]
     [InverseProperty("MechanismSpecies")]

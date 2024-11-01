@@ -13,10 +13,10 @@ public partial class Mechanism
 {
     [Key]
     [Column("id")]
-    public int Id { get; set; }
+    public Guid Id { get; set; }
 
     [Column("family_id")]
-    public int FamilyId { get; set; }
+    public Guid FamilyId { get; set; }
 
     [Column("name")]
     public string Name { get; set; } = null!;
