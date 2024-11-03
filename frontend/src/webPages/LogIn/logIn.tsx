@@ -142,6 +142,7 @@ const LogIn = () => {
     };
 
     return (
+        <div data-theme="cyberpunk">
         <section className="layoutLogIn">
             <Holidays /> {/* Include the Holidays component here */}
             <div className="M2">
@@ -224,6 +225,7 @@ const LogIn = () => {
                 <Footer></Footer>
             </div>
         </section>
+        </div>
     );
 }
 

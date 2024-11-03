@@ -1,3 +1,4 @@
+import '../../index.css';
 import React from 'react';
 import './App.css'; // Assuming CSS is applied globally
 import Banner from '../Components/CookieBanner';
@@ -23,6 +24,7 @@ const theme = createTheme({
 
 function App() {
     return (
+        <div data-theme="cyberpunk">
         <div>
             <AccessibilityWidget />
             <AuthProvider>
@@ -46,6 +48,7 @@ function App() {
                  
                 </Routes>
             </AuthProvider>
+        </div>
         </div>
     );
 }

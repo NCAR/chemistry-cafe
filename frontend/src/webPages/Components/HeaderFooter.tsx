@@ -33,6 +33,7 @@ export const Header = () => {
     };
 
     return (
+        <div data-theme="cyberpunk">
         <Paper square={true} variant='outlined' sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px' }}>
             <Button onClick={toggleDrawer(true)}>
                 <DensitySmallSharpIcon sx={{ fontSize: 50 }}></DensitySmallSharpIcon>
@@ -59,6 +60,7 @@ export const Header = () => {
                 </Box>
             )}
         </Paper>
+        </div>
     );
 };
 
@@ -91,6 +93,7 @@ export const Footer = () => {
     };
 
     return(
+        <div data-theme="cyberpunk">
         <Paper component="footer" square={true} variant='outlined'>
             <Container maxWidth="lg" sx={{display: "flex"}}>
                 <Box component="img" src={"src/assets/nsf-stackseal-logo-lockup-dark.png"} sx={{height: "80px", width: "auto", pr: 10}}>
@@ -122,5 +125,6 @@ export const Footer = () => {
                 </Box>
             </Container>        
         </Paper>
+        </div>
     );
 };

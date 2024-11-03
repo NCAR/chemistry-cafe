@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* Ensure the main container takes full width and height */
 /* div { */
     /* display: flex; */
