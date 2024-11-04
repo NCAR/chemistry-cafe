@@ -36,15 +36,15 @@ namespace Chemistry_Cafe_API.Services
 
             command.CommandText = @"
                 SELECT 
-                    reaction_species.id AS ReactionSpeciesId,
-                    reaction_species.reaction_id AS ReactionId,
-                    reaction_species.species_id AS SpeciesId,
-                    reaction_species.role AS Role,
-                    species.name AS SpeciesName,
-                    species.description AS SpeciesDescription
-                FROM reaction_species
-                INNER JOIN species ON reaction_species.species_id = species.id
-                WHERE reaction_species.reaction_id = @reactionId";
+                    rs.id AS ReactionSpeciesId,
+                    rs.reaction_id AS ReactionId,
+                    rs.species_id AS SpeciesId,
+                    rs.role AS Role,
+                    s.name AS SpeciesName,
+                    s.description AS SpeciesDescription
+                FROM reaction_species rs
+                INNER JOIN species s ON rs.species_id = s.id
+                WHERE rs.reaction_id = @reactionId";
 
             command.Parameters.AddWithValue("@reactionId", reactionId);
 
@@ -89,9 +89,14 @@ namespace Chemistry_Cafe_API.Services
             using var command = connection.CreateCommand();
 
             command.CommandText = @"
-                SELECT s.name AS SpeciesName
+                SELECT 
+                    rs.id AS ReactionSpeciesId,
+                    rs.reaction_id AS ReactionId,
+                    rs.species_id AS SpeciesId,
+                    rs.role AS Role,
+                    s.name AS SpeciesName
                 FROM reaction_species rs
-                JOIN species s ON rs.species_id = s.id
+                INNER JOIN species s ON rs.species_id = s.id
                 WHERE rs.reaction_id = @reactionId AND rs.role = 'reactant'";
 
             command.Parameters.AddWithValue("@reactionId", reactionId);
@@ -105,9 +110,14 @@ namespace Chemistry_Cafe_API.Services
             using var command = connection.CreateCommand();
 
             command.CommandText = @"
-                SELECT s.name AS SpeciesName
+                SELECT 
+                    rs.id AS ReactionSpeciesId,
+                    rs.reaction_id AS ReactionId,
+                    rs.species_id AS SpeciesId,
+                    rs.role AS Role,
+                    s.name AS SpeciesName
                 FROM reaction_species rs
-                JOIN species s ON rs.species_id = s.id
+                INNER JOIN species s ON rs.species_id = s.id
                 WHERE rs.reaction_id = @reactionId AND rs.role = 'product'";
 
             command.Parameters.AddWithValue("@reactionId", reactionId);
@@ -124,6 +134,10 @@ namespace Chemistry_Cafe_API.Services
                 {
                     var item = new ReactionSpeciesDto
                     {
+                        Id = reader.GetGuid(reader.GetOrdinal("ReactionSpeciesId")),
+                        ReactionId = reader.GetGuid(reader.GetOrdinal("ReactionId")),
+                        SpeciesId = reader.GetGuid(reader.GetOrdinal("SpeciesId")),
+                        Role = reader.GetString(reader.GetOrdinal("Role")),
                         SpeciesName = reader.GetString(reader.GetOrdinal("SpeciesName"))
                     };
                     list.Add(item);
@@ -147,37 +161,13 @@ namespace Chemistry_Cafe_API.Services
 
             await command.ExecuteNonQueryAsync();
         }
-
-        private async Task<IReadOnlyList<ReactionSpecies>> ReadAllAsync(DbDataReader reader)
-        {
-            var reactionSpeciesList = new List<ReactionSpecies>();
-            using (reader)
-            {
-                while (await reader.ReadAsync())
-                {
-                    var rs = new ReactionSpecies
-                    {
-                        Id = reader.GetGuid(reader.GetOrdinal("id")),
-                        ReactionId = reader.GetGuid(reader.GetOrdinal("reaction_id")),
-                        SpeciesId = reader.GetGuid(reader.GetOrdinal("species_id")),
-                        Role = reader.GetString(reader.GetOrdinal("role")),
-                        Species = new Species
-                        {
-                            Id = reader.GetGuid(reader.GetOrdinal("species_id")),
-                            Name = reader.GetString(reader.GetOrdinal("SpeciesName")),
-                            Description = reader.IsDBNull(reader.GetOrdinal("SpeciesDescription")) ? null : reader.GetString(reader.GetOrdinal("SpeciesDescription"))
-                        }
-                    };
-                    reactionSpeciesList.Add(rs);
-                }
-            }
-            return reactionSpeciesList;
-        }
     }
-}
-
-// ReactionSpeciesDto.cs
-public class ReactionSpeciesDto
-{
-    public string SpeciesName { get; set; } = string.Empty;
+    public class ReactionSpeciesDto
+    {
+        public Guid Id { get; set; }
+        public Guid ReactionId { get; set; }
+        public Guid SpeciesId { get; set; }
+        public string Role { get; set; } = string.Empty;
+        public string SpeciesName { get; set; } = string.Empty;
+    }
 }

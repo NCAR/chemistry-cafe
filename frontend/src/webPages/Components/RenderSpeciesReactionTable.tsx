@@ -114,14 +114,6 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
         <Typography variant="body1">{params.value}</Typography>
       ),
     },
-    {
-      field: "equation",
-      headerName: "Equation",
-      flex: 1,
-      renderCell: (params) => (
-        <Typography variant="body1">{params.value}</Typography>
-      ),
-    },
   ];
 
   const CustomToolbar: React.FC<{ customButton?: React.ReactNode }> = ({

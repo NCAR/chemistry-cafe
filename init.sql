@@ -14,7 +14,7 @@ CREATE TABLE species (
 -- Table to store chemical reactions
 CREATE TABLE reactions (
     id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
-    equation VARCHAR(512) NOT NULL UNIQUE,
+    name VARCHAR(255) NOT NULL UNIQUE, -- NEW: Unique name for each reaction
     description TEXT,
     created_by VARCHAR(255),
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -204,27 +204,27 @@ INSERT IGNORE INTO species (id, name, description, created_by) VALUES
 
 -- 4. Insert Reaction Data
 
--- Insert reactions for all mechanisms
-INSERT IGNORE INTO reactions (id, equation, description, created_by) VALUES
+-- Insert reactions for all mechanisms with unique names
+INSERT IGNORE INTO reactions (id, name, description, created_by) VALUES
     -- Analytical Mechanism Reactions
-    (UUID(), 'B -> C + irr__089f1f45-4cd8-4278-83d5-d638e98e4315', 'ARRHENIUS Reaction 1', 'admin'),
-    (UUID(), 'A -> B + irr__2a109b21-bb24-41ae-8f06-7485fd36f1a7', 'ARRHENIUS Reaction 2', 'admin'),
+    (UUID(), 'analytical_reaction1', 'ARRHENIUS Reaction 1: B -> C + irr__089f1f45-4cd8-4278-83d5-d638e98e4315', 'admin'),
+    (UUID(), 'analytical_reaction2', 'ARRHENIUS Reaction 2: A -> B + irr__2a109b21-bb24-41ae-8f06-7485fd36f1a7', 'admin'),
     -- Carbon Bond 5 Mechanism Reactions
-    (UUID(), '2 * MEO2 -> FORM + HO2 + MEOH + irr__006fae85-6ca3-441e-b5ca-699fb48e73b6', 'ARRHENIUS Reaction 1', 'admin'),
-    (UUID(), 'M -> CO + irr__00fb05f5-7d54-4f5f-8ca6-874993128406', 'PHOTOLYSIS Reaction 1', 'admin'),
-    (UUID(), 'BENZENE + OH -> OH + BENZRO2 + irr__02066a44-7669-427c-8153-c77676471a76', 'ARRHENIUS Reaction 2', 'admin'),
+    (UUID(), 'carbon_bond_5_reaction1', 'ARRHENIUS Reaction 1: 2 * MEO2 -> FORM + HO2 + MEOH + irr__006fae85-6ca3-441e-b5ca-699fb48e73b6', 'admin'),
+    (UUID(), 'carbon_bond_5_reaction2', 'PHOTOLYSIS Reaction 1: M -> CO + irr__00fb05f5-7d54-4f5f-8ca6-874993128406', 'admin'),
+    (UUID(), 'carbon_bond_5_reaction3', 'ARRHENIUS Reaction 2: BENZENE + OH -> OH + BENZRO2 + irr__02066a44-7669-427c-8153-c77676471a76', 'admin'),
     -- Chapman Mechanism Reactions
-    (UUID(), 'O + O3 -> 2 * O2 + irr__071b97cd-d37e-41e1-9ff1-308e3179f910', 'ARRHENIUS Reaction 1', 'admin'),
-    (UUID(), 'O2 -> 2 * O + irr__17773fe3-c1f6-4015-87e2-f20278517a59', 'PHOTOLYSIS Reaction 1', 'admin'),
-    (UUID(), 'O + O2 + M -> O3 + M + irr__1fce6ca9-960d-4ef9-9435-b5e4ef3f1534', 'ARRHENIUS Reaction 2', 'admin'),
-    (UUID(), 'O3 -> O1D + O2 + irr__427192a6-365c-4d22-9174-8ad91126afab', 'PHOTOLYSIS Reaction 2', 'admin'),
-    (UUID(), 'O1D + O2 -> O + O2 + irr__93f71f99-b360-451d-b698-cc7f7cfe061b', 'ARRHENIUS Reaction 3', 'admin'),
-    (UUID(), 'O1D + M -> O + M + irr__d41171b4-5f9b-4c24-9f0c-4a5bc0041ebc', 'ARRHENIUS Reaction 4', 'admin'),
-    (UUID(), 'O3 -> O + O2 + irr__f6bf24e9-1b52-497b-b50c-74eaccc28120', 'PHOTOLYSIS Reaction 3', 'admin'),
+    (UUID(), 'chapman_reaction1', 'ARRHENIUS Reaction 1: O + O3 -> 2 * O2 + irr__071b97cd-d37e-41e1-9ff1-308e3179f910', 'admin'),
+    (UUID(), 'chapman_reaction2', 'PHOTOLYSIS Reaction 1: O2 -> 2 * O + irr__17773fe3-c1f6-4015-87e2-f20278517a59', 'admin'),
+    (UUID(), 'chapman_reaction3', 'ARRHENIUS Reaction 2: O + O2 + M -> O3 + M + irr__1fce6ca9-960d-4ef9-9435-b5e4ef3f1534', 'admin'),
+    (UUID(), 'chapman_reaction4', 'PHOTOLYSIS Reaction 2: O3 -> O1D + O2 + irr__427192a6-365c-4d22-9174-8ad91126afab', 'admin'),
+    (UUID(), 'chapman_reaction5', 'ARRHENIUS Reaction 3: O1D + O2 -> O + O2 + irr__93f71f99-b360-451d-b698-cc7f7cfe061b', 'admin'),
+    (UUID(), 'chapman_reaction6', 'ARRHENIUS Reaction 4: O1D + M -> O + M + irr__d41171b4-5f9b-4c24-9f0c-4a5bc0041ebc', 'admin'),
+    (UUID(), 'chapman_reaction7', 'PHOTOLYSIS Reaction 3: O3 -> O + O2 + irr__f6bf24e9-1b52-497b-b50c-74eaccc28120', 'admin'),
     -- Flow Tube Mechanism Reactions
-    (UUID(), 'SOA2 -> irr__3fddcf85-062e-4a73-be2c-8f3bbe3af3da', 'PHOTOLYSIS Reaction 1', 'admin'),
-    (UUID(), 'SOA1 -> irr__49b12001-dc96-4a05-9715-e3cd05cb37d5', 'PHOTOLYSIS Reaction 2', 'admin'),
-    (UUID(), 'O3 + a-pinene -> 0.18 * SOA1 + 0.09 * SOA2 + irr__d726e081-c0f1-4649-8947-4919aefd6ac8', 'ARRHENIUS Reaction 1', 'admin');
+    (UUID(), 'flow_tube_reaction1', 'PHOTOLYSIS Reaction 1: SOA2 -> irr__3fddcf85-062e-4a73-be2c-8f3bbe3af3da', 'admin'),
+    (UUID(), 'flow_tube_reaction2', 'PHOTOLYSIS Reaction 2: SOA1 -> irr__49b12001-dc96-4a05-9715-e3cd05cb37d5', 'admin'),
+    (UUID(), 'flow_tube_reaction3', 'ARRHENIUS Reaction 1: O3 + a-pinene -> 0.18 * SOA1 + 0.09 * SOA2 + irr__d726e081-c0f1-4649-8947-4919aefd6ac8', 'admin');
 
 -- 5. Link Reactions and Species in `reaction_species`
 
@@ -237,26 +237,26 @@ INSERT IGNORE INTO reactions (id, equation, description, created_by) VALUES
 INSERT INTO reaction_species (id, reaction_id, species_id, role)
 SELECT UUID(), r.id, s.id, 'reactant'
 FROM reactions r, species s
-WHERE r.equation = 'B -> C + irr__089f1f45-4cd8-4278-83d5-d638e98e4315' AND s.name = 'B';
+WHERE r.name = 'analytical_reaction1' AND s.name = 'B';
 
 -- Products: C, irr__089f1f45-4cd8-4278-83d5-d638e98e4315
 INSERT INTO reaction_species (id, reaction_id, species_id, role)
 SELECT UUID(), r.id, s.id, 'product'
 FROM reactions r, species s
-WHERE r.equation = 'B -> C + irr__089f1f45-4cd8-4278-83d5-d638e98e4315' AND s.name IN ('C', 'irr__089f1f45-4cd8-4278-83d5-d638e98e4315');
+WHERE r.name = 'analytical_reaction1' AND s.name IN ('C', 'irr__089f1f45-4cd8-4278-83d5-d638e98e4315');
 
 -- Reaction: A -> B + irr__2a109b21-bb24-41ae-8f06-7485fd36f1a7
 -- Reactant: A
 INSERT INTO reaction_species (id, reaction_id, species_id, role)
 SELECT UUID(), r.id, s.id, 'reactant'
 FROM reactions r, species s
-WHERE r.equation = 'A -> B + irr__2a109b21-bb24-41ae-8f06-7485fd36f1a7' AND s.name = 'A';
+WHERE r.name = 'analytical_reaction2' AND s.name = 'A';
 
 -- Products: B, irr__2a109b21-bb24-41ae-8f06-7485fd36f1a7
 INSERT INTO reaction_species (id, reaction_id, species_id, role)
 SELECT UUID(), r.id, s.id, 'product'
 FROM reactions r, species s
-WHERE r.equation = 'A -> B + irr__2a109b21-bb24-41ae-8f06-7485fd36f1a7' AND s.name IN ('B', 'irr__2a109b21-bb24-41ae-8f06-7485fd36f1a7');
+WHERE r.name = 'analytical_reaction2' AND s.name IN ('B', 'irr__2a109b21-bb24-41ae-8f06-7485fd36f1a7');
 
 -- Carbon Bond 5 Mechanism Reactions
 
@@ -265,39 +265,39 @@ WHERE r.equation = 'A -> B + irr__2a109b21-bb24-41ae-8f06-7485fd36f1a7' AND s.na
 INSERT INTO reaction_species (id, reaction_id, species_id, role)
 SELECT UUID(), r.id, s.id, 'reactant'
 FROM reactions r, species s
-WHERE r.equation = '2 * MEO2 -> FORM + HO2 + MEOH + irr__006fae85-6ca3-441e-b5ca-699fb48e73b6' AND s.name = 'MEO2';
+WHERE r.name = 'carbon_bond_5_reaction1' AND s.name = 'MEO2';
 
 -- Products: FORM, HO2, MEOH, irr__006fae85-6ca3-441e-b5ca-699fb48e73b6
 INSERT INTO reaction_species (id, reaction_id, species_id, role)
 SELECT UUID(), r.id, s.id, 'product'
 FROM reactions r, species s
-WHERE r.equation = '2 * MEO2 -> FORM + HO2 + MEOH + irr__006fae85-6ca3-441e-b5ca-699fb48e73b6' AND s.name IN ('FORM', 'HO2', 'MEOH', 'irr__006fae85-6ca3-441e-b5ca-699fb48e73b6');
+WHERE r.name = 'carbon_bond_5_reaction1' AND s.name IN ('FORM', 'HO2', 'MEOH', 'irr__006fae85-6ca3-441e-b5ca-699fb48e73b6');
 
 -- Reaction: M -> CO + irr__00fb05f5-7d54-4f5f-8ca6-874993128406
 -- Reactant: M
 INSERT INTO reaction_species (id, reaction_id, species_id, role)
 SELECT UUID(), r.id, s.id, 'reactant'
 FROM reactions r, species s
-WHERE r.equation = 'M -> CO + irr__00fb05f5-7d54-4f5f-8ca6-874993128406' AND s.name = 'M';
+WHERE r.name = 'carbon_bond_5_reaction2' AND s.name = 'M';
 
 -- Products: CO, irr__00fb05f5-7d54-4f5f-8ca6-874993128406
 INSERT INTO reaction_species (id, reaction_id, species_id, role)
 SELECT UUID(), r.id, s.id, 'product'
 FROM reactions r, species s
-WHERE r.equation = 'M -> CO + irr__00fb05f5-7d54-4f5f-8ca6-874993128406' AND s.name IN ('CO', 'irr__00fb05f5-7d54-4f5f-8ca6-874993128406');
+WHERE r.name = 'carbon_bond_5_reaction2' AND s.name IN ('CO', 'irr__00fb05f5-7d54-4f5f-8ca6-874993128406');
 
 -- Reaction: BENZENE + OH -> OH + BENZRO2 + irr__02066a44-7669-427c-8153-c77676471a76
 -- Reactants: BENZENE, OH
 INSERT INTO reaction_species (id, reaction_id, species_id, role)
 SELECT UUID(), r.id, s.id, 'reactant'
 FROM reactions r, species s
-WHERE r.equation = 'BENZENE + OH -> OH + BENZRO2 + irr__02066a44-7669-427c-8153-c77676471a76' AND s.name IN ('BENZENE', 'OH');
+WHERE r.name = 'carbon_bond_5_reaction3' AND s.name IN ('BENZENE', 'OH');
 
 -- Products: OH, BENZRO2, irr__02066a44-7669-427c-8153-c77676471a76
 INSERT INTO reaction_species (id, reaction_id, species_id, role)
 SELECT UUID(), r.id, s.id, 'product'
 FROM reactions r, species s
-WHERE r.equation = 'BENZENE + OH -> OH + BENZRO2 + irr__02066a44-7669-427c-8153-c77676471a76' AND s.name IN ('OH', 'BENZRO2', 'irr__02066a44-7669-427c-8153-c77676471a76');
+WHERE r.name = 'carbon_bond_5_reaction3' AND s.name IN ('OH', 'BENZRO2', 'irr__02066a44-7669-427c-8153-c77676471a76');
 
 -- Chapman Mechanism Reactions
 
@@ -306,91 +306,91 @@ WHERE r.equation = 'BENZENE + OH -> OH + BENZRO2 + irr__02066a44-7669-427c-8153-
 INSERT INTO reaction_species (id, reaction_id, species_id, role)
 SELECT UUID(), r.id, s.id, 'reactant'
 FROM reactions r, species s
-WHERE r.equation = 'O + O3 -> 2 * O2 + irr__071b97cd-d37e-41e1-9ff1-308e3179f910' AND s.name IN ('O', 'O3');
+WHERE r.name = 'chapman_reaction1' AND s.name IN ('O', 'O3');
 
 -- Products: O2, irr__071b97cd-d37e-41e1-9ff1-308e3179f910
 INSERT INTO reaction_species (id, reaction_id, species_id, role)
 SELECT UUID(), r.id, s.id, 'product'
 FROM reactions r, species s
-WHERE r.equation = 'O + O3 -> 2 * O2 + irr__071b97cd-d37e-41e1-9ff1-308e3179f910' AND s.name IN ('O2', 'irr__071b97cd-d37e-41e1-9ff1-308e3179f910');
+WHERE r.name = 'chapman_reaction1' AND s.name IN ('O2', 'irr__071b97cd-d37e-41e1-9ff1-308e3179f910');
 
 -- Reaction: O2 -> 2 * O + irr__17773fe3-c1f6-4015-87e2-f20278517a59
 -- Reactant: O2
 INSERT INTO reaction_species (id, reaction_id, species_id, role)
 SELECT UUID(), r.id, s.id, 'reactant'
 FROM reactions r, species s
-WHERE r.equation = 'O2 -> 2 * O + irr__17773fe3-c1f6-4015-87e2-f20278517a59' AND s.name = 'O2';
+WHERE r.name = 'chapman_reaction2' AND s.name = 'O2';
 
 -- Products: O, irr__17773fe3-c1f6-4015-87e2-f20278517a59
 INSERT INTO reaction_species (id, reaction_id, species_id, role)
 SELECT UUID(), r.id, s.id, 'product'
 FROM reactions r, species s
-WHERE r.equation = 'O2 -> 2 * O + irr__17773fe3-c1f6-4015-87e2-f20278517a59' AND s.name IN ('O', 'irr__17773fe3-c1f6-4015-87e2-f20278517a59');
+WHERE r.name = 'chapman_reaction2' AND s.name IN ('O', 'irr__17773fe3-c1f6-4015-87e2-f20278517a59');
 
 -- Reaction: O + O2 + M -> O3 + M + irr__1fce6ca9-960d-4ef9-9435-b5e4ef3f1534
 -- Reactants: O, O2, M
 INSERT INTO reaction_species (id, reaction_id, species_id, role)
 SELECT UUID(), r.id, s.id, 'reactant'
 FROM reactions r, species s
-WHERE r.equation = 'O + O2 + M -> O3 + M + irr__1fce6ca9-960d-4ef9-9435-b5e4ef3f1534' AND s.name IN ('O', 'O2', 'M');
+WHERE r.name = 'chapman_reaction3' AND s.name IN ('O', 'O2', 'M');
 
 -- Products: O3, M, irr__1fce6ca9-960d-4ef9-9435-b5e4ef3f1534
 INSERT INTO reaction_species (id, reaction_id, species_id, role)
 SELECT UUID(), r.id, s.id, 'product'
 FROM reactions r, species s
-WHERE r.equation = 'O + O2 + M -> O3 + M + irr__1fce6ca9-960d-4ef9-9435-b5e4ef3f1534' AND s.name IN ('O3', 'M', 'irr__1fce6ca9-960d-4ef9-9435-b5e4ef3f1534');
+WHERE r.name = 'chapman_reaction3' AND s.name IN ('O3', 'M', 'irr__1fce6ca9-960d-4ef9-9435-b5e4ef3f1534');
 
 -- Reaction: O3 -> O1D + O2 + irr__427192a6-365c-4d22-9174-8ad91126afab
 -- Reactant: O3
 INSERT INTO reaction_species (id, reaction_id, species_id, role)
 SELECT UUID(), r.id, s.id, 'reactant'
 FROM reactions r, species s
-WHERE r.equation = 'O3 -> O1D + O2 + irr__427192a6-365c-4d22-9174-8ad91126afab' AND s.name = 'O3';
+WHERE r.name = 'chapman_reaction4' AND s.name = 'O3';
 
 -- Products: O1D, O2, irr__427192a6-365c-4d22-9174-8ad91126afab
 INSERT INTO reaction_species (id, reaction_id, species_id, role)
 SELECT UUID(), r.id, s.id, 'product'
 FROM reactions r, species s
-WHERE r.equation = 'O3 -> O1D + O2 + irr__427192a6-365c-4d22-9174-8ad91126afab' AND s.name IN ('O1D', 'O2', 'irr__427192a6-365c-4d22-9174-8ad91126afab');
+WHERE r.name = 'chapman_reaction4' AND s.name IN ('O1D', 'O2', 'irr__427192a6-365c-4d22-9174-8ad91126afab');
 
 -- Reaction: O1D + O2 -> O + O2 + irr__93f71f99-b360-451d-b698-cc7f7cfe061b
 -- Reactants: O1D, O2
 INSERT INTO reaction_species (id, reaction_id, species_id, role)
 SELECT UUID(), r.id, s.id, 'reactant'
 FROM reactions r, species s
-WHERE r.equation = 'O1D + O2 -> O + O2 + irr__93f71f99-b360-451d-b698-cc7f7cfe061b' AND s.name IN ('O1D', 'O2');
+WHERE r.name = 'chapman_reaction5' AND s.name IN ('O1D', 'O2');
 
 -- Products: O, O2, irr__93f71f99-b360-451d-b698-cc7f7cfe061b
 INSERT INTO reaction_species (id, reaction_id, species_id, role)
 SELECT UUID(), r.id, s.id, 'product'
 FROM reactions r, species s
-WHERE r.equation = 'O1D + O2 -> O + O2 + irr__93f71f99-b360-451d-b698-cc7f7cfe061b' AND s.name IN ('O', 'O2', 'irr__93f71f99-b360-451d-b698-cc7f7cfe061b');
+WHERE r.name = 'chapman_reaction5' AND s.name IN ('O', 'O2', 'irr__93f71f99-b360-451d-b698-cc7f7cfe061b');
 
 -- Reaction: O1D + M -> O + M + irr__d41171b4-5f9b-4c24-9f0c-4a5bc0041ebc
 -- Reactants: O1D, M
 INSERT INTO reaction_species (id, reaction_id, species_id, role)
 SELECT UUID(), r.id, s.id, 'reactant'
 FROM reactions r, species s
-WHERE r.equation = 'O1D + M -> O + M + irr__d41171b4-5f9b-4c24-9f0c-4a5bc0041ebc' AND s.name IN ('O1D', 'M');
+WHERE r.name = 'chapman_reaction6' AND s.name IN ('O1D', 'M');
 
 -- Products: O, M, irr__d41171b4-5f9b-4c24-9f0c-4a5bc0041ebc
 INSERT INTO reaction_species (id, reaction_id, species_id, role)
 SELECT UUID(), r.id, s.id, 'product'
 FROM reactions r, species s
-WHERE r.equation = 'O1D + M -> O + M + irr__d41171b4-5f9b-4c24-9f0c-4a5bc0041ebc' AND s.name IN ('O', 'M', 'irr__d41171b4-5f9b-4c24-9f0c-4a5bc0041ebc');
+WHERE r.name = 'chapman_reaction6' AND s.name IN ('O', 'M', 'irr__d41171b4-5f9b-4c24-9f0c-4a5bc0041ebc');
 
 -- Reaction: O3 -> O + O2 + irr__f6bf24e9-1b52-497b-b50c-74eaccc28120
 -- Reactant: O3
 INSERT INTO reaction_species (id, reaction_id, species_id, role)
 SELECT UUID(), r.id, s.id, 'reactant'
 FROM reactions r, species s
-WHERE r.equation = 'O3 -> O + O2 + irr__f6bf24e9-1b52-497b-b50c-74eaccc28120' AND s.name = 'O3';
+WHERE r.name = 'chapman_reaction7' AND s.name = 'O3';
 
 -- Products: O, O2, irr__f6bf24e9-1b52-497b-b50c-74eaccc28120
 INSERT INTO reaction_species (id, reaction_id, species_id, role)
 SELECT UUID(), r.id, s.id, 'product'
 FROM reactions r, species s
-WHERE r.equation = 'O3 -> O + O2 + irr__f6bf24e9-1b52-497b-b50c-74eaccc28120' AND s.name IN ('O', 'O2', 'irr__f6bf24e9-1b52-497b-b50c-74eaccc28120');
+WHERE r.name = 'chapman_reaction7' AND s.name IN ('O', 'O2', 'irr__f6bf24e9-1b52-497b-b50c-74eaccc28120');
 
 -- Flow Tube Mechanism Reactions
 
@@ -399,39 +399,39 @@ WHERE r.equation = 'O3 -> O + O2 + irr__f6bf24e9-1b52-497b-b50c-74eaccc28120' AN
 INSERT INTO reaction_species (id, reaction_id, species_id, role)
 SELECT UUID(), r.id, s.id, 'reactant'
 FROM reactions r, species s
-WHERE r.equation = 'SOA2 -> irr__3fddcf85-062e-4a73-be2c-8f3bbe3af3da' AND s.name = 'SOA2';
+WHERE r.name = 'flow_tube_reaction1' AND s.name = 'SOA2';
 
 -- Product: irr__3fddcf85-062e-4a73-be2c-8f3bbe3af3da
 INSERT INTO reaction_species (id, reaction_id, species_id, role)
 SELECT UUID(), r.id, s.id, 'product'
 FROM reactions r, species s
-WHERE r.equation = 'SOA2 -> irr__3fddcf85-062e-4a73-be2c-8f3bbe3af3da' AND s.name = 'irr__3fddcf85-062e-4a73-be2c-8f3bbe3af3da';
+WHERE r.name = 'flow_tube_reaction1' AND s.name = 'irr__3fddcf85-062e-4a73-be2c-8f3bbe3af3da';
 
 -- Reaction: SOA1 -> irr__49b12001-dc96-4a05-9715-e3cd05cb37d5
 -- Reactant: SOA1
 INSERT INTO reaction_species (id, reaction_id, species_id, role)
 SELECT UUID(), r.id, s.id, 'reactant'
 FROM reactions r, species s
-WHERE r.equation = 'SOA1 -> irr__49b12001-dc96-4a05-9715-e3cd05cb37d5' AND s.name = 'SOA1';
+WHERE r.name = 'flow_tube_reaction2' AND s.name = 'SOA1';
 
 -- Product: irr__49b12001-dc96-4a05-9715-e3cd05cb37d5
 INSERT INTO reaction_species (id, reaction_id, species_id, role)
 SELECT UUID(), r.id, s.id, 'product'
 FROM reactions r, species s
-WHERE r.equation = 'SOA1 -> irr__49b12001-dc96-4a05-9715-e3cd05cb37d5' AND s.name = 'irr__49b12001-dc96-4a05-9715-e3cd05cb37d5';
+WHERE r.name = 'flow_tube_reaction2' AND s.name = 'irr__49b12001-dc96-4a05-9715-e3cd05cb37d5';
 
 -- Reaction: O3 + a-pinene -> 0.18 * SOA1 + 0.09 * SOA2 + irr__d726e081-c0f1-4649-8947-4919aefd6ac8
 -- Reactants: O3, a-pinene
 INSERT INTO reaction_species (id, reaction_id, species_id, role)
 SELECT UUID(), r.id, s.id, 'reactant'
 FROM reactions r, species s
-WHERE r.equation = 'O3 + a-pinene -> 0.18 * SOA1 + 0.09 * SOA2 + irr__d726e081-c0f1-4649-8947-4919aefd6ac8' AND s.name IN ('O3', 'a-pinene');
+WHERE r.name = 'flow_tube_reaction3' AND s.name IN ('O3', 'a-pinene');
 
 -- Products: SOA1, SOA2, irr__d726e081-c0f1-4649-8947-4919aefd6ac8
 INSERT INTO reaction_species (id, reaction_id, species_id, role)
 SELECT UUID(), r.id, s.id, 'product'
 FROM reactions r, species s
-WHERE r.equation = 'O3 + a-pinene -> 0.18 * SOA1 + 0.09 * SOA2 + irr__d726e081-c0f1-4649-8947-4919aefd6ac8' AND s.name IN ('SOA1', 'SOA2', 'irr__d726e081-c0f1-4649-8947-4919aefd6ac8');
+WHERE r.name = 'flow_tube_reaction3' AND s.name IN ('SOA1', 'SOA2', 'irr__d726e081-c0f1-4649-8947-4919aefd6ac8');
 
 -- 6. Link Reactions to Mechanisms in `mechanism_reactions`
 
@@ -439,43 +439,43 @@ WHERE r.equation = 'O3 + a-pinene -> 0.18 * SOA1 + 0.09 * SOA2 + irr__d726e081-c
 INSERT INTO mechanism_reactions (id, mechanism_id, reaction_id)
 SELECT UUID(), m.id, r.id
 FROM mechanisms m, reactions r
-WHERE m.name = 'analytical' AND r.equation IN (
-    'B -> C + irr__089f1f45-4cd8-4278-83d5-d638e98e4315',
-    'A -> B + irr__2a109b21-bb24-41ae-8f06-7485fd36f1a7'
+WHERE m.name = 'analytical' AND r.name IN (
+    'analytical_reaction1',
+    'analytical_reaction2'
 );
 
 -- Carbon Bond 5 Mechanism
 INSERT INTO mechanism_reactions (id, mechanism_id, reaction_id)
 SELECT UUID(), m.id, r.id
 FROM mechanisms m, reactions r
-WHERE m.name = 'carbon_bond_5' AND r.equation IN (
-    '2 * MEO2 -> FORM + HO2 + MEOH + irr__006fae85-6ca3-441e-b5ca-699fb48e73b6',
-    'M -> CO + irr__00fb05f5-7d54-4f5f-8ca6-874993128406',
-    'BENZENE + OH -> OH + BENZRO2 + irr__02066a44-7669-427c-8153-c77676471a76'
+WHERE m.name = 'carbon_bond_5' AND r.name IN (
+    'carbon_bond_5_reaction1',
+    'carbon_bond_5_reaction2',
+    'carbon_bond_5_reaction3'
 );
 
 -- Chapman Mechanism
 INSERT INTO mechanism_reactions (id, mechanism_id, reaction_id)
 SELECT UUID(), m.id, r.id
 FROM mechanisms m, reactions r
-WHERE m.name = 'chapman' AND r.equation IN (
-    'O + O3 -> 2 * O2 + irr__071b97cd-d37e-41e1-9ff1-308e3179f910',
-    'O2 -> 2 * O + irr__17773fe3-c1f6-4015-87e2-f20278517a59',
-    'O + O2 + M -> O3 + M + irr__1fce6ca9-960d-4ef9-9435-b5e4ef3f1534',
-    'O3 -> O1D + O2 + irr__427192a6-365c-4d22-9174-8ad91126afab',
-    'O1D + O2 -> O + O2 + irr__93f71f99-b360-451d-b698-cc7f7cfe061b',
-    'O1D + M -> O + M + irr__d41171b4-5f9b-4c24-9f0c-4a5bc0041ebc',
-    'O3 -> O + O2 + irr__f6bf24e9-1b52-497b-b50c-74eaccc28120'
+WHERE m.name = 'chapman' AND r.name IN (
+    'chapman_reaction1',
+    'chapman_reaction2',
+    'chapman_reaction3',
+    'chapman_reaction4',
+    'chapman_reaction5',
+    'chapman_reaction6',
+    'chapman_reaction7'
 );
 
 -- Flow Tube Mechanism
 INSERT INTO mechanism_reactions (id, mechanism_id, reaction_id)
 SELECT UUID(), m.id, r.id
 FROM mechanisms m, reactions r
-WHERE m.name = 'flow_tube' AND r.equation IN (
-    'SOA2 -> irr__3fddcf85-062e-4a73-be2c-8f3bbe3af3da',
-    'SOA1 -> irr__49b12001-dc96-4a05-9715-e3cd05cb37d5',
-    'O3 + a-pinene -> 0.18 * SOA1 + 0.09 * SOA2 + irr__d726e081-c0f1-4649-8947-4919aefd6ac8'
+WHERE m.name = 'flow_tube' AND r.name IN (
+    'flow_tube_reaction1',
+    'flow_tube_reaction2',
+    'flow_tube_reaction3'
 );
 
 -- 7. Link Species to Mechanisms in `mechanism_species`
@@ -810,6 +810,6 @@ INSERT INTO user_mechanisms (id, user_id, mechanism_id, role) VALUES
 
 -- Create indexes on frequently queried columns to improve performance
 CREATE INDEX idx_species_name ON species(name);
-CREATE INDEX idx_reactions_equation ON reactions(equation);
+CREATE INDEX idx_reactions_name ON reactions(name); -- Updated to index 'name' instead of 'equation'
 CREATE INDEX idx_mechanisms_name ON mechanisms(name);
 CREATE INDEX idx_users_username ON users(username);

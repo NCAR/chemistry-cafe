@@ -68,7 +68,7 @@ public class OpenAtmosService
         foreach (var reaction in reactionList)
         {
             json.AppendLine("    {");
-            json.AppendLine($"      \"equation\": \"{reaction.Equation}\",");
+            json.AppendLine($"      \"equation\": \"{reaction.Description}\","); // Changed from Equation to Description
             // Include additional fields if needed
 
             // Reactants
@@ -79,7 +79,7 @@ public class OpenAtmosService
                 foreach (var reactant in reactants)
                 {
                     json.AppendLine("        {");
-                    json.AppendLine($"          \"species name\": \"{reactant.SpeciesName}\",");
+                    json.AppendLine($"          \"species name\": \"{reactant.SpeciesName}\"");
                     json.AppendLine("        },");
                 }
                 json.Length -= 3;
@@ -95,7 +95,7 @@ public class OpenAtmosService
                 foreach (var product in products)
                 {
                     json.AppendLine("        {");
-                    json.AppendLine($"          \"species name\": \"{product.SpeciesName}\",");
+                    json.AppendLine($"          \"species name\": \"{product.SpeciesName}\"");
                     json.AppendLine("        },");
                 }
                 json.Length -= 3;
@@ -103,8 +103,12 @@ public class OpenAtmosService
                 json.AppendLine("      ],");
             }
 
-            json.Length -= 3;
-            json.AppendLine();
+            // Remove trailing comma if present
+            if (json[json.Length - 3] == ',')
+            {
+                json.Length -= 1;
+            }
+
             json.AppendLine("    },");
         }
         if (reactionList.Any())
@@ -156,7 +160,7 @@ public class OpenAtmosService
         var reactionList = await reactionService.GetReactionsByMechanismIdAsync(mechanismId);
         foreach (var reaction in reactionList)
         {
-            yaml.AppendLine($"- equation: {reaction.Equation}");
+            yaml.AppendLine($"- equation: {reaction.Description}"); // Changed from Equation to Description
             // Include additional fields if needed
 
             // Reactants
@@ -166,7 +170,7 @@ public class OpenAtmosService
                 yaml.AppendLine("  reactants:");
                 foreach (var reactant in reactants)
                 {
-                    yaml.AppendLine("  - species name: " + reactant.SpeciesName);
+                    yaml.AppendLine($"  - species name: {reactant.SpeciesName}");
                 }
             }
 
@@ -177,7 +181,7 @@ public class OpenAtmosService
                 yaml.AppendLine("  products:");
                 foreach (var product in products)
                 {
-                    yaml.AppendLine("  - species name: " + product.SpeciesName);
+                    yaml.AppendLine($"  - species name: {product.SpeciesName}");
                 }
             }
         }
@@ -185,3 +189,4 @@ public class OpenAtmosService
         return yaml.ToString();
     }
 }
+

@@ -38,7 +38,7 @@ namespace Chemistry_Cafe_API.Services
                     mechanism_reactions.id AS MechanismReactionId,
                     mechanism_reactions.mechanism_id AS MechanismId,
                     mechanism_reactions.reaction_id AS ReactionId,
-                    reactions.equation AS ReactionEquation,
+                    reactions.name AS ReactionName,
                     reactions.description AS ReactionDescription
                 FROM mechanism_reactions
                 INNER JOIN reactions ON mechanism_reactions.reaction_id = reactions.id
@@ -59,7 +59,7 @@ namespace Chemistry_Cafe_API.Services
                     Reaction = new Reaction
                     {
                         Id = reader.GetGuid(reader.GetOrdinal("ReactionId")),
-                        Equation = reader.GetString(reader.GetOrdinal("ReactionEquation")),
+                        Name = reader.GetString(reader.GetOrdinal("ReactionName")),
                         Description = reader.IsDBNull(reader.GetOrdinal("ReactionDescription")) ? null : reader.GetString(reader.GetOrdinal("ReactionDescription"))
                     }
                 };
@@ -90,7 +90,7 @@ namespace Chemistry_Cafe_API.Services
                     var reaction = new Reaction
                     {
                         Id = reader.GetGuid(reader.GetOrdinal("id")),
-                        Equation = reader.GetString(reader.GetOrdinal("equation")),
+                        Name = reader.GetString(reader.GetOrdinal("name")),
                         Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString(reader.GetOrdinal("description")),
                         CreatedBy = reader.IsDBNull(reader.GetOrdinal("created_by")) ? null : reader.GetString(reader.GetOrdinal("created_by")),
                         CreatedDate = reader.GetDateTime(reader.GetOrdinal("created_date"))
@@ -116,7 +116,7 @@ namespace Chemistry_Cafe_API.Services
                         Reaction = new Reaction
                         {
                             Id = reader.GetGuid(reader.GetOrdinal("reaction_id")),
-                            Equation = reader.GetString(reader.GetOrdinal("equation")),
+                            Name = reader.GetString(reader.GetOrdinal("ReactionName")),
                             Description = reader.IsDBNull(reader.GetOrdinal("ReactionDescription")) ? null : reader.GetString(reader.GetOrdinal("ReactionDescription"))
                         }
                     };

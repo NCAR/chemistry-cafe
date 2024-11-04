@@ -1,3 +1,4 @@
+// modals.tsx
 import React, { useEffect, useRef, useState } from "react";
 
 import {
@@ -5,6 +6,8 @@ import {
   getReactionsByMechanismId,
   getSpeciesByFamilyId,
   getReactionsByFamilyId,
+  getReactantsByReactionIdAsync,
+  getProductsByReactionIdAsync,
 } from "../../API/API_GetMethods";
 import {
   Family,
@@ -14,6 +17,7 @@ import {
   Reaction,
   ReactionSpecies,
   Species,
+  ReactionSpeciesDto,
 } from "../../API/API_Interfaces";
 import {
   createSpecies,
@@ -201,6 +205,10 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
   const [reactionList, setReactionList] = useState<Reaction[]>([]);
   const [selectedReactionIds, setSelectedReactionIds] = useState<string[]>([]);
 
+  const [reactionEquations, setReactionEquations] = useState<{
+    [key: string]: string;
+  }>({});
+
   const createMechanismRef = useRef("");
 
   useEffect(() => {
@@ -220,6 +228,38 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
 
     fetchSpeciesReactions();
   }, [open, selectedFamilyId]);
+
+  useEffect(() => {
+    const fetchReactionEquations = async () => {
+      const equations: { [key: string]: string } = {};
+      try {
+        await Promise.all(
+          reactionList.map(async (reaction) => {
+            const reactants: ReactionSpeciesDto[] =
+              await getReactantsByReactionIdAsync(reaction.id);
+            const products: ReactionSpeciesDto[] =
+              await getProductsByReactionIdAsync(reaction.id);
+            const reactantNames = reactants
+              .map((r) => r.species_name)
+              .join(" + ");
+            const productNames = products
+              .map((p) => p.species_name)
+              .join(" + ");
+            equations[reaction.id] = `${reactantNames} -> ${productNames}`;
+          })
+        );
+        setReactionEquations(equations);
+      } catch (error) {
+        console.error("Error fetching reaction equations:", error);
+      }
+    };
+
+    if (reactionList.length > 0) {
+      fetchReactionEquations();
+    } else {
+      setReactionEquations({});
+    }
+  }, [reactionList]);
 
   const handleCreateMechanismClick = async () => {
     try {
@@ -301,7 +341,7 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
         >
           {reactionList.map((reaction) => (
             <MenuItem key={reaction.id} value={reaction.id}>
-              {reaction.equation}
+              {reactionEquations[reaction.id] || "Loading..."}
             </MenuItem>
           ))}
         </Select>
@@ -453,6 +493,9 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
   const [selectedReactionType, setSelectedReactionType] = useState<string>("");
   const [reactionList, setReactionList] = useState<Reaction[]>([]);
   const [selectedReactionIds, setSelectedReactionIds] = useState<string[]>([]);
+  const [reactionEquations, setReactionEquations] = useState<{
+    [key: string]: string;
+  }>({});
 
   useEffect(() => {
     const fetchReactions = async () => {
@@ -480,14 +523,44 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
     fetchReactions();
   }, [open, selectedFamilyId, selectedMechanismId]);
 
+  useEffect(() => {
+    const fetchReactionEquations = async () => {
+      const equations: { [key: string]: string } = {};
+      try {
+        await Promise.all(
+          reactionList.map(async (reaction) => {
+            const reactants = await getReactantsByReactionIdAsync(reaction.id);
+            const products = await getProductsByReactionIdAsync(reaction.id);
+            const reactantNames = reactants
+              .map((r: ReactionSpeciesDto) => r.species_name)
+              .join(" + ");
+            const productNames = products
+              .map((p: ReactionSpeciesDto) => p.species_name)
+              .join(" + ");
+            equations[reaction.id] = `${reactantNames} -> ${productNames}`;
+          })
+        );
+        setReactionEquations(equations);
+      } catch (error) {
+        console.error("Error fetching reaction equations:", error);
+      }
+    };
+
+    if (reactionList.length > 0) {
+      fetchReactionEquations();
+    } else {
+      setReactionEquations({});
+    }
+  }, [reactionList]);
+
   const handleCreateReactionClick = async () => {
     try {
       if (selectedFamilyId && selectedMechanismId) {
         if (selectedReactionType !== "") {
           const reactionData: Reaction = {
             id: "",
-            equation: "",
-            description: "",
+            name: selectedReactionType, // Assuming 'name' holds the reaction type
+            description: reactionEquations[selectedReactionType] || "", // Set description to the constructed equation
             createdBy: "current_user",
             createdDate: "",
           };
@@ -558,7 +631,7 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
             >
               {reactionList.map((reaction) => (
                 <MenuItem key={reaction.id} value={reaction.id}>
-                  {reaction.equation}
+                  {reactionEquations[reaction.id] || "Loading..."}
                 </MenuItem>
               ))}
             </Select>
@@ -616,11 +689,21 @@ export const CreateReactantModal: React.FC<CreateReactantModalProps> = ({
 
   const handleCreateReactantClick = async () => {
     try {
+      if (!selectedReaction) {
+        console.error("No reaction selected.");
+        return;
+      }
+
+      if (!selectedSpeciesId) {
+        console.error("No species selected.");
+        return;
+      }
+
+      // Remove 'quantity' since it's not part of the interface
       const reactionSpecies: ReactionSpecies = {
         id: "",
-        reaction_id: selectedReaction?.id as string,
-        species_id: selectedSpeciesId as string,
-        quantity: parseInt(createReactantQuantityRef.current),
+        reaction_id: selectedReaction.id,
+        species_id: selectedSpeciesId,
         role: "reactant",
       };
 
@@ -656,14 +739,16 @@ export const CreateReactantModal: React.FC<CreateReactantModalProps> = ({
         <Typography variant="h6" style={{ marginTop: "1rem" }}>
           Input Quantity
         </Typography>
-        <TextField
+        {/* Remove Quantity Input since 'quantity' is not part of the interface */}
+        {/* Alternatively, if you plan to add 'quantity', ensure it's part of the ReactionSpecies interface */}
+        {/* <TextField
           id="quantity"
           label="Quantity"
           type="number"
           onChange={(e) => (createReactantQuantityRef.current = e.target.value)}
           fullWidth
           margin="normal"
-        />
+        /> */}
         <Button
           variant="contained"
           onClick={handleCreateReactantClick}
@@ -711,11 +796,21 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
 
   const handleCreateProductClick = async () => {
     try {
+      if (!selectedReaction) {
+        console.error("No reaction selected.");
+        return;
+      }
+
+      if (!selectedSpeciesId) {
+        console.error("No species selected.");
+        return;
+      }
+
+      // Remove 'quantity' since it's not part of the interface
       const reactionSpecies: ReactionSpecies = {
         id: "",
-        reaction_id: selectedReaction?.id as string,
-        species_id: selectedSpeciesId as string,
-        quantity: parseInt(createProductQuantityRef.current),
+        reaction_id: selectedReaction.id,
+        species_id: selectedSpeciesId,
         role: "product",
       };
 
@@ -734,7 +829,7 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
   return (
     <Modal open={open} onClose={onClose}>
       <Box sx={style}>
-        <Typography variant="h6">Select a species</Typography>
+        <Typography variant="h6">Select a Species</Typography>
         <Select
           label="Species"
           value={selectedSpeciesId || ""}
@@ -751,13 +846,14 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
         <Typography variant="h6" style={{ marginTop: "1rem" }}>
           Input Quantity
         </Typography>
-        <TextField
+        {/* Remove Quantity Input since 'quantity' is not part of the interface */}
+        {/* <TextField
           id="quantity"
           label="Quantity"
           onChange={(e) => (createProductQuantityRef.current = e.target.value)}
           fullWidth
           margin="normal"
-        />
+        /> */}
         <Button
           variant="contained"
           onClick={handleCreateProductClick}

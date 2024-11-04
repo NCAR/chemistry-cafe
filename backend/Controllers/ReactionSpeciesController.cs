@@ -25,6 +25,22 @@ namespace Chemistry_Cafe_API.Controllers
             return Ok(reactionSpecies);
         }
 
+        [HttpGet("reaction/{reactionId}/reactants")]
+        public async Task<ActionResult<IEnumerable<ReactionSpeciesDto>>> GetReactantsByReactionId(Guid reactionId)
+        {
+            var reactants = await _reactionSpeciesService.GetReactantsByReactionIdAsync(reactionId);
+            return Ok(reactants);
+        }
+
+        // GET: api/reactionspecies/reaction/{reactionId}/products
+        [HttpGet("reaction/{reactionId}/products")]
+        public async Task<ActionResult<IEnumerable<ReactionSpeciesDto>>> GetProductsByReactionId(Guid reactionId)
+        {
+            var products = await _reactionSpeciesService.GetProductsByReactionIdAsync(reactionId);
+            return Ok(products);
+        }
+
+
         // POST: api/ReactionSpecies
         [HttpPost]
         public async Task<IActionResult> AddSpeciesToReaction(ReactionSpecies reactionSpecies)

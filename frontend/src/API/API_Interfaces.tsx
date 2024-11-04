@@ -24,7 +24,7 @@ export interface Species {
 
 export interface Reaction {
   id: string;
-  equation: string;
+  name: string;
   description: string | null;
   createdBy: string;
   createdDate: string;
@@ -34,7 +34,6 @@ export interface ReactionSpecies {
   id?: string;
   reaction_id: string;
   species_id: string;
-  quantity?: number;
   role: "reactant" | "product";
 }
 
@@ -58,6 +57,14 @@ export interface InitialConditionSpecies {
   temperature?: number;
   pressure?: number;
   additional_conditions?: string;
+}
+
+export interface ReactionSpeciesDto {
+  id?: string;
+  reaction_id: string;
+  species_id: string;
+  role: "reactant" | "product";
+  species_name: string;
 }
 
 export interface User {

@@ -13,7 +13,7 @@ namespace Chemistry_Cafe_API.Services
             _database = database;
         }
 
-       public async Task<IReadOnlyList<Reaction>> GetReactionsAsync()
+        public async Task<IReadOnlyList<Reaction>> GetReactionsAsync()
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
@@ -21,7 +21,7 @@ namespace Chemistry_Cafe_API.Services
             command.CommandText = @"
                 SELECT 
                     reactions.id AS ReactionId,
-                    reactions.equation AS ReactionEquation,
+                    reactions.name AS ReactionName,
                     reactions.description AS ReactionDescription,
                     reactions.created_by AS ReactionCreatedBy,
                     reactions.created_date AS ReactionCreatedDate,
@@ -48,7 +48,7 @@ namespace Chemistry_Cafe_API.Services
                     reaction = new Reaction
                     {
                         Id = reactionId,
-                        Equation = reader.GetString(reader.GetOrdinal("ReactionEquation")),
+                        Name = reader.GetString(reader.GetOrdinal("ReactionName")),
                         Description = reader.IsDBNull(reader.GetOrdinal("ReactionDescription")) ? null : reader.GetString(reader.GetOrdinal("ReactionDescription")),
                         CreatedBy = reader.IsDBNull(reader.GetOrdinal("ReactionCreatedBy")) ? null : reader.GetString(reader.GetOrdinal("ReactionCreatedBy")),
                         CreatedDate = reader.GetDateTime(reader.GetOrdinal("ReactionCreatedDate")),
@@ -109,11 +109,11 @@ namespace Chemistry_Cafe_API.Services
             reaction.Id = Guid.NewGuid();
 
             command.CommandText = @"
-                INSERT INTO reactions (id, equation, description, created_by)
-                VALUES (@id, @equation, @description, @created_by);";
+                INSERT INTO reactions (id, name, description, created_by)
+                VALUES (@id, @name, @description, @created_by);";
 
             command.Parameters.AddWithValue("@id", reaction.Id);
-            command.Parameters.AddWithValue("@equation", reaction.Equation);
+            command.Parameters.AddWithValue("@name", reaction.Name);
             command.Parameters.AddWithValue("@description", reaction.Description ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@created_by", reaction.CreatedBy ?? (object)DBNull.Value);
 
@@ -130,13 +130,13 @@ namespace Chemistry_Cafe_API.Services
 
             command.CommandText = @"
                 UPDATE reactions 
-                SET equation = @equation, 
+                SET name = @name, 
                     description = @description, 
                     created_by = @created_by
                 WHERE id = @id;";
 
             command.Parameters.AddWithValue("@id", reaction.Id);
-            command.Parameters.AddWithValue("@equation", reaction.Equation);
+            command.Parameters.AddWithValue("@name", reaction.Name);
             command.Parameters.AddWithValue("@description", reaction.Description ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@created_by", reaction.CreatedBy ?? (object)DBNull.Value);
 
@@ -151,7 +151,7 @@ namespace Chemistry_Cafe_API.Services
             using var command = connection.CreateCommand();
 
             command.CommandText = @"
-                SELECT r.id, r.equation, r.description, r.created_by, r.created_date 
+                SELECT r.id, r.name, r.description, r.created_by, r.created_date 
                 FROM reactions r
                 JOIN mechanism_reactions mr ON r.id = mr.reaction_id
                 JOIN mechanisms m ON mr.mechanism_id = m.id
@@ -166,7 +166,7 @@ namespace Chemistry_Cafe_API.Services
                 var reaction = new Reaction
                 {
                     Id = reader.GetGuid(reader.GetOrdinal("id")),
-                    Equation = reader.GetString(reader.GetOrdinal("equation")),
+                    Name = reader.GetString(reader.GetOrdinal("name")),
                     Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString(reader.GetOrdinal("description")),
                     CreatedBy = reader.IsDBNull(reader.GetOrdinal("created_by")) ? null : reader.GetString(reader.GetOrdinal("created_by")),
                     CreatedDate = reader.GetDateTime(reader.GetOrdinal("created_date"))
@@ -186,7 +186,7 @@ namespace Chemistry_Cafe_API.Services
             using var command = connection.CreateCommand();
 
             command.CommandText = @"
-                SELECT r.id, r.equation, r.description, r.created_by, r.created_date 
+                SELECT r.id, r.name, r.description, r.created_by, r.created_date 
                 FROM reactions r
                 JOIN mechanism_reactions mr ON r.id = mr.reaction_id
                 WHERE mr.mechanism_id = @mechanismId";
@@ -200,7 +200,7 @@ namespace Chemistry_Cafe_API.Services
                 var reaction = new Reaction
                 {
                     Id = reader.GetGuid(reader.GetOrdinal("id")),
-                    Equation = reader.GetString(reader.GetOrdinal("equation")),
+                    Name = reader.GetString(reader.GetOrdinal("name")),
                     Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString(reader.GetOrdinal("description")),
                     CreatedBy = reader.IsDBNull(reader.GetOrdinal("created_by")) ? null : reader.GetString(reader.GetOrdinal("created_by")),
                     CreatedDate = reader.GetDateTime(reader.GetOrdinal("created_date"))
@@ -233,7 +233,7 @@ namespace Chemistry_Cafe_API.Services
                     var reaction = new Reaction
                     {
                         Id = reader.GetGuid(reader.GetOrdinal("id")),
-                        Equation = reader.GetString(reader.GetOrdinal("equation")),
+                        Name = reader.GetString(reader.GetOrdinal("name")),
                         Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString(reader.GetOrdinal("description")),
                         CreatedBy = reader.IsDBNull(reader.GetOrdinal("created_by")) ? null : reader.GetString(reader.GetOrdinal("created_by")),
                         CreatedDate = reader.GetDateTime(reader.GetOrdinal("created_date"))

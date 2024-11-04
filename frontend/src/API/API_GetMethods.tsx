@@ -1,7 +1,14 @@
 // API_GetMethods.ts
 
 import axios from "axios";
-import { Family, Mechanism, Species, Reaction, User } from "./API_Interfaces";
+import {
+  Family,
+  Mechanism,
+  Species,
+  Reaction,
+  User,
+  ReactionSpeciesDto,
+} from "./API_Interfaces";
 
 // Get all families
 export async function getFamilies(): Promise<Family[]> {
@@ -172,6 +179,34 @@ export async function getReactionsByFamilyId(
   try {
     const response = await axios.get<Reaction[]>(
       `http://localhost:8080/api/reactions/family/${familyId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+}
+
+export async function getReactantsByReactionIdAsync(
+  reactionId: string
+): Promise<ReactionSpeciesDto[]> {
+  try {
+    const response = await axios.get<ReactionSpeciesDto[]>(
+      `http://localhost:8080/api/reactionspecies/reaction/${reactionId}/reactants`
+    );
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+}
+
+export async function getProductsByReactionIdAsync(
+  reactionId: string
+): Promise<ReactionSpeciesDto[]> {
+  try {
+    const response = await axios.get<ReactionSpeciesDto[]>(
+      `http://localhost:8080/api/reactionspecies/reaction/${reactionId}/products`
     );
     return response.data;
   } catch (error) {

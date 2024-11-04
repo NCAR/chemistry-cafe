@@ -7,16 +7,16 @@ using Microsoft.EntityFrameworkCore;
 namespace Chemistry_Cafe_API.Models;
 
 [Table("reactions")]
-[Index("Equation", Name = "equation", IsUnique = true)]
+[Index(nameof(Name), Name = "name_idx", IsUnique = true)]
 public partial class Reaction
 {
     [Key]
     [Column("id")]
     public Guid Id { get; set; }
 
-    [Column("equation")]
+    [Column("name")]
     [StringLength(512)]
-    public string Equation { get; set; } = null!;
+    public string Name { get; set; } = null!;
 
     [Column("description", TypeName = "text")]
     public string? Description { get; set; }
