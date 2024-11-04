@@ -246,6 +246,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamily, selectedT
                 {currentTab === 0 && 
                         <div style={{ flexGrow: 1 }}>
                             <DataGrid
+                            initialState={{ density: 'compact', }}
                             rows={combineSpeciesAndProperties(species, speciesProperties)}
                             columns={createSpeciesColumns()}
                             getRowId={(row: Species) => row.uuid}
@@ -273,6 +274,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamily, selectedT
                         {currentTab === 1 && 
                         <div style={{ flexGrow: 1 }}>
                             <DataGrid
+                            initialState={{ density: 'compact', }}
                             rows={reactions}
                             columns={reactionColumns}
                             getRowId={(row: Reaction) => row.uuid}
