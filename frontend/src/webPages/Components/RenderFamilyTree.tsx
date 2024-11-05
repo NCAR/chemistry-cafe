@@ -1,306 +1,346 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from "react";
 
-import { Family, TagMechanism } from '../../API/API_Interfaces';
-import { downloadOAYAML, downloadOAJSON, getFamilies, getTagMechanismsFromFamily } from '../../API/API_GetMethods';
-import { deleteFamily, deleteTagMechanism } from '../../API/API_DeleteMethods';
+import { Family, Mechanism } from "../../API/API_Interfaces";
+import {
+  downloadOAYAML,
+  downloadOAJSON,
+  getFamilies,
+  getMechanismsByFamilyId,
+} from "../../API/API_GetMethods";
+import { deleteFamily, deleteMechanism } from "../../API/API_DeleteMethods";
 
-import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
-import { TreeItem } from '@mui/x-tree-view/TreeItem';
+import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
+import { TreeItem } from "@mui/x-tree-view/TreeItem";
 
-import IconButton from '@mui/material/IconButton';
-import { Add, GetApp, Delete } from '@mui/icons-material';
+import IconButton from "@mui/material/IconButton";
+import { Add, GetApp, Delete } from "@mui/icons-material";
 
-import CircularProgress from '@mui/material/CircularProgress';
+import CircularProgress from "@mui/material/CircularProgress";
 
-import Popover from '@mui/material/Popover';
-import Button from '@mui/material/Button';
+import Popover from "@mui/material/Popover";
+import Button from "@mui/material/Button";
 
 const treeItemStyle = {
-    fontSize: '1.2rem',
-    backgroundColor: '#f0f0f0',
-    border: '1px solid #ccc',
-    borderRadius: '4px',
-    padding: '8px 12px',
-    margin: '4px',
-    cursor: 'pointer',
-    boxShadow: '3',
+  fontSize: "1.2rem",
+  backgroundColor: "#f0f0f0",
+  border: "1px solid #ccc",
+  borderRadius: "4px",
+  padding: "8px 12px",
+  margin: "4px",
+  cursor: "pointer",
+  boxShadow: "3",
 };
 
-// const stickyContainerStyle = {
-//     display: 'flex',
-//     justifyContent: 'space-between',
-//     alignItems: 'center',
-//     position: 'sticky',
-//     top: 0,
-//     backgroundColor: 'white',
-//     padding: '10px',
-//     zIndex: 1,  
-//    };
-
 const containerStyle: React.CSSProperties = {
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100vh',
-}; 
+  display: "flex",
+  flexDirection: "column",
+  height: "100vh",
+};
 const stickyHeaderStyle: React.CSSProperties = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    position: 'sticky',
-    top: 0,
-    backgroundColor: '#f0f0f0',
-    zIndex: 1,
-    padding: '10px',
-    borderBottom: '1px solid #ccc', 
-}; 
-const treeViewContainerStyle = { 
-    overflow: 'auto', 
-    flexGrow: 1, 
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  position: "sticky",
+  top: 0,
+  backgroundColor: "#f0f0f0",
+  zIndex: 1,
+  padding: "10px",
+  borderBottom: "1px solid #ccc",
+};
+const treeViewContainerStyle = {
+  overflow: "auto",
+  flexGrow: 1,
 };
 
 interface RenderFamilyTreeProps {
-    setSelectedFamily: React.Dispatch<React.SetStateAction<string | null>>;
-    setSelectedTagMechanism: React.Dispatch<React.SetStateAction<string | null>>;
-    handleCreateFamilyOpen: () => void;
-    handleCreateTagMechanismOpen: () => void;
-    selectedFamily: string | null;
-    createdFamilyBool: boolean;
-    setCreatedFamilyBool: React.Dispatch<React.SetStateAction<boolean>>;
-    createdTagMechanismBool: boolean;
-    setCreatedTagMechanismBool: React.Dispatch<React.SetStateAction<boolean>>;
-};
-
-const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({ 
-    setSelectedFamily, 
-    setSelectedTagMechanism, 
-    handleCreateFamilyOpen, 
-    handleCreateTagMechanismOpen,
-    createdFamilyBool,
-    setCreatedFamilyBool,
-    createdTagMechanismBool,
-    setCreatedTagMechanismBool
-}) => {
-    const [expandedItems, setExpandedItems] = useState<string[]>([]);
-    
-    const [families, setFamilies] = useState<Family[]>([]);
-    const [tagMechanismsMap, setTagMechanismsMap] = useState<Record<string, TagMechanism[]>>({});
-
-    const [loading, setLoading] = useState<boolean>(true);
-
-    const [deleteBool, setDeleteBool] = useState<boolean>(false);
-
-    const ref = useRef("");
-
-    /* Popover for Downloads */
-    const [popOver, setPopOver] = useState<HTMLButtonElement | null>(null);
-    const handlePopOverClose = () => {
-        setPopOver(null);
-    }
-    const popOverOpen = Boolean(popOver);
-
-    
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const fetchedFamilies = await getFamilies();
-                setFamilies(fetchedFamilies);
-                setLoading(false);
-
-                const tagMechanismsPromises = fetchedFamilies.map(family => getTagMechanismsFromFamily(family.uuid));
-                const tagMechanisms = await Promise.all(tagMechanismsPromises);
-                const tagMechanismsMap: Record<string, TagMechanism[]> = {};
-                fetchedFamilies.forEach((family, index) => {
-                    tagMechanismsMap[family.uuid] = tagMechanisms[index];
-                });
-                setTagMechanismsMap(tagMechanismsMap);
-                setCreatedFamilyBool(false);
-                setCreatedTagMechanismBool(false);
-                setDeleteBool(false);
-            } catch (error) {
-                console.error(error);
-            }
-        };
-
-        fetchData();
-    }, [createdFamilyBool == true, createdTagMechanismBool == true, deleteBool == true]);
-
-    const handleDownloadClick = async (tag_mechanism_uuid: string, isJSON: boolean) => {
-        const link = document.createElement("a");
-        var blobUrl = "";
-        if(isJSON){
-            const body = await downloadOAJSON(tag_mechanism_uuid as string);
-            const blob = new Blob([body], { type: 'application/json' });
-            blobUrl = window.URL.createObjectURL(blob);
-            link.download = 'openAtmos.json';
-        }
-        else{
-            const body = await downloadOAYAML(tag_mechanism_uuid as string);
-            const blob = new Blob([body], { type: 'application/json' });
-            blobUrl = window.URL.createObjectURL(blob);
-            link.download = 'openAtmos.yaml';
-        }
-
-        link.href = blobUrl;
-
-        link.click();
-
-        window.URL.revokeObjectURL(blobUrl);
-    };
-
-    const handlePopOverClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-        setPopOver(event.currentTarget);
-    }
-
-    const handleItemExpansionToggle = (_event: React.SyntheticEvent, itemId: string, isExpanded: boolean) => {
-        setExpandedItems(isExpanded ? [itemId] : []);
-    };
-
-    const handleFamilyDelete= async (family_uuid: string) => {
-        await deleteFamily(family_uuid);
-        setDeleteBool(true);
-    };
-
-    const handleTagMechanismDelete= async (tag_mechanism_uuid: string) => {
-        await deleteTagMechanism(tag_mechanism_uuid);
-        setDeleteBool(true);
-    };
-    
-    return (
-        <div style={containerStyle}>
-            {loading ? (
-                <CircularProgress />
-            ) : (
-                <>
-                    <div style={stickyHeaderStyle}>
-                        <h2 style={{ textAlign: 'center', margin: '0'}}>Families</h2>
-                        <IconButton 
-                            onClick={handleCreateFamilyOpen} 
-                            aria-label="create family" 
-                            style={{ color: 'blue', margin: '5px' }}
-                        >
-                            <Add sx={{ fontSize: 32, fontWeight: 'bold' }} />
-                        </IconButton>
-                    </div>
-                    <div style={treeViewContainerStyle}>
-                        <SimpleTreeView
-                            expandedItems={expandedItems}
-                            onItemExpansionToggle={handleItemExpansionToggle}
-                        >
-                            {families.map((family) => (
-                                <TreeItem
-                                    key={family.uuid}
-                                    itemId={family.uuid}
-                                    label={
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <span>{family.name}</span>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', width: 80}}>
-                                                <IconButton
-                                                    onClick={(obj) => {
-                                                        ref.current = family.super_tag_mechanism_uuid;
-                                                        handlePopOverClick(obj);
-                                                    }}
-                                                    aria-label="download"
-                                                    style={{ color: 'green' }}
-                                                    edge= 'end'
-                                                >
-                                                    <GetApp />
-                                                </IconButton>
-                                                <IconButton
-                                                    onClick={() => {
-                                                        handleFamilyDelete(family.uuid);
-                                                    }}
-                                                    aria-label="delete"
-                                                    style={{ color: 'red' }}
-                                                    edge= 'start'
-                                                >
-                                                    <Delete />
-                                                </IconButton>
-                                                <Popover
-                                                    open={popOverOpen}
-                                                    anchorEl={popOver}
-                                                    onClose={handlePopOverClose}
-                                                    anchorOrigin={{
-                                                        vertical: 'bottom',
-                                                        horizontal: 'left',
-                                                    }}
-                                                >
-                                                    <Button onClick={() => {handleDownloadClick(ref.current, false)}}>YAML</Button>
-                                                    <Button onClick={() => {handleDownloadClick(ref.current, true)}}>JSON</Button>
-                                                </Popover>
-                                            </div>
-                                            
-                                        </div>
-                                    }
-                                    sx={treeItemStyle}
-                                    onClick={() => {
-                                        setSelectedFamily(family.uuid);
-                                        setSelectedTagMechanism(family.super_tag_mechanism_uuid);
-                                    }}
-                                >
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                        <h6 style={{ textAlign: 'left', margin: '0' }}>Tag Mechanisms</h6>
-                                        <IconButton 
-                                            onClick={handleCreateTagMechanismOpen} 
-                                            aria-label="create tag mechanism" 
-                                            style={{ color: 'blue', margin: '5px' }}
-                                        >
-                                            <Add sx={{ fontSize: 32, fontWeight: 'bold' }} />
-                                        </IconButton>
-                                    </div>
-                                    {tagMechanismsMap[family.uuid]?.map((tagMechanism) => (
-                                        <TreeItem
-                                            key={tagMechanism.uuid}
-                                            itemId={tagMechanism.uuid}
-                                            label={<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <span>{tagMechanism.tag}</span>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', width: 80}}>
-                                                    <IconButton
-                                                        onClick={(obj) => {
-                                                            ref.current = tagMechanism.uuid;
-                                                            handlePopOverClick(obj);
-                                                        }}
-                                                        aria-label="download"
-                                                        style={{ color: 'green' }}
-                                                    >
-                                                        <GetApp />
-                                                    </IconButton>
-                                                    <IconButton
-                                                        onClick={() => {
-                                                            handleTagMechanismDelete(tagMechanism.uuid);
-                                                        }}
-                                                        aria-label="delete"
-                                                        style={{ color: 'red' }}
-                                                        edge= 'start'
-                                                    >
-                                                        <Delete />
-                                                    </IconButton>
-                                                    <Popover
-                                                        open={popOverOpen}
-                                                        anchorEl={popOver}
-                                                        onClose={handlePopOverClose}
-                                                        anchorOrigin={{
-                                                            vertical: 'bottom',
-                                                            horizontal: 'left',
-                                                        }}
-                                                    >
-                                                        <Button onClick={() => {handleDownloadClick(ref.current, false)}}>YAML</Button>
-                                                        <Button onClick={() => {handleDownloadClick(ref.current, true)}}>JSON</Button>
-                                                    </Popover>
-                                                </div>
-                                            </div>}
-                                            sx={treeItemStyle}
-                                            onClick={() => setSelectedTagMechanism(tagMechanism.uuid)}
-                                        />
-                                    ))}
-                                </TreeItem>
-                            ))}
-                        </SimpleTreeView>
-                    </div>
-                    
-                </>
-            )}
-        </div>
-    );
+  setSelectedFamilyId: React.Dispatch<React.SetStateAction<string | null>>;
+  setSelectedMechanismId: React.Dispatch<React.SetStateAction<string | null>>;
+  handleCreateFamilyOpen: () => void;
+  handleCreateMechanismOpen: () => void;
+  selectedFamilyId: string | null;
+  createdFamilyBool: boolean;
+  setCreatedFamilyBool: React.Dispatch<React.SetStateAction<boolean>>;
+  createdMechanismBool: boolean;
+  setCreatedMechanismBool: React.Dispatch<React.SetStateAction<boolean>>;
 }
+
+const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
+  setSelectedFamilyId,
+  setSelectedMechanismId,
+  handleCreateFamilyOpen,
+  handleCreateMechanismOpen,
+  createdFamilyBool,
+  setCreatedFamilyBool,
+  createdMechanismBool,
+  setCreatedMechanismBool,
+}) => {
+  const [expandedItems, setExpandedItems] = useState<string[]>([]);
+
+  const [families, setFamilies] = useState<Family[]>([]);
+  const [mechanismsMap, setMechanismsMap] = useState<
+    Record<string, Mechanism[]>
+  >({});
+
+  const [loading, setLoading] = useState<boolean>(true);
+
+  const [deleteBool, setDeleteBool] = useState<boolean>(false);
+
+  const ref = useRef<string | null>(null);
+
+  /* Popover for Downloads */
+  const [popOver, setPopOver] = useState<HTMLButtonElement | null>(null);
+  const handlePopOverClose = () => {
+    setPopOver(null);
+  };
+  const popOverOpen = Boolean(popOver);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const fetchedFamilies = await getFamilies();
+        setFamilies(fetchedFamilies);
+        setLoading(false);
+
+        const mechanismsPromises = fetchedFamilies.map((family) =>
+          getMechanismsByFamilyId(family.id!)
+        );
+        const mechanismsArray = await Promise.all(mechanismsPromises);
+        const mechanismsMap: Record<string, Mechanism[]> = {};
+        fetchedFamilies.forEach((family, index) => {
+          if (family.id) {
+            mechanismsMap[family.id] = mechanismsArray[index];
+          } else {
+            throw Error("Missing id for family " + family.name);
+          }
+        });
+        setMechanismsMap(mechanismsMap);
+        setCreatedFamilyBool(false);
+        setCreatedMechanismBool(false);
+        setDeleteBool(false);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchData();
+  }, [createdFamilyBool, createdMechanismBool, deleteBool]);
+
+  const handleDownloadClick = async (mechanismId: string, isJSON: boolean) => {
+    const link = document.createElement("a");
+    let blobUrl = "";
+    if (isJSON) {
+      const body = await downloadOAJSON(mechanismId);
+      const blob = new Blob([body], { type: "application/json" });
+      blobUrl = window.URL.createObjectURL(blob);
+      link.download = "openAtmos.json";
+    } else {
+      const body = await downloadOAYAML(mechanismId);
+      const blob = new Blob([body], { type: "application/json" });
+      blobUrl = window.URL.createObjectURL(blob);
+      link.download = "openAtmos.yaml";
+    }
+
+    link.href = blobUrl;
+
+    link.click();
+
+    window.URL.revokeObjectURL(blobUrl);
+  };
+
+  const handlePopOverClick = (
+    event: React.MouseEvent<HTMLButtonElement>,
+    mechanismId: string
+  ) => {
+    ref.current = mechanismId;
+    setPopOver(event.currentTarget);
+  };
+
+  const handleItemExpansionToggle = (
+    _event: React.SyntheticEvent<{}>,
+    itemId: string,
+    isExpanded: boolean
+  ) => {
+    setExpandedItems((prevExpandedItems) => {
+      if (isExpanded) {
+        return [...prevExpandedItems, itemId];
+      } else {
+        return prevExpandedItems.filter((id) => id !== itemId);
+      }
+    });
+  };
+
+  const handleFamilyDelete = async (familyId: string) => {
+    await deleteFamily(familyId);
+    setDeleteBool(true);
+  };
+
+  const handleMechanismDelete = async (mechanismId: string) => {
+    await deleteMechanism(mechanismId);
+    setDeleteBool(true);
+  };
+
+  return (
+    <div style={containerStyle}>
+      {loading ? (
+        <CircularProgress />
+      ) : (
+        <>
+          <div style={stickyHeaderStyle}>
+            <h2 style={{ textAlign: "center", margin: "0" }}>Families</h2>
+            <IconButton
+              onClick={handleCreateFamilyOpen}
+              aria-label="create family"
+              style={{ color: "blue", margin: "5px" }}
+            >
+              <Add sx={{ fontSize: 32, fontWeight: "bold" }} />
+            </IconButton>
+          </div>
+          <div style={treeViewContainerStyle}>
+            <SimpleTreeView
+              expandedItems={expandedItems}
+              onItemExpansionToggle={handleItemExpansionToggle}
+            >
+              {families.map((family) => (
+                <TreeItem
+                  key={family.id}
+                  itemId={family.id!}
+                  label={
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <span>{family.name}</span>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          width: 80,
+                        }}
+                      >
+                        <IconButton
+                          onClick={() => {
+                            handleFamilyDelete(family.id!);
+                          }}
+                          aria-label="delete"
+                          style={{ color: "red" }}
+                          edge="start"
+                        >
+                          <Delete />
+                        </IconButton>
+                      </div>
+                    </div>
+                  }
+                  sx={treeItemStyle}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <h6 style={{ textAlign: "left", margin: "0" }}>
+                      Mechanisms
+                    </h6>
+                    <IconButton
+                      onClick={() => {
+                        setSelectedFamilyId(family.id!);
+                        handleCreateMechanismOpen();
+                      }}
+                      aria-label="create mechanism"
+                      style={{ color: "blue", margin: "5px" }}
+                    >
+                      <Add sx={{ fontSize: 32, fontWeight: "bold" }} />
+                    </IconButton>
+                  </div>
+                  {mechanismsMap[family.id!]?.map((mechanism) => (
+                    <TreeItem
+                      key={mechanism.id}
+                      itemId={`mechanism-${mechanism.id}`}
+                      label={
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                          }}
+                        >
+                          <span>{mechanism.name}</span>
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              width: 80,
+                            }}
+                          >
+                            <IconButton
+                              onClick={(event) => {
+                                handlePopOverClick(event, mechanism.id);
+                              }}
+                              aria-label="download"
+                              style={{ color: "green" }}
+                            >
+                              <GetApp />
+                            </IconButton>
+                            <IconButton
+                              onClick={() => {
+                                handleMechanismDelete(mechanism.id);
+                              }}
+                              aria-label="delete"
+                              style={{ color: "red" }}
+                              edge="start"
+                            >
+                              <Delete />
+                            </IconButton>
+                            <Popover
+                              open={popOverOpen}
+                              anchorEl={popOver}
+                              onClose={handlePopOverClose}
+                              anchorOrigin={{
+                                vertical: "bottom",
+                                horizontal: "left",
+                              }}
+                            >
+                              <Button
+                                onClick={() => {
+                                  if (ref.current !== null) {
+                                    handleDownloadClick(ref.current, false);
+                                  }
+                                }}
+                              >
+                                YAML
+                              </Button>
+                              <Button
+                                onClick={() => {
+                                  if (ref.current !== null) {
+                                    handleDownloadClick(ref.current, true);
+                                  }
+                                }}
+                              >
+                                JSON
+                              </Button>
+                            </Popover>
+                          </div>
+                        </div>
+                      }
+                      sx={treeItemStyle}
+                      onClick={() => {
+                        setSelectedFamilyId(family.id!);
+                        setSelectedMechanismId(mechanism.id);
+                      }}
+                    />
+                  ))}
+                </TreeItem>
+              ))}
+            </SimpleTreeView>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
 
 export default RenderFamilyTree;

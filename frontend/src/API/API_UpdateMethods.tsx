@@ -1,52 +1,98 @@
-import axios from 'axios';
-import { PropertyList, ReactantProductList } from "./API_Interfaces";
+// API_UpdateMethods.ts
 
-export async function updatePropertyList(propertyList: PropertyList) {
-    try {
-        const requestData = {
-            uuid: propertyList.uuid,
-            parent_uuid: propertyList.parent_uuid,
-            version: propertyList.version,
-            isDel: propertyList.isDel,
-        };
+import axios from "axios";
+import { Family, Mechanism, Species, Reaction, User } from "./API_Interfaces";
 
-        const response = await axios.put(
-            'http://localhost:8080/api/PropertyList/update',
-            requestData,
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
-        return response.data;
-    } catch (error) {
-        console.error(error);
-        throw error;
-    }
+// Update a family
+export async function updateFamily(family: Family) {
+  try {
+    const response = await axios.put(
+      `http://localhost:8080/api/families/${family.id}`,
+      family,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data as Family;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
 }
 
-export async function updateReactantProductList(reactantProductList: ReactantProductList) {
-    try {
-        const requestData = {
-            reactant_product_uuid: reactantProductList.reactant_product_uuid,
-            reaction_uuid: reactantProductList.reaction_uuid,
-            species_uuid: reactantProductList.species_uuid,
-            quantity: reactantProductList.quantity,
-        };
+// Update a mechanism
+export async function updateMechanism(mechanism: Mechanism) {
+  try {
+    const response = await axios.put(
+      `http://localhost:8080/api/mechanism/${mechanism.id}`,
+      mechanism,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data as Mechanism;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
 
-        const response = await axios.put(
-            'http://localhost:8080/api/ReactantProductList/update',
-            requestData,
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
-        return response.data;
-    } catch (error) {
-        console.error(error);
-        throw error;
-    }
+// Update a species
+export async function updateSpecies(species: Species) {
+  try {
+    const response = await axios.put(
+      `http://localhost:8080/api/species/${species.id}`,
+      species,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data as Species;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+// Update a reaction
+export async function updateReaction(reaction: Reaction) {
+  try {
+    const response = await axios.put(
+      `http://localhost:8080/api/reactions/${reaction.id}`,
+      reaction,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data as Reaction;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function updateUser(id: string, user: User) {
+  try {
+    const response = await axios.put(
+      `http://localhost:8080/api/users/${id}`,
+      user,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data as User;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
 }

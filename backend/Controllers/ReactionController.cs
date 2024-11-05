@@ -1,72 +1,87 @@
-﻿using Chemistry_Cafe_API.Models;
-using Chemistry_Cafe_API.Services;
 using Microsoft.AspNetCore.Mvc;
-using MySqlConnector;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Chemistry_Cafe_API.Models;
+using Chemistry_Cafe_API.Services;
 
 namespace Chemistry_Cafe_API.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
-    public class ReactionController : ControllerBase
+    [Route("api/reactions")]
+    public class ReactionsController : ControllerBase
     {
-        private ReactionService reactionService;
+        private readonly ReactionService _reactionService;
 
-        //Injects sql data source setup in Program.cs
-        public ReactionController([FromServices] MySqlDataSource db)
+        public ReactionsController(ReactionService reactionService)
         {
-            this.reactionService = new ReactionService(db);
+            _reactionService = reactionService;
         }
 
-        // GET: api/Reaction/all
-        [HttpGet("all")]
-        public async Task<IReadOnlyList<Reaction>> Get()
+        // GET: api/Reactions
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Reaction>>> GetReactions()
         {
-            return await reactionService.GetReactionsAsync();
+            var reactions = await _reactionService.GetReactionsAsync();
+            return Ok(reactions);
         }
 
-        // GET api/Reaction/5
-        [HttpGet("{uuid}")]
-        public async Task<Reaction?> Get(Guid uuid)
+        // GET: api/Reactions/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Reaction>> GetReaction(Guid id)
         {
-            return await reactionService.GetReactionAsync(uuid);
+            var reaction = await _reactionService.GetReactionAsync(id);
+
+            if (reaction == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(reaction);
         }
 
-        // GET api/Reaction/String/5
-        [HttpGet("String/{uuid}")]
-        public async Task<String?> GetString(Guid uuid)
+        // GET: api/Reactions/family/5
+        [HttpGet("family/{familyId}")]
+        public async Task<ActionResult<IEnumerable<Reaction>>> GetReactionsByFamilyId(Guid familyId)
         {
-            return await reactionService.GetReactionStringAsync(uuid);
+            var reactions = await _reactionService.GetReactionsByFamilyIdAsync(familyId);
+            return Ok(reactions);
+        }
+        
+        [HttpGet("mechanism/{mechanismId}")]
+        public async Task<ActionResult<IEnumerable<Reaction>>> GetReactionsByMechanismId(Guid mechanismId)
+        {
+            var reactions = await _reactionService.GetReactionsByMechanismIdAsync(mechanismId);
+            return Ok(reactions);
         }
 
-        // GET api/Reaction/TagMechanism/5
-        [HttpGet("TagMechanism/{tag_mechanism_uuid}")]
-        public async Task<IReadOnlyList<Reaction>> GetTags(Guid tag_mechanism_uuid)
+        // POST: api/Reactions
+        [HttpPost]
+        public async Task<ActionResult<Reaction>> CreateReaction(Reaction reaction)
         {
-            return await reactionService.GetTags(tag_mechanism_uuid);
+            var createdReaction = await _reactionService.CreateReactionAsync(reaction);
+            return CreatedAtAction(nameof(GetReaction), new { id = createdReaction.Id }, createdReaction);
         }
 
-        // POST api/Reaction/create
-        [HttpPost("create")]
-
-        public async Task<Guid> Create([FromBody] string type)
+        // PUT: api/Reactions/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateReaction(Guid id, Reaction reaction)
         {
-            return await reactionService.CreateReactionAsync(type);
+            if (id != reaction.Id)
+            {
+                return BadRequest();
+            }
+
+            await _reactionService.UpdateReactionAsync(reaction);
+
+            return NoContent();
         }
 
-        // PUT api/Reaction/5
-        [HttpPut("update")]
-        public async Task Put([FromBody] Reaction reaction)
+        // DELETE: api/Reactions/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteReaction(Guid id)
         {
-            await reactionService.UpdateReactionAsync(reaction);
-        }
-
-        // DELETE api/Reaction/delete/5
-        [HttpDelete("delete/{uuid}")]
-        public async Task Delete(Guid uuid)
-        {
-            await reactionService.DeleteReactionAsync(uuid);
+            await _reactionService.DeleteReactionAsync(id);
+            return NoContent();
         }
     }
 }

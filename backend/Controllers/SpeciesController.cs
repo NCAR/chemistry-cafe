@@ -1,64 +1,80 @@
-﻿using Chemistry_Cafe_API.Models;
-using Chemistry_Cafe_API.Services;
 using Microsoft.AspNetCore.Mvc;
-using MySqlConnector;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Chemistry_Cafe_API.Models;
+using Chemistry_Cafe_API.Services;
 
 namespace Chemistry_Cafe_API.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/species")]
     public class SpeciesController : ControllerBase
     {
-        private SpeciesService speciesService;
+        private readonly SpeciesService _speciesService;
 
-        //Injects sql data source setup in Program.cs
-        public SpeciesController([FromServices] MySqlDataSource db)
+        public SpeciesController(SpeciesService speciesService)
         {
-            this.speciesService = new SpeciesService(db);
+            _speciesService = speciesService;
         }
 
-        // GET: api/Species/all
-        [HttpGet("all")]
-        public async Task<IReadOnlyList<Species>> Get()
+        // GET: api/Species
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Species>>> GetSpecies()
         {
-            return await speciesService.GetSpeciesAsync();
+            var species = await _speciesService.GetSpeciesAsync();
+            return Ok(species);
         }
 
-        // GET api/Species/TagMechanism/5
-        [HttpGet("TagMechanism/{tag_mechanism_uuid}")]
-        public async Task<IReadOnlyList<Species>> GetTags(Guid tag_mechanism_uuid)
+        // GET: api/Species/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Species>> GetSpecies(Guid id)
         {
-            return await speciesService.GetTags(tag_mechanism_uuid);
+            var species = await _speciesService.GetSpeciesAsync(id);
+
+            if (species == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(species);
         }
 
-        // GET api/Species/5
-        [HttpGet("{uuid}")]
-        public async Task<Species?> Get(Guid uuid)
+        // GET: api/Species/family/5
+        [HttpGet("family/{familyId}")]
+        public async Task<ActionResult<IEnumerable<Species>>> GetSpeciesByFamilyId(Guid familyId)
         {
-            return await speciesService.GetSpeciesAsync(uuid);
+            var species = await _speciesService.GetSpeciesByFamilyIdAsync(familyId);
+            return Ok(species);
         }
 
-        // POST api/Species/create
-        [HttpPost("create")]
-        public async Task<Guid> Create([FromBody] string type)
+        // POST: api/Species
+        [HttpPost]
+        public async Task<ActionResult<Species>> CreateSpecies(Species species)
         {
-            return await speciesService.CreateSpeciesAsync(type);
+            var createdSpecies = await _speciesService.CreateSpeciesAsync(species);
+            return CreatedAtAction(nameof(GetSpecies), new { id = createdSpecies.Id }, createdSpecies);
         }
 
-        // PUT api/Species/5
-        [HttpPut("update")]
-        public async Task Put([FromBody] Species species)
+        // PUT: api/Species/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateSpecies(Guid id, Species species)
         {
-            await speciesService.UpdateSpeciesAsync(species);
+            if (id != species.Id)
+            {
+                return BadRequest();
+            }
+
+            await _speciesService.UpdateSpeciesAsync(species);
+
+            return NoContent();
         }
 
-        // DELETE api/Species/delete/5
-        [HttpDelete("delete/{uuid}")]
-        public async Task Delete(Guid uuid)
+        // DELETE: api/Species/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteSpecies(Guid id)
         {
-            await speciesService.DeleteSpeciesAsync(uuid);
+            await _speciesService.DeleteSpeciesAsync(id);
+            return NoContent();
         }
     }
 }

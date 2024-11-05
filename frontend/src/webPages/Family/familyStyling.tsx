@@ -10,7 +10,6 @@ export const StyledDetailBox = styled.section`
   display: block;
   width: 98%;
   height: 80vh;
-  background-color: #C3D7EE;
   border-style: solid;
   border-width: 1px;
   border-radius: 10px;

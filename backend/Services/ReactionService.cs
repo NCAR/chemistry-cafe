@@ -1,200 +1,244 @@
 ﻿using Chemistry_Cafe_API.Models;
 using System.Data.Common;
 using MySqlConnector;
-using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-
 
 namespace Chemistry_Cafe_API.Services
 {
-    public class ReactionService(MySqlDataSource database)
+    public class ReactionService
     {
+        private readonly MySqlDataSource _database;
+
+        public ReactionService(MySqlDataSource database)
+        {
+            _database = database;
+        }
+
         public async Task<IReadOnlyList<Reaction>> GetReactionsAsync()
         {
-            using var connection = await database.OpenConnectionAsync();
+            using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
-            command.CommandText = "SELECT * FROM Reaction WHERE isDel = 0";
-            var list = ReadAllAsync(await command.ExecuteReaderAsync()).Result;
+            command.CommandText = @"
+                SELECT 
+                    reactions.id AS ReactionId,
+                    reactions.name AS ReactionName,
+                    reactions.description AS ReactionDescription,
+                    reactions.created_by AS ReactionCreatedBy,
+                    reactions.created_date AS ReactionCreatedDate,
+                    mechanism_reactions.id AS MechanismReactionId,
+                    mechanism_reactions.mechanism_id AS MechanismReactionMechanismId,
+                    mechanism_reactions.reaction_id AS MechanismReactionReactionId,
+                    reaction_species.id AS ReactionSpeciesId,
+                    reaction_species.reaction_id AS ReactionSpeciesReactionId,
+                    reaction_species.species_id AS ReactionSpeciesSpeciesId,
+                    reaction_species.role AS ReactionSpeciesRole
+                FROM reactions
+                LEFT JOIN mechanism_reactions ON reactions.id = mechanism_reactions.reaction_id
+                LEFT JOIN reaction_species ON reactions.id = reaction_species.reaction_id";
 
-            List<string> reactions = new List<string>();
-            foreach (var item in list)
+            var reactionList = new List<Reaction>();
+            var reactionDictionary = new Dictionary<Guid, Reaction>();
+
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
             {
-                reactions.Add(GetReactionStringAsync(item.uuid).Result);
+                Guid reactionId = reader.GetGuid(reader.GetOrdinal("ReactionId"));
+                if (!reactionDictionary.TryGetValue(reactionId, out var reaction))
+                {
+                    reaction = new Reaction
+                    {
+                        Id = reactionId,
+                        Name = reader.GetString(reader.GetOrdinal("ReactionName")),
+                        Description = reader.IsDBNull(reader.GetOrdinal("ReactionDescription")) ? null : reader.GetString(reader.GetOrdinal("ReactionDescription")),
+                        CreatedBy = reader.IsDBNull(reader.GetOrdinal("ReactionCreatedBy")) ? null : reader.GetString(reader.GetOrdinal("ReactionCreatedBy")),
+                        CreatedDate = reader.GetDateTime(reader.GetOrdinal("ReactionCreatedDate")),
+                        MechanismReactions = new List<MechanismReaction>(),
+                        ReactionSpecies = new List<ReactionSpecies>()
+                    };
+                    reactionList.Add(reaction);
+                    reactionDictionary[reactionId] = reaction;
+                }
+
+                // Add MechanismReactions
+                if (!reader.IsDBNull(reader.GetOrdinal("MechanismReactionId")))
+                {
+                    var mechanismReaction = new MechanismReaction
+                    {
+                        Id = reader.GetGuid(reader.GetOrdinal("MechanismReactionId")),
+                        MechanismId = reader.GetGuid(reader.GetOrdinal("MechanismReactionMechanismId")),
+                        ReactionId = reader.GetGuid(reader.GetOrdinal("MechanismReactionReactionId"))
+                    };
+                    reaction.MechanismReactions.Add(mechanismReaction);
+                }
+
+                // Add ReactionSpecies
+                if (!reader.IsDBNull(reader.GetOrdinal("ReactionSpeciesId")))
+                {
+                    var reactionSpecies = new ReactionSpecies
+                    {
+                        Id = reader.GetGuid(reader.GetOrdinal("ReactionSpeciesId")),
+                        ReactionId = reader.GetGuid(reader.GetOrdinal("ReactionSpeciesReactionId")),
+                        SpeciesId = reader.GetGuid(reader.GetOrdinal("ReactionSpeciesSpeciesId")),
+                        Role = reader.GetString(reader.GetOrdinal("ReactionSpeciesRole")),
+                    };
+                    reaction.ReactionSpecies.Add(reactionSpecies);
+                }
             }
 
-            return await ReadAllAsync(await command.ExecuteReaderAsync(), reactions);
+            return reactionList;
         }
 
-        public async Task<Reaction?> GetReactionAsync(Guid uuid)
+        public async Task<Reaction?> GetReactionAsync(Guid id)
         {
-            using var connection = await database.OpenConnectionAsync();
+            using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
-            command.CommandText = @"SELECT * FROM Reaction WHERE uuid = @id";
-            command.Parameters.AddWithValue("@id", uuid);
+            command.CommandText = "SELECT * FROM reactions WHERE id = @id";
+            command.Parameters.AddWithValue("@id", id);
 
             var result = await ReadAllAsync(await command.ExecuteReaderAsync());
-            List<string> reactions = new List<string>();
-            foreach (var item in result)
-            {
-                reactions.Add(GetReactionStringAsync(item.uuid).Result);
-            }
-
-            var result2 = await ReadAllAsync(await command.ExecuteReaderAsync(), reactions);
-            return result2.FirstOrDefault();
+            return result.FirstOrDefault();
         }
 
-        public async Task<IReadOnlyList<Reaction>> GetTags(Guid tag_mechanism_uuid)
+        public async Task<Reaction> CreateReactionAsync(Reaction reaction)
         {
-            using var connection = await database.OpenConnectionAsync();
+            using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
-            command.CommandText = @"SELECT Reaction.uuid, Reaction.type, Reaction.isDel, Reaction.reactant_list_uuid, Reaction.product_list_uuid FROM TagMechanism_Reaction_List LEFT JOIN Reaction ON reaction_uuid = Reaction.uuid WHERE tag_mechanism_uuid = @tag_mechanism_uuid AND TagMechanism_Reaction_List.isDel = 0";
-            command.Parameters.AddWithValue("@tag_mechanism_uuid", tag_mechanism_uuid);
+            // Generate a new UUID for the reaction
+            reaction.Id = Guid.NewGuid();
 
-            var list = ReadAllAsync(await command.ExecuteReaderAsync()).Result;
+            command.CommandText = @"
+                INSERT INTO reactions (id, name, description, created_by)
+                VALUES (@id, @name, @description, @created_by);";
 
-            List<string> reactions = new List<string>();
-            foreach (var item in list)
-            {
-                reactions.Add(GetReactionStringAsync(item.uuid).Result);
-            }
-
-            return await ReadAllAsync(await command.ExecuteReaderAsync(), reactions);
-        }
-
-        public async Task<String?> GetReactionStringAsync(Guid uuid)
-        {
-            using var connection = await database.OpenConnectionAsync();
-            using var command = connection.CreateCommand();
-
-            command.CommandText = @"SELECT * FROM Reaction WHERE uuid = @id AND isDel = 0";
-            command.Parameters.AddWithValue("@id", uuid);
-
-            var result = await ReadAllAsync(await command.ExecuteReaderAsync());
-
-            ReactantProductListService reactantProductListService = new ReactantProductListService(database);
-
-            var reactants = reactantProductListService.GetReactantsAsync(result[0].reactant_list_uuid).Result;
-            var products = reactantProductListService.GetProductsAsync(result[0].product_list_uuid).Result;
-
-            string reactionString = "";
-            bool isReact = false;
-            bool isProduct = false;
-
-            foreach( var reactant in reactants)
-            {
-                reactionString += "" + reactant.quantity + reactant.type + " + ";
-                isReact = true;
-            }
-            if (isReact)
-            {
-                reactionString = reactionString.Remove(reactionString.LastIndexOf('+'));
-            }
-            else
-            {
-                reactionString += "<none> ";
-            }
-
-            reactionString += "-> ";
-
-            foreach ( var product in products)
-            {
-                reactionString += "" + product.quantity + product.type + " + ";
-                isProduct = true;
-            }
-
-            if (isProduct)
-            {
-                reactionString = reactionString.Remove(reactionString.LastIndexOf('+'));
-            }
-            else
-            {
-                reactionString += "<none>";
-            }
-
-            return reactionString;
-        }
-
-
-        public async Task<Guid> CreateReactionAsync(string type)
-        {
-            using var connection = await database.OpenConnectionAsync();
-            using var command = connection.CreateCommand();
-
-            Guid reactionID = Guid.NewGuid();
-            Guid reactant_list_uuid = Guid.NewGuid();
-            Guid product_list_uuid = Guid.NewGuid();
-
-            command.CommandText = @"INSERT INTO Reaction (uuid, type, reactant_list_uuid, product_list_uuid) VALUES (@uuid, @type, @reactant_list_uuid, @product_list_uuid);";
-
-            command.Parameters.AddWithValue("@uuid", reactionID);
-            command.Parameters.AddWithValue("@type", type);
-            command.Parameters.AddWithValue("@reactant_list_uuid", reactant_list_uuid);
-            command.Parameters.AddWithValue("@product_list_uuid", product_list_uuid);
+            command.Parameters.AddWithValue("@id", reaction.Id);
+            command.Parameters.AddWithValue("@name", reaction.Name);
+            command.Parameters.AddWithValue("@description", reaction.Description ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@created_by", reaction.CreatedBy ?? (object)DBNull.Value);
 
             await command.ExecuteNonQueryAsync();
 
-            return reactionID;
+            return reaction;
         }
+
+
         public async Task UpdateReactionAsync(Reaction reaction)
         {
-            using var connection = await database.OpenConnectionAsync();
+            using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
-            command.CommandText = @"UPDATE Reaction SET type = @type, isDel = @isDel, reactant_list_uuid = @reactant_list_uuid, product_list_uuid = @product_list_uuid WHERE uuid = @uuid;";
+            command.CommandText = @"
+                UPDATE reactions 
+                SET name = @name, 
+                    description = @description, 
+                    created_by = @created_by
+                WHERE id = @id;";
 
-            command.Parameters.AddWithValue("@uuid", reaction.uuid);
-            command.Parameters.AddWithValue("@type", reaction.type);
-            command.Parameters.AddWithValue("@isDel", reaction.isDel);
-            command.Parameters.AddWithValue("@reactant_list_uuid", reaction.reactant_list_uuid);
-            command.Parameters.AddWithValue("@product_list_uuid", reaction.product_list_uuid);
+            command.Parameters.AddWithValue("@id", reaction.Id);
+            command.Parameters.AddWithValue("@name", reaction.Name);
+            command.Parameters.AddWithValue("@description", reaction.Description ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@created_by", reaction.CreatedBy ?? (object)DBNull.Value);
 
             await command.ExecuteNonQueryAsync();
         }
 
-        public async Task DeleteReactionAsync(Guid uuid)
-        {
-            using var connection = await database.OpenConnectionAsync();
-            using var command = connection.CreateCommand();
-
-            command.CommandText = @"UPDATE Reaction SET isDel = 1 WHERE uuid = @uuid;";
-
-            command.Parameters.AddWithValue("@uuid", uuid);
-
-            await command.ExecuteNonQueryAsync();
-        }
-
-        private async Task<IReadOnlyList<Reaction>> ReadAllAsync(DbDataReader reader, List<string> reactionString = null)
+        public async Task<List<Reaction>> GetReactionsByFamilyIdAsync(Guid familyId)
         {
             var reactions = new List<Reaction>();
-            int i = 0;
+            
+            using var connection = await _database.OpenConnectionAsync();
+            using var command = connection.CreateCommand();
+
+            command.CommandText = @"
+                SELECT r.id, r.name, r.description, r.created_by, r.created_date 
+                FROM reactions r
+                JOIN mechanism_reactions mr ON r.id = mr.reaction_id
+                JOIN mechanisms m ON mr.mechanism_id = m.id
+                WHERE m.family_id = @familyId";
+
+            command.Parameters.AddWithValue("@familyId", familyId);
+
+            using var reader = await command.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                var reaction = new Reaction
+                {
+                    Id = reader.GetGuid(reader.GetOrdinal("id")),
+                    Name = reader.GetString(reader.GetOrdinal("name")),
+                    Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString(reader.GetOrdinal("description")),
+                    CreatedBy = reader.IsDBNull(reader.GetOrdinal("created_by")) ? null : reader.GetString(reader.GetOrdinal("created_by")),
+                    CreatedDate = reader.GetDateTime(reader.GetOrdinal("created_date"))
+                };
+                
+                reactions.Add(reaction);
+            }
+
+            return reactions;
+        }
+
+        public async Task<List<Reaction>> GetReactionsByMechanismIdAsync(Guid mechanismId)
+        {
+            var reactions = new List<Reaction>();
+            
+            using var connection = await _database.OpenConnectionAsync();
+            using var command = connection.CreateCommand();
+
+            command.CommandText = @"
+                SELECT r.id, r.name, r.description, r.created_by, r.created_date 
+                FROM reactions r
+                JOIN mechanism_reactions mr ON r.id = mr.reaction_id
+                WHERE mr.mechanism_id = @mechanismId";
+
+            command.Parameters.AddWithValue("@mechanismId", mechanismId);
+
+            using var reader = await command.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                var reaction = new Reaction
+                {
+                    Id = reader.GetGuid(reader.GetOrdinal("id")),
+                    Name = reader.GetString(reader.GetOrdinal("name")),
+                    Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString(reader.GetOrdinal("description")),
+                    CreatedBy = reader.IsDBNull(reader.GetOrdinal("created_by")) ? null : reader.GetString(reader.GetOrdinal("created_by")),
+                    CreatedDate = reader.GetDateTime(reader.GetOrdinal("created_date"))
+                };
+                
+                reactions.Add(reaction);
+            }
+
+            return reactions;
+        }
+
+        public async Task DeleteReactionAsync(Guid id)
+        {
+            using var connection = await _database.OpenConnectionAsync();
+            using var command = connection.CreateCommand();
+
+            command.CommandText = "DELETE FROM reactions WHERE id = @id";
+            command.Parameters.AddWithValue("@id", id);
+
+            await command.ExecuteNonQueryAsync();
+        }
+
+        private async Task<IReadOnlyList<Reaction>> ReadAllAsync(DbDataReader reader)
+        {
+            var reactions = new List<Reaction>();
             using (reader)
             {
                 while (await reader.ReadAsync())
                 {
                     var reaction = new Reaction
                     {
-                        uuid = reader.GetGuid(0),
-                        type = reader.GetString(1),
-                        isDel = reader.GetBoolean(2)
+                        Id = reader.GetGuid(reader.GetOrdinal("id")),
+                        Name = reader.GetString(reader.GetOrdinal("name")),
+                        Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString(reader.GetOrdinal("description")),
+                        CreatedBy = reader.IsDBNull(reader.GetOrdinal("created_by")) ? null : reader.GetString(reader.GetOrdinal("created_by")),
+                        CreatedDate = reader.GetDateTime(reader.GetOrdinal("created_date"))
                     };
-                    if (!reader.IsDBNull(3))
-                    {
-                        reaction.reactant_list_uuid = reader.GetGuid(3);
-                    }
-                    if (!reader.IsDBNull(4))
-                    {
-                        reaction.product_list_uuid = reader.GetGuid(4);
-                    }
-                    if (reactionString != null)
-                    {
-                        reaction.reaction_string = reactionString[i];
-                    }
                     reactions.Add(reaction);
-                    i++;
                 }
             }
             return reactions;
