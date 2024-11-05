@@ -15,5 +15,15 @@ authors:
     given-names: Paul
   - family-names: Nguyen
     given-names: Brian
+  - family-names: Schiller
+    given-names: Britt
+  - family-names: Hare
+    given-names: Joshua
+  - family-names: Mittal
+    given-names: Nishka
+  - family-names: Ogunleye
+    given-names: Oreoluwa 
+  - family-names: Ferris
+    given-names: Sydney 
 license: Apache-2.0
 url: "https://github.com/NCAR/music-box-interactive-client"
