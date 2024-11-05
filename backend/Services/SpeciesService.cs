@@ -1,104 +1,251 @@
 ﻿using Chemistry_Cafe_API.Models;
 using System.Data.Common;
 using MySqlConnector;
-using Microsoft.AspNetCore.Mvc;
-
 
 namespace Chemistry_Cafe_API.Services
 {
-    public class SpeciesService(MySqlDataSource database)
+    public class SpeciesService
     {
-        public async Task<IReadOnlyList<Species>> GetSpeciesAsync()
-        {
-            using var connection = await database.OpenConnectionAsync();
-            using var command = connection.CreateCommand();
+        private readonly MySqlDataSource _database;
 
-            command.CommandText = "SELECT * FROM Species WHERE isDel = 0";
-            return await ReadAllAsync(await command.ExecuteReaderAsync());
+        public SpeciesService(MySqlDataSource database)
+        {
+            _database = database;
         }
 
-        public async Task<Species?> GetSpeciesAsync(Guid uuid)
+        public async Task<IReadOnlyList<Species>> GetSpeciesAsync()
         {
-            using var connection = await database.OpenConnectionAsync();
+            using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
-            command.CommandText = @"SELECT * FROM Species WHERE uuid = @id";
-            command.Parameters.AddWithValue("@id", uuid);
+            command.CommandText = @"
+                SELECT 
+                    species.id AS SpeciesId,
+                    species.name AS SpeciesName,
+                    species.description AS SpeciesDescription,
+                    species.created_by AS SpeciesCreatedBy,
+                    species.created_date AS SpeciesCreatedDate,
+                    initial_conditions_species.id AS InitialConditionSpeciesId,
+                    initial_conditions_species.mechanism_id AS InitialConditionMechanismId,
+                    initial_conditions_species.species_id AS InitialConditionSpeciesId,
+                    initial_conditions_species.concentration AS InitialConditionConcentration,
+                    initial_conditions_species.temperature AS InitialConditionTemperature,
+                    initial_conditions_species.pressure AS InitialConditionPressure,
+                    initial_conditions_species.additional_conditions AS InitialConditionAdditionalConditions,
+                    mechanism_species.id AS MechanismSpeciesId,
+                    mechanism_species.mechanism_id AS MechanismSpeciesMechanismId,
+                    mechanism_species.species_id AS MechanismSpeciesSpeciesId,
+                    reaction_species.id AS ReactionSpeciesId,
+                    reaction_species.reaction_id AS ReactionSpeciesReactionId,
+                    reaction_species.species_id AS ReactionSpeciesSpeciesId,
+                    reaction_species.role AS ReactionSpeciesRole
+                FROM species
+                LEFT JOIN initial_conditions_species ON species.id = initial_conditions_species.species_id
+                LEFT JOIN mechanism_species ON species.id = mechanism_species.species_id
+                LEFT JOIN reaction_species ON species.id = reaction_species.species_id";
+
+            var speciesList = new List<Species>();
+            var speciesDictionary = new Dictionary<Guid, Species>();
+
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                Guid speciesId = reader.GetGuid(reader.GetOrdinal("SpeciesId"));
+                if (!speciesDictionary.TryGetValue(speciesId, out var species))
+                {
+                    species = new Species
+                    {
+                        Id = speciesId,
+                        Name = reader.GetString(reader.GetOrdinal("SpeciesName")),
+                        Description = reader.IsDBNull(reader.GetOrdinal("SpeciesDescription")) ? null : reader.GetString(reader.GetOrdinal("SpeciesDescription")),
+                        CreatedBy = reader.IsDBNull(reader.GetOrdinal("SpeciesCreatedBy")) ? null : reader.GetString(reader.GetOrdinal("SpeciesCreatedBy")),
+                        CreatedDate = reader.GetDateTime(reader.GetOrdinal("SpeciesCreatedDate")),
+                        InitialConditionsSpecies = new List<InitialConditionsSpecies>(),
+                        MechanismSpecies = new List<MechanismSpecies>(),
+                        ReactionSpecies = new List<ReactionSpecies>()
+                    };
+                    speciesList.Add(species);
+                    speciesDictionary[speciesId] = species;
+                }
+
+                // Add InitialConditionsSpecies
+                if (!reader.IsDBNull(reader.GetOrdinal("InitialConditionSpeciesId")))
+                {
+                    var initialConditionSpecies = new InitialConditionsSpecies
+                    {
+                        Id = reader.GetGuid(reader.GetOrdinal("InitialConditionSpeciesId")),
+                        MechanismId = reader.GetGuid(reader.GetOrdinal("InitialConditionMechanismId")),
+                        SpeciesId = reader.GetGuid(reader.GetOrdinal("InitialConditionSpeciesId")),
+                        Concentration = reader.IsDBNull(reader.GetOrdinal("InitialConditionConcentration")) ? (double?)null : reader.GetDouble(reader.GetOrdinal("InitialConditionConcentration")),
+                        Temperature = reader.IsDBNull(reader.GetOrdinal("InitialConditionTemperature")) ? (double?)null : reader.GetDouble(reader.GetOrdinal("InitialConditionTemperature")),
+                        Pressure = reader.IsDBNull(reader.GetOrdinal("InitialConditionPressure")) ? (double?)null : reader.GetDouble(reader.GetOrdinal("InitialConditionPressure")),
+                        AdditionalConditions = reader.IsDBNull(reader.GetOrdinal("InitialConditionAdditionalConditions")) ? null : reader.GetString(reader.GetOrdinal("InitialConditionAdditionalConditions"))
+                    };
+                    species.InitialConditionsSpecies.Add(initialConditionSpecies);
+                }
+
+                // Add MechanismSpecies
+                if (!reader.IsDBNull(reader.GetOrdinal("MechanismSpeciesId")))
+                {
+                    var mechanismSpecies = new MechanismSpecies
+                    {
+                        Id = reader.GetGuid(reader.GetOrdinal("MechanismSpeciesId")),
+                        MechanismId = reader.GetGuid(reader.GetOrdinal("MechanismSpeciesMechanismId")),
+                        SpeciesId = reader.GetGuid(reader.GetOrdinal("MechanismSpeciesSpeciesId"))
+                    };
+                    species.MechanismSpecies.Add(mechanismSpecies);
+                }
+
+                // Add ReactionSpecies
+                if (!reader.IsDBNull(reader.GetOrdinal("ReactionSpeciesId")))
+                {
+                    var reactionSpecies = new ReactionSpecies
+                    {
+                        Id = reader.GetGuid(reader.GetOrdinal("ReactionSpeciesId")),
+                        ReactionId = reader.GetGuid(reader.GetOrdinal("ReactionSpeciesReactionId")),
+                        SpeciesId = reader.GetGuid(reader.GetOrdinal("ReactionSpeciesSpeciesId")),
+                        Role = reader.GetString(reader.GetOrdinal("ReactionSpeciesRole"))
+                    };
+                    species.ReactionSpecies.Add(reactionSpecies);
+                }
+            }
+
+            return speciesList;
+        }
+
+        public async Task<Species?> GetSpeciesAsync(Guid id)
+        {
+            using var connection = await _database.OpenConnectionAsync();
+            using var command = connection.CreateCommand();
+
+            command.CommandText = "SELECT * FROM species WHERE id = @id";
+            command.Parameters.AddWithValue("@id", id);
 
             var result = await ReadAllAsync(await command.ExecuteReaderAsync());
             return result.FirstOrDefault();
         }
 
-        public async Task<IReadOnlyList<Species>> GetTags(Guid tag_mechanism_uuid)
+        public async Task<Species> CreateSpeciesAsync(Species species)
         {
-            using var connection = await database.OpenConnectionAsync();
+            using var connection = await _database.OpenConnectionAsync();
+            using var command = connection.CreateCommand();
+            
+            species.Id = Guid.NewGuid();
+
+            command.CommandText = @"
+                INSERT INTO species (id, name, description, created_by)
+                VALUES (@id, @name, @description, @created_by);";
+
+            command.Parameters.AddWithValue("@id", species.Id);
+            command.Parameters.AddWithValue("@name", species.Name);
+            command.Parameters.AddWithValue("@description", species.Description ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@created_by", species.CreatedBy ?? (object)DBNull.Value);
+
+            await command.ExecuteNonQueryAsync();
+
+            return species;
+        }
+
+        public async Task UpdateSpeciesAsync(Species species)
+        {
+            using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
-            command.CommandText = @"SELECT Species.uuid, Species.type, Species.isDel FROM TagMechanism_Species_List LEFT JOIN Species ON species_uuid = Species.uuid WHERE tag_mechanism_uuid = @tag_mechanism_uuid AND TagMechanism_Species_List.isDel = 0";
-            command.Parameters.AddWithValue("@tag_mechanism_uuid", tag_mechanism_uuid);
+            command.CommandText = @"
+                UPDATE species 
+                SET name = @name, 
+                    description = @description, 
+                    created_by = @created_by
+                WHERE id = @id;";
+
+            command.Parameters.AddWithValue("@id", species.Id);
+            command.Parameters.AddWithValue("@name", species.Name);
+            command.Parameters.AddWithValue("@description", species.Description ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@created_by", species.CreatedBy ?? (object)DBNull.Value);
+
+            await command.ExecuteNonQueryAsync();
+        }
+
+        public async Task DeleteSpeciesAsync(Guid id)
+        {
+            using var connection = await _database.OpenConnectionAsync();
+            using var command = connection.CreateCommand();
+
+            command.CommandText = "DELETE FROM species WHERE id = @id";
+            command.Parameters.AddWithValue("@id", id);
+
+            await command.ExecuteNonQueryAsync();
+        }
+
+        public async Task<IReadOnlyList<Species>> GetSpeciesByFamilyIdAsync(Guid familyId)
+        {
+            using var connection = await _database.OpenConnectionAsync();
+            using var command = connection.CreateCommand();
+
+            command.CommandText = @"
+                SELECT DISTINCT s.*
+                FROM species s
+                INNER JOIN mechanism_species ms ON s.id = ms.species_id
+                INNER JOIN mechanisms m ON ms.mechanism_id = m.id
+                WHERE m.family_id = @family_id";
+
+            command.Parameters.AddWithValue("@family_id", familyId);
 
             return await ReadAllAsync(await command.ExecuteReaderAsync());
         }
 
-        public async Task<Guid> CreateSpeciesAsync(string type)
+        public async Task<List<Species>> GetSpeciesByMechanismIdAsync(Guid mechanismId)
         {
-            using var connection = await database.OpenConnectionAsync();
+            var speciesList = new List<Species>();
+
+            using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
-            Guid speciesID = Guid.NewGuid();
+            command.CommandText = @"
+                SELECT s.id, s.name, s.description, s.created_by, s.created_date
+                FROM species s
+                JOIN mechanism_species ms ON s.id = ms.species_id
+                WHERE ms.mechanism_id = @mechanismId";
 
-            command.CommandText = @"INSERT INTO Species (uuid, type) VALUES (@uuid, @type);";
+            command.Parameters.AddWithValue("@mechanismId", mechanismId);
 
-            command.Parameters.AddWithValue("@uuid", speciesID);
-            command.Parameters.AddWithValue("@type", type);
+            using var reader = await command.ExecuteReaderAsync();
 
-            await command.ExecuteNonQueryAsync();
+            while (await reader.ReadAsync())
+            {
+                var species = new Species
+                {
+                    Id = reader.GetGuid(reader.GetOrdinal("id")),
+                    Name = reader.GetString(reader.GetOrdinal("name")),
+                    Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString(reader.GetOrdinal("description")),
+                    CreatedBy = reader.IsDBNull(reader.GetOrdinal("created_by")) ? null : reader.GetString(reader.GetOrdinal("created_by")),
+                    CreatedDate = reader.GetDateTime(reader.GetOrdinal("created_date"))
+                };
+                speciesList.Add(species);
+            }
 
-            return speciesID;
-        }
-        public async Task UpdateSpeciesAsync(Species species)
-        {
-            using var connection = await database.OpenConnectionAsync();
-            using var command = connection.CreateCommand();
-
-            command.CommandText = @"UPDATE Species SET type = @type, isDel = @isDel WHERE uuid = @uuid;";
-
-            command.Parameters.AddWithValue("@uuid", species.uuid);
-            command.Parameters.AddWithValue("@type", species.type);
-            command.Parameters.AddWithValue("@isDel", species.isDel);
-
-            await command.ExecuteNonQueryAsync();
-        }
-
-        public async Task DeleteSpeciesAsync(Guid uuid)
-        {
-            using var connection = await database.OpenConnectionAsync();
-            using var command = connection.CreateCommand();
-
-            command.CommandText = @"UPDATE Species SET isDel = 1 WHERE uuid = @uuid;";
-
-            command.Parameters.AddWithValue("@uuid", uuid);
-
-            await command.ExecuteNonQueryAsync();
+            return speciesList;
         }
 
         private async Task<IReadOnlyList<Species>> ReadAllAsync(DbDataReader reader)
         {
-            var speciess = new List<Species>();
+            var speciesList = new List<Species>();
             using (reader)
             {
                 while (await reader.ReadAsync())
                 {
                     var species = new Species
                     {
-                        uuid = reader.GetGuid(0),
-                        type = reader.GetString(1),
-                        isDel = reader.GetBoolean(2),
+                        Id = reader.GetGuid(reader.GetOrdinal("id")),
+                        Name = reader.GetString(reader.GetOrdinal("name")),
+                        Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString(reader.GetOrdinal("description")),
+                        CreatedBy = reader.IsDBNull(reader.GetOrdinal("created_by")) ? null : reader.GetString(reader.GetOrdinal("created_by")),
+                        CreatedDate = reader.GetDateTime(reader.GetOrdinal("created_date"))
                     };
-                    speciess.Add(species);
+                    speciesList.Add(species);
                 }
             }
-            return speciess;
+            return speciesList;
         }
     }
 }

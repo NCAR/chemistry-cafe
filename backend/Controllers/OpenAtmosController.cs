@@ -1,37 +1,40 @@
-﻿using Chemistry_Cafe_API.Models;
-using Chemistry_Cafe_API.Services;
 using Microsoft.AspNetCore.Mvc;
-using MySqlConnector;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+using Chemistry_Cafe_API.Services;
+using System.Threading.Tasks;
 
 namespace Chemistry_Cafe_API.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/openatmos")]
     public class OpenAtmosController : ControllerBase
     {
-        private OpenAtmosService openAtmosService;
+        private readonly OpenAtmosService _openAtmosService;
 
-        //Injects sql data source setup in Program.cs
-        public OpenAtmosController([FromServices] MySqlDataSource db)
+        public OpenAtmosController(OpenAtmosService openAtmosService)
         {
-            this.openAtmosService = new OpenAtmosService(db);
+            _openAtmosService = openAtmosService;
         }
 
-        // GET: api/OpenAtmos/JSON
-        [HttpGet("JSON/{tag_mechanism_uuid}")]
-        public async Task<string> GetJSON(Guid tag_mechanism_uuid)
+        [HttpGet("mechanism/{mechanismId}/json")]
+        public async Task<IActionResult> GetMechanismJson(Guid mechanismId)
         {
-            return await openAtmosService.GetJSON(tag_mechanism_uuid);
+            var jsonResult = await _openAtmosService.GetJSON(mechanismId);
+            if (jsonResult == null)
+            {
+                return NotFound($"Mechanism with ID {mechanismId} not found.");
+            }
+            return Content(jsonResult, "application/json");
         }
 
-        // GET: api/OpenAtmos/YAML
-        [HttpGet("YAML/{tag_mechanism_uuid}")]
-        public async Task<string> GetYAML(Guid tag_mechanism_uuid)
+        [HttpGet("mechanism/{mechanismId}/yaml")]
+        public async Task<IActionResult> GetMechanismYaml(Guid mechanismId)
         {
-            return await openAtmosService.GetYAML(tag_mechanism_uuid);
+            var yamlResult = await _openAtmosService.GetYAML(mechanismId);
+            if (yamlResult == null)
+            {
+                return NotFound($"Mechanism with ID {mechanismId} not found.");
+            }
+            return Content(yamlResult, "text/yaml");
         }
-
     }
 }

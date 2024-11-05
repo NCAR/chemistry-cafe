@@ -1,315 +1,192 @@
-﻿using Chemistry_Cafe_API.Models;
-using System.Data.Common;
+﻿// OpenAtmosService.cs
+using System.Text;
+using Chemistry_Cafe_API.Services;
 using MySqlConnector;
-using Microsoft.AspNetCore.Mvc;
 
-namespace Chemistry_Cafe_API.Services
+public class OpenAtmosService
 {
-    public class OpenAtmosService(MySqlDataSource database)
+    private readonly MySqlDataSource _database;
+
+    public OpenAtmosService(MySqlDataSource database)
     {
-        public async Task<string> GetJSON(Guid tag_mechanism_uuid)
-        {
-            ReactionService reactionService = new ReactionService(database);
-            SpeciesService speciesService = new SpeciesService(database);
-            TagMechanismService tagMechanismService = new TagMechanismService(database);
-            PropertyListService propertyListService = new PropertyListService(database);
-            ReactantProductListService reactantProductListService = new ReactantProductListService(database);
-
-            var mechanism = tagMechanismService.GetTagMechanismAsync(tag_mechanism_uuid).Result;
-            
-            string JSON = "{\n" +
-                "  \"version\": \"1.0.0\",\n" +
-                "  \"name\": \"" + mechanism.tag + "\", \n";
-            
-            using var connection = await database.OpenConnectionAsync();
-            using var command = connection.CreateCommand();
-
-            var reactionList = reactionService.GetTags(tag_mechanism_uuid).Result;
-            var speciesList = speciesService.GetTags(tag_mechanism_uuid).Result;
-
-            JSON += "  \"species\": [ \n";
-
-
-            foreach ( var species in speciesList )
-            {
-                JSON += "    {\n";
-                JSON += "      \"name\": \"" + species.type + "\", \n";
-                var properties = propertyListService.GetPropertiesAsync(species.uuid).Result;
-                foreach ( var property in properties )
-                {
-                    JSON += "      \"" + property.name;
-                    if (!(property.units == null || property.units == ""))
-                    {
-                        JSON += " [" + property.units + "]\": ";
-                    }
-                    else
-                    {
-                        JSON += "\": ";
-                    }
-
-                    if (property.float_value.HasValue)
-                    {
-                        JSON += property.float_value.ToString();
-                    }
-                    else if(property.double_value.HasValue)
-                    {
-                        JSON += property.double_value.ToString();
-                    }
-                    else if (property.int_value.HasValue)
-                    {
-                        JSON += property.int_value.ToString();
-                    }
-                    else if(property.string_value != null)
-                    {
-                        JSON += "\"" + property.string_value + "\"";
-                    }
-
-                    JSON += ", \n";
-                }
-                JSON = JSON.Remove(JSON.LastIndexOf(','));
-                JSON += "\n";
-                JSON += "    }, \n";
-            }
-            JSON = JSON.Remove(JSON.LastIndexOf(','));
-            JSON += "\n";
-
-            JSON += "  ],\n" +
-                "  \"phases\": [ \n" +
-                "    { \n" +
-                "      \"name\": \"gas\", \n" +
-                "      \"species\": [ \n";
-            foreach(Species species in speciesList)
-            {
-                JSON += "        \"" + species.type + "\", \n";
-            }
-            JSON = JSON.Remove(JSON.LastIndexOf(','));
-            JSON += "\n";
-            JSON += "      ] \n" +
-                "    } \n" +
-                "  ],\n" +
-                "  \"reactions\": [ \n";
-            bool react = false;
-
-            foreach (var reaction in reactionList)
-            {
-                react = true;
-                JSON += "    { \n";
-                JSON += "      \"type\" : \"" + reaction.type.ToUpper() + "\", \n"; 
-                var properties = propertyListService.GetPropertiesAsync(reaction.uuid).Result;
-                foreach (var property in properties)
-                {
-                    if (!(property.units == null || property.units == ""))
-                    {
-                        JSON += "      \"" + property.name + " [" + property.units + "]\": ";
-                    }
-                    else
-                    {
-                        JSON += "      \"" + property.name + "\": ";
-                    }
-
-                    if (property.float_value.HasValue)
-                    {
-                        JSON += property.float_value.ToString();
-                    }
-                    else if (property.double_value.HasValue)
-                    {
-                        JSON += property.double_value.ToString();
-                    }
-                    else if (property.int_value.HasValue)
-                    {
-                        JSON += property.int_value.ToString();
-                    }
-                    else if (property.string_value != null)
-                    {
-                        JSON += "\"" + property.string_value + "\"";
-                    }
-
-                    JSON += ", \n";
-                }
-                var reactants = reactantProductListService.GetReactantsAsync(reaction.reactant_list_uuid).Result;
-                if(reactants.Count != 0)
-                {
-                    JSON += "      \"reactants\": [ \n" +
-                    "        {\n";
-                    foreach (ReactantsProducts reactant in reactants)
-                    {
-                        JSON += "          \"species name\": \"" + reactant.type + "\", \n";
-                        JSON += "          \"coefficient\": \"" + reactant.quantity + "\", \n";
-                    }
-                    JSON = JSON.Remove(JSON.LastIndexOf(','));
-                    JSON += "\n";
-                    JSON += "        }\n" +
-                        "      ], \n";
-                }
-
-                var products = reactantProductListService.GetProductsAsync(reaction.product_list_uuid).Result;
-
-                if(products.Count != 0)
-                {
-                    JSON += "      \"products\": [ \n" +
-                    "        {\n";
-                    foreach (ReactantsProducts product in products)
-                    {
-                        JSON += "          \"species name\": \"" + product.type + "\", \n";
-                        JSON += "          \"coefficient\": \"" + product.quantity + "\", \n";
-                    }
-                    JSON = JSON.Remove(JSON.LastIndexOf(','));
-                    JSON += "\n";
-                    JSON += "        }\n" +
-                        "      ]\n";
-                }
-
-                if(reactants.Count == 0 && products.Count == 0)
-                {
-                    JSON = JSON.Remove(JSON.LastIndexOf(','));
-                    JSON += "\n";
-                }
-                
-                JSON += "    },\n";
-            }
-            if (react)
-            {
-                JSON = JSON.Remove(JSON.LastIndexOf(','));
-                JSON += "\n";
-            }
-            JSON += "  ]\n}";
-            return JSON;
-        }
-
-        public async Task<string> GetYAML(Guid tag_mechanism_uuid)
-        {
-            ReactionService reactionService = new ReactionService(database);
-            SpeciesService speciesService = new SpeciesService(database);
-            TagMechanismService tagMechanismService = new TagMechanismService(database);
-            PropertyListService propertyListService = new PropertyListService(database);
-            ReactantProductListService reactantProductListService = new ReactantProductListService(database);
-
-            var mechanism = tagMechanismService.GetTagMechanismAsync(tag_mechanism_uuid).Result;
-
-            string YAML = "---\n" +
-                "version: 1.0.0\n" +
-                "name: " + mechanism.tag + "\n";
-
-            using var connection = await database.OpenConnectionAsync();
-            using var command = connection.CreateCommand();
-
-            var reactionList = reactionService.GetTags(tag_mechanism_uuid).Result;
-            var speciesList = speciesService.GetTags(tag_mechanism_uuid).Result;
-
-            YAML += "species:\n";
-
-
-            foreach (var species in speciesList)
-            {
-                YAML += "- name: " + species.type + "\n";
-                var properties = propertyListService.GetPropertiesAsync(species.uuid).Result;
-                foreach (var property in properties)
-                {
-                    YAML += "  " + property.name;
-                    if (!(property.units == null || property.units == ""))
-                    {
-                        YAML += " [" + property.units + "]: ";
-                    }
-                    else
-                    {
-                        YAML += ": ";
-                    }
-
-                    if (property.float_value.HasValue)
-                    {
-                        YAML += property.float_value.ToString();
-                    }
-                    else if (property.double_value.HasValue)
-                    {
-                        YAML += property.double_value.ToString();
-                    }
-                    else if (property.int_value.HasValue)
-                    {
-                        YAML += property.int_value.ToString();
-                    }
-                    else if (property.string_value != null)
-                    {
-                        YAML += property.string_value;
-                    }
-
-                    YAML += "\n";
-                }
-            }
-
-            YAML += "" +
-                "phases:\n" +
-                "- name: gas\n" +
-                "  species:\n";
-            foreach (Species species in speciesList)
-            {
-                YAML += "  - " + species.type + "\n";
-            }
-            YAML += "reactions:\n";
-            bool react = false;
-
-            foreach (var reaction in reactionList)
-            {
-                react = true;
-                YAML += "- type : " + reaction.type.ToUpper() + "\n";
-                var properties = propertyListService.GetPropertiesAsync(reaction.uuid).Result;
-                foreach (var property in properties)
-                {
-                    if (!(property.units == null || property.units == ""))
-                    {
-                        YAML += "  " + property.name + " [" + property.units + "]: ";
-                    }
-                    else
-                    {
-                        YAML += "  " + property.name + ": ";
-                    }
-
-                    if (property.float_value.HasValue)
-                    {
-                        YAML += property.float_value.ToString();
-                    }
-                    else if (property.double_value.HasValue)
-                    {
-                        YAML += property.double_value.ToString();
-                    }
-                    else if (property.int_value.HasValue)
-                    {
-                        YAML += property.int_value.ToString();
-                    }
-                    else if (property.string_value != null)
-                    {
-                        YAML += property.string_value;
-                    }
-                    YAML += "\n";
-                }
-                var reactants = reactantProductListService.GetReactantsAsync(reaction.reactant_list_uuid).Result;
-                if (reactants.Count != 0)
-                {
-                    YAML += "  reactants:\n";
-                    foreach (ReactantsProducts reactant in reactants)
-                    {
-                        YAML += "  - species name: " + reactant.type + "\n";
-                        YAML += "    coefficient: " + reactant.quantity + "\n";
-                    }
-                }
-
-                var products = reactantProductListService.GetProductsAsync(reaction.product_list_uuid).Result;
-
-                if (products.Count != 0)
-                {
-                    YAML += "  products:\n";
-                    foreach (ReactantsProducts product in products)
-                    {
-                        YAML += "  - species name: " + product.type + "\n";
-                        YAML += "    coefficient: " + product.quantity + " \n";
-                    }
-                }
-                
-            }
-
-            return YAML;
-        }
-
+        _database = database;
     }
 
+    public async Task<string> GetJSON(Guid mechanismId)
+    {
+        var reactionService = new ReactionService(_database);
+        var speciesService = new SpeciesService(_database);
+        var mechanismService = new MechanismService(_database);
+        var reactionSpeciesService = new ReactionSpeciesService(_database);
+
+        // Get mechanism
+        var mechanism = await mechanismService.GetMechanismAsync(mechanismId);
+
+        // Initialize JSON builder
+        var json = new StringBuilder();
+        json.AppendLine("{");
+        json.AppendLine($"  \"version\": \"1.0.0\",");
+        json.AppendLine($"  \"name\": \"{mechanism?.Name}\",");
+
+        // Get species
+        var speciesList = await speciesService.GetSpeciesByMechanismIdAsync(mechanismId);
+        json.AppendLine("  \"species\": [");
+        foreach (var species in speciesList)
+        {
+            json.AppendLine("    {");
+            json.AppendLine($"      \"name\": \"{species.Name}\"");
+            json.AppendLine("    },");
+        }
+        if (speciesList.Any())
+        {
+            json.Length -= 3; // Remove last comma and newline
+            json.AppendLine();
+        }
+        json.AppendLine("  ],");
+
+        // Phases
+        json.AppendLine("  \"phases\": [");
+        json.AppendLine("    {");
+        json.AppendLine("      \"name\": \"gas\",");
+        json.AppendLine("      \"species\": [");
+        foreach (var species in speciesList)
+        {
+            json.AppendLine($"        \"{species.Name}\",");
+        }
+        if (speciesList.Any())
+        {
+            json.Length -= 3;
+            json.AppendLine();
+        }
+        json.AppendLine("      ]");
+        json.AppendLine("    }");
+        json.AppendLine("  ],");
+
+        // Get reactions
+        var reactionList = await reactionService.GetReactionsByMechanismIdAsync(mechanismId);
+        json.AppendLine("  \"reactions\": [");
+        foreach (var reaction in reactionList)
+        {
+            json.AppendLine("    {");
+            json.AppendLine($"      \"equation\": \"{reaction.Description}\","); // Changed from Equation to Description
+            // Include additional fields if needed
+
+            // Reactants
+            var reactants = await reactionSpeciesService.GetReactantsByReactionIdAsync(reaction.Id);
+            if (reactants.Any())
+            {
+                json.AppendLine("      \"reactants\": [");
+                foreach (var reactant in reactants)
+                {
+                    json.AppendLine("        {");
+                    json.AppendLine($"          \"species name\": \"{reactant.SpeciesName}\"");
+                    json.AppendLine("        },");
+                }
+                json.Length -= 3;
+                json.AppendLine();
+                json.AppendLine("      ],");
+            }
+
+            // Products
+            var products = await reactionSpeciesService.GetProductsByReactionIdAsync(reaction.Id);
+            if (products.Any())
+            {
+                json.AppendLine("      \"products\": [");
+                foreach (var product in products)
+                {
+                    json.AppendLine("        {");
+                    json.AppendLine($"          \"species name\": \"{product.SpeciesName}\"");
+                    json.AppendLine("        },");
+                }
+                json.Length -= 3;
+                json.AppendLine();
+                json.AppendLine("      ],");
+            }
+
+            // Remove trailing comma if present
+            if (json[json.Length - 3] == ',')
+            {
+                json.Length -= 1;
+            }
+
+            json.AppendLine("    },");
+        }
+        if (reactionList.Any())
+        {
+            json.Length -= 3;
+            json.AppendLine();
+        }
+        json.AppendLine("  ]");
+        json.AppendLine("}");
+
+        return json.ToString();
+    }
+
+    public async Task<string> GetYAML(Guid mechanismId)
+    {
+        var reactionService = new ReactionService(_database);
+        var speciesService = new SpeciesService(_database);
+        var mechanismService = new MechanismService(_database);
+        var reactionSpeciesService = new ReactionSpeciesService(_database);
+
+        // Get mechanism
+        var mechanism = await mechanismService.GetMechanismAsync(mechanismId);
+
+        // Initialize YAML builder
+        var yaml = new StringBuilder();
+        yaml.AppendLine("---");
+        yaml.AppendLine($"version: 1.0.0");
+        yaml.AppendLine($"name: {mechanism?.Name}");
+
+        // Species
+        yaml.AppendLine("species:");
+        var speciesList = await speciesService.GetSpeciesByMechanismIdAsync(mechanismId);
+        foreach (var species in speciesList)
+        {
+            yaml.AppendLine($"- name: {species.Name}");
+        }
+
+        // Phases
+        yaml.AppendLine("phases:");
+        yaml.AppendLine("- name: gas");
+        yaml.AppendLine("  species:");
+        foreach (var species in speciesList)
+        {
+            yaml.AppendLine($"  - {species.Name}");
+        }
+
+        // Reactions
+        yaml.AppendLine("reactions:");
+        var reactionList = await reactionService.GetReactionsByMechanismIdAsync(mechanismId);
+        foreach (var reaction in reactionList)
+        {
+            yaml.AppendLine($"- equation: {reaction.Description}"); // Changed from Equation to Description
+            // Include additional fields if needed
+
+            // Reactants
+            var reactants = await reactionSpeciesService.GetReactantsByReactionIdAsync(reaction.Id);
+            if (reactants.Any())
+            {
+                yaml.AppendLine("  reactants:");
+                foreach (var reactant in reactants)
+                {
+                    yaml.AppendLine($"  - species name: {reactant.SpeciesName}");
+                }
+            }
+
+            // Products
+            var products = await reactionSpeciesService.GetProductsByReactionIdAsync(reaction.Id);
+            if (products.Any())
+            {
+                yaml.AppendLine("  products:");
+                foreach (var product in products)
+                {
+                    yaml.AppendLine($"  - species name: {product.SpeciesName}");
+                }
+            }
+        }
+
+        return yaml.ToString();
+    }
 }
 

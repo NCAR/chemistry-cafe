@@ -6,13 +6,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Chemistry_Cafe_API.Models;
 
-[Table("species")]
-[Index("Name", Name = "idx_species_name", IsUnique = true)]
-public partial class Species
+[Table("mechanisms")]
+[Index("FamilyId", Name = "family_id")]
+[Index("Name", Name = "idx_mechanisms_name", IsUnique = true)]
+public partial class Mechanism
 {
     [Key]
     [Column("id")]
     public Guid Id { get; set; }
+
+    [Column("family_id")]
+    public Guid FamilyId { get; set; }
 
     [Column("name")]
     public string Name { get; set; } = null!;
@@ -27,12 +31,22 @@ public partial class Species
     [Column("created_date", TypeName = "timestamp")]
     public DateTime? CreatedDate { get; set; }
 
-    [InverseProperty("Species")]
+    [ForeignKey("FamilyId")]
+    [InverseProperty("Mechanisms")]
+    public virtual Family Family { get; set; } = null!;
+
+    [InverseProperty("Mechanism")]
     public virtual ICollection<InitialConditionsSpecies> InitialConditionsSpecies { get; set; } = new List<InitialConditionsSpecies>();
 
-    [InverseProperty("Species")]
+    [InverseProperty("Mechanism")]
+    public virtual ICollection<MechanismReaction> MechanismReactions { get; set; } = new List<MechanismReaction>();
+
+    [InverseProperty("Mechanism")]
     public virtual ICollection<MechanismSpecies> MechanismSpecies { get; set; } = new List<MechanismSpecies>();
 
-    [InverseProperty("Species")]
-    public virtual ICollection<ReactionSpecies> ReactionSpecies { get; set; } = new List<ReactionSpecies>();
+    [InverseProperty("Mechanism")]
+    public virtual ICollection<MechanismVersion> MechanismVersions { get; set; } = new List<MechanismVersion>();
+
+    [InverseProperty("Mechanism")]
+    public virtual ICollection<UserMechanism> UserMechanisms { get; set; } = new List<UserMechanism>();
 }
