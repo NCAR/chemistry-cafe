@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { googleLogout, useGoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
-import { useAuth } from '../contexts/AuthContext'; // Import the AuthContext
+import { useAuth } from '../contexts/AuthContext';
 
 import "./logIn.css";
 import Button from "@mui/material/Button";
@@ -12,7 +12,7 @@ import Typography from '@mui/material/Typography';
 import GoogleIcon from '@mui/icons-material/Google';
 import NoAccountsIcon from '@mui/icons-material/NoAccounts';
 import { Footer } from '../Components/HeaderFooter';
-import Holidays from '../Components/Holidays';  // Import the Holidays component
+import Holidays from '../Components/Holidays';
 
 interface User {
     access_token: string;
@@ -25,9 +25,10 @@ interface Profile {
 }
 
 const LogIn = () => {
-    const { setUser } = useAuth(); // Get setUser from AuthContext
+    const { setUser } = useAuth();
     const [user, setLocalUser] = useState<User | null>(null);
     const [profile, setProfile] = useState<Profile | null>(null);
+    const [isLoggedOut, setIsLoggedOut] = useState(false); // Track logout state for re-render
     const navigate = useNavigate();
     const handleClick = () => navigate('/LoggedIn');
     const [aboutOpen, setAboutOpen] = useState(false);
@@ -40,14 +41,14 @@ const LogIn = () => {
 
     const login = useGoogleLogin({
         onSuccess: (codeResponse) => {
-            setLocalUser(codeResponse); // Set local user
+            setLocalUser(codeResponse);
+            setIsLoggedOut(false); // Reset to logged-in state
         },
         onError: (error) => console.log('Login Failed:', error)
     });
 
     useEffect(() => {
         if (user) {
-            // Fetch the user profile using the access token
             axios
                 .get(`https://www.googleapis.com/oauth2/v1/userinfo?access_token=${user.access_token}`, {
                     headers: {
@@ -65,24 +66,20 @@ const LogIn = () => {
                         return;
                     }
 
-                    // Check if the user already exists in the database
                     axios.get(`http://localhost:8080/api/User/email=${profileData.email}`)
                         .then((response) => {
-                            // If the status is 200, the user exists
                             if (response.status === 200 && response.data) {
-                                // Set the user to the existing user data from the response
                                 const updatedUser = {
                                     access_token: user.access_token,
                                     ...response.data
                                 };
                                 setLocalUser(updatedUser);
                                 const contextUser = {
-                                    uuid: response.data.uuid,        // Ensure this is coming from your API response
-                                    log_in_info: response.data.log_in_info, // Populate this correctly
-                                    role: response.data.role || 'unverified' // Use default role if not present
+                                    uuid: response.data.uuid,
+                                    log_in_info: response.data.log_in_info,
+                                    role: response.data.role || 'unverified'
                                 };
-                                setUser(contextUser); // Save user to AuthContext
-                                //alert(contextUser.log_in_info)
+                                setUser(contextUser);
                             } else {
                                 axios.post('http://localhost:8080/api/User/create', JSON.stringify(profileData.email), {
                                     headers: {
@@ -90,18 +87,17 @@ const LogIn = () => {
                                     }
                                 })
                                 .then((response) => {
-                                    console.log('User created:', response.data);
                                     const newUser = {
                                         access_token: user.access_token,
                                         ...response.data
                                     };
                                     setLocalUser(newUser);
                                     const contextUser = {
-                                        uuid: response.data.uuid,        // Ensure this is coming from your API response
-                                        log_in_info: response.data.log_in_info, // Populate this correctly
-                                        role: response.data.role || 'unverified' // Use default role if not present
+                                        uuid: response.data.uuid,
+                                        log_in_info: response.data.log_in_info,
+                                        role: response.data.role || 'unverified'
                                     };
-                                    setUser(contextUser); // Save user to AuthContext
+                                    setUser(contextUser);
                                     alert('New user created successfully');
                                 })
                                 .catch((error) => {
@@ -112,7 +108,7 @@ const LogIn = () => {
                         })
                         .catch((error) => {
                             console.error('Error checking user existence:', error);
-                            alert('Error checking user existence'+ error);
+                            alert('Error checking user existence' + error);
                         });
                 })
                 .catch((err) => {
@@ -122,11 +118,12 @@ const LogIn = () => {
         }
     }, [user, setUser]);
 
-    // Log out function to log the user out of Google and set the profile array to null
     const logOut = () => {
         googleLogout();
         setProfile(null);
-        setUser(null); // Clear user from AuthContext on logout
+        setLocalUser(null);
+        setUser(null);
+        setIsLoggedOut(true); // Set logged-out state
     };
 
     const style = {
@@ -142,8 +139,8 @@ const LogIn = () => {
     };
 
     return (
-        <section className="layoutLogIn">
-            <Holidays /> {/* Include the Holidays component here */}
+        <section className="layoutLogIn" key={isLoggedOut ? 'logged-out' : 'logged-in'}>
+            <Holidays />
             <div className="M2">
                 <Box sx={{ width: '100%', maxWidth: 700 }}>
                     <Typography variant="h2" sx={{ color: 'white' }}>
@@ -196,28 +193,29 @@ const LogIn = () => {
             </div>
 
             <div>
-                    <Modal
-                        open={aboutOpen}
-                        onClose={handleAboutClose}
-                    >
-                        <Box sx={style}>
-                            <Typography variant='h4'>About</Typography>
-                            <Box component="img" src={"src/assets/NSF-NCAR_Lockup-UCAR-Dark.png"} alt={"Texas A&M"} sx={{ height: "100px", width: "auto" }} />
-                            <Box component="img" src={"src/assets/TAMULogo.png"} alt={"Texas A&M"} sx={{ height: "100px", width: "auto" }} />
-                            <Typography variant='body1'>
-                                The Chemistry Cafe tool was made possible by the collaboration between NCAR and Texas A&M through the
-                                CSCE Capstone program.
-                            </Typography>
-                            <p></p>
-                            <Typography variant='h6'>
-                                Credits
-                            </Typography>
-                            <Typography variant='body1'>
-                                Paul Cyr, Brandon Longuet, Brian Nguyen <br></br> Spring 2024 Capstone Team <br></br> <p></p>
-                                Kyle Shores <br></br> Spring 2024 Capstone Sponsor Representative
-                            </Typography>
-                        </Box>
-                    </Modal>
+                <Modal
+                    open={aboutOpen}
+                    onClose={handleAboutClose}
+                >
+                    <Box sx={style}>
+                        <Typography variant='h4'>About</Typography>
+                        <Box component="img" src={"src/assets/NSF-NCAR_Lockup-UCAR-Dark.png"} alt={"Texas A&M"} sx={{ height: "100px", width: "auto" }} />
+                        <Box component="img" src={"src/assets/TAMULogo.png"} alt={"Texas A&M"} sx={{ height: "100px", width: "auto" }} />
+                        <Typography variant='body1'>
+                            The Chemistry Cafe tool was made possible by the collaboration between NCAR and Texas A&M through the
+                            CSCE Capstone program.
+                        </Typography>
+                        <p></p>
+                        <Typography variant='h6'>
+                            Credits
+                        </Typography>
+                        <Typography variant='body1'>
+                            Sydney Ferris, Josh Hare, Nishka Mittal, Oreoluwa Ogunleye, Brittain Schiller  <br></br>Fall 2024 Capstone Team<br></br>  <br></br>
+                            Paul Cyr, Brandon Longuet, Brian Nguyen <br></br> Spring 2024 Capstone Team <br></br> <p></p>
+                            Kyle Shores <br></br> Spring 2024 Capstone Sponsor Representative
+                        </Typography>
+                    </Box>
+                </Modal>
             </div>
 
             <div className='L9LogIn'>
