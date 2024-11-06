@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import '../RoutingRenders/App.css'; // Assuming you're adding the CSS here
+import '../pages/App';
 
 const CookieBanner: React.FC = () => {
   // State to manage whether the banner is visible

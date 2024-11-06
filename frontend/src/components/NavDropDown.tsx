@@ -4,7 +4,7 @@ import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemButton from '@mui/material/ListItemButton';
-import { useAuth } from '../contexts/AuthContext'; // Import useAuth to get the user data
+import { useAuth } from '../pages/AuthContext'; // Import useAuth to get the user data
 
 const NavDropDown = () => {
   const navigate = useNavigate();
