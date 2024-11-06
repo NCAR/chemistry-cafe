@@ -609,11 +609,15 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
         >
           <MenuItem value="">N/A</MenuItem>
           <MenuItem value="Arrhenius">Arrhenius</MenuItem>
-          <MenuItem value="Ternary Chemical Activation">
-            Ternary Chemical Activation
-          </MenuItem>
+          <MenuItem value="Branched">Branched</MenuItem>
+          <MenuItem value="Emission">Emission</MenuItem>
+          <MenuItem value="First-Order Loss">First-Order Loss</MenuItem>
+          <MenuItem value="Photolysis">Photolysis</MenuItem>
+          <MenuItem value="Surface (Heterogeneous)">Surface (Heterogeneous)</MenuItem>
+          <MenuItem value="Ternary Chemical Activation">Ternary Chemical Activation</MenuItem>
           <MenuItem value="Troe (Fall-Off)">Troe (Fall-Off)</MenuItem>
           <MenuItem value="Tunneling">Tunneling</MenuItem>
+
         </Select>
         {reactionList.length > 0 && (
           <>
