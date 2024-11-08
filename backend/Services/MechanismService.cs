@@ -92,7 +92,7 @@ namespace Chemistry_Cafe_API.Services
             using var command = connection.CreateCommand();
 
             command.CommandText = "SELECT * FROM mechanisms WHERE id = @id";
-            command.Parameters.AddWithValue("@id", id);
+            command.Parameters.AddWithValue("@id", id.ToString());
 
             var result = await ReadAllAsync(await command.ExecuteReaderAsync());
             return result.FirstOrDefault();
@@ -103,21 +103,24 @@ namespace Chemistry_Cafe_API.Services
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
-            command.CommandText = @"
-                INSERT INTO mechanisms (family_id, name, description, created_by)
-                VALUES (@family_id, @name, @description, @created_by);
-                SELECT LAST_INSERT_ID();";
+            var mechanismId = Guid.NewGuid();
+            mechanism.Id = mechanismId;
 
-            command.Parameters.AddWithValue("@family_id", mechanism.FamilyId);
+            command.CommandText = @"
+                INSERT INTO mechanisms (id, family_id, name, description, created_by)
+                VALUES (@id, @family_id, @name, @description, @created_by);";
+
+            command.Parameters.AddWithValue("@id", mechanism.Id.ToString());
+            command.Parameters.AddWithValue("@family_id", mechanism.FamilyId.ToString());
             command.Parameters.AddWithValue("@name", mechanism.Name);
             command.Parameters.AddWithValue("@description", mechanism.Description ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@created_by", mechanism.CreatedBy ?? (object)DBNull.Value);
 
-            var mechanismId = Guid.NewGuid();
-            mechanism.Id = mechanismId;
+            await command.ExecuteNonQueryAsync();
 
             return mechanism;
         }
+
 
         public async Task UpdateMechanismAsync(Mechanism mechanism)
         {
@@ -132,8 +135,8 @@ namespace Chemistry_Cafe_API.Services
                     created_by = @created_by
                 WHERE id = @id;";
 
-            command.Parameters.AddWithValue("@id", mechanism.Id);
-            command.Parameters.AddWithValue("@family_id", mechanism.FamilyId);
+            command.Parameters.AddWithValue("@id", mechanism.Id.ToString());
+            command.Parameters.AddWithValue("@family_id", mechanism.FamilyId.ToString());
             command.Parameters.AddWithValue("@name", mechanism.Name);
             command.Parameters.AddWithValue("@description", mechanism.Description ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@created_by", mechanism.CreatedBy ?? (object)DBNull.Value);
@@ -147,7 +150,7 @@ namespace Chemistry_Cafe_API.Services
             using var command = connection.CreateCommand();
 
             command.CommandText = "DELETE FROM mechanisms WHERE id = @id";
-            command.Parameters.AddWithValue("@id", id);
+            command.Parameters.AddWithValue("@id", id.ToString());
 
             await command.ExecuteNonQueryAsync();
         }
@@ -158,7 +161,7 @@ namespace Chemistry_Cafe_API.Services
             using var command = connection.CreateCommand();
 
             command.CommandText = @"SELECT * FROM mechanisms WHERE family_id = @family_id";
-            command.Parameters.AddWithValue("@family_id", familyId);
+            command.Parameters.AddWithValue("@family_id", familyId.ToString());
 
             return await ReadAllAsync(await command.ExecuteReaderAsync());
         }

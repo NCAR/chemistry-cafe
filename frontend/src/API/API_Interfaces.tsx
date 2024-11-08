@@ -2,32 +2,29 @@ export interface Family {
   id?: string;
   name: string;
   description: string;
-  created_by: string;
+  createdBy: string;
 }
 
 export interface Mechanism {
-  id: string;
+  id?: string;
   family_id: string;
   name: string;
   description: string;
   created_by: string;
-  createdDate: string;
 }
 
 export interface Species {
-  id: string;
+  id?: string;
   name: string;
   description: string | null;
   created_by: string | null;
-  created_date: string;
 }
 
 export interface Reaction {
-  id: string;
+  id?: string;
   name: string;
   description: string | null;
   createdBy: string;
-  createdDate: string;
 }
 
 export interface ReactionSpecies {

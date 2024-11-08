@@ -13,6 +13,7 @@ import {
 
 export async function createFamily(familyData: Family) {
   try {
+    console.log("Family data: ", familyData);
     const response = await axios.post(
       "http://localhost:8080/api/families",
       familyData,

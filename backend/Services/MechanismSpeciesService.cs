@@ -8,25 +8,98 @@ namespace Chemistry_Cafe_API.Services
     {
         private readonly MySqlDataSource _database;
 
-        public MechanismSpeciesService(MySqlDataSource database)
+        private readonly ILogger<MechanismSpeciesService> _logger;
+
+        public MechanismSpeciesService(MySqlDataSource database, ILogger<MechanismSpeciesService> logger)
         {
             _database = database;
+            _logger = logger;
         }
 
-        public async Task AddSpeciesToMechanismAsync(MechanismSpecies mechanismSpecies)
+        public async Task<bool> MechanismSpeciesExistsAsync(Guid mechanismId, Guid speciesId)
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
             command.CommandText = @"
-                INSERT INTO mechanism_species (mechanism_id, species_id)
-                VALUES (@mechanism_id, @species_id);";
+                SELECT COUNT(*) FROM mechanism_species 
+                WHERE mechanism_id = @mechanism_id AND species_id = @species_id";
+            
+            command.Parameters.AddWithValue("@mechanism_id", mechanismId.ToString());
+            command.Parameters.AddWithValue("@species_id", speciesId.ToString());
 
-            command.Parameters.AddWithValue("@mechanism_id", mechanismSpecies.MechanismId);
-            command.Parameters.AddWithValue("@species_id", mechanismSpecies.SpeciesId);
+            var count = Convert.ToInt32(await command.ExecuteScalarAsync());
+            return count > 0;
+        }
+
+        public async Task<bool> MechanismExistsAsync(Guid mechanismId)
+        {
+            using var connection = await _database.OpenConnectionAsync();
+            using var command = connection.CreateCommand();
+
+            command.CommandText = "SELECT COUNT(*) FROM mechanisms WHERE id = @id";
+            command.Parameters.AddWithValue("@id", mechanismId.ToString());
+
+            var count = Convert.ToInt32(await command.ExecuteScalarAsync());
+            return count > 0;
+        }
+
+        public async Task<bool> SpeciesExistsAsync(Guid speciesId)
+        {
+            using var connection = await _database.OpenConnectionAsync();
+            using var command = connection.CreateCommand();
+
+            command.CommandText = "SELECT COUNT(*) FROM species WHERE id = @id";
+            command.Parameters.AddWithValue("@id", speciesId.ToString());
+
+            var count = Convert.ToInt32(await command.ExecuteScalarAsync());
+            return count > 0;
+        }
+
+
+
+        public async Task AddSpeciesToMechanismAsync(MechanismSpecies mechanismSpecies)
+        {
+            if (await MechanismSpeciesExistsAsync(mechanismSpecies.MechanismId, mechanismSpecies.SpeciesId))
+            {
+                Console.WriteLine("MechanismSpecies mapping already exists.");
+                return;
+            }
+
+            // **Check if Mechanism Exists**
+            if (!await MechanismExistsAsync(mechanismSpecies.MechanismId))
+            {
+                Console.WriteLine("mechanism already exists");
+                throw new ArgumentException("Invalid MechanismId. Mechanism does not exist.");
+            }
+
+            if (!await SpeciesExistsAsync(mechanismSpecies.SpeciesId))
+            {
+                Console.WriteLine("species id already exists");
+                throw new ArgumentException("Invalid SpeciesId. Species does not exist.");
+            }
+
+
+            using var connection = await _database.OpenConnectionAsync();
+            using var command = connection.CreateCommand();
+
+            mechanismSpecies.Id = Guid.NewGuid();
+
+            command.CommandText = @"
+                INSERT INTO mechanism_species (id, mechanism_id, species_id)
+                VALUES (@id, @mechanism_id, @species_id);";
+
+            _logger.LogInformation("MechanismSpecies Id: {Id}", mechanismSpecies.Id);
+            _logger.LogInformation("Mechanism Id: {MechanismId}", mechanismSpecies.MechanismId);
+            _logger.LogInformation("Species Id: {SpeciesId}", mechanismSpecies.SpeciesId);
+
+            command.Parameters.AddWithValue("@id", mechanismSpecies.Id.ToString());
+            command.Parameters.AddWithValue("@mechanism_id", mechanismSpecies.MechanismId.ToString());
+            command.Parameters.AddWithValue("@species_id", mechanismSpecies.SpeciesId.ToString());
 
             await command.ExecuteNonQueryAsync();
         }
+
 
         public async Task<IReadOnlyList<MechanismSpecies>> GetMechanismSpeciesByMechanismIdAsync(Guid mechanismId)
         {
@@ -44,7 +117,7 @@ namespace Chemistry_Cafe_API.Services
                 INNER JOIN species ON mechanism_species.species_id = species.id
                 WHERE mechanism_species.mechanism_id = @mechanismId";
 
-            command.Parameters.AddWithValue("@mechanismId", mechanismId);
+            command.Parameters.AddWithValue("@mechanismId", mechanismId.ToString());
 
             var mechanismSpeciesList = new List<MechanismSpecies>();
 
@@ -75,7 +148,7 @@ namespace Chemistry_Cafe_API.Services
             using var command = connection.CreateCommand();
 
             command.CommandText = "DELETE FROM mechanism_species WHERE id = @id";
-            command.Parameters.AddWithValue("@id", id);
+            command.Parameters.AddWithValue("@id", id.ToString());
 
             await command.ExecuteNonQueryAsync();
         }
@@ -110,12 +183,12 @@ namespace Chemistry_Cafe_API.Services
                 {
                     var ms = new MechanismSpecies
                     {
-                        Id = reader.GetGuid(reader.GetOrdinal("id")),
-                        MechanismId = reader.GetGuid(reader.GetOrdinal("mechanism_id")),
-                        SpeciesId = reader.GetGuid(reader.GetOrdinal("species_id")),
+                        Id = Guid.Parse(reader.GetString(reader.GetOrdinal("MechanismSpeciesId"))),
+                        MechanismId = Guid.Parse(reader.GetString(reader.GetOrdinal("MechanismId"))),
+                        SpeciesId = Guid.Parse(reader.GetString(reader.GetOrdinal("SpeciesId"))),
                         Species = new Species
                         {
-                            Id = reader.GetGuid(reader.GetOrdinal("species_id")),
+                            Id = Guid.Parse(reader.GetString(reader.GetOrdinal("SpeciesId"))),
                             Name = reader.GetString(reader.GetOrdinal("SpeciesName")),
                             Description = reader.IsDBNull(reader.GetOrdinal("SpeciesDescription")) ? null : reader.GetString(reader.GetOrdinal("SpeciesDescription"))
                         }
@@ -125,5 +198,6 @@ namespace Chemistry_Cafe_API.Services
             }
             return mechanismSpeciesList;
         }
+
     }
 }

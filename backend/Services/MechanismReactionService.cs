@@ -18,12 +18,15 @@ namespace Chemistry_Cafe_API.Services
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
-            command.CommandText = @"
-                INSERT INTO mechanism_reactions (mechanism_id, reaction_id)
-                VALUES (@mechanism_id, @reaction_id);";
+            mechanismReaction.Id = Guid.NewGuid();
 
-            command.Parameters.AddWithValue("@mechanism_id", mechanismReaction.MechanismId);
-            command.Parameters.AddWithValue("@reaction_id", mechanismReaction.ReactionId);
+            command.CommandText = @"
+                INSERT INTO mechanism_reactions (id, mechanism_id, reaction_id)
+                VALUES (@id, @mechanism_id, @reaction_id);";
+
+            command.Parameters.AddWithValue("@id", mechanismReaction.Id.ToString());
+            command.Parameters.AddWithValue("@mechanism_id", mechanismReaction.MechanismId.ToString());
+            command.Parameters.AddWithValue("@reaction_id", mechanismReaction.ReactionId.ToString());
 
             await command.ExecuteNonQueryAsync();
         }
@@ -44,7 +47,7 @@ namespace Chemistry_Cafe_API.Services
                 INNER JOIN reactions ON mechanism_reactions.reaction_id = reactions.id
                 WHERE mechanism_reactions.mechanism_id = @mechanismId";
 
-            command.Parameters.AddWithValue("@mechanismId", mechanismId);
+            command.Parameters.AddWithValue("@mechanismId", mechanismId.ToString());
 
             var mechanismReactionsList = new List<MechanismReaction>();
 
@@ -71,13 +74,46 @@ namespace Chemistry_Cafe_API.Services
 
         public async Task RemoveReactionFromMechanismAsync(Guid id)
         {
-            using var connection = await _database.OpenConnectionAsync();
-            using var command = connection.CreateCommand();
+            try
+            {
+                using var connection = await _database.OpenConnectionAsync();
+                using var transaction = await connection.BeginTransactionAsync();
 
-            command.CommandText = "DELETE FROM mechanism_reactions WHERE id = @id";
-            command.Parameters.AddWithValue("@id", id);
+                // Check if the reaction exists
+                using var checkCommand = connection.CreateCommand();
+                checkCommand.Transaction = transaction;
+                checkCommand.CommandText = "SELECT COUNT(*) FROM mechanism_reactions WHERE id = @id";
+                checkCommand.Parameters.Add("@id", MySqlDbType.VarChar, 36).Value = id.ToString();
 
-            await command.ExecuteNonQueryAsync();
+                var count = Convert.ToInt32(await checkCommand.ExecuteScalarAsync());
+                if (count == 0)
+                {
+                    throw new ArgumentException("Reaction does not exist.");
+                }
+
+                // Proceed to delete
+                using var deleteCommand = connection.CreateCommand();
+                deleteCommand.Transaction = transaction;
+                deleteCommand.CommandText = "DELETE FROM mechanism_reactions WHERE id = @id";
+                deleteCommand.Parameters.Add("@id", MySqlDbType.VarChar, 36).Value = id.ToString();
+
+                await deleteCommand.ExecuteNonQueryAsync();
+
+                // Commit the transaction
+                await transaction.CommitAsync();
+            }
+            catch (MySqlException ex)
+            {
+                // Log MySQL-specific errors
+                Console.Error.WriteLine($"MySQL Error: {ex.Message}");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // Log general errors
+                Console.Error.WriteLine($"General Error: {ex.Message}");
+                throw;
+            }
         }
 
         private async Task<IReadOnlyList<Reaction>> ReadReactionsAsync(DbDataReader reader)
