@@ -428,60 +428,94 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
   };
 
   return (
-    <Modal open={open} onClose={onClose}>
-      <Box sx={style}>
-        <Typography variant="h6">Create New Species</Typography>
-        <TextField
-          id="species-name"
-          label="Name"
-          onChange={(e) => setSpeciesName(e.target.value)}
-          fullWidth
-          margin="normal"
-        />
-        <TextField
-          id="species-description"
-          label="Description"
-          onChange={(e) => setSpeciesDescription(e.target.value)}
-          fullWidth
-          margin="normal"
-        />
-        {speciesList.length > 0 && (
-          <>
-            <Typography variant="subtitle1" style={{ marginTop: "1rem" }}>
-              Or Pick Existing Species in Family (Multiple Selection)
-            </Typography>
-            <Select
-              label="Pick Existing Species"
-              multiple
-              value={selectedSpeciesIds}
-              onChange={(e) =>
-                setSelectedSpeciesIds(e.target.value as string[])
-              }
-              fullWidth
-              style={{ marginTop: "1rem" }}
-            >
-              {speciesList.map((species) => (
-                <MenuItem key={species.id} value={species.id}>
-                  {species.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </>
-        )}
-        {speciesList.length === 0 && (
-          <Typography variant="subtitle1" style={{ marginTop: "1rem" }}>
-            All family's species are already in this mechanism
-          </Typography>
-        )}
-        <Button
-          variant="contained"
-          onClick={handleCreateSpeciesClick}
-          style={{ marginTop: "1rem" }}
+    <Modal 
+            open={open} 
+            onClose={onClose}
         >
-          Submit
-        </Button>
-      </Box>
-    </Modal>
+            <Box sx={{ 
+                position: 'absolute', 
+                top: '50%', 
+                left: '50%', 
+                transform: 'translate(-50%, -50%)', 
+                bgcolor: 'background.paper', 
+                border: '2px solid #000', 
+                boxShadow: 24, 
+                p: 4, 
+                width: 600,
+                maxHeight: '80vh', // Set maximum height to 80% of viewport height
+                overflowY: 'auto' // Enable vertical scrolling if content overflows
+            }}>
+                <h1>Create New Species</h1>
+                <Box sx={{ display: 'flex', flexDirection: 'column'}}>
+                    <Box sx={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #ccc', pb: '0.5rem', fontWeight: 'bold' }}>
+                        <Typography sx={{ flex: 1 }}>Value</Typography>
+                        <Typography sx={{ flex: 1 }}>Units</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', borderBottom: '1px solid #ccc', fontWeight: 'bold' }}>
+                        <TextField
+                          id="species-name"
+                          label="Name"
+                          onChange={(e) => setSpeciesName(e.target.value)}
+                          fullWidth
+                          margin="normal"
+                        />
+                        <Typography sx={{ flex: 1 }}>Units</Typography>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', borderBottom: '1px solid #ccc', fontWeight: 'bold' }}>
+                        <TextField
+                          id="species-concentration"
+                          label="Fixed Concentration"
+                          fullWidth
+                          margin="normal"
+                        />
+                        <Typography sx={{ flex: 1 }}>Units</Typography>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #ccc', pb: '0.5rem', fontWeight: 'bold' }}>
+                        <TextField
+                          id="species-description"
+                          label="Description"
+                          onChange={(e) => setSpeciesDescription(e.target.value)}
+                          fullWidth
+                          margin="normal"
+                        />
+                        <Typography sx={{ flex: 1 }}>Units</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #ccc', pb: '0.5rem', fontWeight: 'bold' }}>
+                        <TextField
+                          id="species-convergence-tolerance"
+                          label="Absolute Convergence Tolerance"
+                          fullWidth
+                          margin="normal"
+                        />
+                        <Typography sx={{ flex: 1 }}>Units</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #ccc', pb: '0.5rem', fontWeight: 'bold' }}>
+                        <TextField
+                          id="species-weight"
+                          label="Molecular Weight"
+                          fullWidth
+                          margin="normal"
+                        />
+                        <Typography sx={{ flex: 1 }}>Units</Typography>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #ccc', pb: '0.5rem', fontWeight: 'bold' }}>
+                        <TextField
+                          id="species-diffusion-coefficient"
+                          label="Diffusion Coefficient"
+                          fullWidth
+                          margin="normal"
+                        />
+                        <Typography sx={{ flex: 1 }}>Units</Typography>
+                    </Box>
+                    
+                    
+                </Box>
+                <Button sx={{ mt: '2rem' }} onClick={handleCreateSpeciesClick}>Submit</Button>
+            </Box>
+        </Modal>
   );
 };
 

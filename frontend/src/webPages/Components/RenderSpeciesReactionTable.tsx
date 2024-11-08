@@ -4,7 +4,7 @@ import { Species, Reaction} from '../../API/API_Interfaces';
 import { getReactionsByMechanismId, getSpeciesByMechanismId } from '../../API/API_GetMethods';
 
 // import { CreateReactionModal, CreateSpeciesModal, ReactionPropertiesModal, SpeciesPropertiesModal } from './Modals';
-
+import {CreateSpeciesModal} from './Modals';
 import { DataGrid, GridRowParams, GridColDef, GridToolbar, GridToolbarContainer, GridToolbarColumnsButton, GridToolbarFilterButton, GridToolbarDensitySelector, GridToolbarExport } from '@mui/x-data-grid';
 
 import IconButton from '@mui/material/IconButton';
@@ -270,8 +270,8 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                         </div>
                         }
             </div>
-            {/* <CreateSpeciesModal open={createSpeciesOpen} onClose={handleCreateSpeciesClose} selectedFamily={selectedFamily} selectedTagMechanism={selectedTagMechanism} setSpeciesCreated={setSpeciesCreated} />
-            <CreateReactionModal open={createReactionOpen} onClose={handleCreateReactionClose} selectedFamily={selectedFamily} selectedTagMechanism={selectedTagMechanism} setReactionCreated={setReactionCreated} />
+            <CreateSpeciesModal open={createSpeciesOpen} onClose={handleCreateSpeciesClose} selectedFamilyId={selectedFamilyID} selectedMechanismId={selectedMechanismID} setSpeciesCreated={setSpeciesCreated} />
+            {/* <CreateReactionModal open={createReactionOpen} onClose={handleCreateReactionClose} selectedFamily={selectedFamily} selectedTagMechanism={selectedTagMechanism} setReactionCreated={setReactionCreated} />
             <SpeciesPropertiesModal open={speciesPropertiesOpen} onClose={handleSpeciesPropertiesClose} selectedTagMechanism={selectedTagMechanism} selectedSpecies={selectedSpecies} setSpeciesUpdated={setSpeciesUpdated} />
             <ReactionPropertiesModal open={reactionPropertiesOpen} onClose={handleReactionPropertiesClose} selectedTagMechanism={selectedTagMechanism} selectedReaction={selectedReaction} setReactionUpdated={setReactionUpdated} /> */}
         </div>
