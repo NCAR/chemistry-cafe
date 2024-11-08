@@ -1,7 +1,7 @@
 import React, { Children, ReactNode, useEffect, useState } from 'react';
 
 import { Species, Reaction} from '../../API/API_Interfaces';
-import { getReactionsByMechanismId, getSpeciesByMechanismId } from '../../API/API_GetMethods';
+import { getReactionsByMechanismId, getSpeciesByMechanismId, getSpeciesPropertiesByMechanismIDAsync} from '../../API/API_GetMethods';
 
 // import { CreateReactionModal, CreateSpeciesModal, ReactionPropertiesModal, SpeciesPropertiesModal } from './Modals';
 import {CreateSpeciesModal} from './Modals';
@@ -80,11 +80,12 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
             if (selectedMechanismID) {
                 const fetchedSpecies = await getSpeciesByMechanismId(selectedMechanismID);
                 const fetchedReactions = await getReactionsByMechanismId(selectedMechanismID);
-
+                const fetchedSpeciesProperties = await getSpeciesPropertiesByMechanismIDAsync(selectedMechanismID);
                 setSpecies(fetchedSpecies);
                 setReactions(fetchedReactions);
                 
-                // console.log("species now")
+                console.log("species properties now");
+                console.log(fetchedSpeciesProperties);
                 // for (const x of species) {console.log(x.name);}
 
                 
@@ -147,6 +148,8 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
         console.log("this is a call");
         const rowifiedReactions = reactionsData.map(reactionItem => {
             // currently, all meaningful info is stored in description field
+            // for now, getting around this using string parsing
+            
             return {... reactionItem};
         });
         console.log(rowifiedReactions);

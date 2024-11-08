@@ -92,6 +92,10 @@ CREATE TABLE initial_conditions_species (
     temperature DOUBLE,
     pressure DOUBLE,
     additional_conditions TEXT,
+    abs_convergence_tolerance DOUBLE,
+    diffusion_coefficient DOUBLE,
+    molecular_weight DOUBLE,
+    fixed_concentration DOUBLE,
     UNIQUE KEY unique_initial_conditions (mechanism_id, species_id), -- Ensures one initial condition per species per mechanism
     FOREIGN KEY (mechanism_id) REFERENCES mechanisms(id) ON DELETE CASCADE,
     FOREIGN KEY (species_id) REFERENCES species(id) ON DELETE CASCADE
