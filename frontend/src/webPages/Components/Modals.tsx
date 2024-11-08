@@ -162,10 +162,9 @@ export const CreateFamilyModal: React.FC<CreateFamilyModalProps> = ({
   const handleCreateFamilyClick = async () => {
     try {
       const newFamily: Family = {
-        id: "",
         name: createFamilyRef.current,
         description: "",
-        created_by: "current_user",
+        createdBy: "",
       };
       await createFamily(newFamily);
       createFamilyRef.current = "";
@@ -236,16 +235,16 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
         await Promise.all(
           reactionList.map(async (reaction) => {
             const reactants: ReactionSpeciesDto[] =
-              await getReactantsByReactionIdAsync(reaction.id);
+              await getReactantsByReactionIdAsync(reaction.id!);
             const products: ReactionSpeciesDto[] =
-              await getProductsByReactionIdAsync(reaction.id);
+              await getProductsByReactionIdAsync(reaction.id!);
             const reactantNames = reactants
               .map((r) => r.species_name)
               .join(" + ");
             const productNames = products
               .map((p) => p.species_name)
               .join(" + ");
-            equations[reaction.id] = `${reactantNames} -> ${productNames}`;
+            equations[reaction.id!] = `${reactantNames} -> ${productNames}`;
           })
         );
         setReactionEquations(equations);
@@ -264,20 +263,17 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
   const handleCreateMechanismClick = async () => {
     try {
       const mechanismData: Mechanism = {
-        id: "",
         family_id: selectedFamilyId!,
         name: createMechanismRef.current,
         description: "",
         created_by: "current_user",
-        createdDate: "",
       };
 
       const createdMechanism = await createMechanism(mechanismData);
 
       for (const speciesId of selectedSpeciesIds) {
         const mechanismSpecies: MechanismSpecies = {
-          id: "",
-          mechanism_id: createdMechanism.id,
+          mechanism_id: createdMechanism.id!,
           species_id: speciesId,
         };
         await addSpeciesToMechanism(mechanismSpecies);
@@ -285,8 +281,7 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
 
       for (const reactionId of selectedReactionIds) {
         const mechanismReaction: MechanismReaction = {
-          id: "",
-          mechanism_id: createdMechanism.id,
+          mechanism_id: createdMechanism.id!,
           reaction_id: reactionId,
         };
         await addReactionToMechanism(mechanismReaction);
@@ -341,7 +336,7 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
         >
           {reactionList.map((reaction) => (
             <MenuItem key={reaction.id} value={reaction.id}>
-              {reactionEquations[reaction.id] || "Loading..."}
+              {reactionEquations[reaction.id!] || "Loading..."}
             </MenuItem>
           ))}
         </Select>
@@ -364,8 +359,8 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
   selectedMechanismId,
   setSpeciesCreated,
 }) => {
-  const createSpeciesRef = useRef("");
-
+  const [speciesName, setSpeciesName] = useState("");
+  const [speciesDescription, setSpeciesDescription] = useState("");
   const [speciesList, setSpeciesList] = useState<Species[]>([]);
   const [selectedSpeciesIds, setSelectedSpeciesIds] = useState<string[]>([]);
 
@@ -397,32 +392,32 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
   const handleCreateSpeciesClick = async () => {
     try {
       if (selectedFamilyId && selectedMechanismId) {
-        if (createSpeciesRef.current !== "") {
+        if (speciesName !== "") {
           const speciesData: Species = {
-            id: "",
-            name: createSpeciesRef.current,
-            description: "",
+            name: speciesName,
+            description: speciesDescription,
             created_by: "current_user",
-            created_date: "",
           };
           const newSpecies = await createSpecies(speciesData);
 
-          const mechanismSpecies: MechanismSpecies = {
-            id: "",
-            mechanism_id: selectedMechanismId,
-            species_id: newSpecies.id,
-          };
-          await addSpeciesToMechanism(mechanismSpecies);
+          if (newSpecies && newSpecies.id) {
+            const mechanismSpecies: MechanismSpecies = {
+              mechanism_id: selectedMechanismId,
+              species_id: newSpecies.id!,
+            };
+            await addSpeciesToMechanism(mechanismSpecies);
+          }
         }
         for (const speciesId of selectedSpeciesIds) {
           const mechanismSpecies: MechanismSpecies = {
-            id: "",
             mechanism_id: selectedMechanismId,
             species_id: speciesId,
           };
           await addSpeciesToMechanism(mechanismSpecies);
         }
-        createSpeciesRef.current = "";
+
+        setSpeciesName("");
+        setSpeciesDescription("");
         setSelectedSpeciesIds([]);
         onClose();
         setSpeciesCreated(true);
@@ -435,11 +430,18 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
   return (
     <Modal open={open} onClose={onClose}>
       <Box sx={style}>
-        <Typography variant="h6">Enter Name for New Species</Typography>
+        <Typography variant="h6">Create New Species</Typography>
         <TextField
           id="species-name"
           label="Name"
-          onChange={(e) => (createSpeciesRef.current = e.target.value)}
+          onChange={(e) => setSpeciesName(e.target.value)}
+          fullWidth
+          margin="normal"
+        />
+        <TextField
+          id="species-description"
+          label="Description"
+          onChange={(e) => setSpeciesDescription(e.target.value)}
           fullWidth
           margin="normal"
         />
@@ -529,15 +531,15 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
       try {
         await Promise.all(
           reactionList.map(async (reaction) => {
-            const reactants = await getReactantsByReactionIdAsync(reaction.id);
-            const products = await getProductsByReactionIdAsync(reaction.id);
+            const reactants = await getReactantsByReactionIdAsync(reaction.id!);
+            const products = await getProductsByReactionIdAsync(reaction.id!);
             const reactantNames = reactants
               .map((r: ReactionSpeciesDto) => r.species_name)
               .join(" + ");
             const productNames = products
               .map((p: ReactionSpeciesDto) => p.species_name)
               .join(" + ");
-            equations[reaction.id] = `${reactantNames} -> ${productNames}`;
+            equations[reaction.id!] = `${reactantNames} -> ${productNames}`;
           })
         );
         setReactionEquations(equations);
@@ -558,25 +560,21 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
       if (selectedFamilyId && selectedMechanismId) {
         if (selectedReactionType !== "") {
           const reactionData: Reaction = {
-            id: "",
-            name: selectedReactionType, // Assuming 'name' holds the reaction type
+            name: selectedReactionType,
             description: reactionEquations[selectedReactionType] || "", // Set description to the constructed equation
             createdBy: "current_user",
-            createdDate: "",
           };
           const newReaction = await createReaction(reactionData);
 
           const mechanismReaction: MechanismReaction = {
-            id: "",
             mechanism_id: selectedMechanismId,
-            reaction_id: newReaction.id,
+            reaction_id: newReaction.id!,
           };
           await addReactionToMechanism(mechanismReaction);
         }
 
         for (const reactionId of selectedReactionIds) {
           const mechanismReaction: MechanismReaction = {
-            id: "",
             mechanism_id: selectedMechanismId,
             reaction_id: reactionId,
           };
@@ -613,11 +611,14 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
           <MenuItem value="Emission">Emission</MenuItem>
           <MenuItem value="First-Order Loss">First-Order Loss</MenuItem>
           <MenuItem value="Photolysis">Photolysis</MenuItem>
-          <MenuItem value="Surface (Heterogeneous)">Surface (Heterogeneous)</MenuItem>
-          <MenuItem value="Ternary Chemical Activation">Ternary Chemical Activation</MenuItem>
+          <MenuItem value="Surface (Heterogeneous)">
+            Surface (Heterogeneous)
+          </MenuItem>
+          <MenuItem value="Ternary Chemical Activation">
+            Ternary Chemical Activation
+          </MenuItem>
           <MenuItem value="Troe (Fall-Off)">Troe (Fall-Off)</MenuItem>
           <MenuItem value="Tunneling">Tunneling</MenuItem>
-
         </Select>
         {reactionList.length > 0 && (
           <>
@@ -635,7 +636,7 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
             >
               {reactionList.map((reaction) => (
                 <MenuItem key={reaction.id} value={reaction.id}>
-                  {reactionEquations[reaction.id] || "Loading..."}
+                  {reactionEquations[reaction.id!] || "Loading..."}
                 </MenuItem>
               ))}
             </Select>
@@ -706,7 +707,7 @@ export const CreateReactantModal: React.FC<CreateReactantModalProps> = ({
       // Remove 'quantity' since it's not part of the interface
       const reactionSpecies: ReactionSpecies = {
         id: "",
-        reaction_id: selectedReaction.id,
+        reaction_id: selectedReaction.id!,
         species_id: selectedSpeciesId,
         role: "reactant",
       };
@@ -810,10 +811,9 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
         return;
       }
 
-      // Remove 'quantity' since it's not part of the interface
       const reactionSpecies: ReactionSpecies = {
         id: "",
-        reaction_id: selectedReaction.id,
+        reaction_id: selectedReaction.id!,
         species_id: selectedSpeciesId,
         role: "product",
       };
@@ -850,14 +850,6 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
         <Typography variant="h6" style={{ marginTop: "1rem" }}>
           Input Quantity
         </Typography>
-        {/* Remove Quantity Input since 'quantity' is not part of the interface */}
-        {/* <TextField
-          id="quantity"
-          label="Quantity"
-          onChange={(e) => (createProductQuantityRef.current = e.target.value)}
-          fullWidth
-          margin="normal"
-        /> */}
         <Button
           variant="contained"
           onClick={handleCreateProductClick}

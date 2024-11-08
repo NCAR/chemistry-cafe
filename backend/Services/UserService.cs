@@ -64,7 +64,8 @@ namespace Chemistry_Cafe_API.Services
                         INSERT INTO users (id, username, role, email)
                         VALUES (@id, @username, @role, @email);";
 
-                    insertCommand.Parameters.AddWithValue("@id", user.Id);
+                    var id = Guid.NewGuid();
+                    insertCommand.Parameters.AddWithValue("@id", id.ToString());
                     insertCommand.Parameters.AddWithValue("@username", user.Username);
                     insertCommand.Parameters.AddWithValue("@role", user.Role);
                     insertCommand.Parameters.AddWithValue("@email", user.Email ?? (object)DBNull.Value);
@@ -97,7 +98,7 @@ namespace Chemistry_Cafe_API.Services
                     email = @email
                 WHERE id = @id;";
 
-            command.Parameters.AddWithValue("@id", user.Id);
+            command.Parameters.AddWithValue("@id", user.Id.ToString());
             command.Parameters.AddWithValue("@username", user.Username);
             command.Parameters.AddWithValue("@role", user.Role);
             command.Parameters.AddWithValue("@email", user.Email ?? (object)DBNull.Value);
@@ -111,7 +112,7 @@ namespace Chemistry_Cafe_API.Services
             using var command = connection.CreateCommand();
 
             command.CommandText = "DELETE FROM users WHERE id = @id";
-            command.Parameters.AddWithValue("@id", id);
+            command.Parameters.AddWithValue("@id", id.ToString());
 
             await command.ExecuteNonQueryAsync();
         }

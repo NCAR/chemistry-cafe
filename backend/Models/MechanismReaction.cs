@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization; // Added
 using Microsoft.EntityFrameworkCore;
 
 namespace Chemistry_Cafe_API.Models;
@@ -16,16 +17,18 @@ public partial class MechanismReaction
     public Guid Id { get; set; }
 
     [Column("mechanism_id")]
+    [JsonPropertyName("mechanism_id")]
     public Guid MechanismId { get; set; }
 
     [Column("reaction_id")]
+    [JsonPropertyName("reaction_id")]
     public Guid ReactionId { get; set; }
 
     [ForeignKey("MechanismId")]
     [InverseProperty("MechanismReactions")]
-    public virtual Mechanism Mechanism { get; set; } = null!;
+    public virtual Mechanism? Mechanism { get; set; } = null!;
 
     [ForeignKey("ReactionId")]
     [InverseProperty("MechanismReactions")]
-    public virtual Reaction Reaction { get; set; } = null!;
+    public virtual Reaction? Reaction { get; set; } = null!;
 }

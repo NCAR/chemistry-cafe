@@ -177,7 +177,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
             <DataGrid
               rows={species}
               columns={speciesColumns}
-              getRowId={(row: Species) => row.id}
+              getRowId={(row: Species) => row.id!}
               autoPageSize
               pagination
               style={{ height: "100%" }}
@@ -205,7 +205,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
             <DataGrid
               rows={reactions}
               columns={reactionColumns}
-              getRowId={(row: Reaction) => row.id}
+              getRowId={(row: Reaction) => row.id!}
               autoPageSize
               pagination
               style={{ height: "100%" }}
