@@ -1,250 +1,281 @@
-import React, { useEffect, useState } from "react";
+import React, { Children, ReactNode, useEffect, useState } from 'react';
 
-import { Species, Reaction } from "../../API/API_Interfaces";
+import { Species, Reaction} from '../../API/API_Interfaces';
+import { getReactionsByMechanismId, getSpeciesByMechanismId } from '../../API/API_GetMethods';
 
-import { CreateReactionModal, CreateSpeciesModal } from "./Modals";
+// import { CreateReactionModal, CreateSpeciesModal, ReactionPropertiesModal, SpeciesPropertiesModal } from './Modals';
 
-import {
-  DataGrid,
-  GridColDef,
-  GridToolbarContainer,
-  GridToolbarColumnsButton,
-  GridToolbarFilterButton,
-  GridToolbarDensitySelector,
-  GridToolbarExport,
-} from "@mui/x-data-grid";
+import { DataGrid, GridRowParams, GridColDef, GridToolbar, GridToolbarContainer, GridToolbarColumnsButton, GridToolbarFilterButton, GridToolbarDensitySelector, GridToolbarExport } from '@mui/x-data-grid';
 
-import IconButton from "@mui/material/IconButton";
-import { Add } from "@mui/icons-material";
-import { Typography } from "@mui/material";
-import Tabs from "@mui/material/Tabs";
-import Tab from "@mui/material/Tab";
-import {
-  getReactionsByMechanismId,
-  getSpeciesByMechanismId,
-} from "../../API/API_GetMethods";
+import IconButton from '@mui/material/IconButton';
+import { Add, ChildCare, Description } from '@mui/icons-material';
+import { Typography, Box } from '@mui/material';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
 
 const tabsHeaderStyle: React.CSSProperties = {
-  backgroundColor: "#f0f0f0",
-  padding: "10px",
-  borderBottom: "1px solid #ccc",
+    backgroundColor: '#f0f0f0',
+    padding: '10px',
+    borderBottom: '1px solid #ccc',
+
 };
+
 
 interface Props {
-  selectedFamilyId: string | null;
-  selectedMechanismId: string | null;
+    selectedFamilyID: string | null;
+    selectedMechanismID: string | null;
 }
 
-const RenderSpeciesReactionTable: React.FC<Props> = ({
-  selectedFamilyId,
-  selectedMechanismId,
-}) => {
-  const [createSpeciesOpen, setCreateSpeciesOpen] = useState(false);
-  const handleCreateSpeciesOpen = () => setCreateSpeciesOpen(true);
-  const handleCreateSpeciesClose = () => setCreateSpeciesOpen(false);
 
-  const [createReactionOpen, setCreateReactionOpen] = useState(false);
-  const handleCreateReactionOpen = () => setCreateReactionOpen(true);
-  const handleCreateReactionClose = () => setCreateReactionOpen(false);
+const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selectedMechanismID }) => {
+    const [createSpeciesOpen, setCreateSpeciesOpen] = React.useState(false);
+    const handleCreateSpeciesOpen = () => setCreateSpeciesOpen(true);
+    const handleCreateSpeciesClose = () => setCreateSpeciesOpen(false);
 
-  const [species, setSpecies] = useState<Species[]>([]);
-  const [reactions, setReactions] = useState<Reaction[]>([]);
+    const [createReactionOpen, setCreateReactionOpen] = React.useState(false);
+    const handleCreateReactionOpen = () => setCreateReactionOpen(true);
+    const handleCreateReactionClose = () => setCreateReactionOpen(false);
+    
+    const [species, setSpecies] = useState<Species[]>([]);
+    const [reactions, setReactions] = useState<Reaction[]>([]);
 
-  const [speciesCreated, setSpeciesCreated] = useState<boolean>(false);
-  const [reactionCreated, setReactionCreated] = useState<boolean>(false);
+    const [speciesCreated, setSpeciesCreated] = useState<boolean>(false);
+    const [speciesUpdated, setSpeciesUpdated] = useState<boolean>(false);
+    const [reactionCreated, setReactionCreated] = useState<boolean>(false);
+    const [reactionUpdated, setReactionUpdated] = useState<boolean>(false);
 
-  const [currentTab, setCurrentTab] = useState<number>(0);
+    const [selectedSpecies, setSelectedSpecies] = useState<Species | null>(null);
+    const [selectedReaction, setSelectedReaction] = useState<Reaction | null>(null);
 
-  const handleTabSwitch = (
-    _event: React.ChangeEvent<unknown>,
-    tabValue: number
-  ) => {
-    setCurrentTab(tabValue);
-  };
+    const [speciesPropertiesOpen, setSpeciesPropertiesOpen] = React.useState(false);
+    const handleSpeciesPropertiesOpen = () => setSpeciesPropertiesOpen(true);
+    const handleSpeciesPropertiesClose = () => setSpeciesPropertiesOpen(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (selectedMechanismId) {
-        const fetchedSpecies = await getSpeciesByMechanismId(
-          selectedMechanismId
-        );
-        const fetchedReactions = await getReactionsByMechanismId(
-          selectedMechanismId
-        );
+    const [reactionPropertiesOpen, setReactionPropertiesOpen] = React.useState(false);
+    const handleReactionPropertiesOpen = () => setReactionPropertiesOpen(true);
+    const handleReactionPropertiesClose = () => setReactionPropertiesOpen(false);
 
-        setSpecies(fetchedSpecies);
-        setReactions(fetchedReactions);
 
-        setSpeciesCreated(false);
-        setReactionCreated(false);
-      } else {
-        setSpecies([]);
-        setReactions([]);
-      }
+    const [currentTab, setCurrentTab] = useState<number>(0);
+    
+    // Event needed as parameter to ensure correct value recieved in tabValue
+    const handleTabSwitch = (event: React.ChangeEvent<unknown>, tabValue: number) => {
+        setCurrentTab(tabValue);
     };
 
-    fetchData();
-  }, [selectedMechanismId, speciesCreated, reactionCreated]);
+    const handleSpeciesCellClick = (params: GridRowParams<Species>) => {
+        const species = params.row;
+        setSelectedSpecies(species);
+        handleSpeciesPropertiesOpen();
+    };
+    
+    const handleReactionCellClick = (params: GridRowParams<Reaction>) => {
+        const reaction = params.row;
+        setSelectedReaction(reaction);
+        handleReactionPropertiesOpen();
+    };
 
-  const speciesColumns: GridColDef[] = [
-    {
-      field: "name",
-      headerName: "Name",
-      flex: 1,
-      renderCell: (params) => (
-        <Typography variant="body1">{params.value}</Typography>
-      ),
-    },
-    {
-      field: "description",
-      headerName: "Description",
-      flex: 1,
-      renderCell: (params) => (
-        <Typography variant="body1">{params.value}</Typography>
-      ),
-    },
-  ];
+    useEffect(() => {
+        const fetchData = async () => {
+            if (selectedMechanismID) {
+                const fetchedSpecies = await getSpeciesByMechanismId(selectedMechanismID);
+                const fetchedReactions = await getReactionsByMechanismId(selectedMechanismID);
 
-  const reactionColumns: GridColDef[] = [
-    {
-      field: "description",
-      headerName: "Name",
-      flex: 1,
-      renderCell: (params) => (
-        <Typography variant="body1">{params.value}</Typography>
-      ),
-    },
-  ];
+                setSpecies(fetchedSpecies);
+                setReactions(fetchedReactions);
+                
+                // console.log("species now")
+                // for (const x of species) {console.log(x.name);}
 
-  const CustomToolbar: React.FC<{ customButton?: React.ReactNode }> = ({
-    customButton,
-  }) => {
+                
+                setSpeciesCreated(false);
+                setReactionCreated(false);
+                setReactionUpdated(false);
+                setSpeciesUpdated(false);
+            } else {
+                setSpecies([]);
+                setReactions([]);
+            }
+        };
+
+        fetchData();
+    }, [selectedMechanismID, speciesCreated, reactionCreated, speciesUpdated, reactionUpdated]);
+
+    const createSpeciesColumns = (): GridColDef[] => {
+        const speciesColumns: GridColDef[] = [
+            {
+                field: 'name',
+                headerName: 'Name',
+                flex: 1,
+                renderCell: (params) => (
+                    <Typography variant="body1">
+                        {params.value}
+                    </Typography>
+                ),
+            },
+        ];
+    
+    
+        return speciesColumns;
+    };
+
+    const rowifySpecies = (speciesData: Species[]) => {
+        const templol = speciesData.map(speciesItem => {
+            const speciesUuid = speciesItem.id;
+            
+
+            return { ...speciesItem};
+        });
+        // console.log(templol);
+        return templol;
+    };
+    
+    const reactionColumns: GridColDef[] = [
+        {
+            field: 'description',
+            headerName: 'Data',
+            flex: 1,
+            renderCell: (params) => (
+                <Typography variant="body1">
+                    {params.value}
+                </Typography>
+            ),
+        },
+    ];
+
+    const rowifyReactions = (reactionsData: Reaction[]) => {
+        console.log("this is a call");
+        const rowifiedReactions = reactionsData.map(reactionItem => {
+            // currently, all meaningful info is stored in description field
+            return {... reactionItem};
+        });
+        console.log(rowifiedReactions);
+        return rowifiedReactions;
+        
+    }
+    /** toolbar that takes in a button and adds it, used for datagrids below 
+    to include add item buttons */
+    const FamilyReactionToolbar: React.FC<{ customButton?: React.ReactNode }> = ({ customButton }) =>  {
+        return (
+            <GridToolbarContainer>
+                {customButton && customButton}
+                <GridToolbarColumnsButton></GridToolbarColumnsButton>
+                <GridToolbarFilterButton />
+                <GridToolbarDensitySelector 
+                    slotProps={{ tooltip: { title: 'Change density' } }}
+                />
+
+                <Box sx={{ flexGrow: 1 }} />
+                <GridToolbarExport 
+                    slotProps={{
+                        tooltip: { title: 'Export data' },
+                        button: { variant: 'outlined' },
+                    }}
+                />
+                
+            </GridToolbarContainer>
+        );
+    };
+
+
+    const addSpeciesButton = (<IconButton onClick={handleCreateSpeciesOpen} 
+            aria-label="create species" 
+            style={{ color: 'blue', margin: '5px' }} 
+            disabled={selectedFamilyID === null || selectedMechanismID === null}
+            > 
+            <Add sx={{ fontSize: 32, fontWeight: 'bold' }} /> 
+        </IconButton>);
+
+    const addReactionButton = (
+        <IconButton
+            onClick={handleCreateReactionOpen}
+            aria-label="create reaction"
+            style={{ color: 'blue', margin: '5px' }}
+            disabled={selectedFamilyID === null || selectedMechanismID === null}
+        >
+            <Add sx={{ fontSize: 32, fontWeight: 'bold' }} />
+        </IconButton>);
     return (
-      <GridToolbarContainer>
-        <GridToolbarColumnsButton />
-        <GridToolbarFilterButton />
-        <GridToolbarDensitySelector />
-        {customButton && customButton}
-        <GridToolbarExport />
-      </GridToolbarContainer>
+        <div style={{ display:'flex', flexDirection:'column', height: '100%', width: '100%' }}>
+            <div className='familyTabs' style={tabsHeaderStyle}>
+                    <Tabs value={currentTab} onChange={handleTabSwitch}>
+                        <Tab label="Species" />
+                        <Tab label="Reactions" />
+                    </Tabs>
+            </div>
+
+            <div className='dataGrids' style={ { display:'flex', flexGrow:'1', overflowY: 'auto'} }>
+                {currentTab === 0 && 
+                        <div style={{ flexGrow: 1 }}>
+                            <DataGrid
+                            initialState={{ density: 'compact', }}
+                            rows={rowifySpecies(species)}
+                            columns={createSpeciesColumns()}
+                            getRowId={(row: Species) => {if (row.id === undefined){
+                                return 0} // TODO: figure out better solution for this?
+                                else {return row.id}
+                                }
+                            }
+                            onRowClick={handleSpeciesCellClick}
+                            autoPageSize
+                            pagination
+                            style={{ height: '100%' }}
+                            slots={{ 
+                                toolbar: () => <FamilyReactionToolbar customButton={addSpeciesButton} />
+                            }}
+                            sx={{
+                                '& .MuiDataGrid-cell': {
+                                    borderRight: '3px solid #ddd',
+                                    borderBottom: '3px solid #ddd',
+                                    padding: '8px',
+                                },
+                                '& .MuiDataGrid-columnHeader': {
+                                    borderBottom: '3px solid #ccc',
+                                    padding: '10px',
+                                },
+                            }}
+                        />
+                        </div>
+                        }
+                        {currentTab === 1 && 
+                        <div style={{ flexGrow: 1 }}>
+                            <DataGrid
+                            initialState={{ density: 'compact', }}
+                            rows={rowifyReactions(reactions)}
+                            columns={reactionColumns}
+                            getRowId={(row: Reaction) => {if (row.id === undefined){
+                                return 0} // TODO: figure out better solution for this?
+                                else {return row.id}
+                                }
+                            }
+                            onRowClick={handleReactionCellClick}
+                            autoPageSize
+                            pagination
+                            style={{ height: '100%' }}
+                            slots={{
+                                toolbar: () => <FamilyReactionToolbar customButton={addReactionButton} />
+                            }}
+                            sx={{
+                                '& .MuiDataGrid-cell': {
+                                    borderRight: '3px solid #ddd',
+                                    borderBottom: '3px solid #ddd',
+                                    padding: '8px',
+                                },
+                                '& .MuiDataGrid-columnHeader': {
+                                    borderBottom: '3px solid #ccc',
+                                    padding: '10px',
+                                },
+                            }}
+                        />
+                        </div>
+                        }
+            </div>
+            {/* <CreateSpeciesModal open={createSpeciesOpen} onClose={handleCreateSpeciesClose} selectedFamily={selectedFamily} selectedTagMechanism={selectedTagMechanism} setSpeciesCreated={setSpeciesCreated} />
+            <CreateReactionModal open={createReactionOpen} onClose={handleCreateReactionClose} selectedFamily={selectedFamily} selectedTagMechanism={selectedTagMechanism} setReactionCreated={setReactionCreated} />
+            <SpeciesPropertiesModal open={speciesPropertiesOpen} onClose={handleSpeciesPropertiesClose} selectedTagMechanism={selectedTagMechanism} selectedSpecies={selectedSpecies} setSpeciesUpdated={setSpeciesUpdated} />
+            <ReactionPropertiesModal open={reactionPropertiesOpen} onClose={handleReactionPropertiesClose} selectedTagMechanism={selectedTagMechanism} selectedReaction={selectedReaction} setReactionUpdated={setReactionUpdated} /> */}
+        </div>
     );
-  };
-
-  const addSpeciesButton = (
-    <IconButton
-      onClick={handleCreateSpeciesOpen}
-      aria-label="create species"
-      style={{ color: "blue", margin: "5px" }}
-      disabled={selectedFamilyId === null || selectedMechanismId === null}
-    >
-      <Add sx={{ fontSize: 32, fontWeight: "bold" }} />
-    </IconButton>
-  );
-
-  const addReactionButton = (
-    <IconButton
-      onClick={handleCreateReactionOpen}
-      aria-label="create reaction"
-      style={{ color: "blue", margin: "5px" }}
-      disabled={selectedFamilyId === null || selectedMechanismId === null}
-    >
-      <Add sx={{ fontSize: 32, fontWeight: "bold" }} />
-    </IconButton>
-  );
-
-  return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
-        width: "100%",
-      }}
-    >
-      <div className="familyTabs" style={tabsHeaderStyle}>
-        <Tabs value={currentTab} onChange={handleTabSwitch}>
-          <Tab label="Species" />
-          <Tab label="Reactions" />
-        </Tabs>
-      </div>
-
-      <div
-        className="dataGrids"
-        style={{ display: "flex", flexGrow: 1, overflowY: "auto" }}
-      >
-        {currentTab === 0 && (
-          <div style={{ flexGrow: 1 }}>
-            <DataGrid
-              rows={species}
-              columns={speciesColumns}
-              getRowId={(row: Species) => row.id!}
-              autoPageSize
-              pagination
-              style={{ height: "100%" }}
-              slots={{
-                toolbar: () => (
-                  <CustomToolbar customButton={addSpeciesButton} />
-                ),
-              }}
-              sx={{
-                "& .MuiDataGrid-cell": {
-                  borderRight: "1px solid #ddd",
-                  borderBottom: "1px solid #ddd",
-                  padding: "8px",
-                },
-                "& .MuiDataGrid-columnHeader": {
-                  borderBottom: "1px solid #ccc",
-                  padding: "10px",
-                },
-              }}
-            />
-          </div>
-        )}
-        {currentTab === 1 && (
-          <div style={{ flexGrow: 1 }}>
-            <DataGrid
-              rows={reactions}
-              columns={reactionColumns}
-              getRowId={(row: Reaction) => row.id!}
-              autoPageSize
-              pagination
-              style={{ height: "100%" }}
-              slots={{
-                toolbar: () => (
-                  <CustomToolbar customButton={addReactionButton} />
-                ),
-              }}
-              sx={{
-                "& .MuiDataGrid-cell": {
-                  borderRight: "1px solid #ddd",
-                  borderBottom: "1px solid #ddd",
-                  padding: "8px",
-                },
-                "& .MuiDataGrid-columnHeader": {
-                  borderBottom: "1px solid #ccc",
-                  padding: "10px",
-                },
-              }}
-            />
-          </div>
-        )}
-      </div>
-      <CreateSpeciesModal
-        open={createSpeciesOpen}
-        onClose={handleCreateSpeciesClose}
-        selectedFamilyId={selectedFamilyId}
-        selectedMechanismId={selectedMechanismId}
-        setSpeciesCreated={setSpeciesCreated}
-      />
-      <CreateReactionModal
-        open={createReactionOpen}
-        onClose={handleCreateReactionClose}
-        selectedFamilyId={selectedFamilyId}
-        selectedMechanismId={selectedMechanismId}
-        setReactionCreated={setReactionCreated}
-      />
-    </div>
-  );
-};
+}
 
 export default RenderSpeciesReactionTable;
