@@ -8,6 +8,7 @@ import LoggedIn from '../LogIn/loggedIn';
 import FamilyPage from '../Family/family';
 import LogIn from '../LogIn/logIn';
 import RoleManagement from '../Roles/RoleManagement';
+import NoAccess from '../Roles/Unauthorized.tsx';
 import { AccessibilityWidget } from 'react-accessibility';
 import { AuthProvider } from '../contexts/AuthContext';
 import ProtectedRoute from '../Components/ProtectedRoute'; // The ProtectedRoute you created earlier
@@ -32,6 +33,7 @@ function App() {
                     <Route path="/LoggedIn" element={<LoggedIn />} />
                     <Route path="/FamilyPage" element={<FamilyPage />} />
                     <Route path="/Settings" element={<Settings />} />
+                    <Route path="/unauthorized" element={<NoAccess />} />
                     
                     {/* Protected route for the Roles page */}
                     <Route 
