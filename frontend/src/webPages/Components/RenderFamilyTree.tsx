@@ -284,7 +284,7 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                           >
                             <IconButton
                               onClick={(event) => {
-                                handlePopOverClick(event, mechanism.id);
+                                handlePopOverClick(event, mechanism.id!);
                               }}
                               aria-label="download"
                               style={{ color: "green" }}
@@ -293,7 +293,7 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                             </IconButton>
                             <IconButton
                               onClick={() => {
-                                handleMechanismDelete(mechanism.id);
+                                handleMechanismDelete(mechanism.id!);
                               }}
                               aria-label="delete"
                               style={{ color: "red" }}
@@ -344,7 +344,7 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                       sx={treeItemStyle}
                       onClick={() => {
                         setSelectedFamilyId(family.id!);
-                        setSelectedMechanismId(mechanism.id);
+                        setSelectedMechanismId(mechanism.id!);
                       }}
                     />
                   ))}

@@ -88,17 +88,6 @@ export const Footer = () => {
     handleAboutOpen();
   };
 
-  const [, setCollabOpen] = useState(false);
-  const handleCollabOpen = () => setCollabOpen(true);
-  const handleCollab = () => {
-    handleCollabOpen();
-  };
-
-  const [, setSponsorOpen] = useState(false);
-  const handleSponsorOpen = () => setSponsorOpen(true);
-  const handleSponsor = () => {
-    handleSponsorOpen();
-  };
 
   return (
     <Paper component="footer" square={true} variant="outlined">
@@ -110,12 +99,6 @@ export const Footer = () => {
         ></Box>
         <Box sx={{ pr: 10 }}>
           <Button onClick={handleAbout}>About</Button>
-        </Box>
-        <Box sx={{ pr: 10 }}>
-          <Button onClick={handleCollab}>Collaborators</Button>
-        </Box>
-        <Box sx={{ pr: 10 }}>
-          <Button onClick={handleSponsor}>Sponsors</Button>
         </Box>
         <Box sx={{ pr: 10 }}>
           <Button onClick={handleBugClick} variant="text">

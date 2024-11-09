@@ -94,7 +94,7 @@ namespace Chemistry_Cafe_API.Services
             using var command = connection.CreateCommand();
 
             command.CommandText = "SELECT * FROM reactions WHERE id = @id";
-            command.Parameters.AddWithValue("@id", id);
+            command.Parameters.AddWithValue("@id", id.ToString());
 
             var result = await ReadAllAsync(await command.ExecuteReaderAsync());
             return result.FirstOrDefault();
@@ -109,13 +109,14 @@ namespace Chemistry_Cafe_API.Services
             reaction.Id = Guid.NewGuid();
 
             command.CommandText = @"
-                INSERT INTO reactions (id, name, description, created_by)
-                VALUES (@id, @name, @description, @created_by);";
+                INSERT INTO reactions (id, name, description, created_by, created_date)
+                VALUES (@id, @name, @description, @created_by, @created_date);";
 
-            command.Parameters.AddWithValue("@id", reaction.Id);
+            command.Parameters.AddWithValue("@id", reaction.Id.ToString());
             command.Parameters.AddWithValue("@name", reaction.Name);
             command.Parameters.AddWithValue("@description", reaction.Description ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@created_by", reaction.CreatedBy ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@created_date", DateTime.UtcNow);
 
             await command.ExecuteNonQueryAsync();
 
@@ -135,7 +136,7 @@ namespace Chemistry_Cafe_API.Services
                     created_by = @created_by
                 WHERE id = @id;";
 
-            command.Parameters.AddWithValue("@id", reaction.Id);
+            command.Parameters.AddWithValue("@id", reaction.Id.ToString());
             command.Parameters.AddWithValue("@name", reaction.Name);
             command.Parameters.AddWithValue("@description", reaction.Description ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@created_by", reaction.CreatedBy ?? (object)DBNull.Value);
@@ -157,7 +158,7 @@ namespace Chemistry_Cafe_API.Services
                 JOIN mechanisms m ON mr.mechanism_id = m.id
                 WHERE m.family_id = @familyId";
 
-            command.Parameters.AddWithValue("@familyId", familyId);
+            command.Parameters.AddWithValue("@familyId", familyId.ToString());
 
             using var reader = await command.ExecuteReaderAsync();
 
@@ -191,7 +192,7 @@ namespace Chemistry_Cafe_API.Services
                 JOIN mechanism_reactions mr ON r.id = mr.reaction_id
                 WHERE mr.mechanism_id = @mechanismId";
 
-            command.Parameters.AddWithValue("@mechanismId", mechanismId);
+            command.Parameters.AddWithValue("@mechanismId", mechanismId.ToString());
 
             using var reader = await command.ExecuteReaderAsync();
 
@@ -218,7 +219,7 @@ namespace Chemistry_Cafe_API.Services
             using var command = connection.CreateCommand();
 
             command.CommandText = "DELETE FROM reactions WHERE id = @id";
-            command.Parameters.AddWithValue("@id", id);
+            command.Parameters.AddWithValue("@id", id.ToString());
 
             await command.ExecuteNonQueryAsync();
         }

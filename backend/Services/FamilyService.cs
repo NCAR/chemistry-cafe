@@ -82,7 +82,7 @@ namespace Chemistry_Cafe_API.Services
             using var command = connection.CreateCommand();
 
             command.CommandText = @"SELECT * FROM families WHERE id = @id";
-            command.Parameters.AddWithValue("@id", id);
+            command.Parameters.AddWithValue("@id", id.ToString());
 
             var result = await ReadAllAsync(await command.ExecuteReaderAsync());
             return result.FirstOrDefault();
@@ -98,7 +98,7 @@ namespace Chemistry_Cafe_API.Services
                 INSERT INTO families (id, name, description, created_by, created_date) 
                 VALUES (@id, @name, @description, @created_by, @created_date);";
 
-            command.Parameters.AddWithValue("@id", familyId);
+            command.Parameters.AddWithValue("@id", familyId.ToString());
             command.Parameters.AddWithValue("@name", name);
             command.Parameters.AddWithValue("@description", description ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@created_by", createdBy ?? (object)DBNull.Value);
@@ -130,7 +130,7 @@ namespace Chemistry_Cafe_API.Services
                     created_by = @created_by 
                 WHERE id = @id;";
 
-            command.Parameters.AddWithValue("@id", family.Id);
+            command.Parameters.AddWithValue("@id", family.Id.ToString());
             command.Parameters.AddWithValue("@name", family.Name);
             command.Parameters.AddWithValue("@description", family.Description ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@created_by", family.CreatedBy ?? (object)DBNull.Value);
@@ -144,7 +144,7 @@ namespace Chemistry_Cafe_API.Services
             using var command = connection.CreateCommand();
 
             command.CommandText = @"DELETE FROM families WHERE id = @id;";
-            command.Parameters.AddWithValue("@id", id);
+            command.Parameters.AddWithValue("@id", id.ToString());
 
             await command.ExecuteNonQueryAsync();
         }

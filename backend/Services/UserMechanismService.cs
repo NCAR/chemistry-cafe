@@ -17,13 +17,15 @@ namespace Chemistry_Cafe_API.Services
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
-
+            
+            var id = Guid.NewGuid();
             command.CommandText = @"
-                INSERT INTO user_mechanisms (user_id, mechanism_id, role)
-                VALUES (@user_id, @mechanism_id, @role);";
-
-            command.Parameters.AddWithValue("@user_id", userMechanism.UserId);
-            command.Parameters.AddWithValue("@mechanism_id", userMechanism.MechanismId);
+                INSERT INTO user_mechanisms (id, user_id, mechanism_id, role)
+                VALUES (@id, @user_id, @mechanism_id, @role);";
+            
+            command.Parameters.AddWithValue("@id", id.ToString());
+            command.Parameters.AddWithValue("@user_id", userMechanism.UserId.ToString());
+            command.Parameters.AddWithValue("@mechanism_id", userMechanism.MechanismId.ToString());
             command.Parameters.AddWithValue("@role", userMechanism.Role ?? (object)DBNull.Value);
 
             await command.ExecuteNonQueryAsync();
@@ -46,7 +48,7 @@ namespace Chemistry_Cafe_API.Services
                 INNER JOIN mechanisms ON user_mechanisms.mechanism_id = mechanisms.id
                 WHERE user_mechanisms.user_id = @userId";
 
-            command.Parameters.AddWithValue("@userId", userId);
+            command.Parameters.AddWithValue("@userId", userId.ToString());
 
             var userMechanismList = new List<UserMechanism>();
 
@@ -82,7 +84,7 @@ namespace Chemistry_Cafe_API.Services
                 INNER JOIN user_mechanisms um ON u.id = um.user_id
                 WHERE um.mechanism_id = @mechanism_id";
 
-            command.Parameters.AddWithValue("@mechanism_id", mechanismId);
+            command.Parameters.AddWithValue("@mechanism_id", mechanismId.ToString());
             return await ReadUsersAsync(await command.ExecuteReaderAsync());
         }
 
@@ -92,7 +94,7 @@ namespace Chemistry_Cafe_API.Services
             using var command = connection.CreateCommand();
 
             command.CommandText = "DELETE FROM user_mechanisms WHERE id = @id";
-            command.Parameters.AddWithValue("@id", id);
+            command.Parameters.AddWithValue("@id", id.ToString());
 
             await command.ExecuteNonQueryAsync();
         }

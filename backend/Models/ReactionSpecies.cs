@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization; // Added
 using Microsoft.EntityFrameworkCore;
 
 namespace Chemistry_Cafe_API.Models;
@@ -16,15 +17,19 @@ public partial class ReactionSpecies
     public Guid Id { get; set; }
 
     [Column("reaction_id")]
+    [JsonPropertyName("reaction_id")]
     public Guid ReactionId { get; set; }
 
     [Column("species_id")]
+    [JsonPropertyName("species_id")]
     public Guid SpeciesId { get; set; }
 
     [Column("role", TypeName = "enum('reactant','product')")]
+    [JsonPropertyName("role")]
     public string Role { get; set; } = null!;
 
     [Column("quantity")]
+    [JsonPropertyName("quantity")]
     public decimal Quantity { get; set; }
 
     [ForeignKey("ReactionId")]

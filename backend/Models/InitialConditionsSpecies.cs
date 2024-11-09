@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization; // Added
 using Microsoft.EntityFrameworkCore;
 
 namespace Chemistry_Cafe_API.Models;
@@ -16,21 +17,27 @@ public partial class InitialConditionsSpecies
     public Guid Id { get; set; }
 
     [Column("mechanism_id")]
+    [JsonPropertyName("mechanism_id")]
     public Guid MechanismId { get; set; }
 
     [Column("species_id")]
+    [JsonPropertyName("species_id")]
     public Guid SpeciesId { get; set; }
 
     [Column("concentration")]
+    [JsonPropertyName("concentration")]
     public double? Concentration { get; set; }
 
     [Column("temperature")]
+    [JsonPropertyName("temperature")]
     public double? Temperature { get; set; }
 
     [Column("pressure")]
+    [JsonPropertyName("pressure")]
     public double? Pressure { get; set; }
 
     [Column("additional_conditions", TypeName = "text")]
+    [JsonPropertyName("additional_conditions")]
     public string? AdditionalConditions { get; set; } = string.Empty;
 
     [ForeignKey("MechanismId")]
