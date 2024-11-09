@@ -532,6 +532,8 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
   const [reactionEquations, setReactionEquations] = useState<{
     [key: string]: string;
   }>({});
+  const createReactionReactantsRef = useRef("");
+  const createReactionProductsRef = useRef("");
 
   useEffect(() => {
     const fetchReactions = async () => {
@@ -593,12 +595,24 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
     try {
       if (selectedFamilyId && selectedMechanismId) {
         if (selectedReactionType !== "") {
+          console.log("testing here");
+          console.log(reactionEquations[selectedReactionType]);
+          console.log(reactionEquations);
+
+          // Build the reaction that we will store in description
+          console.log(createReactionReactantsRef.current);
+          console.log(createReactionProductsRef.current);
+          console.log(selectedReactionType)
+
           const reactionData: Reaction = {
             name: selectedReactionType,
-            description: reactionEquations[selectedReactionType] || "", // Set description to the constructed equation
+            description: "", // Set description to the constructed equation
             createdBy: "current_user",
           };
+          console.log(reactionData);
           const newReaction = await createReaction(reactionData);
+
+          console.log(newReaction);
 
           const mechanismReaction: MechanismReaction = {
             mechanism_id: selectedMechanismId,
@@ -654,6 +668,23 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
           <MenuItem value="Troe (Fall-Off)">Troe (Fall-Off)</MenuItem>
           <MenuItem value="Tunneling">Tunneling</MenuItem>
         </Select>
+
+        <TextField 
+        id="reactants"
+        label="Reactants"
+        type="string"
+        onChange={(e) => (createReactionReactantsRef.current = e.target.value)}
+        fullWidth
+        margin="normal"
+        />
+        <TextField 
+        id="products"
+        label="Products"
+        type="string"
+        onChange={(e) => (createReactionProductsRef.current = e.target.value)}
+        fullWidth
+        margin="normal"
+        />
         {reactionList.length > 0 && (
           <>
             <Typography variant="subtitle1" style={{ marginTop: "1rem" }}>

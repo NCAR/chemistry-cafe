@@ -1,10 +1,10 @@
 import React, { Children, ReactNode, useEffect, useState } from 'react';
 
-import { Species, Reaction} from '../../API/API_Interfaces';
+import { Species, Reaction, InitialConditionSpecies} from '../../API/API_Interfaces';
 import { getReactionsByMechanismId, getSpeciesByMechanismId, getSpeciesPropertiesByMechanismIDAsync} from '../../API/API_GetMethods';
 
 // import { CreateReactionModal, CreateSpeciesModal, ReactionPropertiesModal, SpeciesPropertiesModal } from './Modals';
-import {CreateSpeciesModal} from './Modals';
+import {CreateSpeciesModal, CreateReactionModal, CreateReactantModal} from './Modals';
 import { DataGrid, GridRowParams, GridColDef, GridToolbar, GridToolbarContainer, GridToolbarColumnsButton, GridToolbarFilterButton, GridToolbarDensitySelector, GridToolbarExport } from '@mui/x-data-grid';
 
 import IconButton from '@mui/material/IconButton';
@@ -38,6 +38,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
     
     const [species, setSpecies] = useState<Species[]>([]);
     const [reactions, setReactions] = useState<Reaction[]>([]);
+    const [speciesProperties, setSpeciesProperties] = useState<InitialConditionSpecies[]>([]);
 
     const [speciesCreated, setSpeciesCreated] = useState<boolean>(false);
     const [speciesUpdated, setSpeciesUpdated] = useState<boolean>(false);
@@ -83,10 +84,10 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                 const fetchedSpeciesProperties = await getSpeciesPropertiesByMechanismIDAsync(selectedMechanismID);
                 setSpecies(fetchedSpecies);
                 setReactions(fetchedReactions);
+                setSpeciesProperties(fetchedSpeciesProperties);
+                // console.log("species properties now");
+                // console.log(fetchedSpeciesProperties);
                 
-                console.log("species properties now");
-                console.log(fetchedSpeciesProperties);
-                // for (const x of species) {console.log(x.name);}
 
                 
                 setSpeciesCreated(false);
@@ -123,18 +124,36 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
     const rowifySpecies = (speciesData: Species[]) => {
         const templol = speciesData.map(speciesItem => {
             const speciesUuid = speciesItem.id;
+
+            // get the inital conditions from the species
+
+            // if initial conditions are null, assign default values; otherwise put in the correct values
+
+            // return the data
             
 
             return { ...speciesItem};
         });
         // console.log(templol);
+        // console.log("speciesdata");
+        // console.log(speciesData);
         return templol;
     };
     
     const reactionColumns: GridColDef[] = [
         {
-            field: 'description',
-            headerName: 'Data',
+            field: 'reactionType',
+            headerName: 'Reaction Type',
+            flex: 1,
+            renderCell: (params) => (
+                <Typography variant="body1">
+                    {params.value}
+                </Typography>
+            ),
+        },
+        {
+            field: 'reaction',
+            headerName: 'Reaction',
             flex: 1,
             renderCell: (params) => (
                 <Typography variant="body1">
@@ -148,11 +167,29 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
         console.log("this is a call");
         const rowifiedReactions = reactionsData.map(reactionItem => {
             // currently, all meaningful info is stored in description field
-            // for now, getting around this using string parsing
-            
-            return {... reactionItem};
+            // for now, getting around this using regex string parsing
+            // example string: ARRHENIUS Reaction 1: O + O3 -> 2 * O2 + irr__071b97cd-d37e-41e1-9ff1-308e3179f910
+            if (reactionItem.description === null){
+                return {... reactionItem};
+            }
+            else{
+                
+                const matches = reactionItem.description.match(/^(\w+)(?: Reaction \d+)?: (.+)$/);
+
+                if (matches) {
+                    // Extract components from matches
+                    let reactionType = matches[1].toLowerCase().replace(/^./, char => char.toUpperCase());
+                    let reaction = matches[2].trim();
+
+                    return {... reactionItem, reactionType, reaction};
+                }
+
+                else{
+                    return {... reactionItem};
+                }
+            }
         });
-        console.log(rowifiedReactions);
+        // console.log(rowifiedReactions);
         return rowifiedReactions;
         
     }
@@ -274,8 +311,8 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                         }
             </div>
             <CreateSpeciesModal open={createSpeciesOpen} onClose={handleCreateSpeciesClose} selectedFamilyId={selectedFamilyID} selectedMechanismId={selectedMechanismID} setSpeciesCreated={setSpeciesCreated} />
-            {/* <CreateReactionModal open={createReactionOpen} onClose={handleCreateReactionClose} selectedFamily={selectedFamily} selectedTagMechanism={selectedTagMechanism} setReactionCreated={setReactionCreated} />
-            <SpeciesPropertiesModal open={speciesPropertiesOpen} onClose={handleSpeciesPropertiesClose} selectedTagMechanism={selectedTagMechanism} selectedSpecies={selectedSpecies} setSpeciesUpdated={setSpeciesUpdated} />
+            <CreateReactionModal open={createReactionOpen} onClose={handleCreateReactionClose} selectedFamilyId={selectedFamilyID} selectedMechanismId={selectedMechanismID} setReactionCreated={setReactionCreated} />
+            {/* <SpeciesPropertiesModal open={speciesPropertiesOpen} onClose={handleSpeciesPropertiesClose} selectedTagMechanism={selectedTagMechanism} selectedSpecies={selectedSpecies} setSpeciesUpdated={setSpeciesUpdated} />
             <ReactionPropertiesModal open={reactionPropertiesOpen} onClose={handleReactionPropertiesClose} selectedTagMechanism={selectedTagMechanism} selectedReaction={selectedReaction} setReactionUpdated={setReactionUpdated} /> */}
         </div>
     );
