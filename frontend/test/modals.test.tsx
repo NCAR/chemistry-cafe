@@ -11,7 +11,7 @@ import {
   CreateReactionModal, 
   CreateReactantModal, 
   CreateProductModal 
-} from "../src/webPages/Components/Modals";
+} from "../src/components/Modals";
 
 describe("Modal Components", () => {
   const onCloseMock = vi.fn();

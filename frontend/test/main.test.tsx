@@ -2,7 +2,7 @@ import React from 'react';
 import { vi, describe, expect, it, beforeEach, afterEach } from 'vitest';
 import { render } from '@testing-library/react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import App from '../src/webPages/RoutingRenders/App';
+import App from '../src/pages/App';
 import { BrowserRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
 
