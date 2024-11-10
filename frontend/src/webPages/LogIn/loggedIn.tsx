@@ -2,9 +2,9 @@ import { useNavigate } from 'react-router-dom';
 import Button from "@mui/material/Button";
 import ButtonGroup from '@mui/material/ButtonGroup';
 
-import { Header, Footer } from '../components/HeaderFooter';
+import { Header, Footer } from '../Components/HeaderFooter';
 
-import "../styles/loggedIn.css";
+import "./loggedIn.css";
 
   const LoggedIn = () => {
     const navigate = useNavigate();

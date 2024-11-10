@@ -5,7 +5,7 @@ import  {
   ReactNode,
   useEffect,
 } from "react";
-import { User } from "../API/API_Interfaces";
+import { User } from "../../API/API_Interfaces";
 
 // Define the shape of the AuthContext
 interface AuthContextProps {
