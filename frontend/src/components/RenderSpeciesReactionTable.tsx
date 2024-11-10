@@ -22,7 +22,7 @@ import Tab from "@mui/material/Tab";
 import {
   getReactionsByMechanismId,
   getSpeciesByMechanismId,
-} from "../../API/API_GetMethods";
+} from "../API/API_GetMethods";
 
 const tabsHeaderStyle: React.CSSProperties = {
   backgroundColor: "#f0f0f0",

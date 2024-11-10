@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 import Button from "@mui/material/Button";
 import ButtonGroup from '@mui/material/ButtonGroup';
-import { Header, Footer } from '../Components/HeaderFooter';
+import { Header, Footer } from '../components/HeaderFooter';
 
-import "./settings.css"
+import "../styles/settings.css"
 
   const Settings = () => {
     const navigate = useNavigate();

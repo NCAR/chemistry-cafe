@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 
-import RenderFamilyTree from "../Components/RenderFamilyTree";
-import RenderSpeciesReactionTable from "../Components/RenderSpeciesReactionTable";
-import { CreateFamilyModal, CreateMechanismModal } from "../Components/Modals";
+import RenderFamilyTree from "../components/RenderFamilyTree";
+import RenderSpeciesReactionTable from "../components/RenderSpeciesReactionTable";
+import { CreateFamilyModal, CreateMechanismModal } from "../components/Modals";
 
 import { StyledDetailBox } from "./familyStyling";
 
-import { Header, Footer } from "../Components/HeaderFooter";
+import { Header, Footer } from "../components/HeaderFooter";
 
-import "./family.css";
+import "../styles/family.css";
 
 const FamilyPage = () => {
   const [selectedFamilyId, setSelectedFamilyId] = useState<string | null>(null);
