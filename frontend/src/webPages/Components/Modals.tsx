@@ -8,7 +8,7 @@ import {
   getReactionsByFamilyId,
   getReactantsByReactionIdAsync,
   getProductsByReactionIdAsync,
-} from "../API/API_GetMethods";
+} from "../../API/API_GetMethods";
 import {
   Family,
   Mechanism,
@@ -27,7 +27,7 @@ import {
   addSpeciesToReaction,
   createFamily,
   createMechanism,
-} from "../API/API_CreateMethods";
+} from "../../API/API_CreateMethods";
 
 import {
   Modal,
