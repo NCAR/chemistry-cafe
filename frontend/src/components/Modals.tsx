@@ -559,6 +559,10 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
           console.log("Modified:");
           console.log(reactionData);
 
+          let updatedReaction = await updateReaction(reactionData);
+
+          console.log(updatedReaction);
+
 
         }
 
