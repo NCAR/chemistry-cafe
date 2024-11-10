@@ -782,13 +782,19 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
         if (selectedFamilyId && selectedMechanismId && selectedReaction) {
           // get the current reaction data
           if (selectedReaction.name !== null && selectedReaction.description !== null){
-            const matches = selectedReaction.description.match(/^(\w+)(?: Reaction (\d+))?: ([^->]+) -> (.+)$/);
+            // make regex expression
+            const regex = /^(Arrhenius|Branched|Emission|First-Order Loss|Photolysis|Surface \(Heterogeneous\)|Ternary Chemical Activation|Troe \(Fall-Off\)|Tunneling|N\/A)(?: Reaction \d+)?: ([^->]+) -> (.+)$/i;
+
+          
+            const matches = selectedReaction.description.match(regex);
 
             if (matches) {
+              console.log("matches:");
+              console.log(matches);
               // getting the current data before editing
               setSelectedReactionType(matches[1].toLowerCase().replace(/^./, char => char.toUpperCase()) );
-              let tempReactants = matches[3].trim();
-              let tempProducts = matches[4].trim();
+              let tempReactants = matches[2].trim();
+              let tempProducts = matches[3].trim();
               setReactants(tempReactants);
               setProducts(tempProducts);
 

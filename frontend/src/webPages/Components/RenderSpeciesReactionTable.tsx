@@ -178,7 +178,15 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
             }
             else{
                 
-                const matches = reactionItem.description.match(/^(\w+)(?: Reaction \d+)?: (.+)$/);
+                 // make regex expression
+                const regex = /^(Arrhenius|Branched|Emission|First-Order Loss|Photolysis|Surface \(Heterogeneous\)|Ternary Chemical Activation|Troe \(Fall-Off\)|Tunneling|N\/A)(?: Reaction \d+)?: (.+)$/i;
+
+                let matches = reactionItem.description.match(regex);
+
+                // console.log("heres the matches:");
+                // console.log(matches);
+                // console.log("heres the description:");
+                // console.log(reactionItem.description)
 
                 if (matches) {
                     // Extract components from matches
