@@ -40,6 +40,22 @@ public partial class InitialConditionsSpecies
     [JsonPropertyName("additional_conditions")]
     public string? AdditionalConditions { get; set; } = string.Empty;
 
+    [Column("abs_convergence_tolerance")]
+    [JsonPropertyName("abs_convergence_tolerance")]
+    public double? AbsConvergenceTolerance { get; set; }
+
+    [Column("diffusion_coefficient")]
+    [JsonPropertyName("diffusion_coefficient")]
+    public double? DiffusionCoefficient { get; set; }
+
+    [Column("molecular_weight")]
+    [JsonPropertyName("molecular_weight")]
+    public double? MolecularWeight { get; set; }
+
+    [Column("fixed_concentration")]
+    [JsonPropertyName("fixed_concentration")]
+    public double? FixedConcentration{ get; set; }
+
     [ForeignKey("MechanismId")]
     [InverseProperty("InitialConditionsSpecies")]
     public virtual Mechanism Mechanism { get; set; } = null!;

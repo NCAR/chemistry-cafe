@@ -1,17 +1,23 @@
 //import React from 'react';
+<<<<<<< HEAD:frontend/src/pages/App.tsx
 import '../styles/App.css'; // Assuming CSS is applied globally
 import Banner from '../components/CookieBanner';
 //import { createTheme, ThemeProvider } from '@mui/material/styles';
+=======
+import './App.css'; // Assuming CSS is applied globally
+import Banner from '../Components/CookieBanner';
+//import { createTheme/*, ThemeProvider*/ } from '@mui/material/styles';
+>>>>>>> main:frontend/src/webPages/RoutingRenders/App.tsx
 import { Route, Routes } from 'react-router-dom';
-import Settings from './settings';
-import LoggedIn from './loggedIn';
-import FamilyPage from './family';
-import LogIn from './logIn';
-import RoleManagement from './RoleManagement';
-import NoAccess from './Unauthorized.tsx';
+import Settings from '../Settings/settings';
+import LoggedIn from '../LogIn/loggedIn';
+import FamilyPage from '../Family/family';
+import LogIn from '../LogIn/logIn';
+import RoleManagement from '../Roles/RoleManagement';
+import NoAccess from '../Roles/Unauthorized.tsx';
 import { AccessibilityWidget } from 'react-accessibility';
-import { AuthProvider } from './AuthContext';
-import ProtectedRoute from '../components/ProtectedRoute'; // The ProtectedRoute you created earlier
+import { AuthProvider } from '../contexts/AuthContext';
+import ProtectedRoute from '../Components/ProtectedRoute'; // The ProtectedRoute you created earlier
 
 
 // const theme = createTheme({

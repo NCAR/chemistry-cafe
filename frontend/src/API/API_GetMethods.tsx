@@ -8,7 +8,9 @@ import {
   Reaction,
   User,
   ReactionSpeciesDto,
+  InitialConditionSpecies
 } from "./API_Interfaces";
+import { Init } from "v8";
 
 // Get all families
 export async function getFamilies(): Promise<Family[]> {
@@ -318,5 +320,20 @@ export async function downloadOAMusicbox(mechanismId?: string) {
   } catch (error) {
     console.error(error);
     throw error;
+  }
+}
+
+// species properties
+export async function getSpeciesPropertiesByMechanismIDAsync(
+  mechanismId: string
+): Promise<InitialConditionSpecies[]> {
+  try {
+    const response = await axios.get<InitialConditionSpecies[]>(
+      `http://localhost:8080/api/initialconditionspecies/mechanism/${mechanismId}` 
+    );
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    return [];
   }
 }

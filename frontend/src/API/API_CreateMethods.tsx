@@ -50,6 +50,7 @@ export async function createMechanism(mechanismData: Mechanism) {
 
 export async function createReaction(reactionData: Reaction) {
   try {
+    console.log("Reaction data: ", reactionData);
     const response = await axios.post(
       "http://localhost:8080/api/reactions",
       reactionData,
