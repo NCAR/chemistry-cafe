@@ -10,7 +10,6 @@ import {
   ReactionSpeciesDto,
   InitialConditionSpecies
 } from "./API_Interfaces";
-import { Init } from "v8";
 
 // Get all families
 export async function getFamilies(): Promise<Family[]> {

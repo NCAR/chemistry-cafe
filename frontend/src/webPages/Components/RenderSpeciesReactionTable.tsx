@@ -1,14 +1,14 @@
-import React, { Children, ReactNode, useEffect, useState } from 'react';
+import React, {useEffect, useState } from 'react';
 
-import { Species, Reaction, InitialConditionSpecies} from '../../API/API_Interfaces';
-import { getReactionsByMechanismId, getSpeciesByMechanismId, getSpeciesPropertiesByMechanismIDAsync} from '../../API/API_GetMethods';
+import { Species, Reaction} from '../../API/API_Interfaces';
+import { getReactionsByMechanismId, getSpeciesByMechanismId} from '../../API/API_GetMethods';
 
 // import { CreateReactionModal, CreateSpeciesModal, ReactionPropertiesModal, SpeciesPropertiesModal } from './Modals';
-import {CreateSpeciesModal, CreateReactionModal, CreateReactantModal, UpdateReactionModal} from './Modals';
-import { DataGrid, GridRowParams, GridColDef, GridToolbar, GridToolbarContainer, GridToolbarColumnsButton, GridToolbarFilterButton, GridToolbarDensitySelector, GridToolbarExport } from '@mui/x-data-grid';
+import {CreateSpeciesModal, CreateReactionModal, UpdateReactionModal} from './Modals';
+import { DataGrid, GridRowParams, GridColDef, GridToolbarContainer, GridToolbarColumnsButton, GridToolbarFilterButton, GridToolbarDensitySelector, GridToolbarExport } from '@mui/x-data-grid';
 
 import IconButton from '@mui/material/IconButton';
-import { Add, ChildCare, Description } from '@mui/icons-material';
+import { Add} from '@mui/icons-material';
 import { Typography, Box } from '@mui/material';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
@@ -40,24 +40,15 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
     const [species, setSpecies] = useState<Species[]>([]);
     const [reactions, setReactions] = useState<Reaction[]>([]);
     const [reactionsCount, setReactionsCount] = useState<number>(0);
-    const [speciesProperties, setSpeciesProperties] = useState<InitialConditionSpecies[]>([]);
 
     const [speciesCreated, setSpeciesCreated] = useState<boolean>(false);
     const [speciesUpdated, setSpeciesUpdated] = useState<boolean>(false);
     const [reactionCreated, setReactionCreated] = useState<boolean>(false);
     const [reactionUpdated, setReactionUpdated] = useState<boolean>(false);
 
-    const [selectedSpecies, setSelectedSpecies] = useState<Species | null>(null);
     const [selectedReaction, setSelectedReaction] = useState<Reaction | null>(null);
 
-    const [speciesPropertiesOpen, setSpeciesPropertiesOpen] = React.useState(false);
-    const handleSpeciesPropertiesOpen = () => setSpeciesPropertiesOpen(true);
-    const handleSpeciesPropertiesClose = () => setSpeciesPropertiesOpen(false);
-
-    const [reactionPropertiesOpen, setReactionPropertiesOpen] = React.useState(false);
-    const handleReactionPropertiesOpen = () => setReactionPropertiesOpen(true);
-    const handleReactionPropertiesClose = () => setReactionPropertiesOpen(false);
-
+   
     const [editReactionOpen, setEditReactionOpen] = React.useState(false);
     const handleEditReactionOpen = () => setEditReactionOpen(true);
     const handleEditReactionClose = () => setEditReactionOpen(false);
@@ -66,15 +57,10 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
     const [currentTab, setCurrentTab] = useState<number>(0);
     
     // Event needed as parameter to ensure correct value recieved in tabValue
-    const handleTabSwitch = (event: React.ChangeEvent<unknown>, tabValue: number) => {
-        setCurrentTab(tabValue);
-    };
+    const handleTabSwitch = (_event: React.SyntheticEvent, newValue: number) => {
+        setCurrentTab(newValue);
+      };
 
-    const handleSpeciesCellClick = (params: GridRowParams<Species>) => {
-        const species = params.row;
-        setSelectedSpecies(species);
-        handleSpeciesPropertiesOpen();
-    };
     
     const handleReactionCellClick = (params: GridRowParams<Reaction>) => {
         const reaction = params.row;
@@ -87,11 +73,9 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
             if (selectedMechanismID) {
                 const fetchedSpecies = await getSpeciesByMechanismId(selectedMechanismID);
                 const fetchedReactions = await getReactionsByMechanismId(selectedMechanismID);
-                const fetchedSpeciesProperties = await getSpeciesPropertiesByMechanismIDAsync(selectedMechanismID);
                 setSpecies(fetchedSpecies);
                 setReactions(fetchedReactions);
                 setReactionsCount(fetchedReactions.length);
-                setSpeciesProperties(fetchedSpeciesProperties);
 
                 
                 setSpeciesCreated(false);
@@ -127,7 +111,6 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
 
     const rowifySpecies = (speciesData: Species[]) => {
         const templol = speciesData.map(speciesItem => {
-            const speciesUuid = speciesItem.id;
 
             // get the inital conditions from the species
 
@@ -268,7 +251,6 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                                 else {return row.id}
                                 }
                             }
-                            onRowClick={handleSpeciesCellClick}
                             autoPageSize
                             pagination
                             style={{ height: '100%' }}

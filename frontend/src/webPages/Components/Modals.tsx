@@ -377,25 +377,14 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
 }) => {
   const [speciesName, setSpeciesName] = useState("");
   const [speciesDescription, setSpeciesDescription] = useState("");
-  const [speciesList, setSpeciesList] = useState<Species[]>([]);
   const [selectedSpeciesIds, setSelectedSpeciesIds] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchSpecies = async () => {
       try {
         if (selectedFamilyId && selectedMechanismId) {
-          const speciesFamily = await getSpeciesByFamilyId(selectedFamilyId);
-          const speciesMechanism = await getSpeciesByMechanismId(
-            selectedMechanismId
-          );
 
-          const uniqueSpecies = speciesFamily.filter(
-            (species: Species) =>
-              !speciesMechanism.some(
-                (mechSpecies) => mechSpecies.id === species.id
-              )
-          );
-          setSpeciesList(uniqueSpecies);
+
         }
       } catch (error) {
         console.error(error);
@@ -759,7 +748,6 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
   onClose,
   selectedFamilyId,
   selectedMechanismId,
-  selectedMechanismName,
   setReactionUpdated,
   reactionsCount,
   selectedReaction,
@@ -877,7 +865,6 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
           console.log("Modified:");
           console.log(reactionData);
 
-          const updatedReaction = await updateReaction(reactionData);
 
         }
 
