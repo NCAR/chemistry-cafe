@@ -38,6 +38,7 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
+import { updateReaction } from "../../API/API_UpdateMethods";
 
 const style = {
   position: "absolute" as "absolute",
@@ -97,6 +98,17 @@ interface CreateReactionModalProps {
   setReactionCreated: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
+interface UpdateReactionModalProps {
+  open: boolean;
+  onClose: () => void;
+  selectedFamilyId: string | null;
+  selectedMechanismId: string | null;
+  selectedMechanismName: string | null;
+  reactionsCount: number;
+  setReactionUpdated: React.Dispatch<React.SetStateAction<boolean>>;
+  selectedReaction: Reaction | null;
+}
+
 interface CreateReactantModalProps {
   open: boolean;
   onClose: () => void;
@@ -106,6 +118,7 @@ interface CreateReactantModalProps {
   setReactionUpdated: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
+
 interface CreateProductModalProps {
   open: boolean;
   onClose: () => void;
@@ -114,6 +127,7 @@ interface CreateProductModalProps {
   setCreatedProductBool: React.Dispatch<React.SetStateAction<boolean>>;
   setReactionUpdated: React.Dispatch<React.SetStateAction<boolean>>;
 }
+
 
 export const CreatePublishModal: React.FC<CreatePublishModalProps> = ({
   open,
@@ -625,7 +639,7 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
           };
           console.log(reactionData);
           const newReaction = await createReaction(reactionData);
-          
+
 
           console.log(newReaction);
 
@@ -738,6 +752,239 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
     </Modal>
   );
 };
+
+
+export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
+  open,
+  onClose,
+  selectedFamilyId,
+  selectedMechanismId,
+  selectedMechanismName,
+  setReactionUpdated,
+  reactionsCount,
+  selectedReaction,
+}) => {
+  const [selectedReactionType, setSelectedReactionType] = useState<string>("");
+  const [reactionList, setReactionList] = useState<Reaction[]>([]);
+  const [selectedReactionIds, setSelectedReactionIds] = useState<string[]>([]);
+  const [reactionEquations, setReactionEquations] = useState<{
+    [key: string]: string;
+  }>({});
+
+  const [reactants, setReactants] = useState<string>("");
+  const [products, setProducts] = useState<string>("");
+  const createReactionReactantsRef = useRef("");
+  const createReactionProductsRef = useRef("");
+
+  useEffect(() => {
+    const fetchReactions = async () => {
+      try {
+        if (selectedFamilyId && selectedMechanismId && selectedReaction) {
+          // get the current reaction data
+          if (selectedReaction.name !== null && selectedReaction.description !== null){
+            console.log(selectedReaction);
+            console.log(selectedReaction?.description);
+            const matches = selectedReaction.description.match(/^(\w+)(?: Reaction (\d+))?: ([^->]+) -> (.+)$/);
+
+            if (matches) {
+              // getting the current data before editing
+              setSelectedReactionType(matches[1].toLowerCase().replace(/^./, char => char.toUpperCase()) );
+              let tempReactants = matches[3].trim();
+              let tempProducts = matches[4].trim();
+              setReactants(tempReactants);
+              setProducts(tempProducts);
+
+              createReactionProductsRef.current = tempProducts;
+              createReactionReactantsRef.current = tempReactants;
+            }
+          }
+          const reactionsFamily = await getReactionsByFamilyId(
+            selectedFamilyId
+          );
+          const reactionsMechanism = await getReactionsByMechanismId(
+            selectedMechanismId
+          );
+
+          const uniqueReactions = reactionsFamily.filter(
+            (reaction: Reaction) =>
+              !reactionsMechanism.some(
+                (mechReaction) => mechReaction.id === reaction.id
+              )
+          );
+          setReactionList(uniqueReactions);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchReactions();
+  }, [open, selectedFamilyId, selectedMechanismId, selectedReaction]);
+
+  useEffect(() => {
+    const fetchReactionEquations = async () => {
+      const equations: { [key: string]: string } = {};
+      try {
+        await Promise.all(
+          reactionList.map(async (reaction) => {
+            const reactants = await getReactantsByReactionIdAsync(reaction.id!);
+            const products = await getProductsByReactionIdAsync(reaction.id!);
+            const reactantNames = reactants
+              .map((r: ReactionSpeciesDto) => r.species_name)
+              .join(" + ");
+            const productNames = products
+              .map((p: ReactionSpeciesDto) => p.species_name)
+              .join(" + ");
+            equations[reaction.id!] = `${reactantNames} -> ${productNames}`;
+          })
+        );
+        setReactionEquations(equations);
+      } catch (error) {
+        console.error("Error fetching reaction equations:", error);
+      }
+    };
+
+    if (reactionList.length > 0) {
+      fetchReactionEquations();
+    } else {
+      setReactionEquations({});
+    }
+  }, [reactionList]);
+
+  const handleCreateReactionClick = async () => {
+    try {
+      if (selectedFamilyId && selectedMechanismId) {
+        if (selectedReactionType !== "") {
+          // Name is mecanism name_reaction number
+          // get the number of current reactions
+          const reactionData: Reaction = {
+            id: selectedReaction!.id,
+            name: selectedMechanismName + "_reaction" + String(reactionsCount),
+            // Set description to the constructed equation
+            description: selectedReactionType.toUpperCase() + " Reaction " + 
+              String(reactionsCount + 1) + ": " +
+              createReactionReactantsRef.current + " -> " +
+              createReactionProductsRef.current, 
+            createdBy: "current_user",
+          };
+
+          console.log(reactionData);
+
+          const updatedReaction = await updateReaction(reactionData);
+
+          console.log(updatedReaction);
+        }
+
+
+        setSelectedReactionType("");
+        setSelectedReactionIds([]);
+        setReactionUpdated(true);
+        onClose();
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  return (
+    <Modal open={open} onClose={onClose}>
+      <Box sx={style}>
+        <Typography variant="h6">
+          Pick a Reaction Type for New Reaction
+        </Typography>
+        <Select
+          labelId="reaction-type-select-label"
+          id="reaction-type-select"
+          value={selectedReactionType}
+          onChange={(e) => setSelectedReactionType(e.target.value as string)}
+          fullWidth
+          style={{ marginTop: "1rem" }}
+        >
+          <MenuItem value="">N/A</MenuItem>
+          <MenuItem value="Arrhenius">Arrhenius</MenuItem>
+          <MenuItem value="Branched">Branched</MenuItem>
+          <MenuItem value="Emission">Emission</MenuItem>
+          <MenuItem value="First-Order Loss">First-Order Loss</MenuItem>
+          <MenuItem value="Photolysis">Photolysis</MenuItem>
+          <MenuItem value="Surface (Heterogeneous)">
+            Surface (Heterogeneous)
+          </MenuItem>
+          <MenuItem value="Ternary Chemical Activation">
+            Ternary Chemical Activation
+          </MenuItem>
+          <MenuItem value="Troe (Fall-Off)">Troe (Fall-Off)</MenuItem>
+          <MenuItem value="Tunneling">Tunneling</MenuItem>
+        </Select>
+
+        <TextField 
+        id="reactants"
+        label="Reactants"
+        type="string"
+        value={reactants}
+        onChange={(e) => {
+          setReactants(e.target.value);
+          (createReactionReactantsRef.current = e.target.value);
+          }
+        }
+        fullWidth
+        margin="normal"
+        />
+        <TextField 
+        id="products"
+        label="Products"
+        type="string"
+        value={products}
+        onChange={(e) => {
+          setProducts(e.target.value);
+          (createReactionProductsRef.current = e.target.value);
+          }
+        }
+        
+        fullWidth
+        margin="normal"
+        />
+        {reactionList.length > 0 && (
+          <>
+            <Typography variant="subtitle1" style={{ marginTop: "1rem" }}>
+              Or Pick Existing Reactions in Family (Multiple Selection)
+            </Typography>
+            <Select
+              multiple
+              value={selectedReactionIds}
+              onChange={(e) =>
+                setSelectedReactionIds(e.target.value as string[])
+              }
+              fullWidth
+              style={{ marginTop: "1rem" }}
+            >
+              {reactionList.map((reaction) => (
+                <MenuItem key={reaction.id} value={reaction.id}>
+                  {reactionEquations[reaction.id!] || "Loading..."}
+                </MenuItem>
+              ))}
+            </Select>
+          </>
+        )}
+        {reactionList.length === 0 && (
+          <Typography variant="subtitle1" style={{ marginTop: "1rem" }}>
+            All family's reactions are already in this mechanism
+          </Typography>
+        )}
+        <Button
+          variant="contained"
+          onClick={handleCreateReactionClick}
+          style={{ marginTop: "1rem" }}
+        >
+          Submit
+        </Button>
+      </Box>
+    </Modal>
+  );
+};
+
+
+
+
+
 
 export const CreateReactantModal: React.FC<CreateReactantModalProps> = ({
   open,
