@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 
-import { Family, Mechanism } from "../../API/API_Interfaces";
+import { Family, Mechanism } from "../API/API_Interfaces";
 import {
   downloadOAYAML,
   downloadOAJSON,

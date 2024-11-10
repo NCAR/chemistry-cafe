@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import { Species, Reaction } from "../../API/API_Interfaces";
+import { Species, Reaction } from "../API/API_Interfaces";
 
 import { CreateReactionModal, CreateSpeciesModal } from "./Modals";
 

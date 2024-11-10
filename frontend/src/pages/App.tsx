@@ -1,7 +1,7 @@
-import React from 'react';
+//import React from 'react';
 import '../styles/App.css'; // Assuming CSS is applied globally
 import Banner from '../components/CookieBanner';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+//import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Route, Routes } from 'react-router-dom';
 import Settings from './settings';
 import LoggedIn from './loggedIn';

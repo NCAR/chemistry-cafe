@@ -18,7 +18,7 @@ import {
   ReactionSpecies,
   Species,
   ReactionSpeciesDto,
-} from "../../API/API_Interfaces";
+} from "../API/API_Interfaces";
 import {
   createSpecies,
   createReaction,
