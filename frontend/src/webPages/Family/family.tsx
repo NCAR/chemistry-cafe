@@ -16,6 +16,10 @@ const FamilyPage = () => {
     null
   );
 
+  const [selectedMechanismName, setSelectedMechanismName] = useState<string | null> (
+    null
+  );
+
   const [createdFamilyBool, setCreatedFamilyBool] = useState<boolean>(false);
   const [createFamilyOpen, setCreateFamilyOpen] = React.useState(false);
   const handleCreateFamilyOpen = () => setCreateFamilyOpen(true);
@@ -38,6 +42,7 @@ const FamilyPage = () => {
           selectedFamilyId={selectedFamilyId}
           setSelectedFamilyId={setSelectedFamilyId}
           setSelectedMechanismId={setSelectedMechanismId}
+          setSelectedMechanismName = {setSelectedMechanismName}
           handleCreateFamilyOpen={handleCreateFamilyOpen}
           handleCreateMechanismOpen={handleCreateMechanismOpen}
           createdFamilyBool={createdFamilyBool}
@@ -53,8 +58,9 @@ const FamilyPage = () => {
       <div className="speciesReactions">
         <StyledDetailBox>
           <RenderSpeciesReactionTable
-            selectedFamilyId={selectedFamilyId}
-            selectedMechanismId={selectedMechanismId}
+            selectedFamilyID={selectedFamilyId}
+            selectedMechanismID={selectedMechanismId}
+            selectedMechanismName={selectedMechanismName}
           />
         </StyledDetailBox>
       </div>

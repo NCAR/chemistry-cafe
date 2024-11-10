@@ -54,6 +54,10 @@ export interface InitialConditionSpecies {
   temperature?: number;
   pressure?: number;
   additional_conditions?: string;
+  abs_convergence_tolerance?: number;
+  diffusion_coefficient?: number;
+  molecular_weight?: number;
+  fixed_concentration?: number;
 }
 
 export interface ReactionSpeciesDto {

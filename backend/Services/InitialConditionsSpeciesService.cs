@@ -28,6 +28,10 @@ namespace Chemistry_Cafe_API.Services
                         initial_conditions_species.temperature AS Temperature,
                         initial_conditions_species.pressure AS Pressure,
                         initial_conditions_species.additional_conditions AS AdditionalConditions,
+                        initial_conditions_species.abs_convergence_tolerance as AbsConvergenceTolerance,
+                        initial_conditions_species.diffusion_coefficient as DiffusionCoefficient,
+                        initial_conditions_species.molecular_weight as MolecularWeight,
+                        initial_conditions_species.fixed_concentration as FixedConcentration,
                         species.name AS SpeciesName,
                         species.description AS SpeciesDescription
                     FROM initial_conditions_species
@@ -50,6 +54,10 @@ namespace Chemistry_Cafe_API.Services
                         Temperature = reader.IsDBNull(reader.GetOrdinal("Temperature")) ? (double?)null : reader.GetDouble(reader.GetOrdinal("Temperature")),
                         Pressure = reader.IsDBNull(reader.GetOrdinal("Pressure")) ? (double?)null : reader.GetDouble(reader.GetOrdinal("Pressure")),
                         AdditionalConditions = reader.IsDBNull(reader.GetOrdinal("AdditionalConditions")) ? null : reader.GetString(reader.GetOrdinal("AdditionalConditions")),
+                        AbsConvergenceTolerance = reader.IsDBNull(reader.GetOrdinal("AbsConvergenceTolerance")) ? (double?)null : reader.GetDouble(reader.GetOrdinal("AbsConvergenceTolerance")),
+                        DiffusionCoefficient = reader.IsDBNull(reader.GetOrdinal("DiffusionCoefficient")) ? (double?)null : reader.GetDouble(reader.GetOrdinal("DiffusionCoefficient")),
+                        MolecularWeight = reader.IsDBNull(reader.GetOrdinal("MolecularWeight")) ? (double?)null : reader.GetDouble(reader.GetOrdinal("MolecularWeight")),
+                        FixedConcentration = reader.IsDBNull(reader.GetOrdinal("FixedConcentration")) ? (double?)null : reader.GetDouble(reader.GetOrdinal("FixedConcentration")),
                         Species = new Species
                         {
                             Id = reader.GetGuid(reader.GetOrdinal("SpeciesId")),
@@ -75,8 +83,10 @@ namespace Chemistry_Cafe_API.Services
                 var id = Guid.NewGuid();
                 command.CommandText = @"
                     INSERT INTO initial_conditions_species 
-                    (id, mechanism_id, species_id, concentration, temperature, pressure, additional_conditions)
-                    VALUES (@id, @mechanism_id, @species_id, @concentration, @temperature, @pressure, @additional_conditions);";
+                    (id, mechanism_id, species_id, concentration, temperature, pressure, additional_conditions, 
+                    abs_convergence_tolerance, diffusion_coefficient, molecular_weight, fixed_concentration)
+                    VALUES (@id, @mechanism_id, @species_id, @concentration, @temperature, @pressure, @additional_conditions, 
+                    @abs_convergence_tolerance, @diffusion_coefficient, @molecular_weight, @fixed_concentration);";
 
                 command.Parameters.AddWithValue("@id", id.ToString());
                 command.Parameters.AddWithValue("@mechanism_id", initialCondition.MechanismId.ToString());
@@ -85,6 +95,10 @@ namespace Chemistry_Cafe_API.Services
                 command.Parameters.AddWithValue("@temperature", initialCondition.Temperature ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@pressure", initialCondition.Pressure ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@additional_conditions", initialCondition.AdditionalConditions ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@abs_convergence_tolerance", initialCondition.AbsConvergenceTolerance ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@diffusion_coefficient", initialCondition.DiffusionCoefficient ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@molecular_weight", initialCondition.MolecularWeight ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@fixed_concentration", initialCondition.FixedConcentration ?? (object)DBNull.Value);
 
                 await command.ExecuteNonQueryAsync();
 
@@ -107,7 +121,11 @@ namespace Chemistry_Cafe_API.Services
                     SET concentration = @concentration, 
                         temperature = @temperature, 
                         pressure = @pressure, 
-                        additional_conditions = @additional_conditions
+                        additional_conditions = @additional_conditions,
+                        abs_convergence_tolerance = @abs_convergence_tolerance, 
+                        diffusion_coefficient = @diffusion_coefficient, 
+                        molecular_weight = @molecular_weight, 
+                        fixed_concentration = @fixed_concentration
                     WHERE id = @id;";
 
                 command.Parameters.AddWithValue("@id", initialCondition.Id.ToString());
@@ -115,6 +133,10 @@ namespace Chemistry_Cafe_API.Services
                 command.Parameters.AddWithValue("@temperature", initialCondition.Temperature ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@pressure", initialCondition.Pressure ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@additional_conditions", initialCondition.AdditionalConditions ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@abs_convergence_tolerance", initialCondition.AdditionalConditions ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@diffusion_coefficient", initialCondition.DiffusionCoefficient ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@molecular_weight", initialCondition.MolecularWeight ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@fixed_concentration", initialCondition.FixedConcentration ?? (object)DBNull.Value);
 
                 await command.ExecuteNonQueryAsync();
             } catch (Exception ex) {
@@ -155,6 +177,10 @@ namespace Chemistry_Cafe_API.Services
                         Temperature = reader.IsDBNull(reader.GetOrdinal("temperature")) ? (double?)null : reader.GetDouble(reader.GetOrdinal("temperature")),
                         Pressure = reader.IsDBNull(reader.GetOrdinal("pressure")) ? (double?)null : reader.GetDouble(reader.GetOrdinal("pressure")),
                         AdditionalConditions = reader.IsDBNull(reader.GetOrdinal("additional_conditions")) ? null : reader.GetString(reader.GetOrdinal("additional_conditions")),
+                        AbsConvergenceTolerance = reader.IsDBNull(reader.GetOrdinal("AbsConvergenceTolerance")) ? (double?)null : reader.GetDouble(reader.GetOrdinal("AbsConvergenceTolerance")),
+                        DiffusionCoefficient = reader.IsDBNull(reader.GetOrdinal("DiffusionCoefficient")) ? (double?)null : reader.GetDouble(reader.GetOrdinal("DiffusionCoefficient")),
+                        MolecularWeight = reader.IsDBNull(reader.GetOrdinal("MolecularWeight")) ? (double?)null : reader.GetDouble(reader.GetOrdinal("MolecularWeight")),
+                        FixedConcentration = reader.IsDBNull(reader.GetOrdinal("FixedConcentration")) ? (double?)null : reader.GetDouble(reader.GetOrdinal("FixedConcentration")),
                         Species = new Species
                         {
                             Id = reader.GetGuid(reader.GetOrdinal("species_id")),

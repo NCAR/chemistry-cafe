@@ -35,6 +35,18 @@ services:
       - ASPNETCORE_URLS=http://0.0.0.0:8080
     networks:
       - app-network
+    # test code by britt to enable live updates to frontend with docker
+    # use docker compose up w--watch 
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend
+          target: /app
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: package.json
+
 
   backend:
     build:
