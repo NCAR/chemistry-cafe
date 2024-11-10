@@ -55,6 +55,7 @@ const treeViewContainerStyle = {
 interface RenderFamilyTreeProps {
   setSelectedFamilyId: React.Dispatch<React.SetStateAction<string | null>>;
   setSelectedMechanismId: React.Dispatch<React.SetStateAction<string | null>>;
+  setSelectedMechanismName: React.Dispatch<React.SetStateAction<string | null>>;
   handleCreateFamilyOpen: () => void;
   handleCreateMechanismOpen: () => void;
   selectedFamilyId: string | null;
@@ -67,6 +68,7 @@ interface RenderFamilyTreeProps {
 const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
   setSelectedFamilyId,
   setSelectedMechanismId,
+  setSelectedMechanismName,
   handleCreateFamilyOpen,
   handleCreateMechanismOpen,
   createdFamilyBool,
@@ -330,6 +332,7 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                       onClick={() => {
                         setSelectedFamilyId(family.id!);
                         setSelectedMechanismId(mechanism.id!);
+                        setSelectedMechanismName(mechanism.name!);
                       }}
                     />
                   ))}

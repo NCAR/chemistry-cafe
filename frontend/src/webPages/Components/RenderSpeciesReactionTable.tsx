@@ -24,10 +24,11 @@ const tabsHeaderStyle: React.CSSProperties = {
 interface Props {
     selectedFamilyID: string | null;
     selectedMechanismID: string | null;
+    selectedMechanismName: string | null;
 }
 
 
-const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selectedMechanismID }) => {
+const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selectedMechanismID, selectedMechanismName}) => {
     const [createSpeciesOpen, setCreateSpeciesOpen] = React.useState(false);
     const handleCreateSpeciesOpen = () => setCreateSpeciesOpen(true);
     const handleCreateSpeciesClose = () => setCreateSpeciesOpen(false);
@@ -38,6 +39,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
     
     const [species, setSpecies] = useState<Species[]>([]);
     const [reactions, setReactions] = useState<Reaction[]>([]);
+    const [reactionsCount, setReactionsCount] = useState<number>(1);
     const [speciesProperties, setSpeciesProperties] = useState<InitialConditionSpecies[]>([]);
 
     const [speciesCreated, setSpeciesCreated] = useState<boolean>(false);
@@ -84,10 +86,8 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                 const fetchedSpeciesProperties = await getSpeciesPropertiesByMechanismIDAsync(selectedMechanismID);
                 setSpecies(fetchedSpecies);
                 setReactions(fetchedReactions);
+                setReactionsCount(fetchedReactions.length);
                 setSpeciesProperties(fetchedSpeciesProperties);
-                // console.log("species properties now");
-                // console.log(fetchedSpeciesProperties);
-                
 
                 
                 setSpeciesCreated(false);
@@ -164,7 +164,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
     ];
 
     const rowifyReactions = (reactionsData: Reaction[]) => {
-        console.log("this is a call");
+
         const rowifiedReactions = reactionsData.map(reactionItem => {
             // currently, all meaningful info is stored in description field
             // for now, getting around this using regex string parsing
@@ -310,8 +310,11 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                         </div>
                         }
             </div>
-            <CreateSpeciesModal open={createSpeciesOpen} onClose={handleCreateSpeciesClose} selectedFamilyId={selectedFamilyID} selectedMechanismId={selectedMechanismID} setSpeciesCreated={setSpeciesCreated} />
-            <CreateReactionModal open={createReactionOpen} onClose={handleCreateReactionClose} selectedFamilyId={selectedFamilyID} selectedMechanismId={selectedMechanismID} setReactionCreated={setReactionCreated} />
+            <CreateSpeciesModal open={createSpeciesOpen} onClose={handleCreateSpeciesClose} selectedFamilyId={selectedFamilyID} 
+                selectedMechanismId={selectedMechanismID} setSpeciesCreated={setSpeciesCreated} />
+            <CreateReactionModal open={createReactionOpen} onClose={handleCreateReactionClose} selectedFamilyId={selectedFamilyID} 
+                selectedMechanismId={selectedMechanismID} selectedMechanismName={selectedMechanismName} setReactionCreated={setReactionCreated} 
+                reactionsCount={reactionsCount}/>
             {/* <SpeciesPropertiesModal open={speciesPropertiesOpen} onClose={handleSpeciesPropertiesClose} selectedTagMechanism={selectedTagMechanism} selectedSpecies={selectedSpecies} setSpeciesUpdated={setSpeciesUpdated} />
             <ReactionPropertiesModal open={reactionPropertiesOpen} onClose={handleReactionPropertiesClose} selectedTagMechanism={selectedTagMechanism} selectedReaction={selectedReaction} setReactionUpdated={setReactionUpdated} /> */}
         </div>

@@ -92,6 +92,8 @@ interface CreateReactionModalProps {
   onClose: () => void;
   selectedFamilyId: string | null;
   selectedMechanismId: string | null;
+  selectedMechanismName: string | null;
+  reactionsCount: number;
   setReactionCreated: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
@@ -524,7 +526,9 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
   onClose,
   selectedFamilyId,
   selectedMechanismId,
+  selectedMechanismName,
   setReactionCreated,
+  reactionsCount,
 }) => {
   const [selectedReactionType, setSelectedReactionType] = useState<string>("");
   const [reactionList, setReactionList] = useState<Reaction[]>([]);
@@ -604,13 +608,24 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
           console.log(createReactionProductsRef.current);
           console.log(selectedReactionType)
 
+          console.log(selectedMechanismName);
+          console.log(reactionList);
+          console.log(reactionsCount);
+
+          // Name is mecanism name_reaction number
+          // get the number of current reactions
           const reactionData: Reaction = {
-            name: selectedReactionType,
-            description: "", // Set description to the constructed equation
+            name: selectedMechanismName + "_reaction" + String(reactionsCount),
+            // Set description to the constructed equation
+            description: selectedReactionType.toUpperCase() + " Reaction " + 
+              String(reactionsCount + 1) + ": " +
+              createReactionReactantsRef.current + " -> " +
+              createReactionProductsRef.current, 
             createdBy: "current_user",
           };
           console.log(reactionData);
           const newReaction = await createReaction(reactionData);
+          
 
           console.log(newReaction);
 
