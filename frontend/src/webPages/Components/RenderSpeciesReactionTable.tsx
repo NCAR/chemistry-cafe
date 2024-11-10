@@ -39,7 +39,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
     
     const [species, setSpecies] = useState<Species[]>([]);
     const [reactions, setReactions] = useState<Reaction[]>([]);
-    const [reactionsCount, setReactionsCount] = useState<number>(1);
+    const [reactionsCount, setReactionsCount] = useState<number>(0);
     const [speciesProperties, setSpeciesProperties] = useState<InitialConditionSpecies[]>([]);
 
     const [speciesCreated, setSpeciesCreated] = useState<boolean>(false);

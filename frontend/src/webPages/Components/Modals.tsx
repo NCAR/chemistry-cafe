@@ -629,7 +629,7 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
           // Name is mecanism name_reaction number
           // get the number of current reactions
           const reactionData: Reaction = {
-            name: selectedMechanismName + "_reaction" + String(reactionsCount),
+            name: selectedMechanismName + "_reaction" + String(reactionsCount+1),
             // Set description to the constructed equation
             description: selectedReactionType.toUpperCase() + " Reaction " + 
               String(reactionsCount + 1) + ": " +
