@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import RoleManagement from '../src/pages/RoleManagement'; // Updated path to RoleManagement
-import { useAuth } from '../src/pages/AuthContext';
+import { useAuth } from '../src/pages/AuthContext.tsx';
 import { getUsers } from '../src/API/API_GetMethods';
 import { updateUser } from '../src/API/API_UpdateMethods';
 import { deleteUser } from '../src/API/API_DeleteMethods';
