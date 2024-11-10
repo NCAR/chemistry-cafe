@@ -119,7 +119,7 @@ namespace Chemistry_Cafe_API.Services
             using var command = connection.CreateCommand();
 
             command.CommandText = "SELECT * FROM species WHERE id = @id";
-            command.Parameters.AddWithValue("@id", id);
+            command.Parameters.AddWithValue("@id", id.ToString());
 
             var result = await ReadAllAsync(await command.ExecuteReaderAsync());
             return result.FirstOrDefault();
@@ -133,13 +133,15 @@ namespace Chemistry_Cafe_API.Services
             species.Id = Guid.NewGuid();
 
             command.CommandText = @"
-                INSERT INTO species (id, name, description, created_by)
-                VALUES (@id, @name, @description, @created_by);";
+                INSERT INTO species (id, name, description, created_by, created_date)
+                VALUES (@id, @name, @description, @created_by, @created_date);";
 
-            command.Parameters.AddWithValue("@id", species.Id);
+            command.Parameters.AddWithValue("@id", species.Id.ToString());
             command.Parameters.AddWithValue("@name", species.Name);
             command.Parameters.AddWithValue("@description", species.Description ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@created_by", species.CreatedBy ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@created_date", DateTime.UtcNow);
+
 
             await command.ExecuteNonQueryAsync();
 
@@ -158,7 +160,7 @@ namespace Chemistry_Cafe_API.Services
                     created_by = @created_by
                 WHERE id = @id;";
 
-            command.Parameters.AddWithValue("@id", species.Id);
+            command.Parameters.AddWithValue("@id", species.Id.ToString());
             command.Parameters.AddWithValue("@name", species.Name);
             command.Parameters.AddWithValue("@description", species.Description ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@created_by", species.CreatedBy ?? (object)DBNull.Value);
@@ -172,7 +174,7 @@ namespace Chemistry_Cafe_API.Services
             using var command = connection.CreateCommand();
 
             command.CommandText = "DELETE FROM species WHERE id = @id";
-            command.Parameters.AddWithValue("@id", id);
+            command.Parameters.AddWithValue("@id", id.ToString());
 
             await command.ExecuteNonQueryAsync();
         }
@@ -189,7 +191,7 @@ namespace Chemistry_Cafe_API.Services
                 INNER JOIN mechanisms m ON ms.mechanism_id = m.id
                 WHERE m.family_id = @family_id";
 
-            command.Parameters.AddWithValue("@family_id", familyId);
+            command.Parameters.AddWithValue("@family_id", familyId.ToString());
 
             return await ReadAllAsync(await command.ExecuteReaderAsync());
         }
@@ -207,7 +209,7 @@ namespace Chemistry_Cafe_API.Services
                 JOIN mechanism_species ms ON s.id = ms.species_id
                 WHERE ms.mechanism_id = @mechanismId";
 
-            command.Parameters.AddWithValue("@mechanismId", mechanismId);
+            command.Parameters.AddWithValue("@mechanismId", mechanismId.ToString());
 
             using var reader = await command.ExecuteReaderAsync();
 

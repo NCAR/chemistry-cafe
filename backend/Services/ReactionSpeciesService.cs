@@ -19,11 +19,14 @@ namespace Chemistry_Cafe_API.Services
             using var command = connection.CreateCommand();
 
             command.CommandText = @"
-                INSERT INTO reaction_species (reaction_id, species_id, role)
-                VALUES (@reaction_id, @species_id, @role);";
+                INSERT INTO reaction_species (id, reaction_id, species_id, role)
+                VALUES (@id, @reaction_id, @species_id, @role);";
 
-            command.Parameters.AddWithValue("@reaction_id", reactionSpecies.ReactionId);
-            command.Parameters.AddWithValue("@species_id", reactionSpecies.SpeciesId);
+            var id = Guid.NewGuid();
+
+            command.Parameters.AddWithValue("@id", id.ToString());
+            command.Parameters.AddWithValue("@reaction_id", reactionSpecies.ReactionId.ToString());
+            command.Parameters.AddWithValue("@species_id", reactionSpecies.SpeciesId.ToString());
             command.Parameters.AddWithValue("@role", reactionSpecies.Role);
 
             await command.ExecuteNonQueryAsync();
@@ -46,7 +49,7 @@ namespace Chemistry_Cafe_API.Services
                 INNER JOIN species s ON rs.species_id = s.id
                 WHERE rs.reaction_id = @reactionId";
 
-            command.Parameters.AddWithValue("@reactionId", reactionId);
+            command.Parameters.AddWithValue("@reactionId", reactionId.ToString());
 
             var reactionSpeciesList = new List<ReactionSpecies>();
 
@@ -78,7 +81,7 @@ namespace Chemistry_Cafe_API.Services
             using var command = connection.CreateCommand();
 
             command.CommandText = "DELETE FROM reaction_species WHERE id = @id";
-            command.Parameters.AddWithValue("@id", id);
+            command.Parameters.AddWithValue("@id", id.ToString());
 
             await command.ExecuteNonQueryAsync();
         }
@@ -99,7 +102,7 @@ namespace Chemistry_Cafe_API.Services
                 INNER JOIN species s ON rs.species_id = s.id
                 WHERE rs.reaction_id = @reactionId AND rs.role = 'reactant'";
 
-            command.Parameters.AddWithValue("@reactionId", reactionId);
+            command.Parameters.AddWithValue("@reactionId", reactionId.ToString());
 
             return await ReadReactionSpeciesDtoAsync(await command.ExecuteReaderAsync());
         }
@@ -120,7 +123,7 @@ namespace Chemistry_Cafe_API.Services
                 INNER JOIN species s ON rs.species_id = s.id
                 WHERE rs.reaction_id = @reactionId AND rs.role = 'product'";
 
-            command.Parameters.AddWithValue("@reactionId", reactionId);
+            command.Parameters.AddWithValue("@reactionId", reactionId.ToString());
 
             return await ReadReactionSpeciesDtoAsync(await command.ExecuteReaderAsync());
         }
@@ -156,7 +159,7 @@ namespace Chemistry_Cafe_API.Services
                 SET role = @role
                 WHERE id = @id;";
 
-            command.Parameters.AddWithValue("@id", reactionSpecies.Id);
+            command.Parameters.AddWithValue("@id", reactionSpecies.Id.ToString());
             command.Parameters.AddWithValue("@role", reactionSpecies.Role);
 
             await command.ExecuteNonQueryAsync();
