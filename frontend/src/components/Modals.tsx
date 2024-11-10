@@ -38,6 +38,7 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
+import { updateReaction } from "../API/API_UpdateMethods";
 
 const style = {
   position: "absolute" as "absolute",
@@ -92,7 +93,20 @@ interface CreateReactionModalProps {
   onClose: () => void;
   selectedFamilyId: string | null;
   selectedMechanismId: string | null;
+  selectedMechanismName: string | null;
+  reactionsCount: number;
   setReactionCreated: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+interface UpdateReactionModalProps {
+  open: boolean;
+  onClose: () => void;
+  selectedFamilyId: string | null;
+  selectedMechanismId: string | null;
+  selectedMechanismName: string | null;
+  reactionsCount: number;
+  setReactionUpdated: React.Dispatch<React.SetStateAction<boolean>>;
+  selectedReaction: Reaction | null;
 }
 
 interface CreateReactantModalProps {
@@ -104,6 +118,7 @@ interface CreateReactantModalProps {
   setReactionUpdated: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
+
 interface CreateProductModalProps {
   open: boolean;
   onClose: () => void;
@@ -112,6 +127,7 @@ interface CreateProductModalProps {
   setCreatedProductBool: React.Dispatch<React.SetStateAction<boolean>>;
   setReactionUpdated: React.Dispatch<React.SetStateAction<boolean>>;
 }
+
 
 export const CreatePublishModal: React.FC<CreatePublishModalProps> = ({
   open,
@@ -417,60 +433,94 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
   };
 
   return (
-    <Modal open={open} onClose={onClose}>
-      <Box sx={style}>
-        <Typography variant="h6">Create New Species</Typography>
-        <TextField
-          id="species-name"
-          label="Name"
-          onChange={(e) => setSpeciesName(e.target.value)}
-          fullWidth
-          margin="normal"
-        />
-        <TextField
-          id="species-description"
-          label="Description"
-          onChange={(e) => setSpeciesDescription(e.target.value)}
-          fullWidth
-          margin="normal"
-        />
-        {speciesList.length > 0 && (
-          <>
-            <Typography variant="subtitle1" style={{ marginTop: "1rem" }}>
-              Or Pick Existing Species in Family (Multiple Selection)
-            </Typography>
-            <Select
-              label="Pick Existing Species"
-              multiple
-              value={selectedSpeciesIds}
-              onChange={(e) =>
-                setSelectedSpeciesIds(e.target.value as string[])
-              }
-              fullWidth
-              style={{ marginTop: "1rem" }}
-            >
-              {speciesList.map((species) => (
-                <MenuItem key={species.id} value={species.id}>
-                  {species.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </>
-        )}
-        {speciesList.length === 0 && (
-          <Typography variant="subtitle1" style={{ marginTop: "1rem" }}>
-            All family's species are already in this mechanism
-          </Typography>
-        )}
-        <Button
-          variant="contained"
-          onClick={handleCreateSpeciesClick}
-          style={{ marginTop: "1rem" }}
+    <Modal 
+            open={open} 
+            onClose={onClose}
         >
-          Submit
-        </Button>
-      </Box>
-    </Modal>
+            <Box sx={{ 
+                position: 'absolute', 
+                top: '50%', 
+                left: '50%', 
+                transform: 'translate(-50%, -50%)', 
+                bgcolor: 'background.paper', 
+                border: '2px solid #000', 
+                boxShadow: 24, 
+                p: 4, 
+                width: 600,
+                maxHeight: '80vh', // Set maximum height to 80% of viewport height
+                overflowY: 'auto' // Enable vertical scrolling if content overflows
+            }}>
+                <h1>Create New Species</h1>
+                <Box sx={{ display: 'flex', flexDirection: 'column'}}>
+                    <Box sx={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #ccc', pb: '0.5rem', fontWeight: 'bold' }}>
+                        <Typography sx={{ flex: 1 }}>Value</Typography>
+                        <Typography sx={{ flex: 1 }}>Units</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', borderBottom: '1px solid #ccc', fontWeight: 'bold' }}>
+                        <TextField
+                          id="species-name"
+                          label="Name"
+                          onChange={(e) => setSpeciesName(e.target.value)}
+                          fullWidth
+                          margin="normal"
+                        />
+                        <Typography sx={{ flex: 1 }}>Units</Typography>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', borderBottom: '1px solid #ccc', fontWeight: 'bold' }}>
+                        <TextField
+                          id="species-concentration"
+                          label="Fixed Concentration"
+                          fullWidth
+                          margin="normal"
+                        />
+                        <Typography sx={{ flex: 1 }}>Units</Typography>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #ccc', pb: '0.5rem', fontWeight: 'bold' }}>
+                        <TextField
+                          id="species-description"
+                          label="Description"
+                          onChange={(e) => setSpeciesDescription(e.target.value)}
+                          fullWidth
+                          margin="normal"
+                        />
+                        <Typography sx={{ flex: 1 }}>Units</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #ccc', pb: '0.5rem', fontWeight: 'bold' }}>
+                        <TextField
+                          id="species-convergence-tolerance"
+                          label="Absolute Convergence Tolerance"
+                          fullWidth
+                          margin="normal"
+                        />
+                        <Typography sx={{ flex: 1 }}>Units</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #ccc', pb: '0.5rem', fontWeight: 'bold' }}>
+                        <TextField
+                          id="species-weight"
+                          label="Molecular Weight"
+                          fullWidth
+                          margin="normal"
+                        />
+                        <Typography sx={{ flex: 1 }}>Units</Typography>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #ccc', pb: '0.5rem', fontWeight: 'bold' }}>
+                        <TextField
+                          id="species-diffusion-coefficient"
+                          label="Diffusion Coefficient"
+                          fullWidth
+                          margin="normal"
+                        />
+                        <Typography sx={{ flex: 1 }}>Units</Typography>
+                    </Box>
+                    
+                    
+                </Box>
+                <Button sx={{ mt: '2rem' }} onClick={handleCreateSpeciesClick}>Submit</Button>
+            </Box>
+        </Modal>
   );
 };
 
@@ -479,9 +529,9 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
   onClose,
   selectedFamilyId,
   selectedMechanismId,
-  setReactionUpdated,
+  selectedMechanismName,
+  setReactionCreated,
   reactionsCount,
-  selectedReaction,
 }) => {
   const [selectedReactionType, setSelectedReactionType] = useState<string>("");
   const [reactionList, setReactionList] = useState<Reaction[]>([]);
@@ -489,6 +539,8 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
   const [reactionEquations, setReactionEquations] = useState<{
     [key: string]: string;
   }>({});
+  const createReactionReactantsRef = useRef("");
+  const createReactionProductsRef = useRef("");
 
   useEffect(() => {
     const fetchReactions = async () => {
@@ -550,22 +602,50 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
     try {
       if (selectedFamilyId && selectedMechanismId) {
         if (selectedReactionType !== "") {
+          console.log("testing here");
+          console.log(reactionEquations[selectedReactionType]);
+          console.log(reactionEquations);
+
+          // Build the reaction that we will store in description
+          console.log(createReactionReactantsRef.current);
+          console.log(createReactionProductsRef.current);
+          console.log(selectedReactionType)
+
+          console.log(selectedMechanismName);
+          console.log(reactionList);
+          console.log(reactionsCount);
+
+          // Name is mecanism name_reaction number
+          // get the number of current reactions
           const reactionData: Reaction = {
-            name: selectedReactionType,
-            description: reactionEquations[selectedReactionType] || "", // Set description to the constructed equation
+            name: selectedMechanismName + "_reaction" + String(reactionsCount+1),
+            // Set description to the constructed equation
+            description: selectedReactionType.toUpperCase() + " Reaction " + 
+              String(reactionsCount + 1) + ": " +
+              createReactionReactantsRef.current + " -> " +
+              createReactionProductsRef.current, 
             createdBy: "current_user",
           };
-
-          console.log("Modified:");
           console.log(reactionData);
-
-          let updatedReaction = await updateReaction(reactionData);
-
-          console.log(updatedReaction);
+          const newReaction = await createReaction(reactionData);
 
 
+          console.log(newReaction);
+
+          const mechanismReaction: MechanismReaction = {
+            mechanism_id: selectedMechanismId,
+            reaction_id: newReaction.id!,
+          };
+          await addReactionToMechanism(mechanismReaction);
         }
 
+        for (const reactionId of selectedReactionIds) {
+          const mechanismReaction: MechanismReaction = {
+            mechanism_id: selectedMechanismId,
+            reaction_id: reactionId,
+          };
+          await addReactionToMechanism(mechanismReaction);
+        }
 
         setSelectedReactionType("");
         setSelectedReactionIds([]);
@@ -606,6 +686,23 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
           <MenuItem value="Troe (Fall-Off)">Troe (Fall-Off)</MenuItem>
           <MenuItem value="Tunneling">Tunneling</MenuItem>
         </Select>
+
+        <TextField 
+        id="reactants"
+        label="Reactants"
+        type="string"
+        onChange={(e) => (createReactionReactantsRef.current = e.target.value)}
+        fullWidth
+        margin="normal"
+        />
+        <TextField 
+        id="products"
+        label="Products"
+        type="string"
+        onChange={(e) => (createReactionProductsRef.current = e.target.value)}
+        fullWidth
+        margin="normal"
+        />
         {reactionList.length > 0 && (
           <>
             <Typography variant="subtitle1" style={{ marginTop: "1rem" }}>
@@ -644,6 +741,248 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
     </Modal>
   );
 };
+
+
+export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
+  open,
+  onClose,
+  selectedFamilyId,
+  selectedMechanismId,
+  setReactionUpdated,
+  reactionsCount,
+  selectedReaction,
+}) => {
+  const [selectedReactionType, setSelectedReactionType] = useState<string>("");
+  const [reactionList, setReactionList] = useState<Reaction[]>([]);
+  const [selectedReactionIds, setSelectedReactionIds] = useState<string[]>([]);
+  const [reactionEquations, setReactionEquations] = useState<{
+    [key: string]: string;
+  }>({});
+
+  const [reactants, setReactants] = useState<string>("");
+  const [products, setProducts] = useState<string>("");
+  const createReactionReactantsRef = useRef("");
+  const createReactionProductsRef = useRef("");
+
+  useEffect(() => {
+    const fetchReactions = async () => {
+      try {
+        if (selectedFamilyId && selectedMechanismId && selectedReaction) {
+          // get the current reaction data
+          if (selectedReaction.name !== null && selectedReaction.description !== null){
+            // make regex expression
+            const regex = /^(Arrhenius|Branched|Emission|First-Order Loss|Photolysis|Surface \(Heterogeneous\)|Ternary Chemical Activation|Troe \(Fall-Off\)|Tunneling|N\/A)(?: Reaction \d+)?: ([^->]+) -> (.+)$/i;
+
+          
+            const matches = selectedReaction.description.match(regex);
+
+            if (matches) {
+              console.log("matches:");
+              console.log(matches);
+              // getting the current data before editing
+              setSelectedReactionType(matches[1].toLowerCase().replace(/^./, char => char.toUpperCase()) );
+              let tempReactants = matches[2].trim();
+              let tempProducts = matches[3].trim();
+              setReactants(tempReactants);
+              setProducts(tempProducts);
+
+              createReactionProductsRef.current = tempProducts;
+              createReactionReactantsRef.current = tempReactants;
+            }
+          }
+          const reactionsFamily = await getReactionsByFamilyId(
+            selectedFamilyId
+          );
+          const reactionsMechanism = await getReactionsByMechanismId(
+            selectedMechanismId
+          );
+
+          const uniqueReactions = reactionsFamily.filter(
+            (reaction: Reaction) =>
+              !reactionsMechanism.some(
+                (mechReaction) => mechReaction.id === reaction.id
+              )
+          );
+          setReactionList(uniqueReactions);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchReactions();
+  }, [open, selectedFamilyId, selectedMechanismId, selectedReaction]);
+
+  useEffect(() => {
+    const fetchReactionEquations = async () => {
+      const equations: { [key: string]: string } = {};
+      try {
+        await Promise.all(
+          reactionList.map(async (reaction) => {
+            const reactants = await getReactantsByReactionIdAsync(reaction.id!);
+            const products = await getProductsByReactionIdAsync(reaction.id!);
+            const reactantNames = reactants
+              .map((r: ReactionSpeciesDto) => r.species_name)
+              .join(" + ");
+            const productNames = products
+              .map((p: ReactionSpeciesDto) => p.species_name)
+              .join(" + ");
+            equations[reaction.id!] = `${reactantNames} -> ${productNames}`;
+          })
+        );
+        setReactionEquations(equations);
+      } catch (error) {
+        console.error("Error fetching reaction equations:", error);
+      }
+    };
+
+    if (reactionList.length > 0) {
+      fetchReactionEquations();
+    } else {
+      setReactionEquations({});
+    }
+  }, [reactionList]);
+
+  const handleCreateReactionClick = async () => {
+    try {
+      if (selectedFamilyId && selectedMechanismId) {
+        if (selectedReactionType !== "") {
+          // Name is mecanism name_reaction number
+          // get the number of current reactions
+          console.log("Previous:");
+          console.log(selectedReaction);
+
+          const reactionData: Reaction = {
+            id: selectedReaction!.id,
+            name: selectedReaction!.name,
+            // Set description to the constructed equation
+            description: selectedReactionType.toUpperCase() + " Reaction " + 
+              String(reactionsCount + 1) + ": " +
+              createReactionReactantsRef.current + " -> " +
+              createReactionProductsRef.current, 
+            createdBy: "current_user",
+          };
+
+          console.log("Modified:");
+          console.log(reactionData);
+
+          let updatedReaction = await updateReaction(reactionData);
+
+          console.log(updatedReaction);
+
+
+        }
+
+
+        setSelectedReactionType("");
+        setSelectedReactionIds([]);
+        setReactionUpdated(true);
+        onClose();
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  return (
+    <Modal open={open} onClose={onClose}>
+      <Box sx={style}>
+        <Typography variant="h6">
+          Pick a Reaction Type for New Reaction
+        </Typography>
+        <Select
+          labelId="reaction-type-select-label"
+          id="reaction-type-select"
+          value={selectedReactionType}
+          onChange={(e) => setSelectedReactionType(e.target.value as string)}
+          fullWidth
+          style={{ marginTop: "1rem" }}
+        >
+          <MenuItem value="">N/A</MenuItem>
+          <MenuItem value="Arrhenius">Arrhenius</MenuItem>
+          <MenuItem value="Branched">Branched</MenuItem>
+          <MenuItem value="Emission">Emission</MenuItem>
+          <MenuItem value="First-Order Loss">First-Order Loss</MenuItem>
+          <MenuItem value="Photolysis">Photolysis</MenuItem>
+          <MenuItem value="Surface (Heterogeneous)">
+            Surface (Heterogeneous)
+          </MenuItem>
+          <MenuItem value="Ternary Chemical Activation">
+            Ternary Chemical Activation
+          </MenuItem>
+          <MenuItem value="Troe (Fall-Off)">Troe (Fall-Off)</MenuItem>
+          <MenuItem value="Tunneling">Tunneling</MenuItem>
+        </Select>
+
+        <TextField 
+        id="reactants"
+        label="Reactants"
+        type="string"
+        value={reactants}
+        onChange={(e) => {
+          setReactants(e.target.value);
+          (createReactionReactantsRef.current = e.target.value);
+          }
+        }
+        fullWidth
+        margin="normal"
+        />
+        <TextField 
+        id="products"
+        label="Products"
+        type="string"
+        value={products}
+        onChange={(e) => {
+          setProducts(e.target.value);
+          (createReactionProductsRef.current = e.target.value);
+          }
+        }
+        
+        fullWidth
+        margin="normal"
+        />
+        {reactionList.length > 0 && (
+          <>
+            <Typography variant="subtitle1" style={{ marginTop: "1rem" }}>
+              Or Pick Existing Reactions in Family (Multiple Selection)
+            </Typography>
+            <Select
+              multiple
+              value={selectedReactionIds}
+              onChange={(e) =>
+                setSelectedReactionIds(e.target.value as string[])
+              }
+              fullWidth
+              style={{ marginTop: "1rem" }}
+            >
+              {reactionList.map((reaction) => (
+                <MenuItem key={reaction.id} value={reaction.id}>
+                  {reactionEquations[reaction.id!] || "Loading..."}
+                </MenuItem>
+              ))}
+            </Select>
+          </>
+        )}
+        {reactionList.length === 0 && (
+          <Typography variant="subtitle1" style={{ marginTop: "1rem" }}>
+            All family's reactions are already in this mechanism
+          </Typography>
+        )}
+        <Button
+          variant="contained"
+          onClick={handleCreateReactionClick}
+          style={{ marginTop: "1rem" }}
+        >
+          Submit
+        </Button>
+      </Box>
+    </Modal>
+  );
+};
+
+
+
+
+
 
 export const CreateReactantModal: React.FC<CreateReactantModalProps> = ({
   open,
