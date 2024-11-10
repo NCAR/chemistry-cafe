@@ -138,9 +138,9 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
 
             return { ...speciesItem};
         });
-        // console.log(templol);
-        // console.log("speciesdata");
-        // console.log(speciesData);
+        console.log(templol);
+        console.log("speciesdata");
+        console.log(speciesData);
         return templol;
     };
     
