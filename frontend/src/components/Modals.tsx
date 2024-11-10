@@ -361,25 +361,14 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
 }) => {
   const [speciesName, setSpeciesName] = useState("");
   const [speciesDescription, setSpeciesDescription] = useState("");
-  const [speciesList, setSpeciesList] = useState<Species[]>([]);
   const [selectedSpeciesIds, setSelectedSpeciesIds] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchSpecies = async () => {
       try {
         if (selectedFamilyId && selectedMechanismId) {
-          const speciesFamily = await getSpeciesByFamilyId(selectedFamilyId);
-          const speciesMechanism = await getSpeciesByMechanismId(
-            selectedMechanismId
-          );
 
-          const uniqueSpecies = speciesFamily.filter(
-            (species: Species) =>
-              !speciesMechanism.some(
-                (mechSpecies) => mechSpecies.id === species.id
-              )
-          );
-          setSpeciesList(uniqueSpecies);
+
         }
       } catch (error) {
         console.error(error);
@@ -490,7 +479,9 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
   onClose,
   selectedFamilyId,
   selectedMechanismId,
-  setReactionCreated,
+  setReactionUpdated,
+  reactionsCount,
+  selectedReaction,
 }) => {
   const [selectedReactionType, setSelectedReactionType] = useState<string>("");
   const [reactionList, setReactionList] = useState<Reaction[]>([]);
@@ -564,22 +555,13 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
             description: reactionEquations[selectedReactionType] || "", // Set description to the constructed equation
             createdBy: "current_user",
           };
-          const newReaction = await createReaction(reactionData);
 
-          const mechanismReaction: MechanismReaction = {
-            mechanism_id: selectedMechanismId,
-            reaction_id: newReaction.id!,
-          };
-          await addReactionToMechanism(mechanismReaction);
+          console.log("Modified:");
+          console.log(reactionData);
+
+
         }
 
-        for (const reactionId of selectedReactionIds) {
-          const mechanismReaction: MechanismReaction = {
-            mechanism_id: selectedMechanismId,
-            reaction_id: reactionId,
-          };
-          await addReactionToMechanism(mechanismReaction);
-        }
 
         setSelectedReactionType("");
         setSelectedReactionIds([]);
