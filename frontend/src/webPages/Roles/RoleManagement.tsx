@@ -21,7 +21,7 @@ import {
 import { Header, Footer } from "../Components/HeaderFooter";
 
 import "./roles.css";
-import { useAuth } from "../contexts/AuthContext"; // Import the AuthContext
+//import { useAuth } from "../contexts/AuthContext"; // Import the AuthContext
 import { getUsers } from "../../API/API_GetMethods";
 import { User } from "../../API/API_Interfaces";
 import { updateUser } from "../../API/API_UpdateMethods";
@@ -47,17 +47,20 @@ const RoleManagement: React.FC = () => {
   const [selectedRoles, setSelectedRoles] = useState<{ [key: string]: string }>(
     {}
   );
-  const [search, setSearch] = useState<string>(""); // State for search input
-  const [roleFilter, setRoleFilter] = useState<string>("all"); // State for role filter
+ // const [search, setSearch] = useState<string>(""); // State for search input
+ // const [roleFilter, setRoleFilter] = useState<string>("all"); // State for role filter
 
   const [rowModesModel, setRowModesModel] = React.useState<GridRowModesModel>(
     {}
   );
 
   // Fetch the current logged-in user from the AuthContext
-  const { user: loggedInUser } = useAuth(); // Access the logged-in user
+//  const { user: loggedInUser } = useAuth(); // Access the logged-in user
 
   // Fetch users from the backend when the component mounts
+  useEffect(() => {
+    console.log('Selected Roles:', selectedRoles); // Temporary logging
+  }, [selectedRoles]);
   useEffect(() => {
     const fetchUsers = async () => {
       try {

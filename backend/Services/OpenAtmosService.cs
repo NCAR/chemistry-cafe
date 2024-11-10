@@ -2,6 +2,7 @@
 using System.Text;
 using Chemistry_Cafe_API.Services;
 using MySqlConnector;
+using System.IO.Compression;
 
 public class OpenAtmosService
 {
@@ -188,5 +189,114 @@ public class OpenAtmosService
 
         return yaml.ToString();
     }
-}
 
+    public async Task<byte[]> GetMusicboxJSON(Guid mechanismId)
+    {
+        var reactionService = new ReactionService(_database);
+        var speciesService = new SpeciesService(_database);
+        var reactionSpeciesService = new ReactionSpeciesService(_database);
+
+        // Fetch species
+        var speciesList = await speciesService.GetSpeciesByMechanismIdAsync(mechanismId);
+        var speciesJson = new StringBuilder();
+        speciesJson.AppendLine("{");
+        speciesJson.AppendLine("  \"camp-data\": [");
+
+        foreach (var species in speciesList)
+        {
+            speciesJson.AppendLine("    {");
+            speciesJson.AppendLine($"      \"name\": \"{species.Name}\",");
+            speciesJson.AppendLine("      \"type\": \"CHEM_SPEC\",");
+            speciesJson.AppendLine($"      \"__description\": \"{species.Description}\"");
+            speciesJson.AppendLine("    },");
+        }
+        if (speciesList.Any()) speciesJson.Length -= 3; // Remove trailing comma and newline
+        speciesJson.AppendLine();
+        speciesJson.AppendLine("  ]");
+        speciesJson.AppendLine("}");
+
+        var mechanismService = new MechanismService(_database);
+        var mechanism = await mechanismService.GetMechanismAsync(mechanismId);
+
+        // Fetch reactions
+        var reactionList = await reactionService.GetReactionsByMechanismIdAsync(mechanismId);
+        var reactionsJson = new StringBuilder();
+        reactionsJson.AppendLine("{");
+        reactionsJson.AppendLine("  \"camp-data\": [");
+        reactionsJson.AppendLine("    {");
+        reactionsJson.AppendLine($"      \"name\": \"{mechanism?.Name}\",");
+        reactionsJson.AppendLine("      \"type\": \"MECHANISM\",");
+        reactionsJson.AppendLine("      \"reactions\": [");
+
+        foreach (var reaction in reactionList)
+        {
+            reactionsJson.AppendLine("        {");
+            // Reaction type
+            var type = reaction.Description.Split(' ')[0];
+            reactionsJson.AppendLine($"          \"type\": \"{type}\",");
+
+            // Reactants
+            reactionsJson.AppendLine("          \"reactants\": {");
+            var reactants = await reactionSpeciesService.GetReactantsByReactionIdAsync(reaction.Id);
+            foreach (var reactant in reactants)
+            {
+                reactionsJson.AppendLine($"            \"{reactant.SpeciesName}\": {{ }},");
+            }
+            if (reactants.Any()) reactionsJson.Length -= 1; // Remove trailing comma
+            reactionsJson.AppendLine();
+            reactionsJson.AppendLine("          },"); // Close reactants
+
+            // Products
+            reactionsJson.AppendLine("          \"products\": {");
+            var products = await reactionSpeciesService.GetProductsByReactionIdAsync(reaction.Id);
+            foreach (var product in products)
+            {
+                reactionsJson.AppendLine($"            \"{product.SpeciesName}\": {{ }},");
+            }
+            if (products.Any()) reactionsJson.Length -= 1; // Remove trailing comma
+            reactionsJson.AppendLine();
+            reactionsJson.AppendLine("          }"); // Close products
+
+            reactionsJson.AppendLine("        },"); // Close reaction
+        }
+        if (reactionList.Any()) reactionsJson.Length -= 1; // Remove trailing comma
+        reactionsJson.AppendLine();
+        reactionsJson.AppendLine("      ]");
+        reactionsJson.AppendLine("    }");
+        reactionsJson.AppendLine("  ]");
+        reactionsJson.AppendLine("}");
+
+        // Create ZIP file in memory
+        using (var memoryStream = new MemoryStream())
+        {
+            using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+            {
+                // Add species.json to ZIP
+                var speciesEntry = archive.CreateEntry("species.json");
+                using (var entryStream = speciesEntry.Open())
+                using (var writer = new StreamWriter(entryStream))
+                {
+                    writer.Write(speciesJson.ToString());
+                }
+
+                // Add reactions.json to ZIP
+                var reactionsEntry = archive.CreateEntry("reactions.json");
+                using (var entryStream = reactionsEntry.Open())
+                using (var writer = new StreamWriter(entryStream))
+                {
+                    writer.Write(reactionsJson.ToString());
+                }
+
+                var configEntry = archive.CreateEntry("config.json");
+                using (var entryStream = configEntry.Open())
+                using (var writer = new StreamWriter(entryStream))
+                {
+                    writer.Write("{\"camp-files\": [\"species.json\", \"reactions.json\"]}");
+                }
+            }
+
+            // Return the ZIP file as a byte array
+            return memoryStream.ToArray();
+        }
+    }
+}
