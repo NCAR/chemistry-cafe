@@ -47,15 +47,15 @@ const RoleManagement: React.FC = () => {
   const [selectedRoles, setSelectedRoles] = useState<{ [key: string]: string }>(
     {}
   );
-  const [search, setSearch] = useState<string>(""); // State for search input
-  const [roleFilter, setRoleFilter] = useState<string>("all"); // State for role filter
+ // const [search, setSearch] = useState<string>(""); // State for search input
+ // const [roleFilter, setRoleFilter] = useState<string>("all"); // State for role filter
 
   const [rowModesModel, setRowModesModel] = React.useState<GridRowModesModel>(
     {}
   );
 
   // Fetch the current logged-in user from the AuthContext
-  const { user: loggedInUser } = useAuth(); // Access the logged-in user
+//  const { user: loggedInUser } = useAuth(); // Access the logged-in user
 
   // Fetch users from the backend when the component mounts
   useEffect(() => {

@@ -4,6 +4,8 @@ import { render } from '@testing-library/react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import App from '../src/webPages/RoutingRenders/App';
 import { BrowserRouter } from 'react-router-dom';
+import '@testing-library/jest-dom';
+
 
 // Mock environment variable for OAuth Client ID
 const mockClientId = 'dummy-client-id';
