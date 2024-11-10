@@ -782,8 +782,6 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
         if (selectedFamilyId && selectedMechanismId && selectedReaction) {
           // get the current reaction data
           if (selectedReaction.name !== null && selectedReaction.description !== null){
-            console.log(selectedReaction);
-            console.log(selectedReaction?.description);
             const matches = selectedReaction.description.match(/^(\w+)(?: Reaction (\d+))?: ([^->]+) -> (.+)$/);
 
             if (matches) {
@@ -856,9 +854,12 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
         if (selectedReactionType !== "") {
           // Name is mecanism name_reaction number
           // get the number of current reactions
+          console.log("Previous:");
+          console.log(selectedReaction);
+
           const reactionData: Reaction = {
             id: selectedReaction!.id,
-            name: selectedMechanismName + "_reaction" + String(reactionsCount),
+            name: selectedReaction!.name,
             // Set description to the constructed equation
             description: selectedReactionType.toUpperCase() + " Reaction " + 
               String(reactionsCount + 1) + ": " +
@@ -867,11 +868,11 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
             createdBy: "current_user",
           };
 
+          console.log("Modified:");
           console.log(reactionData);
 
           const updatedReaction = await updateReaction(reactionData);
 
-          console.log(updatedReaction);
         }
 
 
