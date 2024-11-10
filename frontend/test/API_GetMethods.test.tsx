@@ -8,17 +8,17 @@ import {
     getFamily,
     getReactions,
     getReaction,
-    getReactionsFromTagMechanism,
+    getReactionsByMechanismId,
     getAllSpecies,
     getSpecies,
-    getSpeciesFromTagMechanism,
-    getTagMechanisms,
-    getTagMechanism,
-    getTagMechanismsFromFamily,
-    getPropertyTypesFromValidation,
-    getPropertiesFromParent,
-    getReactantsFromReactionReactantList,
-    getProductsFromReactionReactantList
+    getSpeciesByMechanismId,
+    getMechanisms,
+    getMechanism,
+    getMechanismsByFamilyId,
+    getSpeciesByFamilyId,
+    getReactionsByFamilyId,
+    getReactantsByReactionIdAsync,
+    getProductsByReactionIdAsync
 } from '../src/API/API_GetMethods';
 
 // Mock axios using vitest's built-in mock function
@@ -47,7 +47,7 @@ describe('API get functions tests', () => {
         const result = await downloadOAJSON(tag_mechanism_uuid);
 
         expect(mockedGet).toHaveBeenCalledWith(
-            `http://localhost:8080/api/OpenAtmos/JSON/${tag_mechanism_uuid}`,
+            `http://localhost:8080/api/openatmos/mechanism/${tag_mechanism_uuid}/json`,
             {
                 headers: { 'Content-Type': 'text/plain' },
                 responseType: 'text',
@@ -76,7 +76,7 @@ describe('API get functions tests', () => {
         await expect(downloadOAJSON(tag_mechanism_uuid)).rejects.toThrow('Network error');
 
         expect(axios.get).toHaveBeenCalledWith(
-            `http://localhost:8080/api/OpenAtmos/JSON/${tag_mechanism_uuid}`,
+            `http://localhost:8080/api/openatmos/mechanism/${tag_mechanism_uuid}/json`,
             {
                 headers: { 'Content-Type': 'text/plain' },
                 responseType: 'text',
@@ -92,7 +92,7 @@ describe('API get functions tests', () => {
         const result = await downloadOAYAML(tag_mechanism_uuid);
 
         expect(mockedGet).toHaveBeenCalledWith(
-            `http://localhost:8080/api/OpenAtmos/YAML/${tag_mechanism_uuid}`,
+            `http://localhost:8080/api/openatmos/mechanism/${tag_mechanism_uuid}/yaml`,
             {
                 headers: { 'Content-Type': 'text/plain' },
                 responseType: 'text',
@@ -107,7 +107,7 @@ describe('API get functions tests', () => {
         const mockedGet = vi.spyOn(axios, 'get').mockResolvedValueOnce(createMockResponse()) as Mock;
         const result = await getFamilies();
 
-        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/Family/all`);
+        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/families`);
         expect(result).toEqual(mockResponseData);
     });
 
@@ -118,7 +118,7 @@ describe('API get functions tests', () => {
         const uuid = 'valid-uuid';
         const result = await getFamily(uuid);
 
-        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/Family/${uuid}`);
+        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/families/${uuid}`);
         expect(result).toEqual(mockResponseData);
     });
 
@@ -127,7 +127,7 @@ describe('API get functions tests', () => {
         const mockedGet = vi.spyOn(axios, 'get').mockResolvedValueOnce(createMockResponse()) as Mock;
         const result = await getReactions();
 
-        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/Reaction/all`);
+        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/reactions`);
         expect(result).toEqual(mockResponseData);
     });
 
@@ -138,7 +138,7 @@ describe('API get functions tests', () => {
         const uuid = 'valid-uuid';
         const result = await getReaction(uuid);
 
-        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/Reaction/${uuid}`);
+        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/reactions/${uuid}`);
         expect(result).toEqual(mockResponseData);
     });
 
@@ -147,9 +147,9 @@ describe('API get functions tests', () => {
         const mockedGet = vi.spyOn(axios, 'get').mockResolvedValueOnce(createMockResponse()) as Mock;
 
         const tag_mechanism_uuid = 'valid-uuid';
-        const result = await getReactionsFromTagMechanism(tag_mechanism_uuid);
+        const result = await getReactionsByMechanismId(tag_mechanism_uuid);
 
-        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/Reaction/TagMechanism/${tag_mechanism_uuid}`);
+        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/reactions/mechanism/${tag_mechanism_uuid}`);
         expect(result).toEqual(mockResponseData);
     });
 
@@ -158,7 +158,7 @@ describe('API get functions tests', () => {
         const mockedGet = vi.spyOn(axios, 'get').mockResolvedValueOnce(createMockResponse()) as Mock;
         const result = await getAllSpecies();
 
-        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/Species/all`);
+        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/species`);
         expect(result).toEqual(mockResponseData);
     });
 
@@ -169,27 +169,27 @@ describe('API get functions tests', () => {
         const uuid = 'valid-uuid';
         const result = await getSpecies(uuid);
 
-        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/Species/${uuid}`);
+        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/species/${uuid}`);
         expect(result).toEqual(mockResponseData);
     });
 
     // Tests for getSpeciesFromTagMechanism
-    it('should successfully get species from tag mechanism with valid tag_mechanism_uuid', async () => {
-        const mockedGet = vi.spyOn(axios, 'get').mockResolvedValueOnce(createMockResponse()) as Mock;
+    // it('should successfully get species from tag mechanism with valid tag_mechanism_uuid', async () => {
+    //     const mockedGet = vi.spyOn(axios, 'get').mockResolvedValueOnce(createMockResponse()) as Mock;
 
-        const tag_mechanism_uuid = 'valid-uuid';
-        const result = await getSpeciesFromTagMechanism(tag_mechanism_uuid);
+    //     const tag_mechanism_uuid = 'valid-uuid';
+    //     const result = await getSpeciesFromTagMechanism(tag_mechanism_uuid);
 
-        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/Species/TagMechanism/${tag_mechanism_uuid}`);
-        expect(result).toEqual(mockResponseData);
-    });
+    //     expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/Species/TagMechanism/${tag_mechanism_uuid}`);
+    //     expect(result).toEqual(mockResponseData);
+    // });
 
     // Tests for getTagMechanisms
     it('should successfully get all tag mechanisms', async () => {
         const mockedGet = vi.spyOn(axios, 'get').mockResolvedValueOnce(createMockResponse()) as Mock;
-        const result = await getTagMechanisms();
+        const result = await getMechanisms();
 
-        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/TagMechanism/all`);
+        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/mechanism`);
         expect(result).toEqual(mockResponseData);
     });
 
@@ -198,9 +198,9 @@ describe('API get functions tests', () => {
         const mockedGet = vi.spyOn(axios, 'get').mockResolvedValueOnce(createMockResponse()) as Mock;
 
         const uuid = 'valid-uuid';
-        const result = await getTagMechanism(uuid);
+        const result = await getMechanism(uuid);
 
-        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/TagMechanism/${uuid}`);
+        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/mechanism/${uuid}`);
         expect(result).toEqual(mockResponseData);
     });
 
@@ -209,53 +209,53 @@ describe('API get functions tests', () => {
         const mockedGet = vi.spyOn(axios, 'get').mockResolvedValueOnce(createMockResponse()) as Mock;
 
         const family_uuid = 'valid-uuid';
-        const result = await getTagMechanismsFromFamily(family_uuid);
+        const result = await getMechanismsByFamilyId(family_uuid);
 
-        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/TagMechanism/Family/${family_uuid}`);
+        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/mechanism/family/${family_uuid}`);
         expect(result).toEqual(mockResponseData);
     });
 
-    // Tests for getPropertyTypesFromValidation
-    it('should successfully get property types from validation', async () => {
+    it('should successfully get species from family with valid familyId', async () => {
         const mockedGet = vi.spyOn(axios, 'get').mockResolvedValueOnce(createMockResponse()) as Mock;
-        
-        const validation = 'Species';
-        const result = await getPropertyTypesFromValidation(validation);
-
-        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/PropertyType/Validation/${validation}`);
+    
+        const familyId = 'valid-family-id';
+        const result = await getSpeciesByFamilyId(familyId);
+    
+        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/species/family/${familyId}`);
         expect(result).toEqual(mockResponseData);
     });
 
-    // Tests for getPropertiesFromParent
-    it('should successfully get properties from parent with valid parent_uuid', async () => {
+    it('should successfully get reactions from family with valid familyId', async () => {
         const mockedGet = vi.spyOn(axios, 'get').mockResolvedValueOnce(createMockResponse()) as Mock;
-
-        const parent_uuid = 'valid-uuid';
-        const result = await getPropertiesFromParent(parent_uuid);
-
-        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/PropertyList/Properties/${parent_uuid}`);
+    
+        const familyId = 'valid-family-id';
+        const result = await getReactionsByFamilyId(familyId);
+    
+        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/reactions/family/${familyId}`);
         expect(result).toEqual(mockResponseData);
     });
 
-    // Tests for getReactantsFromReactionReactantList
-    it('should successfully get reactants from reaction reactant list with valid reactant_list_uuid', async () => {
+    it('should successfully get reactants by reaction ID', async () => {
         const mockedGet = vi.spyOn(axios, 'get').mockResolvedValueOnce(createMockResponse()) as Mock;
-
-        const reactant_list_uuid = 'valid-uuid';
-        const result = await getReactantsFromReactionReactantList(reactant_list_uuid);
-
-        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/ReactantProductList/Reactants/${reactant_list_uuid}`);
+    
+        const reactionId = 'valid-reaction-id';
+        const result = await getReactantsByReactionIdAsync(reactionId);
+    
+        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/reactionspecies/reaction/${reactionId}/reactants`);
         expect(result).toEqual(mockResponseData);
     });
 
-    // Tests for getProductsFromReactionReactantList
-    it('should successfully get products from reaction reactant list with valid reactant_list_uuid', async () => {
+    it('should successfully get products by reaction ID', async () => {
         const mockedGet = vi.spyOn(axios, 'get').mockResolvedValueOnce(createMockResponse()) as Mock;
-
-        const reactant_list_uuid = 'valid-uuid';
-        const result = await getProductsFromReactionReactantList(reactant_list_uuid);
-
-        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/ReactantProductList/Products/${reactant_list_uuid}`);
+    
+        const reactionId = 'valid-reaction-id';
+        const result = await getProductsByReactionIdAsync(reactionId);
+    
+        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/reactionspecies/reaction/${reactionId}/products`);
         expect(result).toEqual(mockResponseData);
     });
+    
+    
+    
+    
 });

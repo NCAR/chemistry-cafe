@@ -4,6 +4,7 @@ import { Family, Mechanism } from "../../API/API_Interfaces";
 import {
   downloadOAYAML,
   downloadOAJSON,
+  downloadOAMusicbox,
   getFamilies,
   getMechanismsByFamilyId,
 } from "../API/API_GetMethods";
@@ -125,19 +126,24 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
     fetchData();
   }, [createdFamilyBool, createdMechanismBool, deleteBool]);
 
-  const handleDownloadClick = async (mechanismId: string, isJSON: boolean) => {
+  const handleDownloadClick = async (mechanismId: string, format: string) => {
     const link = document.createElement("a");
     let blobUrl = "";
-    if (isJSON) {
+    if (format === "JSON") {
       const body = await downloadOAJSON(mechanismId);
       const blob = new Blob([body], { type: "application/json" });
       blobUrl = window.URL.createObjectURL(blob);
       link.download = "openAtmos.json";
-    } else {
+    } else if(format === "YAML"){
       const body = await downloadOAYAML(mechanismId);
       const blob = new Blob([body], { type: "application/json" });
       blobUrl = window.URL.createObjectURL(blob);
       link.download = "openAtmos.yaml";
+    }else if(format === "Musicbox"){
+      const body = await downloadOAMusicbox(mechanismId);
+      const blob = new Blob([body], { type: "application/zip" });
+      blobUrl = window.URL.createObjectURL(blob);
+      link.download = "musicbox.zip";
     }
 
     link.href = blobUrl;
@@ -307,7 +313,7 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                               <Button
                                 onClick={() => {
                                   if (ref.current !== null) {
-                                    handleDownloadClick(ref.current, false);
+                                    handleDownloadClick(ref.current, "YAML");
                                   }
                                 }}
                               >
@@ -316,11 +322,20 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                               <Button
                                 onClick={() => {
                                   if (ref.current !== null) {
-                                    handleDownloadClick(ref.current, true);
+                                    handleDownloadClick(ref.current, "JSON");
                                   }
                                 }}
                               >
                                 JSON
+                              </Button>
+                              <Button
+                                onClick={() => {
+                                  if (ref.current !== null) {
+                                    handleDownloadClick(ref.current, "Musicbox");
+                                  }
+                                }}
+                              >
+                                MusicBox
                               </Button>
                             </Popover>
                           </div>

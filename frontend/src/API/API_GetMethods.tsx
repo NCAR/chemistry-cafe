@@ -262,7 +262,7 @@ export async function downloadOAJSON(mechanismId?: string) {
 
   try {
     const response = await axios.get(
-      `http://localhost:8080/api/openatmos/json/${mechanismId}`,
+      `http://localhost:8080/api/openatmos/mechanism/${mechanismId}/json`,
       {
         responseType: "text",
         headers: {
@@ -283,7 +283,7 @@ export async function downloadOAYAML(mechanismId?: string) {
 
   try {
     const response = await axios.get(
-      `http://localhost:8080/api/openatmos/yaml/${mechanismId}`,
+      `http://localhost:8080/api/openatmos/mechanism/${mechanismId}/yaml`,
       {
         responseType: "text",
         headers: {
@@ -291,6 +291,29 @@ export async function downloadOAYAML(mechanismId?: string) {
         },
       }
     );
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+// Download OpenAtmos MuiscBox for a mechanism
+export async function downloadOAMusicbox(mechanismId?: string) {
+  if (!mechanismId) return "";
+
+  try {
+    const response = await axios.get(
+      `http://localhost:8080/api/openatmos/mechanism/${mechanismId}/musicbox`,
+      {
+        responseType: "arraybuffer", // Handle binary data
+        headers: {
+          "Accept": "application/zip", // Expecting a zip file
+        },
+      }
+    );
+
+    // Return the response data as an array buffer for further processing
     return response.data;
   } catch (error) {
     console.error(error);

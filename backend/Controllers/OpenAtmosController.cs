@@ -36,5 +36,21 @@ namespace Chemistry_Cafe_API.Controllers
             }
             return Content(yamlResult, "text/yaml");
         }
+
+        [HttpGet("mechanism/{mechanismId}/musicbox")]
+        public async Task<IActionResult> GetMechanismMusicbox(Guid mechanismId)
+        {
+            var zipFileBytes = await _openAtmosService.GetMusicboxJSON(mechanismId);
+            if (zipFileBytes == null || zipFileBytes.Length == 0)
+            {
+                return NotFound($"Mechanism with ID {mechanismId} not found.");
+            }
+
+            // Set the file name for the response
+            var fileName = "musicbox.zip";
+            
+            // Return the zip file as a file response
+            return File(zipFileBytes, "application/zip", fileName);
+        }
     }
 }
