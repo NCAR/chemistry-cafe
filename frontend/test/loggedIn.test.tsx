@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, cleanup, waitFor, within } from '@testing-library/react';
 import React from 'react';
-import LoggedIn from '../src/webPages/LogIn/loggedIn';
+import LoggedIn from '../src/pages/loggedIn';
 import { MemoryRouter, useNavigate } from 'react-router-dom';
 
 // // Partially mock react-router-dom
