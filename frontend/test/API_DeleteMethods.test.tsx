@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import axios, { AxiosResponse } from 'axios';
-import { deleteFamily, deleteMechanism, deleteSpecies, deleteReaction, deleteUser } from '../src/API/API_DeleteMethods';
+import { deleteFamily, deleteMechanism, deleteSpecies, deleteReaction, deleteUser, deleteProperty } from '../src/API/API_DeleteMethods';
 
 // Mock axios using vitest's built-in mock function
 vi.mock('axios');
@@ -87,5 +87,20 @@ describe('API delete functions tests', () => {
             }
         );
         expect(result).toEqual(mockResponseData);
+    });
+
+    it('should successfully delete a property', async () => {
+        const mockedDelete = vi.spyOn(axios, 'delete').mockResolvedValue(createMockResponse()) as Mock;
+
+        const id = '12345'; // Test property ID
+        const result = await deleteProperty(id);
+
+        expect(mockedDelete).toHaveBeenCalledWith(
+            `http://localhost:8080/api/properties/${id}`, // URL based on the deleteProperty function
+            {
+                headers: { 'Content-Type': 'application/json' }, // Request headers
+            }
+        );
+        expect(result).toEqual(mockResponseData); // Ensure the result matches the expected response
     });
 });

@@ -18,7 +18,8 @@ import {
     getSpeciesByFamilyId,
     getReactionsByFamilyId,
     getReactantsByReactionIdAsync,
-    getProductsByReactionIdAsync
+    getProductsByReactionIdAsync,
+    getPropertyById
 } from '../src/API/API_GetMethods';
 
 // Mock axios using vitest's built-in mock function
@@ -254,6 +255,30 @@ describe('API get functions tests', () => {
         expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/reactionspecies/reaction/${reactionId}/products`);
         expect(result).toEqual(mockResponseData);
     });
+
+    it('should successfully get a property by id', async () => {
+        const mockedGet = vi.spyOn(axios, 'get').mockResolvedValueOnce(createMockResponse()) as Mock;
+    
+        const propertyId = 'valid-property-id';
+        const result = await getPropertyById(propertyId);
+    
+        expect(mockedGet).toHaveBeenCalledWith(
+          `http://localhost:8080/api/properties/id/${propertyId}`
+        );
+        expect(result).toEqual(mockResponseData);
+      });
+    
+      it('should handle error correctly for getPropertyById', async () => {
+        const mockError = new Error('Network error');
+        vi.spyOn(axios, 'get').mockRejectedValueOnce(mockError);
+    
+        const propertyId = 'invalid-property-id';
+        await expect(getPropertyById(propertyId)).rejects.toThrow('Network error');
+    
+        expect(axios.get).toHaveBeenCalledWith(
+          `http://localhost:8080/api/properties/id/${propertyId}`
+        );
+      });
     
     
     

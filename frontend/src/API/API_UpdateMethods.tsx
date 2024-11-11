@@ -1,7 +1,7 @@
 // API_UpdateMethods.ts
 
 import axios from "axios";
-import { Family, Mechanism, Species, Reaction, User } from "./API_Interfaces";
+import { Family, Mechanism, Species, Reaction, User, Property } from "./API_Interfaces";
 
 // Update a family
 export async function updateFamily(family: Family) {
@@ -96,3 +96,22 @@ export async function updateUser(id: string, user: User) {
     throw error;
   }
 }
+
+export async function updateProperty(property: Property) {
+  try {
+    const response = await axios.put(
+      `http://localhost:8080/api/properties/${property.id}`,
+      property,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data as Property;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+

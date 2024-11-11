@@ -11,6 +11,7 @@ import {
   addSpeciesToMechanism,
   createUser,
   addUserToMechanism,
+  createProperty
 } from '../src/API/API_CreateMethods';
 
 // Mock axios using vitest's built-in mock function  
@@ -278,5 +279,31 @@ describe('API create functions tests', () => {
       { headers: { 'Content-Type': 'application/json' } }
     );
     expect(result).toEqual(mockResponseData);
+  });
+
+  it('should create property and return data', async () => {
+    const mockedCreate = vi.spyOn(axios, 'post').mockResolvedValue(createMockResponse()) as Mock;
+    const propertyData = { id: '123', name: 'Test Property', value: 'Test Value' }; // Adjust the property data as needed
+
+    const result = await createProperty(propertyData);
+
+    expect(mockedCreate).toHaveBeenCalledWith(
+      'http://localhost:8080/api/properties',
+      propertyData,
+      { headers: { 'Content-Type': 'application/json' } }
+    );
+    expect(result).toEqual(mockResponseData);
+  });
+
+  it('should handle error when creating property', async () => {
+    const mockedCreate = vi.spyOn(axios, 'post').mockRejectedValue(createMockErrorResponse()) as Mock;
+    const propertyData = { id: '123', name: 'Test Property', value: 'Test Value' };
+
+    try {
+      await createProperty(propertyData);
+    } catch (error) {
+      expect(error.response.status).toBe(500);
+      expect(error.response.data.error).toBe('Internal Server Error');
+    }
   });
 });

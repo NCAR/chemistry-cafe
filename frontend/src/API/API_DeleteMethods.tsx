@@ -86,3 +86,20 @@ export async function deleteUser(id: string) {
     throw error;
   }
 }
+
+export async function deleteProperty(id: string) {
+  try {
+    const response = await axios.delete(
+      `http://localhost:8080/api/properties/${id}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
