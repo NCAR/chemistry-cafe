@@ -2,19 +2,19 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { googleLogout, useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
-import { useAuth } from "../contexts/AuthContext"; // Import the AuthContext
+import { useAuth } from "../pages/AuthContext"; // Import the AuthContext
 
-import "./logIn.css";
+import "../styles/logIn.css";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import Modal from "@mui/material/Modal";
 import Typography from "@mui/material/Typography";
 import GoogleIcon from "@mui/icons-material/Google";
 import NoAccountsIcon from "@mui/icons-material/NoAccounts";
-import { Footer } from "../Components/HeaderFooter";
-import Holidays from "../Components/Holidays"; // Import the Holidays component
-import { getUserByEmail } from "../../API/API_GetMethods";
-import { createUser } from "../../API/API_CreateMethods";
+import { Footer } from "../components/HeaderFooter";
+import Holidays from "../components/Holidays"; // Import the Holidays component
+import { getUserByEmail } from "../API/API_GetMethods";
+import { createUser } from "../API/API_CreateMethods";
 
 interface AuthUser {
   access_token: string;

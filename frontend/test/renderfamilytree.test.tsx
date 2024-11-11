@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, it, vi, expect } from "vitest";
 import React from "react";
-import RenderFamilyTree from "../src/webPages/Components/RenderFamilyTree";
+import RenderFamilyTree from "../src/components/RenderFamilyTree";
 
 // Mock functions for the component props
 const setSelectedFamilyIdMock = vi.fn();

@@ -6,7 +6,7 @@ import { Drawer } from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Container from "@mui/material/Container";
 import DensitySmallSharpIcon from "@mui/icons-material/DensitySmallSharp";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../pages/AuthContext";
 // import Modal from '@mui/material/Modal';
 // import Typography from '@mui/material/Typography';
 
