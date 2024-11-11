@@ -1,4 +1,3 @@
-declare module 'react-accessibility' {
+declare module "react-accessibility" {
     export const AccessibilityWidget: React.FC;
   }
-  

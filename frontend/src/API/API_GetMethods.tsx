@@ -270,6 +270,18 @@ export async function getPropertyById(id: string): Promise<Property> {
   }
 }
 
+export async function getPropertyBySpeciesAndMechanism(species: string, mechanism: string): Promise<Property> {
+  try {
+    const response = await axios.get<Property>(
+      `http://localhost:8080/api/properties/id/${species}/${mechanism}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
 // Download OpenAtmos JSON for a mechanism
 export async function downloadOAJSON(mechanismId?: string) {
   if (!mechanismId) return "";
@@ -341,7 +353,7 @@ export async function getSpeciesPropertiesByMechanismIDAsync(
 ): Promise<InitialConditionSpecies[]> {
   try {
     const response = await axios.get<InitialConditionSpecies[]>(
-      `http://localhost:8080/api/initialconditionspecies/mechanism/${mechanismId}` 
+      `http://localhost:8080/api/initialconditionspecies/mechanism/${mechanismId}`
     );
     return response.data;
   } catch (error) {

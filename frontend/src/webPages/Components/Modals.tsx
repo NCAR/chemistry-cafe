@@ -433,30 +433,30 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
   };
 
   return (
-    <Modal 
-            open={open} 
+    <Modal
+            open={open}
             onClose={onClose}
         >
-            <Box sx={{ 
-                position: 'absolute', 
-                top: '50%', 
-                left: '50%', 
-                transform: 'translate(-50%, -50%)', 
-                bgcolor: 'background.paper', 
-                border: '2px solid #000', 
-                boxShadow: 24, 
-                p: 4, 
+            <Box sx={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                bgcolor: "background.paper",
+                border: "2px solid #000",
+                boxShadow: 24,
+                p: 4,
                 width: 600,
-                maxHeight: '80vh', // Set maximum height to 80% of viewport height
-                overflowY: 'auto' // Enable vertical scrolling if content overflows
+                maxHeight: "80vh", // Set maximum height to 80% of viewport height
+                overflowY: "auto" // Enable vertical scrolling if content overflows
             }}>
                 <h1>Create New Species</h1>
-                <Box sx={{ display: 'flex', flexDirection: 'column'}}>
-                    <Box sx={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #ccc', pb: '0.5rem', fontWeight: 'bold' }}>
+                <Box sx={{ display: "flex", flexDirection: "column"}}>
+                    <Box sx={{ display: "flex", gap: "1rem", borderBottom: "1px solid #ccc", pb: "0.5rem", fontWeight: "bold" }}>
                         <Typography sx={{ flex: 1 }}>Value</Typography>
                         <Typography sx={{ flex: 1 }}>Units</Typography>
                     </Box>
-                    <Box sx={{ display: 'flex', borderBottom: '1px solid #ccc', fontWeight: 'bold' }}>
+                    <Box sx={{ display: "flex", borderBottom: "1px solid #ccc", fontWeight: "bold" }}>
                         <TextField
                           id="species-name"
                           label="Name"
@@ -467,7 +467,7 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
                         <Typography sx={{ flex: 1 }}>Units</Typography>
                     </Box>
 
-                    <Box sx={{ display: 'flex', borderBottom: '1px solid #ccc', fontWeight: 'bold' }}>
+                    <Box sx={{ display: "flex", borderBottom: "1px solid #ccc", fontWeight: "bold" }}>
                         <TextField
                           id="species-concentration"
                           label="Fixed Concentration"
@@ -477,7 +477,7 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
                         <Typography sx={{ flex: 1 }}>Units</Typography>
                     </Box>
 
-                    <Box sx={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #ccc', pb: '0.5rem', fontWeight: 'bold' }}>
+                    <Box sx={{ display: "flex", gap: "1rem", borderBottom: "1px solid #ccc", pb: "0.5rem", fontWeight: "bold" }}>
                         <TextField
                           id="species-description"
                           label="Description"
@@ -487,7 +487,7 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
                         />
                         <Typography sx={{ flex: 1 }}>Units</Typography>
                     </Box>
-                    <Box sx={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #ccc', pb: '0.5rem', fontWeight: 'bold' }}>
+                    <Box sx={{ display: "flex", gap: "1rem", borderBottom: "1px solid #ccc", pb: "0.5rem", fontWeight: "bold" }}>
                         <TextField
                           id="species-convergence-tolerance"
                           label="Absolute Convergence Tolerance"
@@ -496,7 +496,7 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
                         />
                         <Typography sx={{ flex: 1 }}>Units</Typography>
                     </Box>
-                    <Box sx={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #ccc', pb: '0.5rem', fontWeight: 'bold' }}>
+                    <Box sx={{ display: "flex", gap: "1rem", borderBottom: "1px solid #ccc", pb: "0.5rem", fontWeight: "bold" }}>
                         <TextField
                           id="species-weight"
                           label="Molecular Weight"
@@ -506,7 +506,7 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
                         <Typography sx={{ flex: 1 }}>Units</Typography>
                     </Box>
 
-                    <Box sx={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #ccc', pb: '0.5rem', fontWeight: 'bold' }}>
+                    <Box sx={{ display: "flex", gap: "1rem", borderBottom: "1px solid #ccc", pb: "0.5rem", fontWeight: "bold" }}>
                         <TextField
                           id="species-diffusion-coefficient"
                           label="Diffusion Coefficient"
@@ -515,10 +515,10 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
                         />
                         <Typography sx={{ flex: 1 }}>Units</Typography>
                     </Box>
-                    
-                    
+
+
                 </Box>
-                <Button sx={{ mt: '2rem' }} onClick={handleCreateSpeciesClick}>Submit</Button>
+                <Button sx={{ mt: "2rem" }} onClick={handleCreateSpeciesClick}>Submit</Button>
             </Box>
         </Modal>
   );
@@ -620,10 +620,10 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
           const reactionData: Reaction = {
             name: selectedMechanismName + "_reaction" + String(reactionsCount+1),
             // Set description to the constructed equation
-            description: selectedReactionType.toUpperCase() + " Reaction " + 
+            description: selectedReactionType.toUpperCase() + " Reaction " +
               String(reactionsCount + 1) + ": " +
               createReactionReactantsRef.current + " -> " +
-              createReactionProductsRef.current, 
+              createReactionProductsRef.current,
             createdBy: "current_user",
           };
           console.log(reactionData);
@@ -687,7 +687,7 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
           <MenuItem value="Tunneling">Tunneling</MenuItem>
         </Select>
 
-        <TextField 
+        <TextField
         id="reactants"
         label="Reactants"
         type="string"
@@ -695,7 +695,7 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
         fullWidth
         margin="normal"
         />
-        <TextField 
+        <TextField
         id="products"
         label="Products"
         type="string"
@@ -773,7 +773,7 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
             // make regex expression
             const regex = /^(Arrhenius|Branched|Emission|First-Order Loss|Photolysis|Surface \(Heterogeneous\)|Ternary Chemical Activation|Troe \(Fall-Off\)|Tunneling|N\/A)(?: Reaction \d+)?: ([^->]+) -> (.+)$/i;
 
-          
+
             const matches = selectedReaction.description.match(regex);
 
             if (matches) {
@@ -781,8 +781,8 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
               console.log(matches);
               // getting the current data before editing
               setSelectedReactionType(matches[1].toLowerCase().replace(/^./, char => char.toUpperCase()) );
-              let tempReactants = matches[2].trim();
-              let tempProducts = matches[3].trim();
+              const tempReactants = matches[2].trim();
+              const tempProducts = matches[3].trim();
               setReactants(tempReactants);
               setProducts(tempProducts);
 
@@ -855,17 +855,17 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
             id: selectedReaction!.id,
             name: selectedReaction!.name,
             // Set description to the constructed equation
-            description: selectedReactionType.toUpperCase() + " Reaction " + 
+            description: selectedReactionType.toUpperCase() + " Reaction " +
               String(reactionsCount + 1) + ": " +
               createReactionReactantsRef.current + " -> " +
-              createReactionProductsRef.current, 
+              createReactionProductsRef.current,
             createdBy: "current_user",
           };
 
           console.log("Modified:");
           console.log(reactionData);
 
-          let updatedReaction = await updateReaction(reactionData);
+          const updatedReaction = await updateReaction(reactionData);
 
           console.log(updatedReaction);
 
@@ -913,7 +913,7 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
           <MenuItem value="Tunneling">Tunneling</MenuItem>
         </Select>
 
-        <TextField 
+        <TextField
         id="reactants"
         label="Reactants"
         type="string"
@@ -926,7 +926,7 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
         fullWidth
         margin="normal"
         />
-        <TextField 
+        <TextField
         id="products"
         label="Products"
         type="string"
@@ -936,7 +936,7 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
           (createReactionProductsRef.current = e.target.value);
           }
         }
-        
+
         fullWidth
         margin="normal"
         />

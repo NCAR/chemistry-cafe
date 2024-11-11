@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 
 // Mapping holiday names to icons
 const holidayIcons: { [key: string]: string } = {
@@ -23,7 +23,7 @@ const holidaysByMonth: { [key: number]: { name: string; icon: string } } = {
     7: { name: "Fireworks", icon: "🎆" },                     // July
     8: { name: "Swimming", icon: "🏊" },                       // August
     9: { name: "Apple", icon: "🍏" },                          // September
-    10: { name: "Halloween", icon: holidayIcons["Halloween"] }, // October
+    10: { name: "Halloween", icon: holidayIcons.Halloween }, // October
     11: { name: "Thanksgiving Day", icon: holidayIcons["Thanksgiving Day"] }, // November
     12: { name: "Christmas Day", icon: holidayIcons["Christmas Day"] }, // December
 };
@@ -44,7 +44,7 @@ const Holidays: React.FC = () => {
                     setCurrentIcon(null); // No holiday this month
                 }
             } catch (error) {
-                console.error('Error fetching holidays:', error);
+                console.error("Error fetching holidays:", error);
                 setCurrentIcon(null); // Default to no icon if error
             }
         };
@@ -53,11 +53,11 @@ const Holidays: React.FC = () => {
     }, [currentMonth]);
 
     return (
-        //commented out stuff is for testing that all icons work properly
+        // commented out stuff is for testing that all icons work properly
         <div>
             {/* <h1>Current Holiday Icon:</h1> */}
             {currentIcon && (
-                <div style={{ fontSize: '48px' }}>
+                <div style={{ fontSize: "48px" }}>
                     {currentIcon}
                 </div>
             )}

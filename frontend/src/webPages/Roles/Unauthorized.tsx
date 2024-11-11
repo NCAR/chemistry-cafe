@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 const NoAccess: React.FC = () => {
     return (
@@ -11,21 +11,21 @@ const NoAccess: React.FC = () => {
 
 const styles = {
     container: {
-        display: 'flex',
-        flexDirection: 'column' as const,
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100vh',
-        textAlign: 'center' as const,
-        backgroundColor: '#f8f9fa',
-        color: '#343a40',
+        display: "flex",
+        flexDirection: "column" as const,
+        alignItems: "center",
+        justifyContent: "center",
+        height: "100vh",
+        textAlign: "center" as const,
+        backgroundColor: "#f8f9fa",
+        color: "#343a40",
     },
     header: {
-        fontSize: '2rem',
-        marginBottom: '1rem',
+        fontSize: "2rem",
+        marginBottom: "1rem",
     },
     message: {
-        fontSize: '1.25rem',
+        fontSize: "1.25rem",
     },
 };
 

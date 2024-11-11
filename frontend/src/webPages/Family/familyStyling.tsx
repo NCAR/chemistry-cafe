@@ -1,5 +1,5 @@
-import 'bootstrap/dist/css/bootstrap.css';
-import styled from 'styled-components';
+import "bootstrap/dist/css/bootstrap.css";
+import styled from "styled-components";
 
 export const StyledHeader = styled.header`
   padding: 20px;
