@@ -34,6 +34,19 @@ namespace Chemistry_Cafe_API.Services
             return result.FirstOrDefault();
         }
 
+        public async Task<Property?> GetPropertyBySandMAsync(Guid species, Guid mechanism)
+        {
+            using var connection = await _database.OpenConnectionAsync();
+            using var command = connection.CreateCommand();
+
+            command.CommandText = "SELECT * FROM properties WHERE species_id = @species AND mechanism_id = @mechanism";
+            command.Parameters.AddWithValue("@species", species);
+            command.Parameters.AddWithValue("@mechanism", mechanism);
+
+            var result = await ReadAllAsync(await command.ExecuteReaderAsync());
+            return result.FirstOrDefault();
+        }
+
         public async Task<Property> CreatePropertyAsync(Property property)
         {
             using var connection = await _database.OpenConnectionAsync();
@@ -49,11 +62,12 @@ namespace Chemistry_Cafe_API.Services
                 {
                     insertCommand.Transaction = transaction;
                     insertCommand.CommandText = @"
-                        INSERT INTO properties (id, species_id, tolerance, weight, concentration, diffusion)
-                        VALUES (@id, @species_id, @tolerance, @weight, @concentration, @diffusion);";
+                        INSERT INTO properties (id, species_id, mechanism_id, tolerance, weight, concentration, diffusion)
+                        VALUES (@id, @species_id, @mechanism_id, @tolerance, @weight, @concentration, @diffusion);";
 
                     insertCommand.Parameters.AddWithValue("@id", property.Id.ToString());
                     insertCommand.Parameters.AddWithValue("@species_id", property.SpeciesId.ToString());
+                    insertCommand.Parameters.AddWithValue("@mechanism_id", property.MechanismId.ToString());
                     insertCommand.Parameters.AddWithValue("@tolerance", property.Tolerance);
                     insertCommand.Parameters.AddWithValue("@weight", property.Weight);
                     insertCommand.Parameters.AddWithValue("@concentration", property.Concentration);
@@ -82,6 +96,7 @@ namespace Chemistry_Cafe_API.Services
             command.CommandText = @"
                 UPDATE properties 
                 SET species_id = @species_id, 
+                    mechanism_id = @mechanism_id,
                     tolerance = @tolerance, 
                     weight = @weight, 
                     concentration = @concentration, 
@@ -90,6 +105,7 @@ namespace Chemistry_Cafe_API.Services
 
             command.Parameters.AddWithValue("@id", property.Id.ToString());
             command.Parameters.AddWithValue("@species_id", property.SpeciesId.ToString());
+            command.Parameters.AddWithValue("@mechanism_id", property.MechanismId.ToString());
             command.Parameters.AddWithValue("@tolerance", property.Tolerance);
             command.Parameters.AddWithValue("@weight", property.Weight);
             command.Parameters.AddWithValue("@concentration", property.Concentration);
@@ -120,6 +136,7 @@ namespace Chemistry_Cafe_API.Services
                     {
                         Id = reader.GetGuid(reader.GetOrdinal("id")),
                         SpeciesId = reader.GetGuid(reader.GetOrdinal("species_id")),
+                        MechanismId = reader.GetGuid(reader.GetOrdinal("mechanism_id")),
                         Tolerance = reader.GetDouble(reader.GetOrdinal("tolerance")),
                         Weight = reader.GetDouble(reader.GetOrdinal("weight")),
                         Concentration = reader.GetDouble(reader.GetOrdinal("concentration")),

@@ -38,6 +38,19 @@ namespace Chemistry_Cafe_API.Controllers
 
             return Ok(property);
         }
+        // GET: api/Properties/id/{species_id}/{mechanism_id}
+        [HttpGet("id/{species_id}/{mechanism_id}")]
+        public async Task<ActionResult<Property>> GetPropertyBySandM(Guid species_id, Guid mechanism_id)
+        {
+            var property = await _propertyService.GetPropertyBySandMAsync(species_id,mechanism_id);
+
+            if (property == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(property);
+        }
 
         // POST: api/Properties
         [HttpPost]

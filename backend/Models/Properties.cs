@@ -15,6 +15,9 @@ public partial class Property
     [Column("species_id")]
     public Guid SpeciesId { get; set; }
 
+    [Column("mechanism_id")]
+    public Guid MechanismId { get; set; }
+
     [Column("tolerance")]
     public double Tolerance { get; set; }
 
@@ -28,6 +31,11 @@ public partial class Property
     public double Diffusion { get; set; }
 
     [ForeignKey(nameof(SpeciesId))]
-    [InverseProperty("Properties")] // Assuming you have a `Species` model with a collection of `Property`
+    [InverseProperty("Properties")] // Assuming you have a `Species` model with a collection of `Property`\
     public virtual Species Species { get; set; } = null!;
+
+
+    [ForeignKey(nameof(MechanismId))]
+    [InverseProperty("Properties")] // Assuming you have a `Species` model with a collection of `Property`
+    public virtual Mechanism Mechanism { get; set; } = null!;
 }

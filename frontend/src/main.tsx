@@ -4,9 +4,9 @@ import App from './pages/App';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 
-import './index.css'
+import "./index.css"
 
-const rootElement = document.getElementById('root');
+const rootElement = document.getElementById("root");
 const root = createRoot(rootElement!);
 const url = import.meta.env.VITE_REACT_APP_OAUTH_CLIENT_ID;
 
