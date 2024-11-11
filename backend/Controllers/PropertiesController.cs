@@ -56,6 +56,9 @@ namespace Chemistry_Cafe_API.Controllers
         [HttpPost]
         public async Task<ActionResult<Property>> CreateProperty(Property property)
         {
+            if (property.SpeciesId == Guid.Empty || property.MechanismId == Guid.Empty){
+                return BadRequest("speciesId and mechanismId are required.");
+            }
             var createdProperty = await _propertyService.CreatePropertyAsync(property);
             return CreatedAtAction(nameof(GetPropertyById), new { id = createdProperty.Id }, createdProperty);
         }

@@ -1,6 +1,8 @@
 // API_GetMethods.ts
 
 import axios from "axios";
+import { isAxiosError } from 'axios';
+
 import {
   Family,
   Mechanism,
@@ -277,10 +279,12 @@ export async function getPropertyBySpeciesAndMechanism(species: string, mechanis
     );
     return response.data;
   } catch (error) {
-    console.error(error);
+    if (axios.isAxiosError(error) && error.response?.status !== 404) {
+        console.error("Error response data:", error.response?.data);
+    }
     throw error;
-  }
-}
+}}
+
 
 // Download OpenAtmos JSON for a mechanism
 export async function downloadOAJSON(mechanismId?: string) {

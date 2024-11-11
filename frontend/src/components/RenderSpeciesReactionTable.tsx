@@ -1,17 +1,19 @@
 import React, {useEffect, useState } from 'react';
 
-import { Species, Reaction} from '../API/API_Interfaces';
-import { getReactionsByMechanismId, getSpeciesByMechanismId} from '../API/API_GetMethods';
+import { Species, Reaction, Property} from '../API/API_Interfaces';
+import { getReactionsByMechanismId, getSpeciesByMechanismId, getPropertyBySpeciesAndMechanism} from '../API/API_GetMethods';
 
 // import { CreateReactionModal, CreateSpeciesModal, ReactionPropertiesModal, SpeciesPropertiesModal } from './Modals';
-import {CreateSpeciesModal, CreateReactionModal, UpdateReactionModal} from './Modals';
+import {CreateSpeciesModal, CreateReactionModal, UpdateReactionModal, UpdateSpeciesModal} from './Modals';
 import { DataGrid, GridRowParams, GridColDef, GridToolbarContainer, GridToolbarColumnsButton, GridToolbarFilterButton, GridToolbarDensitySelector, GridToolbarExport } from '@mui/x-data-grid';
 
 import IconButton from '@mui/material/IconButton';
 import { Add} from '@mui/icons-material';
-import { Typography, Box } from '@mui/material';
+import { Typography, Box, Backdrop, CircularProgress } from '@mui/material';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
+import { isAxiosError } from 'axios';
+import { createProperty } from '../API/API_CreateMethods';
 
 const tabsHeaderStyle: React.CSSProperties = {
     backgroundColor: '#f0f0f0',
@@ -46,8 +48,14 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
     const [reactionCreated, setReactionCreated] = useState<boolean>(false);
     const [reactionUpdated, setReactionUpdated] = useState<boolean>(false);
 
+    const [selectedSpecies, setSelectedSpecies] = useState<Species | null>(null);
+    const [selectedSpeciesProperties, setSelectedSpeciesProperties] = useState<Property | null>(null);
     const [selectedReaction, setSelectedReaction] = useState<Reaction | null>(null);
 
+    const [editPropertiesLoading, setEditPropertiesLoading] = React.useState(false);
+    const [editPropertiesOpen, setEditPropertiesOpen] = React.useState(false);
+    const handleEditPropertiesOpen = () => setEditPropertiesOpen(true);
+    const handleEditPropertiesClose = () => setEditPropertiesOpen(false);
    
     const [editReactionOpen, setEditReactionOpen] = React.useState(false);
     const handleEditReactionOpen = () => setEditReactionOpen(true);
@@ -55,12 +63,39 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
 
 
     const [currentTab, setCurrentTab] = useState<number>(0);
+
+    const [speciesRowData, setSpeciesRowData] = useState<Species[]>([]);
     
     // Event needed as parameter to ensure correct value recieved in tabValue
     const handleTabSwitch = (_event: React.SyntheticEvent, newValue: number) => {
         setCurrentTab(newValue);
       };
-
+    
+    const handleSpeciesCellClick = async (params: GridRowParams<Species>) => {
+        const species = params.row;
+        console.log("selected species");
+        console.log(species);
+        setSelectedSpecies(species);
+        // get properties of species to set it as well
+        try {
+            setEditPropertiesLoading(true);
+            const fetchedProperty = await getPropertyBySpeciesAndMechanism(species.id!, selectedMechanismID!);
+            //console.log(fetchedProperty);
+            setSelectedSpeciesProperties(fetchedProperty);
+        } catch (error) {
+            setSelectedSpeciesProperties(null);
+            //console.log(error);
+        } finally{
+            setEditPropertiesLoading(false);
+        }
+        handleEditPropertiesOpen();
+    };
+    // wait till ready to open edit modal
+    useEffect(() => {
+        if (editPropertiesLoading === false) {
+            handleEditPropertiesOpen();
+        }
+    }, [editPropertiesLoading]);
     
     const handleReactionCellClick = (params: GridRowParams<Reaction>) => {
         const reaction = params.row;
@@ -71,25 +106,35 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
     useEffect(() => {
         const fetchData = async () => {
             if (selectedMechanismID) {
-                const fetchedSpecies = await getSpeciesByMechanismId(selectedMechanismID);
-                const fetchedReactions = await getReactionsByMechanismId(selectedMechanismID);
-                setSpecies(fetchedSpecies);
-                setReactions(fetchedReactions);
-                setReactionsCount(fetchedReactions.length);
-
-                
-                setSpeciesCreated(false);
-                setReactionCreated(false);
-                setReactionUpdated(false);
-                setSpeciesUpdated(false);
+                try {
+                    const fetchedSpecies = await getSpeciesByMechanismId(selectedMechanismID);
+                    const fetchedReactions = await getReactionsByMechanismId(selectedMechanismID);
+    
+                    setSpecies(fetchedSpecies);
+                    setReactions(fetchedReactions);
+                    setReactionsCount(fetchedReactions.length);
+    
+                    const rowifiedData = await rowifySpecies(fetchedSpecies);
+                    setSpeciesRowData(rowifiedData);
+    
+                    setSpeciesCreated(false);
+                    setReactionCreated(false);
+                    setReactionUpdated(false);
+                    setSpeciesUpdated(false);
+                } catch (error) {
+                    console.error("Error fetching data:", error);
+                    setSpecies([]);
+                    setReactions([]);
+                }
             } else {
                 setSpecies([]);
                 setReactions([]);
             }
         };
-
+    
         fetchData();
     }, [selectedMechanismID, speciesCreated, reactionCreated, speciesUpdated, reactionUpdated]);
+    
 
     const createSpeciesColumns = (): GridColDef[] => {
         const speciesColumns: GridColDef[] = [
@@ -103,29 +148,102 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                     </Typography>
                 ),
             },
+            {
+                field: 'description',
+                headerName: 'Description',
+                flex: 1,
+                renderCell: (params) => (
+                    <Typography variant="body1">
+                        {params.value}
+                    </Typography>
+                ),
+            },
+            {
+                field: 'property.tolerance',
+                headerName: 'Abs Convergence Tolerance',
+                flex: 1,
+                renderCell: (params) => (
+                        <Typography variant="body1">
+                            {params.row.property.tolerance === 0 ? '' : (params.row.property.tolerance ?? 'N/A')}
+                        </Typography>
+                    ),
+            },
+            {
+                field: 'property.weight',
+                headerName: 'Molecular Weight',
+                flex: 1,
+                renderCell: (params) => (
+                    <Typography variant="body1">
+                        {params.row.property.weight === 0 ? '' : (params.row.property.weight ?? 'N/A')}
+                    </Typography>
+                ),
+            },
+            {
+                field: 'property.concentration',
+                headerName: 'Fixed Concentration',
+                flex: 1,
+                renderCell: (params) => (
+                    <Typography variant="body1">
+                        {params.row.property.concentration === 0 ? '' : (params.row.property.concentration ?? 'N/A')}
+                    </Typography>
+                ),
+            },
+            {
+                field: 'property.diffusion',
+                headerName: 'Diffusion Coefficient',
+                flex: 1,
+                renderCell: (params) => (
+                    <Typography variant="body1">
+                        {params.row.property.diffusion === 0 ? '' : (params.row.property.diffusion ?? 'N/A')}
+                    </Typography>
+                ),
+            }
+            
         ];
-    
     
         return speciesColumns;
     };
+    
 
-    const rowifySpecies = (speciesData: Species[]) => {
-        const templol = speciesData.map(speciesItem => {
-
-            // get the inital conditions from the species
-
-            // if initial conditions are null, assign default values; otherwise put in the correct values
-
-            // return the data
+    const rowifySpecies = async (speciesData: Species[]) => {
+        const rowifiedSpecies = speciesData.map(async (speciesItem) => {
             
-
-            return { ...speciesItem};
+            let fetchedProperty;
+            
+            // Try to get the initial conditions from the species
+            try {
+                fetchedProperty = await getPropertyBySpeciesAndMechanism(speciesItem.id!, selectedMechanismID!);
+            } catch (error) {
+                if (isAxiosError(error) && error.response?.status === 404) {
+                    const propertyData: Property = {
+                        speciesId: speciesItem.id!,
+                        mechanismId: selectedMechanismID!,
+                    };
+                    const createdProperty = await createProperty(propertyData);
+                    fetchedProperty = createdProperty;
+                } else {
+                    //('Error fetching property:', error);
+                }
+            }
+    
+            // Log the fetched property for debugging
+            //console.log('Fetched property for species', speciesItem.name, fetchedProperty);
+    
+            return { 
+                ...speciesItem, 
+                property: fetchedProperty || null 
+            };
         });
-        console.log(templol);
-        console.log("speciesdata");
-        console.log(speciesData);
-        return templol;
+    
+        // Wait for all promises to resolve
+        const result = await Promise.all(rowifiedSpecies);
+    
+        // Log the final result to check if property was added
+        //console.log('Rowified species:', result);
+        return result;
     };
+    
+    
     
     const reactionColumns: GridColDef[] = [
         {
@@ -242,15 +360,16 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
             <div className='dataGrids' style={ { display:'flex', flexGrow:'1', overflowY: 'auto'} }>
                 {currentTab === 0 && 
                         <div style={{ flexGrow: 1 }}>
+
+                            <Backdrop open={editPropertiesLoading} sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+        <                           CircularProgress color="inherit" />
+                            </Backdrop>
                             <DataGrid
                             initialState={{ density: 'compact', }}
-                            rows={rowifySpecies(species)}
+                            rows={speciesRowData}
                             columns={createSpeciesColumns()}
-                            getRowId={(row: Species) => {if (row.id === undefined){
-                                return 0} // TODO: figure out better solution for this?
-                                else {return row.id}
-                                }
-                            }
+                            getRowId={(row: Species) => row.id ?? 0}
+                            onRowClick={handleSpeciesCellClick}
                             autoPageSize
                             pagination
                             style={{ height: '100%' }}
@@ -278,7 +397,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                             rows={rowifyReactions(reactions)}
                             columns={reactionColumns}
                             getRowId={(row: Reaction) => {if (row.id === undefined){
-                                return 0} // TODO: figure out better solution for this?
+                                return 0}
                                 else {return row.id}
                                 }
                             }
@@ -310,11 +429,14 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                 selectedMechanismId={selectedMechanismID} selectedMechanismName={selectedMechanismName} setReactionCreated={setReactionCreated} 
                 reactionsCount={reactionsCount}/>
             
+            <UpdateSpeciesModal open={editPropertiesOpen} onClose={handleEditPropertiesClose} selectedFamilyId={selectedFamilyID} 
+                selectedMechanismId={selectedMechanismID} selectedSpecies={selectedSpecies} 
+                setSpeciesUpdated={setSpeciesUpdated} selectedSpeciesProperties={selectedSpeciesProperties} />
             <UpdateReactionModal open={editReactionOpen} onClose={handleEditReactionClose} selectedFamilyId={selectedFamilyID} 
                 selectedMechanismId={selectedMechanismID} selectedMechanismName={selectedMechanismName} setReactionUpdated={setReactionUpdated} 
                 reactionsCount={reactionsCount} selectedReaction={selectedReaction}/>
-            {/* <SpeciesPropertiesModal open={speciesPropertiesOpen} onClose={handleSpeciesPropertiesClose} selectedTagMechanism={selectedTagMechanism} selectedSpecies={selectedSpecies} setSpeciesUpdated={setSpeciesUpdated} /> */}
-            {/* <ReactionPropertiesModal open={reactionPropertiesOpen} onClose={handleReactionPropertiesClose} selectedTagMechanism={selectedTagMechanism} selectedReaction={selectedReaction} setReactionUpdated={setReactionUpdated} /> */}
+
+
         </div>
     );
 }
