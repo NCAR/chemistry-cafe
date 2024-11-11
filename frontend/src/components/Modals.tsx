@@ -545,8 +545,8 @@ export const UpdateSpeciesModal: React.FC<UpdateSpeciesModalProps> = ({
   setSpeciesUpdated,
 }) => {
 
-  console.log("in update species");
-  console.log(selectedSpecies?.name);
+  // console.log("in update species");
+  // console.log(selectedSpecies?.name);
   // set values to the current values of the selected species
   const [speciesName, setSpeciesName] = useState(selectedSpecies?.name || "");
   const [speciesDescription, setSpeciesDescription] = useState(selectedSpecies?.description || "");
@@ -577,7 +577,7 @@ export const UpdateSpeciesModal: React.FC<UpdateSpeciesModalProps> = ({
             created_by: "current_user",
           };
           const updatedSpecies = await updateSpecies(speciesData);
-          console.log(updatedSpecies);
+          //console.log(updatedSpecies);
 
           // now update the property (in this case, needs id)
           const propertyData: Property = {
@@ -591,7 +591,7 @@ export const UpdateSpeciesModal: React.FC<UpdateSpeciesModalProps> = ({
           };
 
           const updatedProperties = await updateProperty(propertyData);
-          console.log(updatedProperties);
+          //console.log(updatedProperties);
         }
 
 
@@ -790,18 +790,18 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
     try {
       if (selectedFamilyId && selectedMechanismId) {
         if (selectedReactionType !== "") {
-          console.log("testing here");
-          console.log(reactionEquations[selectedReactionType]);
-          console.log(reactionEquations);
+          // console.log("testing here");
+          // console.log(reactionEquations[selectedReactionType]);
+          // console.log(reactionEquations);
 
-          // Build the reaction that we will store in description
-          console.log(createReactionReactantsRef.current);
-          console.log(createReactionProductsRef.current);
-          console.log(selectedReactionType)
+          // // Build the reaction that we will store in description
+          // console.log(createReactionReactantsRef.current);
+          // console.log(createReactionProductsRef.current);
+          // console.log(selectedReactionType)
 
-          console.log(selectedMechanismName);
-          console.log(reactionList);
-          console.log(reactionsCount);
+          // console.log(selectedMechanismName);
+          // console.log(reactionList);
+          // console.log(reactionsCount);
 
           // Name is mecanism name_reaction number
           // get the number of current reactions
@@ -814,11 +814,11 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
               createReactionProductsRef.current,
             createdBy: "current_user",
           };
-          console.log(reactionData);
+          //console.log(reactionData);
           const newReaction = await createReaction(reactionData);
 
 
-          console.log(newReaction);
+          //console.log(newReaction);
 
           const mechanismReaction: MechanismReaction = {
             mechanism_id: selectedMechanismId,
@@ -965,8 +965,8 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
             const matches = selectedReaction.description.match(regex);
 
             if (matches) {
-              console.log("matches:");
-              console.log(matches);
+              // console.log("matches:");
+              // console.log(matches);
               // getting the current data before editing
               setSelectedReactionType(matches[1].toLowerCase().replace(/^./, char => char.toUpperCase()) );
               const tempReactants = matches[2].trim();
@@ -1036,8 +1036,8 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
         if (selectedReactionType !== "") {
           // Name is mecanism name_reaction number
           // get the number of current reactions
-          console.log("Previous:");
-          console.log(selectedReaction);
+          // console.log("Previous:");
+          // console.log(selectedReaction);
 
           const reactionData: Reaction = {
             id: selectedReaction!.id,
@@ -1050,12 +1050,12 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
             createdBy: "current_user",
           };
 
-          console.log("Modified:");
-          console.log(reactionData);
+          // console.log("Modified:");
+          // console.log(reactionData);
 
           const updatedReaction = await updateReaction(reactionData);
 
-          console.log(updatedReaction);
+          //console.log(updatedReaction);
 
 
         }

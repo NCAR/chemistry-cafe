@@ -80,11 +80,11 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
         try {
             setEditPropertiesLoading(true);
             const fetchedProperty = await getPropertyBySpeciesAndMechanism(species.id!, selectedMechanismID!);
-            console.log(fetchedProperty);
+            //console.log(fetchedProperty);
             setSelectedSpeciesProperties(fetchedProperty);
         } catch (error) {
             setSelectedSpeciesProperties(null);
-            console.log(error);
+            //console.log(error);
         } finally{
             setEditPropertiesLoading(false);
         }
@@ -106,27 +106,35 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
     useEffect(() => {
         const fetchData = async () => {
             if (selectedMechanismID) {
-                const result = await rowifySpecies(species);
-                const fetchedSpecies = await getSpeciesByMechanismId(selectedMechanismID);
-                const fetchedReactions = await getReactionsByMechanismId(selectedMechanismID);
-                setSpeciesRowData(result);
-                setSpecies(fetchedSpecies);
-                setReactions(fetchedReactions);
-                setReactionsCount(fetchedReactions.length);
-
-                
-                setSpeciesCreated(false);
-                setReactionCreated(false);
-                setReactionUpdated(false);
-                setSpeciesUpdated(false);
+                try {
+                    const fetchedSpecies = await getSpeciesByMechanismId(selectedMechanismID);
+                    const fetchedReactions = await getReactionsByMechanismId(selectedMechanismID);
+    
+                    setSpecies(fetchedSpecies);
+                    setReactions(fetchedReactions);
+                    setReactionsCount(fetchedReactions.length);
+    
+                    const rowifiedData = await rowifySpecies(fetchedSpecies);
+                    setSpeciesRowData(rowifiedData);
+    
+                    setSpeciesCreated(false);
+                    setReactionCreated(false);
+                    setReactionUpdated(false);
+                    setSpeciesUpdated(false);
+                } catch (error) {
+                    console.error("Error fetching data:", error);
+                    setSpecies([]);
+                    setReactions([]);
+                }
             } else {
                 setSpecies([]);
                 setReactions([]);
             }
         };
-
+    
         fetchData();
     }, [selectedMechanismID, speciesCreated, reactionCreated, speciesUpdated, reactionUpdated]);
+    
 
     const createSpeciesColumns = (): GridColDef[] => {
         const speciesColumns: GridColDef[] = [
@@ -214,12 +222,12 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                     const createdProperty = await createProperty(propertyData);
                     fetchedProperty = createdProperty;
                 } else {
-                    console.log('Error fetching property:', error);
+                    //('Error fetching property:', error);
                 }
             }
     
             // Log the fetched property for debugging
-            console.log('Fetched property for species', speciesItem.name, fetchedProperty);
+            //console.log('Fetched property for species', speciesItem.name, fetchedProperty);
     
             return { 
                 ...speciesItem, 
@@ -231,7 +239,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
         const result = await Promise.all(rowifiedSpecies);
     
         // Log the final result to check if property was added
-        console.log('Rowified species:', result);
+        //console.log('Rowified species:', result);
         return result;
     };
     
@@ -389,7 +397,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                             rows={rowifyReactions(reactions)}
                             columns={reactionColumns}
                             getRowId={(row: Reaction) => {if (row.id === undefined){
-                                return 0} // TODO: figure out better solution for this?
+                                return 0}
                                 else {return row.id}
                                 }
                             }
