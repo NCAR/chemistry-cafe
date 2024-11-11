@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, cleanup  } from '@testing-library/react';
 import React from 'react';
-import LogIn from '../src/webPages/LogIn/logIn';
+import LogIn from '../src/pages/logIn';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { MemoryRouter } from 'react-router-dom';
 

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { render } from '@testing-library/react';
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
-import App from '../src/webPages/RoutingRenders/App';
+import App from '../src/pages/App';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
 describe('App Component Test', () => {

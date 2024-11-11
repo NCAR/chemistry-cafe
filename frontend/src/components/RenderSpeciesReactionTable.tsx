@@ -1,7 +1,7 @@
 import React, {useEffect, useState } from 'react';
 
-import { Species, Reaction} from '../../API/API_Interfaces';
-import { getReactionsByMechanismId, getSpeciesByMechanismId} from '../../API/API_GetMethods';
+import { Species, Reaction} from '../API/API_Interfaces';
+import { getReactionsByMechanismId, getSpeciesByMechanismId} from '../API/API_GetMethods';
 
 // import { CreateReactionModal, CreateSpeciesModal, ReactionPropertiesModal, SpeciesPropertiesModal } from './Modals';
 import {CreateSpeciesModal, CreateReactionModal, UpdateReactionModal} from './Modals';
