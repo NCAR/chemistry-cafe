@@ -117,6 +117,21 @@ CREATE TABLE user_mechanisms (
     FOREIGN KEY (mechanism_id) REFERENCES mechanisms(id) ON DELETE CASCADE
 );
 
+-- Table to store the properties for each species
+CREATE TABLE properties (
+    id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    species_id CHAR(36) NOT NULL, -- References the species table
+    tolerance DOUBLE,
+    weight DOUBLE,
+    concentration DOUBLE,
+    diffusion DOUBLE,
+    UNIQUE KEY unique_species_properties (species_id), -- Ensures one properties entry per species
+    FOREIGN KEY (species_id) REFERENCES species(id) ON DELETE CASCADE
+);
+
+
+
+
 -- 2. Insert Data into `families` and `mechanisms`
 
 -- Insert families
@@ -229,7 +244,8 @@ INSERT IGNORE INTO reactions (id, name, description, created_by) VALUES
 -- 5. Link Reactions and Species in `reaction_species`
 
 -- Note: For each INSERT, we need to include the 'id' field with UUID(), and ensure that 'reaction_id' and 'species_id' are of type CHAR(36)
-
+INSERT INTO properties (id, species_id, tolerance, weight, concentration, diffusion)
+VALUES (UUID(), (SELECT id FROM species WHERE name = 'NO'), 0.01, 0.02, 0.03, 0.04);
 -- Analytical Mechanism Reactions
 
 -- Reaction: B -> C + irr__089f1f45-4cd8-4278-83d5-d638e98e4315
