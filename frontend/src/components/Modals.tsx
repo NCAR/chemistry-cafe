@@ -18,6 +18,7 @@ import {
   ReactionSpecies,
   Species,
   ReactionSpeciesDto,
+  Property,
 } from "../API/API_Interfaces";
 import {
   createSpecies,
@@ -27,6 +28,7 @@ import {
   addSpeciesToReaction,
   createFamily,
   createMechanism,
+  createProperty,
 } from "../API/API_CreateMethods";
 
 import {
@@ -377,22 +379,12 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
 }) => {
   const [speciesName, setSpeciesName] = useState("");
   const [speciesDescription, setSpeciesDescription] = useState("");
-  const [selectedSpeciesIds, setSelectedSpeciesIds] = useState<string[]>([]);
 
-  useEffect(() => {
-    const fetchSpecies = async () => {
-      try {
-        if (selectedFamilyId && selectedMechanismId) {
+  const [concentration, setConcentration] = useState<number>(0);
+  const [tolerance, setTolerance] = useState<number>(0);
+  const [weight, setWeight] = useState<number>(0);
+  const [diffusion, setDiffusion] = useState<number>(0);
 
-
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    fetchSpecies();
-  }, [open, selectedFamilyId, selectedMechanismId]);
 
   const handleCreateSpeciesClick = async () => {
     try {
@@ -411,19 +403,27 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
               species_id: newSpecies.id!,
             };
             await addSpeciesToMechanism(mechanismSpecies);
+            
+            // make the corresponding property
+            const propertyData: Property = {
+              speciesId: newSpecies.id!,
+              mechanismId: selectedMechanismId,
+              tolerance: tolerance,
+              weight: weight,
+              concentration: concentration,
+              diffusion: diffusion,
+            };
+            const createdProperty = await createProperty(propertyData);
+            console.log(createdProperty);
+
+
           }
         }
-        for (const speciesId of selectedSpeciesIds) {
-          const mechanismSpecies: MechanismSpecies = {
-            mechanism_id: selectedMechanismId,
-            species_id: speciesId,
-          };
-          await addSpeciesToMechanism(mechanismSpecies);
-        }
+
 
         setSpeciesName("");
         setSpeciesDescription("");
-        setSelectedSpeciesIds([]);
+
         onClose();
         setSpeciesCreated(true);
       }
@@ -452,10 +452,7 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
             }}>
                 <h1>Create New Species</h1>
                 <Box sx={{ display: "flex", flexDirection: "column"}}>
-                    <Box sx={{ display: "flex", gap: "1rem", borderBottom: "1px solid #ccc", pb: "0.5rem", fontWeight: "bold" }}>
-                        <Typography sx={{ flex: 1 }}>Value</Typography>
-                        <Typography sx={{ flex: 1 }}>Units</Typography>
-                    </Box>
+
                     <Box sx={{ display: "flex", borderBottom: "1px solid #ccc", fontWeight: "bold" }}>
                         <TextField
                           id="species-name"
@@ -464,17 +461,6 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
                           fullWidth
                           margin="normal"
                         />
-                        <Typography sx={{ flex: 1 }}>Units</Typography>
-                    </Box>
-
-                    <Box sx={{ display: "flex", borderBottom: "1px solid #ccc", fontWeight: "bold" }}>
-                        <TextField
-                          id="species-concentration"
-                          label="Fixed Concentration"
-                          fullWidth
-                          margin="normal"
-                        />
-                        <Typography sx={{ flex: 1 }}>Units</Typography>
                     </Box>
 
                     <Box sx={{ display: "flex", gap: "1rem", borderBottom: "1px solid #ccc", pb: "0.5rem", fontWeight: "bold" }}>
@@ -485,35 +471,49 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
                           fullWidth
                           margin="normal"
                         />
-                        <Typography sx={{ flex: 1 }}>Units</Typography>
                     </Box>
+
+                    <Box sx={{ display: "flex", borderBottom: "1px solid #ccc", fontWeight: "bold" }}>
+                        <TextField
+                          id="species-concentration"
+                          label="Fixed Concentration"
+                          type='number'
+                          onChange={(e) => setConcentration(Number(e.target.value))}
+                          fullWidth
+                          margin="normal"
+                        />
+                    </Box>
+
                     <Box sx={{ display: "flex", gap: "1rem", borderBottom: "1px solid #ccc", pb: "0.5rem", fontWeight: "bold" }}>
                         <TextField
                           id="species-convergence-tolerance"
                           label="Absolute Convergence Tolerance"
+                          type='number'
+                          onChange={(e) => setTolerance(Number(e.target.value))}
                           fullWidth
                           margin="normal"
                         />
-                        <Typography sx={{ flex: 1 }}>Units</Typography>
                     </Box>
                     <Box sx={{ display: "flex", gap: "1rem", borderBottom: "1px solid #ccc", pb: "0.5rem", fontWeight: "bold" }}>
                         <TextField
                           id="species-weight"
                           label="Molecular Weight"
+                          type='number'
+                          onChange={(e) => setWeight(Number(e.target.value))}
                           fullWidth
                           margin="normal"
                         />
-                        <Typography sx={{ flex: 1 }}>Units</Typography>
                     </Box>
 
                     <Box sx={{ display: "flex", gap: "1rem", borderBottom: "1px solid #ccc", pb: "0.5rem", fontWeight: "bold" }}>
                         <TextField
                           id="species-diffusion-coefficient"
                           label="Diffusion Coefficient"
+                          type='number'
+                          onChange={(e) => setDiffusion(Number(e.target.value))}
                           fullWidth
                           margin="normal"
                         />
-                        <Typography sx={{ flex: 1 }}>Units</Typography>
                     </Box>
 
 

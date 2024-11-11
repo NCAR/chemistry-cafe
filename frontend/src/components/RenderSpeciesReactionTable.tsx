@@ -78,7 +78,8 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                 const result = await rowifySpecies(species);
                 const fetchedSpecies = await getSpeciesByMechanismId(selectedMechanismID);
                 const fetchedReactions = await getReactionsByMechanismId(selectedMechanismID);
-
+                console.log("results:");
+                console.log(result[0].property?.tolerance);
                 setSpeciesRowData(result);
                 setSpecies(fetchedSpecies);
                 setReactions(fetchedReactions);
@@ -111,15 +112,24 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                 ),
             },
             {
+                field: 'description',
+                headerName: 'Description',
+                flex: 1,
+                renderCell: (params) => (
+                    <Typography variant="body1">
+                        {params.value}
+                    </Typography>
+                ),
+            },
+            {
                 field: 'property.tolerance',
                 headerName: 'Abs Convergence Tolerance',
                 flex: 1,
                 renderCell: (params) => (
-                    <Typography variant="body1">
-                        {/* Check if 'property' is defined and value is not null or undefined */}
-                        {params.row.property?.tolerance == null ? '' : params.value || 'N/A'}
-                    </Typography>
-                ),
+                        <Typography variant="body1">
+                            {params.row.property.tolerance === 0 ? '' : (params.row.property.tolerance ?? 'N/A')}
+                        </Typography>
+                    ),
             },
             {
                 field: 'property.weight',
@@ -127,7 +137,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                 flex: 1,
                 renderCell: (params) => (
                     <Typography variant="body1">
-                        {params.row.property?.weight == null ? '' : params.value || 'N/A'}
+                        {params.row.property.weight === 0 ? '' : (params.row.property.weight ?? 'N/A')}
                     </Typography>
                 ),
             },
@@ -137,7 +147,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                 flex: 1,
                 renderCell: (params) => (
                     <Typography variant="body1">
-                        {params.row.property?.weight == null ? '' : params.value || 'N/A'}
+                        {params.row.property.concentration === 0 ? '' : (params.row.property.concentration ?? 'N/A')}
                     </Typography>
                 ),
             },
@@ -147,15 +157,16 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                 flex: 1,
                 renderCell: (params) => (
                     <Typography variant="body1">
-                        {params.row.property?.weight == null ? '' : params.value || 'N/A'}
+                        {params.row.property.diffusion === 0 ? '' : (params.row.property.diffusion ?? 'N/A')}
                     </Typography>
                 ),
-            },
+            }
+            
         ];
-    
     
         return speciesColumns;
     };
+    
 
     const rowifySpecies = async (speciesData: Species[]) => {
         const rowifiedSpecies = speciesData.map(async (speciesItem) => {
@@ -166,34 +177,35 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
             try {
                 fetchedProperty = await getPropertyBySpeciesAndMechanism(speciesItem.id!, selectedMechanismID!);
             } catch (error) {
-                // If 404 not found, create a new empty property object
                 if (isAxiosError(error) && error.response?.status === 404) {
                     const propertyData: Property = {
                         speciesId: speciesItem.id!,
                         mechanismId: selectedMechanismID!,
                     };
                     const createdProperty = await createProperty(propertyData);
-                    console.log(createdProperty);
                     fetchedProperty = createdProperty;
                 } else {
-                    console.log(error);
+                    console.log('Error fetching property:', error);
                 }
             }
-
-            
-            console.log("This is the property data:", fetchedProperty);
-            return { ...speciesItem, 
+    
+            // Log the fetched property for debugging
+            console.log('Fetched property for species', speciesItem.name, fetchedProperty);
+    
+            return { 
+                ...speciesItem, 
                 property: fetchedProperty || null 
-             };
+            };
         });
     
-        // Use Promise.all to ensure all promises in rowifiedSpecies resolve
+        // Wait for all promises to resolve
         const result = await Promise.all(rowifiedSpecies);
-
-        console.log("Rowified species:", result);
-
+    
+        // Log the final result to check if property was added
+        console.log('Rowified species:', result);
         return result;
     };
+    
     
     
     const reactionColumns: GridColDef[] = [
