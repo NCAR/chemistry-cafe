@@ -72,7 +72,6 @@ const LogIn = () => {
           // Check if the user already exists in the database
           try {
             const existingUser = await getUserByEmail(profileData.email);
-
             if (existingUser) {
               const updatedUser = {
                 access_token: user.access_token,
@@ -89,7 +88,6 @@ const LogIn = () => {
               setUser(contextUser);
             } else {
               const newUser = {
-                id: "",
                 username: profileData.name,
                 email: profileData.email,
                 role: "unverified",
@@ -113,7 +111,7 @@ const LogIn = () => {
             }
           } catch (error) {
             console.error("Error checking or creating user:", error);
-            alert("Error checking or creating user");
+            alert("Error checking or creating user" + error);
           }
         })
         .catch((error) => {
