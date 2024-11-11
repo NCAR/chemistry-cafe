@@ -9,7 +9,7 @@ import { DataGrid, GridRowParams, GridColDef, GridToolbarContainer, GridToolbarC
 
 import IconButton from '@mui/material/IconButton';
 import { Add} from '@mui/icons-material';
-import { Typography, Box } from '@mui/material';
+import { Typography, Box, Backdrop, CircularProgress } from '@mui/material';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import { isAxiosError } from 'axios';
@@ -49,8 +49,10 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
     const [reactionUpdated, setReactionUpdated] = useState<boolean>(false);
 
     const [selectedSpecies, setSelectedSpecies] = useState<Species | null>(null);
+    const [selectedSpeciesProperties, setSelectedSpeciesProperties] = useState<Property | null>(null);
     const [selectedReaction, setSelectedReaction] = useState<Reaction | null>(null);
 
+    const [editPropertiesLoading, setEditPropertiesLoading] = React.useState(false);
     const [editPropertiesOpen, setEditPropertiesOpen] = React.useState(false);
     const handleEditPropertiesOpen = () => setEditPropertiesOpen(true);
     const handleEditPropertiesClose = () => setEditPropertiesOpen(false);
@@ -69,11 +71,31 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
         setCurrentTab(newValue);
       };
     
-    const handleSpeciesCellClick = (params: GridRowParams<Species>) => {
+    const handleSpeciesCellClick = async (params: GridRowParams<Species>) => {
         const species = params.row;
+        console.log("selected species");
+        console.log(species);
         setSelectedSpecies(species);
+        // get properties of species to set it as well
+        try {
+            setEditPropertiesLoading(true);
+            const fetchedProperty = await getPropertyBySpeciesAndMechanism(species.id!, selectedMechanismID!);
+            console.log(fetchedProperty);
+            setSelectedSpeciesProperties(fetchedProperty);
+        } catch (error) {
+            setSelectedSpeciesProperties(null);
+            console.log(error);
+        } finally{
+            setEditPropertiesLoading(false);
+        }
         handleEditPropertiesOpen();
     };
+    // wait till ready to open edit modal
+    useEffect(() => {
+        if (editPropertiesLoading === false) {
+            handleEditPropertiesOpen();
+        }
+    }, [editPropertiesLoading]);
     
     const handleReactionCellClick = (params: GridRowParams<Reaction>) => {
         const reaction = params.row;
@@ -330,6 +352,10 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
             <div className='dataGrids' style={ { display:'flex', flexGrow:'1', overflowY: 'auto'} }>
                 {currentTab === 0 && 
                         <div style={{ flexGrow: 1 }}>
+
+                            <Backdrop open={editPropertiesLoading} sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+        <                           CircularProgress color="inherit" />
+                            </Backdrop>
                             <DataGrid
                             initialState={{ density: 'compact', }}
                             rows={speciesRowData}
@@ -396,7 +422,8 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                 reactionsCount={reactionsCount}/>
             
             <UpdateSpeciesModal open={editPropertiesOpen} onClose={handleEditPropertiesClose} selectedFamilyId={selectedFamilyID} 
-                selectedMechanismId={selectedMechanismID} selectedSpecies={selectedSpecies} setSpeciesUpdated={setSpeciesUpdated} />
+                selectedMechanismId={selectedMechanismID} selectedSpecies={selectedSpecies} 
+                setSpeciesUpdated={setSpeciesUpdated} selectedSpeciesProperties={selectedSpeciesProperties} />
             <UpdateReactionModal open={editReactionOpen} onClose={handleEditReactionClose} selectedFamilyId={selectedFamilyID} 
                 selectedMechanismId={selectedMechanismID} selectedMechanismName={selectedMechanismName} setReactionUpdated={setReactionUpdated} 
                 reactionsCount={reactionsCount} selectedReaction={selectedReaction}/>
