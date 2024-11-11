@@ -9,6 +9,7 @@ import {
   MechanismSpecies,
   User,
   UserMechanism,
+  Property,
 } from "./API_Interfaces";
 
 export async function createFamily(familyData: Family) {
@@ -175,6 +176,24 @@ export async function addUserToMechanism(userMechanismData: UserMechanism) {
       }
     );
     return response.data as UserMechanism;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function createProperty(propertyData: Property) {
+  try {
+    const response = await axios.post(
+      "http://localhost:8080/api/properties",  // Adjust the URL to match your properties API endpoint
+      propertyData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data as Property;
   } catch (error) {
     console.error(error);
     throw error;

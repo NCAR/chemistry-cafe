@@ -16,6 +16,7 @@ builder.Services.AddScoped<MechanismReactionService>();
 builder.Services.AddScoped<InitialConditionSpeciesService>();
 builder.Services.AddScoped<OpenAtmosService>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<PropertyService>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

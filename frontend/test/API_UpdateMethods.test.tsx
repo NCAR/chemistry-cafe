@@ -6,9 +6,10 @@ import {
   updateMechanism,
   updateSpecies,
   updateReaction,
-  updateUser
+  updateUser,
+  updateProperty
 } from '../src/API/API_UpdateMethods';
-import { Family, Mechanism, Species, Reaction, User } from '../src/API/API_Interfaces';
+import { Family, Mechanism, Species, Reaction, User, Property } from '../src/API/API_Interfaces';
 
 // Mock axios using vitest's built-in mock function
 vi.mock('axios');
@@ -112,4 +113,28 @@ describe('API update functions tests', () => {
 
     expect(result).toEqual(mockResponseData);
   });
+  it('should update property and return data', async () => {
+    const mockedPut = vi.spyOn(axios, 'put').mockResolvedValue(createMockResponse()) as Mock;
+
+    const property: Property = {
+      id: '6',
+      species_id: '3',
+      tolerance: 0.5,
+      weight: 1.2,
+      concentration: 0.7,
+      diffusion: 0.3,
+    };
+    const result = await updateProperty(property);
+
+    expect(mockedPut).toHaveBeenCalledWith(
+      `http://localhost:8080/api/properties/${property.id}`,
+      property,
+      {
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+
+    expect(result).toEqual(mockResponseData);
+  });
 });
+

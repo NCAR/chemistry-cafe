@@ -8,7 +8,8 @@ import {
   Reaction,
   User,
   ReactionSpeciesDto,
-  InitialConditionSpecies
+  InitialConditionSpecies,
+  Property
 } from "./API_Interfaces";
 
 // Get all families
@@ -249,6 +250,18 @@ export async function getUserById(id: string): Promise<User> {
   try {
     const response = await axios.get<User>(
       `http://localhost:8080/api/users/id/${id}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function getPropertyById(id: string): Promise<Property> {
+  try {
+    const response = await axios.get<Property>(
+      `http://localhost:8080/api/properties/id/${id}`
     );
     return response.data;
   } catch (error) {
