@@ -8,11 +8,15 @@ import { StyledDetailBox } from "./familyStyling";
 
 import { Header, Footer } from "../components/HeaderFooter";
 
-import "../styles/family.css";
+import "./family.css";
 
 const FamilyPage = () => {
   const [selectedFamilyId, setSelectedFamilyId] = useState<string | null>(null);
   const [selectedMechanismId, setSelectedMechanismId] = useState<string | null>(
+    null
+  );
+
+  const [selectedMechanismName, setSelectedMechanismName] = useState<string | null> (
     null
   );
 
@@ -38,6 +42,7 @@ const FamilyPage = () => {
           selectedFamilyId={selectedFamilyId}
           setSelectedFamilyId={setSelectedFamilyId}
           setSelectedMechanismId={setSelectedMechanismId}
+          setSelectedMechanismName = {setSelectedMechanismName}
           handleCreateFamilyOpen={handleCreateFamilyOpen}
           handleCreateMechanismOpen={handleCreateMechanismOpen}
           createdFamilyBool={createdFamilyBool}
@@ -53,8 +58,9 @@ const FamilyPage = () => {
       <div className="speciesReactions">
         <StyledDetailBox>
           <RenderSpeciesReactionTable
-            selectedFamilyId={selectedFamilyId}
-            selectedMechanismId={selectedMechanismId}
+            selectedFamilyID={selectedFamilyId}
+            selectedMechanismID={selectedMechanismId}
+            selectedMechanismName={selectedMechanismName}
           />
         </StyledDetailBox>
       </div>
