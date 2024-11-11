@@ -8,7 +8,7 @@ import { StyledDetailBox } from "./familyStyling";
 
 import { Header, Footer } from "../components/HeaderFooter";
 
-import "./family.css";
+import "../styles/family.css";
 
 const FamilyPage = () => {
   const [selectedFamilyId, setSelectedFamilyId] = useState<string | null>(null);
