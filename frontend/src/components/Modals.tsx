@@ -571,6 +571,7 @@ export const UpdateSpeciesModal: React.FC<UpdateSpeciesModalProps> = ({
       if (selectedFamilyId && selectedMechanismId) {
         if (speciesName !== "") {
           const speciesData: Species = {
+            id: selectedSpecies?.id,
             name: speciesName,
             description: speciesDescription,
             created_by: "current_user",
