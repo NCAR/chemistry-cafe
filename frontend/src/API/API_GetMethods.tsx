@@ -1,7 +1,6 @@
 // API_GetMethods.ts
 
 import axios from "axios";
-import { isAxiosError } from 'axios';
 
 import {
   Family,
