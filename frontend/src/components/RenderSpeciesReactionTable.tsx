@@ -4,7 +4,7 @@ import { Species, Reaction, Property} from '../API/API_Interfaces';
 import { getReactionsByMechanismId, getSpeciesByMechanismId, getPropertyBySpeciesAndMechanism} from '../API/API_GetMethods';
 
 // import { CreateReactionModal, CreateSpeciesModal, ReactionPropertiesModal, SpeciesPropertiesModal } from './Modals';
-import {CreateSpeciesModal, CreateReactionModal, UpdateReactionModal} from './Modals';
+import {CreateSpeciesModal, CreateReactionModal, UpdateReactionModal, UpdateSpeciesModal} from './Modals';
 import { DataGrid, GridRowParams, GridColDef, GridToolbarContainer, GridToolbarColumnsButton, GridToolbarFilterButton, GridToolbarDensitySelector, GridToolbarExport } from '@mui/x-data-grid';
 
 import IconButton from '@mui/material/IconButton';
@@ -48,8 +48,12 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
     const [reactionCreated, setReactionCreated] = useState<boolean>(false);
     const [reactionUpdated, setReactionUpdated] = useState<boolean>(false);
 
+    const [selectedSpecies, setSelectedSpecies] = useState<Species | null>(null);
     const [selectedReaction, setSelectedReaction] = useState<Reaction | null>(null);
 
+    const [editPropertiesOpen, setEditPropertiesOpen] = React.useState(false);
+    const handleEditPropertiesOpen = () => setEditPropertiesOpen(true);
+    const handleEditPropertiesClose = () => setEditPropertiesOpen(false);
    
     const [editReactionOpen, setEditReactionOpen] = React.useState(false);
     const handleEditReactionOpen = () => setEditReactionOpen(true);
@@ -64,7 +68,12 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
     const handleTabSwitch = (_event: React.SyntheticEvent, newValue: number) => {
         setCurrentTab(newValue);
       };
-
+    
+    const handleSpeciesCellClick = (params: GridRowParams<Species>) => {
+        const species = params.row;
+        setSelectedSpecies(species);
+        handleEditPropertiesOpen();
+    };
     
     const handleReactionCellClick = (params: GridRowParams<Reaction>) => {
         const reaction = params.row;
@@ -78,8 +87,6 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                 const result = await rowifySpecies(species);
                 const fetchedSpecies = await getSpeciesByMechanismId(selectedMechanismID);
                 const fetchedReactions = await getReactionsByMechanismId(selectedMechanismID);
-                console.log("results:");
-                console.log(result[0].property?.tolerance);
                 setSpeciesRowData(result);
                 setSpecies(fetchedSpecies);
                 setReactions(fetchedReactions);
@@ -328,6 +335,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                             rows={speciesRowData}
                             columns={createSpeciesColumns()}
                             getRowId={(row: Species) => row.id ?? 0}
+                            onRowClick={handleSpeciesCellClick}
                             autoPageSize
                             pagination
                             style={{ height: '100%' }}
@@ -387,11 +395,13 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                 selectedMechanismId={selectedMechanismID} selectedMechanismName={selectedMechanismName} setReactionCreated={setReactionCreated} 
                 reactionsCount={reactionsCount}/>
             
+            <UpdateSpeciesModal open={editPropertiesOpen} onClose={handleEditPropertiesClose} selectedFamilyId={selectedFamilyID} 
+                selectedMechanismId={selectedMechanismID} selectedSpecies={selectedSpecies} setSpeciesUpdated={setSpeciesUpdated} />
             <UpdateReactionModal open={editReactionOpen} onClose={handleEditReactionClose} selectedFamilyId={selectedFamilyID} 
                 selectedMechanismId={selectedMechanismID} selectedMechanismName={selectedMechanismName} setReactionUpdated={setReactionUpdated} 
                 reactionsCount={reactionsCount} selectedReaction={selectedReaction}/>
-            {/* <SpeciesPropertiesModal open={speciesPropertiesOpen} onClose={handleSpeciesPropertiesClose} selectedTagMechanism={selectedTagMechanism} selectedSpecies={selectedSpecies} setSpeciesUpdated={setSpeciesUpdated} /> */}
-            {/* <ReactionPropertiesModal open={reactionPropertiesOpen} onClose={handleReactionPropertiesClose} selectedTagMechanism={selectedTagMechanism} selectedReaction={selectedReaction} setReactionUpdated={setReactionUpdated} /> */}
+
+
         </div>
     );
 }

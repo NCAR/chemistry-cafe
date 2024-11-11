@@ -90,6 +90,15 @@ interface CreateSpeciesModalProps {
   setSpeciesCreated: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
+interface UpdateSpeciesModalProps {
+  open: boolean;
+  onClose: () => void;
+  selectedFamilyId: string | null;
+  selectedMechanismId: string | null;
+  setSpeciesCreated: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+
 interface CreateReactionModalProps {
   open: boolean;
   onClose: () => void;
@@ -371,6 +380,160 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
 };
 
 export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
+  open,
+  onClose,
+  selectedFamilyId,
+  selectedMechanismId,
+  setSpeciesCreated,
+}) => {
+  const [speciesName, setSpeciesName] = useState("");
+  const [speciesDescription, setSpeciesDescription] = useState("");
+
+  const [concentration, setConcentration] = useState<number>(0);
+  const [tolerance, setTolerance] = useState<number>(0);
+  const [weight, setWeight] = useState<number>(0);
+  const [diffusion, setDiffusion] = useState<number>(0);
+
+
+  const handleCreateSpeciesClick = async () => {
+    try {
+      if (selectedFamilyId && selectedMechanismId) {
+        if (speciesName !== "") {
+          const speciesData: Species = {
+            name: speciesName,
+            description: speciesDescription,
+            created_by: "current_user",
+          };
+          const newSpecies = await createSpecies(speciesData);
+
+          if (newSpecies && newSpecies.id) {
+            const mechanismSpecies: MechanismSpecies = {
+              mechanism_id: selectedMechanismId,
+              species_id: newSpecies.id!,
+            };
+            await addSpeciesToMechanism(mechanismSpecies);
+            
+            // make the corresponding property
+            const propertyData: Property = {
+              speciesId: newSpecies.id!,
+              mechanismId: selectedMechanismId,
+              tolerance: tolerance,
+              weight: weight,
+              concentration: concentration,
+              diffusion: diffusion,
+            };
+            const createdProperty = await createProperty(propertyData);
+            console.log(createdProperty);
+
+
+          }
+        }
+
+
+        setSpeciesName("");
+        setSpeciesDescription("");
+
+        onClose();
+        setSpeciesCreated(true);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  return (
+    <Modal
+            open={open}
+            onClose={onClose}
+        >
+            <Box sx={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                bgcolor: "background.paper",
+                border: "2px solid #000",
+                boxShadow: 24,
+                p: 4,
+                width: 600,
+                maxHeight: "80vh", // Set maximum height to 80% of viewport height
+                overflowY: "auto" // Enable vertical scrolling if content overflows
+            }}>
+                <h1>Create New Species</h1>
+                <Box sx={{ display: "flex", flexDirection: "column"}}>
+
+                    <Box sx={{ display: "flex", borderBottom: "1px solid #ccc", fontWeight: "bold" }}>
+                        <TextField
+                          id="species-name"
+                          label="Name"
+                          onChange={(e) => setSpeciesName(e.target.value)}
+                          fullWidth
+                          margin="normal"
+                        />
+                    </Box>
+
+                    <Box sx={{ display: "flex", gap: "1rem", borderBottom: "1px solid #ccc", pb: "0.5rem", fontWeight: "bold" }}>
+                        <TextField
+                          id="species-description"
+                          label="Description"
+                          onChange={(e) => setSpeciesDescription(e.target.value)}
+                          fullWidth
+                          margin="normal"
+                        />
+                    </Box>
+
+                    <Box sx={{ display: "flex", borderBottom: "1px solid #ccc", fontWeight: "bold" }}>
+                        <TextField
+                          id="species-concentration"
+                          label="Fixed Concentration"
+                          type='number'
+                          onChange={(e) => setConcentration(Number(e.target.value))}
+                          fullWidth
+                          margin="normal"
+                        />
+                    </Box>
+
+                    <Box sx={{ display: "flex", gap: "1rem", borderBottom: "1px solid #ccc", pb: "0.5rem", fontWeight: "bold" }}>
+                        <TextField
+                          id="species-convergence-tolerance"
+                          label="Absolute Convergence Tolerance"
+                          type='number'
+                          onChange={(e) => setTolerance(Number(e.target.value))}
+                          fullWidth
+                          margin="normal"
+                        />
+                    </Box>
+                    <Box sx={{ display: "flex", gap: "1rem", borderBottom: "1px solid #ccc", pb: "0.5rem", fontWeight: "bold" }}>
+                        <TextField
+                          id="species-weight"
+                          label="Molecular Weight"
+                          type='number'
+                          onChange={(e) => setWeight(Number(e.target.value))}
+                          fullWidth
+                          margin="normal"
+                        />
+                    </Box>
+
+                    <Box sx={{ display: "flex", gap: "1rem", borderBottom: "1px solid #ccc", pb: "0.5rem", fontWeight: "bold" }}>
+                        <TextField
+                          id="species-diffusion-coefficient"
+                          label="Diffusion Coefficient"
+                          type='number'
+                          onChange={(e) => setDiffusion(Number(e.target.value))}
+                          fullWidth
+                          margin="normal"
+                        />
+                    </Box>
+
+
+                </Box>
+                <Button sx={{ mt: "2rem" }} onClick={handleCreateSpeciesClick}>Submit</Button>
+            </Box>
+        </Modal>
+  );
+};
+
+export const UpdateSpeciesModal: React.FC<UpdateSpeciesModalProps> = ({
   open,
   onClose,
   selectedFamilyId,
