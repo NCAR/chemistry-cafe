@@ -105,9 +105,8 @@ const LogIn = () => {
                 email: createdUser.email,
                 role: createdUser.role || "unverified",
               };
-              setUser(contextUser);
+              setUser(createdUser);
               console.log("Context user ", contextUser);
-              alert("New user created successfully");
             }
           } catch (error) {
             console.error("Error checking or creating user:", error);
