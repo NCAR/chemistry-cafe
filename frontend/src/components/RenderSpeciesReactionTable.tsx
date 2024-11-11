@@ -1,7 +1,7 @@
 import React, {useEffect, useState } from 'react';
 
-import { Species, Reaction} from '../API/API_Interfaces';
-import { getReactionsByMechanismId, getSpeciesByMechanismId} from '../API/API_GetMethods';
+import { Species, Reaction, Property} from '../API/API_Interfaces';
+import { getReactionsByMechanismId, getSpeciesByMechanismId, getPropertyBySpeciesAndMechanism} from '../API/API_GetMethods';
 
 // import { CreateReactionModal, CreateSpeciesModal, ReactionPropertiesModal, SpeciesPropertiesModal } from './Modals';
 import {CreateSpeciesModal, CreateReactionModal, UpdateReactionModal} from './Modals';
@@ -12,6 +12,8 @@ import { Add} from '@mui/icons-material';
 import { Typography, Box } from '@mui/material';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
+import { isAxiosError } from 'axios';
+import { createProperty } from '../API/API_CreateMethods';
 
 const tabsHeaderStyle: React.CSSProperties = {
     backgroundColor: '#f0f0f0',
@@ -55,6 +57,8 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
 
 
     const [currentTab, setCurrentTab] = useState<number>(0);
+
+    const [speciesRowData, setSpeciesRowData] = useState<Species[]>([]);
     
     // Event needed as parameter to ensure correct value recieved in tabValue
     const handleTabSwitch = (_event: React.SyntheticEvent, newValue: number) => {
@@ -71,8 +75,11 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
     useEffect(() => {
         const fetchData = async () => {
             if (selectedMechanismID) {
+                const result = await rowifySpecies(species);
                 const fetchedSpecies = await getSpeciesByMechanismId(selectedMechanismID);
                 const fetchedReactions = await getReactionsByMechanismId(selectedMechanismID);
+
+                setSpeciesRowData(result);
                 setSpecies(fetchedSpecies);
                 setReactions(fetchedReactions);
                 setReactionsCount(fetchedReactions.length);
@@ -103,29 +110,91 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                     </Typography>
                 ),
             },
+            {
+                field: 'property.tolerance',
+                headerName: 'Abs Convergence Tolerance',
+                flex: 1,
+                renderCell: (params) => (
+                    <Typography variant="body1">
+                        {/* Check if 'property' is defined and value is not null or undefined */}
+                        {params.row.property?.tolerance == null ? '' : params.value || 'N/A'}
+                    </Typography>
+                ),
+            },
+            {
+                field: 'property.weight',
+                headerName: 'Molecular Weight',
+                flex: 1,
+                renderCell: (params) => (
+                    <Typography variant="body1">
+                        {params.row.property?.weight == null ? '' : params.value || 'N/A'}
+                    </Typography>
+                ),
+            },
+            {
+                field: 'property.concentration',
+                headerName: 'Fixed Concentration',
+                flex: 1,
+                renderCell: (params) => (
+                    <Typography variant="body1">
+                        {params.row.property?.weight == null ? '' : params.value || 'N/A'}
+                    </Typography>
+                ),
+            },
+            {
+                field: 'property.diffusion',
+                headerName: 'Diffusion Coefficient',
+                flex: 1,
+                renderCell: (params) => (
+                    <Typography variant="body1">
+                        {params.row.property?.weight == null ? '' : params.value || 'N/A'}
+                    </Typography>
+                ),
+            },
         ];
     
     
         return speciesColumns;
     };
 
-    const rowifySpecies = (speciesData: Species[]) => {
-        const templol = speciesData.map(speciesItem => {
-
-            // get the inital conditions from the species
-
-            // if initial conditions are null, assign default values; otherwise put in the correct values
-
-            // return the data
+    const rowifySpecies = async (speciesData: Species[]) => {
+        const rowifiedSpecies = speciesData.map(async (speciesItem) => {
             
+            let fetchedProperty;
+            
+            // Try to get the initial conditions from the species
+            try {
+                fetchedProperty = await getPropertyBySpeciesAndMechanism(speciesItem.id!, selectedMechanismID!);
+            } catch (error) {
+                // If 404 not found, create a new empty property object
+                if (isAxiosError(error) && error.response?.status === 404) {
+                    const propertyData: Property = {
+                        speciesId: speciesItem.id!,
+                        mechanismId: selectedMechanismID!,
+                    };
+                    const createdProperty = await createProperty(propertyData);
+                    console.log(createdProperty);
+                    fetchedProperty = createdProperty;
+                } else {
+                    console.log(error);
+                }
+            }
 
-            return { ...speciesItem};
+            
+            console.log("This is the property data:", fetchedProperty);
+            return { ...speciesItem, 
+                property: fetchedProperty || null 
+             };
         });
-        console.log(templol);
-        console.log("speciesdata");
-        console.log(speciesData);
-        return templol;
+    
+        // Use Promise.all to ensure all promises in rowifiedSpecies resolve
+        const result = await Promise.all(rowifiedSpecies);
+
+        console.log("Rowified species:", result);
+
+        return result;
     };
+    
     
     const reactionColumns: GridColDef[] = [
         {
@@ -244,13 +313,9 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                         <div style={{ flexGrow: 1 }}>
                             <DataGrid
                             initialState={{ density: 'compact', }}
-                            rows={rowifySpecies(species)}
+                            rows={speciesRowData}
                             columns={createSpeciesColumns()}
-                            getRowId={(row: Species) => {if (row.id === undefined){
-                                return 0} // TODO: figure out better solution for this?
-                                else {return row.id}
-                                }
-                            }
+                            getRowId={(row: Species) => row.id ?? 0}
                             autoPageSize
                             pagination
                             style={{ height: '100%' }}

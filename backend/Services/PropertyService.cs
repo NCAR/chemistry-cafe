@@ -57,7 +57,7 @@ namespace Chemistry_Cafe_API.Services
                 // Generate a new UUID for the property
                 property.Id = Guid.NewGuid();
 
-                // Insert the new property
+                // Insert the new property with minimal required fields
                 using (var insertCommand = connection.CreateCommand())
                 {
                     insertCommand.Transaction = transaction;
@@ -68,10 +68,10 @@ namespace Chemistry_Cafe_API.Services
                     insertCommand.Parameters.AddWithValue("@id", property.Id.ToString());
                     insertCommand.Parameters.AddWithValue("@species_id", property.SpeciesId.ToString());
                     insertCommand.Parameters.AddWithValue("@mechanism_id", property.MechanismId.ToString());
-                    insertCommand.Parameters.AddWithValue("@tolerance", property.Tolerance);
-                    insertCommand.Parameters.AddWithValue("@weight", property.Weight);
-                    insertCommand.Parameters.AddWithValue("@concentration", property.Concentration);
-                    insertCommand.Parameters.AddWithValue("@diffusion", property.Diffusion);
+                    insertCommand.Parameters.AddWithValue("@tolerance", property.Tolerance ?? 0.0);
+                    insertCommand.Parameters.AddWithValue("@weight", property.Weight ?? 0.0);
+                    insertCommand.Parameters.AddWithValue("@concentration", property.Concentration ?? 0.0);
+                    insertCommand.Parameters.AddWithValue("@diffusion", property.Diffusion ?? 0.0);
 
                     await insertCommand.ExecuteNonQueryAsync();
                 }
@@ -87,7 +87,6 @@ namespace Chemistry_Cafe_API.Services
                 throw; // Re-throw the exception to propagate the error
             }
         }
-
         public async Task UpdatePropertyAsync(Property property)
         {
             using var connection = await _database.OpenConnectionAsync();

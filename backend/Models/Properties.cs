@@ -19,23 +19,23 @@ public partial class Property
     public Guid MechanismId { get; set; }
 
     [Column("tolerance")]
-    public double Tolerance { get; set; }
+    public double? Tolerance { get; set; }
 
     [Column("weight")]
-    public double Weight { get; set; }
+    public double? Weight { get; set; }
 
     [Column("concentration")]
-    public double Concentration { get; set; }
+    public double? Concentration { get; set; }
 
     [Column("diffusion")]
-    public double Diffusion { get; set; }
+    public double? Diffusion { get; set; }
 
     [ForeignKey(nameof(SpeciesId))]
     [InverseProperty("Properties")] // Assuming you have a `Species` model with a collection of `Property`\
-    public virtual Species Species { get; set; } = null!;
+    public virtual Species? Species { get; set; } = null!;
 
 
     [ForeignKey(nameof(MechanismId))]
     [InverseProperty("Properties")] // Assuming you have a `Species` model with a collection of `Property`
-    public virtual Mechanism Mechanism { get; set; } = null!;
+    public virtual Mechanism? Mechanism { get; set; } = null!;
 }

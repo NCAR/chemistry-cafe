@@ -130,7 +130,6 @@ CREATE TABLE properties (
     weight DOUBLE,
     concentration DOUBLE,
     diffusion DOUBLE,
-    UNIQUE KEY unique_species_properties (species_id), -- Ensures one properties entry per species
     FOREIGN KEY (mechanism_id) REFERENCES mechanisms(id) ON DELETE CASCADE,
     FOREIGN KEY (species_id) REFERENCES species(id) ON DELETE CASCADE
 );
