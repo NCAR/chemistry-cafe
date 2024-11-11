@@ -151,22 +151,43 @@ namespace Chemistry_Cafe_API.Services
         public async Task UpdateSpeciesAsync(Species species)
         {
             using var connection = await _database.OpenConnectionAsync();
-            using var command = connection.CreateCommand();
 
-            command.CommandText = @"
-                UPDATE species 
-                SET name = @name, 
-                    description = @description, 
-                    created_by = @created_by
-                WHERE id = @id;";
+            using (var checkCommand = connection.CreateCommand())
+            {
+                checkCommand.CommandText = @"
+                    SELECT COUNT(*)
+                    FROM species
+                    WHERE name = @name AND id != @id;";
 
-            command.Parameters.AddWithValue("@id", species.Id.ToString());
-            command.Parameters.AddWithValue("@name", species.Name);
-            command.Parameters.AddWithValue("@description", species.Description ?? (object)DBNull.Value);
-            command.Parameters.AddWithValue("@created_by", species.CreatedBy ?? (object)DBNull.Value);
+                checkCommand.Parameters.AddWithValue("@name", species.Name);
+                checkCommand.Parameters.AddWithValue("@id", species.Id.ToString());
 
-            await command.ExecuteNonQueryAsync();
+                var count = Convert.ToInt32(await checkCommand.ExecuteScalarAsync());
+
+                if (count > 0)
+                {
+                    throw new InvalidOperationException("A species with this name already exists.");
+                }
+            }
+
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = @"
+                    UPDATE species 
+                    SET name = @name, 
+                        description = @description, 
+                        created_by = @created_by
+                    WHERE id = @id;";
+
+                command.Parameters.AddWithValue("@id", species.Id.ToString());
+                command.Parameters.AddWithValue("@name", species.Name);
+                command.Parameters.AddWithValue("@description", species.Description ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@created_by", species.CreatedBy ?? (object)DBNull.Value);
+
+                await command.ExecuteNonQueryAsync();
+            }
         }
+
 
         public async Task DeleteSpeciesAsync(Guid id)
         {
