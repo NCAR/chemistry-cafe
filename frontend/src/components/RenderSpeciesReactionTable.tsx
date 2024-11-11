@@ -111,6 +111,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                     const fetchedReactions = await getReactionsByMechanismId(selectedMechanismID);
     
                     setSpecies(fetchedSpecies);
+                    console.log(species);
                     setReactions(fetchedReactions);
                     setReactionsCount(fetchedReactions.length);
     

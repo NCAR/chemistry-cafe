@@ -577,7 +577,7 @@ export const UpdateSpeciesModal: React.FC<UpdateSpeciesModalProps> = ({
             created_by: "current_user",
           };
           const updatedSpecies = await updateSpecies(speciesData);
-          //console.log(updatedSpecies);
+          console.log(updatedSpecies);
 
           // now update the property (in this case, needs id)
           const propertyData: Property = {
@@ -591,7 +591,7 @@ export const UpdateSpeciesModal: React.FC<UpdateSpeciesModalProps> = ({
           };
 
           const updatedProperties = await updateProperty(propertyData);
-          //console.log(updatedProperties);
+          console.log(updatedProperties);
         }
 
 
@@ -1055,7 +1055,7 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
 
           const updatedReaction = await updateReaction(reactionData);
 
-          //console.log(updatedReaction);
+          console.log(updatedReaction);
 
 
         }
