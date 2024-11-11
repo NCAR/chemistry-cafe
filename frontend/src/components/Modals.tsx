@@ -41,7 +41,7 @@ import {
 import { updateReaction } from "../API/API_UpdateMethods";
 
 const style = {
-  position: "absolute" as "absolute",
+  position: "absolute" as const,
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
@@ -781,8 +781,8 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
               console.log(matches);
               // getting the current data before editing
               setSelectedReactionType(matches[1].toLowerCase().replace(/^./, char => char.toUpperCase()) );
-              let tempReactants = matches[2].trim();
-              let tempProducts = matches[3].trim();
+              const tempReactants = matches[2].trim();
+              const tempProducts = matches[3].trim();
               setReactants(tempReactants);
               setProducts(tempProducts);
 
@@ -865,7 +865,7 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
           console.log("Modified:");
           console.log(reactionData);
 
-          let updatedReaction = await updateReaction(reactionData);
+          const updatedReaction = await updateReaction(reactionData);
 
           console.log(updatedReaction);
 

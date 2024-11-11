@@ -164,7 +164,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                  // make regex expression
                 const regex = /^(Arrhenius|Branched|Emission|First-Order Loss|Photolysis|Surface \(Heterogeneous\)|Ternary Chemical Activation|Troe \(Fall-Off\)|Tunneling|N\/A)(?: Reaction \d+)?: (.+)$/i;
 
-                let matches = reactionItem.description.match(regex);
+                const matches = reactionItem.description.match(regex);
 
                 // console.log("heres the matches:");
                 // console.log(matches);
@@ -173,8 +173,8 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
 
                 if (matches) {
                     // Extract components from matches
-                    let reactionType = matches[1].toLowerCase().replace(/^./, char => char.toUpperCase());
-                    let reaction = matches[2].trim();
+                    const reactionType = matches[1].toLowerCase().replace(/^./, char => char.toUpperCase());
+                    const reaction = matches[2].trim();
 
                     return {... reactionItem, reactionType, reaction};
                 }
