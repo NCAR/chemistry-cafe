@@ -1,14 +1,14 @@
 import React, { useEffect, useState, useRef } from "react";
 
-import { Family, Mechanism } from "../../API/API_Interfaces";
+import { Family, Mechanism } from "../API/API_Interfaces";
 import {
   downloadOAYAML,
   downloadOAJSON,
   downloadOAMusicbox,
   getFamilies,
   getMechanismsByFamilyId,
-} from "../../API/API_GetMethods";
-import { deleteFamily, deleteMechanism } from "../../API/API_DeleteMethods";
+} from "../API/API_GetMethods";
+import { deleteFamily, deleteMechanism } from "../API/API_DeleteMethods";
 
 import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
 import { TreeItem } from "@mui/x-tree-view/TreeItem";

@@ -18,14 +18,14 @@ import {
   GridEventListener,
 } from "@mui/x-data-grid";
 
-import { Header, Footer } from "../Components/HeaderFooter";
+import { Header, Footer } from "../components/HeaderFooter";
 
-import "./roles.css";
-// import { useAuth } from "../contexts/AuthContext"; // Import the AuthContext
-import { getUsers } from "../../API/API_GetMethods";
-import { User } from "../../API/API_Interfaces";
-import { updateUser } from "../../API/API_UpdateMethods";
-import { deleteUser } from "../../API/API_DeleteMethods";
+import "../styles/roles.css";
+//import { useAuth } from "../contexts/AuthContext"; // Import the AuthContext
+import { getUsers } from "../API/API_GetMethods";
+import { User } from "../API/API_Interfaces";
+import { updateUser } from "../API/API_UpdateMethods";
+import { deleteUser } from "../API/API_DeleteMethods";
 
 function RolesToolbar() {
   return (
@@ -59,7 +59,7 @@ const RoleManagement: React.FC = () => {
 
   // Fetch users from the backend when the component mounts
   useEffect(() => {
-    console.log("Selected Roles:", selectedRoles); // Temporary logging
+    console.log('Selected Roles:', selectedRoles); // Temporary logging
   }, [selectedRoles]);
   useEffect(() => {
     const fetchUsers = async () => {

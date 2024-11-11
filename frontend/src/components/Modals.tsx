@@ -8,7 +8,7 @@ import {
   getReactionsByFamilyId,
   getReactantsByReactionIdAsync,
   getProductsByReactionIdAsync,
-} from "../../API/API_GetMethods";
+} from "../API/API_GetMethods";
 import {
   Family,
   Mechanism,
@@ -18,7 +18,7 @@ import {
   ReactionSpecies,
   Species,
   ReactionSpeciesDto,
-} from "../../API/API_Interfaces";
+} from "../API/API_Interfaces";
 import {
   createSpecies,
   createReaction,
@@ -27,7 +27,7 @@ import {
   addSpeciesToReaction,
   createFamily,
   createMechanism,
-} from "../../API/API_CreateMethods";
+} from "../API/API_CreateMethods";
 
 import {
   Modal,
@@ -38,10 +38,10 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
-import { updateReaction } from "../../API/API_UpdateMethods";
+import { updateReaction } from "../API/API_UpdateMethods";
 
 const style = {
-  position: "absolute" as "absolute",
+  position: "absolute" as const,
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",

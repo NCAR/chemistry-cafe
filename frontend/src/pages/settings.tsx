@@ -1,27 +1,27 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 import Button from "@mui/material/Button";
-import ButtonGroup from "@mui/material/ButtonGroup";
-import { Header, Footer } from "../Components/HeaderFooter";
+import ButtonGroup from '@mui/material/ButtonGroup';
+import { Header, Footer } from '../components/HeaderFooter';
 
-import "./settings.css"
+import "../styles/settings.css"
 
   const Settings = () => {
     const navigate = useNavigate();
-    const handleClick = () => navigate("/LoggedIn");
+    const handleClick = () => navigate('/LoggedIn');
 
     const style = {
-      height: "75px",
-      width: "500px",
+      height: '75px',
+      width: '500px',
     };
 
         return (
-          <section className="layoutSettings">
-            <div className="L1Settings">
+          <section className='layoutSettings'>
+            <div className='L1Settings'>
               <Header></Header>
             </div>
 
-            <div className="M3Settings">
-              <ButtonGroup orientation="vertical" variant="contained">
+            <div className='M3Settings'>
+              <ButtonGroup orientation='vertical' variant='contained'>
                 <Button sx={style} onClick={handleClick}>
                   Back
                 </Button>
@@ -31,7 +31,7 @@ import "./settings.css"
               </ButtonGroup>
             </div>
 
-            <div className="L9Settings">
+            <div className='L9Settings'>
               <Footer></Footer>
             </div>
           </section>
