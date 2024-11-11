@@ -8,7 +8,7 @@ import {
   Reaction,
   User,
   ReactionSpeciesDto,
-  InitialConditionSpecies
+  InitialConditionSpecies,
   Property
 } from "./API_Interfaces";
 
