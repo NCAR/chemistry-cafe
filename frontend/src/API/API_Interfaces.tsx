@@ -84,8 +84,9 @@ export interface UserMechanism {
 }
 
 export interface Property {
-  id: string; // UUID for the property entry
-  species_id: string; // Foreign key to the species table (UUID)
+  id?: string; // UUID for the property entry
+  speciesId: string; // Foreign key to the species table (UUID)
+  mechanismId: string; // Foreign key to mechanism table (UUID)
   tolerance?: number; // Tolerance value (optional, as it might not be provided for every property)
   weight?: number; // Weight value (optional)
   concentration?: number; // Concentration value (optional)
