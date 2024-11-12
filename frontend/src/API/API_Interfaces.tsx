@@ -69,7 +69,7 @@ export interface ReactionSpeciesDto {
 }
 
 export interface User {
-  id: string;
+  id?: string;
   username: string;
   role: string;
   email?: string | null;

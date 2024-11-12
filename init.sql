@@ -798,6 +798,7 @@ INSERT IGNORE INTO users (id, username, role, email) VALUES
     (UUID(), 'Joshua Hare', 'admin', 'jmhhare@tamu.edu'),
     (UUID(), 'Nishka Mittal', 'admin', 'nishka06@tamu.edu'),
     (UUID(), 'Sydney Ferris', 'admin', 'sferris@tamu.edu'),
+    (UUID(), 'Britt Schiller', 'admin', 'brittschiller@tamu.edu'),
     (UUID(), 'Kyle Shores', 'admin', 'kshores@ucar.edu');
 
 -- Link users to mechanisms
