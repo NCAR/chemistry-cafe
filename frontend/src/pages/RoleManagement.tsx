@@ -68,7 +68,9 @@ const RoleManagement: React.FC = () => {
         setUsers(response);
         // Initialize selectedRoles with each user's current role
         const initialRoles = response.reduce((acc, user) => {
-          acc[user.id] = user.role;
+          if(user.id){
+            acc[user.id] = user.role;
+          }
           return acc;
         }, {} as { [key: string]: string });
         setSelectedRoles(initialRoles);
