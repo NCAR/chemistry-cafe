@@ -17,9 +17,11 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Install packages
+        working-directory: frontend
         run: npm install
 
       - name: Format code
+        working-directory: frontend
         run: npm run format
 
       - name: Create Pull Request

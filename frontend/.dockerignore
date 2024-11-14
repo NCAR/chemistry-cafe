@@ -1,0 +1,19 @@
+# ignore all
+*
+
+# add things to copy
+!package.json
+!package-lock.json
+!src
+!test
+!.env
+!eslint-report.html
+!eslint.config.js
+!index.html
+!README.md
+!tsconfig.json
+!tsconfig.node.json
+!vite.config.ts
+!vitest.config.ts
+!vitest.setup.ts
+!public

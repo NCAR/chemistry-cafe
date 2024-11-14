@@ -46,7 +46,7 @@ services:
             - node_modules/
         - action: rebuild
           path: package.json
-
+    command: ["npm", "run", "dev"] # Command for development
 
   backend:
     build:
@@ -58,6 +58,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
     networks:
       - app-network
+    command: ["dotnet", "watch", "run", "--project", "ChemistryCafeAPI.csproj"] # Command for development
 
 volumes:
   db_data:

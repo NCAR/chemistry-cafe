@@ -9,23 +9,15 @@ import FamilyPage from './family.tsx';
 import LogIn from './logIn.tsx';
 import RoleManagement from './RoleManagement.tsx';
 import NoAccess from './Unauthorized.tsx';
-import { AccessibilityWidget } from 'react-accessibility';
+// import { AccessibilityWidget } from 'react-accessibility';
 import { AuthProvider } from './AuthContext';
 import ProtectedRoute from '../components/ProtectedRoute'; // The ProtectedRoute you created earlier
-
-
-// const theme = createTheme({
-//   typography: {
-//     fontFamily: "'Poppins', sans-serif",
-    
-//   },
-// });
 
 
 function App() {
     return (
         <div>
-            <AccessibilityWidget />
+            {/* <AccessibilityWidget /> */}
             <AuthProvider>
             <Banner />
                 <Routes>
