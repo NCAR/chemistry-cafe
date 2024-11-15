@@ -1,7 +1,7 @@
 {
   "name": "chemistrycafe",
-  "private": true,
-  "version": "0.0.0",
+  "private": false,
+  "version": "2.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host",

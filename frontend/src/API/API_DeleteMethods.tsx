@@ -1,12 +1,14 @@
 // API_DeleteMethods.ts
 
 import axios from "axios";
+import { BASE_URL } from "./API_config";
+
 
 // Delete a family
 export async function deleteFamily(id: string) {
   try {
     const response = await axios.delete(
-      `http://localhost:8080/api/families/${id}`,
+      `${BASE_URL}/families/${id}`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -24,7 +26,7 @@ export async function deleteFamily(id: string) {
 export async function deleteMechanism(id: string) {
   try {
     const response = await axios.delete(
-      `http://localhost:8080/api/mechanism/${id}`
+      `${BASE_URL}/mechanism/${id}`
     );
     return response.data;
   } catch (error) {
@@ -37,7 +39,7 @@ export async function deleteMechanism(id: string) {
 export async function deleteSpecies(id: string) {
   try {
     const response = await axios.delete(
-      `http://localhost:8080/api/species/${id}`,
+      `${BASE_URL}/species/${id}`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -55,7 +57,7 @@ export async function deleteSpecies(id: string) {
 export async function deleteReaction(id: string) {
   try {
     const response = await axios.delete(
-      `http://localhost:8080/api/reactions/${id}`,
+      `${BASE_URL}/reactions/${id}`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -73,7 +75,7 @@ export async function deleteReaction(id: string) {
 export async function deleteUser(id: string) {
   try {
     const response = await axios.delete(
-      `http://localhost:8080/api/users/${id}`,
+      `${BASE_URL}/users/${id}`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -90,7 +92,7 @@ export async function deleteUser(id: string) {
 export async function deleteProperty(id: string) {
   try {
     const response = await axios.delete(
-      `http://localhost:8080/api/properties/${id}`,
+      `${BASE_URL}/properties/${id}`,
       {
         headers: {
           "Content-Type": "application/json",
