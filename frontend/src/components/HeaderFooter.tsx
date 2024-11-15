@@ -7,8 +7,8 @@ import Paper from "@mui/material/Paper";
 import Container from "@mui/material/Container";
 import DensitySmallSharpIcon from "@mui/icons-material/DensitySmallSharp";
 import { useAuth } from "../pages/AuthContext";
-// import Modal from '@mui/material/Modal';
-// import Typography from '@mui/material/Typography';
+import Modal from '@mui/material/Modal';
+import Typography from '@mui/material/Typography';
 
 export const Header = () => {
   const [openDrawer, setOpenDrawer] = useState(false);
@@ -82,12 +82,10 @@ export const Footer = () => {
     window.open("https://www.ucar.edu/accessibility", "_blank");
   };
 
-  const [, setAboutOpen] = useState(false);
-  const handleAboutOpen = () => setAboutOpen(true);
-  const handleAbout = () => {
-    handleAboutOpen();
-  };
+  const [aboutOpen, setAboutOpen] = useState(false);
 
+  const handleAboutOpen = () => setAboutOpen(true);
+  const handleAboutClose = () => setAboutOpen(false);
 
   return (
     <Paper component="footer" square={true} variant="outlined">
@@ -98,7 +96,7 @@ export const Footer = () => {
           sx={{ height: "80px", width: "auto", pr: 10 }}
         ></Box>
         <Box sx={{ pr: 10 }}>
-          <Button onClick={handleAbout}>About</Button>
+          <Button onClick={handleAboutOpen}>About</Button>
         </Box>
         <Box sx={{ pr: 10 }}>
           <Button onClick={handleBugClick} variant="text">
@@ -109,6 +107,50 @@ export const Footer = () => {
           <Button onClick={handleAccessibilityClick}>Accessibility</Button>
         </Box>
       </Container>
+
+      {/* Modal for About */}
+      <Modal open={aboutOpen} onClose={handleAboutClose}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            bgcolor: "background.paper",
+            boxShadow: 24,
+            p: 4,
+            borderRadius: 2,
+            textAlign: "center",
+          }}
+        >
+          <Typography variant="h4">About</Typography>
+            <Box
+              component="img"
+              src={"src/assets/NSF-NCAR_Lockup-UCAR-Dark.png"}
+              alt={"Texas A&M"}
+              sx={{ height: "100px", width: "auto" }}
+            />
+            <Box
+              component="img"
+              src={"src/assets/TAMULogo.png"}
+              alt={"Texas A&M"}
+              sx={{ height: "100px", width: "auto" }}
+            />
+            <Typography variant="body1">
+              The Chemistry Cafe tool was made possible by the collaboration
+              between NCAR and Texas A&M through the CSCE Capstone program.
+            </Typography>
+            <p></p>
+            <Typography variant="h6">Credits</Typography>
+            <Typography variant="body1">
+              Paul Cyr, Brandon Longuet, Brian Nguyen <br></br> Spring 2024
+              Capstone Team <br></br> <p></p>
+              Britt Schiller, Ore Ogunleye, Nishka Mittal, Josh Hare, Sydney Ferris <br></br> Fall 2024
+              Capstone Team <br></br> <p></p>
+              Kyle Shores <br></br> Spring 2024 Capstone Sponsor Representative
+            </Typography>
+        </Box>
+      </Modal>
     </Paper>
   );
 };
