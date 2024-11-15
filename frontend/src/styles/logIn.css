@@ -15,12 +15,9 @@
       "L9LogIn M9 R9" 1fr
       / 1fr 1fr 1fr;
     background-color: #C3D7EE;
-    /* background-color: black; */
     background-image: url("/src/assets/NCAR_ZoomBG_Blue.jpg");
     background-size: 100%;
     background-repeat: no-repeat;
-    /* background-image: url("/src/assets/NCAR-Waves.png"); */
-    /* background-image: url("src/assets/TAMULogo.png"); */
   }
   
 

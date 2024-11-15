@@ -1,28 +1,20 @@
-/* Ensure the main container takes full width and height */
-/* div { */
-    /* display: flex; */
-    /* flex-direction: column; Arrange children vertically */
-    /* min-height: 100vh; Full height of the viewport */
-/* }  */
-
-/* Style for the AccessibilityWidget */
 .accessibility-widget {
-    padding: 16px; /* Add some padding */
-    background-color: #f0f0f0; /* Light background color for visibility */
-    border: 1px solid #ccc; /* Border for definition */
-    border-radius: 4px; /* Rounded corners */
-    margin-bottom: 20px; /* Space below the widget */
+    padding: 16px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-bottom: 20px;
 }
 
 /* Additional styles for responsiveness */
 @media (max-width: 768px) {
     div {
-        flex-direction: column; /* Keep the layout responsive */
+        flex-direction: column;
     }
 
     .accessibility-widget {
-        padding: 12px; /* Adjust padding on smaller screens */
-        margin-bottom: 15px; /* Adjust margin on smaller screens */
+        padding: 12px;
+        margin-bottom: 15px;
     }
 }
 
@@ -48,12 +40,12 @@
 
 .banner a {
   color: #fff; /* Default link color */
-  text-decoration: underline; /* Optional: underline to emphasize it's a link */
+  text-decoration: underline;
 }
 
 .banner a:hover {
   color: #003366; /* Color on hover */
-  text-decoration: none; /* Optional: remove underline on hover */
+  text-decoration: none;
 }
 
 .banner-text {

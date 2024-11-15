@@ -61,15 +61,6 @@ const Holidays: React.FC = () => {
                     {currentIcon}
                 </div>
             )}
-            {/* <h2>Holiday Icons for Each Month:</h2>
-            <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-                {Object.entries(holidaysByMonth).map(([month, holiday]) => (
-                    <div key={month} style={{ margin: '10px', textAlign: 'center' }}>
-                        <div style={{ fontSize: '48px' }}>{holiday.icon}</div>
-                        <div>{holiday.name}</div>
-                    </div>
-                ))}
-            </div> */}
         </div>
     );
 };
