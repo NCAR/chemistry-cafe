@@ -29,12 +29,9 @@ ChemistryCafe is a web application built with React, Vite, and TypeScript. The a
 - `src/`: Source code folder, organized as follows:
     - `API/`: Functions for API interaction.
     - `assets/`: Static assets.
-    - `webPages/`: Pages and components:
-        - `Components/`: Reusable components.
-        - `Family/`: Family-related pages/components.
-        - `LogIn/`: Login-related pages/components.
-        - `RoutingRenders/`: Routing-related components.
-        - `Settings/`: Settings-related pages/components.
+    - `components/`: Reusable components
+    - `pages/`: Pages:
+    - `styles/`: Style sheets:
     - `index.css`: Global CSS styles.
     - `main.tsx`: Entry point for the application.
     - `vite-env.d.ts`: Vite environment TypeScript declarations.
