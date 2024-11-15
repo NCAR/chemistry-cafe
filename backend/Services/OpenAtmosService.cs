@@ -232,7 +232,7 @@ public class OpenAtmosService
         {
             reactionsJson.AppendLine("        {");
             // Reaction type
-            var type = reaction.Description.Split(' ')[0];
+            var type = reaction.Description?.Split(' ')[0] ?? string.Empty;
             reactionsJson.AppendLine($"          \"type\": \"{type}\",");
 
             // Reactants
