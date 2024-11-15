@@ -10,3 +10,4 @@ TODO: Add description of Chem cafe
 [![Dotnet](https://github.com/NCAR/chemistry-cafe/actions/workflows/dotnet.yml/badge.svg)](https://github.com/NCAR/chemistry-cafe/actions/workflows/dotnet.yml)
 [![codecov](https://codecov.io/gh/NCAR/chemistry-cafe/branch/main/graph/badge.svg?token=ATGO4DKTMY)](https://codecov.io/gh/NCAR/chemistry-cafe)
 [![FAIR checklist badge](https://fairsoftwarechecklist.net/badge.svg)](https://fairsoftwarechecklist.net/v0.2?f=31&a=32113&i=22322&r=123)
+[![DOI](https://zenodo.org/badge/67521334.svg)](https://doi.org/10.5281/zenodo.14171726)
