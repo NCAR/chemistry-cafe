@@ -1257,16 +1257,6 @@ export const CreateReactantModal: React.FC<CreateReactantModalProps> = ({
         <Typography variant="h6" style={{ marginTop: "1rem" }}>
           Input Quantity
         </Typography>
-        {/* Remove Quantity Input since 'quantity' is not part of the interface */}
-        {/* Alternatively, if you plan to add 'quantity', ensure it's part of the ReactionSpecies interface */}
-        {/* <TextField
-          id="quantity"
-          label="Quantity"
-          type="number"
-          onChange={(e) => (createReactantQuantityRef.current = e.target.value)}
-          fullWidth
-          margin="normal"
-        /> */}
         <Button
           variant="contained"
           onClick={handleCreateReactantClick}
