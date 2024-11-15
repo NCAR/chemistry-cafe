@@ -210,7 +210,7 @@ public class OpenAtmosService
             speciesJson.AppendLine($"      \"__description\": \"{species.Description}\"");
             speciesJson.AppendLine("    },");
         }
-        if (speciesList.Any()) speciesJson.Length -= 3; // Remove trailing comma and newline
+        if (speciesList.Any()) speciesJson.Length -= 2; // Remove trailing comma and newline
         speciesJson.AppendLine();
         speciesJson.AppendLine("  ]");
         speciesJson.AppendLine("}");
@@ -242,7 +242,7 @@ public class OpenAtmosService
             {
                 reactionsJson.AppendLine($"            \"{reactant.SpeciesName}\": {{ }},");
             }
-            if (reactants.Any()) reactionsJson.Length -= 1; // Remove trailing comma
+            if (reactants.Any()) reactionsJson.Length -= 2; // Remove trailing comma
             reactionsJson.AppendLine();
             reactionsJson.AppendLine("          },"); // Close reactants
 
@@ -253,26 +253,77 @@ public class OpenAtmosService
             {
                 reactionsJson.AppendLine($"            \"{product.SpeciesName}\": {{ }},");
             }
-            if (products.Any()) reactionsJson.Length -= 1; // Remove trailing comma
+            if (products.Any()) reactionsJson.Length -= 2; // Remove trailing comma
             reactionsJson.AppendLine();
             reactionsJson.AppendLine("          }"); // Close products
 
             reactionsJson.AppendLine("        },"); // Close reaction
         }
-        if (reactionList.Any()) reactionsJson.Length -= 1; // Remove trailing comma
+        if (reactionList.Any()) reactionsJson.Length -= 2; // Remove trailing comma
         reactionsJson.AppendLine();
         reactionsJson.AppendLine("      ]");
         reactionsJson.AppendLine("    }");
         reactionsJson.AppendLine("  ]");
         reactionsJson.AppendLine("}");
 
+        //my_config file
+        var myConfigJson = new StringBuilder();
+        myConfigJson.AppendLine("{");
+        myConfigJson.AppendLine("  \"box model options\": {");
+        myConfigJson.AppendLine("    \"grid\": \"box\",");
+        myConfigJson.AppendLine("    \"chemistry time step [min]\": 1.0,");
+        myConfigJson.AppendLine("    \"output time step [min]\": 1.0,");
+        myConfigJson.AppendLine("    \"simulation length [hr]\": 3.0");
+        myConfigJson.AppendLine("  },");
+        myConfigJson.AppendLine("  \"chemical species\": {");
+
+        // Add species with initial values
+        foreach (var species in speciesList)
+        {
+            myConfigJson.AppendLine($"    \"{species.Name}\": {{");
+            myConfigJson.AppendLine($"      \"initial value [mol m-3]\": 1.0e-09");
+            myConfigJson.AppendLine("    },");
+        }
+        if (speciesList.Any()) myConfigJson.Length -= 2; // Remove trailing comma and newline
+        myConfigJson.AppendLine();
+        myConfigJson.AppendLine("  },");
+        myConfigJson.AppendLine("  \"environmental conditions\": {");
+        myConfigJson.AppendLine("    \"temperature\": {");
+        myConfigJson.AppendLine("      \"initial value [K]\": 298.15");
+        myConfigJson.AppendLine("    },");
+        myConfigJson.AppendLine("    \"pressure\": {");
+        myConfigJson.AppendLine("      \"initial value [Pa]\": 101325.0");
+        myConfigJson.AppendLine("    }");
+        myConfigJson.AppendLine("  },");
+        myConfigJson.AppendLine("  \"evolving conditions\": {},");
+        myConfigJson.AppendLine("  \"initial conditions\": {");
+        // myConfigJson.AppendLine("    \"initial_reaction_rates.csv\": {}"); --when initial conditions are implemented, use this
+        myConfigJson.AppendLine("  },");
+        myConfigJson.AppendLine("  \"model components\": [");
+        myConfigJson.AppendLine("    {");
+        myConfigJson.AppendLine("      \"type\": \"CAMP\",");
+        myConfigJson.AppendLine("      \"configuration file\": \"camp_data/config.json\",");
+        myConfigJson.AppendLine("      \"override species\": {");
+        myConfigJson.AppendLine("        \"M\": {");
+        myConfigJson.AppendLine("          \"mixing ratio mol mol-1\": 1.0");
+        myConfigJson.AppendLine("        }");
+        myConfigJson.AppendLine("      },");
+        myConfigJson.AppendLine("      \"suppress output\": {");
+        myConfigJson.AppendLine("        \"M\": {}");
+        myConfigJson.AppendLine("      }");
+        myConfigJson.AppendLine("    }");
+        myConfigJson.AppendLine("  ]");
+        myConfigJson.AppendLine("}");
+
         // Create ZIP file in memory
         using (var memoryStream = new MemoryStream())
         {
             using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
             {
+                        var campDataFolder = archive.CreateEntry("camp_data/");
+
                 // Add species.json to ZIP
-                var speciesEntry = archive.CreateEntry("species.json");
+                var speciesEntry = archive.CreateEntry("camp_data/species.json");
                 using (var entryStream = speciesEntry.Open())
                 using (var writer = new StreamWriter(entryStream))
                 {
@@ -280,18 +331,25 @@ public class OpenAtmosService
                 }
 
                 // Add reactions.json to ZIP
-                var reactionsEntry = archive.CreateEntry("reactions.json");
+                var reactionsEntry = archive.CreateEntry("camp_data/reactions.json");
                 using (var entryStream = reactionsEntry.Open())
                 using (var writer = new StreamWriter(entryStream))
                 {
                     writer.Write(reactionsJson.ToString());
                 }
 
-                var configEntry = archive.CreateEntry("config.json");
+                var configEntry = archive.CreateEntry("camp_data/config.json");
                 using (var entryStream = configEntry.Open())
                 using (var writer = new StreamWriter(entryStream))
                 {
                     writer.Write("{\"camp-files\": [\"species.json\", \"reactions.json\"]}");
+                }
+
+                var myconfigEntry = archive.CreateEntry("my_config.json");
+                using (var entryStream = myconfigEntry.Open())
+                using (var writer = new StreamWriter(entryStream))
+                {
+                    writer.Write(myConfigJson.ToString());
                 }
             }
 

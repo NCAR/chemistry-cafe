@@ -7,7 +7,7 @@ import { useAuth } from "../pages/AuthContext"; // Import the AuthContext
 import "../styles/logIn.css";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
-import Modal from "@mui/material/Modal";
+//import Modal from "@mui/material/Modal";
 import Typography from "@mui/material/Typography";
 import GoogleIcon from "@mui/icons-material/Google";
 import NoAccountsIcon from "@mui/icons-material/NoAccounts";
@@ -31,13 +31,9 @@ const LogIn = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const navigate = useNavigate();
   const handleClick = () => navigate("/LoggedIn");
-  const [aboutOpen, setAboutOpen] = useState(false);
-  const handleAboutOpen = () => setAboutOpen(true);
-  const handleAboutClose = () => setAboutOpen(false);
+  
 
-  const handleAbout = () => {
-    handleAboutOpen();
-  };
+ 
 
   const login = useGoogleLogin({
     onSuccess: (codeResponse) => {
@@ -127,17 +123,7 @@ const LogIn = () => {
     setUser(null); // Clear user from AuthContext on logout
   };
 
-  const style = {
-    position: "absolute" as const,
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: 400,
-    bgcolor: "background.paper",
-    border: "2px solid #000",
-    boxShadow: 24,
-    p: 4,
-  };
+
 
   return (
     <section className="layoutLogIn">
@@ -211,7 +197,7 @@ const LogIn = () => {
           Continue as Guest
         </Button>
       </div>
-      <div className="M7">
+      {/* <div className="M7">
         <Button variant="contained" onClick={handleAbout} sx={{ width: "50%" }}>
           About
         </Button>
@@ -241,11 +227,13 @@ const LogIn = () => {
             <Typography variant="body1">
               Paul Cyr, Brandon Longuet, Brian Nguyen <br></br> Spring 2024
               Capstone Team <br></br> <p></p>
+              Britt Schiller, Ore Ogunleye, Nishka Mittal, Josh Hare, Sydney Ferris <br></br> Fall 2024
+              Capstone Team <br></br> <p></p>
               Kyle Shores <br></br> Spring 2024 Capstone Sponsor Representative
             </Typography>
           </Box>
         </Modal>
-      </div>
+      </div> */}
       <div className="L9LogIn">
         <Footer></Footer>
       </div>
