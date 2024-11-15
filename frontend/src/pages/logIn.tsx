@@ -29,7 +29,7 @@ const LogIn = () => {
   const { setUser } = useAuth(); // Get setUser from AuthContext
   const [user, setLocalUser] = useState<AuthUser | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const navigate = useNavigate();
+  const navigate = useNavigate(); 
   const handleClick = () => navigate("/LoggedIn");
   
 
