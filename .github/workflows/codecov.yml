@@ -36,9 +36,10 @@ jobs:
      # Step 5: Run tests and collect code coverage
       - name: Test and calculate coverage
         run: |
-          dotnet test ./backend --no-build --verbosity normal \
-          /p:CollectCoverage=true /p:CoverletOutputFormat=opencover \
-          /p:CoverletOutput=./TestResults/coverage.opencover.xml
+          dotnet test ./backend --no-build --verbosity normal --logger "console;verbosity=detailed" \
+          /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura 
+          /p:CoverletOutput=./TestResults/coverage.cobertura.xml
+
 
       # Step 6: Upload the code coverage report to Codecov
       - name: Upload coverage to Codecov
