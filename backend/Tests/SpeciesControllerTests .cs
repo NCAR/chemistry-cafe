@@ -14,7 +14,7 @@ namespace Chemistry_Cafe_API.Tests
     {
         
         readonly MySqlDataSource db = DBConnection.DataSource;
-        static Guid _Id = new Guid("ffffffff-5566-7788-99AA-BBCCDDEEFF00");
+        static Guid _Id = new Guid("ffffffff-ffff-ffff-ffff-ffffffffffff");
         static String _Name = "Test";
         static String _Description = "A test species created by SpeciesControllerTests.cs.";
         static String _CreatedBy = "SpeciesControllerTests.cs";
@@ -152,7 +152,8 @@ namespace Chemistry_Cafe_API.Tests
             Assert.AreEqual(_Id, returnedSpecies.Id);
             Assert.AreEqual(newName, returnedSpecies.Name);
             Assert.AreEqual(updatedSpecies.Description, returnedSpecies.Description);
-            Assert.AreEqual(_CreatedBy, returnedSpecies.CreatedBy);            
+            Assert.AreEqual(_CreatedBy, returnedSpecies.CreatedBy); 
+            Console.WriteLine($"ID: {returnedSpecies.Id}, Name: {returnedSpecies.Name}, Description: {returnedSpecies.Description}");           
         }
 
         [TestMethod]
@@ -164,11 +165,8 @@ namespace Chemistry_Cafe_API.Tests
             
 
             //Act
-            Console.WriteLine($"ID: {_Id}");
             var find_result = await controller.GetSpecies(_Id);
             Assert.IsNotNull(find_result);
-            Console.WriteLine(find_result);
-            Console.WriteLine(find_result.Result);
             Assert.IsInstanceOfType(find_result.Result, typeof(OkObjectResult));
             
 
