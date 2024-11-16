@@ -132,8 +132,8 @@ namespace Chemistry_Cafe_API.Services
                 command.Parameters.AddWithValue("@concentration", initialCondition.Concentration ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@temperature", initialCondition.Temperature ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@pressure", initialCondition.Pressure ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@abs_convergence_tolerance", initialCondition.AbsConvergenceTolerance ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@additional_conditions", initialCondition.AdditionalConditions ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@abs_convergence_tolerance", initialCondition.AdditionalConditions ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@diffusion_coefficient", initialCondition.DiffusionCoefficient ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@molecular_weight", initialCondition.MolecularWeight ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@fixed_concentration", initialCondition.FixedConcentration ?? (object)DBNull.Value);

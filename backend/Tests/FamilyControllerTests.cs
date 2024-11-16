@@ -1,50 +1,176 @@
-﻿// using Chemistry_Cafe_API.Controllers;
-// using Chemistry_Cafe_API.Models;
-// using Microsoft.VisualStudio.TestTools.UnitTesting;
-// using MySqlConnector;
+﻿using Chemistry_Cafe_API.Controllers;
+using Chemistry_Cafe_API.Models;
+using Chemistry_Cafe_API.Services;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using MySqlConnector;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 
-// namespace Chemistry_Cafe_API.Tests
-// {
-//     [TestClass]
-//     public class FamilyControllerTests
-//     {
-//         FamilyController controller = new FamilyController(DBConnection.DataSource);
+namespace Chemistry_Cafe_API.Tests
+{
+    [TestClass]
+    public class FamilyControllerTests
+    {
+        readonly MySqlDataSource db = DBConnection.DataSource;
+        static Guid _Id = new Guid("cccccccc-dddd-eeee-ffff-000000000000");
+        static string _Name = "TestFamily";
+        static string _Description = "A test family created by FamilyControllerTests.cs.";
+        static string _CreatedBy = "FamilyControllerTests.cs";
+        static DateTime _CreatedDate = DateTime.UtcNow;
+        static bool found = false;
 
-//         [TestMethod]
-//         public async Task Get_retrieves_family()
-//         {
+        [TestMethod]
+        public async Task Get_All_Families()
+        {
+            // Arrange
+            var familyService = new FamilyService(db);
+            var controller = new FamiliesController(familyService);
 
-//             var result = await controller.Get() as List<Family>;
+            // Act
+            var actionResult = await controller.GetFamilies();
 
-//             Assert.IsNotNull(result);
-//         }
+            // Assert
+            Assert.IsNotNull(actionResult);
+            var okResult = actionResult.Result as OkObjectResult;
+            Assert.IsNotNull(okResult);
 
-//         [TestMethod]
-//         public async Task Creates_family()
-//         {
+            var familyList = okResult.Value as IEnumerable<Family>;
+            Assert.IsNotNull(familyList);
 
-//             var result = await controller.Create("Test") ;
+            foreach (var family in familyList)
+            {
+                if (family.Name == _Name)
+                {
+                    Console.WriteLine($"Test family already found in DB: ID: {family.Id}, Name: {family.Name}");
+                    _Id = family.Id;
+                    found = true;
+                    break;
+                }
+            }
+        }
 
-//             var getResult = await controller.Get(result.uuid);
+        [TestMethod]
+        public async Task Creates_Family()
+        {
+            if (found)
+            {
+                Console.WriteLine("Duplicate test family. Skipping creation.");
+                Assert.Inconclusive("Test family already exists.");
+            }
 
-//             Assert.AreEqual(result.uuid, getResult.uuid);
-//         }
+            // Arrange
+            var familyService = new FamilyService(db);
+            var controller = new FamiliesController(familyService);
 
-//         [TestMethod]
-//         public async Task Updates_family()
-//         {
+            var testFamily = new Family
+            {
+                Name = _Name,
+                Description = _Description,
+                CreatedBy = _CreatedBy,
+                CreatedDate = _CreatedDate
+            };
 
-//             var result = await controller.Create("Test");
+            // Act
+            var actionResult = await controller.CreateFamily(testFamily);
 
-//             result.name = "Edited";
+            // Assert
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
 
-//             await controller.Put(result);
+            var createdAtActionResult = actionResult.Result as CreatedAtActionResult;
+            Assert.IsNotNull(createdAtActionResult);
 
-//             var getResult = await controller.Get(result.uuid);
+            var returnedFamily = createdAtActionResult.Value as Family;
+            Assert.IsNotNull(returnedFamily);
 
-//             await controller.Delete(result.uuid);
+            _Id = returnedFamily.Id;
+            Console.WriteLine($"Created Family ID: {_Id}, Name: {returnedFamily.Name}");
 
-//             Assert.AreEqual(result.name, "Edited");
-//         }
-//     }
-// }
+            Assert.AreEqual(_Name, returnedFamily.Name);
+            Assert.AreEqual(_Description, returnedFamily.Description);
+            Assert.AreEqual(_CreatedBy, returnedFamily.CreatedBy);
+        }
+
+        [TestMethod]
+        public async Task Get_Family_Given_ID()
+        {
+            // Arrange
+            var familyService = new FamilyService(db);
+            var controller = new FamiliesController(familyService);
+
+            // Act
+            var actionResult = await controller.GetFamily(_Id);
+
+            // Assert
+            Assert.IsNotNull(actionResult);
+            var okResult = actionResult.Result as OkObjectResult;
+            Assert.IsNotNull(okResult);
+
+            var returnedFamily = okResult.Value as Family;
+            Assert.IsNotNull(returnedFamily);
+
+            Assert.AreEqual(_Id, returnedFamily.Id);
+            Assert.AreEqual(_Name, returnedFamily.Name);
+            Assert.AreEqual(_Description, returnedFamily.Description);
+            Assert.AreEqual(_CreatedBy, returnedFamily.CreatedBy);
+        }
+
+        [TestMethod]
+        public async Task Updates_Family()
+        {
+            // Arrange
+            var familyService = new FamilyService(db);
+            var controller = new FamiliesController(familyService);
+
+            string newName = "UpdatedTestFamily";
+            string newDescription = "An updated test family.";
+
+            var updatedFamily = new Family
+            {
+                Id = _Id,
+                Name = newName,
+                Description = newDescription,
+                CreatedBy = _CreatedBy,
+                CreatedDate = _CreatedDate
+            };
+
+            // Act
+            await controller.UpdateFamily(_Id, updatedFamily);
+            var actionResult = await controller.GetFamily(_Id);
+
+            // Assert
+            Assert.IsNotNull(actionResult);
+            var okResult = actionResult.Result as OkObjectResult;
+            Assert.IsNotNull(okResult);
+
+            var returnedFamily = okResult.Value as Family;
+            Assert.IsNotNull(returnedFamily);
+
+            Assert.AreEqual(_Id, returnedFamily.Id);
+            Assert.AreEqual(newName, returnedFamily.Name);
+            Assert.AreEqual(newDescription, returnedFamily.Description);
+            Assert.AreEqual(_CreatedBy, returnedFamily.CreatedBy);
+        }
+
+        [TestMethod]
+        public async Task Delete_Family()
+        {
+            // Arrange
+            var familyService = new FamilyService(db);
+            var controller = new FamiliesController(familyService);
+
+            // Act
+            var findResult = await controller.GetFamily(_Id);
+            Assert.IsNotNull(findResult);
+            Assert.IsInstanceOfType(findResult.Result, typeof(OkObjectResult));
+
+            await controller.DeleteFamily(_Id);
+
+            var findDeletedResult = await controller.GetFamily(_Id);
+
+            // Assert
+            Assert.IsInstanceOfType(findDeletedResult.Result, typeof(NotFoundResult));
+        }
+    }
+}

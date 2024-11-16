@@ -92,6 +92,14 @@ namespace Chemistry_Cafe_API.Services
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
+            // Check if property exists
+            var existingProperty = await GetPropertyByIdAsync(property.Id);
+            if (existingProperty == null)
+            {
+                throw new KeyNotFoundException($"Property with ID {property.Id} not found.");
+            }
+
+
             command.CommandText = @"
                 UPDATE properties 
                 SET species_id = @species_id, 
@@ -117,6 +125,14 @@ namespace Chemistry_Cafe_API.Services
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
+
+            // Check if property exists
+            var existingProperty = await GetPropertyByIdAsync(id);
+            if (existingProperty == null)
+            {
+                throw new KeyNotFoundException($"Property with ID {id} not found.");
+            }
+
 
             command.CommandText = "DELETE FROM properties WHERE id = @id";
             command.Parameters.AddWithValue("@id", id.ToString());
