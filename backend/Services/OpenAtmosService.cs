@@ -22,6 +22,10 @@ public class OpenAtmosService
 
         // Get mechanism
         var mechanism = await mechanismService.GetMechanismAsync(mechanismId);
+        if (mechanism == null)
+        {
+            return null;
+        }
 
         // Initialize JSON builder
         var json = new StringBuilder();
@@ -132,6 +136,10 @@ public class OpenAtmosService
 
         // Get mechanism
         var mechanism = await mechanismService.GetMechanismAsync(mechanismId);
+        if (mechanism == null)
+        {
+            return null;
+        }
 
         // Initialize YAML builder
         var yaml = new StringBuilder();
@@ -217,6 +225,10 @@ public class OpenAtmosService
 
         var mechanismService = new MechanismService(_database);
         var mechanism = await mechanismService.GetMechanismAsync(mechanismId);
+        if (mechanism == null)
+        {
+            return null;
+        }
 
         // Fetch reactions
         var reactionList = await reactionService.GetReactionsByMechanismIdAsync(mechanismId);
