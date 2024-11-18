@@ -30,7 +30,17 @@ builder.Services.AddSwaggerGen();
 
 //Adds SQL data source from appsettings.json file
 
-builder.Services.AddMySqlDataSource(builder.Configuration.GetConnectionString("DefaultConnection")!);
+string connectionString;
+if (builder.Environment.IsDevelopment())
+{
+    connectionString = builder.Configuration.GetConnectionString("HostConnection");
+}
+else
+{
+    connectionString = builder.Configuration.GetConnectionString("ProductionConnection");
+}
+
+builder.Services.AddMySqlDataSource(connectionString);
 
 builder.Services.AddCors(options =>
 {
