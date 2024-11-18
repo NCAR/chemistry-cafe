@@ -87,15 +87,9 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
             //console.log(error);
         } finally{
             setEditPropertiesLoading(false);
-        }
-        handleEditPropertiesOpen();
-    };
-    // wait till ready to open edit modal
-    useEffect(() => {
-        if (editPropertiesLoading === false) {
             handleEditPropertiesOpen();
         }
-    }, [editPropertiesLoading]);
+    };
     
     const handleReactionCellClick = (params: GridRowParams<Reaction>) => {
         const reaction = params.row;
@@ -175,7 +169,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                 flex: 1,
                 renderCell: (params) => (
                     <Typography variant="body1">
-                        {params.row.property.weight === 0 ? '' : (params.row.property.weight ?? 'N/A')}
+                        {params.row.property.weight === 0 ? '' : (params.row.property.weight ?? '')}
                     </Typography>
                 ),
             },

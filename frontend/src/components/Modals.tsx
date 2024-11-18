@@ -606,6 +606,8 @@ export const UpdateSpeciesModal: React.FC<UpdateSpeciesModalProps> = ({
     }
   };
 
+  console.log("open status");
+  console.log(open);
   return (
     <Modal
             open={open}
