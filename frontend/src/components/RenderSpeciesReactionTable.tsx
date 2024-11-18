@@ -43,7 +43,6 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
     const handleCreateReactionClose = () => setCreateReactionOpen(false);
     
     const [species, setSpecies] = useState<Species[]>([]);
-    const [reactions, setReactions] = useState<Reaction[]>([]);
     const [reactionsCount, setReactionsCount] = useState<number>(0);
 
     const [speciesCreated, setSpeciesCreated] = useState<boolean>(false);
@@ -135,7 +134,6 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
     
                     setSpecies(fetchedSpecies);
                     console.log(species);
-                    setReactions(fetchedReactions);
                     setReactionsCount(fetchedReactions.length);
     
                     const rowifiedSpeciesData = await rowifySpecies(fetchedSpecies);
@@ -150,11 +148,9 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                 } catch (error) {
                     console.error("Error fetching data:", error);
                     setSpecies([]);
-                    setReactions([]);
                 }
             } else {
                 setSpecies([]);
-                setReactions([]);
             }
         };
     
