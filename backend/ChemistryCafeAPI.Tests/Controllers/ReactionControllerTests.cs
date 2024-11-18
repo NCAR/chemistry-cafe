@@ -17,7 +17,7 @@ namespace Chemistry_Cafe_API.Tests
         static string _Name = "TestReaction";
         static string _Description = "A test reaction created by ReactionControllerTests.cs.";
         static string _CreatedBy = "ReactionControllerTests.cs";
-        static DateTime _CreatedDate;
+        static DateTime _CreatedDate = DateTime.UtcNow;
         static bool found = false;
 
         [TestMethod]

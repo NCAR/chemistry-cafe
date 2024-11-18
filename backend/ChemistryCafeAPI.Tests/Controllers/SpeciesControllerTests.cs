@@ -18,7 +18,7 @@ namespace Chemistry_Cafe_API.Tests
         static String _Name = "Test";
         static String _Description = "A test species created by SpeciesControllerTests.cs.";
         static String _CreatedBy = "SpeciesControllerTests.cs";
-        static DateTime _CreatedDate;
+        static DateTime _CreatedDate = DateTime.UtcNow;
         static bool found = false;
 
         

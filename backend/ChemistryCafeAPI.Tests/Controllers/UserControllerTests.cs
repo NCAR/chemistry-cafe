@@ -23,7 +23,7 @@ namespace Chemistry_Cafe_API.Tests
         static bool userCreated = false;
 
         // Test data constants
-        static string _Username;
+        static string _Username = string.Empty;
         const string _Role = "TestRole";
         const string _Email = "testuser@example.com";
         static DateTime _CreatedDate = DateTime.UtcNow;

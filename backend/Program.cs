@@ -3,6 +3,11 @@ using MySqlConnector;
 
 var builder = WebApplication.CreateBuilder(args);
 
+if (!builder.Environment.IsDevelopment())
+{
+    builder.WebHost.UseUrls("http://0.0.0.0:5000");
+}
+
 // Add services to the container.
 
 builder.Services.AddControllers();
@@ -26,32 +31,37 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddMySqlDataSource(builder.Configuration.GetConnectionString("DefaultConnection")!);
 
-
-
 var app = builder.Build();
 
-// Configure CORS
-app.UseCors(options =>
+builder.Services.AddCors(options =>
 {
-    options.WithOrigins("http://localhost:5173")
-           .AllowAnyMethod()
-           .AllowAnyHeader();
+    options.AddPolicy("DevelopmentCorsPolicy", builder =>
+    {
+        builder.WithOrigins("http://localhost:5173")
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    });
+
+    options.AddPolicy("ProductionCorsPolicy", builder =>
+    {
+        builder.WithOrigins("https://cafe-deux-devel.acom.ucar.edu")
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    });
 });
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseCors("DevelopmentCorsPolicy");
 }
-
-if (!app.Environment.IsDevelopment())
+else
 {
+    app.UseCors("ProductionCorsPolicy");
     app.UseHttpsRedirection();
 }
 
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();

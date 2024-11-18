@@ -24,7 +24,7 @@ public class OpenAtmosService
         var mechanism = await mechanismService.GetMechanismAsync(mechanismId);
         if (mechanism == null)
         {
-            return null;
+            return string.Empty;
         }
 
         // Initialize JSON builder
@@ -124,7 +124,7 @@ public class OpenAtmosService
         json.AppendLine("  ]");
         json.AppendLine("}");
 
-        return json.ToString();
+        return json.ToString() ?? string.Empty;
     }
 
     public async Task<string> GetYAML(Guid mechanismId)
@@ -138,7 +138,7 @@ public class OpenAtmosService
         var mechanism = await mechanismService.GetMechanismAsync(mechanismId);
         if (mechanism == null)
         {
-            return null;
+            return string.Empty;
         }
 
         // Initialize YAML builder
@@ -195,7 +195,7 @@ public class OpenAtmosService
             }
         }
 
-        return yaml.ToString();
+        return yaml.ToString() ?? string.Empty;
     }
 
     public async Task<byte[]> GetMusicboxJSON(Guid mechanismId)
@@ -227,7 +227,7 @@ public class OpenAtmosService
         var mechanism = await mechanismService.GetMechanismAsync(mechanismId);
         if (mechanism == null)
         {
-            return null;
+            return Array.Empty<byte>();
         }
 
         // Fetch reactions
