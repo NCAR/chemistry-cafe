@@ -314,12 +314,6 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                 />
 
                 <Box sx={{ flexGrow: 1 }} />
-                <GridToolbarExport 
-                    slotProps={{
-                        tooltip: { title: 'Export data' },
-                        button: { variant: 'outlined' },
-                    }}
-                />
                 
             </GridToolbarContainer>
         );
