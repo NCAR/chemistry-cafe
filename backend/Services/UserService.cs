@@ -64,8 +64,7 @@ namespace Chemistry_Cafe_API.Services
                         INSERT INTO users (id, username, role, email)
                         VALUES (@id, @username, @role, @email);";
 
-                    var id = Guid.NewGuid();
-                    insertCommand.Parameters.AddWithValue("@id", id.ToString());
+                    insertCommand.Parameters.AddWithValue("@id", user.Id.ToString());
                     insertCommand.Parameters.AddWithValue("@username", user.Username);
                     insertCommand.Parameters.AddWithValue("@role", user.Role);
                     insertCommand.Parameters.AddWithValue("@email", user.Email ?? (object)DBNull.Value);
@@ -91,6 +90,13 @@ namespace Chemistry_Cafe_API.Services
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
 
+            var existingUser = await GetUserByIdAsync(user.Id);
+            if (existingUser == null)
+            {
+                throw new KeyNotFoundException($"User with ID {user.Id} not found.");
+            }
+
+
             command.CommandText = @"
                 UPDATE users 
                 SET username = @username, 
@@ -110,6 +116,13 @@ namespace Chemistry_Cafe_API.Services
         {
             using var connection = await _database.OpenConnectionAsync();
             using var command = connection.CreateCommand();
+
+            var existingUser = await GetUserByIdAsync(id);
+            if (existingUser == null)
+            {
+                throw new KeyNotFoundException($"User with ID {id} not found.");
+            }
+
 
             command.CommandText = "DELETE FROM users WHERE id = @id";
             command.Parameters.AddWithValue("@id", id.ToString());
