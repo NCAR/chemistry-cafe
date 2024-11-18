@@ -2,7 +2,7 @@ import React, {useEffect, useState } from 'react';
 
 import { Species, Reaction, Property} from '../API/API_Interfaces';
 import { getReactionsByMechanismId, getSpeciesByMechanismId, getPropertyBySpeciesAndMechanism} from '../API/API_GetMethods';
-import { deleteSpecies } from '../API/API_DeleteMethods';
+import { deleteSpecies, deleteReaction } from '../API/API_DeleteMethods';
 
 // import { CreateReactionModal, CreateSpeciesModal, ReactionPropertiesModal, SpeciesPropertiesModal } from './Modals';
 import {CreateSpeciesModal, CreateReactionModal, UpdateReactionModal, UpdateSpeciesModal} from './Modals';
@@ -68,6 +68,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
     const [currentTab, setCurrentTab] = useState<number>(0);
 
     const [speciesRowData, setSpeciesRowData] = useState<Species[]>([]);
+    const [reactionsRowData, setReactionsRowData] = useState<Reaction[]>([]);
 
 
     const handleSpeciesDeleteClick = (id: GridRowId) => async () => {
@@ -81,6 +82,18 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
           alert("Failed to delete species: " + error);
         }
       };
+
+    const handleReactionDeleteClick = (id: GridRowId) => async () => {
+    try {
+        await deleteReaction(id as string);
+        // Remove the deleted user from the state
+        setReactionsRowData(reactionsRowData.filter((reactionRow) => reactionRow.id !== id));
+            alert("Reaction deleted successfully!");
+    } catch (error) {
+        console.error("Error deleting reaction:", error);
+        alert("Failed to delete reaction: " + error);
+    }
+    };
     
     // Event needed as parameter to ensure correct value recieved in tabValue
     const handleTabSwitch = (_event: React.SyntheticEvent, newValue: number) => {
@@ -125,8 +138,10 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                     setReactions(fetchedReactions);
                     setReactionsCount(fetchedReactions.length);
     
-                    const rowifiedData = await rowifySpecies(fetchedSpecies);
-                    setSpeciesRowData(rowifiedData);
+                    const rowifiedSpeciesData = await rowifySpecies(fetchedSpecies);
+                    const rowifiedReactionsData = await rowifyReactions(fetchedReactions);
+                    setSpeciesRowData(rowifiedSpeciesData);
+                    setReactionsRowData(rowifiedReactionsData);
     
                     setSpeciesCreated(false);
                     setReactionCreated(false);
@@ -296,6 +311,25 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                 </Typography>
             ),
         },
+        {
+            field: "actions",
+            type: "actions",
+            headerName: "Actions",
+            headerClassName: "reactionDataHeader",
+            flex: 1,
+            cellClassName: "actions",
+            getActions: ({ id }) => {
+                return [
+                    <GridActionsCellItem
+                    icon={<DeleteIcon />}
+                    label="Delete"
+                    onClick={handleReactionDeleteClick(id)}
+                    color="inherit"
+                  />,
+                ];
+
+            },
+        }
     ];
 
     const rowifyReactions = (reactionsData: Reaction[]) => {
@@ -418,7 +452,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                         <div style={{ flexGrow: 1 }}>
                             <DataGrid
                             initialState={{ density: 'compact', }}
-                            rows={rowifyReactions(reactions)}
+                            rows={reactionsRowData}
                             columns={reactionColumns}
                             getRowId={(row: Reaction) => {if (row.id === undefined){
                                 return 0}
