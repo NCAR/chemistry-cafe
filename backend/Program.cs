@@ -59,7 +59,10 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseCors("ProductionCorsPolicy");
-    app.UseHttpsRedirection();
+    app.UseForwardedHeaders(new ForwardedHeadersOptions
+    {
+        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+    });
 }
 
 app.UseAuthorization();
