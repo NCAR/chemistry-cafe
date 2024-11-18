@@ -190,7 +190,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                 flex: 1,
                 renderCell: (params) => (
                         <Typography variant="body1">
-                            {params.row.property.tolerance === 0 ? '' : (params.row.property.tolerance ?? 'N/A')}
+                            {params.row.property.tolerance === 0 ? '' : (params.row.property.tolerance ?? '')}
                         </Typography>
                     ),
             },
@@ -210,7 +210,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                 flex: 1,
                 renderCell: (params) => (
                     <Typography variant="body1">
-                        {params.row.property.concentration === 0 ? '' : (params.row.property.concentration ?? 'N/A')}
+                        {params.row.property.concentration === 0 ? '' : (params.row.property.concentration ?? '')}
                     </Typography>
                 ),
             },
@@ -220,7 +220,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                 flex: 1,
                 renderCell: (params) => (
                     <Typography variant="body1">
-                        {params.row.property.diffusion === 0 ? '' : (params.row.property.diffusion ?? 'N/A')}
+                        {params.row.property.diffusion === 0 ? '' : (params.row.property.diffusion ?? '')}
                     </Typography>
                 ),
             },
