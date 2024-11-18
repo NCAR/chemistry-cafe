@@ -1,5 +1,6 @@
 using Chemistry_Cafe_API.Services;
 using MySqlConnector;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,8 +32,6 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddMySqlDataSource(builder.Configuration.GetConnectionString("DefaultConnection")!);
 
-var app = builder.Build();
-
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("DevelopmentCorsPolicy", builder =>
@@ -49,6 +48,8 @@ builder.Services.AddCors(options =>
                .AllowAnyHeader();
     });
 });
+
+var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
