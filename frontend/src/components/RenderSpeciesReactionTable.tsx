@@ -2,10 +2,13 @@ import React, {useEffect, useState } from 'react';
 
 import { Species, Reaction, Property} from '../API/API_Interfaces';
 import { getReactionsByMechanismId, getSpeciesByMechanismId, getPropertyBySpeciesAndMechanism} from '../API/API_GetMethods';
+import { deleteSpecies } from '../API/API_DeleteMethods';
 
 // import { CreateReactionModal, CreateSpeciesModal, ReactionPropertiesModal, SpeciesPropertiesModal } from './Modals';
 import {CreateSpeciesModal, CreateReactionModal, UpdateReactionModal, UpdateSpeciesModal} from './Modals';
-import { DataGrid, GridRowParams, GridColDef, GridToolbarContainer, GridToolbarColumnsButton, GridToolbarFilterButton, GridToolbarDensitySelector, GridToolbarExport } from '@mui/x-data-grid';
+import { DataGrid, GridRowParams, GridColDef, GridToolbarContainer, GridToolbarColumnsButton, 
+    GridToolbarFilterButton, GridToolbarDensitySelector, GridActionsCellItem, GridRowId} from '@mui/x-data-grid';
+import DeleteIcon from "@mui/icons-material/DeleteOutlined";
 
 import IconButton from '@mui/material/IconButton';
 import { Add} from '@mui/icons-material';
@@ -65,6 +68,19 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
     const [currentTab, setCurrentTab] = useState<number>(0);
 
     const [speciesRowData, setSpeciesRowData] = useState<Species[]>([]);
+
+
+    const handleSpeciesDeleteClick = (id: GridRowId) => async () => {
+        try {
+          await deleteSpecies(id as string);
+          // Remove the deleted user from the state
+            setSpeciesRowData(speciesRowData.filter((speciesRow) => speciesRow.id !== id));
+                alert("Species deleted successfully!");
+        } catch (error) {
+          console.error("Error deleting species:", error);
+          alert("Failed to delete species: " + error);
+        }
+      };
     
     // Event needed as parameter to ensure correct value recieved in tabValue
     const handleTabSwitch = (_event: React.SyntheticEvent, newValue: number) => {
@@ -192,6 +208,25 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({ selectedFamilyID, selecte
                         {params.row.property.diffusion === 0 ? '' : (params.row.property.diffusion ?? 'N/A')}
                     </Typography>
                 ),
+            },
+            {
+                field: "actions",
+                type: "actions",
+                headerName: "Actions",
+                headerClassName: "roleDataHeader",
+                flex: 1,
+                cellClassName: "actions",
+                getActions: ({ id }) => {
+                    return [
+                        <GridActionsCellItem
+                        icon={<DeleteIcon />}
+                        label="Delete"
+                        onClick={handleSpeciesDeleteClick(id)}
+                        color="inherit"
+                      />,
+                    ];
+
+                },
             }
             
         ];
