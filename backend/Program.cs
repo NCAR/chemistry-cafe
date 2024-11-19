@@ -39,7 +39,6 @@ else
 {
     connectionString = builder.Configuration.GetConnectionString("ProductionConnection") ?? throw new InvalidOperationException("ProductionConnection string is missing.");
 }
-Console.WriteLine($"Connection string: {connectionString}");
 
 builder.Services.AddMySqlDataSource(connectionString);
 
