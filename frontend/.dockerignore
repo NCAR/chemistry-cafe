@@ -8,6 +8,7 @@
 !test
 !.env
 !.env.development
+!.env.production
 !eslint-report.html
 !eslint.config.js
 !index.html
