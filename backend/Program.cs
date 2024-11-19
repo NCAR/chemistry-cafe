@@ -33,11 +33,11 @@ builder.Services.AddSwaggerGen();
 string connectionString;
 if (builder.Environment.IsDevelopment())
 {
-    connectionString = builder.Configuration.GetConnectionString("HostConnection");
+    connectionString = builder.Configuration.GetConnectionString("HostConnection") ?? throw new InvalidOperationException("HostConnection string is missing.");
 }
 else
 {
-    connectionString = builder.Configuration.GetConnectionString("ProductionConnection");
+    connectionString = builder.Configuration.GetConnectionString("ProductionConnection") ?? throw new InvalidOperationException("ProductionConnection string is missing.");
 }
 
 builder.Services.AddMySqlDataSource(connectionString);
