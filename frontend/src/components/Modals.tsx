@@ -40,7 +40,11 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
-import { updateProperty, updateReaction, updateSpecies } from "../API/API_UpdateMethods";
+import {
+  updateProperty,
+  updateReaction,
+  updateSpecies,
+} from "../API/API_UpdateMethods";
 
 const style = {
   position: "absolute" as const,
@@ -100,7 +104,6 @@ interface UpdateSpeciesModalProps {
   setSpeciesUpdated: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-
 interface CreateReactionModalProps {
   open: boolean;
   onClose: () => void;
@@ -131,7 +134,6 @@ interface CreateReactantModalProps {
   setReactionUpdated: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-
 interface CreateProductModalProps {
   open: boolean;
   onClose: () => void;
@@ -140,7 +142,6 @@ interface CreateProductModalProps {
   setCreatedProductBool: React.Dispatch<React.SetStateAction<boolean>>;
   setReactionUpdated: React.Dispatch<React.SetStateAction<boolean>>;
 }
-
 
 export const CreatePublishModal: React.FC<CreatePublishModalProps> = ({
   open,
@@ -274,7 +275,7 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
               .map((p) => p.species_name)
               .join(" + ");
             equations[reaction.id!] = `${reactantNames} -> ${productNames}`;
-          })
+          }),
         );
         setReactionEquations(equations);
       } catch (error) {
@@ -396,7 +397,6 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
   const [weight, setWeight] = useState<number>(0);
   const [diffusion, setDiffusion] = useState<number>(0);
 
-
   const handleCreateSpeciesClick = async () => {
     try {
       if (selectedFamilyId && selectedMechanismId) {
@@ -414,7 +414,7 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
               species_id: newSpecies.id!,
             };
             await addSpeciesToMechanism(mechanismSpecies);
-            
+
             // make the corresponding property
             const propertyData: Property = {
               speciesId: newSpecies.id!,
@@ -426,11 +426,8 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
             };
             const createdProperty = await createProperty(propertyData);
             console.log(createdProperty);
-
-
           }
         }
-
 
         setSpeciesName("");
         setSpeciesDescription("");
@@ -444,94 +441,136 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
   };
 
   return (
-    <Modal
-            open={open}
-            onClose={onClose}
-        >
-            <Box sx={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                bgcolor: "background.paper",
-                border: "2px solid #000",
-                boxShadow: 24,
-                p: 4,
-                width: 600,
-                maxHeight: "80vh", // Set maximum height to 80% of viewport height
-                overflowY: "auto" // Enable vertical scrolling if content overflows
-            }}>
-                <h1>Create New Species</h1>
-                <Box sx={{ display: "flex", flexDirection: "column"}}>
+    <Modal open={open} onClose={onClose}>
+      <Box
+        sx={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          bgcolor: "background.paper",
+          border: "2px solid #000",
+          boxShadow: 24,
+          p: 4,
+          width: 600,
+          maxHeight: "80vh", // Set maximum height to 80% of viewport height
+          overflowY: "auto", // Enable vertical scrolling if content overflows
+        }}
+      >
+        <h1>Create New Species</h1>
+        <Box sx={{ display: "flex", flexDirection: "column" }}>
+          <Box
+            sx={{
+              display: "flex",
+              borderBottom: "1px solid #ccc",
+              fontWeight: "bold",
+            }}
+          >
+            <TextField
+              id="species-name"
+              label="Name"
+              onChange={(e) => setSpeciesName(e.target.value)}
+              fullWidth
+              margin="normal"
+            />
+          </Box>
 
-                    <Box sx={{ display: "flex", borderBottom: "1px solid #ccc", fontWeight: "bold" }}>
-                        <TextField
-                          id="species-name"
-                          label="Name"
-                          onChange={(e) => setSpeciesName(e.target.value)}
-                          fullWidth
-                          margin="normal"
-                        />
-                    </Box>
+          <Box
+            sx={{
+              display: "flex",
+              gap: "1rem",
+              borderBottom: "1px solid #ccc",
+              pb: "0.5rem",
+              fontWeight: "bold",
+            }}
+          >
+            <TextField
+              id="species-description"
+              label="Description"
+              onChange={(e) => setSpeciesDescription(e.target.value)}
+              fullWidth
+              margin="normal"
+            />
+          </Box>
 
-                    <Box sx={{ display: "flex", gap: "1rem", borderBottom: "1px solid #ccc", pb: "0.5rem", fontWeight: "bold" }}>
-                        <TextField
-                          id="species-description"
-                          label="Description"
-                          onChange={(e) => setSpeciesDescription(e.target.value)}
-                          fullWidth
-                          margin="normal"
-                        />
-                    </Box>
+          <Box
+            sx={{
+              display: "flex",
+              borderBottom: "1px solid #ccc",
+              fontWeight: "bold",
+            }}
+          >
+            <TextField
+              id="species-concentration"
+              label="Fixed Concentration"
+              type="number"
+              onChange={(e) => setConcentration(Number(e.target.value))}
+              fullWidth
+              margin="normal"
+            />
+          </Box>
 
-                    <Box sx={{ display: "flex", borderBottom: "1px solid #ccc", fontWeight: "bold" }}>
-                        <TextField
-                          id="species-concentration"
-                          label="Fixed Concentration"
-                          type='number'
-                          onChange={(e) => setConcentration(Number(e.target.value))}
-                          fullWidth
-                          margin="normal"
-                        />
-                    </Box>
+          <Box
+            sx={{
+              display: "flex",
+              gap: "1rem",
+              borderBottom: "1px solid #ccc",
+              pb: "0.5rem",
+              fontWeight: "bold",
+            }}
+          >
+            <TextField
+              id="species-convergence-tolerance"
+              label="Absolute Convergence Tolerance"
+              type="number"
+              onChange={(e) => setTolerance(Number(e.target.value))}
+              fullWidth
+              margin="normal"
+            />
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              gap: "1rem",
+              borderBottom: "1px solid #ccc",
+              pb: "0.5rem",
+              fontWeight: "bold",
+            }}
+          >
+            <TextField
+              id="species-weight"
+              label="Molecular Weight"
+              type="number"
+              onChange={(e) => setWeight(Number(e.target.value))}
+              fullWidth
+              margin="normal"
+            />
+          </Box>
 
-                    <Box sx={{ display: "flex", gap: "1rem", borderBottom: "1px solid #ccc", pb: "0.5rem", fontWeight: "bold" }}>
-                        <TextField
-                          id="species-convergence-tolerance"
-                          label="Absolute Convergence Tolerance"
-                          type='number'
-                          onChange={(e) => setTolerance(Number(e.target.value))}
-                          fullWidth
-                          margin="normal"
-                        />
-                    </Box>
-                    <Box sx={{ display: "flex", gap: "1rem", borderBottom: "1px solid #ccc", pb: "0.5rem", fontWeight: "bold" }}>
-                        <TextField
-                          id="species-weight"
-                          label="Molecular Weight"
-                          type='number'
-                          onChange={(e) => setWeight(Number(e.target.value))}
-                          fullWidth
-                          margin="normal"
-                        />
-                    </Box>
-
-                    <Box sx={{ display: "flex", gap: "1rem", borderBottom: "1px solid #ccc", pb: "0.5rem", fontWeight: "bold" }}>
-                        <TextField
-                          id="species-diffusion-coefficient"
-                          label="Diffusion Coefficient"
-                          type='number'
-                          onChange={(e) => setDiffusion(Number(e.target.value))}
-                          fullWidth
-                          margin="normal"
-                        />
-                    </Box>
-
-
-                </Box>
-                <Button sx={{ mt: "2rem" }} onClick={handleCreateSpeciesClick}>Submit</Button>
-            </Box>
-        </Modal>
+          <Box
+            sx={{
+              display: "flex",
+              gap: "1rem",
+              borderBottom: "1px solid #ccc",
+              pb: "0.5rem",
+              fontWeight: "bold",
+            }}
+          >
+            <TextField
+              id="species-diffusion-coefficient"
+              label="Diffusion Coefficient"
+              type="number"
+              onChange={(e) => setDiffusion(Number(e.target.value))}
+              fullWidth
+              margin="normal"
+            />
+          </Box>
+        </Box>
+        <Button sx={{ mt: "2rem" }} onClick={handleCreateSpeciesClick}>
+          Submit
+        </Button>
+      </Box>
+    </Modal>
   );
 };
 
@@ -544,12 +583,13 @@ export const UpdateSpeciesModal: React.FC<UpdateSpeciesModalProps> = ({
   selectedSpeciesProperties,
   setSpeciesUpdated,
 }) => {
-
   // console.log("in update species");
   // console.log(selectedSpecies?.name);
   // set values to the current values of the selected species
   const [speciesName, setSpeciesName] = useState(selectedSpecies?.name || "");
-  const [speciesDescription, setSpeciesDescription] = useState(selectedSpecies?.description || "");
+  const [speciesDescription, setSpeciesDescription] = useState(
+    selectedSpecies?.description || "",
+  );
 
   useEffect(() => {
     if (selectedSpecies) {
@@ -558,13 +598,19 @@ export const UpdateSpeciesModal: React.FC<UpdateSpeciesModalProps> = ({
     }
   }, [selectedSpecies]);
 
-
   // as we are updating an existing species, should never be empty
-  const [concentration, setConcentration] = useState<number>(selectedSpeciesProperties?.concentration || 0);
-  const [tolerance, setTolerance] = useState<number>(selectedSpeciesProperties?.tolerance || 0);
-  const [weight, setWeight] = useState<number>(selectedSpeciesProperties?.weight || 0);
-  const [diffusion, setDiffusion] = useState<number>(selectedSpeciesProperties?.diffusion || 0);
-
+  const [concentration, setConcentration] = useState<number>(
+    selectedSpeciesProperties?.concentration || 0,
+  );
+  const [tolerance, setTolerance] = useState<number>(
+    selectedSpeciesProperties?.tolerance || 0,
+  );
+  const [weight, setWeight] = useState<number>(
+    selectedSpeciesProperties?.weight || 0,
+  );
+  const [diffusion, setDiffusion] = useState<number>(
+    selectedSpeciesProperties?.diffusion || 0,
+  );
 
   const handleUpdateSpeciesClick = async () => {
     try {
@@ -594,7 +640,6 @@ export const UpdateSpeciesModal: React.FC<UpdateSpeciesModalProps> = ({
           console.log(updatedProperties);
         }
 
-
         setSpeciesName("");
         setSpeciesDescription("");
 
@@ -606,109 +651,145 @@ export const UpdateSpeciesModal: React.FC<UpdateSpeciesModalProps> = ({
     }
   };
 
+  console.log("open status");
+  console.log(open);
   return (
-    <Modal
-            open={open}
-            onClose={onClose}
-        >
-            <Box sx={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                bgcolor: "background.paper",
-                border: "2px solid #000",
-                boxShadow: 24,
-                p: 4,
-                width: 600,
-                maxHeight: "80vh", // Set maximum height to 80% of viewport height
-                overflowY: "auto" // Enable vertical scrolling if content overflows
-            }}>
-                <h1>Edit Species</h1>
-                <Box sx={{ display: "flex", flexDirection: "column"}}>
+    <Modal open={open} onClose={onClose}>
+      <Box
+        sx={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          bgcolor: "background.paper",
+          border: "2px solid #000",
+          boxShadow: 24,
+          p: 4,
+          width: 600,
+          maxHeight: "80vh", // Set maximum height to 80% of viewport height
+          overflowY: "auto", // Enable vertical scrolling if content overflows
+        }}
+      >
+        <h1>Edit Species</h1>
+        <Box sx={{ display: "flex", flexDirection: "column" }}>
+          <Box
+            sx={{
+              display: "flex",
+              borderBottom: "1px solid #ccc",
+              fontWeight: "bold",
+            }}
+          >
+            <TextField
+              id="species-name"
+              label="Name"
+              value={speciesName}
+              onChange={(e) => setSpeciesName(e.target.value)}
+              fullWidth
+              margin="normal"
+            />
+          </Box>
 
-                    <Box sx={{ display: "flex", borderBottom: "1px solid #ccc", fontWeight: "bold" }}>
-                        <TextField
-                          id="species-name"
-                          label="Name"
-                          value={speciesName}
-                          onChange={(e) => setSpeciesName(e.target.value)}
-                          fullWidth
-                          margin="normal"
-                        />
-                    </Box>
+          <Box
+            sx={{
+              display: "flex",
+              gap: "1rem",
+              borderBottom: "1px solid #ccc",
+              pb: "0.5rem",
+              fontWeight: "bold",
+            }}
+          >
+            <TextField
+              id="species-description"
+              label="Description"
+              value={speciesDescription}
+              onChange={(e) => setSpeciesDescription(e.target.value)}
+              fullWidth
+              margin="normal"
+            />
+          </Box>
 
-                    <Box sx={{ display: "flex", gap: "1rem", borderBottom: "1px solid #ccc", pb: "0.5rem", fontWeight: "bold" }}>
-                        <TextField
-                          id="species-description"
-                          label="Description"
-                          value={speciesDescription}
-                          onChange={(e) => setSpeciesDescription(e.target.value)}
-                          fullWidth
-                          margin="normal"
-                        />
-                    </Box>
+          <Box
+            sx={{
+              display: "flex",
+              borderBottom: "1px solid #ccc",
+              fontWeight: "bold",
+            }}
+          >
+            <TextField
+              id="species-concentration"
+              label="Fixed Concentration"
+              type="number"
+              value={concentration}
+              onChange={(e) => setConcentration(Number(e.target.value) || 0)}
+              fullWidth
+              margin="normal"
+            />
+          </Box>
 
-                    <Box sx={{ display: "flex", borderBottom: "1px solid #ccc", fontWeight: "bold" }}>
-                        <TextField
-                          id="species-concentration"
-                          label="Fixed Concentration"
-                          type='number'
-                          value={concentration}
-                          onChange={(e) => 
-                            setConcentration(Number(e.target.value) || 0)
-                          }
-                          fullWidth
-                          margin="normal"
-                        />
-                    </Box>
+          <Box
+            sx={{
+              display: "flex",
+              gap: "1rem",
+              borderBottom: "1px solid #ccc",
+              pb: "0.5rem",
+              fontWeight: "bold",
+            }}
+          >
+            <TextField
+              id="species-convergence-tolerance"
+              label="Absolute Convergence Tolerance"
+              type="number"
+              value={tolerance}
+              onChange={(e) => setTolerance(Number(e.target.value) || 0)}
+              fullWidth
+              margin="normal"
+            />
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              gap: "1rem",
+              borderBottom: "1px solid #ccc",
+              pb: "0.5rem",
+              fontWeight: "bold",
+            }}
+          >
+            <TextField
+              id="species-weight"
+              label="Molecular Weight"
+              type="number"
+              value={weight}
+              onChange={(e) => setWeight(Number(e.target.value) || 0)}
+              fullWidth
+              margin="normal"
+            />
+          </Box>
 
-                    <Box sx={{ display: "flex", gap: "1rem", borderBottom: "1px solid #ccc", pb: "0.5rem", fontWeight: "bold" }}>
-                        <TextField
-                          id="species-convergence-tolerance"
-                          label="Absolute Convergence Tolerance"
-                          type='number'
-                          value={tolerance}
-                          onChange={(e) => 
-                            setTolerance(Number(e.target.value) || 0)
-                          }
-                          fullWidth
-                          margin="normal"
-                        />
-                    </Box>
-                    <Box sx={{ display: "flex", gap: "1rem", borderBottom: "1px solid #ccc", pb: "0.5rem", fontWeight: "bold" }}>
-                        <TextField
-                          id="species-weight"
-                          label="Molecular Weight"
-                          type='number'
-                          value={weight}
-                          onChange={(e) => 
-                            setWeight(Number(e.target.value) || 0)
-                          }
-                          fullWidth
-                          margin="normal"
-                        />
-                    </Box>
-
-                    <Box sx={{ display: "flex", gap: "1rem", borderBottom: "1px solid #ccc", pb: "0.5rem", fontWeight: "bold" }}>
-                        <TextField
-                          id="species-diffusion-coefficient"
-                          label="Diffusion Coefficient"
-                          type='number'
-                          value={diffusion}
-                          onChange={(e) => 
-                            setDiffusion(Number(e.target.value) || 0)
-                          }
-                          fullWidth
-                          margin="normal"
-                        />
-                    </Box>
-
-
-                </Box>
-                <Button sx={{ mt: "2rem" }} onClick={handleUpdateSpeciesClick}>Submit</Button>
-            </Box>
-        </Modal>
+          <Box
+            sx={{
+              display: "flex",
+              gap: "1rem",
+              borderBottom: "1px solid #ccc",
+              pb: "0.5rem",
+              fontWeight: "bold",
+            }}
+          >
+            <TextField
+              id="species-diffusion-coefficient"
+              label="Diffusion Coefficient"
+              type="number"
+              value={diffusion}
+              onChange={(e) => setDiffusion(Number(e.target.value) || 0)}
+              fullWidth
+              margin="normal"
+            />
+          </Box>
+        </Box>
+        <Button sx={{ mt: "2rem" }} onClick={handleUpdateSpeciesClick}>
+          Submit
+        </Button>
+      </Box>
+    </Modal>
   );
 };
 
@@ -734,18 +815,16 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
     const fetchReactions = async () => {
       try {
         if (selectedFamilyId && selectedMechanismId) {
-          const reactionsFamily = await getReactionsByFamilyId(
-            selectedFamilyId
-          );
-          const reactionsMechanism = await getReactionsByMechanismId(
-            selectedMechanismId
-          );
+          const reactionsFamily =
+            await getReactionsByFamilyId(selectedFamilyId);
+          const reactionsMechanism =
+            await getReactionsByMechanismId(selectedMechanismId);
 
           const uniqueReactions = reactionsFamily.filter(
             (reaction: Reaction) =>
               !reactionsMechanism.some(
-                (mechReaction) => mechReaction.id === reaction.id
-              )
+                (mechReaction) => mechReaction.id === reaction.id,
+              ),
           );
           setReactionList(uniqueReactions);
         }
@@ -771,7 +850,7 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
               .map((p: ReactionSpeciesDto) => p.species_name)
               .join(" + ");
             equations[reaction.id!] = `${reactantNames} -> ${productNames}`;
-          })
+          }),
         );
         setReactionEquations(equations);
       } catch (error) {
@@ -806,17 +885,21 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
           // Name is mecanism name_reaction number
           // get the number of current reactions
           const reactionData: Reaction = {
-            name: selectedMechanismName + "_reaction" + String(reactionsCount+1),
+            name:
+              selectedMechanismName + "_reaction" + String(reactionsCount + 1),
             // Set description to the constructed equation
-            description: selectedReactionType.toUpperCase() + " Reaction " +
-              String(reactionsCount + 1) + ": " +
-              createReactionReactantsRef.current + " -> " +
+            description:
+              selectedReactionType.toUpperCase() +
+              " Reaction " +
+              String(reactionsCount + 1) +
+              ": " +
+              createReactionReactantsRef.current +
+              " -> " +
               createReactionProductsRef.current,
             createdBy: "current_user",
           };
           //console.log(reactionData);
           const newReaction = await createReaction(reactionData);
-
 
           //console.log(newReaction);
 
@@ -876,20 +959,22 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
         </Select>
 
         <TextField
-        id="reactants"
-        label="Reactants"
-        type="string"
-        onChange={(e) => (createReactionReactantsRef.current = e.target.value)}
-        fullWidth
-        margin="normal"
+          id="reactants"
+          label="Reactants"
+          type="string"
+          onChange={(e) =>
+            (createReactionReactantsRef.current = e.target.value)
+          }
+          fullWidth
+          margin="normal"
         />
         <TextField
-        id="products"
-        label="Products"
-        type="string"
-        onChange={(e) => (createReactionProductsRef.current = e.target.value)}
-        fullWidth
-        margin="normal"
+          id="products"
+          label="Products"
+          type="string"
+          onChange={(e) => (createReactionProductsRef.current = e.target.value)}
+          fullWidth
+          margin="normal"
         />
         {reactionList.length > 0 && (
           <>
@@ -930,7 +1015,6 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
   );
 };
 
-
 export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
   open,
   onClose,
@@ -957,10 +1041,13 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
       try {
         if (selectedFamilyId && selectedMechanismId && selectedReaction) {
           // get the current reaction data
-          if (selectedReaction.name !== null && selectedReaction.description !== null){
+          if (
+            selectedReaction.name !== null &&
+            selectedReaction.description !== null
+          ) {
             // make regex expression
-            const regex = /^(Arrhenius|Branched|Emission|First-Order Loss|Photolysis|Surface \(Heterogeneous\)|Ternary Chemical Activation|Troe \(Fall-Off\)|Tunneling|N\/A)(?: Reaction \d+)?: ([^->]+) -> (.+)$/i;
-
+            const regex =
+              /^(Arrhenius|Branched|Emission|First-Order Loss|Photolysis|Surface \(Heterogeneous\)|Ternary Chemical Activation|Troe \(Fall-Off\)|Tunneling|N\/A)(?: Reaction \d+)?: ([^->]+) -> (.+)$/i;
 
             const matches = selectedReaction.description.match(regex);
 
@@ -968,7 +1055,11 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
               // console.log("matches:");
               // console.log(matches);
               // getting the current data before editing
-              setSelectedReactionType(matches[1].toLowerCase().replace(/^./, char => char.toUpperCase()) );
+              setSelectedReactionType(
+                matches[1]
+                  .toLowerCase()
+                  .replace(/^./, (char) => char.toUpperCase()),
+              );
               const tempReactants = matches[2].trim();
               const tempProducts = matches[3].trim();
               setReactants(tempReactants);
@@ -978,18 +1069,16 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
               createReactionReactantsRef.current = tempReactants;
             }
           }
-          const reactionsFamily = await getReactionsByFamilyId(
-            selectedFamilyId
-          );
-          const reactionsMechanism = await getReactionsByMechanismId(
-            selectedMechanismId
-          );
+          const reactionsFamily =
+            await getReactionsByFamilyId(selectedFamilyId);
+          const reactionsMechanism =
+            await getReactionsByMechanismId(selectedMechanismId);
 
           const uniqueReactions = reactionsFamily.filter(
             (reaction: Reaction) =>
               !reactionsMechanism.some(
-                (mechReaction) => mechReaction.id === reaction.id
-              )
+                (mechReaction) => mechReaction.id === reaction.id,
+              ),
           );
           setReactionList(uniqueReactions);
         }
@@ -1015,7 +1104,7 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
               .map((p: ReactionSpeciesDto) => p.species_name)
               .join(" + ");
             equations[reaction.id!] = `${reactantNames} -> ${productNames}`;
-          })
+          }),
         );
         setReactionEquations(equations);
       } catch (error) {
@@ -1043,9 +1132,13 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
             id: selectedReaction!.id,
             name: selectedReaction!.name,
             // Set description to the constructed equation
-            description: selectedReactionType.toUpperCase() + " Reaction " +
-              String(reactionsCount + 1) + ": " +
-              createReactionReactantsRef.current + " -> " +
+            description:
+              selectedReactionType.toUpperCase() +
+              " Reaction " +
+              String(reactionsCount + 1) +
+              ": " +
+              createReactionReactantsRef.current +
+              " -> " +
               createReactionProductsRef.current,
             createdBy: "current_user",
           };
@@ -1056,10 +1149,7 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
           const updatedReaction = await updateReaction(reactionData);
 
           console.log(updatedReaction);
-
-
         }
-
 
         setSelectedReactionType("");
         setSelectedReactionIds([]);
@@ -1102,31 +1192,28 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
         </Select>
 
         <TextField
-        id="reactants"
-        label="Reactants"
-        type="string"
-        value={reactants}
-        onChange={(e) => {
-          setReactants(e.target.value);
-          (createReactionReactantsRef.current = e.target.value);
-          }
-        }
-        fullWidth
-        margin="normal"
+          id="reactants"
+          label="Reactants"
+          type="string"
+          value={reactants}
+          onChange={(e) => {
+            setReactants(e.target.value);
+            createReactionReactantsRef.current = e.target.value;
+          }}
+          fullWidth
+          margin="normal"
         />
         <TextField
-        id="products"
-        label="Products"
-        type="string"
-        value={products}
-        onChange={(e) => {
-          setProducts(e.target.value);
-          (createReactionProductsRef.current = e.target.value);
-          }
-        }
-
-        fullWidth
-        margin="normal"
+          id="products"
+          label="Products"
+          type="string"
+          value={products}
+          onChange={(e) => {
+            setProducts(e.target.value);
+            createReactionProductsRef.current = e.target.value;
+          }}
+          fullWidth
+          margin="normal"
         />
         {reactionList.length > 0 && (
           <>
@@ -1167,11 +1254,6 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
   );
 };
 
-
-
-
-
-
 export const CreateReactantModal: React.FC<CreateReactantModalProps> = ({
   open,
   onClose,
@@ -1182,7 +1264,7 @@ export const CreateReactantModal: React.FC<CreateReactantModalProps> = ({
 }) => {
   const [speciesList, setSpeciesList] = useState<Species[]>([]);
   const [selectedSpeciesId, setSelectedSpeciesId] = useState<string | null>(
-    null
+    null,
   );
   const createReactantQuantityRef = useRef("");
 
@@ -1279,7 +1361,7 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
 }) => {
   const [speciesList, setSpeciesList] = useState<Species[]>([]);
   const [selectedSpeciesId, setSelectedSpeciesId] = useState<string | null>(
-    null
+    null,
   );
   const createProductQuantityRef = useRef("");
 

@@ -1,3 +1,3 @@
 declare module "react-accessibility" {
-    export const AccessibilityWidget: React.FC;
-  }
+  export const AccessibilityWidget: React.FC;
+}

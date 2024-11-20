@@ -13,12 +13,12 @@ import "../styles/family.css";
 const FamilyPage = () => {
   const [selectedFamilyId, setSelectedFamilyId] = useState<string | null>(null);
   const [selectedMechanismId, setSelectedMechanismId] = useState<string | null>(
-    null
+    null,
   );
 
-  const [selectedMechanismName, setSelectedMechanismName] = useState<string | null> (
-    null
-  );
+  const [selectedMechanismName, setSelectedMechanismName] = useState<
+    string | null
+  >(null);
 
   const [createdFamilyBool, setCreatedFamilyBool] = useState<boolean>(false);
   const [createFamilyOpen, setCreateFamilyOpen] = React.useState(false);
@@ -42,7 +42,7 @@ const FamilyPage = () => {
           selectedFamilyId={selectedFamilyId}
           setSelectedFamilyId={setSelectedFamilyId}
           setSelectedMechanismId={setSelectedMechanismId}
-          setSelectedMechanismName = {setSelectedMechanismName}
+          setSelectedMechanismName={setSelectedMechanismName}
           handleCreateFamilyOpen={handleCreateFamilyOpen}
           handleCreateMechanismOpen={handleCreateMechanismOpen}
           createdFamilyBool={createdFamilyBool}

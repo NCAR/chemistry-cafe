@@ -1,7 +1,14 @@
 // API_UpdateMethods.ts
 
 import axios from "axios";
-import { Family, Mechanism, Species, Reaction, User, Property } from "./API_Interfaces";
+import {
+  Family,
+  Mechanism,
+  Species,
+  Reaction,
+  User,
+  Property,
+} from "./API_Interfaces";
 import { BASE_URL } from "./API_config";
 
 // Update a family
@@ -14,7 +21,7 @@ export async function updateFamily(family: Family) {
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data as Family;
   } catch (error) {
@@ -33,7 +40,7 @@ export async function updateMechanism(mechanism: Mechanism) {
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data as Mechanism;
   } catch (error) {
@@ -52,7 +59,7 @@ export async function updateSpecies(species: Species) {
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data as Species;
   } catch (error) {
@@ -71,7 +78,7 @@ export async function updateReaction(reaction: Reaction) {
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data as Reaction;
   } catch (error) {
@@ -82,15 +89,11 @@ export async function updateReaction(reaction: Reaction) {
 
 export async function updateUser(id: string, user: User) {
   try {
-    const response = await axios.put(
-      `${BASE_URL}/users/${id}`,
-      user,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await axios.put(`${BASE_URL}/users/${id}`, user, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
     return response.data as User;
   } catch (error) {
     console.error(error);
@@ -107,7 +110,7 @@ export async function updateProperty(property: Property) {
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data as Property;
   } catch (error) {
@@ -115,4 +118,3 @@ export async function updateProperty(property: Property) {
     throw error;
   }
 }
-

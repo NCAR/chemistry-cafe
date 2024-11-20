@@ -45,21 +45,21 @@ const RoleManagement: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedRoles, setSelectedRoles] = useState<{ [key: string]: string }>(
-    {}
+    {},
   );
- // const [search, setSearch] = useState<string>(""); // State for search input
- // const [roleFilter, setRoleFilter] = useState<string>("all"); // State for role filter
+  // const [search, setSearch] = useState<string>(""); // State for search input
+  // const [roleFilter, setRoleFilter] = useState<string>("all"); // State for role filter
 
   const [rowModesModel, setRowModesModel] = React.useState<GridRowModesModel>(
-    {}
+    {},
   );
 
   // Fetch the current logged-in user from the AuthContext
-//  const { user: loggedInUser } = useAuth(); // Access the logged-in user
+  //  const { user: loggedInUser } = useAuth(); // Access the logged-in user
 
   // Fetch users from the backend when the component mounts
   useEffect(() => {
-    console.log('Selected Roles:', selectedRoles); // Temporary logging
+    console.log("Selected Roles:", selectedRoles); // Temporary logging
   }, [selectedRoles]);
   useEffect(() => {
     const fetchUsers = async () => {
@@ -67,12 +67,15 @@ const RoleManagement: React.FC = () => {
         const response = await getUsers();
         setUsers(response);
         // Initialize selectedRoles with each user's current role
-        const initialRoles = response.reduce((acc, user) => {
-          if(user.id){
-            acc[user.id] = user.role;
-          }
-          return acc;
-        }, {} as { [key: string]: string });
+        const initialRoles = response.reduce(
+          (acc, user) => {
+            if (user.id) {
+              acc[user.id] = user.role;
+            }
+            return acc;
+          },
+          {} as { [key: string]: string },
+        );
         setSelectedRoles(initialRoles);
       } catch (error) {
         console.error("Error fetching users:", error);
@@ -95,7 +98,7 @@ const RoleManagement: React.FC = () => {
   // Handling editing actions
   const handleRowEditStop: GridEventListener<"rowEditStop"> = (
     params,
-    event
+    event,
   ) => {
     if (params.reason === GridRowEditStopReasons.rowFocusOut) {
       event.defaultMuiPrevented = true;
@@ -135,7 +138,7 @@ const RoleManagement: React.FC = () => {
     try {
       const response = await updateUser(
         updatedUser.id as string,
-        updatedUser as User
+        updatedUser as User,
       ); // Ensure updatedUser.id is a string
       return response;
     } catch (error) {

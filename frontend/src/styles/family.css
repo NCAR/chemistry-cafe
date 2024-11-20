@@ -3,7 +3,7 @@
   width: 100vw;
 
   display: grid;
-  grid-template-areas: 
+  grid-template-areas:
     "header header header"
     "familyMenu speciesReactions speciesReactions"
     "footer footer footer";
@@ -11,18 +11,23 @@
   grid-template-columns: 1fr 2fr; /* 1/3 and 2/3 for the middle sections */
   /* gap: 8px; */
 }
-  
 
-
-.headerBar { grid-area: header;}
-.familiesMenu { grid-area: familyMenu;}
-.speciesReactions {grid-area: speciesReactions;}
-.footerBar { grid-area: footer;}
-
+.headerBar {
+  grid-area: header;
+}
+.familiesMenu {
+  grid-area: familyMenu;
+}
+.speciesReactions {
+  grid-area: speciesReactions;
+}
+.footerBar {
+  grid-area: footer;
+}
 
 .modal-visible {
   position: absolute;
-  animation: slideIn 2.5s cubic-bezier(0,-0.01,.01,1) infinite;
+  animation: slideIn 2.5s cubic-bezier(0, -0.01, 0.01, 1) infinite;
 }
 
 .modal-hidden {

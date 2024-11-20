@@ -31,9 +31,6 @@ const LogIn = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const navigate = useNavigate(); 
   const handleClick = () => navigate("/LoggedIn");
-  
-
- 
 
   const login = useGoogleLogin({
     onSuccess: (codeResponse) => {
@@ -53,7 +50,7 @@ const LogIn = () => {
               Authorization: `Bearer ${user.access_token}`,
               Accept: "application/json",
             },
-          }
+          },
         )
         .then(async (res) => {
           const profileData = res.data;
@@ -122,8 +119,6 @@ const LogIn = () => {
     setProfile(null);
     setUser(null); // Clear user from AuthContext on logout
   };
-
-
 
   return (
     <section className="layoutLogIn">
