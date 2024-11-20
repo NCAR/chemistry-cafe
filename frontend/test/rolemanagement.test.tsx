@@ -1,57 +1,68 @@
-import React from 'react';
-import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
-import RoleManagement from '../src/pages/RoleManagement'; // Updated path to RoleManagement
-import { useAuth } from '../src/pages/AuthContext';
-import { getUsers } from '../src/API/API_GetMethods';
-import { updateUser } from '../src/API/API_UpdateMethods';
-import { deleteUser } from '../src/API/API_DeleteMethods';
-import '@testing-library/jest-dom';
-import userEvent from '@testing-library/user-event';
+import React from "react";
+import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import RoleManagement from "../src/pages/RoleManagement"; // Updated path to RoleManagement
+import { useAuth } from "../src/pages/AuthContext";
+import { getUsers } from "../src/API/API_GetMethods";
+import { updateUser } from "../src/API/API_UpdateMethods";
+import { deleteUser } from "../src/API/API_DeleteMethods";
+import "@testing-library/jest-dom";
+import userEvent from "@testing-library/user-event";
 
 // Mocking necessary modules
-vi.mock('../src/pages/AuthContext', () => ({
+vi.mock("../src/pages/AuthContext", () => ({
   useAuth: vi.fn(),
 }));
 
-vi.mock('../src/API/API_GetMethods', () => ({
+vi.mock("../src/API/API_GetMethods", () => ({
   getUsers: vi.fn(),
 }));
 
-vi.mock('../src/API/API_UpdateMethods', () => ({
+vi.mock("../src/API/API_UpdateMethods", () => ({
   updateUser: vi.fn(),
 }));
 
-vi.mock('../src/API/API_DeleteMethods', () => ({
+vi.mock("../src/API/API_DeleteMethods", () => ({
   deleteUser: vi.fn(),
 }));
 
 // Sample data
 const mockUsers = [
-  { id: '1', username: 'JohnDoe', email: 'johndoe@example.com', role: 'admin' },
-  { id: '2', username: 'JaneDoe', email: 'janedoe@example.com', role: 'unverified' },
+  { id: "1", username: "JohnDoe", email: "johndoe@example.com", role: "admin" },
+  {
+    id: "2",
+    username: "JaneDoe",
+    email: "janedoe@example.com",
+    role: "unverified",
+  },
 ];
 
-const mockLoggedInUser = { id: '123', username: 'TestUser', role: 'admin' };
+const mockLoggedInUser = { id: "123", username: "TestUser", role: "admin" };
 
-describe('RoleManagement Component', () => {
+describe("RoleManagement Component", () => {
   beforeEach(() => {
-    (useAuth as unknown as ReturnType<typeof vi.fn>).mockReturnValue({ user: mockLoggedInUser });
-    (getUsers as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(mockUsers);
+    (useAuth as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+      user: mockLoggedInUser,
+    });
+    (getUsers as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(
+      mockUsers,
+    );
   });
 
   afterEach(() => {
     vi.clearAllMocks();
   });
 
-  it('renders loading state initially', async () => {
+  it("renders loading state initially", async () => {
     render(<RoleManagement />);
     expect(screen.getByText(/Loading users.../i)).toBeInTheDocument();
     await waitFor(() => expect(getUsers).toHaveBeenCalledTimes(1));
   });
 
-  it('renders error state if fetching users fails', async () => {
-    (getUsers as unknown as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('Fetch error'));
+  it("renders error state if fetching users fails", async () => {
+    (getUsers as unknown as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+      new Error("Fetch error"),
+    );
     render(<RoleManagement />);
 
     await waitFor(() => {
@@ -59,16 +70,16 @@ describe('RoleManagement Component', () => {
     });
   });
 
-  it('renders user data in DataGrid when fetching succeeds', async () => {
+  it("renders user data in DataGrid when fetching succeeds", async () => {
     render(<RoleManagement />);
 
     await waitFor(() => {
       const users = screen.getAllByText(/Doe/i);
-      expect(users).toHaveLength(4); // Expecting both JohnDoe and JaneDoe to appear 
+      expect(users).toHaveLength(4); // Expecting both JohnDoe and JaneDoe to appear
     });
   });
 
-  it('handles edit mode toggling for a user row', async () => {
+  it("handles edit mode toggling for a user row", async () => {
     render(<RoleManagement />);
 
     await waitFor(() => {
@@ -86,7 +97,7 @@ describe('RoleManagement Component', () => {
     // await waitFor(() => expect(updateUser).toHaveBeenCalledTimes(1));
   });
 
-  it('handles deleting a user', async () => {
+  it("handles deleting a user", async () => {
     render(<RoleManagement />);
 
     await waitFor(() => {
@@ -101,7 +112,7 @@ describe('RoleManagement Component', () => {
     // expect(screen.queryByText(/JaneDoe/i)).not.toBeInTheDocument();
   });
 
-  it('displays the toolbar and allows quick filter usage', async () => {
+  it("displays the toolbar and allows quick filter usage", async () => {
     render(<RoleManagement />);
 
     await waitFor(() => {

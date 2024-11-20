@@ -1,9 +1,15 @@
-import { describe, expect, it, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor, cleanup  } from '@testing-library/react';
-import React from 'react';
-import LogIn from '../src/pages/logIn';
-import { GoogleOAuthProvider } from '@react-oauth/google';
-import { MemoryRouter } from 'react-router-dom';
+import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  cleanup,
+} from "@testing-library/react";
+import React from "react";
+import LogIn from "../src/pages/logIn";
+import { GoogleOAuthProvider } from "@react-oauth/google";
+import { MemoryRouter } from "react-router-dom";
 
 // describe('LogIn Component Test', () => {
 //     beforeEach(() => {
@@ -19,7 +25,7 @@ import { MemoryRouter } from 'react-router-dom';
 //     afterEach(() => {
 //         cleanup();
 //     });
-    
+
 //     it('should render the login button and the guest button', () => {
 //         expect(screen.getByText('Sign in')).toBeTruthy();  // Check presence of the login button
 //         expect(screen.getByText('Continue as Guest')).toBeTruthy();  // Check presence of the guest button
@@ -42,20 +48,20 @@ import { MemoryRouter } from 'react-router-dom';
 //     });
 // });
 
-describe('Dummy Tests', () => {
-    it('should always pass test 1', () => {
-      expect(true).toBe(true);
-    });
-  
-    it('should always pass test 2', () => {
-      expect(1 + 1).toBe(2);
-    });
-  
-    it('should always pass test 3', () => {
-      expect('dummy').toBe('dummy');
-    });
-  
-    it('should always pass test 4', () => {
-      expect([]).toEqual([]);
-    });
+describe("Dummy Tests", () => {
+  it("should always pass test 1", () => {
+    expect(true).toBe(true);
   });
+
+  it("should always pass test 2", () => {
+    expect(1 + 1).toBe(2);
+  });
+
+  it("should always pass test 3", () => {
+    expect("dummy").toBe("dummy");
+  });
+
+  it("should always pass test 4", () => {
+    expect([]).toEqual([]);
+  });
+});

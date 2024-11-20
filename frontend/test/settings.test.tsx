@@ -1,8 +1,8 @@
-import { describe, expect, it } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
-import Settings from '../src/pages/settings';
-import { GoogleOAuthProvider } from '@react-oauth/google'; // if needed, depending on your setup
+import { describe, expect, it } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import Settings from "../src/pages/settings";
+import { GoogleOAuthProvider } from "@react-oauth/google"; // if needed, depending on your setup
 
 // describe('Settings Component', () => {
 //   const mockContextValue = {
@@ -46,20 +46,20 @@ import { GoogleOAuthProvider } from '@react-oauth/google'; // if needed, dependi
 //   });
 // });
 
-describe('Dummy Tests', () => {
-    it('should always pass test 1', () => {
-      expect(true).toBe(true);
-    });
-  
-    it('should always pass test 2', () => {
-      expect(1 + 1).toBe(2);
-    });
-  
-    it('should always pass test 3', () => {
-      expect('dummy').toBe('dummy');
-    });
-  
-    it('should always pass test 4', () => {
-      expect([]).toEqual([]);
-    });
+describe("Dummy Tests", () => {
+  it("should always pass test 1", () => {
+    expect(true).toBe(true);
   });
+
+  it("should always pass test 2", () => {
+    expect(1 + 1).toBe(2);
+  });
+
+  it("should always pass test 3", () => {
+    expect("dummy").toBe("dummy");
+  });
+
+  it("should always pass test 4", () => {
+    expect([]).toEqual([]);
+  });
+});

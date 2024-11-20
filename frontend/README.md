@@ -27,14 +27,14 @@ ChemistryCafe is a web application built with React, Vite, and TypeScript. The a
 - `node_modules/`: Folder for dependencies.
 - `public/`: Folder for static assets (images, fonts, etc.).
 - `src/`: Source code folder, organized as follows:
-    - `API/`: Functions for API interaction.
-    - `assets/`: Static assets.
-    - `components/`: Reusable components
-    - `pages/`: Pages:
-    - `styles/`: Style sheets:
-    - `index.css`: Global CSS styles.
-    - `main.tsx`: Entry point for the application.
-    - `vite-env.d.ts`: Vite environment TypeScript declarations.
+  - `API/`: Functions for API interaction.
+  - `assets/`: Static assets.
+  - `components/`: Reusable components
+  - `pages/`: Pages:
+  - `styles/`: Style sheets:
+  - `index.css`: Global CSS styles.
+  - `main.tsx`: Entry point for the application.
+  - `vite-env.d.ts`: Vite environment TypeScript declarations.
 - `test/`: Folder for test files.
 - `.eslintrc.cjs`: ESLint configuration file.
 - `.gitignore`: Git ignore file.
@@ -62,20 +62,23 @@ ChemistryCafe is a web application built with React, Vite, and TypeScript. The a
 ## Setup
 
 1. **Clone the repository**:
-    ```shell
-    git clone https://github.com/NCAR/chemistrycafe.git
-    cd chemistrycafe
-    ```
+
+   ```shell
+   git clone https://github.com/NCAR/chemistrycafe.git
+   cd chemistrycafe
+   ```
 
 2. **Install dependencies**:
-    ```shell
-    npm install
-    ```
+
+   ```shell
+   npm install
+   ```
 
 3. **Start the development server**:
-    ```shell
-    npm run dev
-    ```
+
+   ```shell
+   npm run dev
+   ```
 
 4. The app will run on [http://localhost:5173](http://localhost:5173). You can view it in your browser.
 
@@ -103,5 +106,3 @@ To generate a coverage report, use the following command:
 ```shell
 npm run test:coverage
 ```
-
-

@@ -1,12 +1,15 @@
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../pages/AuthContext';
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../pages/AuthContext";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredRole: string;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole }) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  children,
+  requiredRole,
+}) => {
   const { user: loggedInUser } = useAuth();
 
   // Check if the user is logged in and has the correct role

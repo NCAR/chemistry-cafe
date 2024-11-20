@@ -92,4 +92,3 @@ export interface Property {
   concentration?: number; // Concentration value (optional)
   diffusion?: number; // Diffusion value (optional)
 }
-

@@ -16,15 +16,11 @@ import { BASE_URL } from "./API_config";
 export async function createFamily(familyData: Family) {
   try {
     console.log("Family data: ", familyData);
-    const response = await axios.post(
-      `${BASE_URL}/families`,
-      familyData,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await axios.post(`${BASE_URL}/families`, familyData, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
     return response.data as Family;
   } catch (error) {
     console.error(error);
@@ -34,15 +30,11 @@ export async function createFamily(familyData: Family) {
 
 export async function createMechanism(mechanismData: Mechanism) {
   try {
-    const response = await axios.post(
-      `${BASE_URL}/mechanism`,
-      mechanismData,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await axios.post(`${BASE_URL}/mechanism`, mechanismData, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
     return response.data as Mechanism;
   } catch (error) {
     console.error(error);
@@ -53,15 +45,11 @@ export async function createMechanism(mechanismData: Mechanism) {
 export async function createReaction(reactionData: Reaction) {
   try {
     console.log("Reaction data: ", reactionData);
-    const response = await axios.post(
-      `${BASE_URL}/reactions`,
-      reactionData,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await axios.post(`${BASE_URL}/reactions`, reactionData, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
     return response.data as Reaction;
   } catch (error) {
     console.error(error);
@@ -71,15 +59,11 @@ export async function createReaction(reactionData: Reaction) {
 
 export async function createSpecies(speciesData: Species) {
   try {
-    const response = await axios.post(
-      `${BASE_URL}/species`,
-      speciesData,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await axios.post(`${BASE_URL}/species`, speciesData, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
     return response.data as Species;
   } catch (error) {
     console.error(error);
@@ -88,7 +72,7 @@ export async function createSpecies(speciesData: Species) {
 }
 
 export async function addSpeciesToReaction(
-  reactionSpeciesData: ReactionSpecies
+  reactionSpeciesData: ReactionSpecies,
 ) {
   try {
     const response = await axios.post(
@@ -98,7 +82,7 @@ export async function addSpeciesToReaction(
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data as ReactionSpecies;
   } catch (error) {
@@ -108,7 +92,7 @@ export async function addSpeciesToReaction(
 }
 
 export async function addReactionToMechanism(
-  mechanismReactionData: MechanismReaction
+  mechanismReactionData: MechanismReaction,
 ) {
   try {
     const response = await axios.post(
@@ -118,7 +102,7 @@ export async function addReactionToMechanism(
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data as MechanismReaction;
   } catch (error) {
@@ -128,7 +112,7 @@ export async function addReactionToMechanism(
 }
 
 export async function addSpeciesToMechanism(
-  mechanismSpeciesData: MechanismSpecies
+  mechanismSpeciesData: MechanismSpecies,
 ) {
   try {
     const response = await axios.post(
@@ -138,7 +122,7 @@ export async function addSpeciesToMechanism(
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data as MechanismSpecies;
   } catch (error) {
@@ -149,15 +133,11 @@ export async function addSpeciesToMechanism(
 
 export async function createUser(userData: User) {
   try {
-    const response = await axios.post(
-      `${BASE_URL}/users`,
-      userData,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await axios.post(`${BASE_URL}/users`, userData, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
     return response.data as User;
   } catch (error) {
     console.error(error);
@@ -174,7 +154,7 @@ export async function addUserToMechanism(userMechanismData: UserMechanism) {
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data as UserMechanism;
   } catch (error) {
@@ -186,13 +166,13 @@ export async function addUserToMechanism(userMechanismData: UserMechanism) {
 export async function createProperty(propertyData: Property) {
   try {
     const response = await axios.post(
-      `${BASE_URL}/properties`,  // Adjust the URL to match your properties API endpoint
+      `${BASE_URL}/properties`, // Adjust the URL to match your properties API endpoint
       propertyData,
       {
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data as Property;
   } catch (error) {
