@@ -9,6 +9,9 @@ import DensitySmallSharpIcon from "@mui/icons-material/DensitySmallSharp";
 import { useAuth } from "../pages/AuthContext";
 import Modal from '@mui/material/Modal';
 import Typography from '@mui/material/Typography';
+import TAMUlogo from '../assets/TAMULogo.png';
+import NSF_NCARlogo from '../assets/NSF-NCAR_Lockup-UCAR-Dark.png';
+import NSF_NCAR_Stackseallogo from '../assets/nsf-stackseal-logo-lockup-dark.png';
 
 export const Header = () => {
   const [openDrawer, setOpenDrawer] = useState(false);
@@ -92,7 +95,7 @@ export const Footer = () => {
       <Container maxWidth="lg" sx={{ display: "flex" }}>
         <Box
           component="img"
-          src={"src/assets/nsf-stackseal-logo-lockup-dark.png"}
+          src={NSF_NCAR_Stackseallogo}
           sx={{ height: "80px", width: "auto", pr: 10 }}
         ></Box>
         <Box sx={{ pr: 10 }}>
@@ -126,14 +129,14 @@ export const Footer = () => {
           <Typography variant="h4">About</Typography>
             <Box
               component="img"
-              src={"src/assets/NSF-NCAR_Lockup-UCAR-Dark.png"}
-              alt={"Texas A&M"}
+              src={NSF_NCARlogo}
+              alt={"NSF-NCAR Logo"}
               sx={{ height: "100px", width: "auto" }}
             />
             <Box
               component="img"
-              src={"src/assets/TAMULogo.png"}
-              alt={"Texas A&M"}
+              src={TAMUlogo}
+              alt={"Texas A&M Logo"}
               sx={{ height: "100px", width: "auto" }}
             />
             <Typography variant="body1">

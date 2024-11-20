@@ -1,4 +1,5 @@
 -- init.sql
+USE chemistry_db;
 
 -- 1. Create Tables
 

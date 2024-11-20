@@ -12,7 +12,7 @@ const url = import.meta.env.VITE_REACT_APP_OAUTH_CLIENT_ID;
 
 root.render(
   <BrowserRouter>
-    <GoogleOAuthProvider clientId= {url}>
+    <GoogleOAuthProvider clientId= {url} nonce={"F04DAE83-E065-4AB5-904F-C2E5E3B3390C"}>
       <React.StrictMode>
         <App />
       </React.StrictMode>

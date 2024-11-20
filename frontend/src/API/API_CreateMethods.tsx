@@ -11,12 +11,13 @@ import {
   UserMechanism,
   Property,
 } from "./API_Interfaces";
+import { BASE_URL } from "./API_config";
 
 export async function createFamily(familyData: Family) {
   try {
     console.log("Family data: ", familyData);
     const response = await axios.post(
-      "http://localhost:8080/api/families",
+      `${BASE_URL}/families`,
       familyData,
       {
         headers: {
@@ -34,7 +35,7 @@ export async function createFamily(familyData: Family) {
 export async function createMechanism(mechanismData: Mechanism) {
   try {
     const response = await axios.post(
-      "http://localhost:8080/api/mechanism",
+      `${BASE_URL}/mechanism`,
       mechanismData,
       {
         headers: {
@@ -53,7 +54,7 @@ export async function createReaction(reactionData: Reaction) {
   try {
     console.log("Reaction data: ", reactionData);
     const response = await axios.post(
-      "http://localhost:8080/api/reactions",
+      `${BASE_URL}/reactions`,
       reactionData,
       {
         headers: {
@@ -71,7 +72,7 @@ export async function createReaction(reactionData: Reaction) {
 export async function createSpecies(speciesData: Species) {
   try {
     const response = await axios.post(
-      "http://localhost:8080/api/species",
+      `${BASE_URL}/species`,
       speciesData,
       {
         headers: {
@@ -91,7 +92,7 @@ export async function addSpeciesToReaction(
 ) {
   try {
     const response = await axios.post(
-      "http://localhost:8080/api/reactionspecies",
+      `${BASE_URL}/reactionspecies`,
       reactionSpeciesData,
       {
         headers: {
@@ -111,7 +112,7 @@ export async function addReactionToMechanism(
 ) {
   try {
     const response = await axios.post(
-      "http://localhost:8080/api/mechanismreactions",
+      `${BASE_URL}/mechanismreactions`,
       mechanismReactionData,
       {
         headers: {
@@ -131,7 +132,7 @@ export async function addSpeciesToMechanism(
 ) {
   try {
     const response = await axios.post(
-      "http://localhost:8080/api/mechanismspecies",
+      `${BASE_URL}/mechanismspecies`,
       mechanismSpeciesData,
       {
         headers: {
@@ -149,7 +150,7 @@ export async function addSpeciesToMechanism(
 export async function createUser(userData: User) {
   try {
     const response = await axios.post(
-      "http://localhost:8080/api/users",
+      `${BASE_URL}/users`,
       userData,
       {
         headers: {
@@ -167,7 +168,7 @@ export async function createUser(userData: User) {
 export async function addUserToMechanism(userMechanismData: UserMechanism) {
   try {
     const response = await axios.post(
-      "http://localhost:8080/api/usermechanism",
+      `${BASE_URL}/usermechanism`,
       userMechanismData,
       {
         headers: {
@@ -185,7 +186,7 @@ export async function addUserToMechanism(userMechanismData: UserMechanism) {
 export async function createProperty(propertyData: Property) {
   try {
     const response = await axios.post(
-      "http://localhost:8080/api/properties",  // Adjust the URL to match your properties API endpoint
+      `${BASE_URL}/properties`,  // Adjust the URL to match your properties API endpoint
       propertyData,
       {
         headers: {

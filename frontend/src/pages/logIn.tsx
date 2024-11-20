@@ -29,7 +29,7 @@ const LogIn = () => {
   const { setUser } = useAuth(); // Get setUser from AuthContext
   const [user, setLocalUser] = useState<AuthUser | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const navigate = useNavigate();
+  const navigate = useNavigate(); 
   const handleClick = () => navigate("/LoggedIn");
   
 
@@ -197,43 +197,6 @@ const LogIn = () => {
           Continue as Guest
         </Button>
       </div>
-      {/* <div className="M7">
-        <Button variant="contained" onClick={handleAbout} sx={{ width: "50%" }}>
-          About
-        </Button>
-      </div>
-      <div>
-        <Modal open={aboutOpen} onClose={handleAboutClose}>
-          <Box sx={style}>
-            <Typography variant="h4">About</Typography>
-            <Box
-              component="img"
-              src={"src/assets/NSF-NCAR_Lockup-UCAR-Dark.png"}
-              alt={"Texas A&M"}
-              sx={{ height: "100px", width: "auto" }}
-            />
-            <Box
-              component="img"
-              src={"src/assets/TAMULogo.png"}
-              alt={"Texas A&M"}
-              sx={{ height: "100px", width: "auto" }}
-            />
-            <Typography variant="body1">
-              The Chemistry Cafe tool was made possible by the collaboration
-              between NCAR and Texas A&M through the CSCE Capstone program.
-            </Typography>
-            <p></p>
-            <Typography variant="h6">Credits</Typography>
-            <Typography variant="body1">
-              Paul Cyr, Brandon Longuet, Brian Nguyen <br></br> Spring 2024
-              Capstone Team <br></br> <p></p>
-              Britt Schiller, Ore Ogunleye, Nishka Mittal, Josh Hare, Sydney Ferris <br></br> Fall 2024
-              Capstone Team <br></br> <p></p>
-              Kyle Shores <br></br> Spring 2024 Capstone Sponsor Representative
-            </Typography>
-          </Box>
-        </Modal>
-      </div> */}
       <div className="L9LogIn">
         <Footer></Footer>
       </div>

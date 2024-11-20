@@ -12,12 +12,13 @@ import {
   InitialConditionSpecies,
   Property
 } from "./API_Interfaces";
+import { BASE_URL } from "./API_config";
 
 // Get all families
 export async function getFamilies(): Promise<Family[]> {
   try {
     const response = await axios.get<Family[]>(
-      `http://localhost:8080/api/families`
+      `${BASE_URL}/families`
     );
     return response.data;
   } catch (error) {
@@ -30,7 +31,7 @@ export async function getFamilies(): Promise<Family[]> {
 export async function getFamily(id: string): Promise<Family> {
   try {
     const response = await axios.get<Family>(
-      `http://localhost:8080/api/families/${id}`
+      `${BASE_URL}/families/${id}`
     );
     return response.data;
   } catch (error) {
@@ -43,7 +44,7 @@ export async function getFamily(id: string): Promise<Family> {
 export async function getMechanisms(): Promise<Mechanism[]> {
   try {
     const response = await axios.get<Mechanism[]>(
-      `http://localhost:8080/api/mechanism`
+      `${BASE_URL}/mechanism`
     );
     return response.data;
   } catch (error) {
@@ -58,7 +59,7 @@ export async function getMechanismsByFamilyId(
 ): Promise<Mechanism[]> {
   try {
     const response = await axios.get<Mechanism[]>(
-      `http://localhost:8080/api/mechanism/family/${familyId}`
+      `${BASE_URL}/mechanism/family/${familyId}`
     );
     return response.data;
   } catch (error) {
@@ -71,7 +72,7 @@ export async function getMechanismsByFamilyId(
 export async function getMechanism(id: string): Promise<Mechanism> {
   try {
     const response = await axios.get<Mechanism>(
-      `http://localhost:8080/api/mechanism/${id}`
+      `${BASE_URL}/mechanism/${id}`
     );
     return response.data;
   } catch (error) {
@@ -84,7 +85,7 @@ export async function getMechanism(id: string): Promise<Mechanism> {
 export async function getAllSpecies(): Promise<Species[]> {
   try {
     const response = await axios.get<Species[]>(
-      `http://localhost:8080/api/species`
+      `${BASE_URL}/species`
     );
     return response.data;
   } catch (error) {
@@ -97,7 +98,7 @@ export async function getAllSpecies(): Promise<Species[]> {
 export async function getSpecies(id: string): Promise<Species> {
   try {
     const response = await axios.get<Species>(
-      `http://localhost:8080/api/species/${id}`
+      `${BASE_URL}/species/${id}`
     );
     return response.data;
   } catch (error) {
@@ -112,7 +113,7 @@ export async function getSpeciesByMechanismId(
 ): Promise<Species[]> {
   try {
     const response = await axios.get<Species[]>(
-      `http://localhost:8080/api/mechanismspecies/mechanism/${mechanismId}`
+      `${BASE_URL}/mechanismspecies/mechanism/${mechanismId}`
     );
     return response.data;
   } catch (error) {
@@ -126,7 +127,7 @@ export async function getSpeciesByFamilyId(
 ): Promise<Species[]> {
   try {
     const response = await axios.get<Species[]>(
-      `http://localhost:8080/api/species/family/${familyId}`
+      `${BASE_URL}/species/family/${familyId}`
     );
     return response.data;
   } catch (error) {
@@ -139,7 +140,7 @@ export async function getSpeciesByFamilyId(
 export async function getReactions(): Promise<Reaction[]> {
   try {
     const response = await axios.get<Reaction[]>(
-      `http://localhost:8080/api/reactions`
+      `${BASE_URL}/reactions`
     );
     return response.data;
   } catch (error) {
@@ -152,7 +153,7 @@ export async function getReactions(): Promise<Reaction[]> {
 export async function getReaction(id: string): Promise<Reaction> {
   try {
     const response = await axios.get<Reaction>(
-      `http://localhost:8080/api/reactions/${id}`
+      `${BASE_URL}/reactions/${id}`
     );
     return response.data;
   } catch (error) {
@@ -167,7 +168,7 @@ export async function getReactionsByMechanismId(
 ): Promise<Reaction[]> {
   try {
     const response = await axios.get<Reaction[]>(
-      `http://localhost:8080/api/reactions/mechanism/${mechanismId}`
+      `${BASE_URL}/reactions/mechanism/${mechanismId}`
     );
     return response.data;
   } catch (error) {
@@ -181,7 +182,7 @@ export async function getReactionsByFamilyId(
 ): Promise<Reaction[]> {
   try {
     const response = await axios.get<Reaction[]>(
-      `http://localhost:8080/api/reactions/family/${familyId}`
+      `${BASE_URL}/reactions/family/${familyId}`
     );
     return response.data;
   } catch (error) {
@@ -195,7 +196,7 @@ export async function getReactantsByReactionIdAsync(
 ): Promise<ReactionSpeciesDto[]> {
   try {
     const response = await axios.get<ReactionSpeciesDto[]>(
-      `http://localhost:8080/api/reactionspecies/reaction/${reactionId}/reactants`
+      `${BASE_URL}/reactionspecies/reaction/${reactionId}/reactants`
     );
     return response.data;
   } catch (error) {
@@ -209,7 +210,7 @@ export async function getProductsByReactionIdAsync(
 ): Promise<ReactionSpeciesDto[]> {
   try {
     const response = await axios.get<ReactionSpeciesDto[]>(
-      `http://localhost:8080/api/reactionspecies/reaction/${reactionId}/products`
+      `${BASE_URL}/reactionspecies/reaction/${reactionId}/products`
     );
     return response.data;
   } catch (error) {
@@ -221,7 +222,7 @@ export async function getProductsByReactionIdAsync(
 // Get all users
 export async function getUsers(): Promise<User[]> {
   try {
-    const response = await axios.get<User[]>(`http://localhost:8080/api/users`);
+    const response = await axios.get<User[]>(`${BASE_URL}/users`);
     return response.data;
   } catch (error) {
     console.error(error);
@@ -234,7 +235,7 @@ export async function getUserByEmail(email: string): Promise<User | null> {
   try {
     // const encodedEmail = encodeURIComponent(email);
     const response = await axios.get<User>(
-      `http://localhost:8080/api/users/email/${email}`
+      `${BASE_URL}/users/email/${email}`
     );
     return response.data;
   } catch (error: any) {
@@ -250,7 +251,7 @@ export async function getUserByEmail(email: string): Promise<User | null> {
 export async function getUserById(id: string): Promise<User> {
   try {
     const response = await axios.get<User>(
-      `http://localhost:8080/api/users/id/${id}`
+      `${BASE_URL}/users/id/${id}`
     );
     return response.data;
   } catch (error) {
@@ -262,7 +263,7 @@ export async function getUserById(id: string): Promise<User> {
 export async function getPropertyById(id: string): Promise<Property> {
   try {
     const response = await axios.get<Property>(
-      `http://localhost:8080/api/properties/id/${id}`
+      `${BASE_URL}/properties/id/${id}`
     );
     return response.data;
   } catch (error) {
@@ -274,7 +275,7 @@ export async function getPropertyById(id: string): Promise<Property> {
 export async function getPropertyBySpeciesAndMechanism(species: string, mechanism: string): Promise<Property> {
   try {
     const response = await axios.get<Property>(
-      `http://localhost:8080/api/properties/id/${species}/${mechanism}`
+      `${BASE_URL}/properties/id/${species}/${mechanism}`
     );
     return response.data;
   } catch (error) {
@@ -291,7 +292,7 @@ export async function downloadOAJSON(mechanismId?: string) {
 
   try {
     const response = await axios.get(
-      `http://localhost:8080/api/openatmos/mechanism/${mechanismId}/json`,
+      `${BASE_URL}/openatmos/mechanism/${mechanismId}/json`,
       {
         responseType: "text",
         headers: {
@@ -312,7 +313,7 @@ export async function downloadOAYAML(mechanismId?: string) {
 
   try {
     const response = await axios.get(
-      `http://localhost:8080/api/openatmos/mechanism/${mechanismId}/yaml`,
+      `${BASE_URL}/openatmos/mechanism/${mechanismId}/yaml`,
       {
         responseType: "text",
         headers: {
@@ -333,7 +334,7 @@ export async function downloadOAMusicbox(mechanismId?: string) {
 
   try {
     const response = await axios.get(
-      `http://localhost:8080/api/openatmos/mechanism/${mechanismId}/musicbox`,
+      `${BASE_URL}/openatmos/mechanism/${mechanismId}/musicbox`,
       {
         responseType: "arraybuffer", // Handle binary data
         headers: {
@@ -356,7 +357,7 @@ export async function getSpeciesPropertiesByMechanismIDAsync(
 ): Promise<InitialConditionSpecies[]> {
   try {
     const response = await axios.get<InitialConditionSpecies[]>(
-      `http://localhost:8080/api/initialconditionspecies/mechanism/${mechanismId}`
+      `${BASE_URL}/initialconditionspecies/mechanism/${mechanismId}`
     );
     return response.data;
   } catch (error) {

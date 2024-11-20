@@ -19,7 +19,10 @@ import {
     getReactionsByFamilyId,
     getReactantsByReactionIdAsync,
     getProductsByReactionIdAsync,
-    getPropertyById
+    getUsers,
+    getUserByEmail,
+    getUserById,
+    getPropertyById,
 } from '../src/API/API_GetMethods';
 
 // Mock axios using vitest's built-in mock function
@@ -174,16 +177,6 @@ describe('API get functions tests', () => {
         expect(result).toEqual(mockResponseData);
     });
 
-    // Tests for getSpeciesFromTagMechanism
-    // it('should successfully get species from tag mechanism with valid tag_mechanism_uuid', async () => {
-    //     const mockedGet = vi.spyOn(axios, 'get').mockResolvedValueOnce(createMockResponse()) as Mock;
-
-    //     const tag_mechanism_uuid = 'valid-uuid';
-    //     const result = await getSpeciesFromTagMechanism(tag_mechanism_uuid);
-
-    //     expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/Species/TagMechanism/${tag_mechanism_uuid}`);
-    //     expect(result).toEqual(mockResponseData);
-    // });
 
     // Tests for getTagMechanisms
     it('should successfully get all tag mechanisms', async () => {
@@ -256,6 +249,33 @@ describe('API get functions tests', () => {
         expect(result).toEqual(mockResponseData);
     });
 
+    // Tests for getUsers
+    it('should successfully get all users', async () => {
+        const mockedGet = vi.spyOn(axios, 'get').mockResolvedValueOnce(createMockResponse()) as Mock;
+        const result = await getUsers();
+
+        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/users`);
+        expect(result).toEqual(mockResponseData);
+    });
+
+    it('should successfully get user by email', async () => {
+        const mockedGet = vi.spyOn(axios, 'get').mockResolvedValueOnce(createMockResponse()) as Mock;
+        const email = 'valid-user-email';
+        const result = await getUserByEmail(email);
+
+        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/users/email/${email}`);
+        expect(result).toEqual(mockResponseData);
+    });
+
+    it('should successfully get user by id', async () => {
+        const mockedGet = vi.spyOn(axios, 'get').mockResolvedValueOnce(createMockResponse()) as Mock;
+        const UserId = 'valid-user-id';
+        const result = await getUserById(UserId);
+
+        expect(mockedGet).toHaveBeenCalledWith(`http://localhost:8080/api/users/id/${UserId}`);
+        expect(result).toEqual(mockResponseData);
+    });
+
     it('should successfully get a property by id', async () => {
         const mockedGet = vi.spyOn(axios, 'get').mockResolvedValueOnce(createMockResponse()) as Mock;
     
@@ -279,8 +299,5 @@ describe('API get functions tests', () => {
           `http://localhost:8080/api/properties/id/${propertyId}`
         );
       });
-    
-    
-    
     
 });

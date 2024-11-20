@@ -25,7 +25,6 @@ services:
       context: ./frontend # Path to your front-end repository
       dockerfile: Dockerfile
     ports:
-      #- "8080:80"  # Map host port to container port
       - "5173:5173"
     depends_on:
       - backend # Ensure the backend service starts before frontend
@@ -46,8 +45,7 @@ services:
             - node_modules/
         - action: rebuild
           path: package.json
-
-
+    command: ["npm", "run", "dev"] # Command for development
   backend:
     build:
       context: ./backend # Path to your back-end repository
@@ -58,6 +56,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
     networks:
       - app-network
+    command: ["dotnet", "watch", "run", "--project", "ChemistryCafeAPI.csproj"] # Command for development
 
 volumes:
   db_data:
