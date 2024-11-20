@@ -364,7 +364,7 @@ describe("API get functions tests", () => {
     vi.spyOn(axios, "get").mockRejectedValueOnce(mockError);
 
     const propertyId = "invalid-property-id";
-    await expect(getPropertyById(propertyId)).rejects.toThrow("Network error");
+    await expect(getPropertyById(propertyId)).rejects.toThrow("Failed to fetch property. Please try again later.");
 
     expect(axios.get).toHaveBeenCalledWith(
       `http://localhost:8080/api/properties/id/${propertyId}`,
