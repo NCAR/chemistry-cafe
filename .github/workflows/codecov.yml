@@ -31,7 +31,8 @@ jobs:
 
       # Build the project
       - name: Build
-        run: npm run build ./frontend
+        run: npm run build
+        working-directory: ./frontend
 
      # Step 5: Run tests and collect code coverage
       - name: Test and calculate coverage
