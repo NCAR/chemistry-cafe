@@ -7,11 +7,11 @@ import Paper from "@mui/material/Paper";
 import Container from "@mui/material/Container";
 import DensitySmallSharpIcon from "@mui/icons-material/DensitySmallSharp";
 import { useAuth } from "../pages/AuthContext";
-import Modal from '@mui/material/Modal';
-import Typography from '@mui/material/Typography';
-import TAMUlogo from '../assets/TAMULogo.png';
-import NSF_NCARlogo from '../assets/NSF-NCAR_Lockup-UCAR-Dark.png';
-import NSF_NCAR_Stackseallogo from '../assets/nsf-stackseal-logo-lockup-dark.png';
+import Modal from "@mui/material/Modal";
+import Typography from "@mui/material/Typography";
+import TAMUlogo from "../assets/TAMULogo.png";
+import NSF_NCARlogo from "../assets/NSF-NCAR_Lockup-UCAR-Dark.png";
+import NSF_NCAR_Stackseallogo from "../assets/nsf-stackseal-logo-lockup-dark.png";
 
 export const Header = () => {
   const [openDrawer, setOpenDrawer] = useState(false);
@@ -127,31 +127,31 @@ export const Footer = () => {
           }}
         >
           <Typography variant="h4">About</Typography>
-            <Box
-              component="img"
-              src={NSF_NCARlogo}
-              alt={"NSF-NCAR Logo"}
-              sx={{ height: "100px", width: "auto" }}
-            />
-            <Box
-              component="img"
-              src={TAMUlogo}
-              alt={"Texas A&M Logo"}
-              sx={{ height: "100px", width: "auto" }}
-            />
-            <Typography variant="body1">
-              The Chemistry Cafe tool was made possible by the collaboration
-              between NCAR and Texas A&M through the CSCE Capstone program.
-            </Typography>
-            <p></p>
-            <Typography variant="h6">Credits</Typography>
-            <Typography variant="body1">
-              Paul Cyr, Brandon Longuet, Brian Nguyen <br></br> Spring 2024
-              Capstone Team <br></br> <p></p>
-              Britt Schiller, Ore Ogunleye, Nishka Mittal, Josh Hare, Sydney Ferris <br></br> Fall 2024
-              Capstone Team <br></br> <p></p>
-              Kyle Shores <br></br> Spring 2024 Capstone Sponsor Representative
-            </Typography>
+          <Box
+            component="img"
+            src={NSF_NCARlogo}
+            alt={"NSF-NCAR Logo"}
+            sx={{ height: "100px", width: "auto" }}
+          />
+          <Box
+            component="img"
+            src={TAMUlogo}
+            alt={"Texas A&M Logo"}
+            sx={{ height: "100px", width: "auto" }}
+          />
+          <Typography variant="body1">
+            The Chemistry Cafe tool was made possible by the collaboration
+            between NCAR and Texas A&M through the CSCE Capstone program.
+          </Typography>
+          <p></p>
+          <Typography variant="h6">Credits</Typography>
+          <Typography variant="body1">
+            Paul Cyr, Brandon Longuet, Brian Nguyen <br></br> Spring 2024
+            Capstone Team <br></br> <p></p>
+            Britt Schiller, Ore Ogunleye, Nishka Mittal, Josh Hare, Sydney
+            Ferris <br></br> Fall 2024 Capstone Team <br></br> <p></p>
+            Kyle Shores <br></br> Spring 2024 Capstone Sponsor Representative
+          </Typography>
         </Box>
       </Modal>
     </Paper>

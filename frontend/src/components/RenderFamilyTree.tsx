@@ -105,7 +105,7 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
         setLoading(false);
 
         const mechanismsPromises = fetchedFamilies.map((family) =>
-          getMechanismsByFamilyId(family.id!)
+          getMechanismsByFamilyId(family.id!),
         );
         const mechanismsArray = await Promise.all(mechanismsPromises);
         const mechanismsMap: Record<string, Mechanism[]> = {};
@@ -136,12 +136,12 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
       const blob = new Blob([body], { type: "application/json" });
       blobUrl = window.URL.createObjectURL(blob);
       link.download = "openAtmos.json";
-    } else if(format === "YAML"){
+    } else if (format === "YAML") {
       const body = await downloadOAYAML(mechanismId);
       const blob = new Blob([body], { type: "application/json" });
       blobUrl = window.URL.createObjectURL(blob);
       link.download = "openAtmos.yaml";
-    }else if(format === "Musicbox"){
+    } else if (format === "Musicbox") {
       const body = await downloadOAMusicbox(mechanismId);
       const blob = new Blob([body], { type: "application/zip" });
       blobUrl = window.URL.createObjectURL(blob);
@@ -157,7 +157,7 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
 
   const handlePopOverClick = (
     event: React.MouseEvent<HTMLButtonElement>,
-    mechanismId: string
+    mechanismId: string,
   ) => {
     ref.current = mechanismId;
     setPopOver(event.currentTarget);
@@ -166,7 +166,7 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
   const handleItemExpansionToggle = (
     _event: React.SyntheticEvent<{}>,
     itemId: string,
-    isExpanded: boolean
+    isExpanded: boolean,
   ) => {
     setExpandedItems((prevExpandedItems) => {
       if (isExpanded) {
@@ -333,7 +333,10 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                               <Button
                                 onClick={() => {
                                   if (ref.current !== null) {
-                                    handleDownloadClick(ref.current, "Musicbox");
+                                    handleDownloadClick(
+                                      ref.current,
+                                      "Musicbox",
+                                    );
                                   }
                                 }}
                               >

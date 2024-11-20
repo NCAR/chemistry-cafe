@@ -1,27 +1,27 @@
 .accessibility-widget {
-    padding: 16px;
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    margin-bottom: 20px;
+  padding: 16px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 20px;
 }
 
 /* Additional styles for responsiveness */
 @media (max-width: 768px) {
-    div {
-        flex-direction: column;
-    }
+  div {
+    flex-direction: column;
+  }
 
-    .accessibility-widget {
-        padding: 12px;
-        margin-bottom: 15px;
-    }
+  .accessibility-widget {
+    padding: 12px;
+    margin-bottom: 15px;
+  }
 }
 
 /* Style for the banner */
 .banner {
-  background-color: #00797C;
-  color: #FFF;
+  background-color: #00797c;
+  color: #fff;
   font-size: 14px;
   text-align: center;
   padding: 15px;
@@ -59,7 +59,7 @@
   box-shadow: none;
   color: #fff;
   font-family: Poppins, sans-serif;
-  font-size: .9375rem;
+  font-size: 0.9375rem;
   margin-top: 10px;
   padding: 7px 10px;
   text-shadow: none;
@@ -68,7 +68,6 @@
   border-radius: 0;
 }
 
-  
 .hidden {
   display: none;
 }
