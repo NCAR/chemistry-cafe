@@ -10,9 +10,17 @@ import { AuthProvider } from './AuthContext';
 import ProtectedRoute from '../components/ProtectedRoute';
 import Banner from '../components/CookieBanner';
 
+import { CacheProvider } from '@emotion/react';
+import createCache from '@emotion/cache';
+
+const cache = createCache({
+  key: 'mui',
+  nonce: '1A59E59F-7913-4CA8-AF58-70A5A95C7F60',
+});
+
 function App() {
     return (
-        <div>
+        <CacheProvider value={cache}>
             {/* <AccessibilityWidget /> */}
             <AuthProvider>
             <Banner />
@@ -36,7 +44,7 @@ function App() {
                  
                 </Routes>
             </AuthProvider>
-        </div>
+        </CacheProvider>
     );
 }
 
