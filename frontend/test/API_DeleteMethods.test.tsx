@@ -88,12 +88,6 @@ describe("API delete functions tests", () => {
     await expect(deleteMechanism(id)).rejects.toThrow(
       "Failed to delete mechanism. Please try again later."
     );
-
-    // expect(axios.delete).toHaveBeenCalledWith(`${BASE_URL}/mechanism/${id}`, {
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    // });
   });
 
   it("should successfully delete a species", async () => {
