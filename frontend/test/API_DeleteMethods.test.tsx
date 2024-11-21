@@ -54,7 +54,7 @@ describe("API delete functions tests", () => {
     // Assert the function throws the correct error
     await expect(deleteFamily(id)).rejects.toThrow(
       "Failed to delete family. Please try again later."
-    );
+  );
 
     expect(axios.delete).toHaveBeenCalledWith(`${BASE_URL}/families/${id}`, {
       headers: {
