@@ -1,4 +1,4 @@
 codecov:
   max_report_age: off
 codecov:
-  branch: stable # set new Default branch
+  branch: AddTests # set new Default branch
