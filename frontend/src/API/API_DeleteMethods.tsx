@@ -12,9 +12,9 @@ export async function deleteFamily(id: string) {
       },
     });
     return response.data; // Return response or a success indicator
-  } catch (error) {
-    console.error(error);
-    throw error;
+  } catch (error: any) {
+    console.error(`Error deleting family ${id}: ${error.message}`, error);
+    throw new Error('Failed to delete family. Please try again later.');
   }
 }
 
@@ -23,9 +23,9 @@ export async function deleteMechanism(id: string) {
   try {
     const response = await axios.delete(`${BASE_URL}/mechanism/${id}`);
     return response.data;
-  } catch (error) {
-    console.error(error);
-    throw error;
+  } catch (error: any) {
+    console.error(`Error deleting mechanism ${id}: ${error.message}`, error);
+    throw new Error('Failed to delete mechanism. Please try again later.');
   }
 }
 
@@ -38,9 +38,9 @@ export async function deleteSpecies(id: string) {
       },
     });
     return response.data;
-  } catch (error) {
-    console.error(error);
-    throw error;
+  } catch (error: any) {
+    console.error(`Error deleting species ${id}: ${error.message}`, error);
+    throw new Error('Failed to delete species. Please try again later.');
   }
 }
 
@@ -53,13 +53,13 @@ export async function deleteReaction(id: string) {
       },
     });
     return response.data;
-  } catch (error) {
-    console.error(error);
-    throw error;
+  } catch (error: any) {
+    console.error(`Error deleting reaction ${id}: ${error.message}`, error);
+    throw new Error('Failed to delete reaction. Please try again later.');
   }
 }
 
-// Delete a user (if applicable)
+// Delete a user
 export async function deleteUser(id: string) {
   try {
     const response = await axios.delete(`${BASE_URL}/users/${id}`, {
@@ -68,9 +68,9 @@ export async function deleteUser(id: string) {
       },
     });
     return response.data;
-  } catch (error) {
-    console.error(error);
-    throw error;
+  } catch (error: any) {
+    console.error(`Error deleting user ${id}: ${error.message}`, error);
+    throw new Error('Failed to delete user. Please try again later.');
   }
 }
 
@@ -82,8 +82,8 @@ export async function deleteProperty(id: string) {
       },
     });
     return response.data;
-  } catch (error) {
-    console.error(error);
-    throw error;
+  } catch (error: any) {
+    console.error(`Error deleting property ${id}: ${error.message}`, error);
+    throw new Error('Failed to delete property. Please try again later.');
   }
 }
