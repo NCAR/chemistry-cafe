@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  test:
+  Frontend-Codecov-Publishing:
     runs-on: ubuntu-latest
 
     steps:
