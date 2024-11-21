@@ -21,8 +21,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          context: ./frontend
-          dotnet-version: 18  # Use the version your project requires
+          node-version: 18
 
       # Restore dependencies
       - name: Install dependencies
@@ -44,7 +43,6 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          context: ./frontend
           token: ${{ secrets.CODECOV_TOKEN }}  # Add the Codecov token in the GitHub secrets
           files: ./frontend/coverage/lcov.info  # Ensure the correct path for the coverage file
           flags: vite-tests
