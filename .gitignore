@@ -28,4 +28,4 @@ dist-ssr
 *.sw?
 
 node_modules/
-# /coverage
+/coverage
