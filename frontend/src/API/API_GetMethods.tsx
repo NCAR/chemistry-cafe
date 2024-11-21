@@ -19,9 +19,9 @@ export async function getFamilies(): Promise<Family[]> {
   try {
     const response = await axios.get<Family[]>(`${BASE_URL}/families`);
     return response.data;
-  } catch (error) {
-    console.error(error);
-    return [];
+  } catch (error: any) {
+    console.error(`Error fetching families: ${error.message}`, error);
+    return[]
   }
 }
 
@@ -30,9 +30,9 @@ export async function getFamily(id: string): Promise<Family> {
   try {
     const response = await axios.get<Family>(`${BASE_URL}/families/${id}`);
     return response.data;
-  } catch (error) {
-    console.error(error);
-    throw error;
+  } catch (error: any) {
+      console.error(`Error fetching family ${id}: ${error.message}`, error);
+      throw new Error('Failed to fetch family. Please try again later.');
   }
 }
 
@@ -41,8 +41,8 @@ export async function getMechanisms(): Promise<Mechanism[]> {
   try {
     const response = await axios.get<Mechanism[]>(`${BASE_URL}/mechanism`);
     return response.data;
-  } catch (error) {
-    console.error(error);
+  } catch (error: any) {
+    console.error(`Error fetching Mechanisms: ${error.message}`, error);
     return [];
   }
 }
@@ -56,8 +56,8 @@ export async function getMechanismsByFamilyId(
       `${BASE_URL}/mechanism/family/${familyId}`,
     );
     return response.data;
-  } catch (error) {
-    console.error(error);
+  } catch (error: any) {
+    console.error(`Error fetching Mechanisms with family ${familyId}: ${error.message}`, error);
     return [];
   }
 }
@@ -67,9 +67,9 @@ export async function getMechanism(id: string): Promise<Mechanism> {
   try {
     const response = await axios.get<Mechanism>(`${BASE_URL}/mechanism/${id}`);
     return response.data;
-  } catch (error) {
-    console.error(error);
-    throw error;
+  } catch (error: any) {
+    console.error(`Error fetching mechanism ${id}: ${error.message}`, error);
+    throw new Error('Failed to fetch mechanism. Please try again later.');
   }
 }
 
@@ -78,8 +78,8 @@ export async function getAllSpecies(): Promise<Species[]> {
   try {
     const response = await axios.get<Species[]>(`${BASE_URL}/species`);
     return response.data;
-  } catch (error) {
-    console.error(error);
+  } catch (error: any) {
+    console.error(`Error fetching species: ${error.message}`, error);
     return [];
   }
 }
@@ -89,9 +89,9 @@ export async function getSpecies(id: string): Promise<Species> {
   try {
     const response = await axios.get<Species>(`${BASE_URL}/species/${id}`);
     return response.data;
-  } catch (error) {
-    console.error(error);
-    throw error;
+  } catch (error: any) {
+    console.error(`Error fetching species ${id}: ${error.message}`, error);
+    throw new Error('Failed to fetch species. Please try again later.');
   }
 }
 
@@ -104,8 +104,8 @@ export async function getSpeciesByMechanismId(
       `${BASE_URL}/mechanismspecies/mechanism/${mechanismId}`,
     );
     return response.data;
-  } catch (error) {
-    console.error(error);
+  } catch (error: any) {
+    console.error(`Error fetching species with mechanism ${mechanismId}: ${error.message}`, error);
     return [];
   }
 }
@@ -118,8 +118,8 @@ export async function getSpeciesByFamilyId(
       `${BASE_URL}/species/family/${familyId}`,
     );
     return response.data;
-  } catch (error) {
-    console.error(error);
+  } catch (error: any) {
+    console.error(`Error fetching species with family ${familyId}: ${error.message}`, error);
     return [];
   }
 }
@@ -129,8 +129,8 @@ export async function getReactions(): Promise<Reaction[]> {
   try {
     const response = await axios.get<Reaction[]>(`${BASE_URL}/reactions`);
     return response.data;
-  } catch (error) {
-    console.error(error);
+  } catch (error: any) {
+    console.error(`Error fetching species with reactions: ${error.message}`, error);
     return [];
   }
 }
@@ -140,9 +140,9 @@ export async function getReaction(id: string): Promise<Reaction> {
   try {
     const response = await axios.get<Reaction>(`${BASE_URL}/reactions/${id}`);
     return response.data;
-  } catch (error) {
-    console.error(error);
-    throw error;
+  } catch (error: any) {
+    console.error(`Error fetching reaction ${id}: ${error.message}`, error);
+    throw new Error('Failed to fetch reaction. Please try again later.');
   }
 }
 
@@ -155,8 +155,8 @@ export async function getReactionsByMechanismId(
       `${BASE_URL}/reactions/mechanism/${mechanismId}`,
     );
     return response.data;
-  } catch (error) {
-    console.error(error);
+  } catch (error: any) {
+    console.error(`Error fetching reactions from mechanism ${mechanismId}: ${error.message}`, error);
     return [];
   }
 }
@@ -169,8 +169,8 @@ export async function getReactionsByFamilyId(
       `${BASE_URL}/reactions/family/${familyId}`,
     );
     return response.data;
-  } catch (error) {
-    console.error(error);
+  } catch (error: any) {
+    console.error(`Error fetching reactions from family ${familyId}: ${error.message}`, error);
     return [];
   }
 }
@@ -183,8 +183,8 @@ export async function getReactantsByReactionIdAsync(
       `${BASE_URL}/reactionspecies/reaction/${reactionId}/reactants`,
     );
     return response.data;
-  } catch (error) {
-    console.error(error);
+  } catch (error: any) {
+    console.error(`Error fetching reactants from reaction ${reactionId}: ${error.message}`, error);
     return [];
   }
 }
@@ -197,8 +197,8 @@ export async function getProductsByReactionIdAsync(
       `${BASE_URL}/reactionspecies/reaction/${reactionId}/products`,
     );
     return response.data;
-  } catch (error) {
-    console.error(error);
+  } catch (error: any) {
+    console.error(`Error fetching products from reaction ${reactionId}: ${error.message}`, error);
     return [];
   }
 }
@@ -208,8 +208,8 @@ export async function getUsers(): Promise<User[]> {
   try {
     const response = await axios.get<User[]>(`${BASE_URL}/users`);
     return response.data;
-  } catch (error) {
-    console.error(error);
+  } catch (error: any) {
+    console.error(`Error fetching users: ${error.message}`, error);
     return [];
   }
 }
@@ -221,12 +221,8 @@ export async function getUserByEmail(email: string): Promise<User | null> {
     const response = await axios.get<User>(`${BASE_URL}/users/email/${email}`);
     return response.data;
   } catch (error: any) {
-    if (axios.isAxiosError(error) && error.response?.status === 404) {
-      return null;
-    } else {
-      console.error(error);
-      throw error;
-    }
+    console.error(`Error fetching user by email ${email}: ${error.message}`, error);
+    throw new Error('Failed to fetch user. Please try again later.');
   }
 }
 
@@ -234,10 +230,10 @@ export async function getUserById(id: string): Promise<User> {
   try {
     const response = await axios.get<User>(`${BASE_URL}/users/id/${id}`);
     return response.data;
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
+  } catch (error: any) {
+    console.error(`Error fetching user ${id}: ${error.message}`, error);
+      throw new Error('Failed to fetch user. Please try again later.');
+    }
 }
 
 export async function getPropertyById(id: string): Promise<Property> {
@@ -246,9 +242,9 @@ export async function getPropertyById(id: string): Promise<Property> {
       `${BASE_URL}/properties/id/${id}`,
     );
     return response.data;
-  } catch (error) {
-    console.error(error);
-    throw error;
+  } catch (error: any) {
+    console.error(`Error fetching user by property ${id}: ${error.message}`, error);
+    throw new Error('Failed to fetch property. Please try again later.');
   }
 }
 
@@ -261,7 +257,7 @@ export async function getPropertyBySpeciesAndMechanism(
       `${BASE_URL}/properties/id/${species}/${mechanism}`,
     );
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
     if (axios.isAxiosError(error) && error.response?.status !== 404) {
       console.error("Error response data:", error.response?.data);
     }
@@ -284,7 +280,7 @@ export async function downloadOAJSON(mechanismId?: string) {
       },
     );
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
     throw error;
   }
@@ -305,7 +301,7 @@ export async function downloadOAYAML(mechanismId?: string) {
       },
     );
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
     throw error;
   }
@@ -328,7 +324,7 @@ export async function downloadOAMusicbox(mechanismId?: string) {
 
     // Return the response data as an array buffer for further processing
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
     throw error;
   }
@@ -343,7 +339,7 @@ export async function getSpeciesPropertiesByMechanismIDAsync(
       `${BASE_URL}/initialconditionspecies/mechanism/${mechanismId}`,
     );
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
     return [];
   }
