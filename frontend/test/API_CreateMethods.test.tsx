@@ -51,12 +51,12 @@ describe("API create functions tests", () => {
     const familyData = { id: "123", name: "Test Family" };
     const errorMessage = "Request failed with status code 404";
 
-    (axios.post as typeof axios.post & { mockRejectedValueOnce: Function }).mockRejectedValueOnce(
-      new Error(errorMessage)
-    );
+    (
+      axios.post as typeof axios.post & { mockRejectedValueOnce: Function }
+    ).mockRejectedValueOnce(new Error(errorMessage));
     // Assert the function throws the correct error
     await expect(createFamily(familyData)).rejects.toThrow(
-      "Failed to create family. Please try again later."
+      "Failed to create family. Please try again later.",
     );
   });
 
@@ -79,12 +79,12 @@ describe("API create functions tests", () => {
     const mechanismData = { id: "123", name: "Test Mechanism" };
     const errorMessage = "Request failed with status code 404";
 
-    (axios.post as typeof axios.post & { mockRejectedValueOnce: Function }).mockRejectedValueOnce(
-      new Error(errorMessage)
-    );
+    (
+      axios.post as typeof axios.post & { mockRejectedValueOnce: Function }
+    ).mockRejectedValueOnce(new Error(errorMessage));
     // Assert the function throws the correct error
     await expect(createMechanism(mechanismData)).rejects.toThrow(
-      "Failed to create mechanism. Please try again later."
+      "Failed to create mechanism. Please try again later.",
     );
   });
 
@@ -107,12 +107,12 @@ describe("API create functions tests", () => {
     const reactionData = { id: "123", type: "Test Reaction" };
     const errorMessage = "Request failed with status code 404";
 
-    (axios.post as typeof axios.post & { mockRejectedValueOnce: Function }).mockRejectedValueOnce(
-      new Error(errorMessage)
-    );
+    (
+      axios.post as typeof axios.post & { mockRejectedValueOnce: Function }
+    ).mockRejectedValueOnce(new Error(errorMessage));
     // Assert the function throws the correct error
     await expect(createReaction(reactionData)).rejects.toThrow(
-      "Failed to create reaction. Please try again later."
+      "Failed to create reaction. Please try again later.",
     );
   });
 
@@ -135,12 +135,12 @@ describe("API create functions tests", () => {
     const speciesData = { id: "123", name: "Test Species" };
     const errorMessage = "Request failed with status code 404";
 
-    (axios.post as typeof axios.post & { mockRejectedValueOnce: Function }).mockRejectedValueOnce(
-      new Error(errorMessage)
-    );
+    (
+      axios.post as typeof axios.post & { mockRejectedValueOnce: Function }
+    ).mockRejectedValueOnce(new Error(errorMessage));
     // Assert the function throws the correct error
     await expect(createSpecies(speciesData)).rejects.toThrow(
-      "Failed to create species. Please try again later."
+      "Failed to create species. Please try again later.",
     );
   });
 
@@ -163,12 +163,12 @@ describe("API create functions tests", () => {
     const reactionSpeciesData = { reactionId: "123", speciesId: "456" };
     const errorMessage = "Request failed with status code 404";
 
-    (axios.post as typeof axios.post & { mockRejectedValueOnce: Function }).mockRejectedValueOnce(
-      new Error(errorMessage)
-    );
+    (
+      axios.post as typeof axios.post & { mockRejectedValueOnce: Function }
+    ).mockRejectedValueOnce(new Error(errorMessage));
     // Assert the function throws the correct error
     await expect(addSpeciesToReaction(reactionSpeciesData)).rejects.toThrow(
-      "Failed to add species to reaction. Please try again later."
+      "Failed to add species to reaction. Please try again later.",
     );
   });
 
@@ -191,12 +191,12 @@ describe("API create functions tests", () => {
     const mechanismReactionData = { mechanismId: "123", reactionId: "456" };
     const errorMessage = "Request failed with status code 404";
 
-    (axios.post as typeof axios.post & { mockRejectedValueOnce: Function }).mockRejectedValueOnce(
-      new Error(errorMessage)
-    );
+    (
+      axios.post as typeof axios.post & { mockRejectedValueOnce: Function }
+    ).mockRejectedValueOnce(new Error(errorMessage));
     // Assert the function throws the correct error
     await expect(addReactionToMechanism(mechanismReactionData)).rejects.toThrow(
-      "Failed to add reaction to mechanism. Please try again later."
+      "Failed to add reaction to mechanism. Please try again later.",
     );
   });
 
@@ -219,12 +219,12 @@ describe("API create functions tests", () => {
     const mechanismSpeciesData = { mechanismId: "123", speciesId: "456" };
     const errorMessage = "Request failed with status code 404";
 
-    (axios.post as typeof axios.post & { mockRejectedValueOnce: Function }).mockRejectedValueOnce(
-      new Error(errorMessage)
-    );
+    (
+      axios.post as typeof axios.post & { mockRejectedValueOnce: Function }
+    ).mockRejectedValueOnce(new Error(errorMessage));
     // Assert the function throws the correct error
     await expect(addSpeciesToMechanism(mechanismSpeciesData)).rejects.toThrow(
-      "Failed to add species to mechanism. Please try again later."
+      "Failed to add species to mechanism. Please try again later.",
     );
   });
 
@@ -247,12 +247,12 @@ describe("API create functions tests", () => {
     const userData = { id: "123", name: "Test User" };
     const errorMessage = "Request failed with status code 404";
 
-    (axios.post as typeof axios.post & { mockRejectedValueOnce: Function }).mockRejectedValueOnce(
-      new Error(errorMessage)
-    );
+    (
+      axios.post as typeof axios.post & { mockRejectedValueOnce: Function }
+    ).mockRejectedValueOnce(new Error(errorMessage));
     // Assert the function throws the correct error
     await expect(createUser(userData)).rejects.toThrow(
-      "Failed to create user. Please try again later."
+      "Failed to create user. Please try again later.",
     );
   });
 
@@ -275,12 +275,12 @@ describe("API create functions tests", () => {
     const userMechanismData = { userId: "123", mechanismId: "456" };
     const errorMessage = "Request failed with status code 404";
 
-    (axios.post as typeof axios.post & { mockRejectedValueOnce: Function }).mockRejectedValueOnce(
-      new Error(errorMessage)
-    );
+    (
+      axios.post as typeof axios.post & { mockRejectedValueOnce: Function }
+    ).mockRejectedValueOnce(new Error(errorMessage));
     // Assert the function throws the correct error
     await expect(addUserToMechanism(userMechanismData)).rejects.toThrow(
-      "Failed to add user to mechanism. Please try again later."
+      "Failed to add user to mechanism. Please try again later.",
     );
   });
 
@@ -312,12 +312,12 @@ describe("API create functions tests", () => {
     };
     const errorMessage = "Request failed with status code 404";
 
-    (axios.post as typeof axios.post & { mockRejectedValueOnce: Function }).mockRejectedValueOnce(
-      new Error(errorMessage)
-    );
+    (
+      axios.post as typeof axios.post & { mockRejectedValueOnce: Function }
+    ).mockRejectedValueOnce(new Error(errorMessage));
     // Assert the function throws the correct error
     await expect(createProperty(propertyData)).rejects.toThrow(
-      "Failed to create property. Please try again later."
+      "Failed to create property. Please try again later.",
     );
   });
 });

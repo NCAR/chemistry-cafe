@@ -56,15 +56,19 @@ describe("API update functions tests", () => {
   });
 
   it("should handle error correctly for updateFamily", async () => {
-    const family = { id: "1", name: "Test Family", description: "Test description" };
+    const family = {
+      id: "1",
+      name: "Test Family",
+      description: "Test description",
+    };
     const errorMessage = "Request failed with status code 404";
 
-    (axios.put as typeof axios.put & { mockRejectedValueOnce: Function }).mockRejectedValueOnce(
-      new Error(errorMessage)
-    );
+    (
+      axios.put as typeof axios.put & { mockRejectedValueOnce: Function }
+    ).mockRejectedValueOnce(new Error(errorMessage));
     // Assert the function throws the correct error
     await expect(updateFamily(family)).rejects.toThrow(
-      "Failed to update family. Please try again later."
+      "Failed to update family. Please try again later.",
     );
   });
 
@@ -91,12 +95,12 @@ describe("API update functions tests", () => {
     const mechanism: Mechanism = { id: "2", name: "Test Mechanism" };
     const errorMessage = "Request failed with status code 404";
 
-    (axios.put as typeof axios.put & { mockRejectedValueOnce: Function }).mockRejectedValueOnce(
-      new Error(errorMessage)
-    );
+    (
+      axios.put as typeof axios.put & { mockRejectedValueOnce: Function }
+    ).mockRejectedValueOnce(new Error(errorMessage));
     // Assert the function throws the correct error
     await expect(updateMechanism(mechanism)).rejects.toThrow(
-      "Failed to update mechanism. Please try again later."
+      "Failed to update mechanism. Please try again later.",
     );
   });
 
@@ -123,12 +127,12 @@ describe("API update functions tests", () => {
     const species: Species = { id: "3", name: "Test Species" };
     const errorMessage = "Request failed with status code 404";
 
-    (axios.put as typeof axios.put & { mockRejectedValueOnce: Function }).mockRejectedValueOnce(
-      new Error(errorMessage)
-    );
+    (
+      axios.put as typeof axios.put & { mockRejectedValueOnce: Function }
+    ).mockRejectedValueOnce(new Error(errorMessage));
     // Assert the function throws the correct error
     await expect(updateSpecies(species)).rejects.toThrow(
-      "Failed to update species. Please try again later."
+      "Failed to update species. Please try again later.",
     );
   });
 
@@ -155,12 +159,12 @@ describe("API update functions tests", () => {
     const reaction: Reaction = { id: "4", name: "Test Reaction" };
     const errorMessage = "Request failed with status code 404";
 
-    (axios.put as typeof axios.put & { mockRejectedValueOnce: Function }).mockRejectedValueOnce(
-      new Error(errorMessage)
-    );
+    (
+      axios.put as typeof axios.put & { mockRejectedValueOnce: Function }
+    ).mockRejectedValueOnce(new Error(errorMessage));
     // Assert the function throws the correct error
     await expect(updateReaction(reaction)).rejects.toThrow(
-      "Failed to update reaction. Please try again later."
+      "Failed to update reaction. Please try again later.",
     );
   });
 
@@ -195,12 +199,12 @@ describe("API update functions tests", () => {
     };
     const errorMessage = "Request failed with status code 404";
 
-    (axios.put as typeof axios.put & { mockRejectedValueOnce: Function }).mockRejectedValueOnce(
-      new Error(errorMessage)
-    );
+    (
+      axios.put as typeof axios.put & { mockRejectedValueOnce: Function }
+    ).mockRejectedValueOnce(new Error(errorMessage));
     // Assert the function throws the correct error
     await expect(updateUser(user.id, user)).rejects.toThrow(
-      "Failed to update user. Please try again later."
+      "Failed to update user. Please try again later.",
     );
   });
 
@@ -241,12 +245,12 @@ describe("API update functions tests", () => {
     };
     const errorMessage = "Request failed with status code 404";
 
-    (axios.put as typeof axios.put & { mockRejectedValueOnce: Function }).mockRejectedValueOnce(
-      new Error(errorMessage)
-    );
+    (
+      axios.put as typeof axios.put & { mockRejectedValueOnce: Function }
+    ).mockRejectedValueOnce(new Error(errorMessage));
     // Assert the function throws the correct error
     await expect(updateProperty(property)).rejects.toThrow(
-      "Failed to update property. Please try again later."
+      "Failed to update property. Please try again later.",
     );
   });
 });
