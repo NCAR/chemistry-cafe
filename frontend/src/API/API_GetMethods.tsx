@@ -258,10 +258,8 @@ export async function getPropertyBySpeciesAndMechanism(
     );
     return response.data;
   } catch (error: any) {
-    if (axios.isAxiosError(error) && error.response?.status !== 404) {
-      console.error("Error response data:", error.response?.data);
-    }
-    throw error;
+    console.error(`Error fetching property by species ${species} and mechanism ${mechanism}: ${error.message}`, error);
+    throw new Error('Failed to fetch property by species and mechanism. Please try again later.');
   }
 }
 
