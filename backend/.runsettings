@@ -4,7 +4,8 @@
       <DataCollector friendlyName="XPlat Code Coverage">
         <Configuration>
           <Format>opencover</Format>
-          <OutputDirectory>./TestResults</OutputDirectory>
+          <OutputDirectory>../TestResults</OutputDirectory>
+          <OutputFileName>coverage.cobertura.xml</OutputFileName>
           <Include>[Tests*]*</Include>
         </Configuration>
       </DataCollector>
