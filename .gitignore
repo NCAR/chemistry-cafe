@@ -27,5 +27,22 @@ dist-ssr
 *.sln
 *.sw?
 
+# LaTeX intermediate files
+*.bbl
+*.bcf
+*.blg
+*.brf
+*.fls
+*.out
+*.fdb_latexmk
+*.log
+*.toc
+*.aux
+*.synctex.gz
+*.synctex(busy)
+*.synctex
+*.pdfsync
+*.run.xml
+
 node_modules/
 /coverage

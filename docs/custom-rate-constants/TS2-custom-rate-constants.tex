@@ -26,19 +26,19 @@
 
 \section{Introduction}
 
-This document builds on the TS1 Custom Rate Constants document, adding treatments for custom rate constant
-functions used in the TS2 mechanism that are not also present in TS1.
+Contained are notes on the coversion of custom rate constant equations
+from the TS2 mechanism to standard MICM reaction types, building on
+the custom rate constant equation notes for TS1. The original
+rate constant functions are taken from the CAM source code, at 
+\verb>cam/src/chemistry/mozart/mo_usrrxt.F90>. These notes represent
+a snapshot in time, and the CAM code will likely have changed since this
+document was written. The code snippets are included to provide context. 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Note on [M] in Troe reactions}
 
-\begin{figure}[h]
-\centerline{\includegraphics[width=7in]{M_in_Troe.png}}
-\caption{Example of a Troe reaction in the Chemistry Caf\'{e}.}
-\label{fig:TroeM}
-\end{figure}
 
 The species `M' seems to be included in most (maybe all?) standard Troe reactions as a reactant and a product.
 However, the CAM preprocessor appears to ignore `M' as a species, and instead includes it in the calculation of the
@@ -148,7 +148,7 @@ To retain the detail of the current implementation of these rate constant functi
 Z( \alpha_0, n) = A(T = 293 \mbox{K}, \mbox{[M]} = 2.45 \times 10^{19} \frac{\mbox{molec}}{\mbox{cm}^3}, n) \frac{(1-\alpha_0)}{\alpha_0}
 \end{equation}
 
-This reaction has been added to Music Box as \verb>WENNBERG_NO_RO2>. The usr\_ISOPNO3\_NOn and usr\_ISOPNO3\_NOa rate constants can then be calculated according to the above equations with $X = 2.7 \times 10^{-12}$, $Y = -360$, $\alpha_0 = 0.135$, and $n = 9$, with usr\_ISOPNO3\_NOn corresponding to $k_{nitrate}$ and usr\_ISOPNO3\_NOa corresponding to $k_{alkoxy}$.
+This reaction has been added to Music Box as \verb>BRANCHED>. The usr\_ISOPNO3\_NOn and usr\_ISOPNO3\_NOa rate constants can then be calculated according to the above equations with $X = 2.7 \times 10^{-12}$, $Y = -360$, $\alpha_0 = 0.135$, and $n = 9$, with usr\_ISOPNO3\_NOn corresponding to $k_{nitrate}$ and usr\_ISOPNO3\_NOa corresponding to $k_{alkoxy}$.
 
 Similar custom rate constant functions are summarized in Table~\ref{tab:wennberg}.
 
@@ -204,7 +204,7 @@ This appears to be based on eq. (12) of \cite{Wennberg2018}:
 k_{tunneling} = A e^{-B/T} e^{C/T^3}
 \end{equation}
 
-\noindent with $A = 5.05 \times 10^{15}$, $B = 12200$, and $C = 1 \times 10^8$. This reaction has been added to Music Box as \verb>WENNBERG_TUNNELING>.
+\noindent with $A = 5.05 \times 10^{15}$, $B = 12200$, and $C = 1 \times 10^8$. This reaction has been added to Music Box as \verb>BRANCHED>.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -237,7 +237,7 @@ Following the same logic as for \verb>usr_PBZNIT_M>, the \verb>tag_TERPACO3_NO2_
           "k0_A": 9.7e-29,
           "k0_B": -5.6,
           "kinf_A": 9.3e-12,
-          "N": 1.5,
+          "kinf_B": -1.5,
           "reactants": {
             "TERPACO3": { },
             "NO2": { },
@@ -260,7 +260,7 @@ k_{inf} & = A_{inf} e^{\left( \frac{C_{inf}}{T} \right)} \left( \frac{T}{300} \r
 \end{split}
 \end{equation}
 
-\noindent where $F_C = 0.6$, $N = 1.5$, $A_0 = 9.7 \times 10^{-29} \times 1.111 \times 10^{28}$, $B_0 = -5.6$, $C_0 = -14000$, $A_{inf} = 9.3 \times 10^{-12} \times 1.111 \times 10^{28}$, $B_{inf} = 0$, and $C_{inf} = -14000$.
+\noindent where $F_C = 0.6$, $N = 1.0$, $A_0 = 9.7 \times 10^{-29} \times 1.111 \times 10^{28}$, $B_0 = -5.6$, $C_0 = -14000$, $A_{inf} = 9.3 \times 10^{-12} \times 1.111 \times 10^{28}$, $B_{inf} = -1.5$, and $C_{inf} = -14000$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -293,7 +293,7 @@ Following the same logic as for \verb>usr_PBZNIT_M>, the \verb>tag_TERPA2CO3_NO2
           "k0_A": 9.7e-29,
           "k0_B": -5.6,
           "kinf_A": 9.3e-12,
-          "N": 1.5,
+          "kinf_B": -1.5,
           "reactants": {
             "TERPA2CO3": { },
             "NO2": { },
@@ -316,7 +316,7 @@ k_{inf} & = A_{inf} e^{\left( \frac{C_{inf}}{T} \right)} \left( \frac{T}{300} \r
 \end{split}
 \end{equation}
 
-\noindent where $F_C = 0.6$, $N = 1.5$, $A_0 = 9.7 \times 10^{-29} \times 1.111 \times 10^{28}$, $B_0 = -5.6$, $C_0 = -14000$, $A_{inf} = 9.3 \times 10^{-12} \times 1.111 \times 10^{28}$, $B_{inf} = 0$, and $C_{inf} = -14000$.
+\noindent where $F_C = 0.6$, $N = 1.0$, $A_0 = 9.7 \times 10^{-29} \times 1.111 \times 10^{28}$, $B_0 = -5.6$, $C_0 = -14000$, $A_{inf} = 9.3 \times 10^{-12} \times 1.111 \times 10^{28}$, $B_{inf} = -1.5$, and $C_{inf} = -14000$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -349,7 +349,7 @@ Following the same logic as for \verb>usr_PBZNIT_M>, the \verb>tag_TERPA3CO3_NO2
           "k0_A": 9.7e-29,
           "k0_B": -5.6,
           "kinf_A": 9.3e-12,
-          "N": 1.5,
+          "kinf_B": -1.5,
           "reactants": {
             "TERPA3CO3": { },
             "NO2": { },
@@ -372,7 +372,7 @@ k_{inf} & = A_{inf} e^{\left( \frac{C_{inf}}{T} \right)} \left( \frac{T}{300} \r
 \end{split}
 \end{equation}
 
-\noindent where $F_C = 0.6$, $N = 1.5$, $A_0 = 9.7 \times 10^{-29} \times 1.111 \times 10^{28}$, $B_0 = -5.6$, $C_0 = -14000$, $A_{inf} = 9.3 \times 10^{-12} \times 1.111 \times 10^{28}$, $B_{inf} = 0$, and $C_{inf} = -14000$.
+\noindent where $F_C = 0.6$, $N = 1.0$, $A_0 = 9.7 \times 10^{-29} \times 1.111 \times 10^{28}$, $B_0 = -5.6$, $C_0 = -14000$, $A_{inf} = 9.3 \times 10^{-12} \times 1.111 \times 10^{28}$, $B_{inf} = -1.5$, and $C_{inf} = -14000$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -391,7 +391,7 @@ k_{inf} & = A_{inf} e^{\left( \frac{C_{inf}}{T} \right)} \left( \frac{T}{300} \r
        end if
 \end{blockcode}
 
-This appears to be a \verb>WENNBERG_TUNNELING> reaction:
+This appears to be a \verb>BRANCHED> reaction:
 
 \begin{equation}
 k_{tunneling} = A e^{-B/T} e^{C/T^3}
