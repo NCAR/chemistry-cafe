@@ -76,6 +76,30 @@ dotnet npm run dev
 ```
 docker compose up mysql
 ```
+
+## Testing
+
+### To test frontend
+```
+cd frontend
+npm run test:coverage
+```
+If all tests past, the coverage report will generate in frontend/coverage/index.html
+
+### To test backend
+
+**Terminal 1**
+```
+docker compose up mysql
+```
+**Terminal 2**
+```
+cd backend
+dotnet test --collect "Code Coverage;Format=cobertura"  --settings ..\.runsettings
+```
+If all tests past, the coverage report will generate in backend/mstests/coveragereport/index.html
+
+
 # License
 - [Apache 2.0](/LICENSE)
 
