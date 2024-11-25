@@ -1,0 +1,504 @@
+\documentclass[titlepage]{article}
+
+\usepackage{amsmath}
+\usepackage{biblatex}
+\usepackage{chemformula}
+\usepackage{fancyvrb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{lipsum}
+\usepackage[margin=1in]{geometry}
+\usepackage{xcolor}
+
+\addbibresource{TS2_refs.bib}
+
+\DefineVerbatimEnvironment{blockcode}
+  {Verbatim}
+  {fontsize=\small,formatcom=\color{blue}}
+
+\begin{document}
+
+\title{Custom Rate Constants - Beyond TS1 and TS2}
+\author{Matt Dawson}
+\maketitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Introduction}
+
+This document builds on the TS1 and TS2 Custom Rate Constants document, adding treatments for custom rate constant
+functions that are not used in TS1 or TS2.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_MCO3\_XNO2}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/mozart/mo_usrrxt.F90 (796,796)
+       tp(:)             = 300._r8 * tinv(:)
+\end{blockcode}       
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/mozart/mo_usrrxt.F90 (958,966)
+!-----------------------------------------------------------------
+!     ... mco3 + no2 -> mpan
+!-----------------------------------------------------------------
+       if( usr_MCO3_NO2_ndx > 0 ) then
+          rxt(:,k,usr_MCO3_NO2_ndx) = 1.1e-11_r8 * tp(:) / m(:,k)
+       end if
+       if( usr_MCO3_XNO2_ndx > 0 ) then
+          rxt(:,k,usr_MCO3_XNO2_ndx) = 1.1e-11_r8 * tp(:) / m(:,k)
+       end if
+\end{blockcode}
+
+As discussed in the TS1 document sections 11 and 19, this appears to have been replaced
+by a Troe reaction. The proposed reworking of this function (TS1 section 19) included
+removing M from the reactants and products and using a standard Arrhenius reaction:
+
+\begin{equation}
+k = Ae^{(\frac{C}{T})}(\frac{T}{D})^B(1.0+E \times P),
+\end{equation}
+
+\noindent with $A = 1.1 \times 10^{-11}$, $B = -1$, $C = 0$, $D = 300$, and $E = 0$.
+
+However, it appears that the CAM preprocessor may ignore M as a reactant, meaning that
+this reaction would require a new reaction type in Music Box.
+
+\vspace{20px}
+\textit{\Large Should a new reaction type be added to Music Box for this reaction? Or is
+this no longer used?}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_XOOH\_OH}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/mozart/mo_usrrxt.F90 (1046,1052)
+!-----------------------------------------------------------------
+!       ... xooh + oh -> h2o + oh
+!-----------------------------------------------------------------
+       if( usr_XOOH_OH_ndx > 0 ) then
+          call comp_exp( exp_fac, 253._r8*tinv, ncol )
+          rxt(:,k,usr_XOOH_OH_ndx) = temp(:ncol,k)**2._r8 * 7.69e-17_r8 * exp_fac(:)
+       end if
+\end{blockcode}
+
+This can be rearranged as an Arrhenius reaction:
+
+\begin{equation}
+k = Ae^{(\frac{C}{T})}(\frac{T}{D})^B(1.0+E \times P),
+\end{equation}
+
+\noindent with $A = 7.69 \times 10^{-17}$, $B = 2$, $C = 253$, $D = 1$, and $E = 0$.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_OA\_O2}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/mozart/mo_usrrxt.F90 (800,808)
+!-----------------------------------------------------------------
+! ... o + o2 + m --> o3 + m (JPL15-10)
+!-----------------------------------------------------------------
+       if( usr_O_O2_ndx > 0 ) then
+          rxt(:,k,usr_O_O2_ndx) = 6.e-34_r8 * tp(:)**2.4_r8
+       end if
+       if( usr_OA_O2_ndx > 0 ) then
+          rxt(:,k,usr_OA_O2_ndx) = 6.e-34_r8 * tp(:)**2.4_r8
+       end if
+\end{blockcode}
+
+Same as \verb>usr_O_O2> (TS1 section 5).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_XNO2NO3\_M and usr\_NO2XNO3\_M}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/mozart/mo_usrrxt.F90 (849,875)
+!-----------------------------------------------------------------
+! ... n2o5 + m --> no2 + no3 + m (JPL15-10)
+!-----------------------------------------------------------------
+       if( usr_N2O5_M_ndx > 0 ) then
+          if( tag_NO2_NO3_ndx > 0 ) then
+             call comp_exp( exp_fac, -10840.0_r8*tinv, ncol )
+             rxt(:,k,usr_N2O5_M_ndx) = rxt(:,k,tag_NO2_NO3_ndx) * 1.724138e26_r8 * exp_fac(:)
+          else
+             rxt(:,k,usr_N2O5_M_ndx) = 0._r8
+          end if
+       end if
+       if( usr_XNO2NO3_M_ndx > 0 ) then
+          if( tag_NO2_NO3_ndx > 0 ) then
+             call comp_exp( exp_fac, -10840.0_r8*tinv, ncol )
+             rxt(:,k,usr_XNO2NO3_M_ndx) = rxt(:,k,tag_NO2_NO3_ndx) *1.724138e26_r8 * exp_fac(:)
+          else
+             rxt(:,k,usr_XNO2NO3_M_ndx) = 0._r8
+          end if
+       end if
+       if( usr_NO2XNO3_M_ndx > 0 ) then
+          if( tag_NO2_NO3_ndx > 0 ) then
+             call comp_exp( exp_fac, -10840.0_r8*tinv, ncol )
+             rxt(:,k,usr_NO2XNO3_M_ndx) = rxt(:,k,tag_NO2_NO3_ndx) * 1.734138e26_r8 * exp_fac(:)
+          else
+             rxt(:,k,usr_NO2XNO3_M_ndx) = 0._r8
+          end if
+       end if
+\end{blockcode}
+ 
+Same as \verb>usr_N2O5_M> (TS1 section 7)
+       
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_XHNO3\_OH}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/mozart/mo_usrrxt.F90 (877,897)
+!-----------------------------------------------------------------
+! set rates for:
+!   ... hno3 + oh --> no3 + h2o
+!           ho2no2 + m --> ho2 + no2 + m
+!-----------------------------------------------------------------
+       if( usr_HNO3_OH_ndx > 0 ) then
+          call comp_exp( exp_fac, 1335._r8*tinv, ncol )
+          ko(:) = m(:,k) * 6.5e-34_r8 * exp_fac(:)
+          call comp_exp( exp_fac, 2199._r8*tinv, ncol )
+          ko(:) = ko(:) / (1._r8 + ko(:)/(2.7e-17_r8*exp_fac(:)))
+          call comp_exp( exp_fac, 460._r8*tinv, ncol )
+          rxt(:,k,usr_HNO3_OH_ndx) = ko(:) + 2.4e-14_r8*exp_fac(:)
+       end if
+       if( usr_XHNO3_OH_ndx > 0 ) then
+          call comp_exp( exp_fac, 1335._r8*tinv, ncol )
+          ko(:) = m(:,k) * 6.5e-34_r8 * exp_fac(:)
+          call comp_exp( exp_fac, 2199._r8*tinv, ncol )
+          ko(:) = ko(:) / (1._r8 + ko(:)/(2.7e-17_r8*exp_fac(:)))
+          call comp_exp( exp_fac, 460._r8*tinv, ncol )
+          rxt(:,k,usr_XHNO3_OH_ndx) = ko(:) + 2.4e-14_r8*exp_fac(:)
+       end if
+\end{blockcode}      
+
+Same as \verb>usr_HNO3_OH> (TS1 section 18).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_XHO2NO2\_M}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/mozart/mo_usrrxt.F90 (898,913)
+       if( usr_HO2NO2_M_ndx > 0 ) then
+          if( tag_NO2_HO2_ndx > 0 ) then
+             call comp_exp( exp_fac, -10900._r8*tinv, ncol )
+             rxt(:,k,usr_HO2NO2_M_ndx) = rxt(:,k,tag_NO2_HO2_ndx) * exp_fac(:) / 2.1e-27_r8
+          else
+             rxt(:,k,usr_HO2NO2_M_ndx) = 0._r8
+          end if
+       end if
+       if( usr_XHO2NO2_M_ndx > 0 ) then
+          if( tag_NO2_HO2_ndx > 0 ) then
+             call comp_exp( exp_fac, -10900._r8*tinv, ncol )
+             rxt(:,k,usr_XHO2NO2_M_ndx) = rxt(:,k,tag_NO2_HO2_ndx) * exp_fac(:) / 2.1e-27_r8
+          else
+             rxt(:,k,usr_XHO2NO2_M_ndx) = 0._r8
+          end if
+       end if
+\end{blockcode}      
+
+Same as \verb>usr_HO2NO2_M> (TS1 section 8).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_XPAN\_M}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/mozart/mo_usrrxt.F90 (968,985)
+!-----------------------------------------------------------------
+! ... pan + m --> ch3co3 + no2 + m (JPL15-10)
+!-----------------------------------------------------------------
+       call comp_exp( exp_fac, -14000._r8*tinv, ncol )
+       if( usr_PAN_M_ndx > 0 ) then
+          if( tag_CH3CO3_NO2_ndx > 0 ) then
+             rxt(:,k,usr_PAN_M_ndx) = rxt(:,k,tag_CH3CO3_NO2_ndx) * 1.111e28_r8 * exp_fac(:)
+          else
+             rxt(:,k,usr_PAN_M_ndx) = 0._r8
+          end if
+       end if
+       if( usr_XPAN_M_ndx > 0 ) then
+          if( tag_CH3CO3_NO2_ndx > 0 ) then
+             rxt(:,k,usr_XPAN_M_ndx) = rxt(:,k,tag_CH3CO3_NO2_ndx) * 1.111e28_r8 * exp_fac(:)
+          else
+             rxt(:,k,usr_XPAN_M_ndx) = 0._r8
+          end if
+       end if
+\end{blockcode}      
+
+Same as \verb>usr_PAN_M> (TS1 section 17).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_XMPAN\_M}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/mozart/mo_usrrxt.F90 (987,1003)
+!-----------------------------------------------------------------
+! ... mpan + m --> mco3 + no2 + m (JPL15-10)
+!-----------------------------------------------------------------
+       if( usr_MPAN_M_ndx > 0 ) then
+          if( tag_MCO3_NO2_ndx > 0 ) then
+             rxt(:,k,usr_MPAN_M_ndx) = rxt(:,k,tag_MCO3_NO2_ndx) * 1.111e28_r8 * exp_fac(:)
+          else
+             rxt(:,k,usr_MPAN_M_ndx) = 0._r8
+          end if
+       end if
+       if( usr_XMPAN_M_ndx > 0 ) then
+          if( tag_MCO3_NO2_ndx > 0 ) then
+             rxt(:,k,usr_XMPAN_M_ndx) = rxt(:,k,tag_MCO3_NO2_ndx) * 1.111e28_r8 * exp_fac(:)
+          else
+             rxt(:,k,usr_XMPAN_M_ndx) = 0._r8
+          end if
+       end if
+\end{blockcode}      
+
+Same as \verb>usr_MPAN_M> (TS1 section 11).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_C2O3\_NO2}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/mozart/mo_usrrxt.F90 (1444,1449)
+       if ( usr_C2O3_NO2_ndx > 0 ) then
+          ko(:)   = 2.6e-28_r8 * m(:,k)
+          kinf(:) = 1.2e-11_r8
+          rxt(:,k,usr_C2O3_NO2_ndx) = (ko/(1._r8+ko/kinf)) * 0.6_r8**(1._r8/(1._r8+(log10(ko/kinf))**2))
+       end if
+\end{blockcode}  
+
+This is a Troe reaction:
+
+\begin{equation}
+\begin{split}
+k & = \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{(1+1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \\
+k_0 & = A_0 e^{\left( \frac{C_0}{T} \right)} \left( \frac{T}{300} \right)^{B_0} \\
+k_{inf} & = A_{inf} e^{\left( \frac{C_{inf}}{T} \right)} \left( \frac{T}{300} \right)^{B_{inf}}
+\end{split}
+\end{equation}
+
+\noindent where $F_C = 0.6$, $N = 1$, $A_0 = 2.6 \times 10^{-28}$, $B_0 = 0$, $C_0 = 0$, $A_{inf} = 1.2 \times 10^{-11}$, $B_{inf} = 0$, and $C_{inf} = 0$.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_C2H4\_OH}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/mozart/mo_usrrxt.F90 (1454,1458)
+       if ( usr_C2H4_OH_ndx > 0 ) then
+          ko(:)   = 1.0e-28_r8 * m(:,k)
+          kinf(:) = 8.8e-12_r8
+          rxt(:,k,usr_C2H4_OH_ndx) = (ko/(1._r8+ko/kinf)) * 0.6_r8**(1._r8/(1._r8+(log(ko/kinf))**2))
+       end if
+\end{blockcode}  
+
+This is a Troe reaction:
+
+\begin{equation}
+\begin{split}
+k & = \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{(1+1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \\
+k_0 & = A_0 e^{\left( \frac{C_0}{T} \right)} \left( \frac{T}{300} \right)^{B_0} \\
+k_{inf} & = A_{inf} e^{\left( \frac{C_{inf}}{T} \right)} \left( \frac{T}{300} \right)^{B_{inf}}
+\end{split}
+\end{equation}
+
+\noindent where $F_C = 0.6$, $N = 1$, $A_0 = 1.0 \times 10^{-28}$, $B_0 = 0$, $C_0 = 0$, $A_{inf} = 8.8 \times 10^{-12}$, $B_{inf} = 0$, and $C_{inf} = 0$.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_XO2N\_HO2}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/mozart/mo_usrrxt.F90 (1459,1461)
+       if ( usr_XO2N_HO2_ndx > 0 ) then
+          rxt(:,k,usr_XO2N_HO2_ndx) = rxt(:,k,tag_XO2N_NO_ndx)* \mbox{\color{black}(continued)}
+            rxt(:,k,tag_XO2_HO2_ndx)/(rxt(:,k,tag_XO2_NO_ndx)+1.e-36_r8)
+       end if
+\end{blockcode}  
+
+Looking through the Chemistry Caf\'{e}, the \verb>tag_XO2_HO2_ndx> appears to be an Arrhenius
+reaction with $A = 8 \times 10^{-13}$ and $C = 700$, and the \verb>tag_XO2_NO_ndx> appears to
+also be an Arrhenius reaction with $A = 2.7 \times 10^{-12}$ and $C = 360$, but I can't find
+anything corresponding to \verb>tag_XO2N_NO_ndx> in the database or the mechanisms that are
+stored with the CAM source code.
+
+\vspace{20px}
+\textit{\Large How should this rate constant be calculated?}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_C2O3\_XNO2}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/mozart/mo_usrrxt.F90 (1449,1453)
+       if ( usr_C2O3_XNO2_ndx > 0 ) then
+          ko(:)   = 2.6e-28_r8 * m(:,k)
+          kinf(:) = 1.2e-11_r8
+          rxt(:,k,usr_C2O3_XNO2_ndx) = (ko/(1._r8+ko/kinf)) * 0.6_r8**(1._r8/(1._r8+(log10(ko/kinf))**2))
+       end if
+\end{blockcode} 
+
+This is a Troe reaction:
+
+\begin{equation}
+\begin{split}
+k & = \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{(1+1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \\
+k_0 & = A_0 e^{\left( \frac{C_0}{T} \right)} \left( \frac{T}{300} \right)^{B_0} \\
+k_{inf} & = A_{inf} e^{\left( \frac{C_{inf}}{T} \right)} \left( \frac{T}{300} \right)^{B_{inf}}
+\end{split}
+\end{equation}
+
+\noindent where $F_C = 0.6$, $N = 1$, $A_0 = 2.6 \times 10^{-28}$, $B_0 = 0$, $C_0 = 0$, $A_{inf} = 1.2 \times 10^{-11}$, $B_{inf} = 0$, and $C_{inf} = 0$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_CLm\_H2O\_M}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/mozart/mo_usrrxt.F90 (1909,1910)
+        call comp_exp( exp_fac, -6600._r8 * tinv, ncol )
+        rxt(:,k,usr_clm_h2o_m_ndx) = 2.e-8_r8 * exp_fac(:)
+\end{blockcode} 
+
+This is an Arrhenius reaction:
+
+\begin{equation}
+k = Ae^{(\frac{C}{T})}(\frac{T}{D})^B(1.0+E \times P),
+\end{equation}
+
+\noindent with $A = 2 \times 10^{-8}$, $B = 0$, $C = -6600$, and $E = 0$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_CLm\_HCL\_M}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/mozart/mo_usrrxt.F90 (1912,1913)
+        call comp_exp( exp_fac, -11926._r8 * tinv, ncol )
+        rxt(:,k,usr_clm_hcl_m_ndx) =  tinv(:) * exp_fac(:)
+\end{blockcode} 
+
+This is an Arrhenius reaction:
+
+\begin{equation}
+k = Ae^{(\frac{C}{T})}(\frac{T}{D})^B(1.0+E \times P),
+\end{equation}
+
+\noindent with $A = 1$, $B = -1$, $C = -11926$, $D = 1$, and $E = 0$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_oh\_co}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/mozart/mo_usrrxt.F90 (796,796)
+       tp(:)             = 300._r8 * tinv(:)
+\end{blockcode}
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/mozart/mo_usrrxt.F90 (1757,1770)
+       !-----------------------------------------------------------------------
+       !     ... CO + OH --> CO2 + HO2
+       !-----------------------------------------------------------------------
+       if ( usr_oh_co_ndx > 0 ) then
+          ko(:)     = 5.9e-33_r8 * tp(:)**1.4_r8
+          kinf(:)   = 1.1e-12_r8 * (temp(:ncol,k) / 300._r8)**1.3_r8
+          ko_m(:)   = ko(:) * m(:,k)
+          k0(:)     = 1.5e-13_r8 * (temp(:ncol,k) / 300._r8)**0.6_r8
+          kinf_m(:) = (2.1e+09_r8 * (temp(:ncol,k) / 300._r8)**6.1_r8) / m(:,k)
+          rxt(:,k,usr_oh_co_ndx) = (ko_m(:)/(1._r8+(ko_m(:)/kinf(:)))) * &
+               0.6_r8**(1._r8/(1._r8+(log10(ko_m(:)/kinf(:)))**2._r8)) + &
+               (k0(:)/(1._r8+(k0(:)/kinf_m(:)))) * &
+               0.6_r8**(1._r8/(1._r8+(log10(k0(:)/kinf_m(:)))**2._r8))
+       endif
+\end{blockcode}
+
+This rate constant is the sum of a Troe rate constant:
+
+\begin{equation}
+\begin{split}
+k & = \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{(1+1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \\
+k_0 & = A_0 e^{\left( \frac{C_0}{T} \right)} \left( \frac{T}{300} \right)^{B_0} \\
+k_{inf} & = A_{inf} e^{\left( \frac{C_{inf}}{T} \right)} \left( \frac{T}{300} \right)^{B_{inf}}
+\end{split}
+\end{equation}
+
+\noindent where $F_C = 0.6$, $N = 1$, $A_0 = 5.9 \times 10^{-33}$, $B_0 = -1.4$, $C_0 = 0$, $A_{inf} = 1.1 \times 10^{-12}$, $B_{inf} = 1.3$, and $C_{inf} = 0$, and a ternary chemical activation rate constant:
+
+\begin{equation}
+\begin{split}
+k & = \frac{k_0}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{(1+1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \\
+k_0 & = A_0 e^{\left( \frac{C_0}{T} \right)} \left( \frac{T}{300} \right)^{B_0} \\
+k_{inf} & = A_{inf} e^{\left( \frac{C_{inf}}{T} \right)} \left( \frac{T}{300} \right)^{B_{inf}}
+\end{split}
+\end{equation}
+
+\noindent where $F_C = 0.6$, $N = 1$, $A_0 = 1.5 \times 10^{-13}$, $B_0 = 0.6$, $C_0 = 0$, $A_{inf} = 2.1 \times 10^{9}$, $B_{inf} = 6.1$, and $C_{inf} = 0$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_oh\_dms}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/mozart/mo_usrrxt.F90 (1777,1784)
+       !-----------------------------------------------------------------------
+       !     ... DMS + OH --> 0.75 SO2 + 0.25 MSA
+       !-----------------------------------------------------------------------
+       if ( usr_oh_dms_ndx > 0 ) then
+          o2(:ncol) = invariants(:ncol,k,inv_o2_ndx)
+          rxt(:,k,usr_oh_dms_ndx) = 2.000e-10_r8 * exp(5820.0_r8 * tinv(:)) / &
+               ((2.000e29_r8 / o2(:)) + exp(6280.0_r8 * tinv(:)))
+       endif
+\end{blockcode}
+
+This does not appear to fit any existing reaction types.
+
+\vspace{20px}
+\textit{\Large Should this be added as a reaction type to Music Box? If so, is there a reference to use for the documentation?}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{usr\_COhc\_OH, usr\_COme\_OH and usr\_CO01\_OH--usr\_CO42\_OH}
+
+\begin{blockcode}[commandchars=\\\{\}]
+\color{gray}/cam/src/chemistry/mozart/mo_usrrxt.F90 (1777,1784)
+!-----------------------------------------------------------------
+!      ... CO tags
+!-----------------------------------------------------------------
+      if( usr_CO_OH_b_ndx > 0 ) then
+         if( usr_COhc_OH_ndx > 0 ) then
+            rxt(:ncol,:,usr_COhc_OH_ndx) = rxt(:ncol,:,usr_CO_OH_b_ndx)
+         end if
+         if( usr_COme_OH_ndx > 0 ) then
+            rxt(:ncol,:,usr_COme_OH_ndx) = rxt(:ncol,:,usr_CO_OH_b_ndx)
+         end if
+         if( usr_CO01_OH_ndx > 0 ) then
+            rxt(:ncol,:,usr_CO01_OH_ndx) = rxt(:ncol,:,usr_CO_OH_b_ndx)
+         end if
+         if( usr_CO02_OH_ndx > 0 ) then
+            rxt(:ncol,:,usr_CO02_OH_ndx) = rxt(:ncol,:,usr_CO_OH_b_ndx)
+         end if
+
+         {\color{black}...}
+
+         if( usr_CO41_OH_ndx > 0 ) then
+            rxt(:ncol,:,usr_CO41_OH_ndx) = rxt(:ncol,:,usr_CO_OH_b_ndx)
+         end if
+         if( usr_CO42_OH_ndx > 0 ) then
+            rxt(:ncol,:,usr_CO42_OH_ndx) = rxt(:ncol,:,usr_CO_OH_b_ndx)
+         end if
+\end{blockcode}
+
+Same as \verb>usr_CO_OH_b> (TS1 section 23).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
