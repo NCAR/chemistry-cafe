@@ -39,12 +39,16 @@ import {
   Typography,
   Select,
   MenuItem,
+  Alert,
 } from "@mui/material";
 import {
   updateProperty,
   updateReaction,
   updateSpecies,
 } from "../API/API_UpdateMethods";
+
+import Snackbar from '@mui/material/Snackbar';
+
 
 const style = {
   position: "absolute" as const,
@@ -188,37 +192,65 @@ export const CreateFamilyModal: React.FC<CreateFamilyModalProps> = ({
   setCreatedFamilyBool,
 }) => {
   const createFamilyRef = useRef("");
+  const [showCreateFamilyAlert, setShowCreateFamilyAlert] = useState(false);
 
   const handleCreateFamilyClick = async () => {
-    try {
-      const newFamily: Family = {
-        name: createFamilyRef.current,
-        description: "",
-        createdBy: "",
-      };
-      await createFamily(newFamily);
-      createFamilyRef.current = "";
-      onClose();
-      setCreatedFamilyBool(true);
-    } catch (error) {
-      console.error(error);
+    // dont allow for a family with no name
+    if (createFamilyRef.current === ""){
+      setShowCreateFamilyAlert(true);
+    }
+    else{
+
+      try {
+        const newFamily: Family = {
+          name: createFamilyRef.current,
+          description: "",
+          createdBy: "",
+        };
+        await createFamily(newFamily);
+        createFamilyRef.current = "";
+        onClose();
+        setCreatedFamilyBool(true);
+      } catch (error) {
+        console.error(error);
+      }
     }
   };
 
+  const handleAlertClose = () => {
+    setShowCreateFamilyAlert(false)
+  }
+
   return (
+    <div>
     <Modal open={open} onClose={onClose}>
       <Box sx={style}>
         Enter Name for Family below.
         <TextField
           id="family-name"
           label="Name"
+          required={true}
           onChange={(e) => (createFamilyRef.current = e.target.value)}
           fullWidth
           margin="normal"
         />
-        <Button onClick={handleCreateFamilyClick}>Submit</Button>
+        <Button variant={"contained"} onClick={handleCreateFamilyClick}>Submit</Button>
+        
       </Box>
     </Modal>
+
+    <Snackbar open={showCreateFamilyAlert}
+      autoHideDuration={5000}
+      onClose={handleAlertClose}
+      anchorOrigin={{vertical: "top", horizontal: "center"}}>
+
+      <Alert onClose={handleAlertClose} severity="warning"
+        variant="filled" sx={{ width: '100%' }}>
+
+        Name must not be empty!
+      </Alert>
+    </Snackbar>
+    </div>
   );
 };
 
