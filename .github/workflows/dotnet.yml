@@ -36,4 +36,7 @@ jobs:
 
     # Run tests
     - name: Test
-      run: dotnet test ./backend --no-build --verbosity normal
+      run: |
+        docker compose up mysql
+        dotnet test ./backend --no-build --verbosity normal
+        docker compose down mysql
