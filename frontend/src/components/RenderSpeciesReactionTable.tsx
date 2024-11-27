@@ -217,9 +217,9 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
         flex: 1,
         renderCell: (params) => (
           <Typography variant="body1">
-            {params.row.property.tolerance === 0
+            {params.row.property?.tolerance === 0
               ? ""
-              : (params.row.property.tolerance ?? "")}
+              : (params.row.property?.tolerance ?? "")}
           </Typography>
         ),
       },
@@ -229,9 +229,9 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
         flex: 1,
         renderCell: (params) => (
           <Typography variant="body1">
-            {params.row.property.weight === 0
+            {params.row.property?.weight === 0
               ? ""
-              : (params.row.property.weight ?? "")}
+              : (params.row.property?.weight ?? "")}
           </Typography>
         ),
       },
@@ -241,9 +241,9 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
         flex: 1,
         renderCell: (params) => (
           <Typography variant="body1">
-            {params.row.property.concentration === 0
+            {params.row.property?.concentration === 0
               ? ""
-              : (params.row.property.concentration ?? "")}
+              : (params.row.property?.concentration ?? "")}
           </Typography>
         ),
       },
@@ -253,9 +253,9 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
         flex: 1,
         renderCell: (params) => (
           <Typography variant="body1">
-            {params.row.property.diffusion === 0
+            {params.row.property?.diffusion === 0
               ? ""
-              : (params.row.property.diffusion ?? "")}
+              : (params.row.property?.diffusion ?? "")}
           </Typography>
         ),
       },
@@ -293,6 +293,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
           selectedMechanismID!,
         );
       } catch (error) {
+        // if no property found, create one
         if (isAxiosError(error) && error.response?.status === 404) {
           const propertyData: Property = {
             speciesId: speciesItem.id!,
@@ -300,6 +301,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
           };
           const createdProperty = await createProperty(propertyData);
           fetchedProperty = createdProperty;
+          console.log("Missing Property handled successfully");
         } else {
           //('Error fetching property:', error);
         }
