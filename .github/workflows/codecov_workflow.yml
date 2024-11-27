@@ -33,7 +33,7 @@ jobs:
         run: npm run build
         working-directory: ./frontend
 
-     # Step 5: Run tests and collect code coverage
+      # Step 5: Run tests and collect code coverage
       - name: Test and calculate coverage
         run: npm run test:coverage
         working-directory: ./frontend
@@ -43,8 +43,8 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}  # Add the Codecov token in the GitHub secrets
-          files: [ ./frontend/coverage/lcov.info, ./ManualCoverageBackend.cobertura.xml]
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./frontend/coverage/lcov.info, ./ManualCoverageBackend.cobertura.xml
           flags: vite-tests
           fail_ci_if_error: true
    
