@@ -69,7 +69,7 @@ dotnet run
 **Terminal 2**
 ```
 cd frontend
-dotnet npm run dev
+npm run dev
 ```
 
 **Terminal 3**
