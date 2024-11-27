@@ -219,6 +219,36 @@ namespace Chemistry_Cafe_API.Tests
         }
 
         [TestMethod]
+        public async Task Updates_InitialConditions_mismatchedId()
+        {
+            // Arrange
+            var service = new InitialConditionSpeciesService(db);
+            var controller = new InitialConditionsController(service);
+
+            var updatedInitialCondition = new InitialConditionsSpecies
+            {
+                Id = new Guid("cccccccc-dddd-eeee-ffff-111111111111"),
+                MechanismId = _MechanismId,
+                SpeciesId = _SpeciesId,
+                Concentration = 2.0,
+                Temperature = 300.0,
+                Pressure = 1.5,
+                AdditionalConditions = "Updated test conditions",
+                AbsConvergenceTolerance = 0.002,
+                DiffusionCoefficient = 0.6,
+                MolecularWeight = 18.01528,
+                FixedConcentration = 0.0
+            };
+
+            // Act
+            var actionResult = await controller.UpdateInitialCondition(_InitialConditionId, updatedInitialCondition);
+
+            // Assert
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOfType(actionResult, typeof(BadRequestResult));
+        }
+
+        [TestMethod]
         public async Task Delete_InitialCondition()
         {
             // Arrange
