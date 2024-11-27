@@ -45,6 +45,51 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           # files: ./frontend/coverage/lcov.info, ./ManualCoverageBackend.cobertura.xml
-          flags: vite-tests
+          flags: frontend
           fail_ci_if_error: true
-   
+
+
+  Backend-Codecov-Publishing:
+      runs-on: ubuntu-latest
+
+      steps:
+        # Checkout code
+        - name: Checkout code
+          uses: actions/checkout@v2
+
+        # Setup .NET
+        - name: Setup .NET
+          uses: actions/setup-dotnet@v3
+          with:
+            dotnet-version: '8.0.x'
+
+        # Restore dependencies
+        - name: Restore dependencies
+          run: dotnet restore
+          working-directory: ./backend
+
+        # Build the backend
+        - name: Build the project
+          run: dotnet build --no-restore --configuration Release
+          working-directory: ./backend
+
+        # Run tests and generate coverage report
+        - name: Run tests and generate coverage
+          run: dotnet test --no-build --configuration Release --collect:"XPlat Code Coverage"
+          working-directory: ./backend
+
+        # Find the coverage file using regex
+        - name: Locate coverage file
+          id: coverage-path
+          run: |
+            COVERAGE_PATH=$(find ./backend/TestResults -regextype posix-extended -regex ".*cobertura.*\cobertura.xml" -print -quit)
+            echo "COVERAGE_PATH=$COVERAGE_PATH" >> $GITHUB_ENV
+
+        # Upload backend coverage to Codecov
+        - name: Upload backend coverage to Codecov
+          uses: codecov/codecov-action@v4.2.0
+          with:
+            token: ${{ secrets.CODECOV_TOKEN }}
+            files: ${{ env.COVERAGE_PATH }}
+            flags: backend
+            fail_ci_if_error: true

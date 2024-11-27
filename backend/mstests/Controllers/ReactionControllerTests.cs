@@ -154,6 +154,32 @@ namespace Chemistry_Cafe_API.Tests
         }
 
         [TestMethod]
+        public async Task Updates_Reaction_mismatchedId()
+        {
+            // Arrange
+            var service = new ReactionService(db);
+            var controller = new ReactionsController(service);
+            string newName = "UpdatedTestReaction";
+            string newDescription = "An updated test reaction.";
+
+            var updatedReaction = new Reaction
+            {
+                Id = new Guid("cccccccc-dddd-eeee-ffff-111111111111"),
+                Name = newName,
+                Description = newDescription,
+                CreatedBy = _CreatedBy,
+                CreatedDate = _CreatedDate
+            };
+
+            // Act
+            var actionResult = await controller.UpdateReaction(_Id, updatedReaction);
+
+            // Assert
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOfType(actionResult, typeof(BadRequestResult));
+        }
+
+        [TestMethod]
         public async Task Delete_Reaction()
         {
             // Arrange
