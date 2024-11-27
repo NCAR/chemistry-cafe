@@ -40,6 +40,7 @@ jobs:
           for i in {1..30}; do
             if docker exec $(docker ps -q --filter "name=mysql") mysqladmin ping -h"localhost" --silent; then
               echo "Database is ready!"
+              sleep 10
               exit 0
             fi
             echo "Waiting for database connection..."
