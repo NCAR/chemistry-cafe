@@ -73,6 +73,26 @@ jobs:
           run: dotnet build --no-restore --configuration Release
           working-directory: ./backend
 
+            - name: Start database container
+          run: docker compose up -d mysql
+
+        - name: List running containers
+          run: docker ps -a
+
+        - name: Wait for database to be ready
+          run: |
+            for i in {1..30}; do
+              if docker exec $(docker ps -q --filter "name=mysql") mysqladmin ping -h"localhost" --silent; then
+                echo "Database is ready!"
+                sleep 10
+                exit 0
+              fi
+              echo "Waiting for database connection..."
+              sleep 2
+            done
+            echo "Database failed to start within the expected time."
+            exit 1
+
         # Run tests and generate coverage report
         - name: Run tests and generate coverage
           run: dotnet test --no-build --configuration Release --collect:"XPlat Code Coverage"
@@ -93,3 +113,6 @@ jobs:
             files: ${{ env.COVERAGE_PATH }}
             flags: backend
             fail_ci_if_error: true
+
+        - name: Stop and remove database container
+          run: docker compose down
