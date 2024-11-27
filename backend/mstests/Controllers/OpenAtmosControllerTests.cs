@@ -253,6 +253,23 @@ namespace Chemistry_Cafe_API.Tests
         }
 
         [TestMethod]
+        public async Task GetMechanismYaml_Returns_Valid_Yaml()
+        {
+            // Arrange
+            var openAtmosService = new OpenAtmosService(db);
+            var controller = new OpenAtmosController(openAtmosService);
+
+            // Act
+            var result = await controller.GetMechanismYaml(_MechanismId);
+
+            // Assert
+            var contentResult = result as ContentResult;
+            Assert.IsNotNull(contentResult);
+            Assert.AreEqual("text/yaml", contentResult.ContentType);
+            Assert.IsFalse(string.IsNullOrEmpty(contentResult.Content));
+        }
+
+        [TestMethod]
         public async Task GetMechanismMusicbox_Returns_Valid_Zip()
         {
             // Arrange
