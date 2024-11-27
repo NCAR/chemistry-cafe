@@ -97,7 +97,12 @@ docker compose up mysql
 cd backend
 dotnet test --collect "Code Coverage;Format=cobertura"  --settings ..\.runsettings
 ```
-If all tests past, the coverage report will generate in backend/mstests/coveragereport/index.html
+
+```
+reportgenerator -reports:"TestResults\<guid>\<file-prefix>.cobertura.xml" -targetdir:coveragereport -reporttypes:Html -classfilters:-MySqlConnector.* -filefilters:-/_/src/MySqlConnector/*
+
+```
+If all tests past, the coverage report will generate in backend/coveragereport/index.html
 
 
 # License
