@@ -44,9 +44,7 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}  # Add the Codecov token in the GitHub secrets
-          files: 
-            ./frontend/coverage/lcov.info  # Ensure the correct path for the coverage file
-            ./ManualCoverageBackend.cobertura.xml
+          files: [ ./frontend/coverage/lcov.info, ./ManualCoverageBackend.cobertura.xml]
           flags: vite-tests
           fail_ci_if_error: true
    
