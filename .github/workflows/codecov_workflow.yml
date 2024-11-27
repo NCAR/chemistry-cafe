@@ -53,8 +53,9 @@ jobs:
       runs-on: ubuntu-latest
 
       steps:
-        - name: List all files
-          run: ls
+        - name: Debug file paths
+          run: find . -type f
+
         # Upload backend coverage to Codecov, must generate report locally
         - name: Upload backend coverage to Codecov
           uses: codecov/codecov-action@v4.2.0
