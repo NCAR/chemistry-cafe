@@ -24,7 +24,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 8.0.x
 
     # Restore the dependencies of the .NET project
     - name: Restore dependencies
@@ -34,9 +34,23 @@ jobs:
     - name: Build
       run: dotnet build ./backend --no-restore
 
+
+    # Start database container
+    - name: Start database container
+      run: docker compose up -d mysql
+
+    # Wait for the database to be ready
+    - name: Wait for database to be ready
+      run: |
+        until docker exec mysql mysqladmin ping -h"localhost" --silent; do
+          echo "Waiting for database connection..."
+          sleep 2
+        done
+
     # Run tests
     - name: Test
-      run: |
-        docker compose up mysql
-        dotnet test ./backend --no-build --verbosity normal
-        docker compose down mysql
+      run: dotnet test ./backend --no-build --verbosity normal
+
+    # Stop and clean up containers
+    - name: Stop and remove database container
+      run: docker compose down
