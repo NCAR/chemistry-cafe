@@ -54,7 +54,7 @@ jobs:
 
       steps:
         - name: Debug file paths
-          run: find . -type f
+          run: find . -type f ./chemistry-cafe
 
         # Upload backend coverage to Codecov, must generate report locally
         - name: Upload backend coverage to Codecov
