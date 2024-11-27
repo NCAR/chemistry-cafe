@@ -26,7 +26,7 @@ export async function updateFamily(family: Family) {
     return response.data as Family;
   } catch (error: any) {
     console.error(`Error updating family ${family}: ${error.message}`, error);
-    throw new Error('Failed to update family. Please try again later.');
+    throw new Error("Failed to update family. Please try again later.");
   }
 }
 
@@ -44,8 +44,11 @@ export async function updateMechanism(mechanism: Mechanism) {
     );
     return response.data as Mechanism;
   } catch (error: any) {
-    console.error(`Error updating mechanism ${mechanism}: ${error.message}`, error);
-    throw new Error('Failed to update mechanism. Please try again later.');
+    console.error(
+      `Error updating mechanism ${mechanism}: ${error.message}`,
+      error,
+    );
+    throw new Error("Failed to update mechanism. Please try again later.");
   }
 }
 
@@ -64,7 +67,7 @@ export async function updateSpecies(species: Species) {
     return response.data as Species;
   } catch (error: any) {
     console.error(`Error updating species ${species}: ${error.message}`, error);
-    throw new Error('Failed to update species. Please try again later.');
+    throw new Error("Failed to update species. Please try again later.");
   }
 }
 
@@ -82,8 +85,11 @@ export async function updateReaction(reaction: Reaction) {
     );
     return response.data as Reaction;
   } catch (error: any) {
-    console.error(`Error updating reaction ${reaction}: ${error.message}`, error);
-    throw new Error('Failed to update reaction. Please try again later.');
+    console.error(
+      `Error updating reaction ${reaction}: ${error.message}`,
+      error,
+    );
+    throw new Error("Failed to update reaction. Please try again later.");
   }
 }
 
@@ -97,7 +103,7 @@ export async function updateUser(id: string, user: User) {
     return response.data as User;
   } catch (error: any) {
     console.error(`Error updating user ${id}: ${error.message}`, error);
-    throw new Error('Failed to update user. Please try again later.');
+    throw new Error("Failed to update user. Please try again later.");
   }
 }
 
@@ -114,7 +120,10 @@ export async function updateProperty(property: Property) {
     );
     return response.data as Property;
   } catch (error: any) {
-    console.error(`Error updating property ${property}: ${error.message}`, error);
-    throw new Error('Failed to update property. Please try again later.');
+    console.error(
+      `Error updating property ${property}: ${error.message}`,
+      error,
+    );
+    throw new Error("Failed to update property. Please try again later.");
   }
 }

@@ -48,13 +48,13 @@ describe("API delete functions tests", () => {
     const id = "12345";
     const errorMessage = "Request failed with status code 404";
 
-    (axios.delete as typeof axios.delete & { mockRejectedValueOnce: Function }).mockRejectedValueOnce(
-      new Error(errorMessage)
-    );
+    (
+      axios.delete as typeof axios.delete & { mockRejectedValueOnce: Function }
+    ).mockRejectedValueOnce(new Error(errorMessage));
     // Assert the function throws the correct error
     await expect(deleteFamily(id)).rejects.toThrow(
-      "Failed to delete family. Please try again later."
-  );
+      "Failed to delete family. Please try again later.",
+    );
 
     expect(axios.delete).toHaveBeenCalledWith(`${BASE_URL}/families/${id}`, {
       headers: {
@@ -81,12 +81,12 @@ describe("API delete functions tests", () => {
     const id = "12345";
     const errorMessage = "Request failed with status code 404";
 
-    (axios.delete as typeof axios.delete & { mockRejectedValueOnce: Function }).mockRejectedValueOnce(
-      new Error(errorMessage)
-    );
+    (
+      axios.delete as typeof axios.delete & { mockRejectedValueOnce: Function }
+    ).mockRejectedValueOnce(new Error(errorMessage));
     // Assert the function throws the correct error
     await expect(deleteMechanism(id)).rejects.toThrow(
-      "Failed to delete mechanism. Please try again later."
+      "Failed to delete mechanism. Please try again later.",
     );
   });
 
@@ -111,12 +111,12 @@ describe("API delete functions tests", () => {
     const id = "12345";
     const errorMessage = "Request failed with status code 404";
 
-    (axios.delete as typeof axios.delete & { mockRejectedValueOnce: Function }).mockRejectedValueOnce(
-      new Error(errorMessage)
-    );
+    (
+      axios.delete as typeof axios.delete & { mockRejectedValueOnce: Function }
+    ).mockRejectedValueOnce(new Error(errorMessage));
     // Assert the function throws the correct error
     await expect(deleteSpecies(id)).rejects.toThrow(
-      "Failed to delete species. Please try again later."
+      "Failed to delete species. Please try again later.",
     );
 
     expect(axios.delete).toHaveBeenCalledWith(`${BASE_URL}/species/${id}`, {
@@ -147,12 +147,12 @@ describe("API delete functions tests", () => {
     const id = "12345";
     const errorMessage = "Request failed with status code 404";
 
-    (axios.delete as typeof axios.delete & { mockRejectedValueOnce: Function }).mockRejectedValueOnce(
-      new Error(errorMessage)
-    );
+    (
+      axios.delete as typeof axios.delete & { mockRejectedValueOnce: Function }
+    ).mockRejectedValueOnce(new Error(errorMessage));
     // Assert the function throws the correct error
     await expect(deleteReaction(id)).rejects.toThrow(
-      "Failed to delete reaction. Please try again later."
+      "Failed to delete reaction. Please try again later.",
     );
 
     expect(axios.delete).toHaveBeenCalledWith(`${BASE_URL}/reactions/${id}`, {
@@ -161,7 +161,6 @@ describe("API delete functions tests", () => {
       },
     });
   });
-
 
   it("should successfully delete a user", async () => {
     const mockedDelete = vi
@@ -184,12 +183,12 @@ describe("API delete functions tests", () => {
     const id = "12345";
     const errorMessage = "Request failed with status code 404";
 
-    (axios.delete as typeof axios.delete & { mockRejectedValueOnce: Function }).mockRejectedValueOnce(
-      new Error(errorMessage)
-    );
+    (
+      axios.delete as typeof axios.delete & { mockRejectedValueOnce: Function }
+    ).mockRejectedValueOnce(new Error(errorMessage));
     // Assert the function throws the correct error
     await expect(deleteUser(id)).rejects.toThrow(
-      "Failed to delete user. Please try again later."
+      "Failed to delete user. Please try again later.",
     );
 
     expect(axios.delete).toHaveBeenCalledWith(`${BASE_URL}/users/${id}`, {
@@ -220,12 +219,12 @@ describe("API delete functions tests", () => {
     const id = "12345";
     const errorMessage = "Request failed with status code 404";
 
-    (axios.delete as typeof axios.delete & { mockRejectedValueOnce: Function }).mockRejectedValueOnce(
-      new Error(errorMessage)
-    );
+    (
+      axios.delete as typeof axios.delete & { mockRejectedValueOnce: Function }
+    ).mockRejectedValueOnce(new Error(errorMessage));
     // Assert the function throws the correct error
     await expect(deleteProperty(id)).rejects.toThrow(
-      "Failed to delete property. Please try again later."
+      "Failed to delete property. Please try again later.",
     );
 
     expect(axios.delete).toHaveBeenCalledWith(`${BASE_URL}/properties/${id}`, {

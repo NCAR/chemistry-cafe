@@ -21,7 +21,7 @@ export async function getFamilies(): Promise<Family[]> {
     return response.data;
   } catch (error: any) {
     console.error(`Error fetching families: ${error.message}`, error);
-    return[]
+    return [];
   }
 }
 
@@ -31,8 +31,8 @@ export async function getFamily(id: string): Promise<Family> {
     const response = await axios.get<Family>(`${BASE_URL}/families/${id}`);
     return response.data;
   } catch (error: any) {
-      console.error(`Error fetching family ${id}: ${error.message}`, error);
-      throw new Error('Failed to fetch family. Please try again later.');
+    console.error(`Error fetching family ${id}: ${error.message}`, error);
+    throw new Error("Failed to fetch family. Please try again later.");
   }
 }
 
@@ -57,7 +57,10 @@ export async function getMechanismsByFamilyId(
     );
     return response.data;
   } catch (error: any) {
-    console.error(`Error fetching Mechanisms with family ${familyId}: ${error.message}`, error);
+    console.error(
+      `Error fetching Mechanisms with family ${familyId}: ${error.message}`,
+      error,
+    );
     return [];
   }
 }
@@ -69,7 +72,7 @@ export async function getMechanism(id: string): Promise<Mechanism> {
     return response.data;
   } catch (error: any) {
     console.error(`Error fetching mechanism ${id}: ${error.message}`, error);
-    throw new Error('Failed to fetch mechanism. Please try again later.');
+    throw new Error("Failed to fetch mechanism. Please try again later.");
   }
 }
 
@@ -91,7 +94,7 @@ export async function getSpecies(id: string): Promise<Species> {
     return response.data;
   } catch (error: any) {
     console.error(`Error fetching species ${id}: ${error.message}`, error);
-    throw new Error('Failed to fetch species. Please try again later.');
+    throw new Error("Failed to fetch species. Please try again later.");
   }
 }
 
@@ -105,7 +108,10 @@ export async function getSpeciesByMechanismId(
     );
     return response.data;
   } catch (error: any) {
-    console.error(`Error fetching species with mechanism ${mechanismId}: ${error.message}`, error);
+    console.error(
+      `Error fetching species with mechanism ${mechanismId}: ${error.message}`,
+      error,
+    );
     return [];
   }
 }
@@ -119,7 +125,10 @@ export async function getSpeciesByFamilyId(
     );
     return response.data;
   } catch (error: any) {
-    console.error(`Error fetching species with family ${familyId}: ${error.message}`, error);
+    console.error(
+      `Error fetching species with family ${familyId}: ${error.message}`,
+      error,
+    );
     return [];
   }
 }
@@ -130,7 +139,10 @@ export async function getReactions(): Promise<Reaction[]> {
     const response = await axios.get<Reaction[]>(`${BASE_URL}/reactions`);
     return response.data;
   } catch (error: any) {
-    console.error(`Error fetching species with reactions: ${error.message}`, error);
+    console.error(
+      `Error fetching species with reactions: ${error.message}`,
+      error,
+    );
     return [];
   }
 }
@@ -142,7 +154,7 @@ export async function getReaction(id: string): Promise<Reaction> {
     return response.data;
   } catch (error: any) {
     console.error(`Error fetching reaction ${id}: ${error.message}`, error);
-    throw new Error('Failed to fetch reaction. Please try again later.');
+    throw new Error("Failed to fetch reaction. Please try again later.");
   }
 }
 
@@ -156,7 +168,10 @@ export async function getReactionsByMechanismId(
     );
     return response.data;
   } catch (error: any) {
-    console.error(`Error fetching reactions from mechanism ${mechanismId}: ${error.message}`, error);
+    console.error(
+      `Error fetching reactions from mechanism ${mechanismId}: ${error.message}`,
+      error,
+    );
     return [];
   }
 }
@@ -170,7 +185,10 @@ export async function getReactionsByFamilyId(
     );
     return response.data;
   } catch (error: any) {
-    console.error(`Error fetching reactions from family ${familyId}: ${error.message}`, error);
+    console.error(
+      `Error fetching reactions from family ${familyId}: ${error.message}`,
+      error,
+    );
     return [];
   }
 }
@@ -184,7 +202,10 @@ export async function getReactantsByReactionIdAsync(
     );
     return response.data;
   } catch (error: any) {
-    console.error(`Error fetching reactants from reaction ${reactionId}: ${error.message}`, error);
+    console.error(
+      `Error fetching reactants from reaction ${reactionId}: ${error.message}`,
+      error,
+    );
     return [];
   }
 }
@@ -198,7 +219,10 @@ export async function getProductsByReactionIdAsync(
     );
     return response.data;
   } catch (error: any) {
-    console.error(`Error fetching products from reaction ${reactionId}: ${error.message}`, error);
+    console.error(
+      `Error fetching products from reaction ${reactionId}: ${error.message}`,
+      error,
+    );
     return [];
   }
 }
@@ -221,8 +245,11 @@ export async function getUserByEmail(email: string): Promise<User | null> {
     const response = await axios.get<User>(`${BASE_URL}/users/email/${email}`);
     return response.data;
   } catch (error: any) {
-    console.error(`Error fetching user by email ${email}: ${error.message}`, error);
-    throw new Error('Failed to fetch user. Please try again later.');
+    console.error(
+      `Error fetching user by email ${email}: ${error.message}`,
+      error,
+    );
+    throw new Error("Failed to fetch user. Please try again later.");
   }
 }
 
@@ -232,8 +259,8 @@ export async function getUserById(id: string): Promise<User> {
     return response.data;
   } catch (error: any) {
     console.error(`Error fetching user ${id}: ${error.message}`, error);
-      throw new Error('Failed to fetch user. Please try again later.');
-    }
+    throw new Error("Failed to fetch user. Please try again later.");
+  }
 }
 
 export async function getPropertyById(id: string): Promise<Property> {
@@ -243,8 +270,11 @@ export async function getPropertyById(id: string): Promise<Property> {
     );
     return response.data;
   } catch (error: any) {
-    console.error(`Error fetching user by property ${id}: ${error.message}`, error);
-    throw new Error('Failed to fetch property. Please try again later.');
+    console.error(
+      `Error fetching user by property ${id}: ${error.message}`,
+      error,
+    );
+    throw new Error("Failed to fetch property. Please try again later.");
   }
 }
 
@@ -258,8 +288,13 @@ export async function getPropertyBySpeciesAndMechanism(
     );
     return response.data;
   } catch (error: any) {
-    console.error(`Error fetching property by species ${species} and mechanism ${mechanism}: ${error.message}`, error);
-    throw new Error('Failed to fetch property by species and mechanism. Please try again later.');
+    console.error(
+      `Error fetching property by species ${species} and mechanism ${mechanism}: ${error.message}`,
+      error,
+    );
+    throw new Error(
+      "Failed to fetch property by species and mechanism. Please try again later.",
+    );
   }
 }
 
