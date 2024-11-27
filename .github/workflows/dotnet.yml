@@ -51,7 +51,7 @@ jobs:
           exit 1
 
       - name: Test
-        run: dotnet test ./backend --no-build --verbosity normal
+        run: dotnet test  ./backend --collect "Code Coverage;Format=Cobertura"  --settings .\.runsettings --no-build --verbosity normal
 
       - name: Stop and remove database container
         run: docker compose down
