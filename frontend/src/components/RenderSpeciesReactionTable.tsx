@@ -260,9 +260,9 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
         ),
       },
       {
-        field: "actions",
+        field: "delete",
         type: "actions",
-        headerName: "Actions",
+        headerName: "Delete",
         headerClassName: "roleDataHeader",
         flex: 1,
         cellClassName: "actions",
@@ -272,7 +272,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
               icon={<DeleteIcon />}
               label="Delete"
               onClick={handleSpeciesDeleteClick(id)}
-              color="inherit"
+              style={{ color: "red" }}
             />,
           ];
         },
@@ -342,9 +342,9 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
       ),
     },
     {
-      field: "actions",
+      field: "delete",
       type: "actions",
-      headerName: "Actions",
+      headerName: "Delete",
       headerClassName: "reactionDataHeader",
       flex: 1,
       cellClassName: "actions",
@@ -354,7 +354,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
             icon={<DeleteIcon />}
             label="Delete"
             onClick={handleReactionDeleteClick(id)}
-            color="inherit"
+            style={{ color: "red" }}
           />,
         ];
       },
