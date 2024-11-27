@@ -41,10 +41,12 @@ jobs:
 
       # Step 6: Upload the code coverage report to Codecov
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./frontend/coverage/lcov.info, ./ManualCoverageBackend.cobertura.xml
-          flags: vite-tests
-          fail_ci_if_error: true
+        uses: codecov/codecov-action@v4.2.0
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        # with:
+        #   token: ${{ secrets.CODECOV_TOKEN }}
+        #   files: ./frontend/coverage/lcov.info, ./ManualCoverageBackend.cobertura.xml
+        #   flags: vite-tests
+        #   fail_ci_if_error: true
    
