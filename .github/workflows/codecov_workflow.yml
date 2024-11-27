@@ -44,38 +44,9 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}  # Add the Codecov token in the GitHub secrets
-          files: ./frontend/coverage/lcov.info  # Ensure the correct path for the coverage file
+          files: 
+            ./frontend/coverage/lcov.info  # Ensure the correct path for the coverage file
+            ./ManualCoverageBackend.cobertura.xml
           flags: vite-tests
           fail_ci_if_error: true
-    #   # Setup .NET environment
-    #   - name: Setup .NET
-    #     uses: actions/setup-dotnet@v3
-    #     with:
-    #       context: ./backend
-    #       dotnet-version: 6.0.x  # Use the version your project requires
-
-    #   # Restore dependencies
-    #   - name: Restore dependencies
-    #     run: dotnet restore ./backend
-
-    #   # Build the project
-    #   - name: Build
-    #     run: dotnet build ./backend --no-restore
-
-    #  # Step 5: Run tests and collect code coverage
-    #   - name: Test and calculate coverage
-    #     run: |
-    #       dotnet test ./backend --no-build --verbosity normal --logger "console;verbosity=detailed" \
-    #       /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura 
-    #       /p:CoverletOutput=./TestResults/coverage.cobertura.xml
-
-
-    #   # Step 6: Upload the code coverage report to Codecov
-    #   - name: Upload coverage to Codecov
-    #     uses: codecov/codecov-action@v4
-    #     with:
-    #       context: ./backend
-    #       token: ${{ secrets.CODECOV_TOKEN }}  # Add the Codecov token in the GitHub secrets
-    #       files: ./TestResults/coverage.opencover.xml  # Ensure the correct path for the coverage file
-    #       flags: unittests
-    #       fail_ci_if_error: true
+   
