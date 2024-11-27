@@ -52,6 +52,24 @@ namespace Chemistry_Cafe_API.Tests
         }
 
         [TestMethod]
+        public async Task Get_Species_by_FamilyId()
+        {
+            var speciesService = new SpeciesService(db);
+            var controller = new SpeciesController(speciesService);
+
+            var actionResult = await controller.GetSpeciesByFamilyId(Guid.NewGuid());
+
+            Assert.IsNotNull(actionResult);
+            var okResult = actionResult.Result as OkObjectResult;
+            Assert.IsNotNull(okResult);
+            Console.WriteLine("SpeciesList:");
+            
+            var speciesList = okResult.Value as IEnumerable<Species>;
+            
+            Assert.IsNotNull(speciesList);
+        }
+
+        [TestMethod]
         public async Task Creates_species()
         {
             Console.WriteLine($"CREATE SPECIES:{found}");
@@ -154,6 +172,31 @@ namespace Chemistry_Cafe_API.Tests
             Assert.AreEqual(updatedSpecies.Description, returnedSpecies.Description);
             Assert.AreEqual(_CreatedBy, returnedSpecies.CreatedBy); 
             Console.WriteLine($"ID: {returnedSpecies.Id}, Name: {returnedSpecies.Name}, Description: {returnedSpecies.Description}");           
+        }
+
+        [TestMethod]
+        public async Task Updates_species_MismatchedIds(){
+            //Arrange
+            var speciesService = new SpeciesService(db);
+            var controller = new SpeciesController(speciesService);
+            String newDescription = "UPDATED Description";
+            String newName =  "UPDATEDTest";
+            var updatedSpecies = new Species
+            {
+                Id = _Id,
+                Name = newName,
+                Description = newDescription,
+                CreatedBy = _CreatedBy,
+                CreatedDate = _CreatedDate
+            };
+
+            //Act
+            var result = await controller.UpdateSpecies(Guid.Empty, updatedSpecies) ;
+
+            //Assert
+            Assert.IsNotNull(result);
+            var badRequest = result as BadRequestResult;
+            Assert.IsNotNull(badRequest);
         }
 
         [TestMethod]

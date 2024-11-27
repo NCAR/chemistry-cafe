@@ -163,6 +163,58 @@ namespace Chemistry_Cafe_API.Tests
         }
 
         [TestMethod]
+        public async Task CreateProperty_WithEmptySpecies_ReturnsBadRequest()
+        {
+            // Arrange
+            var propertyService = new PropertyService(db);
+            var controller = new PropertiesController(propertyService);
+
+            var newProperty = new Property
+            {
+                SpeciesId = Guid.Empty,
+                MechanismId = _MechanismId,
+                Tolerance = 0.1,
+                Weight = 1.0,
+                Concentration = 0.5,
+                Diffusion = 0.01
+            };
+
+            // Act
+            var result = await controller.CreateProperty(newProperty);
+
+            // Assert
+            var createdAtActionResult = result.Result as BadRequestObjectResult;
+            Assert.IsNotNull(createdAtActionResult);
+        }
+
+        [TestMethod]
+        public async Task CreateProperty_WithEmptyMechanism_ReturnsBadRequest()
+        {
+            // Arrange
+            var propertyService = new PropertyService(db);
+            var controller = new PropertiesController(propertyService);
+
+            var newProperty = new Property
+            {
+                SpeciesId = _SpeciesId,
+                MechanismId = Guid.Empty,
+                Tolerance = 0.1,
+                Weight = 1.0,
+                Concentration = 0.5,
+                Diffusion = 0.01
+            };
+
+            // Act
+            var result = await controller.CreateProperty(newProperty);
+
+            // Assert
+            var createdAtActionResult = result.Result as BadRequestObjectResult;
+            Assert.IsNotNull(createdAtActionResult);
+        }
+
+
+
+        [TestMethod]
         public async Task GetProperties_Returns_List()
         {
             // Arrange
@@ -211,12 +263,6 @@ namespace Chemistry_Cafe_API.Tests
             var propertyService = new PropertyService(db);
             var controller = new PropertiesController(propertyService);
 
-            // Ensure property exists
-            if (!propertyCreated)
-            {
-                await CreateProperty_Returns_Created_Property();
-            }
-
             // Act
             var result = await controller.GetPropertyBySandM(_SpeciesId, _MechanismId);
 
@@ -227,7 +273,31 @@ namespace Chemistry_Cafe_API.Tests
             Assert.IsNotNull(property);
             Assert.AreEqual(_SpeciesId, property.SpeciesId);
             Assert.AreEqual(_MechanismId, property.MechanismId);
+            
         }
+
+        [TestMethod]
+        public async Task GetPropertyBySandM_Returns_NotFound()
+        {
+            // Arrange
+            var propertyService = new PropertyService(db);
+            var controller = new PropertiesController(propertyService);
+
+            // Ensure property exists
+            if (!propertyCreated)
+            {
+                await CreateProperty_Returns_Created_Property();
+            }
+
+            // Act
+            var result = await controller.GetPropertyBySandM(Guid.Empty, Guid.Empty);
+            Console.WriteLine(result);
+
+            // Assert
+            var notFoundResult = result.Result as NotFoundResult;
+            Assert.IsNotNull(notFoundResult);
+        }
+           
                 
 
         [TestMethod]

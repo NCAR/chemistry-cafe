@@ -117,6 +117,44 @@ namespace Chemistry_Cafe_API.Tests
         }
 
         [TestMethod]
+        public async Task Get_Reactions_by_Family_ID()
+        {
+            // Arrange
+            var reactionService = new ReactionService(db);
+            var controller = new ReactionsController(reactionService);
+
+            // Act
+            var actionResult = await controller.GetReactionsByFamilyId(Guid.NewGuid());
+
+            // Assert
+            Assert.IsNotNull(actionResult);
+            var okResult = actionResult.Result as OkObjectResult;
+            Assert.IsNotNull(okResult);
+
+            var reactionList = okResult.Value as IEnumerable<Reaction>;
+            Assert.IsNotNull(reactionList);
+        }
+
+        [TestMethod]
+        public async Task Get_Reactions_by_Mechanism_ID()
+        {
+            // Arrange
+            var reactionService = new ReactionService(db);
+            var controller = new ReactionsController(reactionService);
+
+            // Act
+            var actionResult = await controller.GetReactionsByMechanismId(Guid.NewGuid());
+
+            // Assert
+            Assert.IsNotNull(actionResult);
+            var okResult = actionResult.Result as OkObjectResult;
+            Assert.IsNotNull(okResult);
+
+            var reactionList = okResult.Value as IEnumerable<Reaction>;
+            Assert.IsNotNull(reactionList);
+        }
+
+        [TestMethod]
         public async Task Updates_Reaction()
         {
             // Arrange
