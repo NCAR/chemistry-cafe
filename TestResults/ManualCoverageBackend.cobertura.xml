@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <coverage line-rate="0.4212385969420532" branch-rate="0.22798180045498861" complexity="8107" version="1.9" timestamp="1732697470" lines-covered="6557" lines-valid="15566" branches-covered="1403" branches-valid="6154">
   <packages>
     <package line-rate="0.8307493540051679" branch-rate="0.6413373860182371" complexity="1095" name="ChemistryCafeAPI">

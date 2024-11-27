@@ -53,14 +53,11 @@ jobs:
       runs-on: ubuntu-latest
 
       steps:
-        - name: Debug file paths
-          run: find . -type f ./chemistry-cafe
-
         # Upload backend coverage to Codecov, must generate report locally
         - name: Upload backend coverage to Codecov
           uses: codecov/codecov-action@v4.2.0
           with:
             token: ${{ secrets.CODECOV_TOKEN }}
-            files: ManualCoverageBackend.cobertura.xml
+            files: ./ManualCoverageBackend.cobertura.xml
             flags: backend
             fail_ci_if_error: true
