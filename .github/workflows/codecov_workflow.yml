@@ -104,6 +104,7 @@ jobs:
           run: |
             COVERAGE_PATH=$(find ./backend/TestResults -regextype posix-extended -regex ".*cobertura.*\cobertura.xml" -print -quit)
             echo "COVERAGE_PATH=$COVERAGE_PATH" >> $GITHUB_ENV
+            echo "COVERAGE_PATH=$COVERAGE_PATH"
 
         # Upload backend coverage to Codecov
         - name: Upload backend coverage to Codecov
