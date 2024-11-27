@@ -470,6 +470,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
               columns={createSpeciesColumns()}
               getRowId={(row: Species) => row.id ?? 0}
               onRowClick={handleSpeciesCellClick}
+              hideFooterSelectedRowCount={true}
               autoPageSize
               pagination
               style={{ height: "100%" }}
@@ -506,6 +507,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
                 }
               }}
               onRowClick={handleReactionCellClick}
+              hideFooterSelectedRowCount={true}
               autoPageSize
               pagination
               style={{ height: "100%" }}
