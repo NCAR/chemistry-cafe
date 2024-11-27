@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  Frontend-Codecov-Publishing:
+  Codecov-Publishing:
     runs-on: ubuntu-latest
 
     steps:
@@ -47,17 +47,3 @@ jobs:
           # files: ./frontend/coverage/lcov.info, ./ManualCoverageBackend.cobertura.xml
           flags: frontend
           fail_ci_if_error: true
-
-
-  Backend-Codecov-Publishing:
-      runs-on: ubuntu-latest
-
-      steps:
-        # Upload backend coverage to Codecov, must generate report locally
-        - name: Upload backend coverage to Codecov
-          uses: codecov/codecov-action@v4.2.0
-          with:
-            token: ${{ secrets.CODECOV_TOKEN }}
-            files: ./ManualCoverageBackend.cobertura.xml
-            flags: backend
-            fail_ci_if_error: true
