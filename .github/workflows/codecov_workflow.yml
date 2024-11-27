@@ -73,7 +73,7 @@ jobs:
           run: dotnet build --no-restore --configuration Release
           working-directory: ./backend
 
-            - name: Start database container
+        - name: Start database container
           run: docker compose up -d mysql
 
         - name: List running containers
