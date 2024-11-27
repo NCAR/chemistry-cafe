@@ -19,7 +19,7 @@ namespace Chemistry_Cafe_API.Controllers
         public async Task<IActionResult> GetMechanismJson(Guid mechanismId)
         {
             var jsonResult = await _openAtmosService.GetJSON(mechanismId);
-            if (jsonResult == null)
+            if (string.IsNullOrEmpty(jsonResult))
             {
                 return NotFound($"Mechanism with ID {mechanismId} not found.");
             }
@@ -30,7 +30,7 @@ namespace Chemistry_Cafe_API.Controllers
         public async Task<IActionResult> GetMechanismYaml(Guid mechanismId)
         {
             var yamlResult = await _openAtmosService.GetYAML(mechanismId);
-            if (yamlResult == null)
+            if (string.IsNullOrEmpty(yamlResult))
             {
                 return NotFound($"Mechanism with ID {mechanismId} not found.");
             }

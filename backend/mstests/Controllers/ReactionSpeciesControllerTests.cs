@@ -356,6 +356,29 @@ namespace Chemistry_Cafe_API.Tests
             Assert.IsInstanceOfType(revertResult, typeof(NoContentResult));
         }
 
+        [TestMethod]
+        public async Task Updates_Reaction_mismatchedId()
+        {
+            // Arrange
+            var service = new ReactionSpeciesService(db);
+            var controller = new ReactionSpeciesController(service);
+
+            var updatedReactionSpecies = new ReactionSpecies
+            {
+                Id = new Guid("cccccccc-dddd-eeee-ffff-111111111111"),
+                ReactionId = _ReactionId,
+                SpeciesId = _SpeciesReactantId,
+                Role = "product", // Change role from reactant to product
+            };
+
+            // Act
+            var actionResult = await controller.UpdateReactionSpecies(_ReactionSpeciesReactantId, updatedReactionSpecies);
+
+            // Assert
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOfType(actionResult, typeof(BadRequestResult));
+        }
+
         /// <summary>
         /// Removes a species from a reaction and verifies the removal.
         /// </summary>

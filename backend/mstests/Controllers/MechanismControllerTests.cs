@@ -145,6 +145,35 @@ namespace Chemistry_Cafe_API.Tests
         }
 
         [TestMethod]
+        public async Task Get_Mechanism_Given_FamilyId()
+        {
+            // Arrange
+            var mechanismService = new MechanismService(db);
+            var controller = new MechanismsController(mechanismService);
+
+            // Act
+            var actionResult = await controller.GetMechanismsByFamilyId(_FamilyId);
+
+            // Assert
+            Assert.IsNotNull(actionResult);
+            var okResult = actionResult.Result as OkObjectResult;
+            Assert.IsNotNull(okResult);
+
+            var mechanismList = okResult.Value as IEnumerable<Mechanism>;
+            Assert.IsNotNull(mechanismList);
+            Assert.AreEqual(mechanismList.Count(), 1);
+
+            var returnedMechanism = mechanismList.First();
+            
+
+            Assert.AreEqual(_MechanismId, returnedMechanism.Id);
+            Assert.AreEqual(_MechanismName, returnedMechanism.Name);
+            Assert.AreEqual(_MechanismDescription, returnedMechanism.Description);
+            Assert.AreEqual(_CreatedBy, returnedMechanism.CreatedBy);
+            Assert.AreEqual(_FamilyId, returnedMechanism.FamilyId);
+        }
+
+        [TestMethod]
         public async Task Updates_Mechanism()
         {
             // Arrange
@@ -181,6 +210,34 @@ namespace Chemistry_Cafe_API.Tests
             Assert.AreEqual(newDescription, returnedMechanism.Description);
             Assert.AreEqual(_CreatedBy, returnedMechanism.CreatedBy);
             Assert.AreEqual(_FamilyId, returnedMechanism.FamilyId);
+        }
+
+        [TestMethod]
+        public async Task Updates_Mechanism_mismatchedId()
+        {
+            // Arrange
+            var service = new MechanismService(db);
+            var controller = new MechanismsController(service);
+
+            string newName = "UpdatedTestFamily";
+            string newDescription = "An updated test family.";
+
+            var updatedMechanism = new Mechanism
+            {
+                Id = new Guid("cccccccc-dddd-eeee-ffff-111111111111"),
+                FamilyId = _FamilyId,
+                Name = newName,
+                Description = newDescription,
+                CreatedBy = _CreatedBy,
+                CreatedDate = _CreatedDate
+            };
+
+            // Act
+            var actionResult = await controller.UpdateMechanism(_MechanismId, updatedMechanism);
+
+            // Assert
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOfType(actionResult, typeof(BadRequestResult));
         }
 
         [TestMethod]

@@ -41,7 +41,7 @@ and run the following commands:
     brew install dotnet
     ```
 
-## Running Chemistry Cafe with Docker Compose
+### Running Chemistry Cafe with Docker Compose
 
 You must have [Docker Desktop](https://www.docker.com/get-started) installed and running.
 With Docker Desktop running, open a terminal window.
@@ -57,7 +57,7 @@ docker compose down
 ```
 **Note:** To view changes, you must run the docker compose down and then run the project again.
 
-## Running Chemistry Cafe Locally
+### Running Chemistry Cafe Locally
 You must open 3 terminals and run the following commands in each:
 
 **Terminal 1**
@@ -76,6 +76,35 @@ npm run dev
 ```
 docker compose up mysql
 ```
+
+## Testing
+
+### To test frontend
+```
+cd frontend
+npm run test:coverage
+```
+If all tests past, the coverage report will generate in frontend/coverage/index.html
+
+### To test backend
+
+**Terminal 1**
+```
+docker compose up mysql
+```
+**Terminal 2**
+```
+cd backend
+dotnet test --collect "Code Coverage;Format=cobertura"  --settings ..\.runsettings
+```
+
+```
+reportgenerator -reports:"TestResults\<guid>\<file-prefix>.cobertura.xml" -targetdir:coveragereport -reporttypes:Html -classfilters:-MySqlConnector.* -filefilters:-/_/src/MySqlConnector/*
+
+```
+If all tests past, the coverage report will generate in backend/coveragereport/index.html
+
+
 # License
 - [Apache 2.0](/LICENSE)
 

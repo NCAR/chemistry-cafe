@@ -6,6 +6,7 @@ using MySqlConnector;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Chemistry_Cafe_API.Tests
 {
@@ -151,6 +152,33 @@ namespace Chemistry_Cafe_API.Tests
             Assert.AreEqual(newName, returnedFamily.Name);
             Assert.AreEqual(newDescription, returnedFamily.Description);
             Assert.AreEqual(_CreatedBy, returnedFamily.CreatedBy);
+        }
+
+        [TestMethod]
+        public async Task Updates_Family_mismatchedId()
+        {
+            // Arrange
+            var familyService = new FamilyService(db);
+            var controller = new FamiliesController(familyService);
+
+            string newName = "UpdatedTestFamily";
+            string newDescription = "An updated test family.";
+
+            var updatedFamily = new Family
+            {
+                Id = new Guid("cccccccc-dddd-eeee-ffff-111111111111"),
+                Name = newName,
+                Description = newDescription,
+                CreatedBy = _CreatedBy,
+                CreatedDate = _CreatedDate
+            };
+
+            // Act
+            var actionResult = await controller.UpdateFamily(_Id, updatedFamily);
+
+            // Assert
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOfType(actionResult, typeof(BadRequestResult));
         }
 
         [TestMethod]

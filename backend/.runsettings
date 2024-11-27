@@ -3,9 +3,9 @@
     <DataCollectors>
       <DataCollector friendlyName="XPlat Code Coverage">
         <Configuration>
-          <Format>opencover</Format>
-          <OutputDirectory>./TestResults</OutputDirectory>
+          <Format>Cobertura</Format>
           <Include>[Tests*]*</Include>
+          <Exclude> [MySqlConnector]*</Exclude>
         </Configuration>
       </DataCollector>
     </DataCollectors>

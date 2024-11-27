@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  Frontend-Codecov-Publishing:
+  Codecov-Publishing:
     runs-on: ubuntu-latest
 
     steps:
@@ -17,7 +17,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # Setup .NET environment
+      # Setup Node environment
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
@@ -33,7 +33,7 @@ jobs:
         run: npm run build
         working-directory: ./frontend
 
-     # Step 5: Run tests and collect code coverage
+      # Step 5: Run tests and collect code coverage
       - name: Test and calculate coverage
         run: npm run test:coverage
         working-directory: ./frontend
@@ -41,41 +41,9 @@ jobs:
 
       # Step 6: Upload the code coverage report to Codecov
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v4.2.0
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}  # Add the Codecov token in the GitHub secrets
-          files: ./frontend/coverage/lcov.info  # Ensure the correct path for the coverage file
-          flags: vite-tests
+          token: ${{ secrets.CODECOV_TOKEN }}
+          # files: ./frontend/coverage/lcov.info, ./ManualCoverageBackend.cobertura.xml
+          flags: frontend
           fail_ci_if_error: true
-    #   # Setup .NET environment
-    #   - name: Setup .NET
-    #     uses: actions/setup-dotnet@v3
-    #     with:
-    #       context: ./backend
-    #       dotnet-version: 6.0.x  # Use the version your project requires
-
-    #   # Restore dependencies
-    #   - name: Restore dependencies
-    #     run: dotnet restore ./backend
-
-    #   # Build the project
-    #   - name: Build
-    #     run: dotnet build ./backend --no-restore
-
-    #  # Step 5: Run tests and collect code coverage
-    #   - name: Test and calculate coverage
-    #     run: |
-    #       dotnet test ./backend --no-build --verbosity normal --logger "console;verbosity=detailed" \
-    #       /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura 
-    #       /p:CoverletOutput=./TestResults/coverage.cobertura.xml
-
-
-    #   # Step 6: Upload the code coverage report to Codecov
-    #   - name: Upload coverage to Codecov
-    #     uses: codecov/codecov-action@v4
-    #     with:
-    #       context: ./backend
-    #       token: ${{ secrets.CODECOV_TOKEN }}  # Add the Codecov token in the GitHub secrets
-    #       files: ./TestResults/coverage.opencover.xml  # Ensure the correct path for the coverage file
-    #       flags: unittests
-    #       fail_ci_if_error: true

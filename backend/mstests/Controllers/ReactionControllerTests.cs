@@ -117,6 +117,44 @@ namespace Chemistry_Cafe_API.Tests
         }
 
         [TestMethod]
+        public async Task Get_Reactions_by_Family_ID()
+        {
+            // Arrange
+            var reactionService = new ReactionService(db);
+            var controller = new ReactionsController(reactionService);
+
+            // Act
+            var actionResult = await controller.GetReactionsByFamilyId(Guid.NewGuid());
+
+            // Assert
+            Assert.IsNotNull(actionResult);
+            var okResult = actionResult.Result as OkObjectResult;
+            Assert.IsNotNull(okResult);
+
+            var reactionList = okResult.Value as IEnumerable<Reaction>;
+            Assert.IsNotNull(reactionList);
+        }
+
+        [TestMethod]
+        public async Task Get_Reactions_by_Mechanism_ID()
+        {
+            // Arrange
+            var reactionService = new ReactionService(db);
+            var controller = new ReactionsController(reactionService);
+
+            // Act
+            var actionResult = await controller.GetReactionsByMechanismId(Guid.NewGuid());
+
+            // Assert
+            Assert.IsNotNull(actionResult);
+            var okResult = actionResult.Result as OkObjectResult;
+            Assert.IsNotNull(okResult);
+
+            var reactionList = okResult.Value as IEnumerable<Reaction>;
+            Assert.IsNotNull(reactionList);
+        }
+
+        [TestMethod]
         public async Task Updates_Reaction()
         {
             // Arrange
@@ -151,6 +189,32 @@ namespace Chemistry_Cafe_API.Tests
             Assert.AreEqual(newName, returnedReaction.Name);
             Assert.AreEqual(newDescription, returnedReaction.Description);
             Assert.AreEqual(_CreatedBy, returnedReaction.CreatedBy);
+        }
+
+        [TestMethod]
+        public async Task Updates_Reaction_mismatchedId()
+        {
+            // Arrange
+            var service = new ReactionService(db);
+            var controller = new ReactionsController(service);
+            string newName = "UpdatedTestReaction";
+            string newDescription = "An updated test reaction.";
+
+            var updatedReaction = new Reaction
+            {
+                Id = new Guid("cccccccc-dddd-eeee-ffff-111111111111"),
+                Name = newName,
+                Description = newDescription,
+                CreatedBy = _CreatedBy,
+                CreatedDate = _CreatedDate
+            };
+
+            // Act
+            var actionResult = await controller.UpdateReaction(_Id, updatedReaction);
+
+            // Assert
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOfType(actionResult, typeof(BadRequestResult));
         }
 
         [TestMethod]
