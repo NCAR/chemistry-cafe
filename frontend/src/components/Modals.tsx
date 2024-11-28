@@ -88,6 +88,7 @@ interface UpdateFamilyModalProps {
   open: boolean;
   onClose: () => void;
   selectedFamily: Family | null;
+  onFamilyUpdated: (updatedFamily: Family) => void;
 }
 
 interface CreateMechanismModalProps {
@@ -265,6 +266,7 @@ export const UpdateFamilyModal: React.FC<UpdateFamilyModalProps> = ({
   open,
   onClose,
   selectedFamily,
+  onFamilyUpdated
 }) => {
   console.log(selectedFamily?.name);
   const [familyName, setFamilyName] = useState(selectedFamily?.name || "")
@@ -290,6 +292,7 @@ export const UpdateFamilyModal: React.FC<UpdateFamilyModalProps> = ({
           createdBy: selectedFamily?.createdBy!,
         };
         await updateFamily(newFamily);
+        onFamilyUpdated(newFamily);
         onClose();
       } catch (error) {
         console.error(error);

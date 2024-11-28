@@ -195,6 +195,14 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
     setDeleteBool(true);
   };
 
+  const handleFamilyUpdated = (updatedFamily: Family) => {
+    setFamilies((prevFamilies) =>
+      prevFamilies.map((family) =>
+        family.id === updatedFamily.id ? updatedFamily : family
+      )
+    );
+  };
+
   return (
     <div style={containerStyle}>
       {loading ? (
@@ -385,6 +393,7 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
     open={updatefamilyOpen}
     onClose={handleUpdateFamilyClose}
     selectedFamily={selectedFamily}
+    onFamilyUpdated={handleFamilyUpdated}
     />
     </div>
   );
