@@ -42,6 +42,7 @@ import {
   Alert,
 } from "@mui/material";
 import {
+  updateFamily,
   updateProperty,
   updateReaction,
   updateSpecies,
@@ -81,6 +82,12 @@ interface CreateFamilyModalProps {
   open: boolean;
   onClose: () => void;
   setCreatedFamilyBool: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+interface UpdateFamilyModalProps {
+  open: boolean;
+  onClose: () => void;
+  selectedFamily: Family | null;
 }
 
 interface CreateMechanismModalProps {
@@ -240,6 +247,80 @@ export const CreateFamilyModal: React.FC<CreateFamilyModalProps> = ({
     </Modal>
 
     <Snackbar open={showCreateFamilyAlert}
+      autoHideDuration={5000}
+      onClose={handleAlertClose}
+      anchorOrigin={{vertical: "top", horizontal: "center"}}>
+
+      <Alert onClose={handleAlertClose} severity="warning"
+        variant="filled" sx={{ width: '100%' }}>
+
+        Name must not be empty!
+      </Alert>
+    </Snackbar>
+    </div>
+  );
+};
+
+export const UpdateFamilyModal: React.FC<UpdateFamilyModalProps> = ({
+  open,
+  onClose,
+  selectedFamily,
+}) => {
+  console.log(selectedFamily?.name);
+  const [familyName, setFamilyName] = useState(selectedFamily?.name || "")
+  const [showUpdateFamilyAlert, setShowUpdateFamilyAlert] = useState(false);
+
+  useEffect(() => {
+    setFamilyName(selectedFamily?.name || ""); // Update familyName when selectedFamily changes
+  }, [selectedFamily]);
+
+
+  const handleUpdateFamilyClick = async () => {
+    // dont allow for a family with no name
+    if (familyName === ""){
+      setShowUpdateFamilyAlert(true);
+    }
+    else{
+
+      try {
+        const newFamily: Family = {
+          id: selectedFamily?.id!,
+          name: familyName!,
+          description: selectedFamily?.description!,
+          createdBy: selectedFamily?.createdBy!,
+        };
+        await updateFamily(newFamily);
+        onClose();
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
+
+  const handleAlertClose = () => {
+    setShowUpdateFamilyAlert(false)
+  }
+
+  return (
+    <div>
+    <Modal open={open} onClose={onClose}>
+      <Box sx={style}>
+        Enter Name for Family below.
+        <TextField
+          id="family-name"
+          label="Name"
+          required={true}
+          value={familyName}
+          onChange={(e) => (setFamilyName(e.target.value))}
+          fullWidth
+          margin="normal"
+        />
+        <Button variant={"contained"} onClick={handleUpdateFamilyClick}>Submit</Button>
+        
+      </Box>
+    </Modal>
+
+    <Snackbar open={showUpdateFamilyAlert}
       autoHideDuration={5000}
       onClose={handleAlertClose}
       anchorOrigin={{vertical: "top", horizontal: "center"}}>
