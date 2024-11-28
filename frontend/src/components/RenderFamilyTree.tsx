@@ -14,12 +14,13 @@ import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
 import { TreeItem } from "@mui/x-tree-view/TreeItem";
 
 import IconButton from "@mui/material/IconButton";
-import { Add, GetApp, Delete } from "@mui/icons-material";
+import { Add, GetApp, Delete, Edit } from "@mui/icons-material";
 
 import CircularProgress from "@mui/material/CircularProgress";
 
 import Popover from "@mui/material/Popover";
 import Button from "@mui/material/Button";
+import { UpdateFamilyModal } from "./Modals";
 
 const treeItemStyle = {
   fontSize: "1.2rem",
@@ -54,11 +55,13 @@ const treeViewContainerStyle = {
 };
 
 interface RenderFamilyTreeProps {
+  setSelectedFamily: React.Dispatch<React.SetStateAction<Family | null>>;
   setSelectedFamilyId: React.Dispatch<React.SetStateAction<string | null>>;
   setSelectedMechanismId: React.Dispatch<React.SetStateAction<string | null>>;
   setSelectedMechanismName: React.Dispatch<React.SetStateAction<string | null>>;
   handleCreateFamilyOpen: () => void;
   handleCreateMechanismOpen: () => void;
+  selectedFamily: Family | null;
   selectedFamilyId: string | null;
   createdFamilyBool: boolean;
   setCreatedFamilyBool: React.Dispatch<React.SetStateAction<boolean>>;
@@ -67,6 +70,8 @@ interface RenderFamilyTreeProps {
 }
 
 const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
+  selectedFamily,
+  setSelectedFamily,
   setSelectedFamilyId,
   setSelectedMechanismId,
   setSelectedMechanismName,
@@ -87,6 +92,9 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
   const [loading, setLoading] = useState<boolean>(true);
 
   const [deleteBool, setDeleteBool] = useState<boolean>(false);
+  const [updatefamilyOpen, setUpdateFamilyOpen] = useState<boolean>(false);
+  const handleUpdateFamilyOpen = () => setUpdateFamilyOpen(true);
+  const handleUpdateFamilyClose = () => setUpdateFamilyOpen(false);
 
   const ref = useRef<string | null>(null);
 
@@ -230,6 +238,18 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                       >
                         <IconButton
                           onClick={() => {
+
+                            setSelectedFamily(family);
+                            handleUpdateFamilyOpen();
+                            console.log(selectedFamily);
+                          }}
+                          aria-label="delete"
+                          edge="start"
+                        >
+                          <Edit/>
+                        </IconButton>
+                        <IconButton
+                          onClick={() => {
                             handleFamilyDelete(family.id!);
                           }}
                           aria-label="delete"
@@ -360,6 +380,12 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
           </div>
         </>
       )}
+
+    <UpdateFamilyModal
+    open={updatefamilyOpen}
+    onClose={handleUpdateFamilyClose}
+    selectedFamily={selectedFamily}
+    />
     </div>
   );
 };
