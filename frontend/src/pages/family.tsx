@@ -9,9 +9,10 @@ import { StyledDetailBox } from "./familyStyling";
 import { Header, Footer } from "../components/HeaderFooter";
 
 import "../styles/family.css";
-import { Family } from "../API/API_Interfaces";
+import { Family, Mechanism } from "../API/API_Interfaces";
 
 const FamilyPage = () => {
+  const [selectedMechanism, setSelectedMechanism] = useState<Mechanism | null>(null);
   const [selectedFamily, setSelectedFamily] = useState<Family | null>(null);
   const [selectedFamilyId, setSelectedFamilyId] = useState<string | null>(null);
   const [selectedMechanismId, setSelectedMechanismId] = useState<string | null>(
@@ -41,6 +42,8 @@ const FamilyPage = () => {
 
       <div className="familiesMenu" style={{ overflow: "auto" }}>
         <RenderFamilyTree
+          selectedMechanism={selectedMechanism}
+          setSelectedMechanism={setSelectedMechanism}
           selectedFamily={selectedFamily}
           setSelectedFamily={setSelectedFamily}
           selectedFamilyId={selectedFamilyId}

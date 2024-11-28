@@ -14,13 +14,13 @@ import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
 import { TreeItem } from "@mui/x-tree-view/TreeItem";
 
 import IconButton from "@mui/material/IconButton";
-import { Add, GetApp, Delete, Edit } from "@mui/icons-material";
+import { Add, GetApp, Delete, Edit, UpdateDisabled } from "@mui/icons-material";
 
 import CircularProgress from "@mui/material/CircularProgress";
 
 import Popover from "@mui/material/Popover";
 import Button from "@mui/material/Button";
-import { UpdateFamilyModal } from "./Modals";
+import { UpdateFamilyModal, UpdateMechanismModal } from "./Modals";
 
 const treeItemStyle = {
   fontSize: "1.2rem",
@@ -56,12 +56,14 @@ const treeViewContainerStyle = {
 
 interface RenderFamilyTreeProps {
   setSelectedFamily: React.Dispatch<React.SetStateAction<Family | null>>;
+  setSelectedMechanism: React.Dispatch<React.SetStateAction<Mechanism | null>>;
   setSelectedFamilyId: React.Dispatch<React.SetStateAction<string | null>>;
   setSelectedMechanismId: React.Dispatch<React.SetStateAction<string | null>>;
   setSelectedMechanismName: React.Dispatch<React.SetStateAction<string | null>>;
   handleCreateFamilyOpen: () => void;
   handleCreateMechanismOpen: () => void;
   selectedFamily: Family | null;
+  selectedMechanism: Mechanism | null;
   selectedFamilyId: string | null;
   createdFamilyBool: boolean;
   setCreatedFamilyBool: React.Dispatch<React.SetStateAction<boolean>>;
@@ -70,6 +72,8 @@ interface RenderFamilyTreeProps {
 }
 
 const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
+  selectedMechanism,
+  setSelectedMechanism,
   selectedFamily,
   setSelectedFamily,
   setSelectedFamilyId,
@@ -92,7 +96,11 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
   const [loading, setLoading] = useState<boolean>(true);
 
   const [deleteBool, setDeleteBool] = useState<boolean>(false);
+  // TODO: FIX THE CAPIALIZATION OF FAMILY HERE
   const [updatefamilyOpen, setUpdateFamilyOpen] = useState<boolean>(false);
+  const [updateMechanismOpen, setUpdateMechanismOpen] = useState<boolean>(false);
+  const handleUpdateMechanismOpen = () => setUpdateMechanismOpen(true);
+  const handleUpdateMechanismClose = () => setUpdateMechanismOpen(false);
   const handleUpdateFamilyOpen = () => setUpdateFamilyOpen(true);
   const handleUpdateFamilyClose = () => setUpdateFamilyOpen(false);
 
@@ -202,6 +210,34 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
       )
     );
   };
+
+  const handleMechanismUpdated = (updatedMechanism: Mechanism) => {
+    setMechanismsMap((prevMechanismsMap) => {
+      const updatedMap = { ...prevMechanismsMap };
+  
+      // find family with updated mechanism
+      for (const familyId in updatedMap) {
+        const mechanisms = updatedMap[familyId];
+        const mechanismIndex = mechanisms.findIndex(
+          (mech) => mech.id === updatedMechanism.id
+        );
+  
+        if (mechanismIndex !== -1) {
+          // update mechanism 
+          const updatedMechanisms = [...mechanisms];
+          updatedMechanisms[mechanismIndex] = updatedMechanism;
+  
+          updatedMap[familyId] = updatedMechanisms;
+          break;
+        }
+      }
+  
+      return updatedMap;
+    });
+  };
+  
+
+
 
   return (
     <div style={containerStyle}>
@@ -313,6 +349,18 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                             }}
                           >
                             <IconButton
+                              onClick={() => {
+
+                                setSelectedMechanism(mechanism);
+                                handleUpdateMechanismOpen();
+                                console.log(selectedMechanism);
+                              }}
+                              aria-label="delete"
+                              edge="start">
+                              <Edit/>
+                            </IconButton>
+
+                            <IconButton
                               onClick={(event) => {
                                 handlePopOverClick(event, mechanism.id!);
                               }}
@@ -394,6 +442,12 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
     onClose={handleUpdateFamilyClose}
     selectedFamily={selectedFamily}
     onFamilyUpdated={handleFamilyUpdated}
+    />
+    <UpdateMechanismModal 
+    open={updateMechanismOpen}
+    onClose={handleUpdateMechanismClose}
+    selectedMechanism={selectedMechanism}
+    onMechanismUpdated={handleMechanismUpdated}
     />
     </div>
   );

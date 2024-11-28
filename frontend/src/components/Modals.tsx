@@ -43,6 +43,7 @@ import {
 } from "@mui/material";
 import {
   updateFamily,
+  updateMechanism,
   updateProperty,
   updateReaction,
   updateSpecies,
@@ -96,6 +97,13 @@ interface CreateMechanismModalProps {
   onClose: () => void;
   selectedFamilyId: string | null;
   setCreatedMechanismBool: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+interface UpdateMechanismModalProps {
+  open: boolean;
+  onClose: () => void;
+  selectedMechanism: Mechanism | null;
+  onMechanismUpdated: (updatedMechanism: Mechanism) => void;
 }
 
 interface CreateSpeciesModalProps {
@@ -268,13 +276,12 @@ export const UpdateFamilyModal: React.FC<UpdateFamilyModalProps> = ({
   selectedFamily,
   onFamilyUpdated
 }) => {
-  console.log(selectedFamily?.name);
   const [familyName, setFamilyName] = useState(selectedFamily?.name || "")
   const [showUpdateFamilyAlert, setShowUpdateFamilyAlert] = useState(false);
 
   useEffect(() => {
     setFamilyName(selectedFamily?.name || ""); // Update familyName when selectedFamily changes
-  }, [selectedFamily]);
+  }, [selectedFamily, open]);
 
 
   const handleUpdateFamilyClick = async () => {
@@ -495,6 +502,82 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
         </Button>
       </Box>
     </Modal>
+  );
+};
+
+export const UpdateMechanismModal: React.FC<UpdateMechanismModalProps> = ({
+  open,
+  onClose,
+  selectedMechanism,
+  onMechanismUpdated
+}) => {
+  const [mechanismName, setMechansimName] = useState(selectedMechanism?.name || "")
+  const [showUpdateMechanismAlert, setShowUpdateMechanismAlert] = useState(false);
+
+  useEffect(() => {
+    setMechansimName(selectedMechanism?.name || ""); // Update familyName when selectedFamily changes
+  }, [selectedMechanism, open]);
+
+
+  const handleUpdateMechanismClick = async () => {
+    // dont allow for a family with no name
+    if (mechanismName === ""){
+      setShowUpdateMechanismAlert(true);
+    }
+    else{
+
+      try {
+        const newMechanism: Mechanism = {
+          id: selectedMechanism?.id!,
+          family_id: selectedMechanism?.family_id!,
+          name: mechanismName!,
+          description: selectedMechanism?.description!,
+          created_by: selectedMechanism?.created_by!,
+        };
+        await updateMechanism(newMechanism);
+        onMechanismUpdated(newMechanism);
+        onClose();
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
+
+  const handleAlertClose = () => {
+    setShowUpdateMechanismAlert(false)
+  }
+
+  return (
+    <div>
+    <Modal open={open} onClose={onClose}>
+      <Box sx={style}>
+        Enter Name for Mechanism below.
+        <TextField
+          id="mechanism-name"
+          label="Name"
+          required={true}
+          value={mechanismName}
+          onChange={(e) => (setMechansimName(e.target.value))}
+          fullWidth
+          margin="normal"
+        />
+        <Button variant={"contained"} onClick={handleUpdateMechanismClick}>Submit</Button>
+        
+      </Box>
+    </Modal>
+
+    <Snackbar open={showUpdateMechanismAlert}
+      autoHideDuration={5000}
+      onClose={handleAlertClose}
+      anchorOrigin={{vertical: "top", horizontal: "center"}}>
+
+      <Alert onClose={handleAlertClose} severity="warning"
+        variant="filled" sx={{ width: '100%' }}>
+
+        Name must not be empty!
+      </Alert>
+    </Snackbar>
+    </div>
   );
 };
 
