@@ -21,6 +21,8 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Popover from "@mui/material/Popover";
 import Button from "@mui/material/Button";
 import { UpdateFamilyModal, UpdateMechanismModal } from "./Modals";
+import Dialog from "@mui/material/Dialog";
+import { DialogActions, DialogTitle } from "@mui/material";
 
 const treeItemStyle = {
   fontSize: "1.2rem",
@@ -103,6 +105,14 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
   const handleUpdateMechanismClose = () => setUpdateMechanismOpen(false);
   const handleUpdateFamilyOpen = () => setUpdateFamilyOpen(true);
   const handleUpdateFamilyClose = () => setUpdateFamilyOpen(false);
+
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+  const handleDeleteDialogOpen = () => setDeleteDialogOpen(true);
+  const handleDeleteDialogClose = () => setDeleteDialogOpen(false);
+
+
+  const [currentMechanismId, setCurrentMechanismId] = React.useState<string | null>(null);
+
 
   const ref = useRef<string | null>(null);
 
@@ -193,14 +203,30 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
     });
   };
 
+  // made to allow code reuse for deletion confirmation
+  const handleActionWithDialog = async (
+    action: (id: string) => Promise<void>, 
+    id: string, 
+    setBool?: React.Dispatch<React.SetStateAction<boolean>>
+  ) => {
+    await action(id);
+    if (setBool) {
+      setBool(true);
+    }
+  };
+  
+
   const handleFamilyDelete = async (familyId: string) => {
     await deleteFamily(familyId);
     setDeleteBool(true);
   };
 
-  const handleMechanismDelete = async (mechanismId: string) => {
-    await deleteMechanism(mechanismId);
-    setDeleteBool(true);
+  const handleMechanismDelete = (mechanismId: string) => {
+    setCurrentMechanismId(mechanismId);
+    setDeleteDialogOpen(true);
+
+    //await deleteMechanism(mechanismId);
+    //setDeleteBool(true);
   };
 
   const handleFamilyUpdated = (updatedFamily: Family) => {
@@ -287,7 +313,7 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                             handleUpdateFamilyOpen();
                             console.log(selectedFamily);
                           }}
-                          aria-label="delete"
+                          aria-label="edit"
                           edge="start"
                         >
                           <Edit/>
@@ -355,7 +381,7 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                                 handleUpdateMechanismOpen();
                                 console.log(selectedMechanism);
                               }}
-                              aria-label="delete"
+                              aria-label="edit"
                               edge="start">
                               <Edit/>
                             </IconButton>
@@ -449,6 +475,20 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
     selectedMechanism={selectedMechanism}
     onMechanismUpdated={handleMechanismUpdated}
     />
+    <Dialog 
+    open={deleteDialogOpen}
+    onClose={handleDeleteDialogClose}>
+      <DialogTitle>
+        {`Are you sure you want to delete this?`}
+      </DialogTitle>
+
+      <DialogActions>
+        <Button onClick={handleDeleteDialogClose}>No</Button>
+        <Button onClick={() => handleActionWithDialog(deleteMechanism,
+          currentMechanismId!, setDeleteBool)
+        }>Yes</Button>
+      </DialogActions>
+    </Dialog>
     </div>
   );
 };
