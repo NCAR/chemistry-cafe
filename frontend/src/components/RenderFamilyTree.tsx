@@ -110,8 +110,10 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
   const handleDeleteDialogOpen = () => setDeleteDialogOpen(true);
   const handleDeleteDialogClose = () => setDeleteDialogOpen(false);
 
+  const [deleteType, setDeleteType] = useState<string>('');
 
-  const [currentMechanismId, setCurrentMechanismId] = React.useState<string | null>(null);
+  // contains id of item that will be deleted by delete dialog
+  const [itemForDeletionID, setItemForDeletionID] = React.useState<string | null>(null);
 
 
   const ref = useRef<string | null>(null);
@@ -204,29 +206,34 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
   };
 
   // made to allow code reuse for deletion confirmation
+  // attempts to close the dialog wit the onClose function
   const handleActionWithDialog = async (
     action: (id: string) => Promise<void>, 
     id: string, 
+    onClose: () => void,
     setBool?: React.Dispatch<React.SetStateAction<boolean>>
+
   ) => {
     await action(id);
     if (setBool) {
       setBool(true);
     }
+
+    onClose();
   };
   
 
   const handleFamilyDelete = async (familyId: string) => {
-    await deleteFamily(familyId);
-    setDeleteBool(true);
+    setDeleteType("Family");
+    setItemForDeletionID(familyId);
+    setDeleteDialogOpen(true);
   };
 
   const handleMechanismDelete = (mechanismId: string) => {
-    setCurrentMechanismId(mechanismId);
+    setDeleteType("Mechanism");
+    setItemForDeletionID(mechanismId);
     setDeleteDialogOpen(true);
 
-    //await deleteMechanism(mechanismId);
-    //setDeleteBool(true);
   };
 
   const handleFamilyUpdated = (updatedFamily: Family) => {
@@ -484,9 +491,19 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
 
       <DialogActions>
         <Button onClick={handleDeleteDialogClose}>No</Button>
-        <Button onClick={() => handleActionWithDialog(deleteMechanism,
-          currentMechanismId!, setDeleteBool)
-        }>Yes</Button>
+
+        {/* what we are deleting changes based on deleteType */}
+        {(deleteType === "Mechanism") &&
+          <Button onClick={() => handleActionWithDialog(deleteMechanism,
+            itemForDeletionID!, handleDeleteDialogClose, setDeleteBool)
+          }>Yes</Button>
+        }
+
+        {(deleteType === "Family") &&
+          <Button onClick={() => handleActionWithDialog(deleteFamily,
+            itemForDeletionID!, handleDeleteDialogClose, setDeleteBool)
+          }>Yes</Button>
+        }
       </DialogActions>
     </Dialog>
     </div>
