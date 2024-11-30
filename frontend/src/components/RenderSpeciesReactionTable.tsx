@@ -277,7 +277,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
             <GridActionsCellItem
               icon={<Delete/>}
               label="Delete"
-              onClick={handleSpeciesDeleteClick(id)}
+              onClick={() => handleSpeciesDeleteClick(id)}
               style={{ color: "red" }}
             />,
           ];
@@ -359,7 +359,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
           <GridActionsCellItem
             icon={<Delete/>}
             label="Delete"
-            onClick={handleReactionDeleteClick(id)}
+            onClick={() => handleReactionDeleteClick(id)}
             style={{ color: "red" }}
           />,
         ];
@@ -573,8 +573,10 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
         reactionsCount={reactionsCount}
         selectedReaction={selectedReaction}
       />
-
+    {/* this is to ensure this dialog only renders in the correct cases instead
+    of the one in RenderFamilyTree */}
     {  (deleteType === "Species" || deleteType === "Reaction") && 
+
     <Dialog 
     open={deleteDialogOpen}
     onClose={handleDeleteDialogClose}>
