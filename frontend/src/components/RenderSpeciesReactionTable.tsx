@@ -574,6 +574,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
         selectedReaction={selectedReaction}
       />
 
+    {  (deleteType === "Species" || deleteType === "Reaction") && 
     <Dialog 
     open={deleteDialogOpen}
     onClose={handleDeleteDialogClose}>
@@ -607,6 +608,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
         }
       </DialogActions>
     </Dialog>
+    }
     </div>
   );
 };

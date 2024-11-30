@@ -111,6 +111,8 @@ const FamilyPage = () => {
         selectedFamilyId={selectedFamilyId}
         setCreatedMechanismBool={setCreatedMechanismBool}
       />
+
+      
     </section>
   );
 };

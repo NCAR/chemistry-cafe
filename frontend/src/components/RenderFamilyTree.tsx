@@ -485,6 +485,10 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
     selectedMechanism={selectedMechanism}
     onMechanismUpdated={handleMechanismUpdated}
     />
+
+    {/* this is to ensure this dialog only renders in the correct cases instead
+    of the one in RenderFamilyTree */}
+    {  (deleteType === "Mechanism" || deleteType === "Family") && 
     <Dialog 
     open={deleteDialogOpen}
     onClose={handleDeleteDialogClose}>
@@ -516,6 +520,7 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
         }
       </DialogActions>
     </Dialog>
+    }
     </div>
   );
 };
