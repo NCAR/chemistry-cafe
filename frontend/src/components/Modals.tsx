@@ -163,6 +163,50 @@ interface CreateProductModalProps {
   setReactionUpdated: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
+interface HandleActionWithDialogOptions<T extends string | number> {
+  deleteType: string;
+  action: (id: T) => Promise<void>;
+  id: T;
+  onClose: () => void;
+  setSpeciesRowData?: React.Dispatch<React.SetStateAction<Species[]>>;
+  speciesRowData?: Species[];
+  setReactionsRowData?: React.Dispatch<React.SetStateAction<Reaction[]>>;
+  reactionsRowData?: Reaction[];
+  setBool?: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+export const handleActionWithDialog = async <T extends string | number>(
+  options: HandleActionWithDialogOptions<T>
+): Promise<void> => {
+  const {
+    deleteType,
+    action,
+    id,
+    onClose,
+    setSpeciesRowData,
+    speciesRowData,
+    setReactionsRowData,
+    reactionsRowData,
+    setBool,
+  } = options;
+
+  await action(id);
+
+  if (deleteType === "Species" && setSpeciesRowData && speciesRowData) {
+    setSpeciesRowData(speciesRowData.filter((speciesRow) => speciesRow.id !== id));
+  } else if (deleteType === "Reaction" && setReactionsRowData && reactionsRowData) {
+    setReactionsRowData(reactionsRowData.filter((reactionRow) => reactionRow.id !== id));
+  }
+
+  if (setBool) {
+    setBool(true);
+  }
+
+  onClose();
+};
+
+  
+
 export const CreatePublishModal: React.FC<CreatePublishModalProps> = ({
   open,
   onClose,

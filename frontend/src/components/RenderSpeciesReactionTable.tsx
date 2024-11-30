@@ -14,6 +14,7 @@ import {
   CreateReactionModal,
   UpdateReactionModal,
   UpdateSpeciesModal,
+  handleActionWithDialog,
 } from "./Modals";
 import {
   DataGrid,
@@ -26,11 +27,12 @@ import {
   GridActionsCellItem,
   GridRowId,
 } from "@mui/x-data-grid";
-import DeleteIcon from "@mui/icons-material/DeleteOutlined";
 
+import Dialog from "@mui/material/Dialog";
+import { DialogActions, DialogTitle } from "@mui/material"
 import IconButton from "@mui/material/IconButton";
-import { Add } from "@mui/icons-material";
-import { Typography, Box, Backdrop, CircularProgress } from "@mui/material";
+import { Add, Delete } from "@mui/icons-material";
+import { Typography, Box, Backdrop, CircularProgress, Button } from "@mui/material";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import { isAxiosError } from "axios";
@@ -46,12 +48,32 @@ interface Props {
   selectedFamilyID: string | null;
   selectedMechanismID: string | null;
   selectedMechanismName: string | null;
+
+  deleteDialogOpen: boolean;
+  setDeleteDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  deleteType: string;
+  setDeleteType: React.Dispatch<React.SetStateAction<string>>;
+  itemForDeletionID : string | null;
+  setItemForDeletionID: React.Dispatch<React.SetStateAction<string | null>>;
+  handleDeleteDialogOpen: () => void;
+  handleDeleteDialogClose: () => void;
 }
 
 const RenderSpeciesReactionTable: React.FC<Props> = ({
   selectedFamilyID,
   selectedMechanismID,
   selectedMechanismName,
+
+  deleteDialogOpen,
+  setDeleteDialogOpen,
+  deleteType,
+  setDeleteType,
+  itemForDeletionID,
+  setItemForDeletionID,
+  handleDeleteDialogOpen,
+  handleDeleteDialogClose,
+
+  
 }) => {
   const [createSpeciesOpen, setCreateSpeciesOpen] = React.useState(false);
   const handleCreateSpeciesOpen = () => setCreateSpeciesOpen(true);
@@ -91,32 +113,16 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
   const [speciesRowData, setSpeciesRowData] = useState<Species[]>([]);
   const [reactionsRowData, setReactionsRowData] = useState<Reaction[]>([]);
 
-  const handleSpeciesDeleteClick = (id: GridRowId) => async () => {
-    try {
-      await deleteSpecies(id as string);
-      // Remove the deleted user from the state
-      setSpeciesRowData(
-        speciesRowData.filter((speciesRow) => speciesRow.id !== id),
-      );
-      alert("Species deleted successfully!");
-    } catch (error) {
-      console.error("Error deleting species:", error);
-      alert("Failed to delete species: " + error);
-    }
+  const handleSpeciesDeleteClick = (id: GridRowId) => {
+    setDeleteType("Species");
+    setItemForDeletionID(id as string);
+    setDeleteDialogOpen(true);
   };
 
-  const handleReactionDeleteClick = (id: GridRowId) => async () => {
-    try {
-      await deleteReaction(id as string);
-      // Remove the deleted user from the state
-      setReactionsRowData(
-        reactionsRowData.filter((reactionRow) => reactionRow.id !== id),
-      );
-      alert("Reaction deleted successfully!");
-    } catch (error) {
-      console.error("Error deleting reaction:", error);
-      alert("Failed to delete reaction: " + error);
-    }
+  const handleReactionDeleteClick = (id: GridRowId) => {
+    setDeleteType("Reaction");
+    setItemForDeletionID(id as string);
+    setDeleteDialogOpen(true);
   };
 
   // Event needed as parameter to ensure correct value recieved in tabValue
@@ -269,7 +275,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
         getActions: ({ id }) => {
           return [
             <GridActionsCellItem
-              icon={<DeleteIcon />}
+              icon={<Delete/>}
               label="Delete"
               onClick={handleSpeciesDeleteClick(id)}
               style={{ color: "red" }}
@@ -351,7 +357,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
       getActions: ({ id }) => {
         return [
           <GridActionsCellItem
-            icon={<DeleteIcon />}
+            icon={<Delete/>}
             label="Delete"
             onClick={handleReactionDeleteClick(id)}
             style={{ color: "red" }}
@@ -567,6 +573,40 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
         reactionsCount={reactionsCount}
         selectedReaction={selectedReaction}
       />
+
+    <Dialog 
+    open={deleteDialogOpen}
+    onClose={handleDeleteDialogClose}>
+      <DialogTitle>
+        {`Are you sure you want to delete this?`}
+      </DialogTitle>
+
+      <DialogActions>
+        <Button onClick={handleDeleteDialogClose}>No</Button>
+
+        {/* what we are deleting changes based on deleteType */}
+        {(deleteType === "Species") &&
+          <Button onClick={() => handleActionWithDialog({
+            deleteType: deleteType, action: deleteSpecies, 
+            id: itemForDeletionID!, onClose: handleDeleteDialogClose, 
+            setSpeciesRowData: setSpeciesRowData,
+            speciesRowData: speciesRowData
+
+            })
+          }>Yes</Button>
+        }
+
+        {(deleteType === "Reaction") &&
+          <Button onClick={() => handleActionWithDialog({
+            deleteType: deleteType, action: deleteReaction, 
+            id: itemForDeletionID!, onClose: handleDeleteDialogClose, 
+            setReactionsRowData: setReactionsRowData,
+            reactionsRowData: reactionsRowData
+            })
+          }>Yes</Button>
+        }
+      </DialogActions>
+    </Dialog>
     </div>
   );
 };

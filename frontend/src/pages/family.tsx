@@ -34,6 +34,16 @@ const FamilyPage = () => {
   const handleCreateMechanismOpen = () => setCreateMechanismOpen(true);
   const handleCreateMechanismClose = () => setCreateMechanismOpen(false);
 
+
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+  const handleDeleteDialogOpen = () => setDeleteDialogOpen(true);
+  const handleDeleteDialogClose = () => setDeleteDialogOpen(false);
+
+  const [deleteType, setDeleteType] = useState<string>('');
+
+  // contains id of item that will be deleted by delete dialog
+  const [itemForDeletionID, setItemForDeletionID] = React.useState<string | null>(null);
+
   return (
     <section className="layoutFam">
       <div className="headerBar">
@@ -56,6 +66,15 @@ const FamilyPage = () => {
           setCreatedFamilyBool={setCreatedFamilyBool}
           createdMechanismBool={createdMechanismBool}
           setCreatedMechanismBool={setCreatedMechanismBool}
+
+          deleteDialogOpen={deleteDialogOpen}
+          setDeleteDialogOpen={setDeleteDialogOpen}
+          deleteType={deleteType}
+          setDeleteType={setDeleteType}
+          itemForDeletionID={itemForDeletionID}
+          setItemForDeletionID={setItemForDeletionID}
+          handleDeleteDialogOpen={handleDeleteDialogOpen}
+          handleDeleteDialogClose={handleDeleteDialogClose}
         />
       </div>
 
@@ -68,6 +87,15 @@ const FamilyPage = () => {
             selectedFamilyID={selectedFamilyId}
             selectedMechanismID={selectedMechanismId}
             selectedMechanismName={selectedMechanismName}
+
+            deleteDialogOpen={deleteDialogOpen}
+            setDeleteDialogOpen={setDeleteDialogOpen}
+            deleteType={deleteType}
+            setDeleteType={setDeleteType}
+            itemForDeletionID={itemForDeletionID}
+            setItemForDeletionID={setItemForDeletionID}
+            handleDeleteDialogOpen={handleDeleteDialogOpen}
+            handleDeleteDialogClose={handleDeleteDialogClose}
           />
         </StyledDetailBox>
       </div>
