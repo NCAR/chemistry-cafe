@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import { Species, Reaction, Property } from "../API/API_Interfaces";
+import { Species, Reaction, Property, Family } from "../API/API_Interfaces";
 import {
   getReactionsByMechanismId,
   getSpeciesByMechanismId,
@@ -46,6 +46,7 @@ const tabsHeaderStyle: React.CSSProperties = {
 
 interface Props {
   selectedFamilyID: string | null;
+  selectedFamily: Family | null;
   selectedMechanismID: string | null;
   selectedMechanismName: string | null;
 
@@ -61,6 +62,7 @@ interface Props {
 
 const RenderSpeciesReactionTable: React.FC<Props> = ({
   selectedFamilyID,
+  selectedFamily,
   selectedMechanismID,
   selectedMechanismName,
 
@@ -549,6 +551,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
         open={createReactionOpen}
         onClose={handleCreateReactionClose}
         selectedFamilyId={selectedFamilyID}
+        selectedFamily={selectedFamily}
         selectedMechanismId={selectedMechanismID}
         selectedMechanismName={selectedMechanismName}
         setReactionCreated={setReactionCreated}
@@ -568,6 +571,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
         open={editReactionOpen}
         onClose={handleEditReactionClose}
         selectedFamilyId={selectedFamilyID}
+        selectedFamily={selectedFamily}
         selectedMechanismId={selectedMechanismID}
         selectedMechanismName={selectedMechanismName}
         setReactionUpdated={setReactionUpdated}
