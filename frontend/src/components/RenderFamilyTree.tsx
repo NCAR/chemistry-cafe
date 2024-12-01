@@ -20,7 +20,11 @@ import CircularProgress from "@mui/material/CircularProgress";
 
 import Popover from "@mui/material/Popover";
 import Button from "@mui/material/Button";
-import { handleActionWithDialog, UpdateFamilyModal, UpdateMechanismModal } from "./Modals";
+import {
+  handleActionWithDialog,
+  UpdateFamilyModal,
+  UpdateMechanismModal,
+} from "./Modals";
 import Dialog from "@mui/material/Dialog";
 import { DialogActions, DialogTitle } from "@mui/material";
 
@@ -76,7 +80,7 @@ interface RenderFamilyTreeProps {
   setDeleteDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
   deleteType: string;
   setDeleteType: React.Dispatch<React.SetStateAction<string>>;
-  itemForDeletionID : string | null;
+  itemForDeletionID: string | null;
   setItemForDeletionID: React.Dispatch<React.SetStateAction<string | null>>;
   handleDeleteDialogOpen: () => void;
   handleDeleteDialogClose: () => void;
@@ -116,7 +120,8 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
 
   const [deleteBool, setDeleteBool] = useState<boolean>(false);
   const [updateFamilyOpen, setUpdateFamilyOpen] = useState<boolean>(false);
-  const [updateMechanismOpen, setUpdateMechanismOpen] = useState<boolean>(false);
+  const [updateMechanismOpen, setUpdateMechanismOpen] =
+    useState<boolean>(false);
   const handleUpdateMechanismOpen = () => setUpdateMechanismOpen(true);
   const handleUpdateMechanismClose = () => setUpdateMechanismOpen(false);
   const handleUpdateFamilyOpen = () => setUpdateFamilyOpen(true);
@@ -130,7 +135,6 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
 
   // // contains id of item that will be deleted by delete dialog
   // const [itemForDeletionID, setItemForDeletionID] = React.useState<string | null>(null);
-
 
   const ref = useRef<string | null>(null);
 
@@ -221,8 +225,6 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
     });
   };
 
-
-
   const handleFamilyDelete = (familyId: string) => {
     setDeleteType("Family");
     setItemForDeletionID(familyId);
@@ -235,44 +237,40 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
     setDeleteType("Mechanism");
     setItemForDeletionID(mechanismId);
     setDeleteDialogOpen(true);
-
   };
 
   const handleFamilyUpdated = (updatedFamily: Family) => {
     setFamilies((prevFamilies) =>
       prevFamilies.map((family) =>
-        family.id === updatedFamily.id ? updatedFamily : family
-      )
+        family.id === updatedFamily.id ? updatedFamily : family,
+      ),
     );
   };
 
   const handleMechanismUpdated = (updatedMechanism: Mechanism) => {
     setMechanismsMap((prevMechanismsMap) => {
       const updatedMap = { ...prevMechanismsMap };
-  
+
       // find family with updated mechanism
       for (const familyId in updatedMap) {
         const mechanisms = updatedMap[familyId];
         const mechanismIndex = mechanisms.findIndex(
-          (mech) => mech.id === updatedMechanism.id
+          (mech) => mech.id === updatedMechanism.id,
         );
-  
+
         if (mechanismIndex !== -1) {
-          // update mechanism 
+          // update mechanism
           const updatedMechanisms = [...mechanisms];
           updatedMechanisms[mechanismIndex] = updatedMechanism;
-  
+
           updatedMap[familyId] = updatedMechanisms;
           break;
         }
       }
-  
+
       return updatedMap;
     });
   };
-  
-
-
 
   return (
     <div style={containerStyle}>
@@ -317,7 +315,6 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                       >
                         <IconButton
                           onClick={() => {
-
                             setSelectedFamily(family);
                             handleUpdateFamilyOpen();
                             console.log(selectedFamily);
@@ -325,7 +322,7 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                           aria-label="edit"
                           edge="start"
                         >
-                          <Edit/>
+                          <Edit />
                         </IconButton>
                         <IconButton
                           onClick={() => {
@@ -385,14 +382,14 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                           >
                             <IconButton
                               onClick={() => {
-
                                 setSelectedMechanism(mechanism);
                                 handleUpdateMechanismOpen();
                                 console.log(selectedMechanism);
                               }}
                               aria-label="edit"
-                              edge="start">
-                              <Edit/>
+                              edge="start"
+                            >
+                              <Edit />
                             </IconButton>
 
                             <IconButton
@@ -473,57 +470,66 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
         </>
       )}
 
-    <UpdateFamilyModal
-    open={updateFamilyOpen}
-    onClose={handleUpdateFamilyClose}
-    selectedFamily={selectedFamily}
-    onFamilyUpdated={handleFamilyUpdated}
-    />
-    <UpdateMechanismModal 
-    open={updateMechanismOpen}
-    onClose={handleUpdateMechanismClose}
-    selectedMechanism={selectedMechanism}
-    onMechanismUpdated={handleMechanismUpdated}
-    />
+      <UpdateFamilyModal
+        open={updateFamilyOpen}
+        onClose={handleUpdateFamilyClose}
+        selectedFamily={selectedFamily}
+        onFamilyUpdated={handleFamilyUpdated}
+      />
+      <UpdateMechanismModal
+        open={updateMechanismOpen}
+        onClose={handleUpdateMechanismClose}
+        selectedMechanism={selectedMechanism}
+        onMechanismUpdated={handleMechanismUpdated}
+      />
 
-    {/* this is to ensure this dialog only renders in the correct cases instead
+      {/* this is to ensure this dialog only renders in the correct cases instead
     of the one in RenderFamilyTree */}
-    {  (deleteType === "Mechanism" || deleteType === "Family") && 
-    <Dialog 
-    open={deleteDialogOpen}
-    onClose={handleDeleteDialogClose}>
-      <DialogTitle>
-        {`Are you sure you want to delete this?`}
-      </DialogTitle>
+      {(deleteType === "Mechanism" || deleteType === "Family") && (
+        <Dialog open={deleteDialogOpen} onClose={handleDeleteDialogClose}>
+          <DialogTitle>{`Are you sure you want to delete this?`}</DialogTitle>
 
-      <DialogActions>
-        <Button onClick={handleDeleteDialogClose}>No</Button>
-        
+          <DialogActions>
+            <Button onClick={handleDeleteDialogClose}>No</Button>
 
-        {/* what we are deleting changes based on deleteType */}
-        {(deleteType === "Mechanism") &&
-          <Button onClick={() => handleActionWithDialog({
-            deleteType: deleteType,
-            action: deleteMechanism, id: itemForDeletionID!, 
-            onClose: handleDeleteDialogClose, setBool: setDeleteBool,
-            setSelectedMechanism: setSelectedMechanism,
-            setSelectedMechanismId: setSelectedMechanismId,
-            setSelectedMechanismName: setSelectedMechanismName
-          })
-          }>Yes</Button>
-        }
+            {/* what we are deleting changes based on deleteType */}
+            {deleteType === "Mechanism" && (
+              <Button
+                onClick={() =>
+                  handleActionWithDialog({
+                    deleteType: deleteType,
+                    action: deleteMechanism,
+                    id: itemForDeletionID!,
+                    onClose: handleDeleteDialogClose,
+                    setBool: setDeleteBool,
+                    setSelectedMechanism: setSelectedMechanism,
+                    setSelectedMechanismId: setSelectedMechanismId,
+                    setSelectedMechanismName: setSelectedMechanismName,
+                  })
+                }
+              >
+                Yes
+              </Button>
+            )}
 
-        {(deleteType === "Family") &&
-          <Button onClick={() => handleActionWithDialog({
-            deleteType: deleteType,
-            action: deleteFamily, id: itemForDeletionID!, 
-            onClose: handleDeleteDialogClose, setBool: setDeleteBool
-            })
-          }>Yes</Button>
-        }
-      </DialogActions>
-    </Dialog>
-    }
+            {deleteType === "Family" && (
+              <Button
+                onClick={() =>
+                  handleActionWithDialog({
+                    deleteType: deleteType,
+                    action: deleteFamily,
+                    id: itemForDeletionID!,
+                    onClose: handleDeleteDialogClose,
+                    setBool: setDeleteBool,
+                  })
+                }
+              >
+                Yes
+              </Button>
+            )}
+          </DialogActions>
+        </Dialog>
+      )}
     </div>
   );
 };
