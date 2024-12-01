@@ -1387,31 +1387,34 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
   useEffect(() => {
     const fetchReactionEquations = async () => {
       const equations: { [key: string]: string } = {};
-      try {
-        await Promise.all(
-          reactionList.map(async (reaction) => {
-            const reactants = await getReactantsByReactionIdAsync(reaction.id!);
-            const products = await getProductsByReactionIdAsync(reaction.id!);
-            const reactantNames = reactants
-              .map((r: ReactionSpeciesDto) => r.species_name)
-              .join(" + ");
-            const productNames = products
-              .map((p: ReactionSpeciesDto) => p.species_name)
-              .join(" + ");
-            equations[reaction.id!] = `${reactantNames} -> ${productNames}`;
-          }),
-        );
+      reactionList.map((reactionItem) =>{
+        if (reactionItem.description !== null) {
+          // make regex expression
+          let regex =
+          /^(Arrhenius|Branched|Emission|First-Order Loss|Photolysis|Surface \(Heterogeneous\)|Ternary Chemical Activation|Troe \(Fall-Off\)|Tunneling|N\/A)(?: Reaction \d+)?: (.+)$/i;
+
+          let matches = reactionItem.description.match(regex);
+
+
+          if (matches) {
+            // Extract components from matches
+            const reaction = matches[2].trim();
+            if (!(reactionItem.id! in equations)){
+              equations[reactionItem.id!] = reaction;
+            }
+          } else {
+            equations[reactionItem.id!] = "";
+            console.error("Error, data in a reaction did not match the specified format!");
+          }
+        }
+
         setReactionEquations(equations);
-      } catch (error) {
-        console.error("Error fetching reaction equations:", error);
-      }
+      });
     };
 
-    if (reactionList.length > 0) {
-      fetchReactionEquations();
-    } else {
-      setReactionEquations({});
-    }
+    fetchReactionEquations();
+
+
   }, [reactionList]);
 
   const handleCreateReactionClick = async () => {
@@ -1513,7 +1516,7 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
         {reactionList.length > 0 && (
           <>
             <Typography variant="subtitle1" style={{ marginTop: "1rem" }}>
-              Or Pick Existing Reactions in Family (Multiple Selection)
+            Or Pick Reaction From Other Mechanism(s) In Family (Multiple Selection)
             </Typography>
             <Select
               multiple
