@@ -436,6 +436,8 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
   }>({});
 
   const createMechanismRef = useRef("");
+  console.log("here");
+  console.log(Object.entries(reactionEquations));
 
   useEffect(() => {
     const fetchSpeciesReactions = async () => {
@@ -445,6 +447,8 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
           setSpeciesList(species);
 
           const reactions = await getReactionsByFamilyId(selectedFamilyId);
+          console.log("reactions by family id");
+          console.log(reactions);
           setReactionList(reactions);
         }
       } catch (error) {
@@ -458,33 +462,36 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
   useEffect(() => {
     const fetchReactionEquations = async () => {
       const equations: { [key: string]: string } = {};
-      try {
-        await Promise.all(
-          reactionList.map(async (reaction) => {
-            const reactants: ReactionSpeciesDto[] =
-              await getReactantsByReactionIdAsync(reaction.id!);
-            const products: ReactionSpeciesDto[] =
-              await getProductsByReactionIdAsync(reaction.id!);
-            const reactantNames = reactants
-              .map((r) => r.species_name)
-              .join(" + ");
-            const productNames = products
-              .map((p) => p.species_name)
-              .join(" + ");
-            equations[reaction.id!] = `${reactantNames} -> ${productNames}`;
-          }),
-        );
+      reactionList.map((reactionItem) =>{
+        if (reactionItem.description !== null) {
+          // make regex expression
+          let regex =
+          /^(Arrhenius|Branched|Emission|First-Order Loss|Photolysis|Surface \(Heterogeneous\)|Ternary Chemical Activation|Troe \(Fall-Off\)|Tunneling|N\/A)(?: Reaction \d+)?: (.+)$/i;
+
+          let matches = reactionItem.description.match(regex);
+
+          // console.log("heres the matches:");
+          // console.log(matches);
+          // console.log("heres the description:");
+          // console.log(reactionItem.description)
+
+          if (matches) {
+            // Extract components from matches
+            const reaction = matches[2].trim();
+            equations[reactionItem.id!] = reaction;
+          } else {
+            equations[reactionItem.id!] = "";
+            console.error("Error, data in a reaction did not match the specified format!");
+          }
+        }
+
         setReactionEquations(equations);
-      } catch (error) {
-        console.error("Error fetching reaction equations:", error);
-      }
+      });
     };
 
-    if (reactionList.length > 0) {
-      fetchReactionEquations();
-    } else {
-      setReactionEquations({});
-    }
+    fetchReactionEquations();
+
+
   }, [reactionList]);
 
   const handleCreateMechanismClick = async () => {
@@ -519,6 +526,7 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
       setSelectedReactionIds([]);
       onClose();
       setCreatedMechanismBool(true);
+
     } catch (error) {
       console.error(error);
     }
