@@ -41,6 +41,7 @@ and run the following commands:
     brew install dotnet
     ```
 
+<!-- 
 ### Running Chemistry Cafe with Docker Compose
 
 You must have [Docker Desktop](https://www.docker.com/get-started) installed and running.
@@ -55,7 +56,7 @@ When finished, run:
 ```
 docker compose down
 ```
-**Note:** To view changes, you must run the docker compose down and then run the project again.
+**Note:** To view changes, you must run the docker compose down and then run the project again. -->
 
 ### Running Chemistry Cafe Locally
 You must open 3 terminals and run the following commands in each:
