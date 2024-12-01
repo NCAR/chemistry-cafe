@@ -945,8 +945,7 @@ export const UpdateSpeciesModal: React.FC<UpdateSpeciesModalProps> = ({
     }
   };
 
-  console.log("open status");
-  console.log(open);
+
   return (
     <Modal open={open} onClose={onClose}>
       <Box
@@ -1209,6 +1208,7 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
           await addReactionToMechanism(mechanismReaction);
         }
 
+        console.log("selected ids:", selectedReactionIds);
         for (const reactionId of selectedReactionIds) {
           const mechanismReaction: MechanismReaction = {
             mechanism_id: selectedMechanismId,
@@ -1448,10 +1448,10 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
 
           // console.log("Modified:");
           // console.log(reactionData);
-
+          // @ts-ignore
+          // tslint:disable-next-line:no-unused-variable
           const updatedReaction = await updateReaction(reactionData);
 
-          console.log(updatedReaction);
         }
 
         setSelectedReactionType("");
@@ -1521,10 +1521,9 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
         {reactionList.length > 0 && (
           <>
             <Typography variant="subtitle1" style={{ marginTop: "1rem" }}>
-            Or Pick Reaction From Other Mechanism(s) In Family "{selectedFamily?.name || ""}": (Multiple Selection)
+            Or Pick Reaction From Other Mechanism(s) In Family "{selectedFamily?.name || ""}":
             </Typography>
             <Select
-              multiple
               value={selectedReactionIds}
               onChange={(e) =>
                 setSelectedReactionIds(e.target.value as string[])
