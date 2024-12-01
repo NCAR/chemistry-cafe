@@ -459,6 +459,7 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                       }
                       sx={treeItemStyle}
                       onClick={() => {
+                        setSelectedFamily(family);
                         setSelectedFamilyId(family.id!);
                         setSelectedMechanismId(mechanism.id!);
                         setSelectedMechanismName(mechanism.name!);

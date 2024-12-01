@@ -129,6 +129,7 @@ interface CreateReactionModalProps {
   open: boolean;
   onClose: () => void;
   selectedFamilyId: string | null;
+  selectedFamily: Family | null;
   selectedMechanismId: string | null;
   selectedMechanismName: string | null;
   reactionsCount: number;
@@ -139,6 +140,7 @@ interface UpdateReactionModalProps {
   open: boolean;
   onClose: () => void;
   selectedFamilyId: string | null;
+  selectedFamily: Family | null;
   selectedMechanismId: string | null;
   selectedMechanismName: string | null;
   reactionsCount: number;
@@ -1089,6 +1091,7 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
   open,
   onClose,
   selectedFamilyId,
+  selectedFamily,
   selectedMechanismId,
   selectedMechanismName,
   setReactionCreated,
@@ -1104,6 +1107,7 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
   const createReactionProductsRef = useRef("");
 
   useEffect(() => {
+    console.log("hi:", selectedFamily);
     const fetchReactions = async () => {
       try {
         if (selectedFamilyId && selectedMechanismId) {
@@ -1274,7 +1278,7 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
         {reactionList.length > 0 && (
           <>
             <Typography variant="subtitle1" style={{ marginTop: "1rem" }}>
-              Or Pick Reaction From Other Mechanism(s) In Family (Multiple Selection)
+              Or Pick Reaction From Other Mechanism(s) In Family "{selectedFamily?.name || ""}": (Multiple Selection)
             </Typography>
             <Select
               multiple
@@ -1314,6 +1318,7 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
   open,
   onClose,
   selectedFamilyId,
+  selectedFamily,
   selectedMechanismId,
   setReactionUpdated,
   reactionsCount,
@@ -1516,7 +1521,7 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
         {reactionList.length > 0 && (
           <>
             <Typography variant="subtitle1" style={{ marginTop: "1rem" }}>
-            Or Pick Reaction From Other Mechanism(s) In Family (Multiple Selection)
+            Or Pick Reaction From Other Mechanism(s) In Family "{selectedFamily?.name || ""}": (Multiple Selection)
             </Typography>
             <Select
               multiple

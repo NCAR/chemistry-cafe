@@ -84,6 +84,7 @@ const FamilyPage = () => {
       <div className="speciesReactions">
         <StyledDetailBox>
           <RenderSpeciesReactionTable
+            selectedFamily={selectedFamily}
             selectedFamilyID={selectedFamilyId}
             selectedMechanismID={selectedMechanismId}
             selectedMechanismName={selectedMechanismName}
