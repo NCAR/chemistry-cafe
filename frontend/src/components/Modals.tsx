@@ -168,10 +168,21 @@ interface HandleActionWithDialogOptions<T extends string | number> {
   action: (id: T) => Promise<void>;
   id: T;
   onClose: () => void;
+  // only include if deleting species
   setSpeciesRowData?: React.Dispatch<React.SetStateAction<Species[]>>;
   speciesRowData?: Species[];
+  // only include if deleting a reaction
   setReactionsRowData?: React.Dispatch<React.SetStateAction<Reaction[]>>;
   reactionsRowData?: Reaction[];
+  // only include if deleting a mechanism
+  setSelectedMechanism?: React.Dispatch<React.SetStateAction<Mechanism | null>>;
+  setSelectedMechanismId?: React.Dispatch<React.SetStateAction<string | null>>;
+  setSelectedMechanismName?: React.Dispatch<React.SetStateAction<string | null>>;
+
+  // only include if deleting a family
+  setSelectedFamily?: React.Dispatch<React.SetStateAction<Family | null>>;
+  setSelectedFamilyId?: React.Dispatch<React.SetStateAction<string | null>>;
+  // only include if deleting family or mechanism
   setBool?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
@@ -188,14 +199,33 @@ export const handleActionWithDialog = async <T extends string | number>(
     setReactionsRowData,
     reactionsRowData,
     setBool,
+
+    setSelectedMechanism,
+    setSelectedMechanismId,
+    setSelectedMechanismName,
+
+    setSelectedFamily,
+    setSelectedFamilyId,
   } = options;
 
   await action(id);
 
   if (deleteType === "Species" && setSpeciesRowData && speciesRowData) {
     setSpeciesRowData(speciesRowData.filter((speciesRow) => speciesRow.id !== id));
-  } else if (deleteType === "Reaction" && setReactionsRowData && reactionsRowData) {
+  } 
+  else if (deleteType === "Reaction" && setReactionsRowData && reactionsRowData) {
     setReactionsRowData(reactionsRowData.filter((reactionRow) => reactionRow.id !== id));
+  }
+  else if (deleteType === "Mechanism" && setSelectedMechanism && setSelectedMechanismId
+          && setSelectedMechanismName){
+    setSelectedMechanism(null);
+    setSelectedMechanismId(null);
+    setSelectedMechanismName(null);
+  }
+
+  else if (deleteType === "Species" && setSelectedFamily && setSelectedFamilyId){
+    setSelectedFamily(null);
+    setSelectedFamilyId(null);
   }
 
   if (setBool) {

@@ -14,7 +14,7 @@ import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
 import { TreeItem } from "@mui/x-tree-view/TreeItem";
 
 import IconButton from "@mui/material/IconButton";
-import { Add, GetApp, Delete, Edit, UpdateDisabled } from "@mui/icons-material";
+import { Add, GetApp, Delete, Edit } from "@mui/icons-material";
 
 import CircularProgress from "@mui/material/CircularProgress";
 
@@ -103,7 +103,6 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
   setDeleteType,
   itemForDeletionID,
   setItemForDeletionID,
-  handleDeleteDialogOpen,
   handleDeleteDialogClose,
 }) => {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
@@ -505,7 +504,10 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
           <Button onClick={() => handleActionWithDialog({
             deleteType: deleteType,
             action: deleteMechanism, id: itemForDeletionID!, 
-            onClose: handleDeleteDialogClose, setBool: setDeleteBool
+            onClose: handleDeleteDialogClose, setBool: setDeleteBool,
+            setSelectedMechanism: setSelectedMechanism,
+            setSelectedMechanismId: setSelectedMechanismId,
+            setSelectedMechanismName: setSelectedMechanismName
           })
           }>Yes</Button>
         }
