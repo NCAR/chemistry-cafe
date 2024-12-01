@@ -186,6 +186,8 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
         }
       } else {
         setSpecies([]);
+        setSpeciesRowData([]);
+        setReactionsRowData([]);
       }
     };
 
