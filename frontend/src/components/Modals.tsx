@@ -15,7 +15,6 @@ import {
   Reaction,
   ReactionSpecies,
   Species,
-  ReactionSpeciesDto,
   Property,
   User,
 } from "../API/API_Interfaces";
