@@ -70,7 +70,6 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
   setDeleteType,
   itemForDeletionID,
   setItemForDeletionID,
-  handleDeleteDialogOpen,
   handleDeleteDialogClose,
 
   
