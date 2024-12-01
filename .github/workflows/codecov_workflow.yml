@@ -38,12 +38,10 @@ jobs:
         run: npm run test:coverage
         working-directory: ./frontend
 
-
       # Step 6: Upload the code coverage report to Codecov
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4.2.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          # files: ./frontend/coverage/lcov.info, ./ManualCoverageBackend.cobertura.xml
           flags: frontend
           fail_ci_if_error: true
