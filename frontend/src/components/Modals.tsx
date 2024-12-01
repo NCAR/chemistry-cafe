@@ -6,8 +6,6 @@ import {
   getReactionsByMechanismId,
   getSpeciesByFamilyId,
   getReactionsByFamilyId,
-  getReactantsByReactionIdAsync,
-  getProductsByReactionIdAsync,
 } from "../API/API_GetMethods";
 import {
   Family,
@@ -719,6 +717,8 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
               concentration: concentration,
               diffusion: diffusion,
             };
+            // @ts-ignore
+            // tslint:disable-next-line:no-unused-variable
             const createdProperty = await createProperty(propertyData);
           }
         }
