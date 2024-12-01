@@ -19,6 +19,7 @@ import {
   Species,
   ReactionSpeciesDto,
   Property,
+  User,
 } from "../API/API_Interfaces";
 import {
   createSpecies,
@@ -174,6 +175,10 @@ interface HandleActionWithDialogOptions<T extends string | number> {
   // only include if deleting a reaction
   setReactionsRowData?: React.Dispatch<React.SetStateAction<Reaction[]>>;
   reactionsRowData?: Reaction[];
+
+  // only include if deleting a user
+  setUsers?: React.Dispatch<React.SetStateAction<User[]>>
+
   // only include if deleting a mechanism
   setSelectedMechanism?: React.Dispatch<React.SetStateAction<Mechanism | null>>;
   setSelectedMechanismId?: React.Dispatch<React.SetStateAction<string | null>>;
@@ -194,6 +199,7 @@ export const handleActionWithDialog = async <T extends string | number>(
     action,
     id,
     onClose,
+
     setSpeciesRowData,
     speciesRowData,
     setReactionsRowData,
@@ -206,32 +212,44 @@ export const handleActionWithDialog = async <T extends string | number>(
 
     setSelectedFamily,
     setSelectedFamilyId,
+
+    setUsers,
   } = options;
+  try {
+    await action(id);
 
-  await action(id);
+    if (deleteType === "Species" && setSpeciesRowData && speciesRowData) {
+      setSpeciesRowData(speciesRowData.filter((speciesRow) => speciesRow.id !== id));
+    }
 
-  if (deleteType === "Species" && setSpeciesRowData && speciesRowData) {
-    setSpeciesRowData(speciesRowData.filter((speciesRow) => speciesRow.id !== id));
-  } 
-  else if (deleteType === "Reaction" && setReactionsRowData && reactionsRowData) {
-    setReactionsRowData(reactionsRowData.filter((reactionRow) => reactionRow.id !== id));
+    else if (deleteType === "Reaction" && setReactionsRowData && reactionsRowData) {
+      setReactionsRowData(reactionsRowData.filter((reactionRow) => reactionRow.id !== id));
+    }
+
+    else if (deleteType === "Mechanism" && setSelectedMechanism && setSelectedMechanismId
+            && setSelectedMechanismName){
+      setSelectedMechanism(null);
+      setSelectedMechanismId(null);
+      setSelectedMechanismName(null);
+    }
+
+    else if (deleteType === "Species" && setSelectedFamily && setSelectedFamilyId){
+      setSelectedFamily(null);
+      setSelectedFamilyId(null);
+    }
+
+    else if(deleteType === "User" && setUsers){
+      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== id));
+
+    }
+
+    if (setBool) {
+      setBool(true);
+    }
+
+  } catch(error) {
+    console.error("error in handleActionWithDialog: ", error)
   }
-  else if (deleteType === "Mechanism" && setSelectedMechanism && setSelectedMechanismId
-          && setSelectedMechanismName){
-    setSelectedMechanism(null);
-    setSelectedMechanismId(null);
-    setSelectedMechanismName(null);
-  }
-
-  else if (deleteType === "Species" && setSelectedFamily && setSelectedFamilyId){
-    setSelectedFamily(null);
-    setSelectedFamilyId(null);
-  }
-
-  if (setBool) {
-    setBool(true);
-  }
-
   onClose();
 };
 
@@ -436,8 +454,6 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
   }>({});
 
   const createMechanismRef = useRef("");
-  console.log("here");
-  console.log(Object.entries(reactionEquations));
 
   useEffect(() => {
     const fetchSpeciesReactions = async () => {
@@ -447,8 +463,6 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
           setSpeciesList(species);
 
           const reactions = await getReactionsByFamilyId(selectedFamilyId);
-          console.log("reactions by family id");
-          console.log(reactions);
           setReactionList(reactions);
         }
       } catch (error) {
@@ -704,7 +718,6 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
               diffusion: diffusion,
             };
             const createdProperty = await createProperty(propertyData);
-            console.log(createdProperty);
           }
         }
 
