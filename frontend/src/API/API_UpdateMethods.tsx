@@ -100,6 +100,7 @@ export async function updateUser(id: string, user: User) {
         "Content-Type": "application/json",
       },
     });
+    console.log("response in updateUser: ", response);
     return response.data as User;
   } catch (error: any) {
     console.error(`Error updating user ${id}: ${error.message}`, error);
