@@ -26,6 +26,11 @@ import { getUsers } from "../API/API_GetMethods";
 import { User } from "../API/API_Interfaces";
 import { updateUser } from "../API/API_UpdateMethods";
 import { deleteUser } from "../API/API_DeleteMethods";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogActions from "@mui/material/DialogActions";
+import { Button } from "@mui/material";
+import { handleActionWithDialog } from "../components/Modals";
 
 function RolesToolbar() {
   return (
@@ -40,6 +45,7 @@ function RolesToolbar() {
   );
 }
 
+
 const RoleManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -47,6 +53,14 @@ const RoleManagement: React.FC = () => {
   const [selectedRoles, setSelectedRoles] = useState<{ [key: string]: string }>(
     {},
   );
+
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+  const handleDeleteDialogClose = () => setDeleteDialogOpen(false);
+
+  const [deleteType, setDeleteType] = useState<string>('');
+
+  // contains id of item that will be deleted by delete dialog
+  const [itemForDeletionID, setItemForDeletionID] = React.useState<string | null>(null);
   // const [search, setSearch] = useState<string>(""); // State for search input
   // const [roleFilter, setRoleFilter] = useState<string>("all"); // State for role filter
 
@@ -113,16 +127,10 @@ const RoleManagement: React.FC = () => {
     setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.View } });
   };
 
-  const handleDeleteClick = (id: GridRowId) => async () => {
-    try {
-      await deleteUser(id as string);
-      // Remove the deleted user from the state
-      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== id));
-      alert("User deleted successfully!");
-    } catch (error) {
-      console.error("Error deleting user:", error);
-      alert("Failed to delete user: " + error);
-    }
+  const handleDeleteClick = (id: GridRowId) => () => {
+    setDeleteType("User");
+    setItemForDeletionID(id as string);
+    setDeleteDialogOpen(true);
   };
 
   const handleCancelClick = (id: GridRowId) => () => {
@@ -135,12 +143,16 @@ const RoleManagement: React.FC = () => {
   // This function handles syncing edits with the database
   // Note: this does not handle syncing deleting from DB: see handleDeleteClick
   const processRowUpdate = async (updatedUser: GridRowModel) => {
+    console.log("Updating row:", updatedUser);
     try {
+      // @ts-ignore
+      // tslint:disable-next-line:no-unused-variable
       const response = await updateUser(
         updatedUser.id as string,
         updatedUser as User,
       ); // Ensure updatedUser.id is a string
-      return response;
+      // if no error, assume it is fine
+      return updatedUser;
     } catch (error) {
       console.error("Error updating user: ", error);
       throw error;
@@ -248,6 +260,32 @@ const RoleManagement: React.FC = () => {
       <div className="footerBar">
         <Footer></Footer>
       </div>
+
+      {  (deleteType === "User") && 
+    <Dialog 
+    open={deleteDialogOpen}
+    onClose={handleDeleteDialogClose}>
+      <DialogTitle>
+        {`Are you sure you want to delete this?`}
+      </DialogTitle>
+
+      <DialogActions>
+        <Button onClick={handleDeleteDialogClose}>No</Button>
+        
+
+        {/* what we are deleting changes based on deleteType */}
+        {(deleteType === "User") &&
+          <Button onClick={() => handleActionWithDialog({
+            deleteType: deleteType,
+            action: deleteUser, id: itemForDeletionID!, 
+            onClose: handleDeleteDialogClose,
+            setUsers: setUsers,
+          })
+          }>Yes</Button>
+        }
+      </DialogActions>
+    </Dialog>
+    }
     </div>
   );
 };

@@ -14,12 +14,15 @@ import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
 import { TreeItem } from "@mui/x-tree-view/TreeItem";
 
 import IconButton from "@mui/material/IconButton";
-import { Add, GetApp, Delete } from "@mui/icons-material";
+import { Add, GetApp, Delete, Edit } from "@mui/icons-material";
 
 import CircularProgress from "@mui/material/CircularProgress";
 
 import Popover from "@mui/material/Popover";
 import Button from "@mui/material/Button";
+import { handleActionWithDialog, UpdateFamilyModal, UpdateMechanismModal } from "./Modals";
+import Dialog from "@mui/material/Dialog";
+import { DialogActions, DialogTitle } from "@mui/material";
 
 const treeItemStyle = {
   fontSize: "1.2rem",
@@ -54,19 +57,36 @@ const treeViewContainerStyle = {
 };
 
 interface RenderFamilyTreeProps {
+  setSelectedFamily: React.Dispatch<React.SetStateAction<Family | null>>;
+  setSelectedMechanism: React.Dispatch<React.SetStateAction<Mechanism | null>>;
   setSelectedFamilyId: React.Dispatch<React.SetStateAction<string | null>>;
   setSelectedMechanismId: React.Dispatch<React.SetStateAction<string | null>>;
   setSelectedMechanismName: React.Dispatch<React.SetStateAction<string | null>>;
   handleCreateFamilyOpen: () => void;
   handleCreateMechanismOpen: () => void;
+  selectedFamily: Family | null;
+  selectedMechanism: Mechanism | null;
   selectedFamilyId: string | null;
   createdFamilyBool: boolean;
   setCreatedFamilyBool: React.Dispatch<React.SetStateAction<boolean>>;
   createdMechanismBool: boolean;
   setCreatedMechanismBool: React.Dispatch<React.SetStateAction<boolean>>;
+
+  deleteDialogOpen: boolean;
+  setDeleteDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  deleteType: string;
+  setDeleteType: React.Dispatch<React.SetStateAction<string>>;
+  itemForDeletionID : string | null;
+  setItemForDeletionID: React.Dispatch<React.SetStateAction<string | null>>;
+  handleDeleteDialogOpen: () => void;
+  handleDeleteDialogClose: () => void;
 }
 
 const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
+  selectedMechanism,
+  setSelectedMechanism,
+  selectedFamily,
+  setSelectedFamily,
   setSelectedFamilyId,
   setSelectedMechanismId,
   setSelectedMechanismName,
@@ -76,6 +96,14 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
   setCreatedFamilyBool,
   createdMechanismBool,
   setCreatedMechanismBool,
+
+  deleteDialogOpen,
+  setDeleteDialogOpen,
+  deleteType,
+  setDeleteType,
+  itemForDeletionID,
+  setItemForDeletionID,
+  handleDeleteDialogClose,
 }) => {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
@@ -87,6 +115,22 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
   const [loading, setLoading] = useState<boolean>(true);
 
   const [deleteBool, setDeleteBool] = useState<boolean>(false);
+  const [updateFamilyOpen, setUpdateFamilyOpen] = useState<boolean>(false);
+  const [updateMechanismOpen, setUpdateMechanismOpen] = useState<boolean>(false);
+  const handleUpdateMechanismOpen = () => setUpdateMechanismOpen(true);
+  const handleUpdateMechanismClose = () => setUpdateMechanismOpen(false);
+  const handleUpdateFamilyOpen = () => setUpdateFamilyOpen(true);
+  const handleUpdateFamilyClose = () => setUpdateFamilyOpen(false);
+
+  // const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+  // const handleDeleteDialogOpen = () => setDeleteDialogOpen(true);
+  // const handleDeleteDialogClose = () => setDeleteDialogOpen(false);
+
+  // const [deleteType, setDeleteType] = useState<string>('');
+
+  // // contains id of item that will be deleted by delete dialog
+  // const [itemForDeletionID, setItemForDeletionID] = React.useState<string | null>(null);
+
 
   const ref = useRef<string | null>(null);
 
@@ -177,15 +221,58 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
     });
   };
 
-  const handleFamilyDelete = async (familyId: string) => {
-    await deleteFamily(familyId);
-    setDeleteBool(true);
+
+
+  const handleFamilyDelete = (familyId: string) => {
+    setDeleteType("Family");
+    setItemForDeletionID(familyId);
+    console.log("Updated deleteType:", deleteType);
+    console.log("Updated itemForDeletionID:", itemForDeletionID);
+    setDeleteDialogOpen(true);
   };
 
-  const handleMechanismDelete = async (mechanismId: string) => {
-    await deleteMechanism(mechanismId);
-    setDeleteBool(true);
+  const handleMechanismDelete = (mechanismId: string) => {
+    setDeleteType("Mechanism");
+    setItemForDeletionID(mechanismId);
+    setDeleteDialogOpen(true);
+
   };
+
+  const handleFamilyUpdated = (updatedFamily: Family) => {
+    setFamilies((prevFamilies) =>
+      prevFamilies.map((family) =>
+        family.id === updatedFamily.id ? updatedFamily : family
+      )
+    );
+  };
+
+  const handleMechanismUpdated = (updatedMechanism: Mechanism) => {
+    setMechanismsMap((prevMechanismsMap) => {
+      const updatedMap = { ...prevMechanismsMap };
+  
+      // find family with updated mechanism
+      for (const familyId in updatedMap) {
+        const mechanisms = updatedMap[familyId];
+        const mechanismIndex = mechanisms.findIndex(
+          (mech) => mech.id === updatedMechanism.id
+        );
+  
+        if (mechanismIndex !== -1) {
+          // update mechanism 
+          const updatedMechanisms = [...mechanisms];
+          updatedMechanisms[mechanismIndex] = updatedMechanism;
+  
+          updatedMap[familyId] = updatedMechanisms;
+          break;
+        }
+      }
+  
+      return updatedMap;
+    });
+  };
+  
+
+
 
   return (
     <div style={containerStyle}>
@@ -228,6 +315,18 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                           width: 80,
                         }}
                       >
+                        <IconButton
+                          onClick={() => {
+
+                            setSelectedFamily(family);
+                            handleUpdateFamilyOpen();
+                            console.log(selectedFamily);
+                          }}
+                          aria-label="edit"
+                          edge="start"
+                        >
+                          <Edit/>
+                        </IconButton>
                         <IconButton
                           onClick={() => {
                             handleFamilyDelete(family.id!);
@@ -284,6 +383,18 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                               width: 80,
                             }}
                           >
+                            <IconButton
+                              onClick={() => {
+
+                                setSelectedMechanism(mechanism);
+                                handleUpdateMechanismOpen();
+                                console.log(selectedMechanism);
+                              }}
+                              aria-label="edit"
+                              edge="start">
+                              <Edit/>
+                            </IconButton>
+
                             <IconButton
                               onClick={(event) => {
                                 handlePopOverClick(event, mechanism.id!);
@@ -348,6 +459,7 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
                       }
                       sx={treeItemStyle}
                       onClick={() => {
+                        setSelectedFamily(family);
                         setSelectedFamilyId(family.id!);
                         setSelectedMechanismId(mechanism.id!);
                         setSelectedMechanismName(mechanism.name!);
@@ -360,6 +472,58 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
           </div>
         </>
       )}
+
+    <UpdateFamilyModal
+    open={updateFamilyOpen}
+    onClose={handleUpdateFamilyClose}
+    selectedFamily={selectedFamily}
+    onFamilyUpdated={handleFamilyUpdated}
+    />
+    <UpdateMechanismModal 
+    open={updateMechanismOpen}
+    onClose={handleUpdateMechanismClose}
+    selectedMechanism={selectedMechanism}
+    onMechanismUpdated={handleMechanismUpdated}
+    />
+
+    {/* this is to ensure this dialog only renders in the correct cases instead
+    of the one in RenderFamilyTree */}
+    {  (deleteType === "Mechanism" || deleteType === "Family") && 
+    <Dialog 
+    open={deleteDialogOpen}
+    onClose={handleDeleteDialogClose}>
+      <DialogTitle>
+        {`Are you sure you want to delete this?`}
+      </DialogTitle>
+
+      <DialogActions>
+        <Button onClick={handleDeleteDialogClose}>No</Button>
+        
+
+        {/* what we are deleting changes based on deleteType */}
+        {(deleteType === "Mechanism") &&
+          <Button onClick={() => handleActionWithDialog({
+            deleteType: deleteType,
+            action: deleteMechanism, id: itemForDeletionID!, 
+            onClose: handleDeleteDialogClose, setBool: setDeleteBool,
+            setSelectedMechanism: setSelectedMechanism,
+            setSelectedMechanismId: setSelectedMechanismId,
+            setSelectedMechanismName: setSelectedMechanismName
+          })
+          }>Yes</Button>
+        }
+
+        {(deleteType === "Family") &&
+          <Button onClick={() => handleActionWithDialog({
+            deleteType: deleteType,
+            action: deleteFamily, id: itemForDeletionID!, 
+            onClose: handleDeleteDialogClose, setBool: setDeleteBool
+            })
+          }>Yes</Button>
+        }
+      </DialogActions>
+    </Dialog>
+    }
     </div>
   );
 };

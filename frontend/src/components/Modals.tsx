@@ -6,8 +6,6 @@ import {
   getReactionsByMechanismId,
   getSpeciesByFamilyId,
   getReactionsByFamilyId,
-  getReactantsByReactionIdAsync,
-  getProductsByReactionIdAsync,
 } from "../API/API_GetMethods";
 import {
   Family,
@@ -17,8 +15,8 @@ import {
   Reaction,
   ReactionSpecies,
   Species,
-  ReactionSpeciesDto,
   Property,
+  User,
 } from "../API/API_Interfaces";
 import {
   createSpecies,
@@ -39,12 +37,18 @@ import {
   Typography,
   Select,
   MenuItem,
+  Alert,
 } from "@mui/material";
 import {
+  updateFamily,
+  updateMechanism,
   updateProperty,
   updateReaction,
   updateSpecies,
 } from "../API/API_UpdateMethods";
+
+import Snackbar from '@mui/material/Snackbar';
+
 
 const style = {
   position: "absolute" as const,
@@ -79,11 +83,25 @@ interface CreateFamilyModalProps {
   setCreatedFamilyBool: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
+interface UpdateFamilyModalProps {
+  open: boolean;
+  onClose: () => void;
+  selectedFamily: Family | null;
+  onFamilyUpdated: (updatedFamily: Family) => void;
+}
+
 interface CreateMechanismModalProps {
   open: boolean;
   onClose: () => void;
   selectedFamilyId: string | null;
   setCreatedMechanismBool: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+interface UpdateMechanismModalProps {
+  open: boolean;
+  onClose: () => void;
+  selectedMechanism: Mechanism | null;
+  onMechanismUpdated: (updatedMechanism: Mechanism) => void;
 }
 
 interface CreateSpeciesModalProps {
@@ -108,6 +126,7 @@ interface CreateReactionModalProps {
   open: boolean;
   onClose: () => void;
   selectedFamilyId: string | null;
+  selectedFamily: Family | null;
   selectedMechanismId: string | null;
   selectedMechanismName: string | null;
   reactionsCount: number;
@@ -118,6 +137,7 @@ interface UpdateReactionModalProps {
   open: boolean;
   onClose: () => void;
   selectedFamilyId: string | null;
+  selectedFamily: Family | null;
   selectedMechanismId: string | null;
   selectedMechanismName: string | null;
   reactionsCount: number;
@@ -142,6 +162,97 @@ interface CreateProductModalProps {
   setCreatedProductBool: React.Dispatch<React.SetStateAction<boolean>>;
   setReactionUpdated: React.Dispatch<React.SetStateAction<boolean>>;
 }
+
+interface HandleActionWithDialogOptions<T extends string | number> {
+  deleteType: string;
+  action: (id: T) => Promise<void>;
+  id: T;
+  onClose: () => void;
+  // only include if deleting species
+  setSpeciesRowData?: React.Dispatch<React.SetStateAction<Species[]>>;
+  speciesRowData?: Species[];
+  // only include if deleting a reaction
+  setReactionsRowData?: React.Dispatch<React.SetStateAction<Reaction[]>>;
+  reactionsRowData?: Reaction[];
+
+  // only include if deleting a user
+  setUsers?: React.Dispatch<React.SetStateAction<User[]>>
+
+  // only include if deleting a mechanism
+  setSelectedMechanism?: React.Dispatch<React.SetStateAction<Mechanism | null>>;
+  setSelectedMechanismId?: React.Dispatch<React.SetStateAction<string | null>>;
+  setSelectedMechanismName?: React.Dispatch<React.SetStateAction<string | null>>;
+
+  // only include if deleting a family
+  setSelectedFamily?: React.Dispatch<React.SetStateAction<Family | null>>;
+  setSelectedFamilyId?: React.Dispatch<React.SetStateAction<string | null>>;
+  // only include if deleting family or mechanism
+  setBool?: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+export const handleActionWithDialog = async <T extends string | number>(
+  options: HandleActionWithDialogOptions<T>
+): Promise<void> => {
+  const {
+    deleteType,
+    action,
+    id,
+    onClose,
+
+    setSpeciesRowData,
+    speciesRowData,
+    setReactionsRowData,
+    reactionsRowData,
+    setBool,
+
+    setSelectedMechanism,
+    setSelectedMechanismId,
+    setSelectedMechanismName,
+
+    setSelectedFamily,
+    setSelectedFamilyId,
+
+    setUsers,
+  } = options;
+  try {
+    await action(id);
+
+    if (deleteType === "Species" && setSpeciesRowData && speciesRowData) {
+      setSpeciesRowData(speciesRowData.filter((speciesRow) => speciesRow.id !== id));
+    }
+
+    else if (deleteType === "Reaction" && setReactionsRowData && reactionsRowData) {
+      setReactionsRowData(reactionsRowData.filter((reactionRow) => reactionRow.id !== id));
+    }
+
+    else if (deleteType === "Mechanism" && setSelectedMechanism && setSelectedMechanismId
+            && setSelectedMechanismName){
+      setSelectedMechanism(null);
+      setSelectedMechanismId(null);
+      setSelectedMechanismName(null);
+    }
+
+    else if (deleteType === "Species" && setSelectedFamily && setSelectedFamilyId){
+      setSelectedFamily(null);
+      setSelectedFamilyId(null);
+    }
+
+    else if(deleteType === "User" && setUsers){
+      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== id));
+
+    }
+
+    if (setBool) {
+      setBool(true);
+    }
+
+  } catch(error) {
+    console.error("error in handleActionWithDialog: ", error)
+  }
+  onClose();
+};
+
+  
 
 export const CreatePublishModal: React.FC<CreatePublishModalProps> = ({
   open,
@@ -188,37 +299,140 @@ export const CreateFamilyModal: React.FC<CreateFamilyModalProps> = ({
   setCreatedFamilyBool,
 }) => {
   const createFamilyRef = useRef("");
+  const [showCreateFamilyAlert, setShowCreateFamilyAlert] = useState(false);
 
   const handleCreateFamilyClick = async () => {
-    try {
-      const newFamily: Family = {
-        name: createFamilyRef.current,
-        description: "",
-        createdBy: "",
-      };
-      await createFamily(newFamily);
-      createFamilyRef.current = "";
-      onClose();
-      setCreatedFamilyBool(true);
-    } catch (error) {
-      console.error(error);
+    // dont allow for a family with no name
+    if (createFamilyRef.current === ""){
+      setShowCreateFamilyAlert(true);
+    }
+    else{
+
+      try {
+        const newFamily: Family = {
+          name: createFamilyRef.current,
+          description: "",
+          createdBy: "",
+        };
+        await createFamily(newFamily);
+        createFamilyRef.current = "";
+        onClose();
+        setCreatedFamilyBool(true);
+      } catch (error) {
+        console.error(error);
+      }
     }
   };
 
+  const handleAlertClose = () => {
+    setShowCreateFamilyAlert(false)
+  }
+
   return (
+    <div>
     <Modal open={open} onClose={onClose}>
       <Box sx={style}>
         Enter Name for Family below.
         <TextField
           id="family-name"
           label="Name"
+          required={true}
           onChange={(e) => (createFamilyRef.current = e.target.value)}
           fullWidth
           margin="normal"
         />
-        <Button onClick={handleCreateFamilyClick}>Submit</Button>
+        <Button variant={"contained"} onClick={handleCreateFamilyClick}>Submit</Button>
+        
       </Box>
     </Modal>
+
+    <Snackbar open={showCreateFamilyAlert}
+      autoHideDuration={5000}
+      onClose={handleAlertClose}
+      anchorOrigin={{vertical: "top", horizontal: "center"}}>
+
+      <Alert onClose={handleAlertClose} severity="warning"
+        variant="filled" sx={{ width: '100%' }}>
+
+        Name must not be empty!
+      </Alert>
+    </Snackbar>
+    </div>
+  );
+};
+
+export const UpdateFamilyModal: React.FC<UpdateFamilyModalProps> = ({
+  open,
+  onClose,
+  selectedFamily,
+  onFamilyUpdated
+}) => {
+  const [familyName, setFamilyName] = useState(selectedFamily?.name || "")
+  const [showUpdateFamilyAlert, setShowUpdateFamilyAlert] = useState(false);
+
+  useEffect(() => {
+    setFamilyName(selectedFamily?.name || ""); // Update familyName when selectedFamily changes
+  }, [selectedFamily, open]);
+
+
+  const handleUpdateFamilyClick = async () => {
+    // dont allow for a family with no name
+    if (familyName === ""){
+      setShowUpdateFamilyAlert(true);
+    }
+    else{
+
+      try {
+        const newFamily: Family = {
+          id: selectedFamily?.id!,
+          name: familyName!,
+          description: selectedFamily?.description!,
+          createdBy: selectedFamily?.createdBy!,
+        };
+        await updateFamily(newFamily);
+        onFamilyUpdated(newFamily);
+        onClose();
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
+
+  const handleAlertClose = () => {
+    setShowUpdateFamilyAlert(false)
+  }
+
+  return (
+    <div>
+    <Modal open={open} onClose={onClose}>
+      <Box sx={style}>
+        Enter Name for Family below.
+        <TextField
+          id="family-name"
+          label="Name"
+          required={true}
+          value={familyName}
+          onChange={(e) => (setFamilyName(e.target.value))}
+          fullWidth
+          margin="normal"
+        />
+        <Button variant={"contained"} onClick={handleUpdateFamilyClick}>Submit</Button>
+        
+      </Box>
+    </Modal>
+
+    <Snackbar open={showUpdateFamilyAlert}
+      autoHideDuration={5000}
+      onClose={handleAlertClose}
+      anchorOrigin={{vertical: "top", horizontal: "center"}}>
+
+      <Alert onClose={handleAlertClose} severity="warning"
+        variant="filled" sx={{ width: '100%' }}>
+
+        Name must not be empty!
+      </Alert>
+    </Snackbar>
+    </div>
   );
 };
 
@@ -261,33 +475,34 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
   useEffect(() => {
     const fetchReactionEquations = async () => {
       const equations: { [key: string]: string } = {};
-      try {
-        await Promise.all(
-          reactionList.map(async (reaction) => {
-            const reactants: ReactionSpeciesDto[] =
-              await getReactantsByReactionIdAsync(reaction.id!);
-            const products: ReactionSpeciesDto[] =
-              await getProductsByReactionIdAsync(reaction.id!);
-            const reactantNames = reactants
-              .map((r) => r.species_name)
-              .join(" + ");
-            const productNames = products
-              .map((p) => p.species_name)
-              .join(" + ");
-            equations[reaction.id!] = `${reactantNames} -> ${productNames}`;
-          }),
-        );
+      reactionList.map((reactionItem) =>{
+        if (reactionItem.description !== null) {
+          // make regex expression
+          let regex =
+          /^(Arrhenius|Branched|Emission|First-Order Loss|Photolysis|Surface \(Heterogeneous\)|Ternary Chemical Activation|Troe \(Fall-Off\)|Tunneling|N\/A)(?: Reaction \d+)?: (.+)$/i;
+
+          let matches = reactionItem.description.match(regex);
+
+
+          if (matches) {
+            // Extract components from matches
+            const reaction = matches[2].trim();
+            if (!(reactionItem.id! in equations)){
+              equations[reactionItem.id!] = reaction;
+            }
+          } else {
+            equations[reactionItem.id!] = "";
+            console.error("Error, data in a reaction did not match the specified format!");
+          }
+        }
+
         setReactionEquations(equations);
-      } catch (error) {
-        console.error("Error fetching reaction equations:", error);
-      }
+      });
     };
 
-    if (reactionList.length > 0) {
-      fetchReactionEquations();
-    } else {
-      setReactionEquations({});
-    }
+    fetchReactionEquations();
+
+
   }, [reactionList]);
 
   const handleCreateMechanismClick = async () => {
@@ -322,6 +537,7 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
       setSelectedReactionIds([]);
       onClose();
       setCreatedMechanismBool(true);
+
     } catch (error) {
       console.error(error);
     }
@@ -382,6 +598,82 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
   );
 };
 
+export const UpdateMechanismModal: React.FC<UpdateMechanismModalProps> = ({
+  open,
+  onClose,
+  selectedMechanism,
+  onMechanismUpdated
+}) => {
+  const [mechanismName, setMechansimName] = useState(selectedMechanism?.name || "")
+  const [showUpdateMechanismAlert, setShowUpdateMechanismAlert] = useState(false);
+
+  useEffect(() => {
+    setMechansimName(selectedMechanism?.name || ""); // Update familyName when selectedFamily changes
+  }, [selectedMechanism, open]);
+
+
+  const handleUpdateMechanismClick = async () => {
+    // dont allow for a family with no name
+    if (mechanismName === ""){
+      setShowUpdateMechanismAlert(true);
+    }
+    else{
+
+      try {
+        const newMechanism: Mechanism = {
+          id: selectedMechanism?.id!,
+          family_id: selectedMechanism?.family_id!,
+          name: mechanismName!,
+          description: selectedMechanism?.description!,
+          created_by: selectedMechanism?.created_by!,
+        };
+        await updateMechanism(newMechanism);
+        onMechanismUpdated(newMechanism);
+        onClose();
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
+
+  const handleAlertClose = () => {
+    setShowUpdateMechanismAlert(false)
+  }
+
+  return (
+    <div>
+    <Modal open={open} onClose={onClose}>
+      <Box sx={style}>
+        Enter Name for Mechanism below.
+        <TextField
+          id="mechanism-name"
+          label="Name"
+          required={true}
+          value={mechanismName}
+          onChange={(e) => (setMechansimName(e.target.value))}
+          fullWidth
+          margin="normal"
+        />
+        <Button variant={"contained"} onClick={handleUpdateMechanismClick}>Submit</Button>
+        
+      </Box>
+    </Modal>
+
+    <Snackbar open={showUpdateMechanismAlert}
+      autoHideDuration={5000}
+      onClose={handleAlertClose}
+      anchorOrigin={{vertical: "top", horizontal: "center"}}>
+
+      <Alert onClose={handleAlertClose} severity="warning"
+        variant="filled" sx={{ width: '100%' }}>
+
+        Name must not be empty!
+      </Alert>
+    </Snackbar>
+    </div>
+  );
+};
+
 export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
   open,
   onClose,
@@ -424,8 +716,9 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
               concentration: concentration,
               diffusion: diffusion,
             };
+            // @ts-ignore
+            // tslint:disable-next-line:no-unused-variable
             const createdProperty = await createProperty(propertyData);
-            console.log(createdProperty);
           }
         }
 
@@ -651,8 +944,7 @@ export const UpdateSpeciesModal: React.FC<UpdateSpeciesModalProps> = ({
     }
   };
 
-  console.log("open status");
-  console.log(open);
+
   return (
     <Modal open={open} onClose={onClose}>
       <Box
@@ -797,6 +1089,7 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
   open,
   onClose,
   selectedFamilyId,
+  selectedFamily,
   selectedMechanismId,
   selectedMechanismName,
   setReactionCreated,
@@ -812,6 +1105,7 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
   const createReactionProductsRef = useRef("");
 
   useEffect(() => {
+    console.log("hi:", selectedFamily);
     const fetchReactions = async () => {
       try {
         if (selectedFamilyId && selectedMechanismId) {
@@ -838,31 +1132,34 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
   useEffect(() => {
     const fetchReactionEquations = async () => {
       const equations: { [key: string]: string } = {};
-      try {
-        await Promise.all(
-          reactionList.map(async (reaction) => {
-            const reactants = await getReactantsByReactionIdAsync(reaction.id!);
-            const products = await getProductsByReactionIdAsync(reaction.id!);
-            const reactantNames = reactants
-              .map((r: ReactionSpeciesDto) => r.species_name)
-              .join(" + ");
-            const productNames = products
-              .map((p: ReactionSpeciesDto) => p.species_name)
-              .join(" + ");
-            equations[reaction.id!] = `${reactantNames} -> ${productNames}`;
-          }),
-        );
+      reactionList.map((reactionItem) =>{
+        if (reactionItem.description !== null) {
+          // make regex expression
+          let regex =
+          /^(Arrhenius|Branched|Emission|First-Order Loss|Photolysis|Surface \(Heterogeneous\)|Ternary Chemical Activation|Troe \(Fall-Off\)|Tunneling|N\/A)(?: Reaction \d+)?: (.+)$/i;
+
+          let matches = reactionItem.description.match(regex);
+
+
+          if (matches) {
+            // Extract components from matches
+            const reaction = matches[2].trim();
+            if (!(reactionItem.id! in equations)){
+              equations[reactionItem.id!] = reaction;
+            }
+          } else {
+            equations[reactionItem.id!] = "";
+            console.error("Error, data in a reaction did not match the specified format!");
+          }
+        }
+
         setReactionEquations(equations);
-      } catch (error) {
-        console.error("Error fetching reaction equations:", error);
-      }
+      });
     };
 
-    if (reactionList.length > 0) {
-      fetchReactionEquations();
-    } else {
-      setReactionEquations({});
-    }
+    fetchReactionEquations();
+
+
   }, [reactionList]);
 
   const handleCreateReactionClick = async () => {
@@ -910,6 +1207,7 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
           await addReactionToMechanism(mechanismReaction);
         }
 
+        console.log("selected ids:", selectedReactionIds);
         for (const reactionId of selectedReactionIds) {
           const mechanismReaction: MechanismReaction = {
             mechanism_id: selectedMechanismId,
@@ -979,7 +1277,7 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
         {reactionList.length > 0 && (
           <>
             <Typography variant="subtitle1" style={{ marginTop: "1rem" }}>
-              Or Pick Existing Reactions in Family (Multiple Selection)
+              Or Pick Reaction From Other Mechanism(s) In Family "{selectedFamily?.name || ""}": (Multiple Selection)
             </Typography>
             <Select
               multiple
@@ -1019,6 +1317,7 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
   open,
   onClose,
   selectedFamilyId,
+  selectedFamily,
   selectedMechanismId,
   setReactionUpdated,
   reactionsCount,
@@ -1092,31 +1391,34 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
   useEffect(() => {
     const fetchReactionEquations = async () => {
       const equations: { [key: string]: string } = {};
-      try {
-        await Promise.all(
-          reactionList.map(async (reaction) => {
-            const reactants = await getReactantsByReactionIdAsync(reaction.id!);
-            const products = await getProductsByReactionIdAsync(reaction.id!);
-            const reactantNames = reactants
-              .map((r: ReactionSpeciesDto) => r.species_name)
-              .join(" + ");
-            const productNames = products
-              .map((p: ReactionSpeciesDto) => p.species_name)
-              .join(" + ");
-            equations[reaction.id!] = `${reactantNames} -> ${productNames}`;
-          }),
-        );
+      reactionList.map((reactionItem) =>{
+        if (reactionItem.description !== null) {
+          // make regex expression
+          let regex =
+          /^(Arrhenius|Branched|Emission|First-Order Loss|Photolysis|Surface \(Heterogeneous\)|Ternary Chemical Activation|Troe \(Fall-Off\)|Tunneling|N\/A)(?: Reaction \d+)?: (.+)$/i;
+
+          let matches = reactionItem.description.match(regex);
+
+
+          if (matches) {
+            // Extract components from matches
+            const reaction = matches[2].trim();
+            if (!(reactionItem.id! in equations)){
+              equations[reactionItem.id!] = reaction;
+            }
+          } else {
+            equations[reactionItem.id!] = "";
+            console.error("Error, data in a reaction did not match the specified format!");
+          }
+        }
+
         setReactionEquations(equations);
-      } catch (error) {
-        console.error("Error fetching reaction equations:", error);
-      }
+      });
     };
 
-    if (reactionList.length > 0) {
-      fetchReactionEquations();
-    } else {
-      setReactionEquations({});
-    }
+    fetchReactionEquations();
+
+
   }, [reactionList]);
 
   const handleCreateReactionClick = async () => {
@@ -1145,10 +1447,10 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
 
           // console.log("Modified:");
           // console.log(reactionData);
-
+          // @ts-ignore
+          // tslint:disable-next-line:no-unused-variable
           const updatedReaction = await updateReaction(reactionData);
 
-          console.log(updatedReaction);
         }
 
         setSelectedReactionType("");
@@ -1218,10 +1520,9 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
         {reactionList.length > 0 && (
           <>
             <Typography variant="subtitle1" style={{ marginTop: "1rem" }}>
-              Or Pick Existing Reactions in Family (Multiple Selection)
+            Or Pick Reaction From Other Mechanism(s) In Family "{selectedFamily?.name || ""}":
             </Typography>
             <Select
-              multiple
               value={selectedReactionIds}
               onChange={(e) =>
                 setSelectedReactionIds(e.target.value as string[])

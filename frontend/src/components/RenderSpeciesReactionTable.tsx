@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import { Species, Reaction, Property } from "../API/API_Interfaces";
+import { Species, Reaction, Property, Family } from "../API/API_Interfaces";
 import {
   getReactionsByMechanismId,
   getSpeciesByMechanismId,
@@ -14,6 +14,7 @@ import {
   CreateReactionModal,
   UpdateReactionModal,
   UpdateSpeciesModal,
+  handleActionWithDialog,
 } from "./Modals";
 import {
   DataGrid,
@@ -26,14 +27,14 @@ import {
   GridActionsCellItem,
   GridRowId,
 } from "@mui/x-data-grid";
-import DeleteIcon from "@mui/icons-material/DeleteOutlined";
 
+import Dialog from "@mui/material/Dialog";
+import { DialogActions, DialogTitle } from "@mui/material"
 import IconButton from "@mui/material/IconButton";
-import { Add } from "@mui/icons-material";
-import { Typography, Box, Backdrop, CircularProgress } from "@mui/material";
+import { Add, Delete } from "@mui/icons-material";
+import { Typography, Box, Backdrop, CircularProgress, Button } from "@mui/material";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
-import { isAxiosError } from "axios";
 import { createProperty } from "../API/API_CreateMethods";
 
 const tabsHeaderStyle: React.CSSProperties = {
@@ -44,14 +45,35 @@ const tabsHeaderStyle: React.CSSProperties = {
 
 interface Props {
   selectedFamilyID: string | null;
+  selectedFamily: Family | null;
   selectedMechanismID: string | null;
   selectedMechanismName: string | null;
+
+  deleteDialogOpen: boolean;
+  setDeleteDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  deleteType: string;
+  setDeleteType: React.Dispatch<React.SetStateAction<string>>;
+  itemForDeletionID : string | null;
+  setItemForDeletionID: React.Dispatch<React.SetStateAction<string | null>>;
+  handleDeleteDialogOpen: () => void;
+  handleDeleteDialogClose: () => void;
 }
 
 const RenderSpeciesReactionTable: React.FC<Props> = ({
   selectedFamilyID,
+  selectedFamily,
   selectedMechanismID,
   selectedMechanismName,
+
+  deleteDialogOpen,
+  setDeleteDialogOpen,
+  deleteType,
+  setDeleteType,
+  itemForDeletionID,
+  setItemForDeletionID,
+  handleDeleteDialogClose,
+
+  
 }) => {
   const [createSpeciesOpen, setCreateSpeciesOpen] = React.useState(false);
   const handleCreateSpeciesOpen = () => setCreateSpeciesOpen(true);
@@ -91,32 +113,16 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
   const [speciesRowData, setSpeciesRowData] = useState<Species[]>([]);
   const [reactionsRowData, setReactionsRowData] = useState<Reaction[]>([]);
 
-  const handleSpeciesDeleteClick = (id: GridRowId) => async () => {
-    try {
-      await deleteSpecies(id as string);
-      // Remove the deleted user from the state
-      setSpeciesRowData(
-        speciesRowData.filter((speciesRow) => speciesRow.id !== id),
-      );
-      alert("Species deleted successfully!");
-    } catch (error) {
-      console.error("Error deleting species:", error);
-      alert("Failed to delete species: " + error);
-    }
+  const handleSpeciesDeleteClick = (id: GridRowId) => {
+    setDeleteType("Species");
+    setItemForDeletionID(id as string);
+    setDeleteDialogOpen(true);
   };
 
-  const handleReactionDeleteClick = (id: GridRowId) => async () => {
-    try {
-      await deleteReaction(id as string);
-      // Remove the deleted user from the state
-      setReactionsRowData(
-        reactionsRowData.filter((reactionRow) => reactionRow.id !== id),
-      );
-      alert("Reaction deleted successfully!");
-    } catch (error) {
-      console.error("Error deleting reaction:", error);
-      alert("Failed to delete reaction: " + error);
-    }
+  const handleReactionDeleteClick = (id: GridRowId) => {
+    setDeleteType("Reaction");
+    setItemForDeletionID(id as string);
+    setDeleteDialogOpen(true);
   };
 
   // Event needed as parameter to ensure correct value recieved in tabValue
@@ -181,6 +187,8 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
         }
       } else {
         setSpecies([]);
+        setSpeciesRowData([]);
+        setReactionsRowData([]);
       }
     };
 
@@ -217,9 +225,9 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
         flex: 1,
         renderCell: (params) => (
           <Typography variant="body1">
-            {params.row.property.tolerance === 0
+            {params.row.property?.tolerance === 0
               ? ""
-              : (params.row.property.tolerance ?? "")}
+              : (params.row.property?.tolerance ?? "")}
           </Typography>
         ),
       },
@@ -229,9 +237,9 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
         flex: 1,
         renderCell: (params) => (
           <Typography variant="body1">
-            {params.row.property.weight === 0
+            {params.row.property?.weight === 0
               ? ""
-              : (params.row.property.weight ?? "")}
+              : (params.row.property?.weight ?? "")}
           </Typography>
         ),
       },
@@ -241,9 +249,9 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
         flex: 1,
         renderCell: (params) => (
           <Typography variant="body1">
-            {params.row.property.concentration === 0
+            {params.row.property?.concentration === 0
               ? ""
-              : (params.row.property.concentration ?? "")}
+              : (params.row.property?.concentration ?? "")}
           </Typography>
         ),
       },
@@ -253,26 +261,26 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
         flex: 1,
         renderCell: (params) => (
           <Typography variant="body1">
-            {params.row.property.diffusion === 0
+            {params.row.property?.diffusion === 0
               ? ""
-              : (params.row.property.diffusion ?? "")}
+              : (params.row.property?.diffusion ?? "")}
           </Typography>
         ),
       },
       {
-        field: "actions",
+        field: "delete",
         type: "actions",
-        headerName: "Actions",
+        headerName: "Delete",
         headerClassName: "roleDataHeader",
         flex: 1,
         cellClassName: "actions",
         getActions: ({ id }) => {
           return [
             <GridActionsCellItem
-              icon={<DeleteIcon />}
+              icon={<Delete/>}
               label="Delete"
-              onClick={handleSpeciesDeleteClick(id)}
-              color="inherit"
+              onClick={() => handleSpeciesDeleteClick(id)}
+              style={{ color: "red" }}
             />,
           ];
         },
@@ -293,17 +301,15 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
           selectedMechanismID!,
         );
       } catch (error) {
-        if (isAxiosError(error) && error.response?.status === 404) {
+        // if no property found, create one
           const propertyData: Property = {
             speciesId: speciesItem.id!,
             mechanismId: selectedMechanismID!,
           };
           const createdProperty = await createProperty(propertyData);
           fetchedProperty = createdProperty;
-        } else {
-          //('Error fetching property:', error);
+          console.log("Missing Property handled successfully");
         }
-      }
 
       // Log the fetched property for debugging
       //console.log('Fetched property for species', speciesItem.name, fetchedProperty);
@@ -340,19 +346,19 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
       ),
     },
     {
-      field: "actions",
+      field: "delete",
       type: "actions",
-      headerName: "Actions",
+      headerName: "Delete",
       headerClassName: "reactionDataHeader",
       flex: 1,
       cellClassName: "actions",
       getActions: ({ id }) => {
         return [
           <GridActionsCellItem
-            icon={<DeleteIcon />}
+            icon={<Delete/>}
             label="Delete"
-            onClick={handleReactionDeleteClick(id)}
-            color="inherit"
+            onClick={() => handleReactionDeleteClick(id)}
+            style={{ color: "red" }}
           />,
         ];
       },
@@ -468,6 +474,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
               columns={createSpeciesColumns()}
               getRowId={(row: Species) => row.id ?? 0}
               onRowClick={handleSpeciesCellClick}
+              hideFooterSelectedRowCount={true}
               autoPageSize
               pagination
               style={{ height: "100%" }}
@@ -504,6 +511,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
                 }
               }}
               onRowClick={handleReactionCellClick}
+              hideFooterSelectedRowCount={true}
               autoPageSize
               pagination
               style={{ height: "100%" }}
@@ -538,6 +546,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
         open={createReactionOpen}
         onClose={handleCreateReactionClose}
         selectedFamilyId={selectedFamilyID}
+        selectedFamily={selectedFamily}
         selectedMechanismId={selectedMechanismID}
         selectedMechanismName={selectedMechanismName}
         setReactionCreated={setReactionCreated}
@@ -557,12 +566,51 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
         open={editReactionOpen}
         onClose={handleEditReactionClose}
         selectedFamilyId={selectedFamilyID}
+        selectedFamily={selectedFamily}
         selectedMechanismId={selectedMechanismID}
         selectedMechanismName={selectedMechanismName}
         setReactionUpdated={setReactionUpdated}
         reactionsCount={reactionsCount}
         selectedReaction={selectedReaction}
       />
+    {/* this is to ensure this dialog only renders in the correct cases instead
+    of the one in RenderFamilyTree */}
+    {  (deleteType === "Species" || deleteType === "Reaction") && 
+
+    <Dialog 
+    open={deleteDialogOpen}
+    onClose={handleDeleteDialogClose}>
+      <DialogTitle>
+        {`Are you sure you want to delete this?`}
+      </DialogTitle>
+
+      <DialogActions>
+        <Button onClick={handleDeleteDialogClose}>No</Button>
+
+        {/* what we are deleting changes based on deleteType */}
+        {(deleteType === "Species") &&
+          <Button onClick={() => handleActionWithDialog({
+            deleteType: deleteType, action: deleteSpecies, 
+            id: itemForDeletionID!, onClose: handleDeleteDialogClose, 
+            setSpeciesRowData: setSpeciesRowData,
+            speciesRowData: speciesRowData
+
+            })
+          }>Yes</Button>
+        }
+
+        {(deleteType === "Reaction") &&
+          <Button onClick={() => handleActionWithDialog({
+            deleteType: deleteType, action: deleteReaction, 
+            id: itemForDeletionID!, onClose: handleDeleteDialogClose, 
+            setReactionsRowData: setReactionsRowData,
+            reactionsRowData: reactionsRowData
+            })
+          }>Yes</Button>
+        }
+      </DialogActions>
+    </Dialog>
+    }
     </div>
   );
 };

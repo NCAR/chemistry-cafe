@@ -9,8 +9,11 @@ import { StyledDetailBox } from "./familyStyling";
 import { Header, Footer } from "../components/HeaderFooter";
 
 import "../styles/family.css";
+import { Family, Mechanism } from "../API/API_Interfaces";
 
 const FamilyPage = () => {
+  const [selectedMechanism, setSelectedMechanism] = useState<Mechanism | null>(null);
+  const [selectedFamily, setSelectedFamily] = useState<Family | null>(null);
   const [selectedFamilyId, setSelectedFamilyId] = useState<string | null>(null);
   const [selectedMechanismId, setSelectedMechanismId] = useState<string | null>(
     null,
@@ -31,6 +34,16 @@ const FamilyPage = () => {
   const handleCreateMechanismOpen = () => setCreateMechanismOpen(true);
   const handleCreateMechanismClose = () => setCreateMechanismOpen(false);
 
+
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+  const handleDeleteDialogOpen = () => setDeleteDialogOpen(true);
+  const handleDeleteDialogClose = () => setDeleteDialogOpen(false);
+
+  const [deleteType, setDeleteType] = useState<string>('');
+
+  // contains id of item that will be deleted by delete dialog
+  const [itemForDeletionID, setItemForDeletionID] = React.useState<string | null>(null);
+
   return (
     <section className="layoutFam">
       <div className="headerBar">
@@ -39,6 +52,10 @@ const FamilyPage = () => {
 
       <div className="familiesMenu" style={{ overflow: "auto" }}>
         <RenderFamilyTree
+          selectedMechanism={selectedMechanism}
+          setSelectedMechanism={setSelectedMechanism}
+          selectedFamily={selectedFamily}
+          setSelectedFamily={setSelectedFamily}
           selectedFamilyId={selectedFamilyId}
           setSelectedFamilyId={setSelectedFamilyId}
           setSelectedMechanismId={setSelectedMechanismId}
@@ -49,6 +66,15 @@ const FamilyPage = () => {
           setCreatedFamilyBool={setCreatedFamilyBool}
           createdMechanismBool={createdMechanismBool}
           setCreatedMechanismBool={setCreatedMechanismBool}
+
+          deleteDialogOpen={deleteDialogOpen}
+          setDeleteDialogOpen={setDeleteDialogOpen}
+          deleteType={deleteType}
+          setDeleteType={setDeleteType}
+          itemForDeletionID={itemForDeletionID}
+          setItemForDeletionID={setItemForDeletionID}
+          handleDeleteDialogOpen={handleDeleteDialogOpen}
+          handleDeleteDialogClose={handleDeleteDialogClose}
         />
       </div>
 
@@ -58,9 +84,19 @@ const FamilyPage = () => {
       <div className="speciesReactions">
         <StyledDetailBox>
           <RenderSpeciesReactionTable
+            selectedFamily={selectedFamily}
             selectedFamilyID={selectedFamilyId}
             selectedMechanismID={selectedMechanismId}
             selectedMechanismName={selectedMechanismName}
+
+            deleteDialogOpen={deleteDialogOpen}
+            setDeleteDialogOpen={setDeleteDialogOpen}
+            deleteType={deleteType}
+            setDeleteType={setDeleteType}
+            itemForDeletionID={itemForDeletionID}
+            setItemForDeletionID={setItemForDeletionID}
+            handleDeleteDialogOpen={handleDeleteDialogOpen}
+            handleDeleteDialogClose={handleDeleteDialogClose}
           />
         </StyledDetailBox>
       </div>
@@ -76,6 +112,8 @@ const FamilyPage = () => {
         selectedFamilyId={selectedFamilyId}
         setCreatedMechanismBool={setCreatedMechanismBool}
       />
+
+      
     </section>
   );
 };
