@@ -35,7 +35,6 @@ import { Add, Delete } from "@mui/icons-material";
 import { Typography, Box, Backdrop, CircularProgress, Button } from "@mui/material";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
-import { isAxiosError } from "axios";
 import { createProperty } from "../API/API_CreateMethods";
 
 const tabsHeaderStyle: React.CSSProperties = {
@@ -303,7 +302,6 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
         );
       } catch (error) {
         // if no property found, create one
-        if (isAxiosError(error) && error.response?.status === 404) {
           const propertyData: Property = {
             speciesId: speciesItem.id!,
             mechanismId: selectedMechanismID!,
@@ -311,10 +309,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
           const createdProperty = await createProperty(propertyData);
           fetchedProperty = createdProperty;
           console.log("Missing Property handled successfully");
-        } else {
-          //('Error fetching property:', error);
         }
-      }
 
       // Log the fetched property for debugging
       //console.log('Fetched property for species', speciesItem.name, fetchedProperty);

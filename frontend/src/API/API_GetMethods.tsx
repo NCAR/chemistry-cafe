@@ -292,7 +292,9 @@ export async function getPropertyBySpeciesAndMechanism(
       `Error fetching property by species ${species} and mechanism ${mechanism}: ${error.message}`,
       error,
     );
-    throw error;
+    throw new Error(
+      "Failed to fetch property by species and mechanism. Please try again later.",
+    );
   }
 }
 
