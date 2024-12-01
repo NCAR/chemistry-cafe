@@ -146,6 +146,7 @@ const RoleManagement: React.FC = () => {
     console.log("Updating row:", updatedUser);
     try {
       // @ts-ignore
+      // tslint:disable-next-line:no-unused-variable
       const response = await updateUser(
         updatedUser.id as string,
         updatedUser as User,
