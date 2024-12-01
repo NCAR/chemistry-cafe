@@ -145,12 +145,13 @@ const RoleManagement: React.FC = () => {
   const processRowUpdate = async (updatedUser: GridRowModel) => {
     console.log("Updating row:", updatedUser);
     try {
+      // @ts-ignore
       const response = await updateUser(
         updatedUser.id as string,
         updatedUser as User,
       ); // Ensure updatedUser.id is a string
-      console.log("response: ", response);
-      return response;
+      // if no error, assume it is fine
+      return updatedUser;
     } catch (error) {
       console.error("Error updating user: ", error);
       throw error;
