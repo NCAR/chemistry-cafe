@@ -47,8 +47,7 @@ import {
   updateSpecies,
 } from "../API/API_UpdateMethods";
 
-import Snackbar from '@mui/material/Snackbar';
-
+import Snackbar from "@mui/material/Snackbar";
 
 const style = {
   position: "absolute" as const,
@@ -176,12 +175,14 @@ interface HandleActionWithDialogOptions<T extends string | number> {
   reactionsRowData?: Reaction[];
 
   // only include if deleting a user
-  setUsers?: React.Dispatch<React.SetStateAction<User[]>>
+  setUsers?: React.Dispatch<React.SetStateAction<User[]>>;
 
   // only include if deleting a mechanism
   setSelectedMechanism?: React.Dispatch<React.SetStateAction<Mechanism | null>>;
   setSelectedMechanismId?: React.Dispatch<React.SetStateAction<string | null>>;
-  setSelectedMechanismName?: React.Dispatch<React.SetStateAction<string | null>>;
+  setSelectedMechanismName?: React.Dispatch<
+    React.SetStateAction<string | null>
+  >;
 
   // only include if deleting a family
   setSelectedFamily?: React.Dispatch<React.SetStateAction<Family | null>>;
@@ -191,7 +192,7 @@ interface HandleActionWithDialogOptions<T extends string | number> {
 }
 
 export const handleActionWithDialog = async <T extends string | number>(
-  options: HandleActionWithDialogOptions<T>
+  options: HandleActionWithDialogOptions<T>,
 ): Promise<void> => {
   const {
     deleteType,
@@ -218,41 +219,45 @@ export const handleActionWithDialog = async <T extends string | number>(
     await action(id);
 
     if (deleteType === "Species" && setSpeciesRowData && speciesRowData) {
-      setSpeciesRowData(speciesRowData.filter((speciesRow) => speciesRow.id !== id));
-    }
-
-    else if (deleteType === "Reaction" && setReactionsRowData && reactionsRowData) {
-      setReactionsRowData(reactionsRowData.filter((reactionRow) => reactionRow.id !== id));
-    }
-
-    else if (deleteType === "Mechanism" && setSelectedMechanism && setSelectedMechanismId
-            && setSelectedMechanismName){
+      setSpeciesRowData(
+        speciesRowData.filter((speciesRow) => speciesRow.id !== id),
+      );
+    } else if (
+      deleteType === "Reaction" &&
+      setReactionsRowData &&
+      reactionsRowData
+    ) {
+      setReactionsRowData(
+        reactionsRowData.filter((reactionRow) => reactionRow.id !== id),
+      );
+    } else if (
+      deleteType === "Mechanism" &&
+      setSelectedMechanism &&
+      setSelectedMechanismId &&
+      setSelectedMechanismName
+    ) {
       setSelectedMechanism(null);
       setSelectedMechanismId(null);
       setSelectedMechanismName(null);
-    }
-
-    else if (deleteType === "Species" && setSelectedFamily && setSelectedFamilyId){
+    } else if (
+      deleteType === "Species" &&
+      setSelectedFamily &&
+      setSelectedFamilyId
+    ) {
       setSelectedFamily(null);
       setSelectedFamilyId(null);
-    }
-
-    else if(deleteType === "User" && setUsers){
+    } else if (deleteType === "User" && setUsers) {
       setUsers((prevUsers) => prevUsers.filter((user) => user.id !== id));
-
     }
 
     if (setBool) {
       setBool(true);
     }
-
-  } catch(error) {
-    console.error("error in handleActionWithDialog: ", error)
+  } catch (error) {
+    console.error("error in handleActionWithDialog: ", error);
   }
   onClose();
 };
-
-  
 
 export const CreatePublishModal: React.FC<CreatePublishModalProps> = ({
   open,
@@ -303,11 +308,9 @@ export const CreateFamilyModal: React.FC<CreateFamilyModalProps> = ({
 
   const handleCreateFamilyClick = async () => {
     // dont allow for a family with no name
-    if (createFamilyRef.current === ""){
+    if (createFamilyRef.current === "") {
       setShowCreateFamilyAlert(true);
-    }
-    else{
-
+    } else {
       try {
         const newFamily: Family = {
           name: createFamilyRef.current,
@@ -325,38 +328,43 @@ export const CreateFamilyModal: React.FC<CreateFamilyModalProps> = ({
   };
 
   const handleAlertClose = () => {
-    setShowCreateFamilyAlert(false)
-  }
+    setShowCreateFamilyAlert(false);
+  };
 
   return (
     <div>
-    <Modal open={open} onClose={onClose}>
-      <Box sx={style}>
-        Enter Name for Family below.
-        <TextField
-          id="family-name"
-          label="Name"
-          required={true}
-          onChange={(e) => (createFamilyRef.current = e.target.value)}
-          fullWidth
-          margin="normal"
-        />
-        <Button variant={"contained"} onClick={handleCreateFamilyClick}>Submit</Button>
-        
-      </Box>
-    </Modal>
+      <Modal open={open} onClose={onClose}>
+        <Box sx={style}>
+          Enter Name for Family below.
+          <TextField
+            id="family-name"
+            label="Name"
+            required={true}
+            onChange={(e) => (createFamilyRef.current = e.target.value)}
+            fullWidth
+            margin="normal"
+          />
+          <Button variant={"contained"} onClick={handleCreateFamilyClick}>
+            Submit
+          </Button>
+        </Box>
+      </Modal>
 
-    <Snackbar open={showCreateFamilyAlert}
-      autoHideDuration={5000}
-      onClose={handleAlertClose}
-      anchorOrigin={{vertical: "top", horizontal: "center"}}>
-
-      <Alert onClose={handleAlertClose} severity="warning"
-        variant="filled" sx={{ width: '100%' }}>
-
-        Name must not be empty!
-      </Alert>
-    </Snackbar>
+      <Snackbar
+        open={showCreateFamilyAlert}
+        autoHideDuration={5000}
+        onClose={handleAlertClose}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleAlertClose}
+          severity="warning"
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          Name must not be empty!
+        </Alert>
+      </Snackbar>
     </div>
   );
 };
@@ -365,23 +373,20 @@ export const UpdateFamilyModal: React.FC<UpdateFamilyModalProps> = ({
   open,
   onClose,
   selectedFamily,
-  onFamilyUpdated
+  onFamilyUpdated,
 }) => {
-  const [familyName, setFamilyName] = useState(selectedFamily?.name || "")
+  const [familyName, setFamilyName] = useState(selectedFamily?.name || "");
   const [showUpdateFamilyAlert, setShowUpdateFamilyAlert] = useState(false);
 
   useEffect(() => {
     setFamilyName(selectedFamily?.name || ""); // Update familyName when selectedFamily changes
   }, [selectedFamily, open]);
 
-
   const handleUpdateFamilyClick = async () => {
     // dont allow for a family with no name
-    if (familyName === ""){
+    if (familyName === "") {
       setShowUpdateFamilyAlert(true);
-    }
-    else{
-
+    } else {
       try {
         const newFamily: Family = {
           id: selectedFamily?.id!,
@@ -399,39 +404,44 @@ export const UpdateFamilyModal: React.FC<UpdateFamilyModalProps> = ({
   };
 
   const handleAlertClose = () => {
-    setShowUpdateFamilyAlert(false)
-  }
+    setShowUpdateFamilyAlert(false);
+  };
 
   return (
     <div>
-    <Modal open={open} onClose={onClose}>
-      <Box sx={style}>
-        Enter Name for Family below.
-        <TextField
-          id="family-name"
-          label="Name"
-          required={true}
-          value={familyName}
-          onChange={(e) => (setFamilyName(e.target.value))}
-          fullWidth
-          margin="normal"
-        />
-        <Button variant={"contained"} onClick={handleUpdateFamilyClick}>Submit</Button>
-        
-      </Box>
-    </Modal>
+      <Modal open={open} onClose={onClose}>
+        <Box sx={style}>
+          Enter Name for Family below.
+          <TextField
+            id="family-name"
+            label="Name"
+            required={true}
+            value={familyName}
+            onChange={(e) => setFamilyName(e.target.value)}
+            fullWidth
+            margin="normal"
+          />
+          <Button variant={"contained"} onClick={handleUpdateFamilyClick}>
+            Submit
+          </Button>
+        </Box>
+      </Modal>
 
-    <Snackbar open={showUpdateFamilyAlert}
-      autoHideDuration={5000}
-      onClose={handleAlertClose}
-      anchorOrigin={{vertical: "top", horizontal: "center"}}>
-
-      <Alert onClose={handleAlertClose} severity="warning"
-        variant="filled" sx={{ width: '100%' }}>
-
-        Name must not be empty!
-      </Alert>
-    </Snackbar>
+      <Snackbar
+        open={showUpdateFamilyAlert}
+        autoHideDuration={5000}
+        onClose={handleAlertClose}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleAlertClose}
+          severity="warning"
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          Name must not be empty!
+        </Alert>
+      </Snackbar>
     </div>
   );
 };
@@ -475,24 +485,25 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
   useEffect(() => {
     const fetchReactionEquations = async () => {
       const equations: { [key: string]: string } = {};
-      reactionList.map((reactionItem) =>{
+      reactionList.map((reactionItem) => {
         if (reactionItem.description !== null) {
           // make regex expression
           let regex =
-          /^(Arrhenius|Branched|Emission|First-Order Loss|Photolysis|Surface \(Heterogeneous\)|Ternary Chemical Activation|Troe \(Fall-Off\)|Tunneling|N\/A)(?: Reaction \d+)?: (.+)$/i;
+            /^(Arrhenius|Branched|Emission|First-Order Loss|Photolysis|Surface \(Heterogeneous\)|Ternary Chemical Activation|Troe \(Fall-Off\)|Tunneling|N\/A)(?: Reaction \d+)?: (.+)$/i;
 
           let matches = reactionItem.description.match(regex);
-
 
           if (matches) {
             // Extract components from matches
             const reaction = matches[2].trim();
-            if (!(reactionItem.id! in equations)){
+            if (!(reactionItem.id! in equations)) {
               equations[reactionItem.id!] = reaction;
             }
           } else {
             equations[reactionItem.id!] = "";
-            console.error("Error, data in a reaction did not match the specified format!");
+            console.error(
+              "Error, data in a reaction did not match the specified format!",
+            );
           }
         }
 
@@ -501,8 +512,6 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
     };
 
     fetchReactionEquations();
-
-
   }, [reactionList]);
 
   const handleCreateMechanismClick = async () => {
@@ -537,7 +546,6 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
       setSelectedReactionIds([]);
       onClose();
       setCreatedMechanismBool(true);
-
     } catch (error) {
       console.error(error);
     }
@@ -602,23 +610,23 @@ export const UpdateMechanismModal: React.FC<UpdateMechanismModalProps> = ({
   open,
   onClose,
   selectedMechanism,
-  onMechanismUpdated
+  onMechanismUpdated,
 }) => {
-  const [mechanismName, setMechansimName] = useState(selectedMechanism?.name || "")
-  const [showUpdateMechanismAlert, setShowUpdateMechanismAlert] = useState(false);
+  const [mechanismName, setMechansimName] = useState(
+    selectedMechanism?.name || "",
+  );
+  const [showUpdateMechanismAlert, setShowUpdateMechanismAlert] =
+    useState(false);
 
   useEffect(() => {
     setMechansimName(selectedMechanism?.name || ""); // Update familyName when selectedFamily changes
   }, [selectedMechanism, open]);
 
-
   const handleUpdateMechanismClick = async () => {
     // dont allow for a family with no name
-    if (mechanismName === ""){
+    if (mechanismName === "") {
       setShowUpdateMechanismAlert(true);
-    }
-    else{
-
+    } else {
       try {
         const newMechanism: Mechanism = {
           id: selectedMechanism?.id!,
@@ -637,39 +645,44 @@ export const UpdateMechanismModal: React.FC<UpdateMechanismModalProps> = ({
   };
 
   const handleAlertClose = () => {
-    setShowUpdateMechanismAlert(false)
-  }
+    setShowUpdateMechanismAlert(false);
+  };
 
   return (
     <div>
-    <Modal open={open} onClose={onClose}>
-      <Box sx={style}>
-        Enter Name for Mechanism below.
-        <TextField
-          id="mechanism-name"
-          label="Name"
-          required={true}
-          value={mechanismName}
-          onChange={(e) => (setMechansimName(e.target.value))}
-          fullWidth
-          margin="normal"
-        />
-        <Button variant={"contained"} onClick={handleUpdateMechanismClick}>Submit</Button>
-        
-      </Box>
-    </Modal>
+      <Modal open={open} onClose={onClose}>
+        <Box sx={style}>
+          Enter Name for Mechanism below.
+          <TextField
+            id="mechanism-name"
+            label="Name"
+            required={true}
+            value={mechanismName}
+            onChange={(e) => setMechansimName(e.target.value)}
+            fullWidth
+            margin="normal"
+          />
+          <Button variant={"contained"} onClick={handleUpdateMechanismClick}>
+            Submit
+          </Button>
+        </Box>
+      </Modal>
 
-    <Snackbar open={showUpdateMechanismAlert}
-      autoHideDuration={5000}
-      onClose={handleAlertClose}
-      anchorOrigin={{vertical: "top", horizontal: "center"}}>
-
-      <Alert onClose={handleAlertClose} severity="warning"
-        variant="filled" sx={{ width: '100%' }}>
-
-        Name must not be empty!
-      </Alert>
-    </Snackbar>
+      <Snackbar
+        open={showUpdateMechanismAlert}
+        autoHideDuration={5000}
+        onClose={handleAlertClose}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleAlertClose}
+          severity="warning"
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          Name must not be empty!
+        </Alert>
+      </Snackbar>
     </div>
   );
 };
@@ -944,7 +957,6 @@ export const UpdateSpeciesModal: React.FC<UpdateSpeciesModalProps> = ({
     }
   };
 
-
   return (
     <Modal open={open} onClose={onClose}>
       <Box
@@ -1132,24 +1144,25 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
   useEffect(() => {
     const fetchReactionEquations = async () => {
       const equations: { [key: string]: string } = {};
-      reactionList.map((reactionItem) =>{
+      reactionList.map((reactionItem) => {
         if (reactionItem.description !== null) {
           // make regex expression
           let regex =
-          /^(Arrhenius|Branched|Emission|First-Order Loss|Photolysis|Surface \(Heterogeneous\)|Ternary Chemical Activation|Troe \(Fall-Off\)|Tunneling|N\/A)(?: Reaction \d+)?: (.+)$/i;
+            /^(Arrhenius|Branched|Emission|First-Order Loss|Photolysis|Surface \(Heterogeneous\)|Ternary Chemical Activation|Troe \(Fall-Off\)|Tunneling|N\/A)(?: Reaction \d+)?: (.+)$/i;
 
           let matches = reactionItem.description.match(regex);
-
 
           if (matches) {
             // Extract components from matches
             const reaction = matches[2].trim();
-            if (!(reactionItem.id! in equations)){
+            if (!(reactionItem.id! in equations)) {
               equations[reactionItem.id!] = reaction;
             }
           } else {
             equations[reactionItem.id!] = "";
-            console.error("Error, data in a reaction did not match the specified format!");
+            console.error(
+              "Error, data in a reaction did not match the specified format!",
+            );
           }
         }
 
@@ -1158,8 +1171,6 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
     };
 
     fetchReactionEquations();
-
-
   }, [reactionList]);
 
   const handleCreateReactionClick = async () => {
@@ -1277,7 +1288,8 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
         {reactionList.length > 0 && (
           <>
             <Typography variant="subtitle1" style={{ marginTop: "1rem" }}>
-              Or Pick Reaction From Other Mechanism(s) In Family "{selectedFamily?.name || ""}": (Multiple Selection)
+              Or Pick Reaction From Other Mechanism(s) In Family "
+              {selectedFamily?.name || ""}": (Multiple Selection)
             </Typography>
             <Select
               multiple
@@ -1391,24 +1403,25 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
   useEffect(() => {
     const fetchReactionEquations = async () => {
       const equations: { [key: string]: string } = {};
-      reactionList.map((reactionItem) =>{
+      reactionList.map((reactionItem) => {
         if (reactionItem.description !== null) {
           // make regex expression
           let regex =
-          /^(Arrhenius|Branched|Emission|First-Order Loss|Photolysis|Surface \(Heterogeneous\)|Ternary Chemical Activation|Troe \(Fall-Off\)|Tunneling|N\/A)(?: Reaction \d+)?: (.+)$/i;
+            /^(Arrhenius|Branched|Emission|First-Order Loss|Photolysis|Surface \(Heterogeneous\)|Ternary Chemical Activation|Troe \(Fall-Off\)|Tunneling|N\/A)(?: Reaction \d+)?: (.+)$/i;
 
           let matches = reactionItem.description.match(regex);
-
 
           if (matches) {
             // Extract components from matches
             const reaction = matches[2].trim();
-            if (!(reactionItem.id! in equations)){
+            if (!(reactionItem.id! in equations)) {
               equations[reactionItem.id!] = reaction;
             }
           } else {
             equations[reactionItem.id!] = "";
-            console.error("Error, data in a reaction did not match the specified format!");
+            console.error(
+              "Error, data in a reaction did not match the specified format!",
+            );
           }
         }
 
@@ -1417,8 +1430,6 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
     };
 
     fetchReactionEquations();
-
-
   }, [reactionList]);
 
   const handleCreateReactionClick = async () => {
@@ -1450,7 +1461,6 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
           // @ts-ignore
           // tslint:disable-next-line:no-unused-variable
           const updatedReaction = await updateReaction(reactionData);
-
         }
 
         setSelectedReactionType("");
@@ -1520,7 +1530,8 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
         {reactionList.length > 0 && (
           <>
             <Typography variant="subtitle1" style={{ marginTop: "1rem" }}>
-            Or Pick Reaction From Other Mechanism(s) In Family "{selectedFamily?.name || ""}":
+              Or Pick Reaction From Other Mechanism(s) In Family "
+              {selectedFamily?.name || ""}":
             </Typography>
             <Select
               value={selectedReactionIds}

@@ -45,7 +45,6 @@ function RolesToolbar() {
   );
 }
 
-
 const RoleManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -57,10 +56,12 @@ const RoleManagement: React.FC = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const handleDeleteDialogClose = () => setDeleteDialogOpen(false);
 
-  const [deleteType, setDeleteType] = useState<string>('');
+  const [deleteType, setDeleteType] = useState<string>("");
 
   // contains id of item that will be deleted by delete dialog
-  const [itemForDeletionID, setItemForDeletionID] = React.useState<string | null>(null);
+  const [itemForDeletionID, setItemForDeletionID] = React.useState<
+    string | null
+  >(null);
   // const [search, setSearch] = useState<string>(""); // State for search input
   // const [roleFilter, setRoleFilter] = useState<string>("all"); // State for role filter
 
@@ -261,31 +262,32 @@ const RoleManagement: React.FC = () => {
         <Footer></Footer>
       </div>
 
-      {  (deleteType === "User") && 
-    <Dialog 
-    open={deleteDialogOpen}
-    onClose={handleDeleteDialogClose}>
-      <DialogTitle>
-        {`Are you sure you want to delete this?`}
-      </DialogTitle>
+      {deleteType === "User" && (
+        <Dialog open={deleteDialogOpen} onClose={handleDeleteDialogClose}>
+          <DialogTitle>{`Are you sure you want to delete this?`}</DialogTitle>
 
-      <DialogActions>
-        <Button onClick={handleDeleteDialogClose}>No</Button>
-        
+          <DialogActions>
+            <Button onClick={handleDeleteDialogClose}>No</Button>
 
-        {/* what we are deleting changes based on deleteType */}
-        {(deleteType === "User") &&
-          <Button onClick={() => handleActionWithDialog({
-            deleteType: deleteType,
-            action: deleteUser, id: itemForDeletionID!, 
-            onClose: handleDeleteDialogClose,
-            setUsers: setUsers,
-          })
-          }>Yes</Button>
-        }
-      </DialogActions>
-    </Dialog>
-    }
+            {/* what we are deleting changes based on deleteType */}
+            {deleteType === "User" && (
+              <Button
+                onClick={() =>
+                  handleActionWithDialog({
+                    deleteType: deleteType,
+                    action: deleteUser,
+                    id: itemForDeletionID!,
+                    onClose: handleDeleteDialogClose,
+                    setUsers: setUsers,
+                  })
+                }
+              >
+                Yes
+              </Button>
+            )}
+          </DialogActions>
+        </Dialog>
+      )}
     </div>
   );
 };

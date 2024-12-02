@@ -12,7 +12,9 @@ import "../styles/family.css";
 import { Family, Mechanism } from "../API/API_Interfaces";
 
 const FamilyPage = () => {
-  const [selectedMechanism, setSelectedMechanism] = useState<Mechanism | null>(null);
+  const [selectedMechanism, setSelectedMechanism] = useState<Mechanism | null>(
+    null,
+  );
   const [selectedFamily, setSelectedFamily] = useState<Family | null>(null);
   const [selectedFamilyId, setSelectedFamilyId] = useState<string | null>(null);
   const [selectedMechanismId, setSelectedMechanismId] = useState<string | null>(
@@ -34,15 +36,16 @@ const FamilyPage = () => {
   const handleCreateMechanismOpen = () => setCreateMechanismOpen(true);
   const handleCreateMechanismClose = () => setCreateMechanismOpen(false);
 
-
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const handleDeleteDialogOpen = () => setDeleteDialogOpen(true);
   const handleDeleteDialogClose = () => setDeleteDialogOpen(false);
 
-  const [deleteType, setDeleteType] = useState<string>('');
+  const [deleteType, setDeleteType] = useState<string>("");
 
   // contains id of item that will be deleted by delete dialog
-  const [itemForDeletionID, setItemForDeletionID] = React.useState<string | null>(null);
+  const [itemForDeletionID, setItemForDeletionID] = React.useState<
+    string | null
+  >(null);
 
   return (
     <section className="layoutFam">
@@ -66,7 +69,6 @@ const FamilyPage = () => {
           setCreatedFamilyBool={setCreatedFamilyBool}
           createdMechanismBool={createdMechanismBool}
           setCreatedMechanismBool={setCreatedMechanismBool}
-
           deleteDialogOpen={deleteDialogOpen}
           setDeleteDialogOpen={setDeleteDialogOpen}
           deleteType={deleteType}
@@ -88,7 +90,6 @@ const FamilyPage = () => {
             selectedFamilyID={selectedFamilyId}
             selectedMechanismID={selectedMechanismId}
             selectedMechanismName={selectedMechanismName}
-
             deleteDialogOpen={deleteDialogOpen}
             setDeleteDialogOpen={setDeleteDialogOpen}
             deleteType={deleteType}
@@ -112,8 +113,6 @@ const FamilyPage = () => {
         selectedFamilyId={selectedFamilyId}
         setCreatedMechanismBool={setCreatedMechanismBool}
       />
-
-      
     </section>
   );
 };

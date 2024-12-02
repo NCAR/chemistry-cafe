@@ -29,10 +29,16 @@ import {
 } from "@mui/x-data-grid";
 
 import Dialog from "@mui/material/Dialog";
-import { DialogActions, DialogTitle } from "@mui/material"
+import { DialogActions, DialogTitle } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
 import { Add, Delete } from "@mui/icons-material";
-import { Typography, Box, Backdrop, CircularProgress, Button } from "@mui/material";
+import {
+  Typography,
+  Box,
+  Backdrop,
+  CircularProgress,
+  Button,
+} from "@mui/material";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import { createProperty } from "../API/API_CreateMethods";
@@ -53,7 +59,7 @@ interface Props {
   setDeleteDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
   deleteType: string;
   setDeleteType: React.Dispatch<React.SetStateAction<string>>;
-  itemForDeletionID : string | null;
+  itemForDeletionID: string | null;
   setItemForDeletionID: React.Dispatch<React.SetStateAction<string | null>>;
   handleDeleteDialogOpen: () => void;
   handleDeleteDialogClose: () => void;
@@ -72,8 +78,6 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
   itemForDeletionID,
   setItemForDeletionID,
   handleDeleteDialogClose,
-
-  
 }) => {
   const [createSpeciesOpen, setCreateSpeciesOpen] = React.useState(false);
   const handleCreateSpeciesOpen = () => setCreateSpeciesOpen(true);
@@ -277,7 +281,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
         getActions: ({ id }) => {
           return [
             <GridActionsCellItem
-              icon={<Delete/>}
+              icon={<Delete />}
               label="Delete"
               onClick={() => handleSpeciesDeleteClick(id)}
               style={{ color: "red" }}
@@ -302,14 +306,14 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
         );
       } catch (error) {
         // if no property found, create one
-          const propertyData: Property = {
-            speciesId: speciesItem.id!,
-            mechanismId: selectedMechanismID!,
-          };
-          const createdProperty = await createProperty(propertyData);
-          fetchedProperty = createdProperty;
-          console.log("Missing Property handled successfully");
-        }
+        const propertyData: Property = {
+          speciesId: speciesItem.id!,
+          mechanismId: selectedMechanismID!,
+        };
+        const createdProperty = await createProperty(propertyData);
+        fetchedProperty = createdProperty;
+        console.log("Missing Property handled successfully");
+      }
 
       // Log the fetched property for debugging
       //console.log('Fetched property for species', speciesItem.name, fetchedProperty);
@@ -355,7 +359,7 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
       getActions: ({ id }) => {
         return [
           <GridActionsCellItem
-            icon={<Delete/>}
+            icon={<Delete />}
             label="Delete"
             onClick={() => handleReactionDeleteClick(id)}
             style={{ color: "red" }}
@@ -573,44 +577,52 @@ const RenderSpeciesReactionTable: React.FC<Props> = ({
         reactionsCount={reactionsCount}
         selectedReaction={selectedReaction}
       />
-    {/* this is to ensure this dialog only renders in the correct cases instead
+      {/* this is to ensure this dialog only renders in the correct cases instead
     of the one in RenderFamilyTree */}
-    {  (deleteType === "Species" || deleteType === "Reaction") && 
+      {(deleteType === "Species" || deleteType === "Reaction") && (
+        <Dialog open={deleteDialogOpen} onClose={handleDeleteDialogClose}>
+          <DialogTitle>{`Are you sure you want to delete this?`}</DialogTitle>
 
-    <Dialog 
-    open={deleteDialogOpen}
-    onClose={handleDeleteDialogClose}>
-      <DialogTitle>
-        {`Are you sure you want to delete this?`}
-      </DialogTitle>
+          <DialogActions>
+            <Button onClick={handleDeleteDialogClose}>No</Button>
 
-      <DialogActions>
-        <Button onClick={handleDeleteDialogClose}>No</Button>
+            {/* what we are deleting changes based on deleteType */}
+            {deleteType === "Species" && (
+              <Button
+                onClick={() =>
+                  handleActionWithDialog({
+                    deleteType: deleteType,
+                    action: deleteSpecies,
+                    id: itemForDeletionID!,
+                    onClose: handleDeleteDialogClose,
+                    setSpeciesRowData: setSpeciesRowData,
+                    speciesRowData: speciesRowData,
+                  })
+                }
+              >
+                Yes
+              </Button>
+            )}
 
-        {/* what we are deleting changes based on deleteType */}
-        {(deleteType === "Species") &&
-          <Button onClick={() => handleActionWithDialog({
-            deleteType: deleteType, action: deleteSpecies, 
-            id: itemForDeletionID!, onClose: handleDeleteDialogClose, 
-            setSpeciesRowData: setSpeciesRowData,
-            speciesRowData: speciesRowData
-
-            })
-          }>Yes</Button>
-        }
-
-        {(deleteType === "Reaction") &&
-          <Button onClick={() => handleActionWithDialog({
-            deleteType: deleteType, action: deleteReaction, 
-            id: itemForDeletionID!, onClose: handleDeleteDialogClose, 
-            setReactionsRowData: setReactionsRowData,
-            reactionsRowData: reactionsRowData
-            })
-          }>Yes</Button>
-        }
-      </DialogActions>
-    </Dialog>
-    }
+            {deleteType === "Reaction" && (
+              <Button
+                onClick={() =>
+                  handleActionWithDialog({
+                    deleteType: deleteType,
+                    action: deleteReaction,
+                    id: itemForDeletionID!,
+                    onClose: handleDeleteDialogClose,
+                    setReactionsRowData: setReactionsRowData,
+                    reactionsRowData: reactionsRowData,
+                  })
+                }
+              >
+                Yes
+              </Button>
+            )}
+          </DialogActions>
+        </Dialog>
+      )}
     </div>
   );
 };
