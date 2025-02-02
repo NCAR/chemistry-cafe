@@ -24,7 +24,7 @@ interface Profile {
   email: string;
 }
 
-const LogIn = () => {
+const LogIn: React.FC = () => {
   const { setUser } = useAuth(); // Get setUser from AuthContext
   const [user, setLocalUser] = useState<AuthUser | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -120,73 +120,75 @@ const LogIn = () => {
   };
 
   return (
-    <section className="layoutLogIn">
-      <div className="M2">
-        <Box sx={{ width: "100%", maxWidth: 700 }}>
-          <Typography variant="h2" sx={{ color: "white" }}>
-            Chemistry Cafe
-          </Typography>
-        </Box>
-      </div>
-      <div className="M3">
-        <Box>
-          <Typography variant="h6" sx={{ color: "#C3D7EE" }}>
-            A collaborative tool to share, edit, manage, and export chemical
-            mechanisms across the scientific community and into MusicBox
-            Interactive. <br />
-          </Typography>
-        </Box>
-      </div>
-      <div className="M4">
-        {profile ? (
+    <div className="layout-home">
+      <section className="content-home">
+        <div className="information-home">
           <div>
-            <Box sx={{ bgcolor: "#C3D7EE", borderWidth: "2px" }}>
-              <h3>User Logged in</h3>
-              <p>Name: {profile.name}</p>
-              <p>Email Address: {profile.email}</p>
+            <Box sx={{ width: "100%", maxWidth: 700 }}>
+              <Typography variant="h2" sx={{ color: "white" }}>
+                Chemistry Cafe
+              </Typography>
             </Box>
-            <Button
-              variant="contained"
-              onClick={handleClick}
-              color="success"
-              sx={{ width: "50%" }}
-            >
-              PROCEED
-            </Button>
-            <Button
-              variant="contained"
-              onClick={logOut}
-              color="error"
-              sx={{ width: "50%" }}
-            >
-              Log out
-            </Button>
+            <Box>
+              <Typography variant="h6" sx={{ color: "#C3D7EE" }}>
+                A collaborative tool to share, edit, manage, and export chemical
+                mechanisms across the scientific community and into MusicBox
+                Interactive. <br />
+              </Typography>
+            </Box>
           </div>
-        ) : (
-          <Button
-            variant="contained"
-            onClick={() => login()}
-            endIcon={<GoogleIcon />}
-            sx={{ width: "50%" }}
-          >
-            Sign in
-          </Button>
-        )}
-      </div>
-      <div className="M5">
-        <Button
-          variant="contained"
-          onClick={handleClick}
-          endIcon={<NoAccountsIcon />}
-          sx={{ width: "50%" }}
-        >
-          Continue as Guest
-        </Button>
-      </div>
-      <div className="L9LogIn">
-        <Footer></Footer>
-      </div>
-    </section>
+          <div className="sign-in-controls">
+            {profile ? (
+              <div>
+                <Box sx={{ bgcolor: "#C3D7EE", borderWidth: "2px" }}>
+                  <h3>User Logged in</h3>
+                  <p>Name: {profile.name}</p>
+                  <p>Email Address: {profile.email}</p>
+                </Box>
+                <Button
+                  variant="contained"
+                  onClick={handleClick}
+                  color="success"
+                  sx={{ width: "50%" }}
+                >
+                  PROCEED
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={logOut}
+                  color="error"
+                  sx={{ width: "50%" }}
+                >
+                  Log out
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant="contained"
+                onClick={() => login()}
+                endIcon={<GoogleIcon />}
+                sx={{ width: "100%" }}
+              >
+                Sign in
+              </Button>
+            )}
+            <div>
+              <Button
+                variant="contained"
+                onClick={handleClick}
+                endIcon={<NoAccountsIcon />}
+                sx={{ width: "100%" }}
+              >
+                Continue as Guest
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+      <footer>
+        <Footer />
+      </footer>
+    </div>
   );
 };
 
