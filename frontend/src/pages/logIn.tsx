@@ -34,6 +34,7 @@ const LogIn: React.FC = () => {
   const login = useGoogleLogin({
     onSuccess: (codeResponse) => {
       setLocalUser(codeResponse); // Set local user
+      navigate("/LoggedIn");
     },
     onError: (error) => console.log("Login Failed:", error),
   });
@@ -133,7 +134,7 @@ const LogIn: React.FC = () => {
               <Typography variant="h6" sx={{ color: "#C3D7EE" }}>
                 A collaborative tool to share, edit, manage, and export chemical
                 mechanisms across the scientific community and into MusicBox
-                Interactive. <br />
+                Interactive.
               </Typography>
             </Box>
           </div>
@@ -167,21 +168,19 @@ const LogIn: React.FC = () => {
                 variant="contained"
                 onClick={() => login()}
                 endIcon={<GoogleIcon />}
-                sx={{ width: "100%" }}
-              >
+                sx={{ width: "100%", my: "0.5rem" }}
+                >
                 Sign in
               </Button>
             )}
-            <div>
               <Button
                 variant="contained"
                 onClick={handleClick}
                 endIcon={<NoAccountsIcon />}
-                sx={{ width: "100%" }}
+                sx={{ width: "100%", my: "0.5rem" }}
               >
                 Continue as Guest
               </Button>
-            </div>
           </div>
         </div>
       </section>
