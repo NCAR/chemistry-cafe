@@ -12,7 +12,7 @@ const NavDropDown = () => {
   // Get the logged-in user from the AuthContext
   const { user, setUser } = useAuth();
 
-  const goHome = () => navigate("/LoggedIn");
+  const goHome = () => navigate("/");
   const goFamily = () => navigate("/FamilyPage");
   const goLogOut = () => {
     setUser(null);
