@@ -1117,7 +1117,6 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
   const createReactionProductsRef = useRef("");
 
   useEffect(() => {
-    console.log("hi:", selectedFamily);
     const fetchReactions = async () => {
       try {
         if (selectedFamilyId && selectedMechanismId) {
