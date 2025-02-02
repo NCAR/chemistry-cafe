@@ -12,7 +12,6 @@ import Typography from "@mui/material/Typography";
 import GoogleIcon from "@mui/icons-material/Google";
 import NoAccountsIcon from "@mui/icons-material/NoAccounts";
 import { Footer } from "../components/HeaderFooter";
-import Holidays from "../components/Holidays"; // Import the Holidays component
 import { getUserByEmail } from "../API/API_GetMethods";
 import { createUser } from "../API/API_CreateMethods";
 
@@ -122,7 +121,6 @@ const LogIn = () => {
 
   return (
     <section className="layoutLogIn">
-      <Holidays /> {/* Include the Holidays component here */}
       <div className="M2">
         <Box sx={{ width: "100%", maxWidth: 700 }}>
           <Typography variant="h2" sx={{ color: "white" }}>
@@ -140,19 +138,13 @@ const LogIn = () => {
         </Box>
       </div>
       <div className="M4">
-        <br />
-        <br />
-        <p></p>
         {profile ? (
           <div>
             <Box sx={{ bgcolor: "#C3D7EE", borderWidth: "2px" }}>
               <h3>User Logged in</h3>
               <p>Name: {profile.name}</p>
               <p>Email Address: {profile.email}</p>
-              <br />
-              <br />
             </Box>
-            <p></p>
             <Button
               variant="contained"
               onClick={handleClick}
@@ -169,7 +161,6 @@ const LogIn = () => {
             >
               Log out
             </Button>
-            <p></p>
           </div>
         ) : (
           <Button
