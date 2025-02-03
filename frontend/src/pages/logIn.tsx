@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { googleLogout, useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
 import { useAuth } from "../pages/AuthContext"; // Import the AuthContext
@@ -26,20 +26,11 @@ interface Profile {
 
 const LogIn: React.FC = () => {
   const { setUser } = useAuth(); // Get setUser from AuthContext
-  const [user, setLocalUser] = useState<AuthUser | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const navigate = useNavigate();
   const handleClick = () => navigate("/LoggedIn");
 
-  const login = useGoogleLogin({
-    onSuccess: (codeResponse) => {
-      setLocalUser(codeResponse); // Set local user
-      navigate("/LoggedIn");
-    },
-    onError: (error) => console.log("Login Failed:", error),
-  });
-
-  useEffect(() => {
+  const setUserInformation = async (user: AuthUser) => {
     if (user) {
       // Fetch the user profile using the access token
       axios
@@ -66,11 +57,6 @@ const LogIn: React.FC = () => {
           try {
             const existingUser = await getUserByEmail(profileData.email);
             if (existingUser) {
-              const updatedUser = {
-                access_token: user.access_token,
-                ...existingUser,
-              };
-              setLocalUser(updatedUser);
 
               const contextUser = {
                 id: existingUser.id,
@@ -86,11 +72,6 @@ const LogIn: React.FC = () => {
                 role: "unverified",
               };
               const createdUser = await createUser(newUser);
-              const updatedUser = {
-                access_token: user.access_token,
-                ...createdUser,
-              };
-              setLocalUser(updatedUser);
 
               const contextUser = {
                 id: createdUser.id,
@@ -98,6 +79,7 @@ const LogIn: React.FC = () => {
                 email: createdUser.email,
                 role: createdUser.role || "unverified",
               };
+
               setUser(createdUser);
               console.log("Context user ", contextUser);
             }
@@ -111,7 +93,14 @@ const LogIn: React.FC = () => {
           alert("Error fetching profile");
         });
     }
-  }, [user, setUser]);
+  }
+
+  const login = useGoogleLogin({
+    onSuccess: (codeResponse) => {
+      setUserInformation(codeResponse).then(() => navigate("/LoggedIn"));
+    },
+    onError: (error) => console.log("Login Failed:", error),
+  });
 
   // Log out function to log the user out of Google and set the profile array to null
   const logOut = () => {
@@ -169,18 +158,18 @@ const LogIn: React.FC = () => {
                 onClick={() => login()}
                 endIcon={<GoogleIcon />}
                 sx={{ width: "100%", my: "0.5rem" }}
-                >
+              >
                 Sign in
               </Button>
             )}
-              <Button
-                variant="contained"
-                onClick={handleClick}
-                endIcon={<NoAccountsIcon />}
-                sx={{ width: "100%", my: "0.5rem" }}
-              >
-                Continue as Guest
-              </Button>
+            <Button
+              variant="contained"
+              onClick={handleClick}
+              endIcon={<NoAccountsIcon />}
+              sx={{ width: "100%", my: "0.5rem" }}
+            >
+              Continue as Guest
+            </Button>
           </div>
         </div>
       </section>
