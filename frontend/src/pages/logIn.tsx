@@ -11,7 +11,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import GoogleIcon from "@mui/icons-material/Google";
 import NoAccountsIcon from "@mui/icons-material/NoAccounts";
-import { Footer } from "../components/HeaderFooter";
+import { Footer, Header } from "../components/HeaderFooter";
 import { getUserByEmail } from "../API/API_GetMethods";
 import { createUser } from "../API/API_CreateMethods";
 
@@ -111,6 +111,9 @@ const LogIn: React.FC = () => {
 
   return (
     <div className="layout-home">
+      <header>
+        <Header />
+      </header>
       <section className="content-home">
         <div className="information-home">
           <div>
