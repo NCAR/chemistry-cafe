@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
 import { googleLogout, useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
 import { useAuth } from "../pages/AuthContext"; // Import the AuthContext
@@ -11,6 +10,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import GoogleIcon from "@mui/icons-material/Google";
 import NoAccountsIcon from "@mui/icons-material/NoAccounts";
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { Footer, Header } from "../components/HeaderFooter";
 import { getUserByEmail } from "../API/API_GetMethods";
 import { createUser } from "../API/API_CreateMethods";
@@ -19,16 +19,9 @@ interface AuthUser {
   access_token: string;
 }
 
-interface Profile {
-  name: string;
-  email: string;
-}
-
 const LogIn: React.FC = () => {
-  const { setUser } = useAuth(); // Get setUser from AuthContext
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const { setUser, user } = useAuth(); // Get setUser from AuthContext
   const navigate = useNavigate();
-  const handleClick = () => navigate("/LoggedIn");
 
   const setUserInformation = async (user: AuthUser) => {
     if (user) {
@@ -45,7 +38,6 @@ const LogIn: React.FC = () => {
         )
         .then(async (res) => {
           const profileData = res.data;
-          setProfile(profileData);
 
           if (!profileData.email) {
             console.error("Profile data does not contain an email.");
@@ -103,10 +95,10 @@ const LogIn: React.FC = () => {
   });
 
   // Log out function to log the user out of Google and set the profile array to null
-  const logOut = () => {
+  const continueAsGuest = () => {
     googleLogout();
-    setProfile(null);
     setUser(null); // Clear user from AuthContext on logout
+    navigate("/LoggedIn");
   };
 
   return (
@@ -131,43 +123,28 @@ const LogIn: React.FC = () => {
             </Box>
           </div>
           <div className="sign-in-controls">
-            {profile ? (
-              <div>
-                <Box sx={{ bgcolor: "#C3D7EE", borderWidth: "2px" }}>
-                  <h3>User Logged in</h3>
-                  <p>Name: {profile.name}</p>
-                  <p>Email Address: {profile.email}</p>
-                </Box>
-                <Button
-                  variant="contained"
-                  onClick={handleClick}
-                  color="success"
-                  sx={{ width: "50%" }}
-                >
-                  PROCEED
-                </Button>
-                <Button
-                  variant="contained"
-                  onClick={logOut}
-                  color="error"
-                  sx={{ width: "50%" }}
-                >
-                  Log out
-                </Button>
-              </div>
-            ) : (
+            {
+              user &&
               <Button
                 variant="contained"
-                onClick={() => login()}
-                endIcon={<GoogleIcon />}
+                onClick={() => navigate("/LoggedIn")}
+                endIcon={<ArrowForwardIcon />}
                 sx={{ width: "100%", my: "0.5rem" }}
               >
-                Sign in
+                Continue as {user.username}
               </Button>
-            )}
+            }
             <Button
               variant="contained"
-              onClick={handleClick}
+              onClick={() => login()}
+              endIcon={<GoogleIcon />}
+              sx={{ width: "100%", my: "0.5rem" }}
+            >
+              {user ? "Switch Account" : "Sign in"}
+            </Button>
+            <Button
+              variant="contained"
+              onClick={continueAsGuest}
               endIcon={<NoAccountsIcon />}
               sx={{ width: "100%", my: "0.5rem" }}
             >
