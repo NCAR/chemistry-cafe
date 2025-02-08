@@ -46,8 +46,13 @@ export const Header = () => {
         padding: "10px",
       }}
     >
-      <Button aria-label="Open Side-Navigation Menu" onClick={toggleDrawer(true)}>
-        <DensitySmallSharpIcon sx={{ fontSize: "2.3rem" }}></DensitySmallSharpIcon>
+      <Button
+        aria-label="Open Side-Navigation Menu"
+        onClick={toggleDrawer(true)}
+      >
+        <DensitySmallSharpIcon
+          sx={{ fontSize: "2.3rem" }}
+        ></DensitySmallSharpIcon>
       </Button>
       <Drawer open={openDrawer} onClose={toggleDrawer(false)}>
         <NavDropDown />
