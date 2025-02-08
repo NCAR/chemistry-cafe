@@ -10,7 +10,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import GoogleIcon from "@mui/icons-material/Google";
 import NoAccountsIcon from "@mui/icons-material/NoAccounts";
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { Footer, Header } from "../components/HeaderFooter";
 import { getUserByEmail } from "../API/API_GetMethods";
 import { createUser } from "../API/API_CreateMethods";
@@ -49,7 +49,6 @@ const LogIn: React.FC = () => {
           try {
             const existingUser = await getUserByEmail(profileData.email);
             if (existingUser) {
-
               const contextUser = {
                 id: existingUser.id,
                 username: existingUser.username,
@@ -85,7 +84,7 @@ const LogIn: React.FC = () => {
           alert("Error fetching profile");
         });
     }
-  }
+  };
 
   const login = useGoogleLogin({
     onSuccess: (codeResponse) => {
@@ -123,8 +122,7 @@ const LogIn: React.FC = () => {
             </Box>
           </div>
           <div className="sign-in-controls">
-            {
-              user &&
+            {user && (
               <Button
                 variant="contained"
                 onClick={() => navigate("/LoggedIn")}
@@ -133,7 +131,7 @@ const LogIn: React.FC = () => {
               >
                 Continue as {user.username}
               </Button>
-            }
+            )}
             <Button
               variant="contained"
               onClick={() => login()}
