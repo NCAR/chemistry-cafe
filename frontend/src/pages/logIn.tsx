@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
 import { googleLogout, useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
 import { useAuth } from "../pages/AuthContext"; // Import the AuthContext
@@ -11,8 +10,8 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import GoogleIcon from "@mui/icons-material/Google";
 import NoAccountsIcon from "@mui/icons-material/NoAccounts";
-import { Footer } from "../components/HeaderFooter";
-import Holidays from "../components/Holidays"; // Import the Holidays component
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import { Footer, Header } from "../components/HeaderFooter";
 import { getUserByEmail } from "../API/API_GetMethods";
 import { createUser } from "../API/API_CreateMethods";
 
@@ -20,26 +19,11 @@ interface AuthUser {
   access_token: string;
 }
 
-interface Profile {
-  name: string;
-  email: string;
-}
-
-const LogIn = () => {
-  const { setUser } = useAuth(); // Get setUser from AuthContext
-  const [user, setLocalUser] = useState<AuthUser | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
+const LogIn: React.FC = () => {
+  const { setUser, user } = useAuth(); // Get setUser from AuthContext
   const navigate = useNavigate();
-  const handleClick = () => navigate("/LoggedIn");
 
-  const login = useGoogleLogin({
-    onSuccess: (codeResponse) => {
-      setLocalUser(codeResponse); // Set local user
-    },
-    onError: (error) => console.log("Login Failed:", error),
-  });
-
-  useEffect(() => {
+  const setUserInformation = async (user: AuthUser) => {
     if (user) {
       // Fetch the user profile using the access token
       axios
@@ -54,7 +38,6 @@ const LogIn = () => {
         )
         .then(async (res) => {
           const profileData = res.data;
-          setProfile(profileData);
 
           if (!profileData.email) {
             console.error("Profile data does not contain an email.");
@@ -66,11 +49,6 @@ const LogIn = () => {
           try {
             const existingUser = await getUserByEmail(profileData.email);
             if (existingUser) {
-              const updatedUser = {
-                access_token: user.access_token,
-                ...existingUser,
-              };
-              setLocalUser(updatedUser);
 
               const contextUser = {
                 id: existingUser.id,
@@ -86,11 +64,6 @@ const LogIn = () => {
                 role: "unverified",
               };
               const createdUser = await createUser(newUser);
-              const updatedUser = {
-                access_token: user.access_token,
-                ...createdUser,
-              };
-              setLocalUser(updatedUser);
 
               const contextUser = {
                 id: createdUser.id,
@@ -98,6 +71,7 @@ const LogIn = () => {
                 email: createdUser.email,
                 role: createdUser.role || "unverified",
               };
+
               setUser(createdUser);
               console.log("Context user ", contextUser);
             }
@@ -111,91 +85,78 @@ const LogIn = () => {
           alert("Error fetching profile");
         });
     }
-  }, [user, setUser]);
+  }
+
+  const login = useGoogleLogin({
+    onSuccess: (codeResponse) => {
+      setUserInformation(codeResponse).then(() => navigate("/LoggedIn"));
+    },
+    onError: (error) => console.log("Login Failed:", error),
+  });
 
   // Log out function to log the user out of Google and set the profile array to null
-  const logOut = () => {
+  const continueAsGuest = () => {
     googleLogout();
-    setProfile(null);
     setUser(null); // Clear user from AuthContext on logout
+    navigate("/LoggedIn");
   };
 
   return (
-    <section className="layoutLogIn">
-      <Holidays /> {/* Include the Holidays component here */}
-      <div className="M2">
-        <Box sx={{ width: "100%", maxWidth: 700 }}>
-          <Typography variant="h2" sx={{ color: "white" }}>
-            Chemistry Cafe
-          </Typography>
-        </Box>
-      </div>
-      <div className="M3">
-        <Box>
-          <Typography variant="h6" sx={{ color: "#C3D7EE" }}>
-            A collaborative tool to share, edit, manage, and export chemical
-            mechanisms across the scientific community and into MusicBox
-            Interactive. <br />
-          </Typography>
-        </Box>
-      </div>
-      <div className="M4">
-        <br />
-        <br />
-        <p></p>
-        {profile ? (
+    <div className="layout-home">
+      <header>
+        <Header />
+      </header>
+      <section className="content-home">
+        <div className="information-home">
           <div>
-            <Box sx={{ bgcolor: "#C3D7EE", borderWidth: "2px" }}>
-              <h3>User Logged in</h3>
-              <p>Name: {profile.name}</p>
-              <p>Email Address: {profile.email}</p>
-              <br />
-              <br />
+            <Box sx={{ width: "100%", maxWidth: 700 }}>
+              <Typography variant="h2" sx={{ color: "white" }}>
+                Chemistry Cafe
+              </Typography>
             </Box>
-            <p></p>
-            <Button
-              variant="contained"
-              onClick={handleClick}
-              color="success"
-              sx={{ width: "50%" }}
-            >
-              PROCEED
-            </Button>
-            <Button
-              variant="contained"
-              onClick={logOut}
-              color="error"
-              sx={{ width: "50%" }}
-            >
-              Log out
-            </Button>
-            <p></p>
+            <Box>
+              <Typography variant="h6" sx={{ color: "#C3D7EE" }}>
+                A collaborative tool to share, edit, manage, and export chemical
+                mechanisms across the scientific community and into MusicBox
+                Interactive.
+              </Typography>
+            </Box>
           </div>
-        ) : (
-          <Button
-            variant="contained"
-            onClick={() => login()}
-            endIcon={<GoogleIcon />}
-            sx={{ width: "50%" }}
-          >
-            Sign in
-          </Button>
-        )}
-      </div>
-      <div className="M5">
-        <Button
-          variant="contained"
-          onClick={handleClick}
-          endIcon={<NoAccountsIcon />}
-          sx={{ width: "50%" }}
-        >
-          Continue as Guest
-        </Button>
-      </div>
-      <div className="L9LogIn">
-        <Footer></Footer>
-      </div>
-    </section>
+          <div className="sign-in-controls">
+            {
+              user &&
+              <Button
+                variant="contained"
+                onClick={() => navigate("/LoggedIn")}
+                endIcon={<ArrowForwardIcon />}
+                sx={{ width: "100%", my: "0.5rem" }}
+              >
+                Continue as {user.username}
+              </Button>
+            }
+            <Button
+              variant="contained"
+              onClick={() => login()}
+              endIcon={<GoogleIcon />}
+              sx={{ width: "100%", my: "0.5rem" }}
+            >
+              {user ? "Switch Account" : "Sign in"}
+            </Button>
+            <Button
+              variant="contained"
+              onClick={continueAsGuest}
+              endIcon={<NoAccountsIcon />}
+              sx={{ width: "100%", my: "0.5rem" }}
+            >
+              Continue as Guest
+            </Button>
+          </div>
+        </div>
+      </section>
+      <footer>
+        <Footer />
+      </footer>
+    </div>
   );
 };
 
