@@ -96,7 +96,7 @@ docker compose up mysql
 **Terminal 2**
 ```
 cd backend
-dotnet test --collect "Code Coverage;Format=cobertura"  --settings ..\.runsettings
+dotnet test --collect "Code Coverage;Format=cobertura"  --settings .runsettings
 ```
 
 ```
