@@ -30,3 +30,4 @@ dist-ssr
 node_modules/
 /coverage
 /coveragereport
+TestResults
