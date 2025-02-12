@@ -41,7 +41,6 @@ and run the following commands:
     brew install dotnet
     ```
 
-<!-- 
 ### Running Chemistry Cafe with Docker Compose
 
 You must have [Docker Desktop](https://www.docker.com/get-started) installed and running.
@@ -62,7 +61,21 @@ When finished, run:
 ```
 docker compose down
 ```
-**Note:** To view changes, you must run the docker compose down and then run the project again. -->
+
+To view logs for backend/frontend/sql:
+```
+docker compose logs backend
+docker compose logs frontend 
+docker compose logs sql 
+```
+
+To view logs for all services:
+```
+docker compose logs -f 
+```
+
+
+**Note:** To view changes, you must run the docker compose down and then run the project again.
 
 ## Testing
 
