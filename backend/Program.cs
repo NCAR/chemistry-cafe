@@ -29,17 +29,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 //Adds SQL data source from appsettings.json file
-
-string connectionString;
-if (builder.Environment.IsDevelopment())
-{
-    connectionString = builder.Configuration.GetConnectionString("HostConnection") ?? throw new InvalidOperationException("HostConnection string is missing.");
-}
-else
-{
-    connectionString = builder.Configuration.GetConnectionString("ProductionConnection") ?? throw new InvalidOperationException("ProductionConnection string is missing.");
-}
-
+var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING") ?? throw new InvalidOperationException("DB_CONNECTION_STRING is missing.");
 builder.Services.AddMySqlDataSource(connectionString);
 
 builder.Services.AddCors(options =>

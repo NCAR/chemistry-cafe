@@ -4,15 +4,15 @@ services:
     env_file:
       - .env
     ports:
-      - "3307:3306" # MySQL default port
+      - "3306:3306" # MySQL default port
     volumes:
       - db_data:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql # run initial sql script
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD} # Set in your .env file
-      MYSQL_DATABASE: ${MYSQL_DATABASE} # Set in your .env file
-      MYSQL_USER: ${MYSQL_USER} # Set in your .env file
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD} # Set in your .env file
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: default
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
@@ -29,9 +29,9 @@ services:
     depends_on:
       - backend # Ensure the backend service starts before frontend
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      # - ASPNETCORE_ENVIRONMENT=Development
       - API_URL=http://backend:8080 # This points to the backend service within the Docker network
-      - ASPNETCORE_URLS=http://0.0.0.0:8080
+      # - ASPNETCORE_URLS=http://0.0.0.0:8080
     networks:
       - app-network
     # test code by britt to enable live updates to frontend with docker
@@ -54,6 +54,7 @@ services:
       - "8080:8080" # Map host port to container port
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - DB_CONNECTION_STRING="Server=mysql;Port=3306;Database=default;User=admin;Password=admin"
     networks:
       - app-network
     command: ["dotnet", "watch", "run", "--project", "ChemistryCafeAPI.csproj"] # Command for development
