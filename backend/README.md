@@ -6,6 +6,20 @@ API for the Chemistry Cafe web application found here https://github.com/NCAR/ch
 
 # Getting Started
 
+## Environment Variables
+
+For the backend to connect to the MySQL server, certain environment variables must be specified. The default values can be seen in `docker-compose.yml`. These variables are the following:
+
+```py
+MYSQL_SERVER=localhost
+MYSQL_USER=chemistrycafedev
+MYSQL_PASSWORD=chemistrycafe
+MYSQL_DATABASE=chemistry_db
+MYSQL_PORT=3306
+```
+
+The only ones that are required are `MYSQL_USER`, `MYSQL_PASSWORD`, and `MYSQL_DATABASE`. `MYSQL_SERVER` defaults to "localhost" and `MYSQL_PORT` defaults to "3306".
+
 ## Command line
 
 Install the `dotnet` tool
