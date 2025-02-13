@@ -1,12 +1,13 @@
 x-db-env: &db-env
   MYSQL_SERVER: mysql
-  MYSQL_USER: admin
-  MYSQL_PASSWORD: admin
-  MYSQL_DATABASE: default
+  MYSQL_USER: chemistrycafedev
+  MYSQL_PASSWORD: chemistrycafe
+  MYSQL_DATABASE: chemistry_db
 
 services:
   mysql:
     image: mysql:9.0
+    container_name: mysql
     ports:
       - "3306:3306" # MySQL default port
     volumes:
@@ -14,6 +15,7 @@ services:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql # run initial sql script
     environment:
       <<: *db-env
+      MYSQL_ROOT_PASSWORD: chemistrycafefall24
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
@@ -22,6 +24,7 @@ services:
     networks:
       - app-network
   frontend:
+    container_name: frontend
     build:
       context: ./frontend # Path to your front-end repository
       dockerfile: Dockerfile
@@ -48,6 +51,7 @@ services:
           path: package.json
     command: ["npm", "run", "dev"] # Command for development
   backend:
+    container_name: backend
     build:
       context: ./backend # Path to your back-end repository
       dockerfile: Dockerfile
