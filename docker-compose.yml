@@ -1,3 +1,9 @@
+x-db-env: &db-env
+  MYSQL_SERVER: mysql
+  MYSQL_USER: admin
+  MYSQL_PASSWORD: admin
+  MYSQL_DATABASE: default
+
 services:
   mysql:
     image: mysql:9.0
@@ -7,10 +13,7 @@ services:
       - db_data:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql # run initial sql script
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: default
-      MYSQL_USER: admin
-      MYSQL_PASSWORD: admin
+      <<: *db-env
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
@@ -51,8 +54,8 @@ services:
     ports:
       - "8080:8080" # Map host port to container port
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - DB_CONNECTION_STRING="Server=mysql;Port=3306;Database=default;User=admin;Password=admin"
+      <<: *db-env
+      ASPNETCORE_ENVIRONMENT: Development
     networks:
       - app-network
     command: ["dotnet", "watch", "run", "--project", "ChemistryCafeAPI.csproj"] # Command for development

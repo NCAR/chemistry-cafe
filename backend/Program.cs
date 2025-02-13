@@ -29,7 +29,13 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 //Adds SQL data source from appsettings.json file
-var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING") ?? throw new InvalidOperationException("DB_CONNECTION_STRING is missing.");
+var server = Environment.GetEnvironmentVariable("MYSQL_SERVER") ?? "localhost";
+var user = Environment.GetEnvironmentVariable("MYSQL_USER") ?? throw new InvalidOperationException("MYSQL_USER is missing.");
+var password = Environment.GetEnvironmentVariable("MYSQL_PASSWORD") ?? throw new InvalidOperationException("MYSQL_PASSWORD is missing.");
+var database = Environment.GetEnvironmentVariable("MYSQL_DATABASE") ?? throw new InvalidOperationException("MYSQL_DATABASE is missing.");
+var port = Environment.GetEnvironmentVariable("MYSQL_PORT") ?? "3306";
+
+var connectionString = $"Server={server};Port={port};Database={database};User={user};Password={password}";
 builder.Services.AddMySqlDataSource(connectionString);
 
 builder.Services.AddCors(options =>
