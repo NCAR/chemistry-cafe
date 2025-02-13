@@ -15,32 +15,6 @@ ChemistryCafe is a web application built with React, Vite, and TypeScript. The a
 
 ## Getting Started
 
-### Installing chemistry-cafe locally
-1. **Required**:
-    To build and install chemisty-cafe locally, you must have:
-    - dotnet
-    - Node.js
-    - Docker
-
-2. **Clone the repository**:
-Open a terminal window, navigate to a folder where you would like the Chemistry Cafe files to exist,
-and run the following commands:
-
-    ```
-    git clone https://github.com/NCAR/chemistry-cafe.git
-    cd chemistrycafe
-    ```
-3. **Install dependencies for frontend**:
-    ```shell
-    cd frontend
-    npm install
-    cd ..
-    ```
-4. **Install dotnet(macOS)**
-    ```
-    brew install dotnet
-    ```
-
 ### Running Chemistry Cafe with Docker Compose
 
 You must have [Docker Desktop](https://www.docker.com/get-started) installed and running.
@@ -76,6 +50,35 @@ docker compose logs -f
 
 
 **Note:** To view changes, you must run the docker compose down and then run the project again.
+
+### Local Development (without Docker)
+
+#### Framework dependencies
+
+- [dotnet](https://dotnet.microsoft.com/en-us/download) (backend)
+- [Node.js](https://nodejs.org/en/download) (frontend)
+- [Docker](https://www.docker.com/) (optional but makes things easier)
+
+#### Setup
+1. **Clone the repository**:
+Open a terminal window, navigate to a folder where you would like the Chemistry Cafe files to exist,
+and run the following commands:
+
+    ```
+    git clone https://github.com/NCAR/chemistry-cafe.git
+    cd chemistrycafe
+    ```
+2. **Install dependencies for frontend**:
+    ```shell
+    cd frontend
+    npm install
+    cd ..
+    ```
+4. **Install dependencies for backend**
+    ```
+    cd backend
+    dotnet restore
+    ```
 
 ## Testing
 
