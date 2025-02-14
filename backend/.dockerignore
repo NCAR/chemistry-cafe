@@ -6,6 +6,7 @@
 !ChemistryCafeAPI.csproj
 !ChemistryCafeAPI.http
 !Citation.cff
+!client_secrets.json
 !Controllers
 !LICENSE
 !Models

@@ -6,6 +6,10 @@
 # dotenv files
 .env
 
+# OAuth Credentials
+client_secrets.json
+
+
 # User-specific files
 *.rsuser
 *.suo
