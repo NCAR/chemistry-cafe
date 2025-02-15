@@ -16,7 +16,7 @@ namespace Chemistry_Cafe_API.Controllers
         /// <returns>ClaimsPrincipal object which holds the user's auth informations</returns>
         public ClaimsPrincipal? GetUserClaims(AuthenticateResult authenticateResult)
         {
-            if (authenticateResult == null || authenticateResult.Principal == null)
+            if (authenticateResult.Principal == null)
             {
                 return null;
             }
