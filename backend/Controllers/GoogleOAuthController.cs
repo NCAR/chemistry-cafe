@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Chemistry_Cafe_API.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -46,24 +45,25 @@ namespace Chemistry_Cafe_API.Controllers
                 return BadRequest("Google OAuth Http Response did not succeed");
             }
 
-            var claimsIdentity = _googleOAuthService.GetUserClaims(result);
+            ClaimsPrincipal? claimsIdentity = _googleOAuthService.GetUserClaims(result);
             if (claimsIdentity == null)
             {
                 return BadRequest("Invalid Credentials Passed");
             }
 
             await HttpContext.SignInAsync("Application", claimsIdentity);
-            var redirectUrl = (_configuration["FrontendHost"] ?? throw new InvalidConfigurationException("")) + "/LoggedIn";
+            string redirectUrl = (_configuration["FrontendHost"] ?? throw new InvalidConfigurationException("")) + "/LoggedIn";
             return Redirect(redirectUrl);
         }
 
         /// <summary>
         /// Removes all authentication cookies and signs a user out of the backend application
         /// </summary>
+        [Authorize]
         [HttpGet("logout")]
         public async Task<IActionResult> Logout()
         {
-            await HttpContext.SignOutAsync("External");
+            await HttpContext.SignOutAsync("Application");
 
             var request = HttpContext.Request;
             var cookies = request.Cookies;
@@ -78,23 +78,25 @@ namespace Chemistry_Cafe_API.Controllers
                 }
             }
 
-            var redirectUrl = _configuration["FrontendHost"] ?? throw new InvalidConfigurationException("");
+            string redirectUrl = _configuration["FrontendHost"] ?? throw new InvalidConfigurationException("'FrontendHost' key not set in appsettings");
             return Redirect(redirectUrl);
         }
-
-        [Authorize]
+        
         [HttpGet("whoami")]
         public UserClaims GetUserClaims()
         {
             ClaimsIdentity? claimsIdentity = HttpContext.User.Identity as ClaimsIdentity;
             if (claimsIdentity == null)
             {
-                return new UserClaims { ValidClaims = false };
+                return new UserClaims
+                {
+                    NameIdentifier = null,
+                    EmailClaim = null,
+                };
             }
 
             return new UserClaims
             {
-                ValidClaims = true,
                 NameIdentifier = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier)?.Value,
                 EmailClaim = claimsIdentity.FindFirst(ClaimTypes.Email)?.Value
             };

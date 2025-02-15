@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace Chemistry_Cafe_API.Models
@@ -9,10 +8,6 @@ namespace Chemistry_Cafe_API.Models
     /// </summary>
     public partial class UserClaims
     {
-        [Required]
-        [JsonPropertyName("validClaims")]
-        public bool ValidClaims { get; set; }
-
         [JsonPropertyName("nameId")]
         public string? NameIdentifier { get; set; }
 
