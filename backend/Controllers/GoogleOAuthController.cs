@@ -60,8 +60,19 @@ namespace Chemistry_Cafe_API.Controllers
         /// Removes all authentication cookies and signs a user out of the backend application
         /// </summary>
         [HttpGet("logout")]
-        public async Task<IActionResult> Logout()
+        public async Task<IActionResult> Logout(string? returnUrl)
         {
+            string frontendHost = _configuration["FrontendHost"] ?? throw new InvalidConfigurationException("'FrontendHost' key not set in appsettings");
+            // Ensure the redirect url is 
+            if (returnUrl == null || returnUrl.Equals(""))
+            {
+                returnUrl = frontendHost;
+            }
+            else if (!Url.IsLocalUrl(returnUrl) && !returnUrl.StartsWith(frontendHost))
+            {
+                return BadRequest("Invalid returnUrl argument. Must be within application scope.");
+            }
+
             await HttpContext.SignOutAsync("Application");
 
             var request = HttpContext.Request;
@@ -77,10 +88,9 @@ namespace Chemistry_Cafe_API.Controllers
                 }
             }
 
-            string redirectUrl = _configuration["FrontendHost"] ?? throw new InvalidConfigurationException("'FrontendHost' key not set in appsettings");
-            return Redirect(redirectUrl);
+            return Redirect(returnUrl);
         }
-        
+
         [HttpGet("whoami")]
         public UserClaims GetUserClaims()
         {
