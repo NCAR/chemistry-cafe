@@ -59,7 +59,6 @@ namespace Chemistry_Cafe_API.Controllers
         /// <summary>
         /// Removes all authentication cookies and signs a user out of the backend application
         /// </summary>
-        [Authorize]
         [HttpGet("logout")]
         public async Task<IActionResult> Logout()
         {
