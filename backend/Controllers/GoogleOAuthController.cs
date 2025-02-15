@@ -91,6 +91,9 @@ namespace Chemistry_Cafe_API.Controllers
             return Redirect(returnUrl);
         }
 
+        /// <summary>
+        /// Gives the user information on themselves
+        /// </summary>
         [HttpGet("whoami")]
         public UserClaims GetUserClaims()
         {
