@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Protocols.Configuration;
 
 namespace Chemistry_Cafe_API.Controllers
 {
@@ -14,9 +15,11 @@ namespace Chemistry_Cafe_API.Controllers
     public class GoogleOAuthController : Controller
     {
         private readonly GoogleOAuthService _googleOAuthService;
-        public GoogleOAuthController(GoogleOAuthService googleOAuthService)
+        private readonly IConfiguration _configuration;
+        public GoogleOAuthController(IConfiguration configuration, GoogleOAuthService googleOAuthService)
         {
             _googleOAuthService = googleOAuthService;
+            _configuration = configuration;
         }
 
         /// <summary>
@@ -49,7 +52,8 @@ namespace Chemistry_Cafe_API.Controllers
             }
 
             await HttpContext.SignInAsync("Application", claimsIdentity);
-            return Redirect("/swagger");
+            var redirectUrl = (_configuration["FrontendHost"] ?? throw new InvalidConfigurationException("")) + "/LoggedIn";
+            return Redirect(redirectUrl);
         }
 
         /// <summary>
@@ -73,7 +77,8 @@ namespace Chemistry_Cafe_API.Controllers
                 }
             }
 
-            return Redirect("/swagger");
+            var redirectUrl = _configuration["FrontendHost"] ?? throw new InvalidConfigurationException("");
+            return Redirect(redirectUrl);
         }
     }
 }
