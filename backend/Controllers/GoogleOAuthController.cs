@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Chemistry_Cafe_API.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
@@ -79,6 +80,24 @@ namespace Chemistry_Cafe_API.Controllers
 
             var redirectUrl = _configuration["FrontendHost"] ?? throw new InvalidConfigurationException("");
             return Redirect(redirectUrl);
+        }
+
+        [Authorize]
+        [HttpGet("whoami")]
+        public UserClaims GetUserClaims()
+        {
+            ClaimsIdentity? claimsIdentity = HttpContext.User.Identity as ClaimsIdentity;
+            if (claimsIdentity == null)
+            {
+                return new UserClaims { ValidClaims = false };
+            }
+
+            return new UserClaims
+            {
+                ValidClaims = true,
+                NameIdentifier = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier)?.Value,
+                EmailClaim = claimsIdentity.FindFirst(ClaimTypes.Email)?.Value
+            };
         }
     }
 }
