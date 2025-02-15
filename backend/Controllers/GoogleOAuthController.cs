@@ -37,8 +37,6 @@ namespace Chemistry_Cafe_API.Controllers
                 if (identity.AuthenticationType != null && identity.AuthenticationType.ToLower().Equals("google"))
                 {
                     var googleUserId = result.Principal.FindFirst(ClaimTypes.NameIdentifier);
-                    Console.WriteLine("HIHHIIHIHIHIHIHIHHHHHHHHHHHHHHHHHHHHHHH");
-                    Console.WriteLine(googleUserId.Value);
                     var claimsIdentity = new ClaimsIdentity("Application");
                     var nameIdClaim = result.Principal.FindFirst(ClaimTypes.NameIdentifier);
                     var emailClaim = result.Principal.FindFirst(ClaimTypes.Email);
