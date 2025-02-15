@@ -23,6 +23,23 @@ builder.Services.AddScoped<InitialConditionSpeciesService>();
 builder.Services.AddScoped<OpenAtmosService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<PropertyService>();
+
+string googleClientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID") ?? throw new InvalidOperationException("GOOGLE_CLIENT_ID environment variable is missing.");
+string googleClientSecret = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET") ?? throw new InvalidOperationException("GOOGLE_CLIENT_SECRET environment variable is missing.");
+
+builder.Services.AddAuthentication((options) =>
+    {
+        options.DefaultScheme = "Application";
+        options.DefaultSignInScheme = "External";
+    })
+    .AddCookie("Application")
+    .AddCookie("External")
+    .AddGoogle((options) =>
+    {
+        options.ClientId = googleClientId;
+        options.ClientSecret = googleClientSecret;
+    });
+
 //builder.Services.AddScoped<TimeService>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -72,6 +89,7 @@ else
     });
 }
 
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
