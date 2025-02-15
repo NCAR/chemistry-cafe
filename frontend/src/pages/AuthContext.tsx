@@ -3,9 +3,10 @@ import {
   useState,
   useContext,
   ReactNode,
-  useEffect,
+  useLayoutEffect,
 } from "react";
 import { User } from "../API/API_Interfaces";
+import { getGoogleAuthUser, getUserByEmail } from "../API/API_GetMethods";
 
 // Define the shape of the AuthContext
 interface AuthContextProps {
@@ -24,14 +25,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return storedUser ? JSON.parse(storedUser) : null;
   });
 
-  useEffect(() => {
-    // Store user in localStorage whenever it changes
-    if (user) {
-      localStorage.setItem("user", JSON.stringify(user));
-    } else {
-      localStorage.removeItem("user");
+  useLayoutEffect(() => {
+    const getUser = async () => {
+      if (!user) {
+        const authInfo = await getGoogleAuthUser();
+        if (authInfo?.email) {
+          setUser(await getUserByEmail(authInfo?.email));
+        }
+      }
     }
-  }, [user]);
+
+    getUser();
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, setUser }}>
