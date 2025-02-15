@@ -23,7 +23,8 @@ const LogIn: React.FC = () => {
   // Log out function to log the user out of Google and set the profile array to null
   const continueAsGuest = () => {
     setUser(null); // Clear user from AuthContext on logout
-    window.location.href = `${AUTH_URL}/google/logout`;
+    const returnUrl = `${window.location.protocol}//${window.location.host}/loggedIn`;
+    window.location.href = encodeURI(`${AUTH_URL}/google/logout?returnUrl=${returnUrl}`);
   };
 
   return (
