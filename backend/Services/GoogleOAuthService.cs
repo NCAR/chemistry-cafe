@@ -28,15 +28,13 @@ namespace Chemistry_Cafe_API.Controllers
                 if (identity.AuthenticationType != null && identity.AuthenticationType.ToLower().Equals("google"))
                 {
                     var claimsIdentity = new ClaimsIdentity("Application");
-                    var googleUserId = authenticateResult.Principal.FindFirst(ClaimTypes.NameIdentifier);
-                    var nameIdClaim = authenticateResult.Principal.FindFirst(ClaimTypes.NameIdentifier);
+                    var nameIdClaim = authenticateResult.Principal.FindFirst(ClaimTypes.NameIdentifier); // GUID specified by Google
                     var emailClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Email);
 
-                    if (nameIdClaim != null && emailClaim != null && googleUserId != null)
+                    if (nameIdClaim != null && emailClaim != null)
                     {
                         claimsIdentity.AddClaim(nameIdClaim);
                         claimsIdentity.AddClaim(emailClaim);
-                        claimsIdentity.AddClaim(googleUserId);
                     }
                     else
                     {
