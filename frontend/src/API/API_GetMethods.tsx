@@ -11,8 +11,9 @@ import {
   ReactionSpeciesDto,
   InitialConditionSpecies,
   Property,
+  UserClaims,
 } from "./API_Interfaces";
-import { BASE_URL } from "./API_config";
+import { AUTH_URL, BASE_URL } from "./API_config";
 
 // Get all families
 export async function getFamilies(): Promise<Family[]> {
@@ -261,6 +262,25 @@ export async function getUserById(id: string): Promise<User> {
     console.error(`Error fetching user ${id}: ${error.message}`, error);
     throw new Error("Failed to fetch user. Please try again later.");
   }
+}
+
+/**
+ * Gets the currently logged in user
+ */
+export async function getGoogleAuthUser(): Promise<UserClaims | null> {
+  return axios.get<UserClaims>(
+    `${AUTH_URL}/google/whoami`,
+    {
+      maxRedirects: 0,
+      withCredentials: true,
+    })
+    .then((response) => {
+      return response.data;
+    })
+    .catch((error: any) => {
+      console.error(`Error fetching current user: ${error}`);
+      return null;
+    });
 }
 
 export async function getPropertyById(id: string): Promise<Property> {
