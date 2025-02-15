@@ -1,6 +1,7 @@
 using Chemistry_Cafe_API.Services;
 using MySqlConnector;
 using Microsoft.AspNetCore.HttpOverrides;
+using Chemistry_Cafe_API.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,7 @@ builder.Services.AddScoped<InitialConditionSpeciesService>();
 builder.Services.AddScoped<OpenAtmosService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<PropertyService>();
+builder.Services.AddScoped<GoogleOAuthService>();
 
 string googleClientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID") ?? throw new InvalidOperationException("GOOGLE_CLIENT_ID environment variable is missing.");
 string googleClientSecret = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET") ?? throw new InvalidOperationException("GOOGLE_CLIENT_SECRET environment variable is missing.");
