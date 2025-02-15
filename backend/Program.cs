@@ -59,18 +59,20 @@ builder.Services.AddMySqlDataSource(connectionString);
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("DevelopmentCorsPolicy", builder =>
+    options.AddPolicy("DevelopmentCorsPolicy", policy =>
     {
-        builder.WithOrigins("http://localhost:5173")
+        policy.WithOrigins("http://localhost:5173")
                .AllowAnyMethod()
-               .AllowAnyHeader();
+               .AllowAnyHeader()
+               .AllowCredentials();
     });
 
-    options.AddPolicy("ProductionCorsPolicy", builder =>
+    options.AddPolicy("ProductionCorsPolicy", policy =>
     {
-        builder.WithOrigins("https://cafe-deux-devel.acom.ucar.edu")
+        policy.WithOrigins("https://cafe-deux-devel.acom.ucar.edu")
                .AllowAnyMethod()
-               .AllowAnyHeader();
+               .AllowAnyHeader()
+               .AllowCredentials();
     });
 });
 
