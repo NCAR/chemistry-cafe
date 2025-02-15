@@ -1,6 +1,8 @@
 using System.Security.Claims;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Chemistry_Cafe_API.Controllers
@@ -17,6 +19,9 @@ namespace Chemistry_Cafe_API.Controllers
             _googleOAuthService = googleOAuthService;
         }
 
+        /// <summary>
+        /// Route which the user redirects to a google authentication page 
+        /// </summary>
         [HttpGet("login")]
         public IActionResult LoginRedirect()
         {
@@ -24,6 +29,10 @@ namespace Chemistry_Cafe_API.Controllers
             return new ChallengeResult(GoogleDefaults.AuthenticationScheme, authProperties);
         }
 
+        /// <summary>
+        /// Route that user will be redirected to after signing in with Google OAuth.
+        /// This route essentially sets a user's information in a cookie.
+        /// </summary>
         [HttpGet("authenticate")]
         public async Task<IActionResult> GoogleResponse()
         {
@@ -40,6 +49,30 @@ namespace Chemistry_Cafe_API.Controllers
             }
 
             await HttpContext.SignInAsync("Application", claimsIdentity);
+            return Redirect("/swagger");
+        }
+
+        /// <summary>
+        /// Removes all authentication cookies and signs a user out of the backend application
+        /// </summary>
+        [HttpGet("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync("External");
+
+            var request = HttpContext.Request;
+            var cookies = request.Cookies;
+            if (cookies.Count > 0)
+            {
+                foreach (var cookie in cookies)
+                {
+                    if (cookie.Key.Contains(".AspNetCore.") || cookie.Key.Contains("Microsoft.Authentication"))
+                    {
+                        Response.Cookies.Delete(cookie.Key);
+                    }
+                }
+            }
+
             return Redirect("/swagger");
         }
     }

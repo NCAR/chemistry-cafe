@@ -1,7 +1,6 @@
 
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Chemistry_Cafe_API.Controllers
 {
@@ -10,6 +9,11 @@ namespace Chemistry_Cafe_API.Controllers
     /// </summary>
     public class GoogleOAuthService
     {
+        /// <summary>
+        /// Parses an OAuth challenge result and turns them into a user's claims
+        /// </summary>
+        /// <param name="authenticateResult">Result of Google OAuth Challenge</param>
+        /// <returns>ClaimsPrincipal object which holds the user's auth informations</returns>
         public ClaimsPrincipal? GetUserClaims(AuthenticateResult authenticateResult)
         {
             if (authenticateResult == null || authenticateResult.Principal == null)
