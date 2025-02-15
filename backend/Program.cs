@@ -2,6 +2,7 @@ using Chemistry_Cafe_API.Services;
 using MySqlConnector;
 using Microsoft.AspNetCore.HttpOverrides;
 using Chemistry_Cafe_API.Controllers;
+using dotenv.net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,9 @@ if (!builder.Environment.IsDevelopment())
 {
     builder.WebHost.UseUrls("http://0.0.0.0:5000");
 }
+
+// Configure Environment
+DotEnv.Load();
 
 // Add services to the container.
 

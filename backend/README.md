@@ -11,14 +11,19 @@ API for the Chemistry Cafe web application found here https://github.com/NCAR/ch
 For the backend to connect to the MySQL server, certain environment variables must be specified. The default values can be seen in `docker-compose.yml`. These variables are the following:
 
 ```py
-MYSQL_SERVER=localhost
+# Required
+GOOGLE_CLIENT_ID=<client_id>
+GOOGLE_CLIENT_SECRET=<client_secret>
 MYSQL_USER=chemistrycafedev
 MYSQL_PASSWORD=chemistrycafe
 MYSQL_DATABASE=chemistry_db
+
+# Optional with defaults
+MYSQL_SERVER=localhost
 MYSQL_PORT=3306
 ```
 
-The only ones that are required are `MYSQL_USER`, `MYSQL_PASSWORD`, and `MYSQL_DATABASE`. `MYSQL_SERVER` defaults to "localhost" and `MYSQL_PORT` defaults to "3306".
+`GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` can be found in a google cloud project. 
 
 ## Command line
 
