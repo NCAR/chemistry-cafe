@@ -5,6 +5,7 @@ import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemButton from "@mui/material/ListItemButton";
 import { useAuth } from "../pages/AuthContext"; // Import useAuth to get the user data
+import { AUTH_URL } from "../API/API_config";
 
 const NavDropDown = () => {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ const NavDropDown = () => {
   const goFamily = () => navigate("/FamilyPage");
   const goLogOut = () => {
     setUser(null);
-    navigate("/");
+    window.location.href = `${AUTH_URL}/google/logout`;
   };
   const goRoles = () => navigate("/Roles"); // Add navigation to Roles page
 
