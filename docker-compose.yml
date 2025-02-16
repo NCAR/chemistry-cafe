@@ -34,8 +34,8 @@ services:
       - backend # Ensure the backend service starts before frontend
     environment:
       # - ASPNETCORE_ENVIRONMENT=Development
-      - API_URL=http://backend:8080 # This points to the backend service within the Docker network
       # - ASPNETCORE_URLS=http://0.0.0.0:8080
+      - API_URL=http://backend:8080 # This points to the backend service within the Docker network
     networks:
       - app-network
     # test code by britt to enable live updates to frontend with docker
@@ -60,6 +60,8 @@ services:
     environment:
       <<: *db-env
       ASPNETCORE_ENVIRONMENT: Development
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
     networks:
       - app-network
     command: ["dotnet", "watch", "run", "--project", "ChemistryCafeAPI.csproj"] # Command for development
