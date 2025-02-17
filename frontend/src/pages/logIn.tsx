@@ -11,7 +11,6 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { Footer, Header } from "../components/HeaderFooter";
 import { AUTH_URL } from "../API/API_config";
 
-
 const LogIn: React.FC = () => {
   const { setUser, user } = useAuth(); // Get setUser from AuthContext
   const navigate = useNavigate();
@@ -24,7 +23,9 @@ const LogIn: React.FC = () => {
   const continueAsGuest = () => {
     setUser(null); // Clear user from AuthContext on logout
     const returnUrl = `${window.location.protocol}//${window.location.host}/loggedIn`;
-    window.location.href = encodeURI(`${AUTH_URL}/google/logout?returnUrl=${returnUrl}`);
+    window.location.href = encodeURI(
+      `${AUTH_URL}/google/logout?returnUrl=${returnUrl}`,
+    );
   };
 
   return (

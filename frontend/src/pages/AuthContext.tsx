@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setUser(await getUserByEmail(authInfo?.email));
         }
       }
-    }
+    };
 
     getUser();
   }, []);

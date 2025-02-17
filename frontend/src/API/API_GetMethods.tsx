@@ -268,9 +268,8 @@ export async function getUserById(id: string): Promise<User> {
  * Gets the currently logged in user
  */
 export async function getGoogleAuthUser(): Promise<UserClaims | null> {
-  return axios.get<UserClaims>(
-    `${AUTH_URL}/google/whoami`,
-    {
+  return axios
+    .get<UserClaims>(`${AUTH_URL}/google/whoami`, {
       maxRedirects: 0,
       withCredentials: true,
     })
