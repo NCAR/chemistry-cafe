@@ -76,6 +76,11 @@ export interface User {
   created_date?: string;
 }
 
+export interface UserClaims {
+  nameId?: string | null;
+  email?: string | null;
+}
+
 export interface UserMechanism {
   id?: string;
   user_id: string;

@@ -15,6 +15,32 @@ ChemistryCafe is a web application built with React, Vite, and TypeScript. The a
 
 ## Getting Started
 
+### Backend Environment Variables
+
+The backend of Chemistry Cafe requires certain secrets that cannot be stored in version control. These secrets are stored in environment variables that are either on the machine or loaded on runtime. Before running the application, make sure to define these variables ahead of time.
+
+To define required environment variables, a `.env` file should be created with the following schema:
+
+```py
+# Required
+GOOGLE_CLIENT_ID=<client_id>
+GOOGLE_CLIENT_SECRET=<client_secret>
+MYSQL_USER=chemistrycafedev
+MYSQL_PASSWORD=chemistrycafe
+MYSQL_DATABASE=chemistry_db
+
+# Optional with defaults
+MYSQL_SERVER=localhost
+MYSQL_PORT=3306
+```
+
+In order to use Google Authentication, a Google Cloud OAuth 2.0 project must be used with a `client id` and `client secret`. When creating the project, `http://localhost:8080/signin-google` should be added to the list of "Authorized redirect URIs" for testing.
+
+**Note:**
+
+- When running locally, the `.env` file must be in the `/backend` directory. 
+- When running with docker, the `.env` file can either be in the root directory *or* `/backend`. If it is in another directory, simply use `docker compose --env-file <path/to/.env> up` instead of the default.  
+
 ### Running Chemistry Cafe with Docker Compose
 
 You must have [Docker Desktop](https://www.docker.com/get-started) installed and running.
@@ -47,7 +73,6 @@ To view logs for all services:
 ```
 docker compose logs -f 
 ```
-
 
 **Note:** To view changes, you must run the docker compose down and then run the project again.
 

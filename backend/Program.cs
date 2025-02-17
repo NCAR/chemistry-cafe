@@ -1,6 +1,8 @@
 using Chemistry_Cafe_API.Services;
 using MySqlConnector;
 using Microsoft.AspNetCore.HttpOverrides;
+using Chemistry_Cafe_API.Controllers;
+using dotenv.net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +10,9 @@ if (!builder.Environment.IsDevelopment())
 {
     builder.WebHost.UseUrls("http://0.0.0.0:5000");
 }
+
+// Configure Environment
+DotEnv.Load();
 
 // Add services to the container.
 
@@ -23,6 +28,24 @@ builder.Services.AddScoped<InitialConditionSpeciesService>();
 builder.Services.AddScoped<OpenAtmosService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<PropertyService>();
+builder.Services.AddScoped<GoogleOAuthService>();
+
+string googleClientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID") ?? throw new InvalidOperationException("GOOGLE_CLIENT_ID environment variable is missing.");
+string googleClientSecret = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET") ?? throw new InvalidOperationException("GOOGLE_CLIENT_SECRET environment variable is missing.");
+
+builder.Services.AddAuthentication((options) =>
+    {
+        options.DefaultScheme = "Application";
+        options.DefaultSignInScheme = "External";
+    })
+    .AddCookie("Application")
+    .AddCookie("External")
+    .AddGoogle((options) =>
+    {
+        options.ClientId = googleClientId;
+        options.ClientSecret = googleClientSecret;
+    });
+
 //builder.Services.AddScoped<TimeService>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -40,18 +63,20 @@ builder.Services.AddMySqlDataSource(connectionString);
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("DevelopmentCorsPolicy", builder =>
+    options.AddPolicy("DevelopmentCorsPolicy", policy =>
     {
-        builder.WithOrigins("http://localhost:5173")
+        policy.WithOrigins("http://localhost:5173")
                .AllowAnyMethod()
-               .AllowAnyHeader();
+               .AllowAnyHeader()
+               .AllowCredentials();
     });
 
-    options.AddPolicy("ProductionCorsPolicy", builder =>
+    options.AddPolicy("ProductionCorsPolicy", policy =>
     {
-        builder.WithOrigins("https://cafe-deux-devel.acom.ucar.edu")
+        policy.WithOrigins("https://cafe-deux-devel.acom.ucar.edu")
                .AllowAnyMethod()
-               .AllowAnyHeader();
+               .AllowAnyHeader()
+               .AllowCredentials();
     });
 });
 
@@ -72,6 +97,7 @@ else
     });
 }
 
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
