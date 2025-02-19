@@ -2,7 +2,9 @@ using Chemistry_Cafe_API.Services;
 using MySqlConnector;
 using Microsoft.AspNetCore.HttpOverrides;
 using Chemistry_Cafe_API.Controllers;
+using Chemistry_Cafe_API.Models;
 using dotenv.net;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,7 +61,9 @@ var database = Environment.GetEnvironmentVariable("MYSQL_DATABASE") ?? throw new
 var port = Environment.GetEnvironmentVariable("MYSQL_PORT") ?? "3306";
 
 var connectionString = $"Server={server};Port={port};Database={database};User={user};Password={password}";
+/* TODO: Remove data source!!!*/
 builder.Services.AddMySqlDataSource(connectionString);
+builder.Services.AddDbContext<ChemistryDbContext>(options => options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
 builder.Services.AddCors(options =>
 {
