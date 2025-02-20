@@ -8,13 +8,14 @@ using MySqlConnector;
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 
 namespace Chemistry_Cafe_API.Tests
 {
     [TestClass]
     public class UsersControllerTests
     {
-        readonly MySqlDataSource db = DBConnection.DataSource;
+        readonly ChemistryDbContext ctx = DBConnection.Context;
 
         // IDs for test data
         static Guid _UserId;
@@ -38,7 +39,7 @@ namespace Chemistry_Cafe_API.Tests
         public async Task CreateUser_Returns_Created_User()
         {
             // Arrange
-            var userService = new UserService(db);
+            var userService = new UserService(ctx);
             var controller = new UsersController(userService);
 
             var newUser = new User
@@ -69,7 +70,7 @@ namespace Chemistry_Cafe_API.Tests
         public async Task GetUsers_Returns_List()
         {
             // Arrange
-            var userService = new UserService(db);
+            var userService = new UserService(ctx);
             var controller = new UsersController(userService);
 
             // Act
@@ -87,7 +88,7 @@ namespace Chemistry_Cafe_API.Tests
         public async Task GetUserById_Returns_User()
         {
             // Arrange
-            var userService = new UserService(db);
+            var userService = new UserService(ctx);
             var controller = new UsersController(userService);
 
             // Ensure user exists
@@ -111,7 +112,7 @@ namespace Chemistry_Cafe_API.Tests
         public async Task GetUserByEmail_Returns_User()
         {
             // Arrange
-            var userService = new UserService(db);
+            var userService = new UserService(ctx);
             var controller = new UsersController(userService);
 
             // Ensure user exists
@@ -135,7 +136,7 @@ namespace Chemistry_Cafe_API.Tests
         public async Task UpdateUser_Updates_User()
         {
             // Arrange
-            var userService = new UserService(db);
+            var userService = new UserService(ctx);
             var controller = new UsersController(userService);
 
             // Ensure user exists
@@ -172,7 +173,7 @@ namespace Chemistry_Cafe_API.Tests
         public async Task DeleteUser_Deletes_User()
         {
             // Arrange
-            var userService = new UserService(db);
+            var userService = new UserService(ctx);
             var controller = new UsersController(userService);
 
             // Ensure user exists
@@ -199,7 +200,7 @@ namespace Chemistry_Cafe_API.Tests
         public async Task GetUserById_Returns_NotFound_For_Invalid_Id()
         {
             // Arrange
-            var userService = new UserService(db);
+            var userService = new UserService(ctx);
             var controller = new UsersController(userService);
             var invalidUserId = Guid.NewGuid();
 
@@ -215,7 +216,7 @@ namespace Chemistry_Cafe_API.Tests
         public async Task UpdateUser_Returns_BadRequest_For_Mismatched_Id()
         {
             // Arrange
-            var userService = new UserService(db);
+            var userService = new UserService(ctx);
             var controller = new UsersController(userService);
 
             var updatedUser = new User
@@ -242,12 +243,12 @@ namespace Chemistry_Cafe_API.Tests
         [ClassCleanup]
         public static void ClassCleanup()
         {
-            var db = DBConnection.DataSource;
+            var ctx = DBConnection.Context;
 
             // Delete User if it exists
             if (userCreated)
             {
-                var userService = new UserService(db);
+                var userService = new UserService(ctx);
                 var deleteTask = userService.DeleteUserAsync(_UserId);
                 deleteTask.Wait();
             }
