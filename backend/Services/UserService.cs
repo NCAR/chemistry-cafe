@@ -1,49 +1,34 @@
 ﻿using Chemistry_Cafe_API.Models;
 using System.Data.Common;
 using MySqlConnector;
+using Microsoft.EntityFrameworkCore;
 
 namespace Chemistry_Cafe_API.Services
 {
     public class UserService
     {
         private readonly MySqlDataSource _database;
+        private readonly ChemistryDbContext _context;
 
-        public UserService(MySqlDataSource database)
+        public UserService(MySqlDataSource database, ChemistryDbContext context)
         {
             _database = database;
+            _context = context;
         }
 
         public async Task<IReadOnlyList<User>> GetUsersAsync()
         {
-            using var connection = await _database.OpenConnectionAsync();
-            using var command = connection.CreateCommand();
-
-            command.CommandText = "SELECT * FROM users";
-            return await ReadAllAsync(await command.ExecuteReaderAsync());
+            return await _context.Users.ToListAsync();
         }
 
         public async Task<User?> GetUserByIdAsync(Guid id)
         {
-            using var connection = await _database.OpenConnectionAsync();
-            using var command = connection.CreateCommand();
-
-            command.CommandText = "SELECT * FROM users WHERE id = @id";
-            command.Parameters.AddWithValue("@id", id);
-
-            var result = await ReadAllAsync(await command.ExecuteReaderAsync());
-            return result.FirstOrDefault();
+            return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
         }
 
         public async Task<User?> GetUserByEmailAsync(string email)
         {
-            using var connection = await _database.OpenConnectionAsync();
-            using var command = connection.CreateCommand();
-
-            command.CommandText = "SELECT * FROM users WHERE email = @email";
-            command.Parameters.AddWithValue("@email", email);
-
-            var result = await ReadAllAsync(await command.ExecuteReaderAsync());
-            return result.FirstOrDefault();
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
 
         public async Task<User> CreateUserAsync(User user)
@@ -128,27 +113,6 @@ namespace Chemistry_Cafe_API.Services
             command.Parameters.AddWithValue("@id", id.ToString());
 
             await command.ExecuteNonQueryAsync();
-        }
-
-        private async Task<IReadOnlyList<User>> ReadAllAsync(DbDataReader reader)
-        {
-            var users = new List<User>();
-            using (reader)
-            {
-                while (await reader.ReadAsync())
-                {
-                    var user = new User
-                    {
-                        Id = reader.GetGuid(reader.GetOrdinal("id")),
-                        Username = reader.GetString(reader.GetOrdinal("username")),
-                        Role = reader.GetString(reader.GetOrdinal("role")),
-                        Email = reader.IsDBNull(reader.GetOrdinal("email")) ? null : reader.GetString(reader.GetOrdinal("email")),
-                        CreatedDate = reader.GetDateTime(reader.GetOrdinal("created_date"))
-                    };
-                    users.Add(user);
-                }
-            }
-            return users;
         }
     }
 }
