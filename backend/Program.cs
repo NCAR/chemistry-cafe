@@ -60,7 +60,7 @@ var password = Environment.GetEnvironmentVariable("MYSQL_PASSWORD") ?? throw new
 var database = Environment.GetEnvironmentVariable("MYSQL_DATABASE") ?? throw new InvalidOperationException("MYSQL_DATABASE environment variable is missing.");
 var port = Environment.GetEnvironmentVariable("MYSQL_PORT") ?? "3306";
 
-var connectionString = $"Server={server};Port={port};Database={database};User={user};Password={password}";
+var connectionString = $"Server={server};Port={port};Database={database};User={user};Password={password};AllowUserVariables=True;UseAffectedRows=False;";
 /* TODO: Remove data source!!!*/
 builder.Services.AddMySqlDataSource(connectionString);
 builder.Services.AddDbContext<ChemistryDbContext>(options => options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
