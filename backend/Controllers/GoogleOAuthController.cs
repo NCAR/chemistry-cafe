@@ -29,6 +29,7 @@ namespace Chemistry_Cafe_API.Controllers
         public IActionResult LoginRedirect()
         {
             AuthenticationProperties authProperties = new AuthenticationProperties { RedirectUri = "/auth/google/authenticate" };
+            authProperties.SetParameter("prompt", "select_account");
             return new ChallengeResult(GoogleDefaults.AuthenticationScheme, authProperties);
         }
 
