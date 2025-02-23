@@ -59,6 +59,12 @@ describe("Unauthenticated LogIn Component", () => {
     fireEvent.click(loginButton);
     expect(window.location.assign).toHaveBeenCalledOnce(); // Redirect to backend auth/google/login endpoint
   });
+
+  it("navigates when continuing as a guest", () => {
+    const loginButton = screen.getByText("Continue as Guest");
+    expect(loginButton).toBeTruthy();
+    fireEvent.click(loginButton);
+  });
 });
 
 describe("Authenticated LogIn Component", () => {
