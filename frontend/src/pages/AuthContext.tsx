@@ -30,7 +30,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (!user) {
         const authInfo = await getGoogleAuthUser();
         if (authInfo?.email) {
-          setUser(await getUserByEmail(authInfo?.email));
+          const userInfo = await getUserByEmail(authInfo?.email);
+          setUser(userInfo);
+          localStorage.setItem("user", JSON.stringify(userInfo));
         }
       }
     };
