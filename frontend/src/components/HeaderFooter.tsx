@@ -150,7 +150,7 @@ export const Footer = () => {
           </Typography>
           <br />
           <Typography variant="h6">Credits</Typography>
-          <Typography variant="body1">
+          <Typography variant="body1" component="span">
             <Typography variant="inherit">
               Paul Cyr, Brandon Longuet, Brian Nguyen <br />
               Spring 2024 Capstone Team

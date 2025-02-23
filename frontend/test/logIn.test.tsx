@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import {
   render,
   screen,
@@ -8,47 +8,109 @@ import {
 } from "@testing-library/react";
 import React from "react";
 import LogIn from "../src/pages/logIn";
-import { GoogleOAuthProvider } from "@react-oauth/google";
 import { MemoryRouter } from "react-router-dom";
+import { AuthProvider } from "../src/pages/AuthContext";
+import { User } from "../src/API/API_Interfaces";
 
-// describe('LogIn Component Test', () => {
-//     beforeEach(() => {
-//         render(
-//             <MemoryRouter initialEntries={['/']}>
-//                 <GoogleOAuthProvider clientId="534701394161-6gcjh4gd19u5p40gtagdl8i0bkg28rvg.apps.googleusercontent.com">
-//                     <LogIn/>
-//                 </GoogleOAuthProvider>
-//             </MemoryRouter>
-//         );
-//     });
+describe("Unauthenticated LogIn Component", () => {
+  const originalLocation = window.location;
 
-//     afterEach(() => {
-//         cleanup();
-//     });
+  beforeEach(() => {
+    window.location = { ...originalLocation, assign: vi.fn((_: string | URL) => { }) };
+    render(
+      <AuthProvider>
+        <MemoryRouter initialEntries={['/', '/loggedIn']}>
+          <LogIn />
+        </MemoryRouter>
+      </AuthProvider>
+    );
+  });
 
-//     it('should render the login button and the guest button', () => {
-//         expect(screen.getByText('Sign in')).toBeTruthy();  // Check presence of the login button
-//         expect(screen.getByText('Continue as Guest')).toBeTruthy();  // Check presence of the guest button
-//     });
+  afterEach(() => {
+    window.location = originalLocation;
+    localStorage.clear();
+    cleanup();
+  });
 
-//     it('should open and close the About modal', async () => {
-//         const aboutButton = screen.getAllByRole('button', { name: 'About' })[0];
-//         fireEvent.click(aboutButton);
+  it("should render the login button and the guest button", () => {
+    expect(screen.getByText("Sign in")).toBeTruthy();  // Check presence of the login button
+    expect(screen.getByText("Continue as Guest")).toBeTruthy();  // Check presence of the guest button
+  });
 
-//         // Assert that modal is open
-//         expect(screen.getByText('Credits')).toBeTruthy();
+  it("should open and close the About modal", async () => {
+    const aboutButton = screen.getAllByRole("button", { name: "About" })[0];
+    fireEvent.click(aboutButton);
 
-//         // Simulate a click outside the modal to close it
-//         fireEvent.click(document.body);
+    // Assert that modal is open
+    expect(screen.getByText("Credits")).toBeTruthy();
 
-//         // Wait for the modal to be closed
-//         await waitFor(() => {
-//             expect(screen.queryByText('Kyle Shores')).toBeFalsy();
-//         });
-//     });
-// });
+    // Simulate a click outside the modal to close it
+    fireEvent.click(document.body);
 
-describe("Dummy Tests", () => {
+    // Wait for the modal to be closed
+    await waitFor(() => {
+      expect(screen.queryByText("Kyle Shores")).toBeFalsy();
+    });
+  });
+
+  it("navigates to the backend when signing in", () => {
+    const loginButton = screen.getByText("Sign in");
+    expect(loginButton).toBeTruthy();
+    fireEvent.click(loginButton);
+    expect(window.location.assign).toHaveBeenCalledOnce();
+  });
+});
+
+describe("Authenticated LogIn Component", () => {
+  const originalLocation = window.location;
+  const mockUserInfo: User = {
+    "role": "admin",
+    "email": "test@email.com",
+    "username": "Test Account",
+  }
+
+  beforeEach(() => {
+    window.location = { ...originalLocation, assign: vi.fn((_: string | URL) => { }) };
+
+    localStorage.setItem("user", JSON.stringify(mockUserInfo));
+
+    render(
+      <AuthProvider>
+        <MemoryRouter initialEntries={['/', '/loggedIn']}>
+          <LogIn />
+        </MemoryRouter>
+      </AuthProvider>
+    );
+  });
+
+  afterEach(() => {
+    window.location = originalLocation;
+    localStorage.clear();
+    cleanup();
+  });
+
+  it("shows different buttons when logged in", () => {
+    expect(screen.getByText(`Continue as ${mockUserInfo.username}`)).toBeTruthy();
+    expect(screen.getByText("Switch Account")).toBeTruthy();
+    expect(screen.getByText("Continue as Guest")).toBeTruthy();
+  });
+
+  it("navigates to the backend when switching accounts", () => {
+    const loginButton = screen.getByText("Switch Account");
+    expect(loginButton).toBeTruthy();
+    fireEvent.click(loginButton);
+    expect(window.location.assign).toHaveBeenCalledOnce();
+  });
+
+  it("navigates to the backend when continuing as a guest", () => {
+    const loginButton = screen.getByText("Continue as Guest");
+    expect(loginButton).toBeTruthy();
+    fireEvent.click(loginButton);
+    expect(window.location.assign).toHaveBeenCalledOnce();
+  });
+});
+
+describe("Sanity Check Tests", () => {
   it("should always pass test 1", () => {
     expect(true).toBe(true);
   });
