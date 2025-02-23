@@ -57,7 +57,7 @@ describe("Unauthenticated LogIn Component", () => {
     const loginButton = screen.getByText("Sign in");
     expect(loginButton).toBeTruthy();
     fireEvent.click(loginButton);
-    expect(window.location.assign).toHaveBeenCalledOnce();
+    expect(window.location.assign).toHaveBeenCalledOnce(); // Redirect to backend auth/google/login endpoint
   });
 });
 
@@ -99,7 +99,7 @@ describe("Authenticated LogIn Component", () => {
     const loginButton = screen.getByText("Switch Account");
     expect(loginButton).toBeTruthy();
     fireEvent.click(loginButton);
-    expect(window.location.assign).toHaveBeenCalledOnce();
+    expect(window.location.assign).toHaveBeenCalledOnce(); // Redirect to backend auth/google/login endpoint
   });
 
   it("navigates to the backend when continuing as a guest", () => {
@@ -107,6 +107,22 @@ describe("Authenticated LogIn Component", () => {
     expect(loginButton).toBeTruthy();
     fireEvent.click(loginButton);
     expect(window.location.assign).toHaveBeenCalledOnce();
+  });
+  
+  it("removes user from local storage when logging out", () => {
+    expect(document.getElementById("side-nav-button")).toBeTruthy();
+    expect(localStorage.getItem("user")).toBeTruthy();
+    
+    // Open side nav
+    const hamburgerMenu: HTMLElement = document.getElementById("side-nav-button")!;
+    fireEvent.click(hamburgerMenu);
+    
+    // Click logout button
+    const logoutButton = screen.getByText("Log Out");
+    fireEvent.click(logoutButton);
+
+    expect(window.location.assign).toHaveBeenCalledOnce(); // Redirect to backend auth/google/logout endpoint
+    expect(localStorage.getItem("user")).toBeFalsy();
   });
 });
 

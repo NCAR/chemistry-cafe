@@ -48,6 +48,7 @@ export const Header = () => {
     >
       <Button
         aria-label="Open Side-Navigation Menu"
+        id="side-nav-button"
         onClick={toggleDrawer(true)}
       >
         <DensitySmallSharpIcon
