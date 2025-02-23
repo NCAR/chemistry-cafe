@@ -5,18 +5,42 @@ import {
   fireEvent,
   waitFor,
   cleanup,
+  act,
 } from "@testing-library/react";
 import React from "react";
 import LogIn from "../src/pages/logIn";
 import { MemoryRouter } from "react-router-dom";
 import { AuthProvider } from "../src/pages/AuthContext";
-import { User } from "../src/API/API_Interfaces";
+import { User, UserClaims } from "../src/API/API_Interfaces";
+import axios, { AxiosHeaders, AxiosResponse } from "axios";
+
+vi.mock("axios");
 
 describe("Unauthenticated LogIn Component", () => {
   const originalLocation = window.location;
 
+  function createMockUserData(): AxiosResponse {
+    return {
+      data: {
+        nameId: null,
+        email: null,
+        id: "1234",
+        username: "Test User",
+        role: "admin",
+      } as UserClaims & User,
+      status: 200,
+      statusText: "OK",
+      headers: {},
+      config: {
+        headers: new AxiosHeaders({ "Content-Type": "text/plain" }),
+      },
+    } as AxiosResponse;
+  }
+
   beforeEach(() => {
     window.location = { ...originalLocation, assign: vi.fn((_: string | URL) => { }) };
+    vi.spyOn(axios, "get").mockResolvedValue(createMockUserData());
+
     render(
       <AuthProvider>
         <MemoryRouter initialEntries={['/', '/loggedIn']}>
@@ -38,6 +62,7 @@ describe("Unauthenticated LogIn Component", () => {
   });
 
   it("should open and close the About modal", async () => {
+
     const aboutButton = screen.getAllByRole("button", { name: "About" })[0];
     fireEvent.click(aboutButton);
 
@@ -75,11 +100,29 @@ describe("Authenticated LogIn Component", () => {
     "username": "Test Account",
   }
 
-  beforeEach(() => {
+  function createMockUserData(): AxiosResponse {
+    return {
+      data: {
+        nameId: "1234567890",
+        email: mockUserInfo.email,
+        id: "1234",
+        username: "Test User",
+        role: "admin",
+      } as UserClaims & User,
+      status: 200,
+      statusText: "OK",
+      headers: {},
+      config: {
+        headers: new AxiosHeaders({ "Content-Type": "text/plain" }),
+      },
+    } as AxiosResponse;
+  }
+
+  beforeEach(async () => {
+    vi.spyOn(axios, "get").mockResolvedValue(createMockUserData());
     window.location = { ...originalLocation, assign: vi.fn((_: string | URL) => { }) };
 
     localStorage.setItem("user", JSON.stringify(mockUserInfo));
-
     render(
       <AuthProvider>
         <MemoryRouter initialEntries={['/', '/loggedIn']}>
@@ -87,12 +130,14 @@ describe("Authenticated LogIn Component", () => {
         </MemoryRouter>
       </AuthProvider>
     );
+
+    await act(() => axios.get); // Allows the initial useLayoutEffect to fire
   });
 
   afterEach(() => {
+    cleanup();
     window.location = originalLocation;
     localStorage.clear();
-    cleanup();
   });
 
   it("shows different buttons when logged in", () => {
@@ -109,20 +154,20 @@ describe("Authenticated LogIn Component", () => {
   });
 
   it("navigates to the backend when continuing as a guest", () => {
-    const loginButton = screen.getByText("Continue as Guest");
-    expect(loginButton).toBeTruthy();
-    fireEvent.click(loginButton);
+    const guestButton = screen.getByText("Continue as Guest");
+    expect(guestButton).toBeTruthy();
+    fireEvent.click(guestButton);
     expect(window.location.assign).toHaveBeenCalledOnce();
   });
-  
+
   it("removes user from local storage when logging out", () => {
     expect(document.getElementById("side-nav-button")).toBeTruthy();
     expect(localStorage.getItem("user")).toBeTruthy();
-    
+
     // Open side nav
     const hamburgerMenu: HTMLElement = document.getElementById("side-nav-button")!;
     fireEvent.click(hamburgerMenu);
-    
+
     // Click logout button
     const logoutButton = screen.getByText("Log Out");
     fireEvent.click(logoutButton);

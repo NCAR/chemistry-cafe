@@ -16,6 +16,7 @@ const LogIn: React.FC = () => {
   const navigate = useNavigate();
 
   const login = () => {
+    localStorage.removeItem("user");
     window.location.assign(`${AUTH_URL}/google/login`);
   };
 
