@@ -158,12 +158,14 @@ export const Footer = () => {
             </Typography>
             <br />
             <Typography variant="inherit">
-              Britt Schiller, Ore Ogunleye, Nishka Mittal, Josh Hare, Sydney Ferris <br />
+              Britt Schiller, Ore Ogunleye, Nishka Mittal, Josh Hare, Sydney
+              Ferris <br />
               Fall 2024 Capstone Team
             </Typography>
             <br />
             <Typography variant="inherit">
-              Jackson Stewart, Kaili Fogle, Robbie Cook, Donato Curvino, James Fontenot <br />
+              Jackson Stewart, Kaili Fogle, Robbie Cook, Donato Curvino, James
+              Fontenot <br />
               Spring 2025 Capstone Team
             </Typography>
             <br />

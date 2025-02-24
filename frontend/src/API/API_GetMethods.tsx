@@ -269,10 +269,11 @@ export async function getUserById(id: string): Promise<User> {
  */
 export async function getGoogleAuthUser(): Promise<UserClaims | null> {
   try {
-    const response = await axios.get<UserClaims>(`${AUTH_URL}/google/whoami`, { withCredentials: true, });
+    const response = await axios.get<UserClaims>(`${AUTH_URL}/google/whoami`, {
+      withCredentials: true,
+    });
     return response.data;
-  }
-  catch (error: any) {
+  } catch (error: any) {
     console.error(`Error fetching current user: ${error}`);
     return null;
   }

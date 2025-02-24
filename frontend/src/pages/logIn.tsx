@@ -32,8 +32,7 @@ const LogIn: React.FC = () => {
         `${AUTH_URL}/google/logout?returnUrl=${returnUrl}`,
       );
       window.location.assign(loginUrl);
-    }
-    else {
+    } else {
       navigate("loggedIn");
     }
   };

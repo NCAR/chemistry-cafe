@@ -27,16 +27,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       let userInfo: User | null = storedUser ? JSON.parse(storedUser) : null;
 
       const authInfo = await getGoogleAuthUser();
-      if (authInfo?.email && (!userInfo || userInfo?.email != authInfo?.email)) {
+      if (
+        authInfo?.email &&
+        (!userInfo || userInfo?.email != authInfo?.email)
+      ) {
         userInfo = await getUserByEmail(authInfo?.email);
         setUser(userInfo);
         localStorage.setItem("user", JSON.stringify(userInfo));
-      }
-      else if (!authInfo?.nameId) {
+      } else if (!authInfo?.nameId) {
         setUser(null);
         localStorage.removeItem("user");
-      }
-      else {
+      } else {
         setUser(userInfo);
       }
     };
