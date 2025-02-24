@@ -10,9 +10,11 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   background-color: #1a658f;
-  background-image: url("/src/assets/NCAR_ZoomBG_Blue.jpg");
-  background-size: 100%;
+  background-image: url("/src/assets/NCAR-Waves.png");
+  background-position: center center;
+  background-size: 135%;
   background-repeat: no-repeat;
+  background-blend-mode: overlay;
 }
 
 .information-home {
