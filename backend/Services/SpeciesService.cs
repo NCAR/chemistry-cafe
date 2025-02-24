@@ -1,6 +1,9 @@
 ﻿using Chemistry_Cafe_API.Models;
 using System.Data.Common;
 using MySqlConnector;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 
 namespace Chemistry_Cafe_API.Services
 {
@@ -269,6 +272,54 @@ namespace Chemistry_Cafe_API.Services
                 }
             }
             return speciesList;
+        }
+    
+        public string GetSpeciesExportedJSON(Species species){
+            // Extract species information using the json serializer
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            string jsonString = JsonSerializer.Serialize(species, options);
+
+            // Parse different values stored in the json
+            JsonObject jsonObj = JsonNode.Parse(jsonString)?.AsObject() ?? new JsonObject();
+            if(jsonObj == null || jsonObj.Count == 0)
+                return string.Empty;
+            
+            // Get InitialConditionSpecies data before correctly outputting individual elements in the correct format
+            string icSpecies = "";
+            JsonNode? jsonNode;
+            bool b = jsonObj.TryGetPropertyValue("InitialConditionsSpecies", out jsonNode);
+            if(b == true && jsonNode is JsonArray jsonArr){
+                foreach (var item in jsonArr)
+                {
+                    if(item == null)
+                        continue;
+                    JsonObject i = item.AsObject();
+                    foreach (var kvp in i)
+                    {
+                            string key = kvp.Key;
+                            var value = kvp.Value ?? "null";
+                            icSpecies += $"{key}: {value}\n";
+                    }
+                }
+            }
+
+            // Remove the information we don't want.
+            if(jsonObj != null){
+                jsonObj.Remove("Id");
+                jsonObj.Remove("description");
+                jsonObj.Remove("created_by");
+                jsonObj.Remove("created_date");
+                jsonObj.Remove("MechanismSpecies");
+                jsonObj.Remove("ReactionSpecies");
+                jsonObj.Remove("InitialConditionsSpecies");
+            }
+
+
+            if(jsonObj == null){
+                return string.Empty;
+            }
+
+            return jsonObj.ToString();
         }
     }
 }

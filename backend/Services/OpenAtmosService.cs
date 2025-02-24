@@ -1,8 +1,14 @@
 ﻿// OpenAtmosService.cs
 using System.Text;
+using System.Text.Json;
+using System.Text.Encodings.Web;
 using Chemistry_Cafe_API.Services;
 using MySqlConnector;
 using System.IO.Compression;
+using Chemistry_Cafe_API.Models;
+using System.Runtime.InteropServices.JavaScript;
+using System.Text.Json.Nodes;
+using NuGet.Protocol;
 
 public class OpenAtmosService
 {
@@ -13,7 +19,7 @@ public class OpenAtmosService
         _database = database;
     }
 
-    public async Task<string> GetJSON(Guid mechanismId)
+    public async Task<string> GetJSONOld(Guid mechanismId)
     {
         var reactionService = new ReactionService(_database);
         var speciesService = new SpeciesService(_database);
@@ -42,11 +48,11 @@ public class OpenAtmosService
             json.AppendLine($"      \"name\": \"{species.Name}\"");
             json.AppendLine("    },");
         }
-        if (speciesList.Any())
-        {
-            json.Length -= 3; // Remove last comma and newline
-            json.AppendLine();
-        }
+        // if (speciesList.Any())
+        // {
+        //     json.Length -= 3; // Remove last comma and newline
+        //     json.AppendLine();
+        // }
         json.AppendLine("  ],");
 
         // Phases
@@ -73,8 +79,9 @@ public class OpenAtmosService
         foreach (var reaction in reactionList)
         {
             json.AppendLine("    {");
-            json.AppendLine($"      \"equation\": \"{reaction.Description}\","); // Changed from Equation to Description
+            json.AppendLine($"      \"name:\": \"{reaction.Name}\","); // Changed from Equation to Description
             // Include additional fields if needed
+            json.AppendLine($"      \"equation\": \"{reaction.Description}\",");
 
             // Reactants
             var reactants = await reactionSpeciesService.GetReactantsByReactionIdAsync(reaction.Id);
@@ -369,4 +376,32 @@ public class OpenAtmosService
             return memoryStream.ToArray();
         }
     }
+
+     public async Task<string> GetJSON(Guid mechanismId)
+    {
+        var reactionService = new ReactionService(_database);
+        var speciesService = new SpeciesService(_database);
+        var mechanismService = new MechanismService(_database);
+        var reactionSpeciesService = new ReactionSpeciesService(_database);
+
+        // Get mechanism
+        var mechanism = await mechanismService.GetMechanismAsync(mechanismId);
+        if (mechanism == null)
+        {
+            return string.Empty;
+        }
+
+        // Get the mechanism's json in a string. This includes reactions, etc. (which then includes whatever they store)
+        string mString = await mechanismService.GetMechanismExportedJSON(mechanism);
+
+        // Set options for json serializer
+        var options = new JsonSerializerOptions{ WriteIndented = true };
+
+        // Create JSON Object that will store all data, including hardcoded info that isn't stored in mechanisms or other entities. 
+        // We use JsonNode.Parse(mString) to avoid double serializing by getting the unaltered JSON value back.
+        JsonObject jsonObj = JsonNode.Parse(mString)?.AsObject() ?? new JsonObject();
+
+        return jsonObj.ToString();
+    }
+
 }

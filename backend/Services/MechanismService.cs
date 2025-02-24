@@ -1,6 +1,10 @@
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Chemistry_Cafe_API.Models;
 using System.Data.Common;
 using MySqlConnector;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
+using System.Threading.Tasks;
 
 namespace Chemistry_Cafe_API.Services
 {
@@ -187,5 +191,66 @@ namespace Chemistry_Cafe_API.Services
             }
             return mechanisms;
         }
+    
+        public async Task<string> GetMechanismExportedJSON(Mechanism mechanism){
+            // Extract mechanism information using the json serializer
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            string jsonString = JsonSerializer.Serialize(mechanism, options);
+
+            // Parse different values stored in the json
+            var jsonObj = JsonNode.Parse(jsonString)?.AsObject();
+            
+            // Remove the information we don't want.
+            if(jsonObj != null){
+                jsonObj.Remove("id");
+                jsonObj.Remove("family_id");
+                jsonObj.Remove("created_by");
+                jsonObj.Remove("created_date");
+            }
+
+            // Get species
+            var speciesService = new SpeciesService(_database);
+            var speciesList = await speciesService.GetSpeciesByMechanismIdAsync(mechanism.Id);
+
+            // For all species associated with the mechanism, get their JSON data and store them in an array
+            JsonArray jsonArrSpecies = new JsonArray();
+            foreach(Species s in speciesList){
+                if(s == null){
+                    continue;
+                }
+                // Get the reaction's json in a string, including reactants, products, etc.
+                string sStr = speciesService.GetSpeciesExportedJSON(s);
+                jsonArrSpecies.Add(JsonNode.Parse(sStr));
+            }
+
+            if(jsonObj == null)
+                return string.Empty;
+            jsonObj.Add("species", jsonArrSpecies);
+
+            // Get reactions
+            var reactionService = new ReactionService(_database);
+            var reactionList = await reactionService.GetReactionsByMechanismIdAsync(mechanism.Id);
+
+            // For all reactions associated with the mechanism, get their JSON data and store them in an array
+            JsonArray jsonArr = new JsonArray();
+            foreach(Reaction r in reactionList){
+                var reaction = await reactionService.GetReactionAsync(r.Id);
+                if(reaction == null){
+                    continue;
+                }
+                // Get the reaction's json in a string, including reactants, products, etc.
+                string rStr = await reactionService.GetReactionExportedJSON(reaction);
+                jsonArr.Add(JsonNode.Parse(rStr));
+            }
+
+            // Add the reaction to the json object
+            if(jsonObj == null){
+                return string.Empty;
+            }
+            jsonObj.Add("reactions", jsonArr);
+
+            return jsonObj.ToString();
+        }
+
     }
 }

@@ -1,6 +1,9 @@
 using Chemistry_Cafe_API.Models;
 using System.Data.Common;
 using MySqlConnector;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 
 namespace Chemistry_Cafe_API.Services
 {
@@ -164,13 +167,48 @@ namespace Chemistry_Cafe_API.Services
 
             await command.ExecuteNonQueryAsync();
         }
+    
+        public string GetReactantsProductsExportedJSON(ReactionSpeciesDto rp){
+            // Extract reaction/product information using the json serializer
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            string jsonString = JsonSerializer.Serialize(rp, options);
+
+            // Parse different values stored in the json
+            var jsonObj = JsonNode.Parse(jsonString)?.AsObject();
+            
+            // Remove the information we don't want.
+            if(jsonObj != null){
+                // jsonObj.Remove("Id");
+                // jsonObj.Remove("ReactionId");
+                // jsonObj.Remove("SpeciesId");
+                // jsonObj.Remove("Role");    
+            }
+
+            if(jsonObj == null)
+                return string.Empty;
+            else
+                return jsonObj.ToString();
+        }
+    
     }
     public class ReactionSpeciesDto
     {
+        [JsonPropertyName("ID")]
+        [JsonIgnore]
         public Guid Id { get; set; }
+
+        [JsonPropertyName("reaction ID")]
+        [JsonIgnore]
         public Guid ReactionId { get; set; }
+        [JsonPropertyName("species ID")]
+        [JsonIgnore]
         public Guid SpeciesId { get; set; }
+        [JsonPropertyName("role")]
+        [JsonIgnore]
         public string Role { get; set; } = string.Empty;
+        [JsonPropertyName("species nme")]
         public string SpeciesName { get; set; } = string.Empty;
+        [JsonPropertyName("coefficient")]
+        public int Coefficient { get; set; } = 0;
     }
 }
