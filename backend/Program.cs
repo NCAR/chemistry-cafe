@@ -46,6 +46,7 @@ builder.Services.AddAuthentication((options) =>
     {
         options.ClientId = googleClientId;
         options.ClientSecret = googleClientSecret;
+        options.AccessDeniedPath = "/auth/google/login";
     });
 
 //builder.Services.AddScoped<TimeService>();

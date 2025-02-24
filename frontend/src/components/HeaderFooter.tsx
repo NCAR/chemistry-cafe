@@ -48,6 +48,7 @@ export const Header = () => {
     >
       <Button
         aria-label="Open Side-Navigation Menu"
+        id="side-nav-button"
         onClick={toggleDrawer(true)}
       >
         <DensitySmallSharpIcon
@@ -146,16 +147,30 @@ export const Footer = () => {
           />
           <Typography variant="body1">
             The Chemistry Cafe tool was made possible by the collaboration
-            between NCAR and Texas A&M through the CSCE Capstone program.
+            between NSF NCAR and Texas A&M through the CSCE Capstone program.
           </Typography>
-          <p></p>
+          <br />
           <Typography variant="h6">Credits</Typography>
-          <Typography variant="body1">
-            Paul Cyr, Brandon Longuet, Brian Nguyen <br></br> Spring 2024
-            Capstone Team <br></br> <p></p>
-            Britt Schiller, Ore Ogunleye, Nishka Mittal, Josh Hare, Sydney
-            Ferris <br></br> Fall 2024 Capstone Team <br></br> <p></p>
-            Kyle Shores <br></br> Spring 2024 Capstone Sponsor Representative
+          <Typography variant="body1" component="span">
+            <Typography variant="inherit">
+              Paul Cyr, Brandon Longuet, Brian Nguyen <br />
+              Spring 2024 Capstone Team
+            </Typography>
+            <br />
+            <Typography variant="inherit">
+              Britt Schiller, Ore Ogunleye, Nishka Mittal, Josh Hare, Sydney Ferris <br />
+              Fall 2024 Capstone Team
+            </Typography>
+            <br />
+            <Typography variant="inherit">
+              Jackson Stewart, Kaili Fogle, Robbie Cook, Donato Curvino, James Fontenot <br />
+              Spring 2025 Capstone Team
+            </Typography>
+            <br />
+            <Typography variant="inherit">
+              Kyle Shores <br />
+              Capstone Sponsor Representative
+            </Typography>
           </Typography>
         </Box>
       </Modal>

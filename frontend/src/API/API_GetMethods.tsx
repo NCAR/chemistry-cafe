@@ -265,21 +265,17 @@ export async function getUserById(id: string): Promise<User> {
 }
 
 /**
- * Gets the currently logged in user
+ * Gets the currently logged in user claims
  */
 export async function getGoogleAuthUser(): Promise<UserClaims | null> {
-  return axios
-    .get<UserClaims>(`${AUTH_URL}/google/whoami`, {
-      maxRedirects: 0,
-      withCredentials: true,
-    })
-    .then((response) => {
-      return response.data;
-    })
-    .catch((error: any) => {
-      console.error(`Error fetching current user: ${error}`);
-      return null;
-    });
+  try {
+    const response = await axios.get<UserClaims>(`${AUTH_URL}/google/whoami`, { withCredentials: true, });
+    return response.data;
+  }
+  catch (error: any) {
+    console.error(`Error fetching current user: ${error}`);
+    return null;
+  }
 }
 
 export async function getPropertyById(id: string): Promise<Property> {
