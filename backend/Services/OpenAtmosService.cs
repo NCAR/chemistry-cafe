@@ -9,6 +9,8 @@ using Chemistry_Cafe_API.Models;
 using System.Runtime.InteropServices.JavaScript;
 using System.Text.Json.Nodes;
 using NuGet.Protocol;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 public class OpenAtmosService
 {
@@ -134,7 +136,7 @@ public class OpenAtmosService
         return json.ToString() ?? string.Empty;
     }
 
-    public async Task<string> GetYAML(Guid mechanismId)
+    public async Task<string> GetYAMLOld(Guid mechanismId)
     {
         var reactionService = new ReactionService(_database);
         var speciesService = new SpeciesService(_database);
@@ -404,4 +406,29 @@ public class OpenAtmosService
         return jsonObj.ToString();
     }
 
+
+public async Task<string> GetYAML(Guid mechanismId)
+    {
+        var reactionService = new ReactionService(_database);
+        var speciesService = new SpeciesService(_database);
+        var mechanismService = new MechanismService(_database);
+        var reactionSpeciesService = new ReactionSpeciesService(_database);
+
+        // Get mechanism
+        var mechanism = await mechanismService.GetMechanismAsync(mechanismId);
+        if (mechanism == null)
+        {
+            return string.Empty;
+        }
+
+        // Initialize YAML serializer and set options for serializer
+        var serializer = new SerializerBuilder()
+            .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .Build();
+
+        // Get the mechanism's yaml in a string. This includes reactions, etc. (which then includes whatever they store)
+        string mString = await mechanismService.GetMechanismExportedYAML(mechanism);
+
+        return mString;
+    }
 }

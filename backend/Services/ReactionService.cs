@@ -3,6 +3,11 @@ using System.Data.Common;
 using MySqlConnector;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json;
+using System.Dynamic;
 
 namespace Chemistry_Cafe_API.Services
 {
@@ -248,14 +253,14 @@ namespace Chemistry_Cafe_API.Services
         }
     
         public async Task<string> GetReactionExportedJSON(Reaction reaction){
-            // Extract reaction information using the json serializer
+            // Extract reaction information using the json serializer.
             var options = new JsonSerializerOptions { WriteIndented = true };
-            string jsonString = JsonSerializer.Serialize(reaction, options);
+            string jsonString = System.Text.Json.JsonSerializer.Serialize(reaction, options);
 
-            // Parse different values stored in the json
+            // Parse different fields stored in the json into an object.
             var jsonObj = JsonNode.Parse(jsonString)?.AsObject();
             
-            // Remove the information we don't want.
+            // Remove the fields we don't want.
             if(jsonObj != null){
                 jsonObj.Remove("Id");
                 jsonObj.Remove("family_id");
@@ -265,11 +270,11 @@ namespace Chemistry_Cafe_API.Services
                 jsonObj.Remove("ReactionSpecies");
             }
 
-            // Get reactants
+            // Get reactants.
             var reactionSpeciesService = new ReactionSpeciesService(_database);
             var reactantList = await reactionSpeciesService.GetReactantsByReactionIdAsync(reaction.Id);
 
-            // For all reactants associated with the reaction, get their JSON data and store them in an array
+            // For all reactants associated with the reaction, get their JSON data and store them in an array.
             JsonArray jsonArrReactants = new JsonArray();
             foreach(ReactionSpeciesDto r in reactantList){
                 if(r == null){
@@ -280,15 +285,15 @@ namespace Chemistry_Cafe_API.Services
                 jsonArrReactants.Add(JsonNode.Parse(rStr));
             }
 
-            // Add the reactants to the json object
+            // Add the reactants to the JSON under "reactants".
             if(jsonObj == null)
                 return string.Empty;
             jsonObj.Add("reactants", jsonArrReactants);
 
-            // Get products
+            // Get products.
             var productList = await reactionSpeciesService.GetProductsByReactionIdAsync(reaction.Id);
 
-            // For all products associated with the reaction, get their JSON data and store them in an array
+            // For all products associated with the reaction, get their JSON data and store them in an array.
             JsonArray jsonArrProducts = new JsonArray();
             foreach(ReactionSpeciesDto p in productList){
                 if(p == null){
@@ -299,11 +304,31 @@ namespace Chemistry_Cafe_API.Services
                 jsonArrProducts.Add(JsonNode.Parse(pStr));
             }
 
+            // Add the products to the JSON under "products".
             if(jsonObj == null)
                 return string.Empty;
             jsonObj.Add("products", jsonArrProducts);
 
             return jsonObj.ToString();
         }
+    
+        public async Task<string> GetReactionExportedYAML(Reaction reaction){
+            // Initialize YAML serializer and set options
+            var serializer = new SerializerBuilder()
+                .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                .Build();
+
+            // Get reaction in JSON format
+            string jsonString = await GetReactionExportedJSON(reaction);
+
+            // Newtonsoft, as of the time of writing this code, is deprecated. It is compatible with our version of .NET, however.
+            // This is used because Newtonsoft has a built-in function to deserialize JSON to then serialize to YAML.
+            var expConverter = new ExpandoObjectConverter();
+            var deserializedObject = JsonConvert.DeserializeObject<ExpandoObject>(jsonString, expConverter);
+            string yamlString = serializer.Serialize(deserializedObject);
+
+            return yamlString;
+        }
+    
     }
 }
