@@ -33,6 +33,11 @@ public partial class User
     [JsonPropertyName("created_date")]
     public DateTime? CreatedDate { get; set; }
 
+    [Column("google_id")]
+    [StringLength(255)]
+    [JsonPropertyName("google_id")]
+    public string? GoogleID { get; set; } 
+
     [InverseProperty("User")]
     public virtual ICollection<UserMechanism> UserMechanisms { get; set; } = new List<UserMechanism>();
 }
