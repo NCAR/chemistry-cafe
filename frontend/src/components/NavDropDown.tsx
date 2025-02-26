@@ -17,7 +17,8 @@ const NavDropDown = () => {
   const goFamily = () => navigate("/FamilyPage");
   const goLogOut = () => {
     setUser(null);
-    window.location.href = `${AUTH_URL}/google/logout`;
+    localStorage.removeItem("user");
+    window.location.assign(`${AUTH_URL}/google/logout`);
   };
   const goRoles = () => navigate("/Roles"); // Add navigation to Roles page
 

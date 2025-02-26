@@ -16,16 +16,25 @@ const LogIn: React.FC = () => {
   const navigate = useNavigate();
 
   const login = () => {
-    window.location.href = `${AUTH_URL}/google/login`;
+    localStorage.removeItem("user");
+    window.location.assign(`${AUTH_URL}/google/login`);
   };
 
   // Log out function to log the user out of Google and set the profile array to null
   const continueAsGuest = () => {
-    setUser(null); // Clear user from AuthContext on logout
-    const returnUrl = `${window.location.protocol}//${window.location.host}/loggedIn`;
-    window.location.href = encodeURI(
-      `${AUTH_URL}/google/logout?returnUrl=${returnUrl}`,
-    );
+    if (user || localStorage.getItem("user")) {
+      // Clear user from AuthContext
+      setUser(null);
+      localStorage.removeItem("user");
+
+      const returnUrl = `${window.location.protocol}//${window.location.host}/loggedIn`;
+      const loginUrl = encodeURI(
+        `${AUTH_URL}/google/logout?returnUrl=${returnUrl}`,
+      );
+      window.location.assign(loginUrl);
+    } else {
+      navigate("loggedIn");
+    }
   };
 
   return (
