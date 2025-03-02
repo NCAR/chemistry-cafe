@@ -9,31 +9,34 @@ import NoAccess from "./Unauthorized.tsx";
 import { AuthProvider } from "../components/AuthContext";
 import ProtectedRoute from "../components/ProtectedRoute";
 import Banner from "../components/CookieBanner";
+import { CustomThemeProvider } from "../components/CustomThemeContext.tsx";
 
 function App() {
   return (
     <>
       {/* <AccessibilityWidget /> */}
       <AuthProvider>
-        <Banner />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/loggedin" element={<Dashboard />} /> {/* TODO Update backend redirects go to dashboard instead of loggedin */}
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/familypage" element={<FamilyPage />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/unauthorized" element={<NoAccess />} />
+        <CustomThemeProvider>
+          <Banner />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/loggedin" element={<Dashboard />} /> {/* TODO Update backend redirects go to dashboard instead of loggedin */}
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/familypage" element={<FamilyPage />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/unauthorized" element={<NoAccess />} />
 
-          {/* Protected route for the Roles page */}
-          <Route
-            path="/usermanagement"
-            element={
-              <ProtectedRoute requiredRole="admin">
-                <UserManagement />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
+            {/* Protected route for the Roles page */}
+            <Route
+              path="/usermanagement"
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <UserManagement />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </CustomThemeProvider>
       </AuthProvider>
     </>
   );

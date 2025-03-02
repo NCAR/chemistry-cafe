@@ -11,3 +11,12 @@
   grid-template-columns: repeat(4, 1fr);
 }
 
+.settings-selector {
+  grid-column: 1;
+}
+
+.settings-editor {
+  grid-column-start: 2;
+  grid-column-end: 5;
+}
+

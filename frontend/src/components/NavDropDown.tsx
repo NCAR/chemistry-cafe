@@ -12,6 +12,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import LogoutIcon from '@mui/icons-material/Logout';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import SettingsIcon from '@mui/icons-material/Settings';
+import { ListItemIcon } from "@mui/material";
 
 const NavDropDown = () => {
   const navigate = useNavigate();
@@ -35,40 +36,57 @@ const NavDropDown = () => {
       <List>
         <ListItem disablePadding>
           <ListItemButton onClick={goHome}>
-            <HomeIcon color="primary" />
+            <ListItemIcon>
+              <HomeIcon />
+            </ListItemIcon>
             <ListItemText primary={"Home"} />
           </ListItemButton>
         </ListItem>
+
         <ListItem disablePadding>
           <ListItemButton onClick={goFamily}>
-            <ScienceIcon color="success" />
+            <ListItemIcon>
+              <ScienceIcon />
+            </ListItemIcon>
             <ListItemText primary={"Families"} />
           </ListItemButton>
         </ListItem>
+
         <ListItem disablePadding>
           <ListItemButton onClick={goDashboard}>
-            <DashboardIcon color="secondary" />
+            <ListItemIcon>
+              <DashboardIcon />
+            </ListItemIcon>
             <ListItemText primary={"Dashboard"} />
           </ListItemButton>
         </ListItem>
+
         <ListItem disablePadding>
           <ListItemButton onClick={goSettings}>
-            <SettingsIcon color="primary" />
+            <ListItemIcon>
+              <SettingsIcon />
+            </ListItemIcon>
             <ListItemText primary={"Settings"} />
           </ListItemButton>
         </ListItem>
+
         {/* Conditionally render the Roles option only if the user is an admin */}
         {user && user.role === "admin" && (
           <ListItem disablePadding>
             <ListItemButton onClick={goUserManagement}>
-              <ManageAccountsIcon color="primary" />
+              <ListItemIcon>
+                <ManageAccountsIcon />
+              </ListItemIcon>
               <ListItemText primary={"User Management"} />
             </ListItemButton>
           </ListItem>
         )}
+
         <ListItem disablePadding>
           <ListItemButton onClick={goLogOut}>
-            <LogoutIcon color="error" />
+            <ListItemIcon>
+              <LogoutIcon color="error" />
+            </ListItemIcon>
             <ListItemText primary={"Log Out"} />
           </ListItemButton>
         </ListItem>
