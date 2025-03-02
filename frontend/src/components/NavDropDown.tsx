@@ -11,6 +11,7 @@ import ScienceIcon from '@mui/icons-material/Science';
 import HomeIcon from '@mui/icons-material/Home';
 import LogoutIcon from '@mui/icons-material/Logout';
 import DashboardIcon from '@mui/icons-material/Dashboard';
+import SettingsIcon from '@mui/icons-material/Settings';
 
 const NavDropDown = () => {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ const NavDropDown = () => {
   const goHome = () => navigate("/");
   const goFamily = () => navigate("/FamilyPage");
   const goDashboard = () => navigate("/dashboard");
+  const goSettings = () => navigate("/settings");
   const goLogOut = () => {
     setUser(null);
     localStorage.removeItem("user");
@@ -47,6 +49,12 @@ const NavDropDown = () => {
           <ListItemButton onClick={goDashboard}>
             <DashboardIcon color="secondary" />
             <ListItemText primary={"Dashboard"} />
+          </ListItemButton>
+        </ListItem>
+        <ListItem disablePadding>
+          <ListItemButton onClick={goSettings}>
+            <SettingsIcon color="primary" />
+            <ListItemText primary={"Settings"} />
           </ListItemButton>
         </ListItem>
         {/* Conditionally render the Roles option only if the user is an admin */}
