@@ -63,7 +63,7 @@ const Home: React.FC = () => {
               <Button
                 variant="contained"
                 onClick={() => navigate("/dashboard")}
-                endIcon={<ArrowForwardIcon />}
+                endIcon={<ArrowForwardIcon color="inherit" />}
                 sx={{ width: "100%", my: "0.5rem" }}
               >
                 Continue as {user.username}
@@ -72,7 +72,7 @@ const Home: React.FC = () => {
             <Button
               variant="contained"
               onClick={() => login()}
-              endIcon={<GoogleIcon />}
+              endIcon={<GoogleIcon color="inherit" />}
               sx={{ width: "100%", my: "0.5rem" }}
             >
               {user ? "Switch Account" : "Sign in"}
@@ -80,7 +80,7 @@ const Home: React.FC = () => {
             <Button
               variant="contained"
               onClick={continueAsGuest}
-              endIcon={<NoAccountsIcon />}
+              endIcon={<NoAccountsIcon color="inherit" />}
               sx={{ width: "100%", my: "0.5rem" }}
             >
               Continue as Guest
