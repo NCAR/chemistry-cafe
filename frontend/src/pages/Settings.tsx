@@ -7,7 +7,7 @@ import "../styles/settings.css";
 
 const Settings = () => {
   const navigate = useNavigate();
-  const handleClick = () => navigate("/dashboard");
+  const goBack = () => navigate(-1);
 
   const style = {
     height: "75px",
@@ -15,23 +15,23 @@ const Settings = () => {
   };
 
   return (
-    <section className="layoutSettings">
-      <div className="L1Settings">
-        <Header></Header>
-      </div>
+    <section className="layout-settings">
+      <header>
+        <Header />
+      </header>
 
-      <div className="M3Settings">
+      <section className="content-settings">
         <ButtonGroup orientation="vertical" variant="contained">
-          <Button sx={style} onClick={handleClick}>
+          <Button sx={style} onClick={goBack}>
             Back
           </Button>
           <Button sx={style}>WIP</Button>
         </ButtonGroup>
-      </div>
+      </section>
 
-      <div className="L9Settings">
-        <Footer></Footer>
-      </div>
+      <footer>
+        <Footer />
+      </footer>
     </section>
   );
 };
