@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../pages/AuthContext"; // Import the AuthContext
+import { useAuth } from "../components/AuthContext"; // Import the AuthContext
 import "../styles/Home.css";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";

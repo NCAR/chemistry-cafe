@@ -6,7 +6,7 @@ import FamilyPage from "./FamilyPage.tsx";
 import Home from "./Home.tsx";
 import UserManagement from "./UserManagement.tsx";
 import NoAccess from "./Unauthorized.tsx";
-import { AuthProvider } from "./AuthContext";
+import { AuthProvider } from "../components/AuthContext";
 import ProtectedRoute from "../components/ProtectedRoute";
 import Banner from "../components/CookieBanner";
 
