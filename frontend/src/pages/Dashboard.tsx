@@ -8,8 +8,8 @@ import "../styles/Dashboard.css";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const handleClickFam = () => navigate("/FamilyPage");
-  const handleClickSettings = () => navigate("/Settings");
+  const handleClickFam = () => navigate("/familypage");
+  const handleClickSettings = () => navigate("/settings");
 
   const style = {
     height: "75px",

@@ -1,18 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { render } from "@testing-library/react";
+import { cleanup, render } from "@testing-library/react";
 import React from "react";
 import { MemoryRouter } from "react-router-dom";
 import App from "../src/pages/App";
-import { GoogleOAuthProvider } from "@react-oauth/google";
 
 describe("App Component Test", () => {
   it("should render the correct components based on the routes", () => {
     // Define the routes and expected texts
     const routes = [
       { path: "/", expectedText: "Chemistry Cafe" },
-      { path: "/LoggedIn", expectedText: "Families" },
-      { path: "/FamilyPage", expectedText: "Families" },
-      { path: "/Settings", expectedText: "Back" },
+      { path: "/dashboard", expectedText: "Families" },
+      { path: "/familypage", expectedText: "Families" },
+      { path: "/settings", expectedText: "Back" },
     ];
 
     // Iterate through each route and test rendering the App component
@@ -20,9 +19,7 @@ describe("App Component Test", () => {
       // Render the App component within a MemoryRouter with the current route
       const { getByText } = render(
         <MemoryRouter initialEntries={[path]}>
-          <GoogleOAuthProvider clientId="534701394161-6gcjh4gd19u5p40gtagdl8i0bkg28rvg.apps.googleusercontent.com">
-            <App />
-          </GoogleOAuthProvider>
+          <App />
         </MemoryRouter>,
       );
 

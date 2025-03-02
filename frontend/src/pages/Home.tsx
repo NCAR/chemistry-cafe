@@ -27,13 +27,13 @@ const Home: React.FC = () => {
       setUser(null);
       localStorage.removeItem("user");
 
-      const returnUrl = `${window.location.protocol}//${window.location.host}/loggedIn`;
+      const returnUrl = `${window.location.protocol}//${window.location.host}/dashboard`;
       const loginUrl = encodeURI(
         `${AUTH_URL}/google/logout?returnUrl=${returnUrl}`,
       );
       window.location.assign(loginUrl);
     } else {
-      navigate("loggedIn");
+      navigate("dashboard");
     }
   };
 
@@ -62,7 +62,7 @@ const Home: React.FC = () => {
             {user && (
               <Button
                 variant="contained"
-                onClick={() => navigate("/LoggedIn")}
+                onClick={() => navigate("/dashboard")}
                 endIcon={<ArrowForwardIcon />}
                 sx={{ width: "100%", my: "0.5rem" }}
               >

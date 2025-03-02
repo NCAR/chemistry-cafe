@@ -7,7 +7,7 @@ import "../styles/settings.css";
 
 const Settings = () => {
   const navigate = useNavigate();
-  const handleClick = () => navigate("/LoggedIn");
+  const handleClick = () => navigate("/dashboard");
 
   const style = {
     height: "75px",

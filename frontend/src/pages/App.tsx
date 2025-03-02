@@ -4,7 +4,7 @@ import Settings from "./Settings.tsx";
 import Dashboard from "./Dashboard.tsx";
 import FamilyPage from "./FamilyPage.tsx";
 import Home from "./Home.tsx";
-import RoleManagement from "./RoleManagement.tsx";
+import UserManagement from "./UserManagement.tsx";
 import NoAccess from "./Unauthorized.tsx";
 import { AuthProvider } from "./AuthContext";
 import ProtectedRoute from "../components/ProtectedRoute";
@@ -18,17 +18,18 @@ function App() {
         <Banner />
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/LoggedIn" element={<Dashboard />} />
-          <Route path="/FamilyPage" element={<FamilyPage />} />
-          <Route path="/Settings" element={<Settings />} />
+          <Route path="/loggedin" element={<Dashboard />} /> {/* TODO Update backend redirects go to dashboard instead of loggedin */}
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/familypage" element={<FamilyPage />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="/unauthorized" element={<NoAccess />} />
 
           {/* Protected route for the Roles page */}
           <Route
-            path="/Roles"
+            path="/usermanagement"
             element={
               <ProtectedRoute requiredRole="admin">
-                <RoleManagement />
+                <UserManagement />
               </ProtectedRoute>
             }
           />

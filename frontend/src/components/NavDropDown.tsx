@@ -20,7 +20,7 @@ const NavDropDown = () => {
     localStorage.removeItem("user");
     window.location.assign(`${AUTH_URL}/google/logout`);
   };
-  const goRoles = () => navigate("/Roles"); // Add navigation to Roles page
+  const goUserManagement = () => navigate("/usermanagement"); // Add navigation to Roles page
 
   return (
     <Box sx={{ width: 250 }} role="presentation">
@@ -38,8 +38,8 @@ const NavDropDown = () => {
         {/* Conditionally render the Roles option only if the user is an admin */}
         {user && user.role === "admin" && (
           <ListItem disablePadding>
-            <ListItemButton onClick={goRoles}>
-              <ListItemText primary={"Role Management"} />
+            <ListItemButton onClick={goUserManagement}>
+              <ListItemText primary={"User Management"} />
             </ListItemButton>
           </ListItem>
         )}

@@ -20,7 +20,7 @@ import {
 
 import { Header, Footer } from "../components/HeaderFooter";
 
-import "../styles/roles.css";
+import "../styles/UserManagement.css";
 //import { useAuth } from "../contexts/AuthContext"; // Import the AuthContext
 import { getUsers } from "../API/API_GetMethods";
 import { User } from "../API/API_Interfaces";
@@ -45,7 +45,7 @@ function RolesToolbar() {
   );
 }
 
-const RoleManagement: React.FC = () => {
+const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -292,4 +292,4 @@ const RoleManagement: React.FC = () => {
   );
 };
 
-export default RoleManagement;
+export default UserManagement;
