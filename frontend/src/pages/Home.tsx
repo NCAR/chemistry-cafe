@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../pages/AuthContext"; // Import the AuthContext
-import "../styles/logIn.css";
+import "../styles/Home.css";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 //import Modal from "@mui/material/Modal";
@@ -11,7 +11,7 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { Footer, Header } from "../components/HeaderFooter";
 import { AUTH_URL } from "../API/API_config";
 
-const LogIn: React.FC = () => {
+const Home: React.FC = () => {
   const { setUser, user } = useAuth(); // Get setUser from AuthContext
   const navigate = useNavigate();
 
@@ -95,4 +95,4 @@ const LogIn: React.FC = () => {
   );
 };
 
-export default LogIn;
+export default Home;

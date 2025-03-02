@@ -1,9 +1,9 @@
 import "../styles/App.css";
 import { Route, Routes } from "react-router-dom";
-import Settings from "./settings.tsx";
-import LoggedIn from "./loggedIn.tsx";
-import FamilyPage from "./family.tsx";
-import LogIn from "./logIn.tsx";
+import Settings from "./Settings.tsx";
+import Dashboard from "./Dashboard.tsx";
+import FamilyPage from "./FamilyPage.tsx";
+import Home from "./Home.tsx";
 import RoleManagement from "./RoleManagement.tsx";
 import NoAccess from "./Unauthorized.tsx";
 import { AuthProvider } from "./AuthContext";
@@ -17,8 +17,8 @@ function App() {
       <AuthProvider>
         <Banner />
         <Routes>
-          <Route path="/" element={<LogIn />} />
-          <Route path="/LoggedIn" element={<LoggedIn />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/LoggedIn" element={<Dashboard />} />
           <Route path="/FamilyPage" element={<FamilyPage />} />
           <Route path="/Settings" element={<Settings />} />
           <Route path="/unauthorized" element={<NoAccess />} />

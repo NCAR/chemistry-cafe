@@ -4,9 +4,9 @@ import ButtonGroup from "@mui/material/ButtonGroup";
 
 import { Header, Footer } from "../components/HeaderFooter";
 
-import "../styles/loggedIn.css";
+import "../styles/Dashboard.css";
 
-const LoggedIn = () => {
+const Dashboard = () => {
   const navigate = useNavigate();
   const handleClickFam = () => navigate("/FamilyPage");
   const handleClickSettings = () => navigate("/Settings");
@@ -40,4 +40,4 @@ const LoggedIn = () => {
   );
 };
 
-export default LoggedIn;
+export default Dashboard;
