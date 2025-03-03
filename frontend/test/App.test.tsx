@@ -4,28 +4,25 @@ import React from "react";
 import { MemoryRouter } from "react-router-dom";
 import App from "../src/pages/App";
 
-describe("App Component Test", () => {
-  it("should render the correct components based on the routes", () => {
-    // Define the routes and expected texts
-    const routes = [
-      { path: "/", expectedText: "Chemistry Cafe" },
-      { path: "/dashboard", expectedText: "Families" },
-      { path: "/familypage", expectedText: "Families" },
-      { path: "/settings", expectedText: "Back" },
-    ];
+// Define the routes and expected texts
+describe("App Component", () => {
+  const routes = [
+    ["/", "Chemistry Cafe"],
+    ["/dashboard", "Settings"],
+    ["/familypage", "Species"],
+    ["/settings", "Appearance"],
+  ];
+  it.each(routes)("should render the correct component for the page on %s", (path, expectedText) => {
+    // Render the App component within a MemoryRouter with the current route
+    const { getByText } = render(
+      <MemoryRouter initialEntries={[path]}>
+        <App />
+      </MemoryRouter>,
+    );
 
-    // Iterate through each route and test rendering the App component
-    routes.forEach(({ path, expectedText }) => {
-      // Render the App component within a MemoryRouter with the current route
-      const { getByText } = render(
-        <MemoryRouter initialEntries={[path]}>
-          <App />
-        </MemoryRouter>,
-      );
-
-      // Assert that the expected text is present in the App component
-      const element = getByText(expectedText);
-      expect(element).toBeTruthy();
-    });
+    // Assert that the expected text is present in the App component
+    const element = getByText(expectedText);
+    expect(element).toBeTruthy();
+    cleanup();
   });
 });

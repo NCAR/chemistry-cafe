@@ -1,8 +1,8 @@
 import React from "react";
 import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
-import RoleManagement from "../src/pages/RoleManagement"; // Updated path to RoleManagement
-import { useAuth } from "../src/pages/AuthContext";
+import UserManagement from "../src/pages/UserManagement"; // Updated path to RoleManagement
+import { useAuth } from "../src/components/AuthContext";
 import { getUsers } from "../src/API/API_GetMethods";
 import { updateUser } from "../src/API/API_UpdateMethods";
 import { deleteUser } from "../src/API/API_DeleteMethods";
@@ -10,7 +10,7 @@ import "@testing-library/jest-dom";
 import userEvent from "@testing-library/user-event";
 
 // Mocking necessary modules
-vi.mock("../src/pages/AuthContext", () => ({
+vi.mock("../src/components/AuthContext", () => ({
   useAuth: vi.fn(),
 }));
 
@@ -54,7 +54,7 @@ describe("RoleManagement Component", () => {
   });
 
   it("renders loading state initially", async () => {
-    render(<RoleManagement />);
+    render(<UserManagement />);
     expect(screen.getByText(/Loading users.../i)).toBeInTheDocument();
     await waitFor(() => expect(getUsers).toHaveBeenCalledTimes(1));
   });
@@ -63,7 +63,7 @@ describe("RoleManagement Component", () => {
     (getUsers as unknown as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
       new Error("Fetch error"),
     );
-    render(<RoleManagement />);
+    render(<UserManagement />);
 
     await waitFor(() => {
       expect(screen.getByText(/Failed to fetch users/i)).toBeInTheDocument();
@@ -71,7 +71,7 @@ describe("RoleManagement Component", () => {
   });
 
   it("renders user data in DataGrid when fetching succeeds", async () => {
-    render(<RoleManagement />);
+    render(<UserManagement />);
 
     await waitFor(() => {
       const users = screen.getAllByText(/Doe/i);
@@ -80,7 +80,7 @@ describe("RoleManagement Component", () => {
   });
 
   it("handles edit mode toggling for a user row", async () => {
-    render(<RoleManagement />);
+    render(<UserManagement />);
 
     await waitFor(() => {
       const johnDoeInstances = screen.getAllByText(/JohnDoe/i);
@@ -98,7 +98,7 @@ describe("RoleManagement Component", () => {
   });
 
   it("handles deleting a user", async () => {
-    render(<RoleManagement />);
+    render(<UserManagement />);
 
     await waitFor(() => {
       const janeDoeInstances = screen.getAllByText(/JaneDoe/i);
@@ -113,7 +113,7 @@ describe("RoleManagement Component", () => {
   });
 
   it("displays the toolbar and allows quick filter usage", async () => {
-    render(<RoleManagement />);
+    render(<UserManagement />);
 
     await waitFor(() => {
       const johnDoeInstances = screen.getAllByText(/JohnDoe/i);
