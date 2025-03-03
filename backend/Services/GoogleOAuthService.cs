@@ -20,34 +20,24 @@ namespace Chemistry_Cafe_API.Controllers
             {
                 return null;
             }
-
-            var identityList = authenticateResult.Principal.Identities.ToList();
-            if (authenticateResult.Principal != null && identityList.Count > 0)
+            var identity = authenticateResult.Principal.Identities.FirstOrDefault(
+                identity => identity.AuthenticationType != null && 
+                            identity.AuthenticationType.Equals("google", StringComparison.OrdinalIgnoreCase)
+            );
+            if (identity == null) 
             {
-                var identity = identityList[0];
-                if (identity.AuthenticationType != null && identity.AuthenticationType.ToLower().Equals("google"))
-                {
-                    var claimsIdentity = new ClaimsIdentity("Application");
-                    var nameIdClaim = authenticateResult.Principal.FindFirst(ClaimTypes.NameIdentifier); // GUID specified by Google
-                    var emailClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Email);
-
-                    if (nameIdClaim != null && emailClaim != null)
-                    {
-                        claimsIdentity.AddClaim(nameIdClaim);
-                        claimsIdentity.AddClaim(emailClaim);
-                    }
-                    else
-                    {
-                        return null;
-                    }
-                    return new ClaimsPrincipal(claimsIdentity);
-                }
-                else
-                {
-                    return null;
-                }
+                return null;
             }
-            return null;
+            var claimsIdentity = new ClaimsIdentity("Application");
+            var nameIdClaim = authenticateResult.Principal.FindFirst(ClaimTypes.NameIdentifier); // GUID specified by Google
+            var emailClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Email);
+            if (nameIdClaim == null || emailClaim == null)
+            {
+                return null;
+            }
+            claimsIdentity.AddClaim(nameIdClaim);
+            claimsIdentity.AddClaim(emailClaim);
+            return new ClaimsPrincipal(claimsIdentity);
         }
     }
 }

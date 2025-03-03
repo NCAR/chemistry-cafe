@@ -19,19 +19,26 @@ const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
 // Provider component
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(() => {
-    // Retrieve user from localStorage if it exists
-    const storedUser = localStorage.getItem("user");
-    return storedUser ? JSON.parse(storedUser) : null;
-  });
+  const [user, setUser] = useState<User | null>(null);
 
   useLayoutEffect(() => {
     const getUser = async () => {
-      if (!user) {
-        const authInfo = await getGoogleAuthUser();
-        if (authInfo?.email) {
-          setUser(await getUserByEmail(authInfo?.email));
-        }
+      const storedUser: string | null = localStorage.getItem("user");
+      let userInfo: User | null = storedUser ? JSON.parse(storedUser) : null;
+
+      const authInfo = await getGoogleAuthUser();
+      if (
+        authInfo?.email &&
+        (!userInfo || userInfo?.email != authInfo?.email)
+      ) {
+        userInfo = await getUserByEmail(authInfo?.email);
+        setUser(userInfo);
+        localStorage.setItem("user", JSON.stringify(userInfo));
+      } else if (!authInfo?.nameId) {
+        setUser(null);
+        localStorage.removeItem("user");
+      } else {
+        setUser(userInfo);
       }
     };
 
