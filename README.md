@@ -127,7 +127,7 @@ docker compose down
 reportgenerator -reports:"TestResults\<guid>\<file-prefix>.cobertura.xml" -targetdir:coveragereport -reporttypes:Html,lcov -classfilters:-MySqlConnector.* -filefilters:-/_/src/MySqlConnector/*
 
 ```
-If all tests past, the coverage report will generate in backend/coveragereport/index.html
+If all tests past, the coverage reports will generate in backend/coveragereport/index.html and backend/coveragereport/lcov.info
 
 
 # License
