@@ -64,21 +64,22 @@ export const Header = () => {
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <Box sx={{ paddingRight: "10px" }}>
             {/* Display user's name or email */}
-            <span>{loggedInUser.email}</span>
+            <Typography sx={{ fontSize: "medium" }}>{loggedInUser.email}</Typography>
           </Box>
           <Box sx={{ paddingRight: "20px" }}>
             {/* Display user's role */}
-            <span>({displayRole()})</span>
+            <Typography sx={{ fontSize: "medium" }}>({displayRole()})</Typography>
           </Box>
         </Box>
       ) : (
         <Box
           sx={{ display: "flex", alignItems: "center", paddingRight: "20px" }}
         >
-          Using as guest
+          <Typography sx={{ fontSize: "medium" }}>Using as guest</Typography>
         </Box>
-      )}
-    </Paper>
+      )
+      }
+    </Paper >
   );
 };
 

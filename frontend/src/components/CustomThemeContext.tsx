@@ -8,8 +8,8 @@ import {
 } from "react"
 
 export type AppearanceSettings = {
-    fontSize: number;
-    mode: "light" | "dark";
+    fontSize?: number;
+    mode?: "light" | "dark";
 }
 
 // Type used by createTheme() for the theming options
@@ -17,10 +17,10 @@ type ThemeOptionsType = Omit<ThemeOptions, 'components'>
     & Pick<CssVarsThemeOptions, 'defaultColorScheme' | 'colorSchemes' | 'components'>
     & { cssVariables?: boolean | Pick<CssVarsThemeOptions, 'colorSchemeSelector' | 'rootSelector' | 'disableCssColorScheme' | 'cssVarPrefix' | 'shouldSkipGeneratingVar'>; }
 
-const defaultAppearanceSettings: AppearanceSettings = {
-    fontSize: 10,
+const defaultAppearanceSettings: AppearanceSettings = Object.freeze({
+    fontSize: 14,
     mode: "light"
-};
+});
 
 const getThemeOptions = (settings: AppearanceSettings): ThemeOptionsType => ({
     palette: {
@@ -29,10 +29,12 @@ const getThemeOptions = (settings: AppearanceSettings): ThemeOptionsType => ({
             ? {
             }
             : {
-                
             }
         ),
-    }
+    },
+    typography: {
+        fontSize: settings.fontSize
+    },
 });
 
 interface CustomThemeContextProps {
