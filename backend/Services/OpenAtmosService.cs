@@ -1,8 +1,16 @@
 ﻿// OpenAtmosService.cs
 using System.Text;
+using System.Text.Json;
+using System.Text.Encodings.Web;
 using Chemistry_Cafe_API.Services;
 using MySqlConnector;
 using System.IO.Compression;
+using Chemistry_Cafe_API.Models;
+using System.Runtime.InteropServices.JavaScript;
+using System.Text.Json.Nodes;
+using NuGet.Protocol;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 public class OpenAtmosService
 {
@@ -13,190 +21,191 @@ public class OpenAtmosService
         _database = database;
     }
 
-    public async Task<string> GetJSON(Guid mechanismId)
-    {
-        var reactionService = new ReactionService(_database);
-        var speciesService = new SpeciesService(_database);
-        var mechanismService = new MechanismService(_database);
-        var reactionSpeciesService = new ReactionSpeciesService(_database);
+    // public async Task<string> GetJSONOld(Guid mechanismId)
+    // {
+    //     var reactionService = new ReactionService(_database);
+    //     var speciesService = new SpeciesService(_database);
+    //     var mechanismService = new MechanismService(_database);
+    //     var reactionSpeciesService = new ReactionSpeciesService(_database);
 
-        // Get mechanism
-        var mechanism = await mechanismService.GetMechanismAsync(mechanismId);
-        if (mechanism == null)
-        {
-            return string.Empty;
-        }
+    //     // Get mechanism
+    //     var mechanism = await mechanismService.GetMechanismAsync(mechanismId);
+    //     if (mechanism == null)
+    //     {
+    //         return string.Empty;
+    //     }
 
-        // Initialize JSON builder
-        var json = new StringBuilder();
-        json.AppendLine("{");
-        json.AppendLine($"  \"version\": \"1.0.0\",");
-        json.AppendLine($"  \"name\": \"{mechanism?.Name}\",");
+    //     // Initialize JSON builder
+    //     var json = new StringBuilder();
+    //     json.AppendLine("{");
+    //     json.AppendLine($"  \"version\": \"1.0.0\",");
+    //     json.AppendLine($"  \"name\": \"{mechanism?.Name}\",");
 
-        // Get species
-        var speciesList = await speciesService.GetSpeciesByMechanismIdAsync(mechanismId);
-        json.AppendLine("  \"species\": [");
-        foreach (var species in speciesList)
-        {
-            json.AppendLine("    {");
-            json.AppendLine($"      \"name\": \"{species.Name}\"");
-            json.AppendLine("    },");
-        }
-        if (speciesList.Any())
-        {
-            json.Length -= 3; // Remove last comma and newline
-            json.AppendLine();
-        }
-        json.AppendLine("  ],");
+    //     // Get species
+    //     var speciesList = await speciesService.GetSpeciesByMechanismIdAsync(mechanismId);
+    //     json.AppendLine("  \"species\": [");
+    //     foreach (var species in speciesList)
+    //     {
+    //         json.AppendLine("    {");
+    //         json.AppendLine($"      \"name\": \"{species.Name}\"");
+    //         json.AppendLine("    },");
+    //     }
+    //     // if (speciesList.Any())
+    //     // {
+    //     //     json.Length -= 3; // Remove last comma and newline
+    //     //     json.AppendLine();
+    //     // }
+    //     json.AppendLine("  ],");
 
-        // Phases
-        json.AppendLine("  \"phases\": [");
-        json.AppendLine("    {");
-        json.AppendLine("      \"name\": \"gas\",");
-        json.AppendLine("      \"species\": [");
-        foreach (var species in speciesList)
-        {
-            json.AppendLine($"        \"{species.Name}\",");
-        }
-        if (speciesList.Any())
-        {
-            json.Length -= 3;
-            json.AppendLine();
-        }
-        json.AppendLine("      ]");
-        json.AppendLine("    }");
-        json.AppendLine("  ],");
+    //     // Phases
+    //     json.AppendLine("  \"phases\": [");
+    //     json.AppendLine("    {");
+    //     json.AppendLine("      \"name\": \"gas\",");
+    //     json.AppendLine("      \"species\": [");
+    //     foreach (var species in speciesList)
+    //     {
+    //         json.AppendLine($"        \"{species.Name}\",");
+    //     }
+    //     if (speciesList.Any())
+    //     {
+    //         json.Length -= 3;
+    //         json.AppendLine();
+    //     }
+    //     json.AppendLine("      ]");
+    //     json.AppendLine("    }");
+    //     json.AppendLine("  ],");
 
-        // Get reactions
-        var reactionList = await reactionService.GetReactionsByMechanismIdAsync(mechanismId);
-        json.AppendLine("  \"reactions\": [");
-        foreach (var reaction in reactionList)
-        {
-            json.AppendLine("    {");
-            json.AppendLine($"      \"equation\": \"{reaction.Description}\","); // Changed from Equation to Description
-            // Include additional fields if needed
+    //     // Get reactions
+    //     var reactionList = await reactionService.GetReactionsByMechanismIdAsync(mechanismId);
+    //     json.AppendLine("  \"reactions\": [");
+    //     foreach (var reaction in reactionList)
+    //     {
+    //         json.AppendLine("    {");
+    //         json.AppendLine($"      \"name:\": \"{reaction.Name}\","); // Changed from Equation to Description
+    //         // Include additional fields if needed
+    //         json.AppendLine($"      \"equation\": \"{reaction.Description}\",");
 
-            // Reactants
-            var reactants = await reactionSpeciesService.GetReactantsByReactionIdAsync(reaction.Id);
-            if (reactants.Any())
-            {
-                json.AppendLine("      \"reactants\": [");
-                foreach (var reactant in reactants)
-                {
-                    json.AppendLine("        {");
-                    json.AppendLine($"          \"species name\": \"{reactant.SpeciesName}\"");
-                    json.AppendLine("        },");
-                }
-                json.Length -= 3;
-                json.AppendLine();
-                json.AppendLine("      ],");
-            }
+    //         // Reactants
+    //         var reactants = await reactionSpeciesService.GetReactantsByReactionIdAsync(reaction.Id);
+    //         if (reactants.Any())
+    //         {
+    //             json.AppendLine("      \"reactants\": [");
+    //             foreach (var reactant in reactants)
+    //             {
+    //                 json.AppendLine("        {");
+    //                 json.AppendLine($"          \"species name\": \"{reactant.SpeciesName}\"");
+    //                 json.AppendLine("        },");
+    //             }
+    //             json.Length -= 3;
+    //             json.AppendLine();
+    //             json.AppendLine("      ],");
+    //         }
 
-            // Products
-            var products = await reactionSpeciesService.GetProductsByReactionIdAsync(reaction.Id);
-            if (products.Any())
-            {
-                json.AppendLine("      \"products\": [");
-                foreach (var product in products)
-                {
-                    json.AppendLine("        {");
-                    json.AppendLine($"          \"species name\": \"{product.SpeciesName}\"");
-                    json.AppendLine("        },");
-                }
-                json.Length -= 3;
-                json.AppendLine();
-                json.AppendLine("      ],");
-            }
+    //         // Products
+    //         var products = await reactionSpeciesService.GetProductsByReactionIdAsync(reaction.Id);
+    //         if (products.Any())
+    //         {
+    //             json.AppendLine("      \"products\": [");
+    //             foreach (var product in products)
+    //             {
+    //                 json.AppendLine("        {");
+    //                 json.AppendLine($"          \"species name\": \"{product.SpeciesName}\"");
+    //                 json.AppendLine("        },");
+    //             }
+    //             json.Length -= 3;
+    //             json.AppendLine();
+    //             json.AppendLine("      ],");
+    //         }
 
-            // Remove trailing comma if present
-            if (json[json.Length - 3] == ',')
-            {
-                json.Length -= 1;
-            }
+    //         // Remove trailing comma if present
+    //         if (json[json.Length - 3] == ',')
+    //         {
+    //             json.Length -= 1;
+    //         }
 
-            json.AppendLine("    },");
-        }
-        if (reactionList.Any())
-        {
-            json.Length -= 3;
-            json.AppendLine();
-        }
-        json.AppendLine("  ]");
-        json.AppendLine("}");
+    //         json.AppendLine("    },");
+    //     }
+    //     if (reactionList.Any())
+    //     {
+    //         json.Length -= 3;
+    //         json.AppendLine();
+    //     }
+    //     json.AppendLine("  ]");
+    //     json.AppendLine("}");
 
-        return json.ToString() ?? string.Empty;
-    }
+    //     return json.ToString() ?? string.Empty;
+    // }
 
-    public async Task<string> GetYAML(Guid mechanismId)
-    {
-        var reactionService = new ReactionService(_database);
-        var speciesService = new SpeciesService(_database);
-        var mechanismService = new MechanismService(_database);
-        var reactionSpeciesService = new ReactionSpeciesService(_database);
+    // public async Task<string> GetYAMLOld(Guid mechanismId)
+    // {
+    //     var reactionService = new ReactionService(_database);
+    //     var speciesService = new SpeciesService(_database);
+    //     var mechanismService = new MechanismService(_database);
+    //     var reactionSpeciesService = new ReactionSpeciesService(_database);
 
-        // Get mechanism
-        var mechanism = await mechanismService.GetMechanismAsync(mechanismId);
-        if (mechanism == null)
-        {
-            return string.Empty;
-        }
+    //     // Get mechanism
+    //     var mechanism = await mechanismService.GetMechanismAsync(mechanismId);
+    //     if (mechanism == null)
+    //     {
+    //         return string.Empty;
+    //     }
 
-        // Initialize YAML builder
-        var yaml = new StringBuilder();
-        yaml.AppendLine("---");
-        yaml.AppendLine($"version: 1.0.0");
-        yaml.AppendLine($"name: {mechanism?.Name}");
+    //     // Initialize YAML builder
+    //     var yaml = new StringBuilder();
+    //     yaml.AppendLine("---");
+    //     yaml.AppendLine($"version: 1.0.0");
+    //     yaml.AppendLine($"name: {mechanism?.Name}");
 
-        // Species
-        yaml.AppendLine("species:");
-        var speciesList = await speciesService.GetSpeciesByMechanismIdAsync(mechanismId);
-        foreach (var species in speciesList)
-        {
-            yaml.AppendLine($"- name: {species.Name}");
-        }
+    //     // Species
+    //     yaml.AppendLine("species:");
+    //     var speciesList = await speciesService.GetSpeciesByMechanismIdAsync(mechanismId);
+    //     foreach (var species in speciesList)
+    //     {
+    //         yaml.AppendLine($"- name: {species.Name}");
+    //     }
 
-        // Phases
-        yaml.AppendLine("phases:");
-        yaml.AppendLine("- name: gas");
-        yaml.AppendLine("  species:");
-        foreach (var species in speciesList)
-        {
-            yaml.AppendLine($"  - {species.Name}");
-        }
+    //     // Phases
+    //     yaml.AppendLine("phases:");
+    //     yaml.AppendLine("- name: gas");
+    //     yaml.AppendLine("  species:");
+    //     foreach (var species in speciesList)
+    //     {
+    //         yaml.AppendLine($"  - {species.Name}");
+    //     }
 
-        // Reactions
-        yaml.AppendLine("reactions:");
-        var reactionList = await reactionService.GetReactionsByMechanismIdAsync(mechanismId);
-        foreach (var reaction in reactionList)
-        {
-            yaml.AppendLine($"- equation: {reaction.Description}"); // Changed from Equation to Description
-            // Include additional fields if needed
+    //     // Reactions
+    //     yaml.AppendLine("reactions:");
+    //     var reactionList = await reactionService.GetReactionsByMechanismIdAsync(mechanismId);
+    //     foreach (var reaction in reactionList)
+    //     {
+    //         yaml.AppendLine($"- equation: {reaction.Description}"); // Changed from Equation to Description
+    //         // Include additional fields if needed
 
-            // Reactants
-            var reactants = await reactionSpeciesService.GetReactantsByReactionIdAsync(reaction.Id);
-            if (reactants.Any())
-            {
-                yaml.AppendLine("  reactants:");
-                foreach (var reactant in reactants)
-                {
-                    yaml.AppendLine($"  - species name: {reactant.SpeciesName}");
-                }
-            }
+    //         // Reactants
+    //         var reactants = await reactionSpeciesService.GetReactantsByReactionIdAsync(reaction.Id);
+    //         if (reactants.Any())
+    //         {
+    //             yaml.AppendLine("  reactants:");
+    //             foreach (var reactant in reactants)
+    //             {
+    //                 yaml.AppendLine($"  - species name: {reactant.SpeciesName}");
+    //             }
+    //         }
 
-            // Products
-            var products = await reactionSpeciesService.GetProductsByReactionIdAsync(reaction.Id);
-            if (products.Any())
-            {
-                yaml.AppendLine("  products:");
-                foreach (var product in products)
-                {
-                    yaml.AppendLine($"  - species name: {product.SpeciesName}");
-                }
-            }
-        }
+    //         // Products
+    //         var products = await reactionSpeciesService.GetProductsByReactionIdAsync(reaction.Id);
+    //         if (products.Any())
+    //         {
+    //             yaml.AppendLine("  products:");
+    //             foreach (var product in products)
+    //             {
+    //                 yaml.AppendLine($"  - species name: {product.SpeciesName}");
+    //             }
+    //         }
+    //     }
 
-        return yaml.ToString() ?? string.Empty;
-    }
+    //     return yaml.ToString() ?? string.Empty;
+    // }
 
     public async Task<byte[]> GetMusicboxJSON(Guid mechanismId)
     {
@@ -368,5 +377,57 @@ public class OpenAtmosService
             // Return the ZIP file as a byte array
             return memoryStream.ToArray();
         }
+    }
+
+    public async Task<string> GetJSON(Guid mechanismId)
+    {
+        var reactionService = new ReactionService(_database);
+        var speciesService = new SpeciesService(_database);
+        var mechanismService = new MechanismService(_database);
+        var reactionSpeciesService = new ReactionSpeciesService(_database);
+
+        // Get mechanism
+        var mechanism = await mechanismService.GetMechanismAsync(mechanismId);
+        if (mechanism == null)
+        {
+            return string.Empty;
+        }
+
+        // Get the mechanism's json in a string. This includes reactions, etc. (which then includes whatever they store)
+        string mString = await mechanismService.GetMechanismExportedJSON(mechanism);
+
+        // Set options for json serializer
+        var options = new JsonSerializerOptions{ WriteIndented = true };
+
+        // Create JSON Object that will store all data, including hardcoded info that isn't stored in mechanisms or other entities. 
+        // We use JsonNode.Parse(mString) to avoid double serializing by getting the unaltered JSON value back.
+        JsonObject jsonObj = JsonNode.Parse(mString)?.AsObject() ?? new JsonObject();
+
+        return jsonObj.ToString();
+    }
+
+    public async Task<string> GetYAML(Guid mechanismId)
+    {
+        var reactionService = new ReactionService(_database);
+        var speciesService = new SpeciesService(_database);
+        var mechanismService = new MechanismService(_database);
+        var reactionSpeciesService = new ReactionSpeciesService(_database);
+
+        // Get mechanism
+        var mechanism = await mechanismService.GetMechanismAsync(mechanismId);
+        if (mechanism == null)
+        {
+            return string.Empty;
+        }
+
+        // Initialize YAML serializer and set options for serializer
+        var serializer = new SerializerBuilder()
+            .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .Build();
+
+        // Get the mechanism's yaml in a string. This includes reactions, etc. (which then includes whatever they store)
+        string mString = await mechanismService.GetMechanismExportedYAML(mechanism);
+
+        return mString;
     }
 }

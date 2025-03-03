@@ -1,6 +1,14 @@
 using Chemistry_Cafe_API.Models;
 using System.Data.Common;
 using MySqlConnector;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json;
+using System.Dynamic;
 
 namespace Chemistry_Cafe_API.Services
 {
@@ -164,13 +172,65 @@ namespace Chemistry_Cafe_API.Services
 
             await command.ExecuteNonQueryAsync();
         }
+    
+        public string GetReactantsProductsExportedJSON(ReactionSpeciesDto rp){
+            // Extract reaction/product information using the json serializer
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            string jsonString = System.Text.Json.JsonSerializer.Serialize(rp, options);
+
+            // Parse different values stored in the json
+            var jsonObj = JsonNode.Parse(jsonString)?.AsObject();
+            
+            // Remove the information we don't want.
+            if(jsonObj != null){
+                jsonObj.Remove("Id");
+                jsonObj.Remove("ReactionId");
+                jsonObj.Remove("SpeciesId");
+                jsonObj.Remove("Role");    
+            }
+
+            if(jsonObj == null)
+                return string.Empty;
+            else
+                return jsonObj.ToString();
+        }
+    
+        public string GetReactantsProductsExportedYAML(ReactionSpeciesDto rp){
+            // Initialize YAML serializer and set options
+            var serializer = new SerializerBuilder()
+                .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                .Build();
+
+            // Get species in JSON format
+            string jsonString = GetReactantsProductsExportedJSON(rp);
+
+            // Newtonsoft, as of the time of writing this code, is deprecated. It is compatible with our version of .NET, however.
+            // This is used because Newtonsoft has a built-in function to deserialize JSON to then serialize to YAML.
+            var expConverter = new ExpandoObjectConverter();
+            var deserializedObject = JsonConvert.DeserializeObject<ExpandoObject>(jsonString, expConverter);
+            string yamlString = serializer.Serialize(deserializedObject);
+
+            return yamlString;
+        }
     }
     public class ReactionSpeciesDto
     {
+        [JsonPropertyName("ID")]
+        [System.Text.Json.Serialization.JsonIgnore]
         public Guid Id { get; set; }
+
+        [JsonPropertyName("reaction ID")]
+        [System.Text.Json.Serialization.JsonIgnore]
         public Guid ReactionId { get; set; }
+        [JsonPropertyName("species ID")]
+        [System.Text.Json.Serialization.JsonIgnore]
         public Guid SpeciesId { get; set; }
+        [JsonPropertyName("role")]
+        [System.Text.Json.Serialization.JsonIgnore]
         public string Role { get; set; } = string.Empty;
+        [JsonPropertyName("species name")]
         public string SpeciesName { get; set; } = string.Empty;
+        [JsonPropertyName("coefficient")]
+        public int Coefficient { get; set; } = 0;
     }
 }
