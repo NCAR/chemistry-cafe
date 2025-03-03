@@ -1,18 +1,18 @@
 import { useSearchParams } from "react-router-dom";
 import { Header, Footer } from "../components/HeaderFooter";
 import "../styles/settings.css";
-import { useCustomTheme } from "../components/CustomThemeContext";
+import { defaultAppearanceSettings, useCustomTheme } from "../components/CustomThemeContext";
 import { Box, Button, Divider, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Menu, Paper, Slider, Switch, Typography } from "@mui/material";
-import { memo, MouseEvent, useEffect, useLayoutEffect, useState } from "react";
+import { memo, MouseEvent, useLayoutEffect, useState } from "react";
 import AccountBoxIcon from '@mui/icons-material/AccountBox';
 import SettingsAccessibilityIcon from '@mui/icons-material/SettingsAccessibility';
 import TvIcon from '@mui/icons-material/Tv';
 import TextFieldsIcon from '@mui/icons-material/TextFields';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import AddCircleOutlineOutlinedIcon from '@mui/icons-material/AddCircleOutlineOutlined';
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import RemoveCircleOutlineOutlinedIcon from '@mui/icons-material/RemoveCircleOutlineOutlined';
-import { blue, blueGrey, green, orange, red, yellow } from "@mui/material/colors";
-import { KeyboardArrowDown } from "@mui/icons-material";
+import { blue, cyan, green, grey, orange, purple, red, yellow } from "@mui/material/colors";
 
 const Settings = () => {
   const { theme } = useCustomTheme();
@@ -183,6 +183,31 @@ const AppearanceMenu = () => {
 const AccessibilityMenu = () => {
   const { theme, appearanceSettings, setAppearanceSettings } = useCustomTheme();
 
+  /**
+   * Modifies the main global value for a given color palette
+   * @param paletteName Name of the palette to modify. This affects all components with this set value as the color.
+   * @param color Hex code for color to use.
+   */
+  const modifyColorPalette = (paletteName: "primary" | "secondary" | "info" | "error", color: string) => {
+    const modifiedAppearanceSettings = { ...appearanceSettings };
+    switch (paletteName) {
+      case "primary":
+        modifiedAppearanceSettings.primaryColor = color;
+        break;
+      case "secondary":
+        modifiedAppearanceSettings.secondaryColor = color;
+        break;
+      case "info":
+        modifiedAppearanceSettings.infoColor = color;
+        break;
+      case "error":
+        modifiedAppearanceSettings.errorColor = color;
+        break;
+    }
+
+    setAppearanceSettings(modifiedAppearanceSettings);
+  }
+
   const setFontSize = (fontSize: number) => {
     setAppearanceSettings({
       ...appearanceSettings,
@@ -252,47 +277,67 @@ const AccessibilityMenu = () => {
         <ListItem>
           <ColorPicker
             initialColor={theme.palette.primary.main}
-            onColorChange={(color) => console.log(color)}
+            onColorChange={(color) => modifyColorPalette("primary", color)}
             label="Primary Color"
             id="primary-color-picker"
             buttonColor="primary"
           />
+          {theme.palette.primary.main !== defaultAppearanceSettings.primaryColor &&
+            <Button onClick={() => modifyColorPalette("primary", defaultAppearanceSettings.primaryColor!)}>
+              Reset
+            </Button>
+          }
         </ListItem>
         <ListItem>
           <ColorPicker
             initialColor={theme.palette.secondary.main}
-            onColorChange={(color) => console.log(color)}
+            onColorChange={(color) => modifyColorPalette("secondary", color)}
             label="Secondary Color"
             id="secondary-color-picker"
             buttonColor="secondary"
           />
+          {theme.palette.secondary.main !== defaultAppearanceSettings.secondaryColor &&
+            <Button onClick={() => modifyColorPalette("secondary", defaultAppearanceSettings.secondaryColor!)}>
+              Reset
+            </Button>
+          }
         </ListItem>
         <ListItem>
           <ColorPicker
             initialColor={theme.palette.info.main}
-            onColorChange={(color) => console.log(color)}
+            onColorChange={(color) => modifyColorPalette("info", color)}
             label="Information Color"
             id="primary-button-color-picker"
             buttonColor="info"
           />
+          {theme.palette.info.main !== defaultAppearanceSettings.infoColor &&
+            <Button onClick={() => modifyColorPalette("info", defaultAppearanceSettings.infoColor!)}>
+              Reset
+            </Button>
+          }
         </ListItem>
         <ListItem>
           <ColorPicker
             initialColor={theme.palette.error.main}
-            onColorChange={(color) => console.log(color)}
+            onColorChange={(color) => modifyColorPalette("error", color)}
             label="Warning Color"
             id="primary-button-color-picker"
             buttonColor="error"
           />
+          {theme.palette.error.main !== defaultAppearanceSettings.errorColor &&
+            <Button onClick={() => modifyColorPalette("error", defaultAppearanceSettings.errorColor!)}>
+              Reset
+            </Button>
+          }
         </ListItem>
-      </List>
+      </List >
     </>
   );
 }
 
 type ColorPickerProps = {
   initialColor: string,
-  onColorChange: (color: string | null) => void;
+  onColorChange: (color: string) => void;
   label: string;
   id: string;
   buttonColor?: "primary" | "secondary" | "error" | "warning" | "info";
@@ -310,7 +355,7 @@ type ColorType = {
   900: string;
 }
 
-const defaultColors: Array<ColorType> = [red, orange, yellow, green, blue, blueGrey];
+const defaultColors: Array<ColorType> = [red, orange, yellow, green, cyan, blue, purple, grey];
 
 /**
  * Used for picking between a set of mui color values
@@ -318,8 +363,8 @@ const defaultColors: Array<ColorType> = [red, orange, yellow, green, blue, blueG
 const ColorPicker = memo(function ColorPicker({ initialColor, onColorChange, label, id, buttonColor }: ColorPickerProps) {
   const [open, setOpen] = useState<boolean>(false);
   const [color, setColor] = useState<string>(initialColor);
-  const [selectedColorIndex, setSelectedColorIndex] = useState<number>(0);
-  const [colorValue, setColorValue] = useState<keyof (ColorType)>(300);
+  const [selectedColorIndex, setSelectedColorIndex] = useState<number>(-1);
+  const [colorValue, setColorValue] = useState<keyof (ColorType)>(500);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const handleMenuOpen = (event: MouseEvent<HTMLButtonElement>) => {
@@ -332,8 +377,6 @@ const ColorPicker = memo(function ColorPicker({ initialColor, onColorChange, lab
     setOpen(false);
   }
 
-  useEffect(() => onColorChange(color), [color]);
-
   return (
     <Box>
       <Button
@@ -342,7 +385,7 @@ const ColorPicker = memo(function ColorPicker({ initialColor, onColorChange, lab
         aria-haspopup={true}
         onClick={handleMenuOpen}
         variant="contained"
-        endIcon={<KeyboardArrowDown />}
+        endIcon={<KeyboardArrowDownIcon />}
         color={buttonColor ?? "primary"}
       >
         {label}
@@ -368,19 +411,19 @@ const ColorPicker = memo(function ColorPicker({ initialColor, onColorChange, lab
           }}
         >
           {
-            defaultColors.map((color, index) => {
+            defaultColors.map((componentColor, index) => {
               return (
                 <Box
-                  key={`${color[50]}-${id}`}
+                  key={`${componentColor[50]}-${id}`}
                   sx={{
-                    backgroundColor: color[colorValue],
+                    backgroundColor: componentColor[colorValue],
                     height: "4rem",
                     width: "4rem",
                   }}
                   role="button"
                   onClick={() => {
                     setSelectedColorIndex(index);
-                    setColor(color[colorValue]);
+                    setColor(componentColor[colorValue]);
                   }}
                 >
                   {
@@ -405,7 +448,7 @@ const ColorPicker = memo(function ColorPicker({ initialColor, onColorChange, lab
         </Box>
         <Slider
           aria-label="Color Saturation"
-          defaultValue={colorValue}
+          defaultValue={500}
           step={100}
           marks={[]}
           min={100}
@@ -421,6 +464,13 @@ const ColorPicker = memo(function ColorPicker({ initialColor, onColorChange, lab
             setColor(defaultColors.at(selectedColorIndex)![colorValue]);
           }}
         />
+        <Button
+          onClick={() => onColorChange(color)}
+          variant="outlined"
+          color="primary"
+        >
+          Use This Color
+        </Button>
       </Menu>
     </Box>
   )

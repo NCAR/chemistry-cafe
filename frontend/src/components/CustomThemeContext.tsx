@@ -1,4 +1,5 @@
 import { createTheme, CssVarsThemeOptions, Theme, ThemeOptions, ThemeProvider } from "@mui/material";
+import { red } from "@mui/material/colors";
 import {
     createContext,
     useState,
@@ -10,6 +11,10 @@ import {
 export type AppearanceSettings = {
     fontSize?: number;
     mode?: "light" | "dark";
+    primaryColor?: string;
+    secondaryColor?: string;
+    infoColor?: string;
+    errorColor?: string;
 }
 
 // Type used by createTheme() for the theming options
@@ -17,9 +22,13 @@ type ThemeOptionsType = Omit<ThemeOptions, 'components'>
     & Pick<CssVarsThemeOptions, 'defaultColorScheme' | 'colorSchemes' | 'components'>
     & { cssVariables?: boolean | Pick<CssVarsThemeOptions, 'colorSchemeSelector' | 'rootSelector' | 'disableCssColorScheme' | 'cssVarPrefix' | 'shouldSkipGeneratingVar'>; }
 
-const defaultAppearanceSettings: AppearanceSettings = Object.freeze({
+export const defaultAppearanceSettings: Readonly<AppearanceSettings> = Object.freeze({
     fontSize: 14,
-    mode: "light"
+    mode: "light",
+    primaryColor: "#1976d2",
+    secondaryColor: "#edc4ff",
+    infoColor: "#03F4FC",
+    errorColor: red[500],
 });
 
 const getThemeOptions = (settings: AppearanceSettings): ThemeOptionsType => ({
@@ -31,6 +40,18 @@ const getThemeOptions = (settings: AppearanceSettings): ThemeOptionsType => ({
             : {
             }
         ),
+        primary: {
+            main: settings.primaryColor ?? defaultAppearanceSettings.primaryColor!
+        },
+        secondary: {
+            main: settings.secondaryColor ?? defaultAppearanceSettings.secondaryColor!
+        },
+        info: {
+            main: settings.infoColor ?? defaultAppearanceSettings.infoColor!
+        },
+        error: {
+            main: settings.errorColor ?? defaultAppearanceSettings.errorColor!
+        },
     },
     typography: {
         fontSize: settings.fontSize

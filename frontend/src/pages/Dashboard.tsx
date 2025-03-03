@@ -117,7 +117,7 @@ const FamilyInfoCard = memo(function FamilyInfoCard({ family }: { family: Family
         </CardContent>
         <CardActions>
           <ButtonGroup variant="outlined">
-            <Button color="info" onClick={() => alert("Not Implemented")} size="small">Learn More</Button>
+            <Button color="primary" onClick={() => alert("Not Implemented")} size="small">Learn More</Button>
             <Button color="primary" onClick={() => alert("Not Implemented")} size="small">Edit Family</Button>
           </ButtonGroup>
         </CardActions>
