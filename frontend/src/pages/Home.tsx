@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../pages/AuthContext"; // Import the AuthContext
-import "../styles/logIn.css";
+import { useAuth } from "../components/AuthContext"; // Import the AuthContext
+import "../styles/Home.css";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 //import Modal from "@mui/material/Modal";
@@ -11,7 +11,7 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { Footer, Header } from "../components/HeaderFooter";
 import { AUTH_URL } from "../API/API_config";
 
-const LogIn: React.FC = () => {
+const Home: React.FC = () => {
   const { setUser, user } = useAuth(); // Get setUser from AuthContext
   const navigate = useNavigate();
 
@@ -27,13 +27,13 @@ const LogIn: React.FC = () => {
       setUser(null);
       localStorage.removeItem("user");
 
-      const returnUrl = `${window.location.protocol}//${window.location.host}/loggedIn`;
+      const returnUrl = `${window.location.protocol}//${window.location.host}/dashboard`;
       const loginUrl = encodeURI(
         `${AUTH_URL}/google/logout?returnUrl=${returnUrl}`,
       );
       window.location.assign(loginUrl);
     } else {
-      navigate("loggedIn");
+      navigate("dashboard");
     }
   };
 
@@ -62,8 +62,8 @@ const LogIn: React.FC = () => {
             {user && (
               <Button
                 variant="contained"
-                onClick={() => navigate("/LoggedIn")}
-                endIcon={<ArrowForwardIcon />}
+                onClick={() => navigate("/dashboard")}
+                endIcon={<ArrowForwardIcon color="inherit" />}
                 sx={{ width: "100%", my: "0.5rem" }}
               >
                 Continue as {user.username}
@@ -72,7 +72,7 @@ const LogIn: React.FC = () => {
             <Button
               variant="contained"
               onClick={() => login()}
-              endIcon={<GoogleIcon />}
+              endIcon={<GoogleIcon color="inherit" />}
               sx={{ width: "100%", my: "0.5rem" }}
             >
               {user ? "Switch Account" : "Sign in"}
@@ -80,7 +80,7 @@ const LogIn: React.FC = () => {
             <Button
               variant="contained"
               onClick={continueAsGuest}
-              endIcon={<NoAccountsIcon />}
+              endIcon={<NoAccountsIcon color="inherit" />}
               sx={{ width: "100%", my: "0.5rem" }}
             >
               Continue as Guest
@@ -95,4 +95,4 @@ const LogIn: React.FC = () => {
   );
 };
 
-export default LogIn;
+export default Home;

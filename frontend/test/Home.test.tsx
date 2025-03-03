@@ -8,9 +8,9 @@ import {
   act,
 } from "@testing-library/react";
 import React from "react";
-import LogIn from "../src/pages/logIn";
+import Home from "../src/pages/Home";
 import { MemoryRouter } from "react-router-dom";
-import { AuthProvider } from "../src/pages/AuthContext";
+import { AuthProvider } from "../src/components/AuthContext";
 import { User, UserClaims } from "../src/API/API_Interfaces";
 import axios, { AxiosHeaders, AxiosResponse } from "axios";
 
@@ -22,7 +22,7 @@ const mockUserInfo: User = {
   username: "Test Account",
 };
 
-describe("Unauthenticated LogIn Component", () => {
+describe("Unauthenticated Home Component", () => {
   const originalLocation = window.location;
 
   function createMockUserData(): AxiosResponse {
@@ -43,14 +43,15 @@ describe("Unauthenticated LogIn Component", () => {
   beforeEach(() => {
     window.location = {
       ...originalLocation,
-      assign: vi.fn((_: string | URL) => {}),
+      assign: vi.fn((_: string | URL) => { }),
     };
     vi.spyOn(axios, "get").mockResolvedValue(createMockUserData());
+    vi.spyOn(axios, "post").mockResolvedValue(createMockUserData());
 
     render(
       <AuthProvider>
         <MemoryRouter initialEntries={["/", "/loggedIn"]}>
-          <LogIn />
+          <Home />
         </MemoryRouter>
       </AuthProvider>,
     );
@@ -108,7 +109,7 @@ describe.each([
       username: "John Doe",
     },
   ],
-])("Authenticated LogIn Component %s", (_, cachedUserInfo) => {
+])("Authenticated Home Component %s", (_, cachedUserInfo) => {
   const originalLocation = window.location;
 
   function createMockUserData(): AxiosResponse {
@@ -131,15 +132,16 @@ describe.each([
 
   beforeEach(async () => {
     vi.spyOn(axios, "get").mockResolvedValue(createMockUserData());
+    vi.spyOn(axios, "post").mockResolvedValue(createMockUserData());
     window.location = {
       ...originalLocation,
-      assign: vi.fn((_: string | URL) => {}),
+      assign: vi.fn((_: string | URL) => { }),
     };
     localStorage.setItem("user", JSON.stringify(cachedUserInfo));
     render(
       <AuthProvider>
         <MemoryRouter initialEntries={["/", "/loggedIn"]}>
-          <LogIn />
+          <Home />
         </MemoryRouter>
       </AuthProvider>,
     );
