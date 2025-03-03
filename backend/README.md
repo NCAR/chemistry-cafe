@@ -23,6 +23,7 @@ MYSQL_PASSWORD=chemistrycafe
 MYSQL_DATABASE=chemistry_db
 
 # Optional with defaults
+GOOGLE_CALLBACK_PATH=/signin-google
 MYSQL_SERVER=localhost
 MYSQL_PORT=3306
 ```
