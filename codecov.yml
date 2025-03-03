@@ -1,2 +1,21 @@
-codecov:
-  max_report_age: off
+coverage:
+  precision: 2
+  round: down
+
+comment: false
+
+flags:
+  frontend: 
+    paths:
+      - frontend
+  backend:
+    paths:
+      - backend
+
+uploads:
+  - target: coverage
+    flags: frontend
+    path: frontend/coverage/lcov.info
+  - target: coverage
+    flags: backend
+    path: backend/coveragereport/lcov.info
