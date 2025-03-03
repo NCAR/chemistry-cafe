@@ -31,6 +31,14 @@ namespace Chemistry_Cafe_API.Services
 
         public async Task<User> CreateUserAsync(User user)
         {
+            if (user.GoogleId != null) {
+                var existingUser = await _context.Users.SingleOrDefaultAsync(u => u.GoogleId == user.GoogleId);
+                if (existingUser != null) {
+                    existingUser.Email = user.Email;
+                    await _context.SaveChangesAsync();
+                    return existingUser;
+                }
+            }
             user.Id = Guid.NewGuid();
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
@@ -42,7 +50,7 @@ namespace Chemistry_Cafe_API.Services
             var existingUser = await GetUserByIdAsync(user.Id);
             if (existingUser == null)
             {
-                throw new KeyNotFoundException($"User with ID {user.Id} not found.");
+                throw new KeyNotFoundException($"User with Id {user.Id} not found.");
             }
             existingUser.Username = user.Username;
             existingUser.Role = user.Role;
