@@ -1,4 +1,6 @@
 ﻿using MySqlConnector;
+using Chemistry_Cafe_API.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace Chemistry_Cafe_API.Tests
 {
@@ -9,9 +11,11 @@ namespace Chemistry_Cafe_API.Tests
         private static string password = System.Environment.GetEnvironmentVariable("MYSQL_PASSWORD") ?? "chemistrycafe";
         private static string database = System.Environment.GetEnvironmentVariable("MYSQL_DATABASE") ?? "chemistry_db";
         private static string port = "3306"; // Default MySQL port
-
-        public static MySqlDataSource DataSource = new MySqlDataSource(
-            $"Server={server};Port={port};Database={database};User={user};Password={password}"
-        );
+        private static string connectionString = $"Server={server};Port={port};Database={database};User={user};Password={password};AllowUserVariables=True;UseAffectedRows=False;";
+        private static DbContextOptions<ChemistryDbContext> options = new DbContextOptionsBuilder<ChemistryDbContext>()
+            .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
+            .Options;
+        public static MySqlDataSource DataSource = new MySqlDataSource(connectionString);
+        public static ChemistryDbContext Context = new ChemistryDbContext(options);
     }
 }

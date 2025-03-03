@@ -491,3 +491,6 @@ $RECYCLE.BIN/
 
 obj
 bin
+
+# Test files
+TestResults
