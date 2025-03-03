@@ -62,6 +62,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_CALLBACK_PATH: ${GOOGLE_CALLBACK_PATH}
     networks:
       - app-network
     command: ["dotnet", "watch", "run", "--project", "ChemistryCafeAPI.csproj"] # Command for development
