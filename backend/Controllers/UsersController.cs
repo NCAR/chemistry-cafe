@@ -71,7 +71,7 @@ namespace Chemistry_Cafe_API.Controllers
         }
 
         // DELETE: api/Users/5
-        [HttpDelete("{email}")]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(Guid id)
         {
             await _userService.DeleteUserAsync(id);
