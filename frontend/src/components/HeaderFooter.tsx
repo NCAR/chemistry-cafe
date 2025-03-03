@@ -6,7 +6,7 @@ import { Drawer } from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Container from "@mui/material/Container";
 import DensitySmallSharpIcon from "@mui/icons-material/DensitySmallSharp";
-import { useAuth } from "../pages/AuthContext";
+import { useAuth } from "../components/AuthContext";
 import Modal from "@mui/material/Modal";
 import Typography from "@mui/material/Typography";
 import TAMUlogo from "../assets/TAMULogo.png";
@@ -46,8 +46,14 @@ export const Header = () => {
         padding: "10px",
       }}
     >
-      <Button onClick={toggleDrawer(true)}>
-        <DensitySmallSharpIcon sx={{ fontSize: 50 }}></DensitySmallSharpIcon>
+      <Button
+        aria-label="Open Side-Navigation Menu"
+        id="side-nav-button"
+        onClick={toggleDrawer(true)}
+      >
+        <DensitySmallSharpIcon
+          sx={{ fontSize: "2.3rem" }}
+        ></DensitySmallSharpIcon>
       </Button>
       <Drawer open={openDrawer} onClose={toggleDrawer(false)}>
         <NavDropDown />
@@ -58,18 +64,22 @@ export const Header = () => {
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <Box sx={{ paddingRight: "10px" }}>
             {/* Display user's name or email */}
-            <span>{loggedInUser.email}</span>
+            <Typography sx={{ fontSize: "medium" }}>
+              {loggedInUser.email}
+            </Typography>
           </Box>
           <Box sx={{ paddingRight: "20px" }}>
             {/* Display user's role */}
-            <span>({displayRole()})</span>
+            <Typography sx={{ fontSize: "medium" }}>
+              ({displayRole()})
+            </Typography>
           </Box>
         </Box>
       ) : (
         <Box
           sx={{ display: "flex", alignItems: "center", paddingRight: "20px" }}
         >
-          Using as guest
+          <Typography sx={{ fontSize: "medium" }}>Using as guest</Typography>
         </Box>
       )}
     </Paper>
@@ -126,7 +136,9 @@ export const Footer = () => {
             textAlign: "center",
           }}
         >
-          <Typography variant="h4">About</Typography>
+          <Typography color="textPrimary" variant="h4">
+            About
+          </Typography>
           <Box
             component="img"
             src={NSF_NCARlogo}
@@ -139,18 +151,36 @@ export const Footer = () => {
             alt={"Texas A&M Logo"}
             sx={{ height: "100px", width: "auto" }}
           />
-          <Typography variant="body1">
+          <Typography color="textPrimary" variant="body1">
             The Chemistry Cafe tool was made possible by the collaboration
-            between NCAR and Texas A&M through the CSCE Capstone program.
+            between NSF NCAR and Texas A&M through the CSCE Capstone program.
           </Typography>
-          <p></p>
-          <Typography variant="h6">Credits</Typography>
-          <Typography variant="body1">
-            Paul Cyr, Brandon Longuet, Brian Nguyen <br></br> Spring 2024
-            Capstone Team <br></br> <p></p>
-            Britt Schiller, Ore Ogunleye, Nishka Mittal, Josh Hare, Sydney
-            Ferris <br></br> Fall 2024 Capstone Team <br></br> <p></p>
-            Kyle Shores <br></br> Spring 2024 Capstone Sponsor Representative
+          <br />
+          <Typography color="textPrimary" variant="h6">
+            Credits
+          </Typography>
+          <Typography color="textPrimary" variant="body1" component="span">
+            <Typography color="textPrimary" variant="inherit">
+              Paul Cyr, Brandon Longuet, Brian Nguyen <br />
+              Spring 2024 Capstone Team
+            </Typography>
+            <br />
+            <Typography color="textPrimary" variant="inherit">
+              Britt Schiller, Ore Ogunleye, Nishka Mittal, Josh Hare, Sydney
+              Ferris <br />
+              Fall 2024 Capstone Team
+            </Typography>
+            <br />
+            <Typography color="textPrimary" variant="inherit">
+              Jackson Stewart, Kaili Fogle, Robbie Cook, Donato Curvino, James
+              Fontenot <br />
+              Spring 2025 Capstone Team
+            </Typography>
+            <br />
+            <Typography color="textPrimary" variant="inherit">
+              Kyle Shores <br />
+              Capstone Sponsor Representative
+            </Typography>
           </Typography>
         </Box>
       </Modal>

@@ -38,18 +38,6 @@ public partial class ChemistryDbContext : DbContext
 
     public virtual DbSet<UserMechanism> UserMechanisms { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            if (!optionsBuilder.IsConfigured)
-            {
-                IConfigurationRoot configuration = new ConfigurationBuilder()
-                    .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-                    .AddJsonFile("appsettings.json")
-                    .Build();
-                var connectionString = configuration.GetConnectionString("DefaultConnection");
-                optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
-            }
-        }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder

@@ -6,6 +6,30 @@ API for the Chemistry Cafe web application found here https://github.com/NCAR/ch
 
 # Getting Started
 
+## Google Cloud
+
+In order to use Google Authentication, a Google Cloud OAuth 2.0 project must be used for testing. When creating the project, `http://localhost:8080/signin-google` should be added to the list of Authorized redirect URIs.
+
+## Environment Variables
+
+For the backend to connect to the MySQL server, certain environment variables must be specified. The default values can be seen in `docker-compose.yml`. These variables are the following:
+
+```py
+# Required
+GOOGLE_CLIENT_ID=<client_id>
+GOOGLE_CLIENT_SECRET=<client_secret>
+MYSQL_USER=chemistrycafedev
+MYSQL_PASSWORD=chemistrycafe
+MYSQL_DATABASE=chemistry_db
+
+# Optional with defaults
+GOOGLE_CALLBACK_PATH=/signin-google
+MYSQL_SERVER=localhost
+MYSQL_PORT=3306
+```
+
+`GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` can be found in a google cloud project. These variables may be set in a `.env` file in the `/backend` directory or created on the machine itself.
+
 ## Command line
 
 Install the `dotnet` tool

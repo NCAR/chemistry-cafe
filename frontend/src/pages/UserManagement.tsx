@@ -16,11 +16,13 @@ import {
   GridRowModel,
   GridRowEditStopReasons,
   GridEventListener,
+  GridFooterContainer,
+  GridFooter,
 } from "@mui/x-data-grid";
 
 import { Header, Footer } from "../components/HeaderFooter";
 
-import "../styles/roles.css";
+import "../styles/UserManagement.css";
 //import { useAuth } from "../contexts/AuthContext"; // Import the AuthContext
 import { getUsers } from "../API/API_GetMethods";
 import { User } from "../API/API_Interfaces";
@@ -45,7 +47,25 @@ function RolesToolbar() {
   );
 }
 
-const RoleManagement: React.FC = () => {
+function CustomDataGridFooter() {
+  return (
+    <GridFooterContainer>
+      <GridFooter
+        sx={{
+          border: "none",
+          "& .MuiTablePagination-displayedRows": {
+            marginBottom: 0,
+          },
+          "& .MuiTablePagination-selectLabel": {
+            marginBottom: 0,
+          },
+        }}
+      />
+    </GridFooterContainer>
+  );
+}
+
+const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -236,32 +256,41 @@ const RoleManagement: React.FC = () => {
   ];
 
   return (
-    <div className="totalPage">
-      <div className="headerBar">
-        <Header></Header>
-      </div>
-      <div className="mainContent">
-        <div className="userDataGrid">
-          <DataGrid
-            rows={users}
-            columns={userColumns}
-            // Specifying the primary key to track each entry by
-            getRowId={(row) => row.id}
-            editMode="row"
-            rowModesModel={rowModesModel}
-            onRowModesModelChange={handleRowModesModelChange}
-            onRowEditStop={handleRowEditStop}
-            processRowUpdate={processRowUpdate}
-            onProcessRowUpdateError={(error) => console.log(error)}
-            slots={{ toolbar: RolesToolbar }}
-          />
-        </div>
-      </div>
-
-      <div className="footerBar">
-        <Footer></Footer>
-      </div>
-
+    <div className="layout-user-management">
+      <header>
+        <Header />
+      </header>
+      <section className="content-user-management">
+        <DataGrid
+          rows={users}
+          columns={userColumns}
+          style={{ flex: 1 }}
+          // Specifying the primary key to track each entry by
+          getRowId={(row) => row.id}
+          editMode="row"
+          rowModesModel={rowModesModel}
+          onRowModesModelChange={handleRowModesModelChange}
+          onRowEditStop={handleRowEditStop}
+          processRowUpdate={processRowUpdate}
+          onProcessRowUpdateError={(error) => console.log(error)}
+          slots={{
+            toolbar: RolesToolbar,
+            footer: CustomDataGridFooter,
+          }}
+          disableRowSelectionOnClick
+          initialState={{
+            pagination: {
+              paginationModel: {
+                pageSize: 20,
+              },
+            },
+          }}
+          pageSizeOptions={[5, 10, 20, 50]}
+        />
+      </section>
+      <footer>
+        <Footer />
+      </footer>
       {deleteType === "User" && (
         <Dialog open={deleteDialogOpen} onClose={handleDeleteDialogClose}>
           <DialogTitle>{`Are you sure you want to delete this?`}</DialogTitle>
@@ -292,4 +321,4 @@ const RoleManagement: React.FC = () => {
   );
 };
 
-export default RoleManagement;
+export default UserManagement;

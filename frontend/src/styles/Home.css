@@ -1,0 +1,32 @@
+.layout-home {
+  width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.content-home {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background-color: #1a658f;
+  background-image: url("/src/assets/NCAR-Waves.png");
+  background-position: center center;
+  background-size: 135%;
+  background-repeat: no-repeat;
+  background-blend-mode: overlay;
+}
+
+.information-home {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  margin-top: 15vh;
+}
+
+.sign-in-controls {
+  display: flex;
+  flex-direction: column;
+  margin-top: 1.5rem;
+}

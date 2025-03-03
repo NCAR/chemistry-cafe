@@ -6,6 +6,10 @@
 # dotenv files
 .env
 
+# OAuth Credentials
+client_secrets.json
+
+
 # User-specific files
 *.rsuser
 *.suo
@@ -34,6 +38,7 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
+app/
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
@@ -486,3 +491,6 @@ $RECYCLE.BIN/
 
 obj
 bin
+
+# Test files
+TestResults

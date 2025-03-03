@@ -1,6 +1,11 @@
 using Chemistry_Cafe_API.Services;
 using MySqlConnector;
 using Microsoft.AspNetCore.HttpOverrides;
+using Chemistry_Cafe_API.Controllers;
+using Chemistry_Cafe_API.Models;
+using dotenv.net;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +13,9 @@ if (!builder.Environment.IsDevelopment())
 {
     builder.WebHost.UseUrls("http://0.0.0.0:5000");
 }
+
+// Configure Environment
+DotEnv.Load();
 
 // Add services to the container.
 
@@ -23,39 +31,60 @@ builder.Services.AddScoped<InitialConditionSpeciesService>();
 builder.Services.AddScoped<OpenAtmosService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<PropertyService>();
+builder.Services.AddScoped<GoogleOAuthService>();
+
+string googleClientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID") ?? throw new InvalidOperationException("GOOGLE_CLIENT_ID environment variable is missing.");
+string googleClientSecret = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET") ?? throw new InvalidOperationException("GOOGLE_CLIENT_SECRET environment variable is missing.");
+string googleCallbackPath = Environment.GetEnvironmentVariable("GOOGLE_CALLBACK_PATH").IsNullOrEmpty() ? "/signin-google" : Environment.GetEnvironmentVariable("GOOGLE_CALLBACK_PATH")!;
+
+builder.Services.AddAuthentication((options) =>
+    {
+        options.DefaultScheme = "Application";
+        options.DefaultSignInScheme = "External";
+    })
+    .AddCookie("Application")
+    .AddCookie("External")
+    .AddGoogle((options) =>
+    {
+        options.ClientId = googleClientId;
+        options.ClientSecret = googleClientSecret;
+        options.CallbackPath = googleCallbackPath;
+        options.AccessDeniedPath = "/auth/google/login";
+    });
+
 //builder.Services.AddScoped<TimeService>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 //Adds SQL data source from appsettings.json file
+var server = Environment.GetEnvironmentVariable("MYSQL_SERVER") ?? "localhost";
+var user = Environment.GetEnvironmentVariable("MYSQL_USER") ?? throw new InvalidOperationException("MYSQL_USER environment variable is missing.");
+var password = Environment.GetEnvironmentVariable("MYSQL_PASSWORD") ?? throw new InvalidOperationException("MYSQL_PASSWORD environment variable is missing.");
+var database = Environment.GetEnvironmentVariable("MYSQL_DATABASE") ?? throw new InvalidOperationException("MYSQL_DATABASE environment variable is missing.");
+var port = Environment.GetEnvironmentVariable("MYSQL_PORT") ?? "3306";
 
-string connectionString;
-if (builder.Environment.IsDevelopment())
-{
-    connectionString = builder.Configuration.GetConnectionString("HostConnection") ?? throw new InvalidOperationException("HostConnection string is missing.");
-}
-else
-{
-    connectionString = builder.Configuration.GetConnectionString("ProductionConnection") ?? throw new InvalidOperationException("ProductionConnection string is missing.");
-}
-
+var connectionString = $"Server={server};Port={port};Database={database};User={user};Password={password};AllowUserVariables=True;UseAffectedRows=False;";
+/* TODO: Remove data source!!!*/
 builder.Services.AddMySqlDataSource(connectionString);
+builder.Services.AddDbContext<ChemistryDbContext>(options => options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("DevelopmentCorsPolicy", builder =>
+    options.AddPolicy("DevelopmentCorsPolicy", policy =>
     {
-        builder.WithOrigins("http://localhost:5173")
+        policy.WithOrigins("http://localhost:5173")
                .AllowAnyMethod()
-               .AllowAnyHeader();
+               .AllowAnyHeader()
+               .AllowCredentials();
     });
 
-    options.AddPolicy("ProductionCorsPolicy", builder =>
+    options.AddPolicy("ProductionCorsPolicy", policy =>
     {
-        builder.WithOrigins("https://cafe-deux-devel.acom.ucar.edu")
+        policy.WithOrigins("https://cafe-deux-devel.acom.ucar.edu")
                .AllowAnyMethod()
-               .AllowAnyHeader();
+               .AllowAnyHeader()
+               .AllowCredentials();
     });
 });
 
@@ -76,6 +105,7 @@ else
     });
 }
 
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();

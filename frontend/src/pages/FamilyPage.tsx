@@ -8,7 +8,7 @@ import { StyledDetailBox } from "./familyStyling";
 
 import { Header, Footer } from "../components/HeaderFooter";
 
-import "../styles/family.css";
+import "../styles/FamilyPage.css";
 import { Family, Mechanism } from "../API/API_Interfaces";
 
 const FamilyPage = () => {

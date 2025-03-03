@@ -1,18 +1,21 @@
+x-db-env: &db-env
+  MYSQL_SERVER: mysql
+  MYSQL_USER: chemistrycafedev
+  MYSQL_PASSWORD: chemistrycafe
+  MYSQL_DATABASE: chemistry_db
+
 services:
   mysql:
     image: mysql:9.0
-    env_file:
-      - .env
+    container_name: mysql
     ports:
-      - "3307:3306" # MySQL default port
+      - "3306:3306" # MySQL default port
     volumes:
       - db_data:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql # run initial sql script
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD} # Set in your .env file
-      MYSQL_DATABASE: ${MYSQL_DATABASE} # Set in your .env file
-      MYSQL_USER: ${MYSQL_USER} # Set in your .env file
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD} # Set in your .env file
+      <<: *db-env
+      MYSQL_ROOT_PASSWORD: chemistrycafefall24
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
@@ -21,6 +24,7 @@ services:
     networks:
       - app-network
   frontend:
+    container_name: frontend
     build:
       context: ./frontend # Path to your front-end repository
       dockerfile: Dockerfile
@@ -29,9 +33,9 @@ services:
     depends_on:
       - backend # Ensure the backend service starts before frontend
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      # - ASPNETCORE_ENVIRONMENT=Development
+      # - ASPNETCORE_URLS=http://0.0.0.0:8080
       - API_URL=http://backend:8080 # This points to the backend service within the Docker network
-      - ASPNETCORE_URLS=http://0.0.0.0:8080
     networks:
       - app-network
     # test code by britt to enable live updates to frontend with docker
@@ -47,13 +51,18 @@ services:
           path: package.json
     command: ["npm", "run", "dev"] # Command for development
   backend:
+    container_name: backend
     build:
       context: ./backend # Path to your back-end repository
       dockerfile: Dockerfile
     ports:
       - "8080:8080" # Map host port to container port
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      <<: *db-env
+      ASPNETCORE_ENVIRONMENT: Development
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_CALLBACK_PATH: ${GOOGLE_CALLBACK_PATH}
     networks:
       - app-network
     command: ["dotnet", "watch", "run", "--project", "ChemistryCafeAPI.csproj"] # Command for development

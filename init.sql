@@ -108,7 +108,8 @@ CREATE TABLE users (
     username VARCHAR(255) UNIQUE NOT NULL,
     role VARCHAR(50) NOT NULL, -- Role could be 'admin', 'researcher', etc.
     email VARCHAR(255),
-    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    google_id VARCHAR(255)
 );
 
 -- Table to store the relationship between users and mechanisms

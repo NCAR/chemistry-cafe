@@ -1,0 +1,21 @@
+.layout-settings {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  min-height: 100vh;
+}
+
+.content-settings {
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.settings-selector {
+  grid-column: 1;
+}
+
+.settings-editor {
+  grid-column-start: 2;
+  grid-column-end: 5;
+}

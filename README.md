@@ -15,33 +15,33 @@ ChemistryCafe is a web application built with React, Vite, and TypeScript. The a
 
 ## Getting Started
 
-### Installing chemistry-cafe locally
-1. **Required**:
-    To build and install chemisty-cafe locally, you must have:
-    - dotnet
-    - Node.js
-    - Docker
+### Backend Environment Variables
 
-2. **Clone the repository**:
-Open a terminal window, navigate to a folder where you would like the Chemistry Cafe files to exist,
-and run the following commands:
+The backend of Chemistry Cafe requires certain secrets that cannot be stored in version control. These secrets are stored in environment variables that are either on the machine or loaded on runtime. Before running the application, make sure to define these variables ahead of time.
 
-    ```
-    git clone https://github.com/NCAR/chemistry-cafe.git
-    cd chemistrycafe
-    ```
-3. **Install dependencies for frontend**:
-    ```shell
-    cd frontend
-    npm install
-    cd ..
-    ```
-4. **Install dotnet(macOS)**
-    ```
-    brew install dotnet
-    ```
+To define required environment variables, a `.env` file should be created with the following schema:
 
-<!-- 
+```py
+# Required
+GOOGLE_CLIENT_ID=<client_id>
+GOOGLE_CLIENT_SECRET=<client_secret>
+MYSQL_USER=chemistrycafedev
+MYSQL_PASSWORD=chemistrycafe
+MYSQL_DATABASE=chemistry_db
+
+# Optional with defaults
+GOOGLE_CALLBACK_PATH=/signin-google
+MYSQL_SERVER=localhost
+MYSQL_PORT=3306
+```
+
+In order to use Google Authentication, a Google Cloud OAuth 2.0 project must be used with a `client id` and `client secret`. When creating the project, `http://localhost:8080/signin-google` should be added to the list of "Authorized redirect URIs" for testing.
+
+**Note:**
+
+- When running locally, the `.env` file must be in the `/backend` directory. 
+- When running with docker, the `.env` file can either be in the root directory *or* `/backend`. If it is in another directory, simply use `docker compose --env-file <path/to/.env> up` instead of the default.  
+
 ### Running Chemistry Cafe with Docker Compose
 
 You must have [Docker Desktop](https://www.docker.com/get-started) installed and running.
@@ -52,31 +52,59 @@ To build the project run:
 docker compose up --build
 ```
 
+To run project in background:
+
+```
+docker compose up -d
+```
+
 When finished, run:
 ```
 docker compose down
 ```
-**Note:** To view changes, you must run the docker compose down and then run the project again. -->
 
-### Running Chemistry Cafe Locally
-You must open 3 terminals and run the following commands in each:
-
-**Terminal 1**
+To view logs for backend/frontend/sql:
 ```
-cd backend
-dotnet run
+docker compose logs backend
+docker compose logs frontend 
+docker compose logs sql 
 ```
 
-**Terminal 2**
+To view logs for all services:
 ```
-cd frontend
-npm run dev
+docker compose logs -f 
 ```
 
-**Terminal 3**
-```
-docker compose up mysql
-```
+**Note:** To view changes, you must run the docker compose down and then run the project again.
+
+### Local Development (without Docker)
+
+#### Framework dependencies
+
+- [dotnet](https://dotnet.microsoft.com/en-us/download) (backend)
+- [Node.js](https://nodejs.org/en/download) (frontend)
+- [Docker](https://www.docker.com/) (optional but makes things easier)
+
+#### Setup
+1. **Clone the repository**:
+Open a terminal window, navigate to a folder where you would like the Chemistry Cafe files to exist,
+and run the following commands:
+
+    ```
+    git clone https://github.com/NCAR/chemistry-cafe.git
+    cd chemistrycafe
+    ```
+2. **Install dependencies for frontend**:
+    ```shell
+    cd frontend
+    npm install
+    cd ..
+    ```
+4. **Install dependencies for backend**
+    ```
+    cd backend
+    dotnet restore
+    ```
 
 ## Testing
 
@@ -89,14 +117,10 @@ If all tests past, the coverage report will generate in frontend/coverage/index.
 
 ### To test backend
 
-**Terminal 1**
 ```
-docker compose up mysql
-```
-**Terminal 2**
-```
-cd backend
-dotnet test --collect "Code Coverage;Format=cobertura"  --settings ..\.runsettings
+docker compose up mysql -d
+dotnet test backend --collect "Code Coverage;Format=cobertura"  --settings backend/.runsettings
+docker compose down
 ```
 
 ```
