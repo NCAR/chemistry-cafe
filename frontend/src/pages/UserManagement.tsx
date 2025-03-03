@@ -50,17 +50,19 @@ function RolesToolbar() {
 function CustomDataGridFooter() {
   return (
     <GridFooterContainer>
-      <GridFooter sx={{
-        border: "none",
-        "& .MuiTablePagination-displayedRows": {
-          marginBottom: 0,
-        },
-        "& .MuiTablePagination-selectLabel": {
-          marginBottom: 0,
-        },
-      }} />
+      <GridFooter
+        sx={{
+          border: "none",
+          "& .MuiTablePagination-displayedRows": {
+            marginBottom: 0,
+          },
+          "& .MuiTablePagination-selectLabel": {
+            marginBottom: 0,
+          },
+        }}
+      />
     </GridFooterContainer>
-  )
+  );
 }
 
 const UserManagement: React.FC = () => {
@@ -273,7 +275,7 @@ const UserManagement: React.FC = () => {
           onProcessRowUpdateError={(error) => console.log(error)}
           slots={{
             toolbar: RolesToolbar,
-            footer: CustomDataGridFooter
+            footer: CustomDataGridFooter,
           }}
           disableRowSelectionOnClick
           initialState={{

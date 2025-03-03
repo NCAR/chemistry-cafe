@@ -1,48 +1,78 @@
 import { useSearchParams } from "react-router-dom";
 import { Header, Footer } from "../components/HeaderFooter";
 import "../styles/Settings.css";
-import { defaultAppearanceSettings, useCustomTheme } from "../components/CustomThemeContext";
-import { Box, Button, Divider, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Menu, Paper, Slider, Switch, Typography } from "@mui/material";
+import {
+  defaultAppearanceSettings,
+  useCustomTheme,
+} from "../components/CustomThemeContext";
+import {
+  Box,
+  Button,
+  Divider,
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  Paper,
+  Slider,
+  Switch,
+  Typography,
+} from "@mui/material";
 import { memo, MouseEvent, useLayoutEffect, useState } from "react";
-import AccountBoxIcon from '@mui/icons-material/AccountBox';
-import SettingsAccessibilityIcon from '@mui/icons-material/SettingsAccessibility';
-import TvIcon from '@mui/icons-material/Tv';
-import TextFieldsIcon from '@mui/icons-material/TextFields';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import AddCircleOutlineOutlinedIcon from '@mui/icons-material/AddCircleOutlineOutlined';
+import AccountBoxIcon from "@mui/icons-material/AccountBox";
+import SettingsAccessibilityIcon from "@mui/icons-material/SettingsAccessibility";
+import TvIcon from "@mui/icons-material/Tv";
+import TextFieldsIcon from "@mui/icons-material/TextFields";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import AddCircleOutlineOutlinedIcon from "@mui/icons-material/AddCircleOutlineOutlined";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import RemoveCircleOutlineOutlinedIcon from '@mui/icons-material/RemoveCircleOutlineOutlined';
-import { blue, cyan, green, grey, orange, purple, red, yellow } from "@mui/material/colors";
+import RemoveCircleOutlineOutlinedIcon from "@mui/icons-material/RemoveCircleOutlineOutlined";
+import {
+  blue,
+  cyan,
+  green,
+  grey,
+  orange,
+  purple,
+  red,
+  yellow,
+} from "@mui/material/colors";
 
 const Settings = () => {
   const { theme } = useCustomTheme();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [selectedMenu, setSelectedMenu] = useState<"profile" | "appearance" | "accessibility" | string>(searchParams.get("selectedMenu") ?? "appearance");
-  const [menuComponent, setMenuComponent] = useState<JSX.Element>(<ProfileMenu />);
+  const [selectedMenu, setSelectedMenu] = useState<
+    "profile" | "appearance" | "accessibility" | string
+  >(searchParams.get("selectedMenu") ?? "appearance");
+  const [menuComponent, setMenuComponent] = useState<JSX.Element>(
+    <ProfileMenu />,
+  );
 
   const getMenuComponent = (menuName: string) => {
     switch (menuName) {
       case "appearance":
-        return <AppearanceMenu />
+        return <AppearanceMenu />;
       case "accessibility":
-        return <AccessibilityMenu />
+        return <AccessibilityMenu />;
       default:
       case "profile":
         return <ProfileMenu />;
     }
-  }
+  };
 
   const selectMenu = (menuName: string) => {
     if (selectedMenu !== menuName) {
       setSelectedMenu(menuName);
       setSearchParams(`selectedMenu=${menuName}`);
     }
-  }
+  };
 
   useLayoutEffect(() => {
     setMenuComponent(getMenuComponent(selectedMenu));
   }, [selectedMenu]);
-
 
   return (
     <div className="layout-settings">
@@ -73,12 +103,21 @@ const Settings = () => {
             subheader="App Settings"
           >
             <ListItem disablePadding>
-              <ListItemButton aria-label="open appearance settings" onClick={() => selectMenu("appearance")}>
+              <ListItemButton
+                aria-label="open appearance settings"
+                onClick={() => selectMenu("appearance")}
+              >
                 <ListItemIcon>
-                  <TvIcon color={selectedMenu == "appearance" ? "primary" : "inherit"} />
+                  <TvIcon
+                    color={selectedMenu == "appearance" ? "primary" : "inherit"}
+                  />
                 </ListItemIcon>
                 <ListItemText>
-                  <Typography color={selectedMenu == "appearance" ? "primary" : "textPrimary"}>
+                  <Typography
+                    color={
+                      selectedMenu == "appearance" ? "primary" : "textPrimary"
+                    }
+                  >
                     Appearance
                   </Typography>
                 </ListItemText>
@@ -86,12 +125,25 @@ const Settings = () => {
             </ListItem>
 
             <ListItem disablePadding>
-              <ListItemButton aria-label="open accessibility settings" onClick={() => selectMenu("accessibility")}>
+              <ListItemButton
+                aria-label="open accessibility settings"
+                onClick={() => selectMenu("accessibility")}
+              >
                 <ListItemIcon>
-                  <SettingsAccessibilityIcon color={selectedMenu == "accessibility" ? "primary" : "inherit"} />
+                  <SettingsAccessibilityIcon
+                    color={
+                      selectedMenu == "accessibility" ? "primary" : "inherit"
+                    }
+                  />
                 </ListItemIcon>
                 <ListItemText>
-                  <Typography color={selectedMenu == "accessibility" ? "primary" : "textPrimary"}>
+                  <Typography
+                    color={
+                      selectedMenu == "accessibility"
+                        ? "primary"
+                        : "textPrimary"
+                    }
+                  >
                     Accessibility
                   </Typography>
                 </ListItemText>
@@ -107,12 +159,21 @@ const Settings = () => {
             subheader="User Settings"
           >
             <ListItem disablePadding>
-              <ListItemButton aria-label="open profile settings" onClick={() => selectMenu("profile")}>
+              <ListItemButton
+                aria-label="open profile settings"
+                onClick={() => selectMenu("profile")}
+              >
                 <ListItemIcon>
-                  <AccountBoxIcon color={selectedMenu == "profile" ? "primary" : "inherit"} />
+                  <AccountBoxIcon
+                    color={selectedMenu == "profile" ? "primary" : "inherit"}
+                  />
                 </ListItemIcon>
                 <ListItemText>
-                  <Typography color={selectedMenu == "profile" ? "primary" : "textPrimary"}>
+                  <Typography
+                    color={
+                      selectedMenu == "profile" ? "primary" : "textPrimary"
+                    }
+                  >
                     My Profile
                   </Typography>
                 </ListItemText>
@@ -140,12 +201,8 @@ const Settings = () => {
 };
 
 const ProfileMenu = () => {
-  return (
-    <Typography component={"h1"}>
-      Work In Progress
-    </Typography>
-  );
-}
+  return <Typography component={"h1"}>Work In Progress</Typography>;
+};
 
 const AppearanceMenu = () => {
   const { theme, appearanceSettings, setAppearanceSettings } = useCustomTheme();
@@ -167,10 +224,17 @@ const AppearanceMenu = () => {
         subheader="Color Theme"
       >
         <ListItem disablePadding>
-          <ListItemButton aria-label="toggle dark theme" onClick={toggleDarkMode}>
+          <ListItemButton
+            aria-label="toggle dark theme"
+            onClick={toggleDarkMode}
+          >
             <ListItemText>
-              <Typography color="textPrimary" fontSize="large">Dark Theme</Typography>
-              <Typography color="textSecondary" fontSize="medium">This theme may not work with all pages currently</Typography>
+              <Typography color="textPrimary" fontSize="large">
+                Dark Theme
+              </Typography>
+              <Typography color="textSecondary" fontSize="medium">
+                This theme may not work with all pages currently
+              </Typography>
             </ListItemText>
             <Switch checked={appearanceSettings?.mode === "dark"} />
           </ListItemButton>
@@ -178,7 +242,7 @@ const AppearanceMenu = () => {
       </List>
     </>
   );
-}
+};
 
 const AccessibilityMenu = () => {
   const { theme, appearanceSettings, setAppearanceSettings } = useCustomTheme();
@@ -188,7 +252,10 @@ const AccessibilityMenu = () => {
    * @param paletteName Name of the palette to modify. This affects all components with this set value as the color.
    * @param color Hex code for color to use.
    */
-  const modifyColorPalette = (paletteName: "primary" | "secondary" | "info" | "error", color: string) => {
+  const modifyColorPalette = (
+    paletteName: "primary" | "secondary" | "info" | "error",
+    color: string,
+  ) => {
     const modifiedAppearanceSettings = { ...appearanceSettings };
     switch (paletteName) {
       case "primary":
@@ -206,7 +273,7 @@ const AccessibilityMenu = () => {
     }
 
     setAppearanceSettings(modifiedAppearanceSettings);
-  }
+  };
 
   const setFontSize = (fontSize: number) => {
     setAppearanceSettings({
@@ -219,14 +286,14 @@ const AccessibilityMenu = () => {
     <>
       <List
         sx={{
-          fontSize: theme.typography.fontSize + 4
+          fontSize: theme.typography.fontSize + 4,
         }}
         subheader="Text Content"
       >
         <ListItem>
           <Paper
             sx={{
-              p: 1
+              p: 1,
             }}
           >
             <Box
@@ -237,9 +304,7 @@ const AccessibilityMenu = () => {
               }}
             >
               <TextFieldsIcon />
-              <Typography>
-                Adjust Font Size
-              </Typography>
+              <Typography>Adjust Font Size</Typography>
             </Box>
             <Box
               sx={{
@@ -251,15 +316,20 @@ const AccessibilityMenu = () => {
               }}
             >
               <IconButton
-                onClick={() => setFontSize((appearanceSettings.fontSize ?? 14) - 1)}
-                aria-label="decrease font size">
+                onClick={() =>
+                  setFontSize((appearanceSettings.fontSize ?? 14) - 1)
+                }
+                aria-label="decrease font size"
+              >
                 <RemoveCircleOutlineOutlinedIcon />
               </IconButton>
               <Typography sx={{ flex: 1 }}>
                 {appearanceSettings.fontSize?.toString()} pt
               </Typography>
               <IconButton
-                onClick={() => setFontSize((appearanceSettings.fontSize ?? 14) + 1)}
+                onClick={() =>
+                  setFontSize((appearanceSettings.fontSize ?? 14) + 1)
+                }
                 aria-label="increase font size"
               >
                 <AddCircleOutlineOutlinedIcon />
@@ -273,7 +343,8 @@ const AccessibilityMenu = () => {
         sx={{
           fontSize: theme.typography.fontSize + 4,
         }}
-        subheader="Colors">
+        subheader="Colors"
+      >
         <ListItem>
           <ColorPicker
             initialColor={theme.palette.primary.main}
@@ -282,11 +353,19 @@ const AccessibilityMenu = () => {
             id="primary-color-picker"
             buttonColor="primary"
           />
-          {theme.palette.primary.main !== defaultAppearanceSettings.primaryColor &&
-            <Button onClick={() => modifyColorPalette("primary", defaultAppearanceSettings.primaryColor!)}>
+          {theme.palette.primary.main !==
+            defaultAppearanceSettings.primaryColor && (
+            <Button
+              onClick={() =>
+                modifyColorPalette(
+                  "primary",
+                  defaultAppearanceSettings.primaryColor!,
+                )
+              }
+            >
               Reset
             </Button>
-          }
+          )}
         </ListItem>
         <ListItem>
           <ColorPicker
@@ -296,11 +375,19 @@ const AccessibilityMenu = () => {
             id="secondary-color-picker"
             buttonColor="secondary"
           />
-          {theme.palette.secondary.main !== defaultAppearanceSettings.secondaryColor &&
-            <Button onClick={() => modifyColorPalette("secondary", defaultAppearanceSettings.secondaryColor!)}>
+          {theme.palette.secondary.main !==
+            defaultAppearanceSettings.secondaryColor && (
+            <Button
+              onClick={() =>
+                modifyColorPalette(
+                  "secondary",
+                  defaultAppearanceSettings.secondaryColor!,
+                )
+              }
+            >
               Reset
             </Button>
-          }
+          )}
         </ListItem>
         <ListItem>
           <ColorPicker
@@ -310,11 +397,15 @@ const AccessibilityMenu = () => {
             id="primary-button-color-picker"
             buttonColor="info"
           />
-          {theme.palette.info.main !== defaultAppearanceSettings.infoColor &&
-            <Button onClick={() => modifyColorPalette("info", defaultAppearanceSettings.infoColor!)}>
+          {theme.palette.info.main !== defaultAppearanceSettings.infoColor && (
+            <Button
+              onClick={() =>
+                modifyColorPalette("info", defaultAppearanceSettings.infoColor!)
+              }
+            >
               Reset
             </Button>
-          }
+          )}
         </ListItem>
         <ListItem>
           <ColorPicker
@@ -324,24 +415,32 @@ const AccessibilityMenu = () => {
             id="primary-button-color-picker"
             buttonColor="error"
           />
-          {theme.palette.error.main !== defaultAppearanceSettings.errorColor &&
-            <Button onClick={() => modifyColorPalette("error", defaultAppearanceSettings.errorColor!)}>
+          {theme.palette.error.main !==
+            defaultAppearanceSettings.errorColor && (
+            <Button
+              onClick={() =>
+                modifyColorPalette(
+                  "error",
+                  defaultAppearanceSettings.errorColor!,
+                )
+              }
+            >
               Reset
             </Button>
-          }
+          )}
         </ListItem>
-      </List >
+      </List>
     </>
   );
-}
+};
 
 type ColorPickerProps = {
-  initialColor: string,
+  initialColor: string;
   onColorChange: (color: string) => void;
   label: string;
   id: string;
   buttonColor?: "primary" | "secondary" | "error" | "warning" | "info";
-}
+};
 
 type ColorType = {
   50: string;
@@ -353,29 +452,44 @@ type ColorType = {
   700: string;
   800: string;
   900: string;
-}
+};
 
-const defaultColors: Array<ColorType> = [red, orange, yellow, green, cyan, blue, purple, grey];
+const defaultColors: Array<ColorType> = [
+  red,
+  orange,
+  yellow,
+  green,
+  cyan,
+  blue,
+  purple,
+  grey,
+];
 
 /**
  * Used for picking between a set of mui color values
  */
-const ColorPicker = memo(function ColorPicker({ initialColor, onColorChange, label, id, buttonColor }: ColorPickerProps) {
+const ColorPicker = memo(function ColorPicker({
+  initialColor,
+  onColorChange,
+  label,
+  id,
+  buttonColor,
+}: ColorPickerProps) {
   const [open, setOpen] = useState<boolean>(false);
   const [color, setColor] = useState<string>(initialColor);
   const [selectedColorIndex, setSelectedColorIndex] = useState<number>(-1);
-  const [colorValue, setColorValue] = useState<keyof (ColorType)>(500);
+  const [colorValue, setColorValue] = useState<keyof ColorType>(500);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const handleMenuOpen = (event: MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
     setOpen(true);
-  }
+  };
 
   const handleMenuClose = () => {
     setAnchorEl(null);
     setOpen(false);
-  }
+  };
 
   return (
     <Box>
@@ -392,13 +506,13 @@ const ColorPicker = memo(function ColorPicker({ initialColor, onColorChange, lab
       </Button>
       <Menu
         MenuListProps={{
-          'aria-labelledby': id,
+          "aria-labelledby": id,
           sx: {
             p: 2,
             display: "flex",
             flexDirection: "column",
             rowGap: 1,
-          }
+          },
         }}
         open={open}
         anchorEl={anchorEl}
@@ -410,41 +524,33 @@ const ColorPicker = memo(function ColorPicker({ initialColor, onColorChange, lab
             gridTemplateColumns: "repeat(4, 1fr)",
           }}
         >
-          {
-            defaultColors.map((componentColor, index) => {
-              return (
-                <Box
-                  key={`${componentColor[50]}-${id}`}
-                  sx={{
-                    backgroundColor: componentColor[colorValue],
-                    height: "4rem",
-                    width: "4rem",
-                  }}
-                  role="button"
-                  onClick={() => {
-                    setSelectedColorIndex(index);
-                    setColor(componentColor[colorValue]);
-                  }}
-                >
-                  {
-                    selectedColorIndex == index &&
-                    <CheckCircleIcon />
-                  }
-                </Box>
-              )
-            })
-          }
-
+          {defaultColors.map((componentColor, index) => {
+            return (
+              <Box
+                key={`${componentColor[50]}-${id}`}
+                sx={{
+                  backgroundColor: componentColor[colorValue],
+                  height: "4rem",
+                  width: "4rem",
+                }}
+                role="button"
+                onClick={() => {
+                  setSelectedColorIndex(index);
+                  setColor(componentColor[colorValue]);
+                }}
+              >
+                {selectedColorIndex == index && <CheckCircleIcon />}
+              </Box>
+            );
+          })}
         </Box>
         <Box
           sx={{
             backgroundColor: color,
-            p: 0.5
+            p: 0.5,
           }}
         >
-          <Typography>
-            {color}
-          </Typography>
+          <Typography>{color}</Typography>
         </Box>
         <Slider
           aria-label="Color Saturation"
@@ -458,7 +564,10 @@ const ColorPicker = memo(function ColorPicker({ initialColor, onColorChange, lab
               return;
             }
             setColorValue(val as keyof ColorType);
-            if (selectedColorIndex < 0 || selectedColorIndex >= defaultColors.length) {
+            if (
+              selectedColorIndex < 0 ||
+              selectedColorIndex >= defaultColors.length
+            ) {
               return;
             }
             setColor(defaultColors.at(selectedColorIndex)![colorValue]);
@@ -473,7 +582,7 @@ const ColorPicker = memo(function ColorPicker({ initialColor, onColorChange, lab
         </Button>
       </Menu>
     </Box>
-  )
+  );
 });
 
 export default Settings;

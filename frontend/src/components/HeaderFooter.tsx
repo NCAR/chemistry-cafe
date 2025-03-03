@@ -64,11 +64,15 @@ export const Header = () => {
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <Box sx={{ paddingRight: "10px" }}>
             {/* Display user's name or email */}
-            <Typography sx={{ fontSize: "medium" }}>{loggedInUser.email}</Typography>
+            <Typography sx={{ fontSize: "medium" }}>
+              {loggedInUser.email}
+            </Typography>
           </Box>
           <Box sx={{ paddingRight: "20px" }}>
             {/* Display user's role */}
-            <Typography sx={{ fontSize: "medium" }}>({displayRole()})</Typography>
+            <Typography sx={{ fontSize: "medium" }}>
+              ({displayRole()})
+            </Typography>
           </Box>
         </Box>
       ) : (
@@ -77,9 +81,8 @@ export const Header = () => {
         >
           <Typography sx={{ fontSize: "medium" }}>Using as guest</Typography>
         </Box>
-      )
-      }
-    </Paper >
+      )}
+    </Paper>
   );
 };
 
@@ -133,7 +136,9 @@ export const Footer = () => {
             textAlign: "center",
           }}
         >
-          <Typography color="textPrimary" variant="h4">About</Typography>
+          <Typography color="textPrimary" variant="h4">
+            About
+          </Typography>
           <Box
             component="img"
             src={NSF_NCARlogo}
@@ -151,7 +156,9 @@ export const Footer = () => {
             between NSF NCAR and Texas A&M through the CSCE Capstone program.
           </Typography>
           <br />
-          <Typography color="textPrimary" variant="h6">Credits</Typography>
+          <Typography color="textPrimary" variant="h6">
+            Credits
+          </Typography>
           <Typography color="textPrimary" variant="body1" component="span">
             <Typography color="textPrimary" variant="inherit">
               Paul Cyr, Brandon Longuet, Brian Nguyen <br />

@@ -43,7 +43,7 @@ describe("Unauthenticated Home Component", () => {
   beforeEach(() => {
     window.location = {
       ...originalLocation,
-      assign: vi.fn((_: string | URL) => { }),
+      assign: vi.fn((_: string | URL) => {}),
     };
     vi.spyOn(axios, "get").mockResolvedValue(createMockUserData());
     vi.spyOn(axios, "post").mockResolvedValue(createMockUserData());
@@ -135,7 +135,7 @@ describe.each([
     vi.spyOn(axios, "post").mockResolvedValue(createMockUserData());
     window.location = {
       ...originalLocation,
-      assign: vi.fn((_: string | URL) => { }),
+      assign: vi.fn((_: string | URL) => {}),
     };
     localStorage.setItem("user", JSON.stringify(cachedUserInfo));
     render(

@@ -9,9 +9,9 @@ describe("Root Component Rendering", () => {
   it("renders the App component without crashing", () => {
     const { getByText } = render(
       <BrowserRouter>
-          <React.StrictMode>
-            <App />
-          </React.StrictMode>
+        <React.StrictMode>
+          <App />
+        </React.StrictMode>
       </BrowserRouter>,
     );
 
