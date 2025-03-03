@@ -32,7 +32,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         authInfo?.email &&
         (!userInfo || userInfo?.email != authInfo?.email)
       ) {
-        userInfo = await createUser({ // TODO Move this functionality to the backend on sign-in
+        userInfo = await createUser({
+          // TODO Move this functionality to the backend on sign-in
           username: "Default Username",
           role: "unverified",
           email: authInfo?.email,

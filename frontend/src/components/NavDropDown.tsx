@@ -6,12 +6,12 @@ import ListItemText from "@mui/material/ListItemText";
 import ListItemButton from "@mui/material/ListItemButton";
 import { useAuth } from "../components/AuthContext"; // Import useAuth to get the user data
 import { AUTH_URL } from "../API/API_config";
-import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
-import ScienceIcon from '@mui/icons-material/Science';
-import HomeIcon from '@mui/icons-material/Home';
-import LogoutIcon from '@mui/icons-material/Logout';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import SettingsIcon from '@mui/icons-material/Settings';
+import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
+import ScienceIcon from "@mui/icons-material/Science";
+import HomeIcon from "@mui/icons-material/Home";
+import LogoutIcon from "@mui/icons-material/Logout";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import SettingsIcon from "@mui/icons-material/Settings";
 import { ListItemIcon } from "@mui/material";
 
 const NavDropDown = () => {

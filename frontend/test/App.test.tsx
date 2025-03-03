@@ -12,17 +12,20 @@ describe("App Component", () => {
     ["/familypage", "Species"],
     ["/settings", "Appearance"],
   ];
-  it.each(routes)("should render the correct component for the page on %s", (path, expectedText) => {
-    // Render the App component within a MemoryRouter with the current route
-    const { getByText } = render(
-      <MemoryRouter initialEntries={[path]}>
-        <App />
-      </MemoryRouter>,
-    );
+  it.each(routes)(
+    "should render the correct component for the page on %s",
+    (path, expectedText) => {
+      // Render the App component within a MemoryRouter with the current route
+      const { getByText } = render(
+        <MemoryRouter initialEntries={[path]}>
+          <App />
+        </MemoryRouter>,
+      );
 
-    // Assert that the expected text is present in the App component
-    const element = getByText(expectedText);
-    expect(element).toBeTruthy();
-    cleanup();
-  });
+      // Assert that the expected text is present in the App component
+      const element = getByText(expectedText);
+      expect(element).toBeTruthy();
+      cleanup();
+    },
+  );
 });
