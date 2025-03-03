@@ -1,6 +1,6 @@
 import { useSearchParams } from "react-router-dom";
 import { Header, Footer } from "../components/HeaderFooter";
-import "../styles/settings.css";
+import "../styles/Settings.css";
 import { defaultAppearanceSettings, useCustomTheme } from "../components/CustomThemeContext";
 import { Box, Button, Divider, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Menu, Paper, Slider, Switch, Typography } from "@mui/material";
 import { memo, MouseEvent, useLayoutEffect, useState } from "react";
