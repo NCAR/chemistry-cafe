@@ -132,7 +132,7 @@ export const Footer = () => {
             textAlign: "center",
           }}
         >
-          <Typography variant="h4">About</Typography>
+          <Typography color="textPrimary" variant="h4">About</Typography>
           <Box
             component="img"
             src={NSF_NCARlogo}
@@ -145,31 +145,31 @@ export const Footer = () => {
             alt={"Texas A&M Logo"}
             sx={{ height: "100px", width: "auto" }}
           />
-          <Typography variant="body1">
+          <Typography color="textPrimary" variant="body1">
             The Chemistry Cafe tool was made possible by the collaboration
             between NSF NCAR and Texas A&M through the CSCE Capstone program.
           </Typography>
           <br />
-          <Typography variant="h6">Credits</Typography>
-          <Typography variant="body1" component="span">
-            <Typography variant="inherit">
+          <Typography color="textPrimary" variant="h6">Credits</Typography>
+          <Typography color="textPrimary" variant="body1" component="span">
+            <Typography color="textPrimary" variant="inherit">
               Paul Cyr, Brandon Longuet, Brian Nguyen <br />
               Spring 2024 Capstone Team
             </Typography>
             <br />
-            <Typography variant="inherit">
+            <Typography color="textPrimary" variant="inherit">
               Britt Schiller, Ore Ogunleye, Nishka Mittal, Josh Hare, Sydney
               Ferris <br />
               Fall 2024 Capstone Team
             </Typography>
             <br />
-            <Typography variant="inherit">
+            <Typography color="textPrimary" variant="inherit">
               Jackson Stewart, Kaili Fogle, Robbie Cook, Donato Curvino, James
               Fontenot <br />
               Spring 2025 Capstone Team
             </Typography>
             <br />
-            <Typography variant="inherit">
+            <Typography color="textPrimary" variant="inherit">
               Kyle Shores <br />
               Capstone Sponsor Representative
             </Typography>

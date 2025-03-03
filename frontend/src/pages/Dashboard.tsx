@@ -3,7 +3,7 @@ import Button from "@mui/material/Button";
 import { Header, Footer } from "../components/HeaderFooter";
 
 import "../styles/Dashboard.css";
-import { ButtonGroup, Card, CardActions, CardContent, List, ListItem, Typography } from "@mui/material";
+import { ButtonGroup, Card, CardActions, CardContent, List, ListItem, Paper, Typography } from "@mui/material";
 import { Family } from "../API/API_Interfaces";
 import { memo } from "react";
 
@@ -67,7 +67,11 @@ const Dashboard = () => {
       <header>
         <Header />
       </header>
-      <section className="content-dashboard">
+      <Paper
+        square
+        component="section"
+        className="content-dashboard"
+      >
         <div className="dashboard-navigation-buttons">
           <Button variant="contained" sx={buttonStyle} onClick={handleClickFamily}>
             Family Editor
@@ -88,7 +92,7 @@ const Dashboard = () => {
             })}
           </List>
         </div>
-      </section>
+      </Paper>
       <footer>
         <Footer />
       </footer>

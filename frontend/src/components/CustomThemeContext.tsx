@@ -7,46 +7,68 @@ import {
     ReactNode,
 } from "react"
 
-type ThemeOptionsType = Omit<ThemeOptions, "components"> &
-    Pick<CssVarsThemeOptions, "defaultColorScheme" | "colorSchemes" | "components"> & {
-        cssVariables?: boolean | Pick<CssVarsThemeOptions, "colorSchemeSelector" | "rootSelector" | "disableCssColorScheme" | "cssVarPrefix" | "shouldSkipGeneratingVar">;
-    };
+export type AppearanceSettings = {
+    fontSize: number;
+    mode: "light" | "dark";
+}
+
+// Type used by createTheme() for the theming options
+type ThemeOptionsType = Omit<ThemeOptions, 'components'>
+    & Pick<CssVarsThemeOptions, 'defaultColorScheme' | 'colorSchemes' | 'components'>
+    & { cssVariables?: boolean | Pick<CssVarsThemeOptions, 'colorSchemeSelector' | 'rootSelector' | 'disableCssColorScheme' | 'cssVarPrefix' | 'shouldSkipGeneratingVar'>; }
+
+const defaultAppearanceSettings: AppearanceSettings = {
+    fontSize: 10,
+    mode: "light"
+};
+
+const getThemeOptions = (settings: AppearanceSettings): ThemeOptionsType => ({
+    palette: {
+        mode: settings.mode,
+        ...(settings.mode === "light"
+            ? {
+            }
+            : {
+                
+            }
+        ),
+    }
+});
 
 interface CustomThemeContextProps {
     theme: Theme;
-    themeOptions: ThemeOptionsType | null;
-    setThemeOptions: (themeOptions: ThemeOptionsType | null) => void
+    appearanceSettings: AppearanceSettings;
+    setAppearanceSettings: (themeOptions: AppearanceSettings) => void
 }
 
 const CustomThemeContext = createContext<CustomThemeContextProps | undefined>(undefined);
 
 export const CustomThemeProvider = ({ children }: { children: ReactNode }) => {
+    const [appearanceSettings, setAppearanceSettings] = useState<AppearanceSettings>(defaultAppearanceSettings);
     const [theme, setTheme] = useState<Theme>(() => {
-        const storedOptions = localStorage.getItem("themeOptions");
+        const storedOptions = localStorage.getItem("appearanceSettings");
         try {
-            const options = typeof (storedOptions) == "string" ? JSON.parse(storedOptions) : {};
-            return createTheme(options);
+            const settings = typeof (storedOptions) == "string" ? JSON.parse(storedOptions) : defaultAppearanceSettings;
+            setAppearanceSettings(settings);
+            return createTheme(getThemeOptions(settings));
         }
         catch (err) {
             console.error(`Issue parsing theme options: ${err}`)
-            localStorage.removeItem("themeOptions");
-            return createTheme({});
+            localStorage.removeItem("appearanceSettings");
+            return createTheme(getThemeOptions(defaultAppearanceSettings));
         }
     });
-    const [themeOptions, setThemeOptions] = useState<ThemeOptionsType | null>(null);
 
     useLayoutEffect(() => {
-        setTheme(createTheme(themeOptions ?? {}));
-        if (!themeOptions) {
-            localStorage.removeItem("themeOptions");
-            return;
-        }
-        localStorage.setItem("themeOptions", JSON.stringify(themeOptions));
-    }, [themeOptions]);
+        const themeOptions = getThemeOptions(appearanceSettings ?? defaultAppearanceSettings);
+        const createdTheme = createTheme(themeOptions);
+        setTheme(createdTheme);
+        localStorage.setItem("appearanceSettings", JSON.stringify(appearanceSettings ?? defaultAppearanceSettings));
+    }, [appearanceSettings]);
 
     createTheme()
     return (
-        <CustomThemeContext.Provider value={{ theme, themeOptions, setThemeOptions }}>
+        <CustomThemeContext.Provider value={{ theme, appearanceSettings, setAppearanceSettings }}>
             <ThemeProvider theme={theme}>
                 {children}
             </ThemeProvider>
