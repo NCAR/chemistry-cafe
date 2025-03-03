@@ -21,7 +21,8 @@ namespace Chemistry_Cafe_API.Controllers
                 return null;
             }
             var identity = authenticateResult.Principal.Identities.FirstOrDefault(
-                identity => identity.AuthenticationType != null && identity.AuthenticationType.Equals("google", StringComparison.OrdinalIgnoreCase)
+                identity => identity.AuthenticationType != null && 
+                            identity.AuthenticationType.Equals("google", StringComparison.OrdinalIgnoreCase)
             );
             if (identity == null) 
             {
