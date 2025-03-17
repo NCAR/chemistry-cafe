@@ -28,6 +28,7 @@ services:
     build:
       context: ./frontend # Path to your front-end repository
       dockerfile: Dockerfile
+      target: build
     ports:
       - "5173:5173"
     depends_on:
