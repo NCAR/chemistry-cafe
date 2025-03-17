@@ -26,9 +26,13 @@ MYSQL_DATABASE=chemistry_db
 GOOGLE_CALLBACK_PATH=/signin-google
 MYSQL_SERVER=localhost
 MYSQL_PORT=3306
+FRONTEND_HOST=http://localhost:5173/
+BACKEND_BASE_URL=/api/
 ```
 
 `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` can be found in a google cloud project. These variables may be set in a `.env` file in the `/backend` directory or created on the machine itself.
+
+`FRONTEND_HOST` specifies where the frontend is located and `BACKEND_BASE_URL` specifies what prefix the backend is on for its current host.  
 
 ## Command line
 

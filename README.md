@@ -37,6 +37,8 @@ MYSQL_PORT=3306
 
 In order to use Google Authentication, a Google Cloud OAuth 2.0 project must be used with a `client id` and `client secret`. When creating the project, `http://localhost:8080/signin-google` should be added to the list of "Authorized redirect URIs" for testing.
 
+`FRONTEND_HOST` and `BACKEND_BASE_URL` are required in a production environment. `FRONTEND_HOST` contains where the frontend is served and `BACKEND_BASE_URL` specifies what the backend urls should be prefixed with (eg. "/api/").
+
 **Note:**
 
 - When running locally, the `.env` file must be in the `/backend` directory. 

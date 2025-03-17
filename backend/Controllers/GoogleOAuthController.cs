@@ -15,11 +15,11 @@ namespace Chemistry_Cafe_API.Controllers
     public class GoogleOAuthController : Controller
     {
         private readonly GoogleOAuthService _googleOAuthService;
-        private readonly IConfiguration _configuration;
-        public GoogleOAuthController(IConfiguration configuration, GoogleOAuthService googleOAuthService)
+        private readonly string _baseUri = Environment.GetEnvironmentVariable("BACKEND_BASE_URL") ?? "";
+        private readonly string _frontendHost = Environment.GetEnvironmentVariable("FRONTEND_HOST") ?? "";
+        public GoogleOAuthController(GoogleOAuthService googleOAuthService)
         {
             _googleOAuthService = googleOAuthService;
-            _configuration = configuration;
         }
 
         /// <summary>
@@ -28,7 +28,8 @@ namespace Chemistry_Cafe_API.Controllers
         [HttpGet("login")]
         public IActionResult LoginRedirect()
         {
-            AuthenticationProperties authProperties = new AuthenticationProperties { RedirectUri = "/auth/google/authenticate" };
+            string redirectUri = Path.Combine(_baseUri, "auth/google/authenticate").Replace('\\', '/');
+            AuthenticationProperties authProperties = new AuthenticationProperties { RedirectUri = redirectUri };
             authProperties.SetParameter("prompt", "select_account");
             return new ChallengeResult(GoogleDefaults.AuthenticationScheme, authProperties);
         }
@@ -53,7 +54,7 @@ namespace Chemistry_Cafe_API.Controllers
             }
 
             await HttpContext.SignInAsync("Application", claimsIdentity);
-            string redirectUrl = (_configuration["FrontendHost"] ?? throw new InvalidConfigurationException("")) + "/LoggedIn";
+            string redirectUrl = Path.Combine(_frontendHost, "dashboard").Replace('\\', '/');
             return Redirect(redirectUrl);
         }
 
@@ -63,13 +64,12 @@ namespace Chemistry_Cafe_API.Controllers
         [HttpGet("logout")]
         public async Task<IActionResult> Logout(string? returnUrl)
         {
-            string frontendHost = _configuration["FrontendHost"] ?? throw new InvalidConfigurationException("'FrontendHost' key not set in appsettings");
             // Ensure the redirect url is 
             if (returnUrl == null || returnUrl.Equals(""))
             {
-                returnUrl = frontendHost;
+                returnUrl = _frontendHost;
             }
-            else if (!Url.IsLocalUrl(returnUrl) && !returnUrl.StartsWith(frontendHost))
+            else if (!Url.IsLocalUrl(returnUrl) && !returnUrl.StartsWith(_frontendHost))
             {
                 return BadRequest("Invalid returnUrl argument. Must be within application scope.");
             }
@@ -78,14 +78,11 @@ namespace Chemistry_Cafe_API.Controllers
 
             var request = HttpContext.Request;
             var cookies = request.Cookies;
-            if (cookies.Count > 0)
+            foreach (var cookie in cookies)
             {
-                foreach (var cookie in cookies)
+                if (cookie.Key.Contains(".AspNetCore.") || cookie.Key.Contains("Microsoft.Authentication"))
                 {
-                    if (cookie.Key.Contains(".AspNetCore.") || cookie.Key.Contains("Microsoft.Authentication"))
-                    {
-                        Response.Cookies.Delete(cookie.Key);
-                    }
+                    Response.Cookies.Delete(cookie.Key);
                 }
             }
 
