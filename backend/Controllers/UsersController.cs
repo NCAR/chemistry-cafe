@@ -50,14 +50,6 @@ namespace Chemistry_Cafe_API.Controllers
             return Ok(user);
         }
 
-        // POST: api/Users
-        [HttpPost]
-        public async Task<ActionResult<User>> CreateUser(User user)
-        {
-            var createdUser = await _userService.CreateUserAsync(user);
-            return CreatedAtAction(nameof(GetUserById), new { id = createdUser.Id }, createdUser);
-        }
-
         // PUT: api/Users/5
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(Guid id, User user)

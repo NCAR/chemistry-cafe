@@ -2,6 +2,7 @@
 using System.Data.Common;
 using MySqlConnector;
 using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace Chemistry_Cafe_API.Services
 {
@@ -29,18 +30,20 @@ namespace Chemistry_Cafe_API.Services
             return await _context.Users.SingleOrDefaultAsync(u => u.Email == email);
         }
 
-        public async Task<User> CreateUserAsync(User user)
-        {
-            if (user.GoogleId != null) {
-                var existingUser = await _context.Users.SingleOrDefaultAsync(u => u.GoogleId == user.GoogleId);
-                if (existingUser != null) {
-                    existingUser.Email = user.Email;
-                    await _context.SaveChangesAsync();
-                    return existingUser;
-                }
+        public async Task<User> SignIn(string googleID, string email) {
+            var user = await _context.Users.SingleOrDefaultAsync(u => u.GoogleId == googleID);
+            if (user == null) {
+                user = new User();
+                user.Id = Guid.NewGuid();
+                user.Username = email;
+                user.Role = "admin";
+                user.Email = email; 
+                user.CreatedDate = DateTime.UtcNow;
+                user.GoogleId = googleID;
+                _context.Users.Add(user);
+            } else {
+                user.Email = email;
             }
-            user.Id = Guid.NewGuid();
-            _context.Users.Add(user);
             await _context.SaveChangesAsync();
             return user;
         }
