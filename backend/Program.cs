@@ -35,7 +35,6 @@ builder.Services.AddScoped<GoogleOAuthService>();
 
 string googleClientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID") ?? throw new InvalidOperationException("GOOGLE_CLIENT_ID environment variable is missing.");
 string googleClientSecret = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET") ?? throw new InvalidOperationException("GOOGLE_CLIENT_SECRET environment variable is missing.");
-string googleCallbackPath = Environment.GetEnvironmentVariable("GOOGLE_CALLBACK_PATH").IsNullOrEmpty() ? "/signin-google" : Environment.GetEnvironmentVariable("GOOGLE_CALLBACK_PATH")!;
 
 builder.Services.AddAuthentication((options) =>
     {
@@ -48,7 +47,6 @@ builder.Services.AddAuthentication((options) =>
     {
         options.ClientId = googleClientId;
         options.ClientSecret = googleClientSecret;
-        options.CallbackPath = googleCallbackPath;
         options.AccessDeniedPath = "/auth/google/login";
     });
 
