@@ -1,6 +1,6 @@
 # Use the official Node.js image to build and run the back-end project
 # This stage is used for both the production and development build
-FROM node:18 AS build
+FROM node:18 AS base
 
 COPY . ChemistryCafeFrontend/
 WORKDIR /ChemistryCafeFrontend
@@ -9,6 +9,8 @@ RUN npm install
 
 # Expose the development API port
 EXPOSE 5173
+
+FROM base AS build
 
 # Create a production build
 RUN npm run build
