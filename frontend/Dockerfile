@@ -15,8 +15,8 @@ FROM base AS build
 # Create a production build
 RUN npm run build
 
-# Second stage serves static files. This stage is used in the production build
-FROM nginx:latest AS serve
+# Third stage serves static files. This stage is used in the production build
+FROM nginx:latest AS final
 
 COPY ./nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /ChemistryCafeFrontend/dist /usr/share/nginx/html
