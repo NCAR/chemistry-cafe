@@ -494,3 +494,6 @@ bin
 
 # Test files
 TestResults
+
+# Production configuration
+appsettings.Production.json
