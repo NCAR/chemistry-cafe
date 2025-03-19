@@ -54,7 +54,7 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:?error}
       MYSQL_PORT: ${MYSQL_PORT:-3306}
       FRONTEND_HOST: ${FRONTEND_HOST:?error}
-      BACKEND_BASE_URL: ${BACKEND_BASE_URL:-/}
+      BACKEND_BASE_URL: ${BACKEND_BASE_URL:?error}
     networks:
       - app-network
     depends_on:
