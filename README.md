@@ -119,14 +119,14 @@ If all tests past, the coverage report will generate in frontend/coverage/index.
 
 ```
 docker compose up mysql -d
-dotnet test backend --collect "Code Coverage;Format=cobertura"  --settings backend/.runsettings
+dotnet test backend --collect:"Code Coverage;Format=cobertura" --settings backend/.runsettings
 docker compose down
 ```
 
 ```
-reportgenerator -reports:"TestResults\<guid>\<file-prefix>.cobertura.xml" -targetdir:coveragereport -reporttypes:Html,lcov -classfilters:-MySqlConnector.* -filefilters:-/_/src/MySqlConnector/*
-
+reportgenerator -reports:"backend\TestResults\**\**.cobertura.xml" -targetdir:coveragereport -reporttypes:Html,lcov -classfilters:-MySqlConnector.* -filefilters:-/_/src/MySqlConnector/*,-backend\TestResults\**\coverage.cobertura.xml; rmdir -r .\backend\TestResults
 ```
+
 If all tests past, the coverage reports will generate in backend/coveragereport/index.html and backend/coveragereport/lcov.info
 
 
