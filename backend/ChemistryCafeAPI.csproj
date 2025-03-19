@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>Chemistry_Cafe_API</RootNamespace>
+    <RootNamespace>ChemistryCafeAPI</RootNamespace>
     <UserSecretsId>5c953ed8-0279-4c49-a044-edbcddca45e1</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>.</DockerfileContext>

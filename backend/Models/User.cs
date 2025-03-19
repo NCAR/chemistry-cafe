@@ -1,43 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json.Serialization; // Added
 using Microsoft.EntityFrameworkCore;
 
-namespace Chemistry_Cafe_API.Models;
+namespace ChemistryCafeAPI.Models;
 
-[Table("users")]
-[Index("Username", Name = "idx_users_username", IsUnique = true)]
-public partial class User
+[Index(nameof(Username), IsUnique = true)]
+public class User
 {
-    [Key]
-    [Column("id")]
-    public Guid Id { get; set; }
-
-    [Column("username")]
-    [JsonPropertyName("username")]
-    public string Username { get; set; } = null!;
-
-    [Column("role")]
-    [StringLength(50)]
-    [JsonPropertyName("role")]
-    public string Role { get; set; } = null!;
-
-    [Column("email")]
-    [StringLength(255)]
-    [JsonPropertyName("email")]
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public string Username { get; set; }
+    public string Role { get; set; }
     public string? Email { get; set; }
+    public DateTime? CreatedDate { get; set; } = DateTime.UtcNow;
+    public string? GoogleId { get; set; }
 
-    [Column("created_date", TypeName = "timestamp")]
-    [JsonPropertyName("created_date")]
-    public DateTime? CreatedDate { get; set; }
-
-    [Column("google_id")]
-    [StringLength(255)]
-    [JsonPropertyName("google_id")]
-    public string? GoogleId { get; set; } 
-
-    [InverseProperty("User")]
-    public virtual ICollection<UserMechanism> UserMechanisms { get; set; } = new List<UserMechanism>();
+    // public ICollection<UserMechanism> UserMechanisms { get; set; } = new List<UserMechanism>();
 }
