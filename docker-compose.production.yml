@@ -1,0 +1,73 @@
+x-db-env: &db-env
+  MYSQL_SERVER: ${MYSQL_SERVER:-mysql}
+  MYSQL_USER: ${MYSQL_USER:?error}
+  MYSQL_PASSWORD: ${MYSQL_PASSWORD:?error}
+  MYSQL_DATABASE: ${MYSQL_DATABASE:?error}
+
+services:
+  mysql:
+    image: mysql:9.0
+    container_name: mysql
+    ports:
+      - "3306:3306" # MySQL default port
+    volumes:
+      - db_data_production:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql # run initial sql script
+    environment:
+      <<: *db-env
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?error}
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+    restart: on-failure:4
+
+  frontend_production:
+    container_name: frontend_production
+    build:
+      context: ./frontend # Path to your front-end repository
+      dockerfile: Dockerfile
+      target: final
+    ports:
+      - "5173:80"
+    networks:
+      - app-network
+    depends_on:
+      - backend_production
+    restart: on-failure:4
+  
+  backend_production:
+    container_name: backend_production
+    build:
+      context: ./backend # Path to your back-end repository
+      dockerfile: Dockerfile
+      target: final
+      args:
+        BUILD_ARCH: ${BUILD_ARCH:-linux-x64}
+    ports:
+      - "8080:5000" # Map host port to container port
+    environment:
+      <<: *db-env
+      ASPNETCORE_ENVIRONMENT: Production
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?error}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:?error}
+      MYSQL_PORT: ${MYSQL_PORT:-3306}
+      FRONTEND_HOST: ${FRONTEND_HOST:?error}
+      BACKEND_BASE_URL: ${BACKEND_BASE_URL:?error}
+    networks:
+      - app-network
+    depends_on:
+      - mysql
+    env_file:
+      - path: ./.env
+        required: true
+    restart: on-failure:4
+
+volumes:
+  db_data_production:
+networks:
+  app-network:
+    driver: bridge
