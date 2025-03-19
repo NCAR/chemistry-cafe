@@ -25,8 +25,8 @@ MYSQL_DATABASE=chemistry_db
 # Optional with defaults
 MYSQL_SERVER=localhost
 MYSQL_PORT=3306
-FRONTEND_HOST=http://localhost:5173/
-BACKEND_BASE_URL=/api/
+FRONTEND_HOST=http://localhost:5173
+BACKEND_BASE_URL=/
 ```
 
 `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` can be found in a google cloud project. These variables may be set in a `.env` file in the `/backend` directory or created on the machine itself.
