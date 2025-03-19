@@ -60,8 +60,8 @@ services:
     environment:
       <<: *db-env
       ASPNETCORE_ENVIRONMENT: Development
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?error}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:?error}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       FRONTEND_HOST: ${FRONTEND_HOST:-http://localhost:5173}
       BACKEND_BASE_URL: ${BACKEND_BASE_URL:-/}
     depends_on:
