@@ -10,6 +10,7 @@ EXPOSE 8081
 FROM base AS build
 
 ARG BUILD_CONFIGURATION=Release
+ARG BUILD_ARCH=linux-x64
 
 WORKDIR /ChemistryCafeBackend
 RUN dotnet restore "./ChemistryCafeAPI.csproj"
@@ -18,7 +19,7 @@ RUN dotnet build "./ChemistryCafeAPI.csproj" -c $BUILD_CONFIGURATION -o /app/bui
 FROM build AS publish
 
 WORKDIR /ChemistryCafeBackend
-RUN dotnet publish "./ChemistryCafeAPI.csproj" -c $BUILD_CONFIGURATION -o /app/publish --self-contained -r linux-x64
+RUN dotnet publish "./ChemistryCafeAPI.csproj" -c $BUILD_CONFIGURATION -o /app/publish --self-contained -r $BUILD_ARCH
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS final
 

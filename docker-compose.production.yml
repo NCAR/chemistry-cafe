@@ -45,6 +45,8 @@ services:
       context: ./backend # Path to your back-end repository
       dockerfile: Dockerfile
       target: final
+      args:
+        BUILD_ARCH: ${BUILD_ARCH:-linux-x64}
     ports:
       - "8080:5000" # Map host port to container port
     environment:
