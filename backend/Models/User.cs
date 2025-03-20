@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 namespace ChemistryCafeAPI.Models;
 
@@ -6,11 +7,12 @@ namespace ChemistryCafeAPI.Models;
 public class User
 {
     public Guid Id { get; set; } = Guid.NewGuid();
-    public string Username { get; set; }
-    public string Role { get; set; }
+    public string Username { get; set; } = null!;
+    public string Role { get; set; } = null!;
     public string? Email { get; set; }
     public DateTime? CreatedDate { get; set; } = DateTime.UtcNow;
     public string? GoogleId { get; set; }
 
-    // public ICollection<UserMechanism> UserMechanisms { get; set; } = new List<UserMechanism>();
+    public virtual List<Family> OwnedFamilies { get; set; } = new List<Family>();
 }
+

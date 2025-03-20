@@ -12,6 +12,25 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddScoped<ChemistryCafeAPI.Services.GoogleOAuthService>();
+
+string googleClientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID") ?? throw new InvalidOperationException("GOOGLE_CLIENT_ID environment variable is missing.");
+string googleClientSecret = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET") ?? throw new InvalidOperationException("GOOGLE_CLIENT_SECRET environment variable is missing.");
+
+builder.Services.AddAuthentication((options) =>
+    {
+        options.DefaultScheme = "Application";
+        options.DefaultSignInScheme = "External";
+    })
+    .AddCookie("Application")
+    .AddCookie("External")
+    .AddGoogle((options) =>
+    {
+        options.ClientId = googleClientId;
+        options.ClientSecret = googleClientSecret;
+        options.AccessDeniedPath = "/auth/google/login";
+    });
+
 var server = Environment.GetEnvironmentVariable("MYSQL_SERVER") ?? "localhost";
 var user = Environment.GetEnvironmentVariable("MYSQL_USER") ?? throw new InvalidOperationException("MYSQL_USER environment variable is missing.");
 var password = Environment.GetEnvironmentVariable("MYSQL_PASSWORD") ?? throw new InvalidOperationException("MYSQL_PASSWORD environment variable is missing.");
@@ -32,6 +51,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapControllers();
+app.UseAuthentication();
+app.UseAuthorization();
 app.Run();
 
 
