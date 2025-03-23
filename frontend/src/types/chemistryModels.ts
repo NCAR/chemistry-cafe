@@ -1,5 +1,16 @@
 import { UUID } from "crypto";
 
+export type SpeciesProperties = {
+    /** ID stored in the SQL database */
+    id?: UUID;
+
+    /** The unit of the specific property */
+    units: string;
+
+    /** Numerical value of the property */
+    value: number;
+}
+
 /**
  * Represents a species utilized on the frontend. A species is a substance which can take on any name.
  */
@@ -15,7 +26,7 @@ export type Species = {
 
     /** Special properties set by the user */
     properties: {
-        [key: `${string}` | `{string}[{string}]`]: number;
+        [key: string]: SpeciesProperties
     };
 }
 
@@ -57,11 +68,11 @@ export type ArrheniusReaction = {
     type: "ARRHENIUS";
     gasPhase: string;
     reactants: Array<{
-        speciesId: UUID,
+        species: Species,
         coefficient: number
     }>;
     products: Array<{
-        speciesId: UUID,
+        species: Species,
         coefficient: number
     }>;
     A: number;
@@ -86,7 +97,7 @@ export type Phase = {
     description: string | null;
 
     /** Species involved in the phase */
-    speciesIds: Array<UUID>;
+    species: Array<Species>;
 }
 
 /**
@@ -107,11 +118,11 @@ export type Mechanism = {
     /** Collection of reaction phases associated with the mechanism */
     phases: Array<Phase>;
 
-    /** SQL ids of species associated with the mechanism */
-    speciesIds: Array<UUID>;
+    /** Species associated with the mechanism */
+    species: Array<Species>;
 
-    /** SQL ids of reactions associated with the mechanism */
-    reactionsIds: Array<UUID>;
+    /** Reactions associated with the mechanism */
+    reactions: Array<Reaction>;
 }
 
 /**
@@ -143,4 +154,7 @@ export type Family = {
 
     /** Reaction inside the family */
     reactions: Array<Reaction>;
+
+    /** Determines whether the family has been saved to the database */
+    saved: boolean;
 }
