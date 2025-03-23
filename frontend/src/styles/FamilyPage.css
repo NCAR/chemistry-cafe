@@ -9,8 +9,8 @@
   flex: 1;
   display: grid;
   grid-template-areas: "familySelector familyView";
-  grid-template-columns: 30% 60%;
-  column-gap: 2rem;
+  grid-template-columns: 25% 75%;
+  padding: 0 1rem 0 0;
 }
 
 .family-selector {

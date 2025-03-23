@@ -20,10 +20,22 @@ const NavDropDown = () => {
   // Get the logged-in user from the AuthContext
   const { user, setUser } = useAuth();
 
-  const goHome = () => navigate("/");
-  const goFamily = () => navigate("/FamilyPage");
-  const goDashboard = () => navigate("/dashboard");
-  const goSettings = () => navigate("/settings");
+  const goHome = () => {
+    window.onbeforeunload = null;
+    navigate("/")
+  };
+  const goFamily = () => {
+    window.onbeforeunload = null;
+    navigate("/familypage")
+  };
+  const goDashboard = () => {
+    window.onbeforeunload = null;
+    navigate("/dashboard")
+  };
+  const goSettings = () => {
+    window.onbeforeunload = null;
+    navigate("/settings")
+  };
   const goLogOut = () => {
     setUser(null);
     localStorage.removeItem("user");
