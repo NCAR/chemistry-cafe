@@ -3,22 +3,22 @@
 import axios from "axios";
 
 import {
-  Family,
-  Mechanism,
-  Species,
-  Reaction,
-  User,
-  ReactionSpeciesDto,
-  InitialConditionSpecies,
-  Property,
-  UserClaims,
+  APIFamily,
+  APIMechanism,
+  APISpecies,
+  APIReaction,
+  APIUser,
+  APIReactionSpeciesDto,
+  APIInitialConditionSpecies,
+  APIProperty,
+  APIUserClaims,
 } from "./API_Interfaces";
 import { AUTH_URL, BASE_URL } from "./API_config";
 
 // Get all families
-export async function getFamilies(): Promise<Family[]> {
+export async function getFamilies(): Promise<APIFamily[]> {
   try {
-    const response = await axios.get<Family[]>(`${BASE_URL}/families`);
+    const response = await axios.get<APIFamily[]>(`${BASE_URL}/families`);
     return response.data;
   } catch (error: any) {
     console.error(`Error fetching families: ${error.message}`, error);
@@ -27,9 +27,9 @@ export async function getFamilies(): Promise<Family[]> {
 }
 
 // Get a specific family by ID
-export async function getFamily(id: string): Promise<Family> {
+export async function getFamily(id: string): Promise<APIFamily> {
   try {
-    const response = await axios.get<Family>(`${BASE_URL}/families/${id}`);
+    const response = await axios.get<APIFamily>(`${BASE_URL}/families/${id}`);
     return response.data;
   } catch (error: any) {
     console.error(`Error fetching family ${id}: ${error.message}`, error);
@@ -38,9 +38,9 @@ export async function getFamily(id: string): Promise<Family> {
 }
 
 // Get all mechanisms
-export async function getMechanisms(): Promise<Mechanism[]> {
+export async function getMechanisms(): Promise<APIMechanism[]> {
   try {
-    const response = await axios.get<Mechanism[]>(`${BASE_URL}/mechanism`);
+    const response = await axios.get<APIMechanism[]>(`${BASE_URL}/mechanism`);
     return response.data;
   } catch (error: any) {
     console.error(`Error fetching Mechanisms: ${error.message}`, error);
@@ -51,9 +51,9 @@ export async function getMechanisms(): Promise<Mechanism[]> {
 // Get mechanisms by family ID
 export async function getMechanismsByFamilyId(
   familyId: string,
-): Promise<Mechanism[]> {
+): Promise<APIMechanism[]> {
   try {
-    const response = await axios.get<Mechanism[]>(
+    const response = await axios.get<APIMechanism[]>(
       `${BASE_URL}/mechanism/family/${familyId}`,
     );
     return response.data;
@@ -67,9 +67,9 @@ export async function getMechanismsByFamilyId(
 }
 
 // Get a specific mechanism by ID
-export async function getMechanism(id: string): Promise<Mechanism> {
+export async function getMechanism(id: string): Promise<APIMechanism> {
   try {
-    const response = await axios.get<Mechanism>(`${BASE_URL}/mechanism/${id}`);
+    const response = await axios.get<APIMechanism>(`${BASE_URL}/mechanism/${id}`);
     return response.data;
   } catch (error: any) {
     console.error(`Error fetching mechanism ${id}: ${error.message}`, error);
@@ -78,9 +78,9 @@ export async function getMechanism(id: string): Promise<Mechanism> {
 }
 
 // Get all species
-export async function getAllSpecies(): Promise<Species[]> {
+export async function getAllSpecies(): Promise<APISpecies[]> {
   try {
-    const response = await axios.get<Species[]>(`${BASE_URL}/species`);
+    const response = await axios.get<APISpecies[]>(`${BASE_URL}/species`);
     return response.data;
   } catch (error: any) {
     console.error(`Error fetching species: ${error.message}`, error);
@@ -89,9 +89,9 @@ export async function getAllSpecies(): Promise<Species[]> {
 }
 
 // Get a specific species by ID
-export async function getSpecies(id: string): Promise<Species> {
+export async function getSpecies(id: string): Promise<APISpecies> {
   try {
-    const response = await axios.get<Species>(`${BASE_URL}/species/${id}`);
+    const response = await axios.get<APISpecies>(`${BASE_URL}/species/${id}`);
     return response.data;
   } catch (error: any) {
     console.error(`Error fetching species ${id}: ${error.message}`, error);
@@ -102,9 +102,9 @@ export async function getSpecies(id: string): Promise<Species> {
 // Get species associated with a mechanism
 export async function getSpeciesByMechanismId(
   mechanismId: string,
-): Promise<Species[]> {
+): Promise<APISpecies[]> {
   try {
-    const response = await axios.get<Species[]>(
+    const response = await axios.get<APISpecies[]>(
       `${BASE_URL}/mechanismspecies/mechanism/${mechanismId}`,
     );
     return response.data;
@@ -119,9 +119,9 @@ export async function getSpeciesByMechanismId(
 
 export async function getSpeciesByFamilyId(
   familyId: string,
-): Promise<Species[]> {
+): Promise<APISpecies[]> {
   try {
-    const response = await axios.get<Species[]>(
+    const response = await axios.get<APISpecies[]>(
       `${BASE_URL}/species/family/${familyId}`,
     );
     return response.data;
@@ -135,9 +135,9 @@ export async function getSpeciesByFamilyId(
 }
 
 // Get all reactions
-export async function getReactions(): Promise<Reaction[]> {
+export async function getReactions(): Promise<APIReaction[]> {
   try {
-    const response = await axios.get<Reaction[]>(`${BASE_URL}/reactions`);
+    const response = await axios.get<APIReaction[]>(`${BASE_URL}/reactions`);
     return response.data;
   } catch (error: any) {
     console.error(
@@ -149,9 +149,9 @@ export async function getReactions(): Promise<Reaction[]> {
 }
 
 // Get a specific reaction by ID
-export async function getReaction(id: string): Promise<Reaction> {
+export async function getReaction(id: string): Promise<APIReaction> {
   try {
-    const response = await axios.get<Reaction>(`${BASE_URL}/reactions/${id}`);
+    const response = await axios.get<APIReaction>(`${BASE_URL}/reactions/${id}`);
     return response.data;
   } catch (error: any) {
     console.error(`Error fetching reaction ${id}: ${error.message}`, error);
@@ -162,9 +162,9 @@ export async function getReaction(id: string): Promise<Reaction> {
 // Get reactions associated with a mechanism
 export async function getReactionsByMechanismId(
   mechanismId: string,
-): Promise<Reaction[]> {
+): Promise<APIReaction[]> {
   try {
-    const response = await axios.get<Reaction[]>(
+    const response = await axios.get<APIReaction[]>(
       `${BASE_URL}/reactions/mechanism/${mechanismId}`,
     );
     return response.data;
@@ -179,9 +179,9 @@ export async function getReactionsByMechanismId(
 
 export async function getReactionsByFamilyId(
   familyId: string,
-): Promise<Reaction[]> {
+): Promise<APIReaction[]> {
   try {
-    const response = await axios.get<Reaction[]>(
+    const response = await axios.get<APIReaction[]>(
       `${BASE_URL}/reactions/family/${familyId}`,
     );
     return response.data;
@@ -196,9 +196,9 @@ export async function getReactionsByFamilyId(
 
 export async function getReactantsByReactionIdAsync(
   reactionId: string,
-): Promise<ReactionSpeciesDto[]> {
+): Promise<APIReactionSpeciesDto[]> {
   try {
-    const response = await axios.get<ReactionSpeciesDto[]>(
+    const response = await axios.get<APIReactionSpeciesDto[]>(
       `${BASE_URL}/reactionspecies/reaction/${reactionId}/reactants`,
     );
     return response.data;
@@ -213,9 +213,9 @@ export async function getReactantsByReactionIdAsync(
 
 export async function getProductsByReactionIdAsync(
   reactionId: string,
-): Promise<ReactionSpeciesDto[]> {
+): Promise<APIReactionSpeciesDto[]> {
   try {
-    const response = await axios.get<ReactionSpeciesDto[]>(
+    const response = await axios.get<APIReactionSpeciesDto[]>(
       `${BASE_URL}/reactionspecies/reaction/${reactionId}/products`,
     );
     return response.data;
@@ -229,9 +229,9 @@ export async function getProductsByReactionIdAsync(
 }
 
 // Get all users
-export async function getUsers(): Promise<User[]> {
+export async function getUsers(): Promise<APIUser[]> {
   try {
-    const response = await axios.get<User[]>(`${BASE_URL}/users`);
+    const response = await axios.get<APIUser[]>(`${BASE_URL}/users`);
     return response.data;
   } catch (error: any) {
     console.error(`Error fetching users: ${error.message}`, error);
@@ -240,10 +240,10 @@ export async function getUsers(): Promise<User[]> {
 }
 
 // Get a specific user by ID
-export async function getUserByEmail(email: string): Promise<User | null> {
+export async function getUserByEmail(email: string): Promise<APIUser | null> {
   try {
     // const encodedEmail = encodeURIComponent(email);
-    const response = await axios.get<User>(`${BASE_URL}/users/email/${email}`);
+    const response = await axios.get<APIUser>(`${BASE_URL}/users/email/${email}`);
     return response.data;
   } catch (error: any) {
     console.error(
@@ -254,9 +254,9 @@ export async function getUserByEmail(email: string): Promise<User | null> {
   }
 }
 
-export async function getUserById(id: string): Promise<User> {
+export async function getUserById(id: string): Promise<APIUser> {
   try {
-    const response = await axios.get<User>(`${BASE_URL}/users/id/${id}`);
+    const response = await axios.get<APIUser>(`${BASE_URL}/users/id/${id}`);
     return response.data;
   } catch (error: any) {
     console.error(`Error fetching user ${id}: ${error.message}`, error);
@@ -267,9 +267,9 @@ export async function getUserById(id: string): Promise<User> {
 /**
  * Gets the currently logged in user claims
  */
-export async function getGoogleAuthUser(): Promise<UserClaims | null> {
+export async function getGoogleAuthUser(): Promise<APIUserClaims | null> {
   try {
-    const response = await axios.get<UserClaims>(`${AUTH_URL}/google/whoami`, {
+    const response = await axios.get<APIUserClaims>(`${AUTH_URL}/google/whoami`, {
       withCredentials: true,
     });
     return response.data;
@@ -279,9 +279,9 @@ export async function getGoogleAuthUser(): Promise<UserClaims | null> {
   }
 }
 
-export async function getPropertyById(id: string): Promise<Property> {
+export async function getPropertyById(id: string): Promise<APIProperty> {
   try {
-    const response = await axios.get<Property>(
+    const response = await axios.get<APIProperty>(
       `${BASE_URL}/properties/id/${id}`,
     );
     return response.data;
@@ -297,9 +297,9 @@ export async function getPropertyById(id: string): Promise<Property> {
 export async function getPropertyBySpeciesAndMechanism(
   species: string,
   mechanism: string,
-): Promise<Property> {
+): Promise<APIProperty> {
   try {
-    const response = await axios.get<Property>(
+    const response = await axios.get<APIProperty>(
       `${BASE_URL}/properties/id/${species}/${mechanism}`,
     );
     return response.data;
@@ -382,9 +382,9 @@ export async function downloadOAMusicbox(mechanismId?: string) {
 // species properties
 export async function getSpeciesPropertiesByMechanismIDAsync(
   mechanismId: string,
-): Promise<InitialConditionSpecies[]> {
+): Promise<APIInitialConditionSpecies[]> {
   try {
-    const response = await axios.get<InitialConditionSpecies[]>(
+    const response = await axios.get<APIInitialConditionSpecies[]>(
       `${BASE_URL}/initialconditionspecies/mechanism/${mechanismId}`,
     );
     return response.data;

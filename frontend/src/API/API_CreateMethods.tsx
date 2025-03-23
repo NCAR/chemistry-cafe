@@ -1,27 +1,25 @@
 import axios from "axios";
 import {
-  Family,
-  Mechanism,
-  Species,
-  Reaction,
-  ReactionSpecies,
-  MechanismReaction,
-  MechanismSpecies,
-  User,
-  UserMechanism,
-  Property,
+  APIFamily,
+  APIMechanism,
+  APISpecies,
+  APIReaction,
+  APIReactionSpecies,
+  APIMechanismReaction,
+  APIMechanismSpecies,
+  APIUser,
+  APIProperty,
 } from "./API_Interfaces";
 import { BASE_URL } from "./API_config";
 
-export async function createFamily(familyData: Family) {
+export async function createFamily(familyData: APIFamily) {
   try {
-    console.log("Family data: ", familyData);
     const response = await axios.post(`${BASE_URL}/families`, familyData, {
       headers: {
         "Content-Type": "application/json",
       },
     });
-    return response.data as Family;
+    return response.data as APIFamily;
   } catch (error: any) {
     console.error(
       `Error creating family ${familyData.id}: ${error.message}`,
@@ -31,14 +29,14 @@ export async function createFamily(familyData: Family) {
   }
 }
 
-export async function createMechanism(mechanismData: Mechanism) {
+export async function createMechanism(mechanismData: APIMechanism) {
   try {
     const response = await axios.post(`${BASE_URL}/mechanism`, mechanismData, {
       headers: {
         "Content-Type": "application/json",
       },
     });
-    return response.data as Mechanism;
+    return response.data as APIMechanism;
   } catch (error: any) {
     console.error(
       `Error creating mechanism ${mechanismData.id}: ${error.message}`,
@@ -48,7 +46,7 @@ export async function createMechanism(mechanismData: Mechanism) {
   }
 }
 
-export async function createReaction(reactionData: Reaction) {
+export async function createReaction(reactionData: APIReaction) {
   try {
     console.log("Reaction data: ", reactionData);
     const response = await axios.post(`${BASE_URL}/reactions`, reactionData, {
@@ -56,7 +54,7 @@ export async function createReaction(reactionData: Reaction) {
         "Content-Type": "application/json",
       },
     });
-    return response.data as Reaction;
+    return response.data as APIReaction;
   } catch (error: any) {
     console.error(
       `Error creating reaction ${reactionData}: ${error.message}`,
@@ -66,14 +64,14 @@ export async function createReaction(reactionData: Reaction) {
   }
 }
 
-export async function createSpecies(speciesData: Species) {
+export async function createSpecies(speciesData: APISpecies) {
   try {
     const response = await axios.post(`${BASE_URL}/species`, speciesData, {
       headers: {
         "Content-Type": "application/json",
       },
     });
-    return response.data as Species;
+    return response.data as APISpecies;
   } catch (error: any) {
     console.error(
       `Error creating species ${speciesData}: ${error.message}`,
@@ -84,7 +82,7 @@ export async function createSpecies(speciesData: Species) {
 }
 
 export async function addSpeciesToReaction(
-  reactionSpeciesData: ReactionSpecies,
+  reactionSpeciesData: APIReactionSpecies,
 ) {
   try {
     const response = await axios.post(
@@ -96,7 +94,7 @@ export async function addSpeciesToReaction(
         },
       },
     );
-    return response.data as ReactionSpecies;
+    return response.data as APIReactionSpecies;
   } catch (error: any) {
     console.error(
       `Error adding species ${reactionSpeciesData.species_id} to reaction  ${reactionSpeciesData.reaction_id}: ${error.message}`,
@@ -109,7 +107,7 @@ export async function addSpeciesToReaction(
 }
 
 export async function addReactionToMechanism(
-  mechanismReactionData: MechanismReaction,
+  mechanismReactionData: APIMechanismReaction,
 ) {
   try {
     const response = await axios.post(
@@ -121,7 +119,7 @@ export async function addReactionToMechanism(
         },
       },
     );
-    return response.data as MechanismReaction;
+    return response.data as APIMechanismReaction;
   } catch (error: any) {
     console.error(
       `Error add reaction ${mechanismReactionData.reaction_id} to mechanism ${mechanismReactionData.mechanism_id}: ${error.message}`,
@@ -134,7 +132,7 @@ export async function addReactionToMechanism(
 }
 
 export async function addSpeciesToMechanism(
-  mechanismSpeciesData: MechanismSpecies,
+  mechanismSpeciesData: APIMechanismSpecies,
 ) {
   try {
     const response = await axios.post(
@@ -146,7 +144,7 @@ export async function addSpeciesToMechanism(
         },
       },
     );
-    return response.data as MechanismSpecies;
+    return response.data as APIMechanismSpecies;
   } catch (error: any) {
     console.error(
       `Error adding species ${mechanismSpeciesData.species_id} to mechanism ${mechanismSpeciesData.mechanism_id}: ${error.message}`,
@@ -158,14 +156,14 @@ export async function addSpeciesToMechanism(
   }
 }
 
-export async function createUser(userData: User) {
+export async function createUser(userData: APIUser) {
   try {
     const response = await axios.post(`${BASE_URL}/users`, userData, {
       headers: {
         "Content-Type": "application/json",
       },
     });
-    return response.data as User;
+    return response.data as APIUser;
   } catch (error: any) {
     console.error(
       `Error creating user ${userData.id}: ${error.message}`,
@@ -175,28 +173,7 @@ export async function createUser(userData: User) {
   }
 }
 
-export async function addUserToMechanism(userMechanismData: UserMechanism) {
-  try {
-    const response = await axios.post(
-      `${BASE_URL}/usermechanism`,
-      userMechanismData,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
-    );
-    return response.data as UserMechanism;
-  } catch (error: any) {
-    console.error(
-      `Error adding user ${userMechanismData.user_id} to mechanism: ${userMechanismData.mechanism_id} ${error.message}`,
-      error,
-    );
-    throw new Error("Failed to add user to mechanism. Please try again later.");
-  }
-}
-
-export async function createProperty(propertyData: Property) {
+export async function createProperty(propertyData: APIProperty) {
   try {
     const response = await axios.post(
       `${BASE_URL}/properties`, // Adjust the URL to match your properties API endpoint
@@ -207,7 +184,7 @@ export async function createProperty(propertyData: Property) {
         },
       },
     );
-    return response.data as Property;
+    return response.data as APIProperty;
   } catch (error: any) {
     console.error(
       `Error creating property ${propertyData.id}: ${error.message}`,
