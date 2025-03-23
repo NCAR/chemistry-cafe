@@ -13,54 +13,54 @@ import {
   Paper,
   Typography,
 } from "@mui/material";
-import { Family } from "../API/API_Interfaces";
+import { APIFamily } from "../API/API_Interfaces";
 import { memo } from "react";
 
-const dummyData: Array<Family> = [
+const dummyData: Array<APIFamily> = [
   {
     name: "Test Family",
     description:
       "A test family that doesn't exist and is purely for UI testing",
     createdBy: "Test User",
-    id: "123-456-7890",
+    id: "123-456-7890-1234-25109",
   },
   {
     name: "The Amazing Digital Family",
     description: "Another cool family that is purely for UI testing",
     createdBy: "Bomni",
-    id: "098-765-4321",
+    id: "098-765-4321-109257-248",
   },
   {
     name: "Test Family",
     description: "A test family that doesn't exist",
     createdBy: "Test User",
-    id: "927-564-2221",
+    id: "927-564-2221-120597912-12598",
   },
   {
     name: "The funniest family",
     description: "They call me the UI tester",
     createdBy: "Test User",
-    id: "123-456-7890",
+    id: "123-456-7890-12058712-259872",
   },
   {
     name: "This is a reaally loooongggg family name just to make sure it doesn't overflow",
     description:
       "This is a really long description to make sure that the component doesn't overflow when there's too much text on screen. This is on purpose and not an accident. Hopefully this is long enough now and I don't have to keep going",
     createdBy: "Test User",
-    id: "123-456-7890",
+    id: "123-456-7890-120957-251872",
   },
   {
     name: "XSS test <script>alert('Uh Oh')</script>",
     description: "<script>alert('Uh Oh')</script>",
     createdBy: "Test User",
-    id: "123-456-7890",
+    id: "123-456-7890-129857-2589021",
   },
   {
     name: "Family at the bottom",
     description:
       'This is used to test the situation when a family has "overflowed" the element. This happens on certain screen resolutions.',
     createdBy: "Test User",
-    id: "123-456-7890",
+    id: "123-456-7890-0925912-2159871",
   },
 ];
 
@@ -99,7 +99,7 @@ const Dashboard = () => {
         <div className="dashboard-family-explorer">
           <Typography variant="h5">Recent Mechanism Families</Typography>
           <List>
-            {dummyData.map((family: Family, index: number) => {
+            {dummyData.map((family: APIFamily, index: number) => {
               return (
                 <FamilyInfoCard key={`${family.id}-${index}`} family={family} />
               );
@@ -117,7 +117,7 @@ const Dashboard = () => {
 const FamilyInfoCard = memo(function FamilyInfoCard({
   family,
 }: {
-  family: Family;
+  family: APIFamily;
 }) {
   return (
     <ListItem>

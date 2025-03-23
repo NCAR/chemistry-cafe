@@ -8,15 +8,15 @@ import {
   getReactionsByFamilyId,
 } from "../API/API_GetMethods";
 import {
-  Family,
-  Mechanism,
-  MechanismReaction,
-  MechanismSpecies,
-  Reaction,
-  ReactionSpecies,
-  Species,
-  Property,
-  User,
+  APIFamily,
+  APIMechanism,
+  APIMechanismReaction,
+  APIMechanismSpecies,
+  APIReaction,
+  APIReactionSpecies,
+  APISpecies,
+  APIProperty,
+  APIUser,
 } from "../API/API_Interfaces";
 import {
   createSpecies,
@@ -85,8 +85,8 @@ interface CreateFamilyModalProps {
 interface UpdateFamilyModalProps {
   open: boolean;
   onClose: () => void;
-  selectedFamily: Family | null;
-  onFamilyUpdated: (updatedFamily: Family) => void;
+  selectedFamily: APIFamily | null;
+  onFamilyUpdated: (updatedFamily: APIFamily) => void;
 }
 
 interface CreateMechanismModalProps {
@@ -99,8 +99,8 @@ interface CreateMechanismModalProps {
 interface UpdateMechanismModalProps {
   open: boolean;
   onClose: () => void;
-  selectedMechanism: Mechanism | null;
-  onMechanismUpdated: (updatedMechanism: Mechanism) => void;
+  selectedMechanism: APIMechanism | null;
+  onMechanismUpdated: (updatedMechanism: APIMechanism) => void;
 }
 
 interface CreateSpeciesModalProps {
@@ -116,8 +116,8 @@ interface UpdateSpeciesModalProps {
   onClose: () => void;
   selectedFamilyId: string | null;
   selectedMechanismId: string | null;
-  selectedSpecies: Species | null;
-  selectedSpeciesProperties: Property | null;
+  selectedSpecies: APISpecies | null;
+  selectedSpeciesProperties: APIProperty | null;
   setSpeciesUpdated: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
@@ -125,7 +125,7 @@ interface CreateReactionModalProps {
   open: boolean;
   onClose: () => void;
   selectedFamilyId: string | null;
-  selectedFamily: Family | null;
+  selectedFamily: APIFamily | null;
   selectedMechanismId: string | null;
   selectedMechanismName: string | null;
   reactionsCount: number;
@@ -136,19 +136,19 @@ interface UpdateReactionModalProps {
   open: boolean;
   onClose: () => void;
   selectedFamilyId: string | null;
-  selectedFamily: Family | null;
+  selectedFamily: APIFamily | null;
   selectedMechanismId: string | null;
   selectedMechanismName: string | null;
   reactionsCount: number;
   setReactionUpdated: React.Dispatch<React.SetStateAction<boolean>>;
-  selectedReaction: Reaction | null;
+  selectedReaction: APIReaction | null;
 }
 
 interface CreateReactantModalProps {
   open: boolean;
   onClose: () => void;
   selectedMechanismId: string | null;
-  selectedReaction: Reaction | null;
+  selectedReaction: APIReaction | null;
   setCreatedReactantBool: React.Dispatch<React.SetStateAction<boolean>>;
   setReactionUpdated: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -157,7 +157,7 @@ interface CreateProductModalProps {
   open: boolean;
   onClose: () => void;
   selectedMechanismId: string | null;
-  selectedReaction: Reaction | null;
+  selectedReaction: APIReaction | null;
   setCreatedProductBool: React.Dispatch<React.SetStateAction<boolean>>;
   setReactionUpdated: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -168,24 +168,24 @@ interface HandleActionWithDialogOptions<T extends string | number> {
   id: T;
   onClose: () => void;
   // only include if deleting species
-  setSpeciesRowData?: React.Dispatch<React.SetStateAction<Species[]>>;
-  speciesRowData?: Species[];
+  setSpeciesRowData?: React.Dispatch<React.SetStateAction<APISpecies[]>>;
+  speciesRowData?: APISpecies[];
   // only include if deleting a reaction
-  setReactionsRowData?: React.Dispatch<React.SetStateAction<Reaction[]>>;
-  reactionsRowData?: Reaction[];
+  setReactionsRowData?: React.Dispatch<React.SetStateAction<APIReaction[]>>;
+  reactionsRowData?: APIReaction[];
 
   // only include if deleting a user
-  setUsers?: React.Dispatch<React.SetStateAction<User[]>>;
+  setUsers?: React.Dispatch<React.SetStateAction<APIUser[]>>;
 
   // only include if deleting a mechanism
-  setSelectedMechanism?: React.Dispatch<React.SetStateAction<Mechanism | null>>;
+  setSelectedMechanism?: React.Dispatch<React.SetStateAction<APIMechanism | null>>;
   setSelectedMechanismId?: React.Dispatch<React.SetStateAction<string | null>>;
   setSelectedMechanismName?: React.Dispatch<
     React.SetStateAction<string | null>
   >;
 
   // only include if deleting a family
-  setSelectedFamily?: React.Dispatch<React.SetStateAction<Family | null>>;
+  setSelectedFamily?: React.Dispatch<React.SetStateAction<APIFamily | null>>;
   setSelectedFamilyId?: React.Dispatch<React.SetStateAction<string | null>>;
   // only include if deleting family or mechanism
   setBool?: React.Dispatch<React.SetStateAction<boolean>>;
@@ -312,7 +312,7 @@ export const CreateFamilyModal: React.FC<CreateFamilyModalProps> = ({
       setShowCreateFamilyAlert(true);
     } else {
       try {
-        const newFamily: Family = {
+        const newFamily: APIFamily = {
           name: createFamilyRef.current,
           description: "",
           createdBy: "",
@@ -388,7 +388,7 @@ export const UpdateFamilyModal: React.FC<UpdateFamilyModalProps> = ({
       setShowUpdateFamilyAlert(true);
     } else {
       try {
-        const newFamily: Family = {
+        const newFamily: APIFamily = {
           id: selectedFamily?.id!,
           name: familyName!,
           description: selectedFamily?.description!,
@@ -452,10 +452,10 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
   selectedFamilyId,
   setCreatedMechanismBool,
 }) => {
-  const [speciesList, setSpeciesList] = useState<Species[]>([]);
+  const [speciesList, setSpeciesList] = useState<APISpecies[]>([]);
   const [selectedSpeciesIds, setSelectedSpeciesIds] = useState<string[]>([]);
 
-  const [reactionList, setReactionList] = useState<Reaction[]>([]);
+  const [reactionList, setReactionList] = useState<APIReaction[]>([]);
   const [selectedReactionIds, setSelectedReactionIds] = useState<string[]>([]);
 
   const [reactionEquations, setReactionEquations] = useState<{
@@ -516,7 +516,7 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
 
   const handleCreateMechanismClick = async () => {
     try {
-      const mechanismData: Mechanism = {
+      const mechanismData: APIMechanism = {
         family_id: selectedFamilyId!,
         name: createMechanismRef.current,
         description: "",
@@ -526,7 +526,7 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
       const createdMechanism = await createMechanism(mechanismData);
 
       for (const speciesId of selectedSpeciesIds) {
-        const mechanismSpecies: MechanismSpecies = {
+        const mechanismSpecies: APIMechanismSpecies = {
           mechanism_id: createdMechanism.id!,
           species_id: speciesId,
         };
@@ -534,7 +534,7 @@ export const CreateMechanismModal: React.FC<CreateMechanismModalProps> = ({
       }
 
       for (const reactionId of selectedReactionIds) {
-        const mechanismReaction: MechanismReaction = {
+        const mechanismReaction: APIMechanismReaction = {
           mechanism_id: createdMechanism.id!,
           reaction_id: reactionId,
         };
@@ -628,7 +628,7 @@ export const UpdateMechanismModal: React.FC<UpdateMechanismModalProps> = ({
       setShowUpdateMechanismAlert(true);
     } else {
       try {
-        const newMechanism: Mechanism = {
+        const newMechanism: APIMechanism = {
           id: selectedMechanism?.id!,
           family_id: selectedMechanism?.family_id!,
           name: mechanismName!,
@@ -706,7 +706,7 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
     try {
       if (selectedFamilyId && selectedMechanismId) {
         if (speciesName !== "") {
-          const speciesData: Species = {
+          const speciesData: APISpecies = {
             name: speciesName,
             description: speciesDescription,
             created_by: "current_user",
@@ -714,14 +714,14 @@ export const CreateSpeciesModal: React.FC<CreateSpeciesModalProps> = ({
           const newSpecies = await createSpecies(speciesData);
 
           if (newSpecies && newSpecies.id) {
-            const mechanismSpecies: MechanismSpecies = {
+            const mechanismSpecies: APIMechanismSpecies = {
               mechanism_id: selectedMechanismId,
               species_id: newSpecies.id!,
             };
             await addSpeciesToMechanism(mechanismSpecies);
 
             // make the corresponding property
-            const propertyData: Property = {
+            const propertyData: APIProperty = {
               speciesId: newSpecies.id!,
               mechanismId: selectedMechanismId,
               tolerance: tolerance,
@@ -922,7 +922,7 @@ export const UpdateSpeciesModal: React.FC<UpdateSpeciesModalProps> = ({
     try {
       if (selectedFamilyId && selectedMechanismId) {
         if (speciesName !== "") {
-          const speciesData: Species = {
+          const speciesData: APISpecies = {
             id: selectedSpecies?.id,
             name: speciesName,
             description: speciesDescription,
@@ -932,7 +932,7 @@ export const UpdateSpeciesModal: React.FC<UpdateSpeciesModalProps> = ({
           console.log(updatedSpecies);
 
           // now update the property (in this case, needs id)
-          const propertyData: Property = {
+          const propertyData: APIProperty = {
             id: selectedSpeciesProperties?.id,
             speciesId: selectedSpeciesProperties?.speciesId!,
             mechanismId: selectedSpeciesProperties?.mechanismId!,
@@ -1108,7 +1108,7 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
   reactionsCount,
 }) => {
   const [selectedReactionType, setSelectedReactionType] = useState<string>("");
-  const [reactionList, setReactionList] = useState<Reaction[]>([]);
+  const [reactionList, setReactionList] = useState<APIReaction[]>([]);
   const [selectedReactionIds, setSelectedReactionIds] = useState<string[]>([]);
   const [reactionEquations, setReactionEquations] = useState<{
     [key: string]: string;
@@ -1126,7 +1126,7 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
             await getReactionsByMechanismId(selectedMechanismId);
 
           const uniqueReactions = reactionsFamily.filter(
-            (reaction: Reaction) =>
+            (reaction: APIReaction) =>
               !reactionsMechanism.some(
                 (mechReaction) => mechReaction.id === reaction.id,
               ),
@@ -1191,7 +1191,7 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
 
           // Name is mecanism name_reaction number
           // get the number of current reactions
-          const reactionData: Reaction = {
+          const reactionData: APIReaction = {
             name:
               selectedMechanismName + "_reaction" + String(reactionsCount + 1),
             // Set description to the constructed equation
@@ -1210,7 +1210,7 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
 
           //console.log(newReaction);
 
-          const mechanismReaction: MechanismReaction = {
+          const mechanismReaction: APIMechanismReaction = {
             mechanism_id: selectedMechanismId,
             reaction_id: newReaction.id!,
           };
@@ -1219,7 +1219,7 @@ export const CreateReactionModal: React.FC<CreateReactionModalProps> = ({
 
         console.log("selected ids:", selectedReactionIds);
         for (const reactionId of selectedReactionIds) {
-          const mechanismReaction: MechanismReaction = {
+          const mechanismReaction: APIMechanismReaction = {
             mechanism_id: selectedMechanismId,
             reaction_id: reactionId,
           };
@@ -1335,7 +1335,7 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
   selectedReaction,
 }) => {
   const [selectedReactionType, setSelectedReactionType] = useState<string>("");
-  const [reactionList, setReactionList] = useState<Reaction[]>([]);
+  const [reactionList, setReactionList] = useState<APIReaction[]>([]);
   const [selectedReactionIds, setSelectedReactionIds] = useState<string[]>([]);
   const [reactionEquations, setReactionEquations] = useState<{
     [key: string]: string;
@@ -1385,7 +1385,7 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
             await getReactionsByMechanismId(selectedMechanismId);
 
           const uniqueReactions = reactionsFamily.filter(
-            (reaction: Reaction) =>
+            (reaction: APIReaction) =>
               !reactionsMechanism.some(
                 (mechReaction) => mechReaction.id === reaction.id,
               ),
@@ -1440,7 +1440,7 @@ export const UpdateReactionModal: React.FC<UpdateReactionModalProps> = ({
           // console.log("Previous:");
           // console.log(selectedReaction);
 
-          const reactionData: Reaction = {
+          const reactionData: APIReaction = {
             id: selectedReaction!.id,
             name: selectedReaction!.name,
             // Set description to the constructed equation
@@ -1573,7 +1573,7 @@ export const CreateReactantModal: React.FC<CreateReactantModalProps> = ({
   setCreatedReactantBool,
   setReactionUpdated,
 }) => {
-  const [speciesList, setSpeciesList] = useState<Species[]>([]);
+  const [speciesList, setSpeciesList] = useState<APISpecies[]>([]);
   const [selectedSpeciesId, setSelectedSpeciesId] = useState<string | null>(
     null,
   );
@@ -1611,8 +1611,7 @@ export const CreateReactantModal: React.FC<CreateReactantModalProps> = ({
       }
 
       // Remove 'quantity' since it's not part of the interface
-      const reactionSpecies: ReactionSpecies = {
-        id: "",
+      const reactionSpecies: APIReactionSpecies = {
         reaction_id: selectedReaction.id!,
         species_id: selectedSpeciesId,
         role: "reactant",
@@ -1670,7 +1669,7 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
   setCreatedProductBool,
   setReactionUpdated,
 }) => {
-  const [speciesList, setSpeciesList] = useState<Species[]>([]);
+  const [speciesList, setSpeciesList] = useState<APISpecies[]>([]);
   const [selectedSpeciesId, setSelectedSpeciesId] = useState<string | null>(
     null,
   );
@@ -1707,8 +1706,7 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
         return;
       }
 
-      const reactionSpecies: ReactionSpecies = {
-        id: "",
+      const reactionSpecies: APIReactionSpecies = {
         reaction_id: selectedReaction.id!,
         species_id: selectedSpeciesId,
         role: "product",

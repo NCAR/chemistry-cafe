@@ -25,7 +25,7 @@ import { Header, Footer } from "../components/HeaderFooter";
 import "../styles/UserManagement.css";
 //import { useAuth } from "../contexts/AuthContext"; // Import the AuthContext
 import { getUsers } from "../API/API_GetMethods";
-import { User } from "../API/API_Interfaces";
+import { APIUser } from "../API/API_Interfaces";
 import { updateUser } from "../API/API_UpdateMethods";
 import { deleteUser } from "../API/API_DeleteMethods";
 import Dialog from "@mui/material/Dialog";
@@ -66,7 +66,7 @@ function CustomDataGridFooter() {
 }
 
 const UserManagement: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<APIUser[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedRoles, setSelectedRoles] = useState<{ [key: string]: string }>(
@@ -170,7 +170,7 @@ const UserManagement: React.FC = () => {
       // tslint:disable-next-line:no-unused-variable
       const response = await updateUser(
         updatedUser.id as string,
-        updatedUser as User,
+        updatedUser as APIUser,
       ); // Ensure updatedUser.id is a string
       // if no error, assume it is fine
       return updatedUser;

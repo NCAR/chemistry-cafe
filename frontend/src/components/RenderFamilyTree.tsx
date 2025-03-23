@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 
-import { Family, Mechanism } from "../API/API_Interfaces";
+import { APIFamily, APIMechanism } from "../API/API_Interfaces";
 import {
   downloadOAYAML,
   downloadOAJSON,
@@ -61,15 +61,15 @@ const treeViewContainerStyle = {
 };
 
 interface RenderFamilyTreeProps {
-  setSelectedFamily: React.Dispatch<React.SetStateAction<Family | null>>;
-  setSelectedMechanism: React.Dispatch<React.SetStateAction<Mechanism | null>>;
+  setSelectedFamily: React.Dispatch<React.SetStateAction<APIFamily | null>>;
+  setSelectedMechanism: React.Dispatch<React.SetStateAction<APIMechanism | null>>;
   setSelectedFamilyId: React.Dispatch<React.SetStateAction<string | null>>;
   setSelectedMechanismId: React.Dispatch<React.SetStateAction<string | null>>;
   setSelectedMechanismName: React.Dispatch<React.SetStateAction<string | null>>;
   handleCreateFamilyOpen: () => void;
   handleCreateMechanismOpen: () => void;
-  selectedFamily: Family | null;
-  selectedMechanism: Mechanism | null;
+  selectedFamily: APIFamily | null;
+  selectedMechanism: APIMechanism | null;
   selectedFamilyId: string | null;
   createdFamilyBool: boolean;
   setCreatedFamilyBool: React.Dispatch<React.SetStateAction<boolean>>;
@@ -111,9 +111,9 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
 }) => {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
-  const [families, setFamilies] = useState<Family[]>([]);
+  const [families, setFamilies] = useState<APIFamily[]>([]);
   const [mechanismsMap, setMechanismsMap] = useState<
-    Record<string, Mechanism[]>
+    Record<string, APIMechanism[]>
   >({});
 
   const [loading, setLoading] = useState<boolean>(true);
@@ -156,7 +156,7 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
           getMechanismsByFamilyId(family.id!),
         );
         const mechanismsArray = await Promise.all(mechanismsPromises);
-        const mechanismsMap: Record<string, Mechanism[]> = {};
+        const mechanismsMap: Record<string, APIMechanism[]> = {};
         fetchedFamilies.forEach((family, index) => {
           if (family.id) {
             mechanismsMap[family.id] = mechanismsArray[index];
@@ -239,7 +239,7 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
     setDeleteDialogOpen(true);
   };
 
-  const handleFamilyUpdated = (updatedFamily: Family) => {
+  const handleFamilyUpdated = (updatedFamily: APIFamily) => {
     setFamilies((prevFamilies) =>
       prevFamilies.map((family) =>
         family.id === updatedFamily.id ? updatedFamily : family,
@@ -247,7 +247,7 @@ const RenderFamilyTree: React.FC<RenderFamilyTreeProps> = ({
     );
   };
 
-  const handleMechanismUpdated = (updatedMechanism: Mechanism) => {
+  const handleMechanismUpdated = (updatedMechanism: APIMechanism) => {
     setMechanismsMap((prevMechanismsMap) => {
       const updatedMap = { ...prevMechanismsMap };
 
