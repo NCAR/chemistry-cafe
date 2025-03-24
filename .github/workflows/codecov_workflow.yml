@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - codecov_correction
   pull_request:
     branches:
       - main
@@ -23,7 +24,7 @@ jobs:
         with:
           node-version: 18
 
-      # Restore dependencies
+      # Restore frontend dependencies
       - name: Install dependencies
         run: npm install
         working-directory: ./frontend
@@ -39,9 +40,45 @@ jobs:
         working-directory: ./frontend
 
       # Step 6: Upload the code coverage report to Codecov
-      - name: Upload coverage to Codecov
+      - name: Upload frontend coverage to Codecov
         uses: codecov/codecov-action@v4.2.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: frontend
+          fail_ci_if_error: true
+
+      # Step 7: Restore backend dependencies
+      - name: Install backend dependencies
+        run: dotnet restore
+        working-directory: ./backend
+
+      # Step 8: Start up docker
+      - name: Start docker
+        run: docker compose up mysql -d
+
+      # Step 8: Run backend tests and collect code coverage
+      - name: Test and collect backend coverage
+        run: dotnet test backend --collect:"Code Coverage;Format=cobertura" --settings backend/.runsettings
+
+      # Step 9: Stop Docker
+      - name: Stop docker
+        run: docker compose down
+
+      # Step 10: Install ReportGenerator
+      - name: Install ReportGenerator
+        run: dotnet tool install -g dotnet-reportgenerator-globaltool
+
+      - name: Add .NET tools to PATH
+        run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+
+      # Step 11: Generate backend test report
+      - name: Generate backend test report
+        run: reportgenerator -reports:"backend/TestResults/**/**.cobertura.xml" -targetdir:coveragereport -reporttypes:Html,lcov -classfilters:-MySqlConnector.* -filefilters:-/_/src/MySqlConnector/*,-backend/TestResults/**/coverage.cobertura.xml
+
+        # Step 12: Upload the code coverage report to Codecov
+      - name: Upload backend coverage to Codecov
+        uses: codecov/codecov-action@v4.2.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: backend
           fail_ci_if_error: true
