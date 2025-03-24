@@ -1,6 +1,7 @@
-import { Alert, Box, Button, InputAdornment, Modal, ModalProps, Snackbar, TextField, Typography } from "@mui/material";
-import React, { useLayoutEffect, useRef, useState } from "react";
-import { Family, Mechanism, Species } from "../types/chemistryModels";
+import { Alert, Box, Button, InputAdornment, InputLabel, MenuItem, Modal, ModalProps, Select, Snackbar, TextField, Typography } from "@mui/material";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { ArrheniusReaction, Family, Mechanism, Reaction, ReactionTypeName, Species } from "../types/chemistryModels";
+import { UUID } from "crypto";
 
 const modalStyle = {
     position: "absolute" as const,
@@ -373,4 +374,119 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
         </div>
     );
 
+}
+
+type ReactionsEditorModalProps = {
+    open: boolean;
+    onClose: () => void;
+    onUpdate: (reaction: Reaction) => void;
+    reaction?: Reaction;
+    family: Family;
+}
+
+export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
+    open,
+    onClose,
+    onUpdate,
+    reaction,
+    family,
+}) => {
+    const [modifiedReaction, setModifiedReaction] = useState<ArrheniusReaction | undefined>(reaction as ArrheniusReaction);
+
+    const changeReactionProperties = (properties: any) => {
+        setModifiedReaction({
+            ...modifiedReaction,
+            ...properties,
+        })
+    }
+
+    useEffect(() => console.log(modifiedReaction), [modifiedReaction]);
+
+    const handleUpdateReaction = () => {
+        // onUpdate(modifiedReaction);
+    }
+
+    return (
+        <div>
+            <Modal
+                open={open}
+                onClose={onClose}
+            >
+                <Box
+                    sx={{
+                        ...modalStyle,
+                        width: "70%",
+                    }}
+                    role="menu"
+                >
+                    <InputLabel id="reaction-type-label">Reaction Type (Arrhenius is only available at the moment)</InputLabel>
+                    <Select
+                        disabled
+                        labelId="reaction-type-label"
+                        id="reaction-type"
+                        label="Reaction Type"
+                        value={"ARRHENIUS"}
+                        onChange={(event) => {
+                            changeReactionProperties({
+                                type: event.target.value,
+                            });
+                        }}
+                    >
+                        <MenuItem value="NONE">N/A</MenuItem>
+                        <MenuItem value="ARRHENIUS">Arrhenius</MenuItem>
+                    </Select>
+                    <Typography variant="h5">Reactants</Typography>
+                    {modifiedReaction?.reactants.map((reactant) => {
+                        const species = family.species.find(e => e.id == reactant.speciesId);
+                        return (
+                            <Box>
+                                <Typography>{species?.name}</Typography>
+                                <Typography>{reactant.coefficient}</Typography>
+                            </Box>
+                        );
+                    })}
+                    <Typography variant="h5">Products</Typography>
+                    {modifiedReaction?.products.map((product) => {
+                        const species = family.species.find(e => e.id == product.speciesId);
+                        return (
+                            <Box>
+                                <Typography>{species?.name}</Typography>
+                                <Typography>{product.coefficient}</Typography>
+                            </Box>
+                        );
+                    })}
+                    <Box
+                        sx={{
+                            display: "flex",
+                            flexDirection: "row",
+                            columnGap: "1em",
+                        }}
+                    >
+                        <Button
+                            sx={{
+                                flex: 1
+                            }}
+                            aria-label="Create Family"
+                            color="primary"
+                            variant="contained"
+                            onClick={handleUpdateReaction}
+                        >
+                            Submit
+                        </Button>
+                        <Button
+                            sx={{
+                                flex: 1
+                            }}
+                            aria-label="Cancel Edit"
+                            variant="outlined"
+                            onClick={onClose}
+                        >
+                            Cancel
+                        </Button>
+                    </Box>
+                </Box>
+
+            </Modal>
+        </div>
+    );
 }

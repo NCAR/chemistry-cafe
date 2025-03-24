@@ -11,7 +11,7 @@ import { TreeItem, treeItemClasses } from "@mui/x-tree-view/TreeItem";
 import { ArrheniusReaction, Family, Mechanism, Reaction, ReactionTypeName, Species } from "../types/chemistryModels";
 import { DataGrid, GridActionsCellItem, GridColDef, GridRenderCellParams, GridToolbarColumnsButton, GridToolbarContainer, GridToolbarDensitySelector, GridToolbarFilterButton } from "@mui/x-data-grid";
 import { useCustomTheme } from "../components/CustomThemeContext";
-import { FamilyCreationModal, SpeciesEditorModal } from "../components/FamilyEditorModals";
+import { FamilyCreationModal, ReactionsEditorModal, SpeciesEditorModal } from "../components/FamilyEditorModals";
 import { reactionTypeToString } from "../helpers/stringify";
 import { UUID } from "crypto";
 
@@ -274,7 +274,7 @@ const FamilyPage = () => {
                     />
                     <TreeItem
                       itemId={`${family.id}-${index}-reactions`}
-                      label={`Reactions (${family.reactions.length})`}
+                      label={`Reactions (${family.reactions.filter((element) => !element.isDeleted).length})`}
                       aria-label="Open Reactions Editor"
                       onClick={() => {
                         setDataView(getDataViewComponent(DataViewSelection.Reactions, family));
@@ -476,7 +476,7 @@ const SpeciesView = ({ family, updateFamily }: ViewProps) => {
               }
             }}
             handleEditButtonClick={() => {
-              setSelectedSpecies(family.species.find((value) => value.id === id));
+              setSelectedSpecies(family.species.find((element) => element.id === id));
               setSpeciesEditorOpen(true);
             }}
           />,
@@ -559,6 +559,47 @@ const SpeciesView = ({ family, updateFamily }: ViewProps) => {
 
 const ReactionsView = ({ family, updateFamily }: ViewProps) => {
   const { theme } = useCustomTheme();
+  const [reactionsEditorOpen, setReactionsEditorOpen] = useState<boolean>(false);
+  const [selectedReaction, setSelectedReaction] = useState<Reaction>();
+
+  const createReaction = () => {
+    const reaction: Reaction = {
+      id: Date.now().toString(),
+      name: "",
+      description: "",
+      type: "ARRHENIUS",
+      isModified: false,
+      isDeleted: false,
+    }
+    updateFamily({
+      ...family,
+      reactions: [reaction, ...family.reactions]
+    });
+    window.onbeforeunload = () => true;
+  }
+
+  const removeReaction = (id: UUID | string) => {
+    const originalReaction: Reaction | undefined = family.reactions.find((value) => value.id === id);
+    if (!originalReaction) {
+      return;
+    }
+
+    updateFamily({
+      ...family,
+      reactions: family.reactions.map((element) => {
+        if (element.id !== id) {
+          return element;
+        }
+        else {
+          return {
+            ...element,
+            isDeleted: true,
+            isModified: true,
+          }
+        }
+      })
+    });
+  }
 
   const reactionsColumns: GridColDef[] = [
     {
@@ -569,8 +610,15 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       getActions: ({ id }) => {
         return [
           <RowActionsButton
-            handleDeleteButtonClick={() => alert(`Deleting ${id}`)}
-            handleEditButtonClick={() => alert(`Editing ${id}`)}
+            handleDeleteButtonClick={() => {
+              if (typeof id === "string") {
+                removeReaction(id)
+              }
+            }}
+            handleEditButtonClick={() => {
+              setSelectedReaction(family.reactions.find((element) => element.id === id));
+              setReactionsEditorOpen(true);
+            }}
           />,
         ];
       },
@@ -627,22 +675,6 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
     }
   ];
 
-  const createReaction = () => {
-    const reaction: Reaction = {
-      id: Date.now().toString(),
-      name: "",
-      description: "",
-      type: "NONE",
-      isModified: false,
-      isDeleted: false,
-    }
-    updateFamily({
-      ...family,
-      reactions: [reaction, ...family.reactions]
-    });
-    window.onbeforeunload = () => true;
-  }
-
   return (
     <Box
       sx={{
@@ -655,7 +687,7 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       <Typography color="textSecondary" variant="h6">{family.name}</Typography>
       <DataGrid
         initialState={{ density: "compact" }}
-        rows={family.reactions}
+        rows={family.reactions.filter((element) => !element.isDeleted)}
         columns={reactionsColumns}
         autoPageSize
         sx={{
@@ -672,6 +704,13 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
               }
             />
         }}
+      />
+      <ReactionsEditorModal
+        open={reactionsEditorOpen}
+        onClose={() => setReactionsEditorOpen(false)}
+        onUpdate={console.warn}
+        reaction={selectedReaction}
+        family={family}
       />
     </Box>
   );
