@@ -349,6 +349,7 @@ const AccessibilityMenu = () => {
         </ListItem>
         <ListItem>  {/* Dyslexia Font */}
           <ToggleButton 
+            value="dyslexiaButton"
             selected={Boolean(appearanceSettings?.fontFamily)} 
             onChange={toggleDyslexiaFont} 
             aria-label="Dyslexia Font"
