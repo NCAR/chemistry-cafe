@@ -4,7 +4,7 @@
       <DataCollector friendlyName="XPlat Code Coverage">
         <Configuration>
           <Format>Cobertura</Format>
-          <Include>[Tests*]*</Include>
+          <Include>[Chemistry_Cafe_API*]*</Include>
           <Exclude> [MySqlConnector]*</Exclude>
         </Configuration>
       </DataCollector>
