@@ -20,8 +20,7 @@ function App() {
           <Banner />
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/loggedin" element={<Dashboard />} />{" "}
-            {/* TODO Update backend redirects go to dashboard instead of loggedin */}
+            <Route path="/loggedin" element={<Dashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/familypage" element={<FamilyPage />} />
             <Route path="/settings" element={<Settings />} />

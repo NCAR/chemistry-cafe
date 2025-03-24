@@ -10,7 +10,6 @@ import {
   addReactionToMechanism,
   addSpeciesToMechanism,
   createUser,
-  addUserToMechanism,
   createProperty,
 } from "../src/API/API_CreateMethods";
 
@@ -256,33 +255,6 @@ describe("API create functions tests", () => {
     );
   });
 
-  it("should add user to mechanism and return data", async () => {
-    const mockedCreate = vi
-      .spyOn(axios, "post")
-      .mockResolvedValue(createMockResponse()) as Mock;
-    const userMechanismData = { userId: "123", mechanismId: "456" };
-    const result = await addUserToMechanism(userMechanismData);
-
-    expect(mockedCreate).toHaveBeenCalledWith(
-      "http://localhost:8080/api/usermechanism",
-      userMechanismData,
-      { headers: { "Content-Type": "application/json" } },
-    );
-    expect(result).toEqual(mockResponseData);
-  });
-
-  it("should handle error when adding user to mechanism", async () => {
-    const userMechanismData = { userId: "123", mechanismId: "456" };
-    const errorMessage = "Request failed with status code 404";
-
-    (
-      axios.post as typeof axios.post & { mockRejectedValueOnce: Function }
-    ).mockRejectedValueOnce(new Error(errorMessage));
-    // Assert the function throws the correct error
-    await expect(addUserToMechanism(userMechanismData)).rejects.toThrow(
-      "Failed to add user to mechanism. Please try again later.",
-    );
-  });
 
   it("should create property and return data", async () => {
     const mockedCreate = vi

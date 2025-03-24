@@ -2,17 +2,17 @@
 
 import axios from "axios";
 import {
-  Family,
-  Mechanism,
-  Species,
-  Reaction,
-  User,
-  Property,
+  APIFamily,
+  APIMechanism,
+  APISpecies,
+  APIReaction,
+  APIUser,
+  APIProperty,
 } from "./API_Interfaces";
 import { BASE_URL } from "./API_config";
 
 // Update a family
-export async function updateFamily(family: Family) {
+export async function updateFamily(family: APIFamily) {
   try {
     const response = await axios.put(
       `${BASE_URL}/families/${family.id}`,
@@ -23,7 +23,7 @@ export async function updateFamily(family: Family) {
         },
       },
     );
-    return response.data as Family;
+    return response.data as APIFamily;
   } catch (error: any) {
     console.error(`Error updating family ${family}: ${error.message}`, error);
     throw new Error("Failed to update family. Please try again later.");
@@ -31,7 +31,7 @@ export async function updateFamily(family: Family) {
 }
 
 // Update a mechanism
-export async function updateMechanism(mechanism: Mechanism) {
+export async function updateMechanism(mechanism: APIMechanism) {
   try {
     const response = await axios.put(
       `${BASE_URL}/mechanism/${mechanism.id}`,
@@ -42,7 +42,7 @@ export async function updateMechanism(mechanism: Mechanism) {
         },
       },
     );
-    return response.data as Mechanism;
+    return response.data as APIMechanism;
   } catch (error: any) {
     console.error(
       `Error updating mechanism ${mechanism}: ${error.message}`,
@@ -53,7 +53,7 @@ export async function updateMechanism(mechanism: Mechanism) {
 }
 
 // Update a species
-export async function updateSpecies(species: Species) {
+export async function updateSpecies(species: APISpecies) {
   try {
     const response = await axios.put(
       `${BASE_URL}/species/${species.id}`,
@@ -64,7 +64,7 @@ export async function updateSpecies(species: Species) {
         },
       },
     );
-    return response.data as Species;
+    return response.data as APISpecies;
   } catch (error: any) {
     console.error(`Error updating species ${species}: ${error.message}`, error);
     throw new Error("Failed to update species. Please try again later.");
@@ -72,7 +72,7 @@ export async function updateSpecies(species: Species) {
 }
 
 // Update a reaction
-export async function updateReaction(reaction: Reaction) {
+export async function updateReaction(reaction: APIReaction) {
   try {
     const response = await axios.put(
       `${BASE_URL}/reactions/${reaction.id}`,
@@ -83,7 +83,7 @@ export async function updateReaction(reaction: Reaction) {
         },
       },
     );
-    return response.data as Reaction;
+    return response.data as APIReaction;
   } catch (error: any) {
     console.error(
       `Error updating reaction ${reaction}: ${error.message}`,
@@ -93,21 +93,21 @@ export async function updateReaction(reaction: Reaction) {
   }
 }
 
-export async function updateUser(id: string, user: User) {
+export async function updateUser(id: string, user: APIUser) {
   try {
     const response = await axios.put(`${BASE_URL}/users/${id}`, user, {
       headers: {
         "Content-Type": "application/json",
       },
     });
-    return response.data as User;
+    return response.data as APIUser;
   } catch (error: any) {
     console.error(`Error updating user ${id}: ${error.message}`, error);
     throw new Error("Failed to update user. Please try again later.");
   }
 }
 
-export async function updateProperty(property: Property) {
+export async function updateProperty(property: APIProperty) {
   try {
     const response = await axios.put(
       `${BASE_URL}/properties/${property.id}`,
@@ -118,7 +118,7 @@ export async function updateProperty(property: Property) {
         },
       },
     );
-    return response.data as Property;
+    return response.data as APIProperty;
   } catch (error: any) {
     console.error(
       `Error updating property ${property}: ${error.message}`,
