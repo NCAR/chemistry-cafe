@@ -64,11 +64,18 @@ jobs:
       - name: Stop docker
         run: docker compose down
 
-      # Step 10: Generate backend test report
+      # Step 10: Install ReportGenerator
+      - name: Install ReportGenerator
+        run: dotnet tool install -g dotnet-reportgenerator-globaltool
+
+      - name: Add .NET tools to PATH
+        run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+
+      # Step 11: Generate backend test report
       - name: Generate backend test report
         run: reportgenerator -reports:"backend/TestResults/**/**.cobertura.xml" -targetdir:coveragereport -reporttypes:Html,lcov -classfilters:-MySqlConnector.* -filefilters:-/_/src/MySqlConnector/*,-backend/TestResults/**/coverage.cobertura.xml
 
-        # Step 11: Upload the code coverage report to Codecov
+        # Step 12: Upload the code coverage report to Codecov
       - name: Upload backend coverage to Codecov
         uses: codecov/codecov-action@v4.2.0
         with:
