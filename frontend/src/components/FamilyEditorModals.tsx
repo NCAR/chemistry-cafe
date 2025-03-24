@@ -1,7 +1,8 @@
-import { Alert, Box, Button, IconButton, InputAdornment, MenuItem, Modal, ModalProps, Paper, Select, Snackbar, TextField, Typography } from "@mui/material";
-import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Alert, Box, Button, IconButton, InputAdornment, Menu, MenuItem, Modal, ModalProps, Paper, Select, Snackbar, TextField, Typography } from "@mui/material";
+import React, { MouseEvent, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ArrheniusReaction, Family, Mechanism, Reaction, Species } from "../types/chemistryModels";
 import AddIcon from "@mui/icons-material/Add";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 const modalStyle = {
     position: "absolute" as const,
@@ -111,7 +112,7 @@ export const FamilyCreationModal: React.FC<FamilyCreationModalProps> = ({
                             color="primary"
                             variant="contained"
                             onClick={handleFamilyCreation}>
-                            Submit
+                            Create
                         </Button>
                         <Button
                             sx={{
@@ -350,7 +351,7 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
                                     variant="contained"
                                     onClick={handleUpdateSpecies}
                                 >
-                                    Submit
+                                    Save Changes
                                 </Button>
                                 <Button
                                     sx={{
@@ -375,6 +376,72 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
         </div>
     );
 
+}
+
+type SelectSpeciesButtonProps = {
+    onSelect: (species: Species) => void;
+    "aria-label": string;
+    species: Array<Species>;
+}
+
+const SelectSpeciesButton: React.FC<SelectSpeciesButtonProps> = ({
+    "aria-label": ariaLabel,
+    onSelect,
+    species,
+}) => {
+    const [open, setOpen] = useState<boolean>(false);
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+    const handleMenuOpen = (event: MouseEvent<HTMLButtonElement>) => {
+        setAnchorEl(event.currentTarget);
+        setOpen(true);
+    }
+
+    const handleMenuClose = () => {
+        setOpen(false);
+    }
+
+    return (
+        <>
+            <IconButton
+                aria-label={ariaLabel}
+                color="primary"
+                onClick={handleMenuOpen}
+            >
+                <AddIcon />
+            </IconButton>
+            <Menu
+                open={open}
+                anchorEl={anchorEl}
+                onClose={handleMenuClose}
+            >
+                {species.length == 0 ?
+                    (
+                        <MenuItem disabled>
+                            <Typography>
+                                No Species Found
+                            </Typography>
+                        </MenuItem>
+                    ) : species.map((reactant, index) => {
+                        return (
+                            <MenuItem
+                                key={`selection-${reactant.id}-${index}`}
+                                onClick={() => {
+                                    onSelect(reactant);
+                                    handleMenuClose();
+                                }}
+                            >
+                                <Typography>
+                                    {reactant.name || "<No Name>"}
+                                </Typography>
+                            </MenuItem>
+                        )
+                    })
+                }
+
+            </Menu>
+        </>
+    );
 }
 
 type ReactionsEditorModalProps = {
@@ -422,13 +489,42 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
                 <Box
                     sx={{
                         ...modalStyle,
-                        width: "70%",
+                        width: "60%",
                         maxHeight: "80%",
                         overflowY: "scroll"
                     }}
                     role="menu"
                 >
                     <Typography variant="h4">Enter Reaction Details (WIP)</Typography>
+                    <TextField
+                        sx={{
+                            width: "100%"
+                        }}
+                        id="family-name"
+                        label="Name"
+                        required={true}
+                        onChange={(event) => {
+                            changeReactionProperties({
+                                name: event.target.value
+                            })
+                        }}
+                    />
+                    <TextField
+                        sx={{
+                            width: "100%"
+                        }}
+                        id="family-description"
+                        label="Description"
+                        multiline
+                        minRows={2}
+                        maxRows={4}
+                        onChange={(event) => {
+                            changeReactionProperties({
+                                description: event.target.value
+                            })
+                        }}
+                    />
+
                     <Typography variant="h6">Reaction Type (Arrhenius is only available at the moment)</Typography>
                     <Select
                         disabled
@@ -453,18 +549,49 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
                         }}
                     >
                         <Typography variant="h6">Reactants</Typography>
-                        <IconButton aria-label="Add Reactant" color="primary">
-                            <AddIcon />
-                        </IconButton>
+                        <SelectSpeciesButton
+                            aria-label="select-reaction-species"
+                            onSelect={(species) => {
+                                const reactantEntry = {
+                                    speciesId: species.id,
+                                    coefficient: 1,
+                                }
+                                if (!modifiedReaction?.reactants) {
+                                    changeReactionProperties({
+                                        reactants: [reactantEntry]
+                                    });
+                                }
+                                else {
+                                    changeReactionProperties({
+                                        reactants: [
+                                            ...modifiedReaction.reactants,
+                                            reactantEntry,
+                                        ]
+                                    });
+                                }
+                            }}
+                            species={family.species.filter((species) => {
+                                if (!modifiedReaction) {
+                                    return true;
+                                }
+                                for (const reactant of modifiedReaction?.reactants) {
+                                    if (reactant.speciesId === species.id) {
+                                        return false;
+                                    }
+                                }
+                                return true;
+                            })}
+                        />
                     </Box>
-                    {modifiedReaction?.reactants.map((reactant) => {
+                    {modifiedReaction?.reactants.map((reactant, index) => {
                         const species = family.species.find(e => e.id == reactant.speciesId);
                         return (
                             <Box
+                                key={`reactant-${reactant.speciesId}-${index}`}
                                 sx={{
                                     display: "flex",
                                     alignItems: "center",
-                                    columnGap: "1em"
+                                    columnGap: "1em",
                                 }}
                             >
                                 <Typography>{species?.name}</Typography>
@@ -475,6 +602,17 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
                                     elevation={2}>
                                     <Typography>Quantity: {reactant.coefficient}</Typography>
                                 </Paper>
+                                <IconButton
+                                    aria-label="Remove Species From Reactants"
+                                    onClick={() => {
+                                        changeReactionProperties({
+                                            reactants: modifiedReaction.reactants.filter((e) => e.speciesId !== reactant.speciesId),
+                                        });
+                                    }}
+                                    color="error"
+                                >
+                                    <DeleteIcon />
+                                </IconButton>
                             </Box>
                         );
                     })}
@@ -486,14 +624,45 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
                         }}
                     >
                         <Typography variant="h6">Products</Typography>
-                        <IconButton aria-label="Add Product" color="primary">
-                            <AddIcon />
-                        </IconButton>
+                        <SelectSpeciesButton
+                            aria-label="Select Reaction Species"
+                            onSelect={(species) => {
+                                const productEntry = {
+                                    speciesId: species.id,
+                                    coefficient: 1,
+                                }
+                                if (!modifiedReaction?.reactants) {
+                                    changeReactionProperties({
+                                        products: [productEntry]
+                                    });
+                                }
+                                else {
+                                    changeReactionProperties({
+                                        products: [
+                                            ...modifiedReaction.products,
+                                            productEntry,
+                                        ]
+                                    });
+                                }
+                            }}
+                            species={family.species.filter((species) => {
+                                if (!modifiedReaction) {
+                                    return true;
+                                }
+                                for (const product of modifiedReaction?.products) {
+                                    if (product.speciesId === species.id) {
+                                        return false;
+                                    }
+                                }
+                                return true;
+                            })}
+                        />
                     </Box>
-                    {modifiedReaction?.products.map((product) => {
+                    {modifiedReaction?.products.map((product, index) => {
                         const species = family.species.find(e => e.id == product.speciesId);
                         return (
                             <Box
+                                key={`product-${product.speciesId}-${index}`}
                                 sx={{
                                     display: "flex",
                                     alignItems: "center",
@@ -508,6 +677,17 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
                                     elevation={2}>
                                     <Typography>Yield: {product.coefficient}</Typography>
                                 </Paper>
+                                <IconButton
+                                    aria-label="Remove Species From Products"
+                                    onClick={() => {
+                                        changeReactionProperties({
+                                            products: modifiedReaction.products.filter((e) => e.speciesId !== product.speciesId),
+                                        });
+                                    }}
+                                    color="error"
+                                >
+                                    <DeleteIcon />
+                                </IconButton>
                             </Box>
                         );
                     })}
@@ -618,7 +798,7 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
                             variant="contained"
                             onClick={handleUpdateReaction}
                         >
-                            Submit
+                            Save Changes
                         </Button>
                         <Button
                             sx={{

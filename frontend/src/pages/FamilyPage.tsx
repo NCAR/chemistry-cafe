@@ -12,7 +12,7 @@ import { ArrheniusReaction, Family, Mechanism, Reaction, ReactionTypeName, Speci
 import { DataGrid, GridActionsCellItem, GridColDef, GridRenderCellParams, GridToolbarColumnsButton, GridToolbarContainer, GridToolbarDensitySelector, GridToolbarFilterButton } from "@mui/x-data-grid";
 import { useCustomTheme } from "../components/CustomThemeContext";
 import { FamilyCreationModal, ReactionsEditorModal, SpeciesEditorModal } from "../components/FamilyEditorModals";
-import { reactionTypeToString } from "../helpers/stringify";
+import { reactionToString, reactionTypeToString } from "../helpers/stringify";
 import { UUID } from "crypto";
 
 const carbon: Species = {
@@ -382,7 +382,6 @@ const RowActionsButton: React.FC<{
           open={open}
           anchorEl={anchorEl}
           onClose={handleMenuClose}
-
         >
           <MenuItem onClick={handleEditButtonClick}>
             <ListItemIcon>
@@ -696,7 +695,24 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
           {reactionTypeToString(params.value as ReactionTypeName)}
         </Typography>
       )
-    }
+    },
+    {
+      field: "id",
+      headerName: "Equation",
+      flex: 1,
+      renderCell: (params: GridRenderCellParams<Family>) => (
+        <Typography
+          variant="body1"
+          sx={{
+            color: params.value ? theme.palette.text.primary : theme.palette.text.disabled,
+          }}
+          noWrap
+        >
+          {reactionToString(family.reactions.find(e => e.id == params.value), family.species)}
+        </Typography>
+      )
+    },
+
   ];
 
   return (
