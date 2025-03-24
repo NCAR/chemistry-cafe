@@ -31,31 +31,34 @@ export const reactionTypeToString = (reactionType: ReactionTypeName): string => 
     }
 }
 
+/**
+ * Stringifies a reaction with a given species list.
+ * @param reaction 
+ * @param speciesList 
+ * @returns 
+ */
 export const reactionToString = (reaction: Reaction | undefined | null, speciesList: Array<Species>): string => {
     if (!reaction) {
         return "<none> -> <none>"
     }
 
-    let finalString = ""
-
+    const reactantStrings = [];
     for (const reactant of reaction.reactants) {
         const species = speciesList.find((e) => e.id == reactant.speciesId);
         if (!species) {
             continue;
         }
-        finalString += `${reactant.coefficient != 1 ? reactant.coefficient : ""}${species.name} `
+        reactantStrings.push(`${reactant.coefficient != 1 ? reactant.coefficient : ""}${species.name}`);
     }
 
-    finalString += "->";
-
+    const productStrings = [];
     for (const product of reaction.products) {
         const species = speciesList.find((e) => e.id == product.speciesId);
         if (!species) {
             continue;
         }
-        finalString += ` ${product.coefficient != 1 ? product.coefficient : ""}${species.name}`
+        productStrings.push(`${product.coefficient != 1 ? product.coefficient : ""}${species.name}`);
     }
 
-
-    return finalString;
+    return `${reactantStrings.join(" + ") || "<none>"} -> ${productStrings.join(" + ") || "<none>"}`;
 }

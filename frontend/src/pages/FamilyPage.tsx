@@ -18,7 +18,7 @@ import { UUID } from "crypto";
 const carbon: Species = {
   id: "11111111-11111111-11111111-11111111-11111111",
   name: "C",
-  description: "Good 'ol carbon",
+  description: "Carbon",
   properties: {
     "molecular weight": {
       units: "kg mol-1",
