@@ -21,6 +21,7 @@ export type AppearanceSettings = {
   secondaryColor?: string;
   infoColor?: string;
   errorColor?: string;
+  fontFamily?: string;
 };
 
 // Type used by createTheme() for the theming options
@@ -40,6 +41,8 @@ type ThemeOptionsType = Omit<ThemeOptions, "components"> &
           | "shouldSkipGeneratingVar"
         >;
   };
+
+export const dyslexiaFontFamily: string = "OpenDyslexic3,Comic Sans MS,Arial,Helvetica,sans-serif !important";
 
 export const defaultAppearanceSettings: Readonly<AppearanceSettings> =
   Object.freeze({
@@ -71,6 +74,7 @@ const getThemeOptions = (settings: AppearanceSettings): ThemeOptionsType => ({
   },
   typography: {
     fontSize: settings.fontSize,
+    fontFamily: settings.fontFamily
   },
 });
 
