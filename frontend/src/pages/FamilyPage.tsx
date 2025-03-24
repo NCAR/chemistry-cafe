@@ -6,6 +6,7 @@ import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import DownloadIcon from '@mui/icons-material/Download';
 import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
 import { TreeItem, treeItemClasses } from "@mui/x-tree-view/TreeItem";
 import { ArrheniusReaction, Family, Mechanism, Reaction, ReactionTypeName, Species } from "../types/chemistryModels";
@@ -14,6 +15,7 @@ import { useCustomTheme } from "../components/CustomThemeContext";
 import { FamilyCreationModal, ReactionsEditorModal, SpeciesEditorModal } from "../components/FamilyEditorModals";
 import { reactionToString, reactionTypeToString } from "../helpers/stringify";
 import { UUID } from "crypto";
+import { serializeMechanism } from "../helpers/serialization";
 
 const carbon: Species = {
   id: "11111111-11111111-11111111-11111111-11111111",
@@ -62,7 +64,7 @@ const testReaction: ArrheniusReaction = {
     }
   ],
   name: "Test Reaction",
-  description: "Me when I make a really long description lol lol lol lol lol lol lol lol lo ll oll ollollol lol loll ollo ll o llollollollollollollollollollollollollollollollollollollollollollollollollollollollollollollollollollollollollollollollollollollollollol",
+  description: "This is a really long description llllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllF",
   A: 1,
   B: 1,
   C: 1,
@@ -88,7 +90,7 @@ const dummyFamilyData: Array<Family> = [
     id: "11111111-11111111-11111111-11111111-11111111",
     name: "Test Family",
     description: "Test Family",
-    mechanisms: [testMechanism, { ...testMechanism, name: "Another Test Subject", description: "" }],
+    mechanisms: [testMechanism, { ...testMechanism, name: "Another Test Mechanism", description: "" }],
     species: [carbon, oxygen, carbonDioxide],
     reactions: [testReaction],
     isModified: true,
@@ -756,10 +758,10 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
   );
 }
 
-const MechanismsView = ({ family, updateFamily }: ViewProps) => {
+const MechanismsView = ({ family }: ViewProps) => {
   return (
     <Box>
-      <Typography sx={{ paddingTop: "0.5em" }} color="textPrimary" variant="h4">Mechanisms</Typography>
+      <Typography sx={{ paddingTop: "0.5em" }} color="textPrimary" variant="h4">Mechanisms (WIP)</Typography>
       <Typography color="textSecondary" variant="h6">{family.name}</Typography>
       {family.mechanisms.map((mechanism, index) => (
         <Card
@@ -769,8 +771,31 @@ const MechanismsView = ({ family, updateFamily }: ViewProps) => {
           }}
         >
           <CardContent>
-            <Typography color="textPrimary">{mechanism.name}</Typography>
-            <Typography color="textSecondary">{mechanism.description}</Typography>
+            <Box>
+              <Typography color="textPrimary">{mechanism.name}</Typography>
+              <Typography color="textSecondary">{mechanism.description}</Typography>
+            </Box>
+            <Button
+              startIcon={<DownloadIcon />}
+              sx={{ textTransform: "none" }}
+              variant="contained"
+              color="primary"
+              onClick={() => {
+                const link = document.createElement("a");
+                const body = serializeMechanism(mechanism, family);
+                const blob = new Blob([body], { type: "application/json" });
+                const blobUrl = window.URL.createObjectURL(blob);
+
+                link.download = "openAtmos.json";
+                link.href = blobUrl;
+                link.click();
+
+                window.URL.revokeObjectURL(blobUrl);
+                document.removeChild(link);
+              }}
+            >
+              <Typography variant="subtitle1">Download (Not currently in spec)</Typography>
+            </Button>
           </CardContent>
         </Card>
       ))}
