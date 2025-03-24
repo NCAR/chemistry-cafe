@@ -10,7 +10,8 @@
   display: grid;
   grid-template-areas: "familySelector familyView";
   grid-template-columns: 25% 75%;
-  padding: 0 1rem 0 0;
+  padding: 0 2em 0 0;
+  column-gap: 1em;
 }
 
 .family-selector {

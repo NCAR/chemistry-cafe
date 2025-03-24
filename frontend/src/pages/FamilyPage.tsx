@@ -1,7 +1,7 @@
 import { memo, MouseEvent, useEffect, useState } from "react";
 import { Header, Footer } from "../components/HeaderFooter";
 import "../styles/FamilyPage.css";
-import { alpha, Box, CircularProgress, IconButton, ListItemIcon, Menu, MenuItem, Paper, styled, Tooltip, Typography } from "@mui/material";
+import { alpha, Box, Button, Card, CardContent, CircularProgress, IconButton, ListItemIcon, Menu, MenuItem, Paper, styled, Tooltip, Typography } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -11,6 +11,7 @@ import { TreeItem, treeItemClasses } from "@mui/x-tree-view/TreeItem";
 import { ArrheniusReaction, Family, Mechanism, Species } from "../types/chemistryModels";
 import { DataGrid, GridActionsCellItem, GridColDef, GridRenderCellParams, GridToolbarColumnsButton, GridToolbarContainer, GridToolbarDensitySelector, GridToolbarFilterButton } from "@mui/x-data-grid";
 import { useCustomTheme } from "../components/CustomThemeContext";
+import { FamilyCreationModal } from "../components/FamilyEditorModals";
 
 const carbon: Species = {
   id: "11111111-11111111-11111111-11111111-11111111",
@@ -85,10 +86,10 @@ const dummyFamilyData: Array<Family> = [
     id: "11111111-11111111-11111111-11111111-11111111",
     name: "Test Family",
     description: "Test Family",
-    mechanisms: [testMechanism, { ...testMechanism, name: "Another Test Subject" }],
+    mechanisms: [testMechanism, { ...testMechanism, name: "Another Test Subject", description: "" }],
     species: [carbon, oxygen],
     reactions: [testReaction],
-    saved: true,
+    isModified: true,
   },
   {
     id: "22222222-22222222-22222222-22222222-22222222",
@@ -97,7 +98,7 @@ const dummyFamilyData: Array<Family> = [
     mechanisms: [],
     species: [{ ...carbon }, { ...oxygen }, { ...carbonDioxide }],
     reactions: [],
-    saved: true,
+    isModified: true,
   },
 
 ]
@@ -107,6 +108,7 @@ const FamilyPage = () => {
   const [loadingFamilies, setLoadingFamilies] = useState<boolean>(true);
   const [families, setFamilies] = useState<Array<Family>>();
   const [dataView, setDataView] = useState<React.JSX.Element>(<DefaultView />);
+  const [openFamilyCreationModal, setOpenFamilyCreationModal] = useState<boolean>(false);
 
   const { appearanceSettings } = useCustomTheme();
 
@@ -159,8 +161,18 @@ const FamilyPage = () => {
     console.log(mechanismId, format);
   }
 
-  const updateFamilyLocally = (family: Family) => {
-    console.info(`Update Family ${family.name}`)
+  const updateFamilyLocally = (family: Family): void => {
+    console.info(`Update Family ${family.name}`);
+  }
+
+  const createFamily = (family: Family): void => {
+    if (families) {
+      setFamilies([...families, family]);
+    }
+    else {
+      setFamilies([family]);
+    }
+    setOpenFamilyCreationModal(false);
   }
 
   return (
@@ -183,9 +195,11 @@ const FamilyPage = () => {
             variant="outlined"
           >
             <Typography variant="h4">Families</Typography>
-            <IconButton>
-              <AddIcon color="primary" sx={{ fontSize: 32, fontWeight: "bold" }} />
-            </IconButton>
+            <Tooltip title="Create Family">
+              <IconButton aria-label="Create Family" onClick={() => setOpenFamilyCreationModal(true)}>
+                <AddIcon color="primary" sx={{ fontSize: 32, fontWeight: "bold" }} />
+              </IconButton>
+            </Tooltip>
           </Paper>
           {
             loadingFamilies ? (
@@ -205,14 +219,21 @@ const FamilyPage = () => {
                           columnGap: "0.8em",
                         }}
                       >
-                        <Typography
-                          noWrap
-                          sx={{
-                            flex: 1,
-                          }}
+                        <Tooltip
+                          title={family.name}
+                          placement="bottom-start"
+                          arrow
+                          disableInteractive
                         >
-                          {family.name}
-                        </Typography>
+                          <Typography
+                            noWrap
+                            sx={{
+                              flex: 1,
+                            }}
+                          >
+                            {family.name}
+                          </Typography>
+                        </Tooltip>
                         <IconButton
                           onClick={() => {
                           }}
@@ -233,27 +254,50 @@ const FamilyPage = () => {
                       </div>
                     }
                   >
-                    <TreeItem
-                      itemId={`${family.id}-${index}-species`}
-                      label={`Species (${family.species.length})`}
-                      onClick={() => {
-                        setDataView(getDataViewComponent(DataViewSelection.Species, family, updateFamilyLocally));
-                      }}
-                    />
-                    <TreeItem
-                      itemId={`${family.id}-${index}-reactions`}
-                      label={`Reactions (${family.reactions.length})`}
-                      onClick={() => {
-                        setDataView(getDataViewComponent(DataViewSelection.Reactions, family, updateFamilyLocally));
-                      }}
-                    />
-                    <TreeItem
-                      itemId={`${family.id}-${index}-mechanisms`}
-                      label={`Mechanisms (${family.mechanisms.length})`}
-                      onClick={() => {
-                        setDataView(getDataViewComponent(DataViewSelection.Mechanisms, family, (family) => { console.log(family.name) }));
-                      }}
-                    />
+                    <Tooltip
+                      title="Open Species Editor"
+                      placement="bottom-start"
+                      arrow
+                      disableInteractive
+                    >
+                      <TreeItem
+                        itemId={`${family.id}-${index}-species`}
+                        label={`Species (${family.species.length})`}
+                        aria-label="Open Species Editor"
+                        onClick={() => {
+                          setDataView(getDataViewComponent(DataViewSelection.Species, family, updateFamilyLocally));
+                        }}
+                      />
+                    </Tooltip>
+                    <Tooltip
+                      title="Open Reactions Editor"
+                      placement="bottom-start"
+                      arrow
+                      disableInteractive
+                    >
+                      <TreeItem
+                        itemId={`${family.id}-${index}-reactions`}
+                        label={`Reactions (${family.reactions.length})`}
+                        aria-label="Open Reactions Editor"
+                        onClick={() => {
+                          setDataView(getDataViewComponent(DataViewSelection.Reactions, family, updateFamilyLocally));
+                        }}
+                      />
+                    </Tooltip>
+                    <Tooltip
+                      title="Open Mechanism Editor"
+                      placement="bottom-start"
+                      arrow
+                      disableInteractive
+                    >
+                      <TreeItem
+                        itemId={`${family.id}-${index}-mechanisms`}
+                        label={`Mechanisms (${family.mechanisms.length})`}
+                        onClick={() => {
+                          setDataView(getDataViewComponent(DataViewSelection.Mechanisms, family, (family) => { console.log(family.name) }));
+                        }}
+                      />
+                    </Tooltip>
                   </FamilyTreeItem>
                 ))}
               </SimpleTreeView>
@@ -261,13 +305,18 @@ const FamilyPage = () => {
           }
 
         </div>
-        <div className="family-selector">
+        <div className="family-view">
           {dataView}
         </div>
       </Paper>
       <footer>
         <Footer />
       </footer>
+      <FamilyCreationModal
+        open={openFamilyCreationModal}
+        onClose={() => setOpenFamilyCreationModal(false)}
+        onCreation={createFamily}
+      />
     </div>
   );
 };
@@ -329,7 +378,7 @@ const RowActionsButton: React.FC<{
 
     return (
       <>
-        <Tooltip title="Row Actions" >
+        <Tooltip title="Row Actions" disableInteractive>
           <GridActionsCellItem
             aria-label="Expand Row Actions"
             icon={
@@ -387,6 +436,7 @@ const SpeciesView = ({ family, updateFamily }: ViewProps) => {
       type: "actions",
       headerClassName: "roleDataHeader",
       cellClassName: "actions",
+      disableColumnMenu: true,
       getActions: ({ id }) => {
         return [
           <RowActionsButton
@@ -408,7 +458,7 @@ const SpeciesView = ({ family, updateFamily }: ViewProps) => {
             color: params.value ? theme.palette.text.primary : theme.palette.text.disabled
           }}
         >
-          {params.value ?? "<Empty>"}
+          {params.value || "<Empty>"}
         </Typography>
       )
     },
@@ -424,25 +474,38 @@ const SpeciesView = ({ family, updateFamily }: ViewProps) => {
             color: params.value ? theme.palette.text.primary : theme.palette.text.disabled
           }}
         >
-          {params.value ?? "<Empty>"}
+          {params.value || "<Empty>"}
         </Typography>
       )
     },
   ];
 
   return (
-    <>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%"
+      }}
+    >
+      <Typography color="textPrimary" variant="h4">Chemical Species</Typography>
+      <Typography color="textSecondary" variant="h6">{family.name}</Typography>
       <DataGrid
         initialState={{ density: "compact" }}
         rows={family.species}
         columns={speciesColumns}
         autoPageSize
-        style={{ height: "100%" }}
+        style={{
+          flex: 1,
+        }}
         slots={{
-          toolbar: () => <DataViewToolbar />
+          toolbar: () =>
+            <DataViewToolbar
+              customButton={<Button />}
+            />
         }}
       />
-    </>
+    </Box>
   );
 }
 
@@ -501,24 +564,50 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
   ];
 
   return (
-    <>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%"
+      }}
+    >
+      <Typography color="textPrimary" variant="h4">Chemical Reactions</Typography>
+      <Typography color="textSecondary" variant="h6">{family.name}</Typography>
       <DataGrid
         initialState={{ density: "compact" }}
         rows={family.reactions}
         columns={reactionsColumns}
         autoPageSize
-        style={{ height: "100%" }}
+        sx={{
+          flex: 1
+        }}
         slots={{
           toolbar: () => <DataViewToolbar />
         }}
       />
-    </>
+    </Box>
   );
 }
 
 const MechanismsView = ({ family, updateFamily }: ViewProps) => {
   return (
-    <Typography>{family.name} Mechanisms</Typography>
+    <Box>
+      <Typography color="textPrimary" variant="h4">Mechanisms</Typography>
+      <Typography color="textSecondary" variant="h6">{family.name}</Typography>
+      {family.mechanisms.map((mechanism, index) => (
+        <Card
+          key={`mechanism-${mechanism.id}-${index}`}
+          sx={{
+            padding: 1,
+          }}
+        >
+          <CardContent>
+            <Typography color="textPrimary">{mechanism.name}</Typography>
+            <Typography color="textSecondary">{mechanism.description}</Typography>
+          </CardContent>
+        </Card>
+      ))}
+    </Box>
   );
 }
 

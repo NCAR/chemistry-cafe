@@ -28,6 +28,12 @@ export type Species = {
     properties: {
         [key: string]: SpeciesProperties
     };
+
+    /** Determines whether the species has been modified from its original state */
+    isModified?: boolean;
+
+    /** Determines if the species has been marked for deletion */
+    isDeleted?: boolean;
 }
 
 export type ReactionTypeName =
@@ -62,6 +68,12 @@ export type Reaction = {
 
     /** Type of the reaction. This determines what other properties the reaction should have */
     type: ReactionTypeName;
+
+    /** Determines whether the Reaction has been modified from its original state */
+    isModified?: boolean;
+
+    /** Determines if the Reaction has been marked for deletion */
+    isDeleted?: boolean;
 }
 
 export type ArrheniusReaction = {
@@ -98,6 +110,12 @@ export type Phase = {
 
     /** Species involved in the phase */
     species: Array<Species>;
+
+    /** Determines whether the phase has been modified from its original state */
+    isModified?: boolean;
+
+    /** Determines if the phase has been marked for deletion */
+    isDeleted?: boolean;
 }
 
 /**
@@ -123,6 +141,12 @@ export type Mechanism = {
 
     /** Reactions associated with the mechanism */
     reactions: Array<Reaction>;
+
+    /** Determines whether the mechanism has been modified from its original state */
+    isModified?: boolean;
+
+    /** Determines if the mechanism has been marked for deletion */
+    isDeleted?: boolean;
 }
 
 /**
@@ -155,6 +179,9 @@ export type Family = {
     /** Reaction inside the family */
     reactions: Array<Reaction>;
 
-    /** Determines whether the family has been saved to the database */
-    saved: boolean;
+    /** Determines whether the family has been modified from its original state */
+    isModified?: boolean;
+
+    /** Determines if the family has been marked for deletion */
+    isDeleted?: boolean;
 }
