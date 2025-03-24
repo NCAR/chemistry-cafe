@@ -85,19 +85,22 @@ export type Reaction = {
 
     /** Determines if the reaction is in the database */
     isInDatabase?: boolean;
+
+    reactants: Array<{
+        speciesId: UUID | string,
+        coefficient: number
+    }>;
+    
+    products: Array<{
+        speciesId: UUID | string,
+        coefficient: number
+        branch?: string
+    }>;
 }
 
 export type ArrheniusReaction = {
     type: "ARRHENIUS";
     gasPhase: string;
-    reactants: Array<{
-        speciesId: UUID | string,
-        coefficient: number
-    }>;
-    products: Array<{
-        speciesId: UUID | string,
-        coefficient: number
-    }>;
     A: number;
     B: number;
     C: number;

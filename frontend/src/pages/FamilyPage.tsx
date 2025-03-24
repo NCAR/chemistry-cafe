@@ -568,6 +568,8 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       name: "",
       description: "",
       type: "ARRHENIUS",
+      reactants: [],
+      products: [],
       isModified: false,
       isDeleted: false,
     }

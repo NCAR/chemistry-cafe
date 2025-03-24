@@ -1,7 +1,6 @@
-import { Alert, Box, Button, InputAdornment, InputLabel, MenuItem, Modal, ModalProps, Select, Snackbar, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, InputAdornment, InputLabel, MenuItem, Modal, ModalProps, Paper, Select, Snackbar, TextField, Typography } from "@mui/material";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { ArrheniusReaction, Family, Mechanism, Reaction, ReactionTypeName, Species } from "../types/chemistryModels";
-import { UUID } from "crypto";
+import { ArrheniusReaction, Family, Mechanism, Reaction, Species } from "../types/chemistryModels";
 
 const modalStyle = {
     position: "absolute" as const,
@@ -400,11 +399,14 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
         })
     }
 
-    useEffect(() => console.log(modifiedReaction), [modifiedReaction]);
+    useEffect(() => {
+        setModifiedReaction(reaction as ArrheniusReaction);
+    }, [reaction]);
 
     const handleUpdateReaction = () => {
         // onUpdate(modifiedReaction);
     }
+
 
     return (
         <div>
@@ -439,9 +441,15 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
                     {modifiedReaction?.reactants.map((reactant) => {
                         const species = family.species.find(e => e.id == reactant.speciesId);
                         return (
-                            <Box>
+                            <Box
+                                sx={{
+                                    
+                                }}
+                            >
+                                <Paper elevation={2}>
+                                    <Typography>{reactant.coefficient}</Typography>
+                                </Paper>
                                 <Typography>{species?.name}</Typography>
-                                <Typography>{reactant.coefficient}</Typography>
                             </Box>
                         );
                     })}
@@ -487,6 +495,6 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
                 </Box>
 
             </Modal>
-        </div>
+        </div >
     );
 }
