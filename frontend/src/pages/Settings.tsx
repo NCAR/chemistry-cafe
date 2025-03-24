@@ -4,6 +4,7 @@ import "../styles/Settings.css";
 import {
   defaultAppearanceSettings,
   useCustomTheme,
+  dyslexiaFontFamily,
 } from "../components/CustomThemeContext";
 import {
   Box,
@@ -20,6 +21,7 @@ import {
   Slider,
   Switch,
   Typography,
+  ToggleButton
 } from "@mui/material";
 import { memo, MouseEvent, useLayoutEffect, useState } from "react";
 import AccountBoxIcon from "@mui/icons-material/AccountBox";
@@ -30,6 +32,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import AddCircleOutlineOutlinedIcon from "@mui/icons-material/AddCircleOutlineOutlined";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import RemoveCircleOutlineOutlinedIcon from "@mui/icons-material/RemoveCircleOutlineOutlined";
+import SpellcheckIcon from '@mui/icons-material/Spellcheck';
 import {
   blue,
   cyan,
@@ -282,6 +285,13 @@ const AccessibilityMenu = () => {
     });
   };
 
+  const toggleDyslexiaFont = () => {
+    setAppearanceSettings({
+      ...appearanceSettings,
+      fontFamily: appearanceSettings?.fontFamily ? undefined : dyslexiaFontFamily
+    });
+  }
+
   return (
     <>
       <List
@@ -290,7 +300,7 @@ const AccessibilityMenu = () => {
         }}
         subheader="Text Content"
       >
-        <ListItem>
+        <ListItem>  {/* Font Size */}
           <Paper
             sx={{
               p: 1,
@@ -336,6 +346,18 @@ const AccessibilityMenu = () => {
               </IconButton>
             </Box>
           </Paper>
+        </ListItem>
+        <ListItem>  {/* Dyslexia Font */}
+          <ToggleButton 
+            value="dyslexiaButton"
+            selected={Boolean(appearanceSettings?.fontFamily)} 
+            onChange={toggleDyslexiaFont} 
+            aria-label="Dyslexia Font"
+            sx={{ textTransform: "none" }}
+          >
+            <SpellcheckIcon/>
+              Dyslexia Font
+          </ToggleButton>
         </ListItem>
       </List>
       <Divider variant="middle" />

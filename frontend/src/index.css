@@ -17,3 +17,8 @@ body {
   font-weight: 400;
   font-style: normal;
 }
+
+@font-face {
+  font-family: OpenDyslexic3;
+  src: url("https://website-widgets.pages.dev/fonts/OpenDyslexic3-Regular.woff") format("woff"), url("https://website-widgets.pages.dev/fonts/OpenDyslexic3-Regular.ttf") format("truetype");
+}
