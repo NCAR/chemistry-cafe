@@ -89,7 +89,7 @@ const dummyFamilyData: Array<Family> = [
     name: "Test Family",
     description: "Test Family",
     mechanisms: [testMechanism, { ...testMechanism, name: "Another Test Subject", description: "" }],
-    species: [carbon, oxygen],
+    species: [carbon, oxygen, carbonDioxide],
     reactions: [testReaction],
     isModified: true,
   },
@@ -449,13 +449,23 @@ const SpeciesView = ({ family, updateFamily }: ViewProps) => {
         if (element.id !== id) {
           return element;
         }
-        else {
-          return {
-            ...element,
-            isDeleted: true,
-            isModified: true,
-          }
+        return {
+          ...element,
+          isDeleted: true,
+          isModified: true,
         }
+      })
+    });
+  }
+
+  const updateSpecies = (species: Species) => {
+    updateFamily({
+      ...family,
+      species: family.species.map((element) => {
+        if (element.id !== species.id) {
+          return element;
+        }
+        return species;
       })
     });
   }
@@ -550,7 +560,7 @@ const SpeciesView = ({ family, updateFamily }: ViewProps) => {
       <SpeciesEditorModal
         open={speciesEditorOpen}
         onClose={() => setSpeciesEditorOpen(false)}
-        onUpdate={console.log}
+        onUpdate={updateSpecies}
         species={selectedSpecies}
       />
     </Box>
@@ -599,6 +609,18 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
             isModified: true,
           }
         }
+      })
+    });
+  }
+
+  const updateReaction = (reaction: Reaction) => {
+    updateFamily({
+      ...family,
+      reactions: family.reactions.map((element) => {
+        if (element.id !== reaction.id) {
+          return element;
+        }
+        return reaction;
       })
     });
   }
@@ -710,7 +732,7 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       <ReactionsEditorModal
         open={reactionsEditorOpen}
         onClose={() => setReactionsEditorOpen(false)}
-        onUpdate={console.warn}
+        onUpdate={updateReaction}
         reaction={selectedReaction}
         family={family}
       />

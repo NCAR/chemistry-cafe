@@ -1,6 +1,7 @@
-import { Alert, Box, Button, InputAdornment, InputLabel, MenuItem, Modal, ModalProps, Paper, Select, Snackbar, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, IconButton, InputAdornment, MenuItem, Modal, ModalProps, Paper, Select, Snackbar, TextField, Typography } from "@mui/material";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ArrheniusReaction, Family, Mechanism, Reaction, Species } from "../types/chemistryModels";
+import AddIcon from "@mui/icons-material/Add";
 
 const modalStyle = {
     position: "absolute" as const,
@@ -224,6 +225,7 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
             },
         };
         onUpdate(updatedSpecies);
+        onClose();
     }
 
     return (
@@ -404,9 +406,12 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
     }, [reaction]);
 
     const handleUpdateReaction = () => {
-        // onUpdate(modifiedReaction);
+        if (!modifiedReaction) {
+            return;
+        }
+        onUpdate(modifiedReaction);
+        onClose();
     }
-
 
     return (
         <div>
@@ -418,10 +423,13 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
                     sx={{
                         ...modalStyle,
                         width: "70%",
+                        maxHeight: "80%",
+                        overflowY: "scroll"
                     }}
                     role="menu"
                 >
-                    <InputLabel id="reaction-type-label">Reaction Type (Arrhenius is only available at the moment)</InputLabel>
+                    <Typography variant="h4">Enter Reaction Details (WIP)</Typography>
+                    <Typography variant="h6">Reaction Type (Arrhenius is only available at the moment)</Typography>
                     <Select
                         disabled
                         labelId="reaction-type-label"
@@ -437,32 +445,163 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
                         <MenuItem value="NONE">N/A</MenuItem>
                         <MenuItem value="ARRHENIUS">Arrhenius</MenuItem>
                     </Select>
-                    <Typography variant="h5">Reactants</Typography>
+                    <Box
+                        sx={{
+                            display: "flex",
+                            flexDirection: "row",
+                            alignItems: "center",
+                        }}
+                    >
+                        <Typography variant="h6">Reactants</Typography>
+                        <IconButton aria-label="Add Reactant" color="primary">
+                            <AddIcon />
+                        </IconButton>
+                    </Box>
                     {modifiedReaction?.reactants.map((reactant) => {
                         const species = family.species.find(e => e.id == reactant.speciesId);
                         return (
                             <Box
                                 sx={{
-                                    
+                                    display: "flex",
+                                    alignItems: "center",
+                                    columnGap: "1em"
                                 }}
                             >
-                                <Paper elevation={2}>
-                                    <Typography>{reactant.coefficient}</Typography>
-                                </Paper>
                                 <Typography>{species?.name}</Typography>
+                                <Paper
+                                    sx={{
+                                        padding: "0.2em"
+                                    }}
+                                    elevation={2}>
+                                    <Typography>Quantity: {reactant.coefficient}</Typography>
+                                </Paper>
                             </Box>
                         );
                     })}
-                    <Typography variant="h5">Products</Typography>
+                    <Box
+                        sx={{
+                            display: "flex",
+                            flexDirection: "row",
+                            alignItems: "center",
+                        }}
+                    >
+                        <Typography variant="h6">Products</Typography>
+                        <IconButton aria-label="Add Product" color="primary">
+                            <AddIcon />
+                        </IconButton>
+                    </Box>
                     {modifiedReaction?.products.map((product) => {
                         const species = family.species.find(e => e.id == product.speciesId);
                         return (
-                            <Box>
-                                <Typography>{species?.name}</Typography>
-                                <Typography>{product.coefficient}</Typography>
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    columnGap: "1em"
+                                }}
+                            >
+                                <Typography>{species?.name || "<Empty>"}</Typography>
+                                <Paper
+                                    sx={{
+                                        padding: "0.2em"
+                                    }}
+                                    elevation={2}>
+                                    <Typography>Yield: {product.coefficient}</Typography>
+                                </Paper>
                             </Box>
                         );
                     })}
+                    <Typography variant="h6">Reaction Attributes</Typography>
+                    <TextField
+                        onWheel={e => e.target instanceof HTMLElement && e.target.blur()}
+                        sx={{
+                            width: "100%"
+                        }}
+                        type="number"
+                        defaultValue={modifiedReaction?.A ?? 0}
+                        id="arrhenius-reaction-a-value"
+                        label="A"
+                        onChange={(event) => {
+                            const num = Number.parseFloat(event.target.value);
+                            if (Number.isFinite(num)) {
+                                changeReactionProperties({
+                                    A: num
+                                });
+                            }
+                        }}
+                    />
+                    <TextField
+                        onWheel={e => e.target instanceof HTMLElement && e.target.blur()}
+                        sx={{
+                            width: "100%"
+                        }}
+                        type="number"
+                        defaultValue={modifiedReaction?.B ?? 0}
+                        id="arrhenius-reaction-b-value"
+                        label="B"
+                        onChange={(event) => {
+                            const num = Number.parseFloat(event.target.value);
+                            if (Number.isFinite(num)) {
+                                changeReactionProperties({
+                                    B: num
+                                });
+                            }
+                        }}
+                    />
+                    <TextField
+                        onWheel={e => e.target instanceof HTMLElement && e.target.blur()}
+                        sx={{
+                            width: "100%"
+                        }}
+                        type="number"
+                        defaultValue={modifiedReaction?.C ?? 0}
+                        id="arrhenius-reaction-c-value"
+                        label="C"
+                        onChange={(event) => {
+                            const num = Number.parseFloat(event.target.value);
+                            if (Number.isFinite(num)) {
+                                changeReactionProperties({
+                                    C: num
+                                });
+                            }
+                        }}
+                    />
+                    <TextField
+                        onWheel={e => e.target instanceof HTMLElement && e.target.blur()}
+                        sx={{
+                            width: "100%"
+                        }}
+                        type="number"
+                        defaultValue={modifiedReaction?.D ?? 0}
+                        id="arrhenius-reaction-d-value"
+                        label="D"
+                        onChange={(event) => {
+                            const num = Number.parseFloat(event.target.value);
+                            if (Number.isFinite(num)) {
+                                changeReactionProperties({
+                                    D: num
+                                });
+                            }
+                        }}
+                    />
+                    <TextField
+                        onWheel={e => e.target instanceof HTMLElement && e.target.blur()}
+                        sx={{
+                            width: "100%"
+                        }}
+                        type="number"
+                        defaultValue={modifiedReaction?.E ?? 0}
+                        id="arrhenius-reaction-e-value"
+                        label="E"
+                        onChange={(event) => {
+                            const num = Number.parseFloat(event.target.value);
+                            if (Number.isFinite(num)) {
+                                changeReactionProperties({
+                                    E: num
+                                });
+                            }
+                        }}
+                    />
                     <Box
                         sx={{
                             display: "flex",
