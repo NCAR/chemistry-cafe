@@ -1,6 +1,13 @@
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Chemistry_Cafe_API.Models;
 using System.Data.Common;
 using MySqlConnector;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json;
+using System.Dynamic;
 
 namespace Chemistry_Cafe_API.Services
 {
@@ -186,6 +193,98 @@ namespace Chemistry_Cafe_API.Services
                 }
             }
             return mechanisms;
+        }
+    
+        public async Task<string> GetMechanismExportedJSON(Mechanism mechanism){
+            // Extract mechanism information using the json serializer.
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            string jsonString = System.Text.Json.JsonSerializer.Serialize(mechanism, options);
+
+            // Parse different fields stored in the json into an object.
+            var mechanismJson = JsonNode.Parse(jsonString)?.AsObject();
+            
+            // Remove the fields we don't want and add the version.
+            if(mechanismJson != null){
+                mechanismJson.Remove("id");
+                mechanismJson.Remove("family_id");
+                mechanismJson.Remove("created_by");
+                mechanismJson.Remove("created_date");
+            }
+
+            // Merge JSON objects to add the version field in the correct place.
+            var jsonObj = new JsonObject();
+            jsonObj.Add("version", "1.0.0");
+            if (mechanismJson != null && jsonObj != null)
+            {
+                foreach (var kvp in mechanismJson)
+                {
+                    if(kvp.Value == null)
+                        continue;
+                    jsonObj.Add(kvp.Key, kvp.Value.DeepClone());
+                }
+            }
+
+            // Get species.
+            var speciesService = new SpeciesService(_database);
+            var speciesList = await speciesService.GetSpeciesByMechanismIdAsync(mechanism.Id);
+
+            // For all species associated with the mechanism, get their JSON data and store them in an array.
+            JsonArray jsonArrSpecies = new JsonArray();
+            foreach(Species s in speciesList){
+                if(s == null){
+                    continue;
+                }
+                // Get the reaction's json in a string, including reactants, products, etc.
+                string sStr = speciesService.GetSpeciesExportedJSON(s);
+                jsonArrSpecies.Add(JsonNode.Parse(sStr));
+            }
+
+            // Add the array into the json under "species"
+            if(jsonObj == null)
+                return string.Empty;
+            jsonObj.Add("species", jsonArrSpecies);
+
+            // Get reactions
+            var reactionService = new ReactionService(_database);
+            var reactionList = await reactionService.GetReactionsByMechanismIdAsync(mechanism.Id);
+
+            // For all reactions associated with the mechanism, get their JSON data and store them in an array
+            JsonArray jsonArr = new JsonArray();
+            foreach(Reaction r in reactionList){
+                var reaction = await reactionService.GetReactionAsync(r.Id);
+                if(reaction == null){
+                    continue;
+                }
+                // Get the reaction's json in a string, including reactants, products, etc.
+                string rStr = await reactionService.GetReactionExportedJSON(reaction);
+                jsonArr.Add(JsonNode.Parse(rStr));
+            }
+
+            // Add the array into the json under "reactions"
+            if(jsonObj == null){
+                return string.Empty;
+            }
+            jsonObj.Add("reactions", jsonArr);
+
+            return jsonObj.ToString();
+        }
+
+        public async Task<string> GetMechanismExportedYAML(Mechanism mechanism){
+            // Initialize YAML serializer and set options
+            var serializer = new SerializerBuilder()
+                .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                .Build();
+
+            // Get mechanism in JSON format
+            string jsonString = await GetMechanismExportedJSON(mechanism);
+
+            // Newtonsoft, as of the time of writing this code, is deprecated. It is compatible with our version of .NET, however.
+            // This is used because Newtonsoft has a built-in function to deserialize JSON to then serialize to YAML.
+            var expConverter = new ExpandoObjectConverter();
+            var deserializedObject = JsonConvert.DeserializeObject<ExpandoObject>(jsonString, expConverter);
+            string yamlString = serializer.Serialize(deserializedObject);
+
+            return yamlString;
         }
     }
 }

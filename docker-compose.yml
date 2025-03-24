@@ -1,8 +1,8 @@
 x-db-env: &db-env
-  MYSQL_SERVER: mysql
-  MYSQL_USER: chemistrycafedev
-  MYSQL_PASSWORD: chemistrycafe
-  MYSQL_DATABASE: chemistry_db
+  MYSQL_SERVER: ${MYSQL_SERVER:-mysql}
+  MYSQL_USER: ${MYSQL_USER:-chemistrycafedev}
+  MYSQL_PASSWORD: ${MYSQL_PASSWORD:-chemistrycafe}
+  MYSQL_DATABASE: ${MYSQL_DATABASE:-chemistry_db}
 
 services:
   mysql:
@@ -23,19 +23,15 @@ services:
       retries: 5
     networks:
       - app-network
+  
   frontend:
     container_name: frontend
     build:
       context: ./frontend # Path to your front-end repository
       dockerfile: Dockerfile
+      target: base
     ports:
       - "5173:5173"
-    depends_on:
-      - backend # Ensure the backend service starts before frontend
-    environment:
-      # - ASPNETCORE_ENVIRONMENT=Development
-      # - ASPNETCORE_URLS=http://0.0.0.0:8080
-      - API_URL=http://backend:8080 # This points to the backend service within the Docker network
     networks:
       - app-network
     # test code by britt to enable live updates to frontend with docker
@@ -50,11 +46,15 @@ services:
         - action: rebuild
           path: package.json
     command: ["npm", "run", "dev"] # Command for development
+  
   backend:
     container_name: backend
     build:
       context: ./backend # Path to your back-end repository
       dockerfile: Dockerfile
+      target: build
+      args:
+        BUILD_CONFIGURATION: Debug
     ports:
       - "8080:8080" # Map host port to container port
     environment:
@@ -62,9 +62,13 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      FRONTEND_HOST: ${FRONTEND_HOST:-http://localhost:5173}
+      BACKEND_BASE_URL: ${BACKEND_BASE_URL:-/}
+    depends_on:
+      - mysql
     networks:
       - app-network
-    command: ["dotnet", "watch", "run", "--project", "ChemistryCafeAPI.csproj"] # Command for development
+    command: ["dotnet", "watch", "run", "--project", "ChemistryCafeAPI.csproj", "--urls", "http://0.0.0.0:8080"] # Command for development
 
 volumes:
   db_data:

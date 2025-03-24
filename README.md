@@ -32,9 +32,13 @@ MYSQL_DATABASE=chemistry_db
 # Optional with defaults
 MYSQL_SERVER=localhost
 MYSQL_PORT=3306
+FRONTEND_HOST=http://localhost:5173
+BACKEND_BASE_URL=/
 ```
 
 In order to use Google Authentication, a Google Cloud OAuth 2.0 project must be used with a `client id` and `client secret`. When creating the project, `http://localhost:8080/signin-google` should be added to the list of "Authorized redirect URIs" for testing.
+
+`FRONTEND_HOST` and `BACKEND_BASE_URL` are required in a production environment. `FRONTEND_HOST` contains where the frontend is served and `BACKEND_BASE_URL` specifies what the backend urls should be prefixed with (eg. "/api/").
 
 **Note:**
 
@@ -128,6 +132,54 @@ reportgenerator -reports:"TestResults\<guid>\<file-prefix>.cobertura.xml" -targe
 ```
 If all tests past, the coverage report will generate in backend/coveragereport/index.html
 
+
+## Production
+
+### Environment Setup
+
+To build for production, there is a provided `docker-compose.production.yml` file. A `.env` file in the root directory is *required* to specify environment variables of the production containers. The `.env` file should look like the following:
+
+```py
+# Required
+MYSQL_USER=chemistrycafe
+MYSQL_PASSWORD=very_strong_mysqlpassw0rd # Needless to say, do not use this as the actual password
+MYSQL_DATABASE=chemistry_db
+MYSQL_ROOT_PASSWORD=dontsharethiswithanyonebecausethatwouldbebad
+GOOGLE_CLIENT_ID=<client_id>
+GOOGLE_CLIENT_SECRET=<client_secret>
+FRONTEND_HOST=https://<domain>
+BACKEND_BASE_URL=/api # This would be / if testing on localhost:8080
+
+#Optional with defaults
+MYSQL_SERVER=mysql
+MYSQL_PORT=3306
+```
+
+- **Note**: compared to the development environment, the frontend requires more variables to be specified. This is to ensure less implicit functionality.
+- The `FRONTEND_HOST` variable should not have a trailing slash. This is because CORS policies treat `https://<domain>` and `https://<domain>/` as different routes.
+
+#### Frontend variables
+
+The frontend requires a file named `.env.production` in its directory. This is because the final container will serve a static site to the user and it pulls the variables from this file instead
+
+```py
+VITE_BASE_URL=http://localhost:8080/api  # Backend API endpoint
+VITE_AUTH_URL=http://localhost:8080/auth # Backend auth endpoint
+```
+
+**For Contributors**: Do *not* put secrets in this environment file. These environment variables are served directly to the web browser meaning they are *public*. Any functionality requiring API keys should solely be dealt with in the backend.
+
+- It's very easy to be tempted with an npm package that uses environment variables to call an external API. Many have fallen victim to this security vulnerability in the past.
+
+### To run the production containers:
+
+```
+docker compose -f ./docker-compose.production.yml up -d
+```
+
+After each container is built and running, the backend will be served in port `8080` and the frontend will be served on port `5173` just like the development environment. 
+
+To actually serve these containers to the world, 
 
 # License
 - [Apache 2.0](/LICENSE)

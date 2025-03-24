@@ -19,3 +19,4 @@
 !vitest.config.ts
 !vitest.setup.ts
 !public
+!nginx.conf

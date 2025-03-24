@@ -74,6 +74,7 @@ export interface User {
   role: string;
   email?: string | null;
   created_date?: string;
+  google_id?: string | null;
 }
 
 export interface UserClaims {

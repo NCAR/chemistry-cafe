@@ -1,6 +1,14 @@
 ﻿using Chemistry_Cafe_API.Models;
 using System.Data.Common;
 using MySqlConnector;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json;
+using System.Dynamic;
 
 namespace Chemistry_Cafe_API.Services
 {
@@ -270,5 +278,75 @@ namespace Chemistry_Cafe_API.Services
             }
             return speciesList;
         }
+    
+        public string GetSpeciesExportedJSON(Species species){
+            // Extract species information using the json serializer
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            string jsonString = System.Text.Json.JsonSerializer.Serialize(species, options);
+
+            // Parse different fields stored in the json
+            JsonObject jsonObj = JsonNode.Parse(jsonString)?.AsObject() ?? new JsonObject();
+            if(jsonObj == null || jsonObj.Count == 0)
+                return string.Empty;
+            
+            // Get InitialConditionSpecies data before correctly outputting individual elements in the correct format
+            string icSpecies = "";
+            JsonNode? jsonNode;
+            bool b = jsonObj.TryGetPropertyValue("InitialConditionsSpecies", out jsonNode);
+            if(b == true && jsonNode is JsonArray jsonArr){
+                foreach (var item in jsonArr)
+                {
+                    if(item == null)
+                        continue;
+                    JsonObject i = item.AsObject();
+                    foreach (var kvp in i)
+                    {
+                            string key = kvp.Key;
+                            var value = kvp.Value ?? null;
+                            if(key == "" || value == null)
+                                continue;
+                            
+                            icSpecies += $"{key}: {value}\n";
+                    }
+                }
+            }
+
+            // Remove the fields we don't want.
+            if(jsonObj != null){
+                jsonObj.Remove("Id");
+                jsonObj.Remove("description");
+                jsonObj.Remove("created_by");
+                jsonObj.Remove("created_date");
+                jsonObj.Remove("MechanismSpecies");
+                jsonObj.Remove("ReactionSpecies");
+                jsonObj.Remove("InitialConditionsSpecies");
+            }
+
+
+            if(jsonObj == null){
+                return string.Empty;
+            }
+
+            return jsonObj.ToString();
+        }
+
+        public string GetSpeciesExportedYAML(Species species){
+            // Initialize YAML serializer and set options
+            var serializer = new SerializerBuilder()
+                .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                .Build();
+
+            // Get species in JSON format
+            string jsonString = GetSpeciesExportedJSON(species);
+
+            // Newtonsoft, as of the time of writing this code, is deprecated. It is compatible with our version of .NET, however.
+            // This is used because Newtonsoft has a built-in function to deserialize JSON to then serialize to YAML.
+            var expConverter = new ExpandoObjectConverter();
+            var deserializedObject = JsonConvert.DeserializeObject<ExpandoObject>(jsonString, expConverter);
+            string yamlString = serializer.Serialize(deserializedObject);
+
+            return yamlString;
+        }
+   
     }
 }

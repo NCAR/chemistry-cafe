@@ -5,6 +5,7 @@ using Chemistry_Cafe_API.Controllers;
 using Chemistry_Cafe_API.Models;
 using dotenv.net;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -66,6 +67,7 @@ var connectionString = $"Server={server};Port={port};Database={database};User={u
 builder.Services.AddMySqlDataSource(connectionString);
 builder.Services.AddDbContext<ChemistryDbContext>(options => options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
+string frontendHost = Environment.GetEnvironmentVariable("FRONTEND_HOST") ?? "http://localhost:5173";
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("DevelopmentCorsPolicy", policy =>
@@ -78,7 +80,7 @@ builder.Services.AddCors(options =>
 
     options.AddPolicy("ProductionCorsPolicy", policy =>
     {
-        policy.WithOrigins("https://cafe-deux-devel.acom.ucar.edu")
+        policy.WithOrigins(frontendHost)
                .AllowAnyMethod()
                .AllowAnyHeader()
                .AllowCredentials();
