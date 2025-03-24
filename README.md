@@ -127,12 +127,7 @@ docker compose down
 ```
 
 ```
-<<<<<<< Updated upstream
 reportgenerator -reports:"backend/TestResults/**/**.cobertura.xml" -targetdir:coveragereport -reporttypes:Html,lcov -classfilters:-MySqlConnector.* -filefilters:-/_/src/MySqlConnector/*,-backend/TestResults/**/coverage.cobertura.xml; rm -r ./backend/TestResults
-=======
-reportgenerator -reports:"TestResults\<guid>\<file-prefix>.cobertura.xml" -targetdir:coveragereport -reporttypes:Html,lcov -classfilters:-MySqlConnector.* -filefilters:-/_/src/MySqlConnector/*
-
->>>>>>> Stashed changes
 ```
 
 If all tests run, the coverage report will generate index.html and lcov.info under backend/coveragereport/.
