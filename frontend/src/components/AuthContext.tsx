@@ -6,8 +6,7 @@ import {
   useLayoutEffect,
 } from "react";
 import { APIUser } from "../API/API_Interfaces";
-import { getGoogleAuthUser } from "../API/API_GetMethods";
-import { createUser } from "../API/API_CreateMethods";
+import { getGoogleAuthUser, getUserByEmail } from "../API/API_GetMethods";
 
 // Define the shape of the AuthContext
 interface AuthContextProps {
@@ -32,13 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         authInfo?.email &&
         (!userInfo || userInfo?.email != authInfo?.email)
       ) {
-        userInfo = await createUser({
-          // TODO Move this functionality to the backend on sign-in
-          username: "Default Username",
-          role: "unverified",
-          email: authInfo?.email,
-          google_id: authInfo.nameId,
-        });
+        userInfo = await getUserByEmail(authInfo?.email);
         setUser(userInfo);
         localStorage.setItem("user", JSON.stringify(userInfo));
       } else if (!authInfo?.nameId) {
