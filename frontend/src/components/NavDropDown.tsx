@@ -22,19 +22,19 @@ const NavDropDown = () => {
 
   const goHome = () => {
     window.onbeforeunload = null;
-    navigate("/")
+    navigate("/");
   };
   const goFamily = () => {
     window.onbeforeunload = null;
-    navigate("/familypage")
+    navigate("/familypage");
   };
   const goDashboard = () => {
     window.onbeforeunload = null;
-    navigate("/dashboard")
+    navigate("/dashboard");
   };
   const goSettings = () => {
     window.onbeforeunload = null;
-    navigate("/settings")
+    navigate("/settings");
   };
   const goLogOut = () => {
     setUser(null);

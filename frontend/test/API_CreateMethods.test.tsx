@@ -255,7 +255,6 @@ describe("API create functions tests", () => {
     );
   });
 
-
   it("should create property and return data", async () => {
     const mockedCreate = vi
       .spyOn(axios, "post")

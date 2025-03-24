@@ -1,18 +1,53 @@
 import { memo, MouseEvent, useEffect, useRef, useState } from "react";
 import { Header, Footer } from "../components/HeaderFooter";
 import "../styles/FamilyPage.css";
-import { alpha, Box, Button, Card, CardContent, CircularProgress, IconButton, ListItemIcon, Menu, MenuItem, Paper, styled, Tooltip, Typography } from "@mui/material";
+import {
+  alpha,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  CircularProgress,
+  IconButton,
+  ListItemIcon,
+  Menu,
+  MenuItem,
+  Paper,
+  styled,
+  Tooltip,
+  Typography,
+} from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import DownloadIcon from '@mui/icons-material/Download';
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import DownloadIcon from "@mui/icons-material/Download";
 import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
 import { TreeItem, treeItemClasses } from "@mui/x-tree-view/TreeItem";
-import { ArrheniusReaction, Family, Mechanism, Reaction, ReactionTypeName, Species } from "../types/chemistryModels";
-import { DataGrid, GridActionsCellItem, GridColDef, GridRenderCellParams, GridToolbarColumnsButton, GridToolbarContainer, GridToolbarDensitySelector, GridToolbarFilterButton } from "@mui/x-data-grid";
+import {
+  ArrheniusReaction,
+  Family,
+  Mechanism,
+  Reaction,
+  ReactionTypeName,
+  Species,
+} from "../types/chemistryModels";
+import {
+  DataGrid,
+  GridActionsCellItem,
+  GridColDef,
+  GridRenderCellParams,
+  GridToolbarColumnsButton,
+  GridToolbarContainer,
+  GridToolbarDensitySelector,
+  GridToolbarFilterButton,
+} from "@mui/x-data-grid";
 import { useCustomTheme } from "../components/CustomThemeContext";
-import { FamilyCreationModal, ReactionsEditorModal, SpeciesEditorModal } from "../components/FamilyEditorModals";
+import {
+  FamilyCreationModal,
+  ReactionsEditorModal,
+  SpeciesEditorModal,
+} from "../components/FamilyEditorModals";
 import { reactionToString, reactionTypeToString } from "../helpers/stringify";
 import { UUID } from "crypto";
 import { serializeMechanism } from "../helpers/serialization";
@@ -24,24 +59,25 @@ const carbon: Species = {
   properties: {
     "molecular weight": {
       units: "kg mol-1",
-      value: 0.045
-    }
+      value: 0.045,
+    },
   },
-}
+};
 
 const oxygen: Species = {
   id: "22222222-22222222-22222222-22222222-22222222",
   name: "O2",
   description: null,
   properties: {},
-}
+};
 
 const carbonDioxide: Species = {
   id: "33333333-33333333-33333333-33333333-33333333",
   name: "CO2",
-  description: "This is a really long description that will hopefully break the ui because I really want to break the ui beacus that would be cool 11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+  description:
+    "This is a really long description that will hopefully break the ui because I really want to break the ui beacus that would be cool 11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
   properties: {},
-}
+};
 
 const testReaction: ArrheniusReaction = {
   id: "11111111-11111111-11111111-11111111-11111111",
@@ -61,36 +97,48 @@ const testReaction: ArrheniusReaction = {
     {
       speciesId: "33333333-33333333-33333333-33333333-33333333",
       coefficient: 1,
-    }
+    },
   ],
   name: "Test Reaction",
-  description: "This is a really long description llllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllF",
+  description:
+    "This is a really long description llllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllF",
   A: 1,
   B: 1,
   C: 1,
   D: 1,
   E: 1,
-}
+};
 
 const testMechanism: Mechanism = {
   id: "11111111-11111111-11111111-11111111-11111111",
   name: "Test Mechanism",
   description: "This is just a test. Nothing else.",
-  phases: [{
-    name: "gas",
-    description: "Gas Phase",
-    speciesIds: ["11111111-11111111-11111111-11111111-11111111", "22222222-22222222-22222222-22222222-22222222"],
-  }],
-  speciesIds: ["11111111-11111111-11111111-11111111-11111111", "22222222-22222222-22222222-22222222-22222222"],
+  phases: [
+    {
+      name: "gas",
+      description: "Gas Phase",
+      speciesIds: [
+        "11111111-11111111-11111111-11111111-11111111",
+        "22222222-22222222-22222222-22222222-22222222",
+      ],
+    },
+  ],
+  speciesIds: [
+    "11111111-11111111-11111111-11111111-11111111",
+    "22222222-22222222-22222222-22222222-22222222",
+  ],
   reactionIds: ["11111111-11111111-11111111-11111111-11111111"],
-}
+};
 
 const dummyFamilyData: Array<Family> = [
   {
     id: "11111111-11111111-11111111-11111111-11111111",
     name: "Test Family",
     description: "Test Family",
-    mechanisms: [testMechanism, { ...testMechanism, name: "Another Test Mechanism", description: "" }],
+    mechanisms: [
+      testMechanism,
+      { ...testMechanism, name: "Another Test Mechanism", description: "" },
+    ],
     species: [carbon, oxygen, carbonDioxide],
     reactions: [testReaction],
     isModified: true,
@@ -104,7 +152,7 @@ const dummyFamilyData: Array<Family> = [
     reactions: [],
     isModified: true,
   },
-]
+];
 
 const FamilyPage = () => {
   enum DataViewSelection {
@@ -117,7 +165,8 @@ const FamilyPage = () => {
   const [loadingFamilies, setLoadingFamilies] = useState<boolean>(true);
   const [families, setFamilies] = useState<Array<Family>>();
   const [dataView, setDataView] = useState<React.JSX.Element>(<DefaultView />);
-  const [openFamilyCreationModal, setOpenFamilyCreationModal] = useState<boolean>(false);
+  const [openFamilyCreationModal, setOpenFamilyCreationModal] =
+    useState<boolean>(false);
   const currentMenuName = useRef<DataViewSelection>(DataViewSelection.Default);
 
   const { appearanceSettings } = useCustomTheme();
@@ -132,26 +181,29 @@ const FamilyPage = () => {
           return family;
         }
         return element;
-      })
+      });
     });
 
     setDataView(getDataViewComponent(currentMenuName.current, family));
-  }
+  };
 
-  const getDataViewComponent = (menuName: DataViewSelection, family: Family) => {
+  const getDataViewComponent = (
+    menuName: DataViewSelection,
+    family: Family,
+  ) => {
     currentMenuName.current = menuName;
     switch (menuName) {
       case DataViewSelection.Species:
-        return <SpeciesView family={family} updateFamily={updateFamily} />
+        return <SpeciesView family={family} updateFamily={updateFamily} />;
       case DataViewSelection.Reactions:
-        return <ReactionsView family={family} updateFamily={updateFamily} />
+        return <ReactionsView family={family} updateFamily={updateFamily} />;
       case DataViewSelection.Mechanisms:
-        return <MechanismsView family={family} updateFamily={updateFamily} />
+        return <MechanismsView family={family} updateFamily={updateFamily} />;
       default:
       case DataViewSelection.Default:
-        return <DefaultView />
+        return <DefaultView />;
     }
-  }
+  };
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -167,7 +219,7 @@ const FamilyPage = () => {
           alert(err);
         }
       }
-    }
+    };
 
     fetchFamilyData();
 
@@ -179,13 +231,12 @@ const FamilyPage = () => {
   const createFamily = (family: Family): void => {
     if (families) {
       setFamilies([...families, family]);
-    }
-    else {
+    } else {
       setFamilies([family]);
     }
     setOpenFamilyCreationModal(false);
     window.onbeforeunload = () => true; // Sets "are you sure you want to leave" popup
-  }
+  };
 
   return (
     <div className="layout-family-editor">
@@ -201,24 +252,31 @@ const FamilyPage = () => {
               justifyContent: "space-between",
               alignItems: "center",
               padding: "10px",
-              backgroundColor: appearanceSettings.mode === "dark" ? "#1a1a1a" : "#f0f0f0",
+              backgroundColor:
+                appearanceSettings.mode === "dark" ? "#1a1a1a" : "#f0f0f0",
             }}
             square
             variant="outlined"
           >
             <Typography variant="h4">Families</Typography>
             <Tooltip title="Create Family">
-              <IconButton aria-label="Create Family" onClick={() => setOpenFamilyCreationModal(true)}>
-                <AddIcon color="primary" sx={{ fontSize: 32, fontWeight: "bold" }} />
+              <IconButton
+                aria-label="Create Family"
+                onClick={() => setOpenFamilyCreationModal(true)}
+              >
+                <AddIcon
+                  color="primary"
+                  sx={{ fontSize: 32, fontWeight: "bold" }}
+                />
               </IconButton>
             </Tooltip>
           </Paper>
-          {
-            loadingFamilies ? (
-              <CircularProgress />
-            ) : (
-              <SimpleTreeView>
-                {families && families.map((family, index) => (
+          {loadingFamilies ? (
+            <CircularProgress />
+          ) : (
+            <SimpleTreeView>
+              {families &&
+                families.map((family, index) => (
                   <FamilyTreeItem
                     key={`${family.id}-${index}`}
                     itemId={`${family.id}-${index}`}
@@ -247,16 +305,14 @@ const FamilyPage = () => {
                           </Typography>
                         </Tooltip>
                         <IconButton
-                          onClick={() => {
-                          }}
+                          onClick={() => {}}
                           aria-label="edit"
                           edge="start"
                         >
                           <EditIcon />
                         </IconButton>
                         <IconButton
-                          onClick={() => {
-                          }}
+                          onClick={() => {}}
                           aria-label="delete"
                           style={{ color: "red" }}
                           edge="start"
@@ -271,7 +327,12 @@ const FamilyPage = () => {
                       label={`Species (${family.species.filter((element) => !element.isDeleted).length})`}
                       aria-label="Open Species Editor"
                       onClick={() => {
-                        setDataView(getDataViewComponent(DataViewSelection.Species, family));
+                        setDataView(
+                          getDataViewComponent(
+                            DataViewSelection.Species,
+                            family,
+                          ),
+                        );
                       }}
                     />
                     <TreeItem
@@ -279,26 +340,32 @@ const FamilyPage = () => {
                       label={`Reactions (${family.reactions.filter((element) => !element.isDeleted).length})`}
                       aria-label="Open Reactions Editor"
                       onClick={() => {
-                        setDataView(getDataViewComponent(DataViewSelection.Reactions, family));
+                        setDataView(
+                          getDataViewComponent(
+                            DataViewSelection.Reactions,
+                            family,
+                          ),
+                        );
                       }}
                     />
                     <TreeItem
                       itemId={`${family.id}-${index}-mechanisms`}
                       label={`Mechanisms (${family.mechanisms.length})`}
                       onClick={() => {
-                        setDataView(getDataViewComponent(DataViewSelection.Mechanisms, family));
+                        setDataView(
+                          getDataViewComponent(
+                            DataViewSelection.Mechanisms,
+                            family,
+                          ),
+                        );
                       }}
                     />
                   </FamilyTreeItem>
                 ))}
-              </SimpleTreeView>
-            )
-          }
-
+            </SimpleTreeView>
+          )}
         </div>
-        <div className="family-view">
-          {dataView}
-        </div>
+        <div className="family-view">{dataView}</div>
       </Paper>
       <footer>
         <Footer />
@@ -318,7 +385,7 @@ const FamilyTreeItem = styled(TreeItem)(({ theme }) => ({
     margin: theme.spacing(0.2, 0),
   },
   [`& .${treeItemClasses.iconContainer}`]: {
-    '& .close': {
+    "& .close": {
       opacity: 0.3,
     },
   },
@@ -328,7 +395,6 @@ const FamilyTreeItem = styled(TreeItem)(({ theme }) => ({
     borderLeft: `2px solid ${alpha(theme.palette.primary.main, 0.4)}`,
   },
 }));
-
 
 const DataViewToolbar: React.FC<{ customButton?: React.ReactNode }> = ({
   customButton,
@@ -348,73 +414,57 @@ const DataViewToolbar: React.FC<{ customButton?: React.ReactNode }> = ({
 };
 
 const RowActionsButton: React.FC<{
-  handleEditButtonClick: () => void,
-  handleDeleteButtonClick: () => void
-}> = ({
-  handleEditButtonClick,
-  handleDeleteButtonClick,
-}) => {
-    const [open, setOpen] = useState<boolean>(false);
-    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  handleEditButtonClick: () => void;
+  handleDeleteButtonClick: () => void;
+}> = ({ handleEditButtonClick, handleDeleteButtonClick }) => {
+  const [open, setOpen] = useState<boolean>(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
-    const handleMenuOpen = (event: MouseEvent<HTMLButtonElement>) => {
-      setAnchorEl(event.currentTarget);
-      setOpen(true);
-    };
+  const handleMenuOpen = (event: MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+    setOpen(true);
+  };
 
-    const handleMenuClose = () => {
-      setAnchorEl(null);
-      setOpen(false);
-    };
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setOpen(false);
+  };
 
-    return (
-      <>
-        <Tooltip title="Row Actions" disableInteractive>
-          <GridActionsCellItem
-            aria-label="Expand Row Actions"
-            icon={
-              <MoreVertIcon />
-            }
-            label="View Properties"
-            onClick={handleMenuOpen}
-          >
-          </GridActionsCellItem >
-        </Tooltip>
-        <Menu
-          open={open}
-          anchorEl={anchorEl}
-          onClose={handleMenuClose}
-        >
-          <MenuItem onClick={handleEditButtonClick}>
-            <ListItemIcon>
-              <EditIcon color="action" />
-            </ListItemIcon>
-            <Typography>
-              Edit
-            </Typography>
-          </MenuItem>
-          <MenuItem onClick={handleDeleteButtonClick}>
-            <ListItemIcon>
-              <DeleteIcon color="error" />
-            </ListItemIcon>
-            <Typography>
-              Delete
-            </Typography>
-          </MenuItem>
-        </Menu >
-      </>
-    );
-  }
+  return (
+    <>
+      <Tooltip title="Row Actions" disableInteractive>
+        <GridActionsCellItem
+          aria-label="Expand Row Actions"
+          icon={<MoreVertIcon />}
+          label="View Properties"
+          onClick={handleMenuOpen}
+        ></GridActionsCellItem>
+      </Tooltip>
+      <Menu open={open} anchorEl={anchorEl} onClose={handleMenuClose}>
+        <MenuItem onClick={handleEditButtonClick}>
+          <ListItemIcon>
+            <EditIcon color="action" />
+          </ListItemIcon>
+          <Typography>Edit</Typography>
+        </MenuItem>
+        <MenuItem onClick={handleDeleteButtonClick}>
+          <ListItemIcon>
+            <DeleteIcon color="error" />
+          </ListItemIcon>
+          <Typography>Delete</Typography>
+        </MenuItem>
+      </Menu>
+    </>
+  );
+};
 
 type ViewProps = {
   family: Family;
   updateFamily: (family: Family) => void;
-}
+};
 
 const DefaultView = memo(function DefaultView() {
-  return (
-    <Typography>Select a Family to get started</Typography>
-  );
+  return <Typography>Select a Family to get started</Typography>;
 });
 
 const SpeciesView = ({ family, updateFamily }: ViewProps) => {
@@ -430,16 +480,18 @@ const SpeciesView = ({ family, updateFamily }: ViewProps) => {
       properties: {},
       isModified: false,
       isDeleted: false,
-    }
+    };
     updateFamily({
       ...family,
       species: [species, ...family.species],
     });
     window.onbeforeunload = () => true;
-  }
+  };
 
   const removeSpecies = (id: UUID | string) => {
-    const originalSpecies: Species | undefined = family.species.find((value) => value.id === id);
+    const originalSpecies: Species | undefined = family.species.find(
+      (value) => value.id === id,
+    );
     if (!originalSpecies) {
       return;
     }
@@ -454,10 +506,10 @@ const SpeciesView = ({ family, updateFamily }: ViewProps) => {
           ...element,
           isDeleted: true,
           isModified: true,
-        }
-      })
+        };
+      }),
     });
-  }
+  };
 
   const updateSpecies = (species: Species) => {
     updateFamily({
@@ -467,9 +519,9 @@ const SpeciesView = ({ family, updateFamily }: ViewProps) => {
           return element;
         }
         return species;
-      })
+      }),
     });
-  }
+  };
 
   const speciesColumns: GridColDef[] = [
     {
@@ -487,7 +539,9 @@ const SpeciesView = ({ family, updateFamily }: ViewProps) => {
               }
             }}
             handleEditButtonClick={() => {
-              setSelectedSpecies(family.species.find((element) => element.id === id));
+              setSelectedSpecies(
+                family.species.find((element) => element.id === id),
+              );
               setSpeciesEditorOpen(true);
             }}
           />,
@@ -503,12 +557,14 @@ const SpeciesView = ({ family, updateFamily }: ViewProps) => {
         <Typography
           variant="body1"
           sx={{
-            color: params.value ? theme.palette.text.primary : theme.palette.text.disabled
+            color: params.value
+              ? theme.palette.text.primary
+              : theme.palette.text.disabled,
           }}
         >
           {params.value || "<Empty>"}
         </Typography>
-      )
+      ),
     },
     {
       field: "description",
@@ -519,12 +575,14 @@ const SpeciesView = ({ family, updateFamily }: ViewProps) => {
         <Typography
           variant="body1"
           sx={{
-            color: params.value ? theme.palette.text.primary : theme.palette.text.disabled
+            color: params.value
+              ? theme.palette.text.primary
+              : theme.palette.text.disabled,
           }}
         >
           {params.value || "<Empty>"}
         </Typography>
-      )
+      ),
     },
   ];
 
@@ -536,8 +594,12 @@ const SpeciesView = ({ family, updateFamily }: ViewProps) => {
         height: "100%",
       }}
     >
-      <Typography sx={{ paddingTop: "0.5em" }} color="textPrimary" variant="h4">Chemical Species</Typography>
-      <Typography color="textSecondary" variant="h6">{family.name}</Typography>
+      <Typography sx={{ paddingTop: "0.5em" }} color="textPrimary" variant="h4">
+        Chemical Species
+      </Typography>
+      <Typography color="textSecondary" variant="h6">
+        {family.name}
+      </Typography>
       <DataGrid
         initialState={{ density: "compact" }}
         rows={family.species.filter((element) => !element.isDeleted)}
@@ -547,7 +609,7 @@ const SpeciesView = ({ family, updateFamily }: ViewProps) => {
           flex: 1,
         }}
         slots={{
-          toolbar: () =>
+          toolbar: () => (
             <DataViewToolbar
               customButton={
                 <Button onClick={createSpecies} color="primary">
@@ -556,6 +618,7 @@ const SpeciesView = ({ family, updateFamily }: ViewProps) => {
                 </Button>
               }
             />
+          ),
         }}
       />
       <SpeciesEditorModal
@@ -566,11 +629,12 @@ const SpeciesView = ({ family, updateFamily }: ViewProps) => {
       />
     </Box>
   );
-}
+};
 
 const ReactionsView = ({ family, updateFamily }: ViewProps) => {
   const { theme } = useCustomTheme();
-  const [reactionsEditorOpen, setReactionsEditorOpen] = useState<boolean>(false);
+  const [reactionsEditorOpen, setReactionsEditorOpen] =
+    useState<boolean>(false);
   const [selectedReaction, setSelectedReaction] = useState<Reaction>();
 
   const createReaction = () => {
@@ -583,16 +647,18 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       products: [],
       isModified: false,
       isDeleted: false,
-    }
+    };
     updateFamily({
       ...family,
-      reactions: [reaction, ...family.reactions]
+      reactions: [reaction, ...family.reactions],
     });
     window.onbeforeunload = () => true;
-  }
+  };
 
   const removeReaction = (id: UUID | string) => {
-    const originalReaction: Reaction | undefined = family.reactions.find((value) => value.id === id);
+    const originalReaction: Reaction | undefined = family.reactions.find(
+      (value) => value.id === id,
+    );
     if (!originalReaction) {
       return;
     }
@@ -602,17 +668,16 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       reactions: family.reactions.map((element) => {
         if (element.id !== id) {
           return element;
-        }
-        else {
+        } else {
           return {
             ...element,
             isDeleted: true,
             isModified: true,
-          }
+          };
         }
-      })
+      }),
     });
-  }
+  };
 
   const updateReaction = (reaction: Reaction) => {
     updateFamily({
@@ -622,9 +687,9 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
           return element;
         }
         return reaction;
-      })
+      }),
     });
-  }
+  };
 
   const reactionsColumns: GridColDef[] = [
     {
@@ -637,11 +702,13 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
           <RowActionsButton
             handleDeleteButtonClick={() => {
               if (typeof id === "string") {
-                removeReaction(id)
+                removeReaction(id);
               }
             }}
             handleEditButtonClick={() => {
-              setSelectedReaction(family.reactions.find((element) => element.id === id));
+              setSelectedReaction(
+                family.reactions.find((element) => element.id === id),
+              );
               setReactionsEditorOpen(true);
             }}
           />,
@@ -657,13 +724,15 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
         <Typography
           variant="body1"
           sx={{
-            color: params.value ? theme.palette.text.primary : theme.palette.text.disabled,
+            color: params.value
+              ? theme.palette.text.primary
+              : theme.palette.text.disabled,
           }}
           noWrap
         >
           {params.value || "<Empty>"}
         </Typography>
-      )
+      ),
     },
     {
       field: "description",
@@ -674,13 +743,15 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
         <Typography
           variant="body1"
           sx={{
-            color: params.value ? theme.palette.text.primary : theme.palette.text.disabled,
+            color: params.value
+              ? theme.palette.text.primary
+              : theme.palette.text.disabled,
           }}
           noWrap
         >
           {params.value || "<Empty>"}
         </Typography>
-      )
+      ),
     },
     {
       field: "type",
@@ -690,13 +761,15 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
         <Typography
           variant="body1"
           sx={{
-            color: params.value ? theme.palette.text.primary : theme.palette.text.disabled,
+            color: params.value
+              ? theme.palette.text.primary
+              : theme.palette.text.disabled,
           }}
           noWrap
         >
           {reactionTypeToString(params.value as ReactionTypeName)}
         </Typography>
-      )
+      ),
     },
     {
       field: "id",
@@ -706,15 +779,19 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
         <Typography
           variant="body1"
           sx={{
-            color: params.value ? theme.palette.text.primary : theme.palette.text.disabled,
+            color: params.value
+              ? theme.palette.text.primary
+              : theme.palette.text.disabled,
           }}
           noWrap
         >
-          {reactionToString(family.reactions.find(e => e.id == params.value), family.species)}
+          {reactionToString(
+            family.reactions.find((e) => e.id == params.value),
+            family.species,
+          )}
         </Typography>
-      )
+      ),
     },
-
   ];
 
   return (
@@ -722,21 +799,25 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       sx={{
         display: "flex",
         flexDirection: "column",
-        height: "100%"
+        height: "100%",
       }}
     >
-      <Typography sx={{ paddingTop: "0.5em" }} color="textPrimary" variant="h4">Chemical Reactions</Typography>
-      <Typography color="textSecondary" variant="h6">{family.name}</Typography>
+      <Typography sx={{ paddingTop: "0.5em" }} color="textPrimary" variant="h4">
+        Chemical Reactions
+      </Typography>
+      <Typography color="textSecondary" variant="h6">
+        {family.name}
+      </Typography>
       <DataGrid
         initialState={{ density: "compact" }}
         rows={family.reactions.filter((element) => !element.isDeleted)}
         columns={reactionsColumns}
         autoPageSize
         sx={{
-          flex: 1
+          flex: 1,
         }}
         slots={{
-          toolbar: () =>
+          toolbar: () => (
             <DataViewToolbar
               customButton={
                 <Button onClick={createReaction} color="primary">
@@ -745,6 +826,7 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
                 </Button>
               }
             />
+          ),
         }}
       />
       <ReactionsEditorModal
@@ -756,13 +838,17 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       />
     </Box>
   );
-}
+};
 
 const MechanismsView = ({ family }: ViewProps) => {
   return (
     <Box>
-      <Typography sx={{ paddingTop: "0.5em" }} color="textPrimary" variant="h4">Mechanisms (WIP)</Typography>
-      <Typography color="textSecondary" variant="h6">{family.name}</Typography>
+      <Typography sx={{ paddingTop: "0.5em" }} color="textPrimary" variant="h4">
+        Mechanisms (WIP)
+      </Typography>
+      <Typography color="textSecondary" variant="h6">
+        {family.name}
+      </Typography>
       {family.mechanisms.map((mechanism, index) => (
         <Card
           key={`mechanism-${mechanism.id}-${index}`}
@@ -773,7 +859,9 @@ const MechanismsView = ({ family }: ViewProps) => {
           <CardContent>
             <Box>
               <Typography color="textPrimary">{mechanism.name}</Typography>
-              <Typography color="textSecondary">{mechanism.description}</Typography>
+              <Typography color="textSecondary">
+                {mechanism.description}
+              </Typography>
             </Box>
             <Button
               startIcon={<DownloadIcon />}
@@ -794,14 +882,15 @@ const MechanismsView = ({ family }: ViewProps) => {
                 document.removeChild(link);
               }}
             >
-              <Typography variant="subtitle1">Download (Not currently in spec)</Typography>
+              <Typography variant="subtitle1">
+                Download (Not currently in spec)
+              </Typography>
             </Button>
           </CardContent>
         </Card>
       ))}
     </Box>
   );
-}
-
+};
 
 export default FamilyPage;

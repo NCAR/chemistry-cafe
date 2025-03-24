@@ -178,7 +178,9 @@ interface HandleActionWithDialogOptions<T extends string | number> {
   setUsers?: React.Dispatch<React.SetStateAction<APIUser[]>>;
 
   // only include if deleting a mechanism
-  setSelectedMechanism?: React.Dispatch<React.SetStateAction<APIMechanism | null>>;
+  setSelectedMechanism?: React.Dispatch<
+    React.SetStateAction<APIMechanism | null>
+  >;
   setSelectedMechanismId?: React.Dispatch<React.SetStateAction<string | null>>;
   setSelectedMechanismName?: React.Dispatch<
     React.SetStateAction<string | null>
