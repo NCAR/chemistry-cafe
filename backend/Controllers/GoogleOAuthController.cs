@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Chemistry_Cafe_API.Models;
+using Chemistry_Cafe_API.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
@@ -17,9 +18,13 @@ namespace Chemistry_Cafe_API.Controllers
         private readonly GoogleOAuthService _googleOAuthService;
         private readonly string _baseUri = Environment.GetEnvironmentVariable("BACKEND_BASE_URL") ?? "";
         private readonly string _frontendHost = Environment.GetEnvironmentVariable("FRONTEND_HOST") ?? "";
-        public GoogleOAuthController(GoogleOAuthService googleOAuthService)
+        private readonly UserService _userService;
+        private readonly IConfiguration _configuration;
+        public GoogleOAuthController(IConfiguration configuration, GoogleOAuthService googleOAuthService, UserService userService)
         {
             _googleOAuthService = googleOAuthService;
+            _userService = userService;
+            _configuration = configuration;
         }
 
         /// <summary>
@@ -55,7 +60,11 @@ namespace Chemistry_Cafe_API.Controllers
 
             await HttpContext.SignInAsync("Application", claimsIdentity);
             string redirectUrl = Path.Combine(_frontendHost, "dashboard").Replace('\\', '/');
-            return Redirect(redirectUrl);
+            var ret = Redirect(redirectUrl);
+            var googleID = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var email = claimsIdentity.FindFirst(ClaimTypes.Email)?.Value;
+            await _userService.SignIn(googleID, email);
+            return ret;
         }
 
         /// <summary>
