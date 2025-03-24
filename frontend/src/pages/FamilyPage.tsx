@@ -1,17 +1,19 @@
-import { memo, MouseEvent, useEffect, useState } from "react";
+import { memo, MouseEvent, useEffect, useRef, useState } from "react";
 import { Header, Footer } from "../components/HeaderFooter";
 import "../styles/FamilyPage.css";
 import { alpha, Box, Button, Card, CardContent, CircularProgress, IconButton, ListItemIcon, Menu, MenuItem, Paper, styled, Tooltip, Typography } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import ExpandCircleDownIcon from '@mui/icons-material/ExpandCircleDown';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
 import { TreeItem, treeItemClasses } from "@mui/x-tree-view/TreeItem";
-import { ArrheniusReaction, Family, Mechanism, Species } from "../types/chemistryModels";
+import { ArrheniusReaction, Family, Mechanism, Reaction, ReactionTypeName, Species } from "../types/chemistryModels";
 import { DataGrid, GridActionsCellItem, GridColDef, GridRenderCellParams, GridToolbarColumnsButton, GridToolbarContainer, GridToolbarDensitySelector, GridToolbarFilterButton } from "@mui/x-data-grid";
 import { useCustomTheme } from "../components/CustomThemeContext";
-import { FamilyCreationModal } from "../components/FamilyEditorModals";
+import { FamilyCreationModal, SpeciesEditorModal } from "../components/FamilyEditorModals";
+import { reactionTypeToString } from "../helpers/stringify";
+import { UUID } from "crypto";
 
 const carbon: Species = {
   id: "11111111-11111111-11111111-11111111-11111111",
@@ -45,17 +47,17 @@ const testReaction: ArrheniusReaction = {
   gasPhase: "gas",
   reactants: [
     {
-      species: carbon,
+      speciesId: "11111111-11111111-11111111-11111111-11111111",
       coefficient: 1,
     },
     {
-      species: oxygen,
+      speciesId: "22222222-22222222-22222222-22222222-22222222",
       coefficient: 1,
     },
   ],
   products: [
     {
-      species: carbonDioxide,
+      speciesId: "33333333-33333333-33333333-33333333-33333333",
       coefficient: 1,
     }
   ],
@@ -75,10 +77,10 @@ const testMechanism: Mechanism = {
   phases: [{
     name: "gas",
     description: "Gas Phase",
-    species: [carbon, oxygen],
+    speciesIds: ["11111111-11111111-11111111-11111111-11111111", "22222222-22222222-22222222-22222222-22222222"],
   }],
-  species: [carbon, oxygen],
-  reactions: [testReaction],
+  speciesIds: ["11111111-11111111-11111111-11111111-11111111", "22222222-22222222-22222222-22222222-22222222"],
+  reactionIds: ["11111111-11111111-11111111-11111111-11111111"],
 }
 
 const dummyFamilyData: Array<Family> = [
@@ -100,18 +102,9 @@ const dummyFamilyData: Array<Family> = [
     reactions: [],
     isModified: true,
   },
-
 ]
 
 const FamilyPage = () => {
-  window.onbeforeunload = () => true; // Sets "are you sure you want to leave" popup
-  const [loadingFamilies, setLoadingFamilies] = useState<boolean>(true);
-  const [families, setFamilies] = useState<Array<Family>>();
-  const [dataView, setDataView] = useState<React.JSX.Element>(<DefaultView />);
-  const [openFamilyCreationModal, setOpenFamilyCreationModal] = useState<boolean>(false);
-
-  const { appearanceSettings } = useCustomTheme();
-
   enum DataViewSelection {
     Species,
     Reactions,
@@ -119,7 +112,32 @@ const FamilyPage = () => {
     Default,
   }
 
-  const getDataViewComponent = (menuName: DataViewSelection, family: Family, updateFamily: (family: Family) => void) => {
+  const [loadingFamilies, setLoadingFamilies] = useState<boolean>(true);
+  const [families, setFamilies] = useState<Array<Family>>();
+  const [dataView, setDataView] = useState<React.JSX.Element>(<DefaultView />);
+  const [openFamilyCreationModal, setOpenFamilyCreationModal] = useState<boolean>(false);
+  const currentMenuName = useRef<DataViewSelection>(DataViewSelection.Default);
+
+  const { appearanceSettings } = useCustomTheme();
+
+  const updateFamily = (family: Family): void => {
+    setFamilies((families) => {
+      if (!families) {
+        return families;
+      }
+      return families?.map((element) => {
+        if (family.id === element.id) {
+          return family;
+        }
+        return element;
+      })
+    });
+
+    setDataView(getDataViewComponent(currentMenuName.current, family));
+  }
+
+  const getDataViewComponent = (menuName: DataViewSelection, family: Family) => {
+    currentMenuName.current = menuName;
     switch (menuName) {
       case DataViewSelection.Species:
         return <SpeciesView family={family} updateFamily={updateFamily} />
@@ -132,7 +150,6 @@ const FamilyPage = () => {
         return <DefaultView />
     }
   }
-
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -157,14 +174,6 @@ const FamilyPage = () => {
     };
   }, []);
 
-  const downloadMechanism = async (mechanismId: string, format: "JSON" | "YAML" | "Musicbox") => {
-    console.log(mechanismId, format);
-  }
-
-  const updateFamilyLocally = (family: Family): void => {
-    console.info(`Update Family ${family.name}`);
-  }
-
   const createFamily = (family: Family): void => {
     if (families) {
       setFamilies([...families, family]);
@@ -173,6 +182,7 @@ const FamilyPage = () => {
       setFamilies([family]);
     }
     setOpenFamilyCreationModal(false);
+    window.onbeforeunload = () => true; // Sets "are you sure you want to leave" popup
   }
 
   return (
@@ -254,50 +264,29 @@ const FamilyPage = () => {
                       </div>
                     }
                   >
-                    <Tooltip
-                      title="Open Species Editor"
-                      placement="bottom-start"
-                      arrow
-                      disableInteractive
-                    >
-                      <TreeItem
-                        itemId={`${family.id}-${index}-species`}
-                        label={`Species (${family.species.length})`}
-                        aria-label="Open Species Editor"
-                        onClick={() => {
-                          setDataView(getDataViewComponent(DataViewSelection.Species, family, updateFamilyLocally));
-                        }}
-                      />
-                    </Tooltip>
-                    <Tooltip
-                      title="Open Reactions Editor"
-                      placement="bottom-start"
-                      arrow
-                      disableInteractive
-                    >
-                      <TreeItem
-                        itemId={`${family.id}-${index}-reactions`}
-                        label={`Reactions (${family.reactions.length})`}
-                        aria-label="Open Reactions Editor"
-                        onClick={() => {
-                          setDataView(getDataViewComponent(DataViewSelection.Reactions, family, updateFamilyLocally));
-                        }}
-                      />
-                    </Tooltip>
-                    <Tooltip
-                      title="Open Mechanism Editor"
-                      placement="bottom-start"
-                      arrow
-                      disableInteractive
-                    >
-                      <TreeItem
-                        itemId={`${family.id}-${index}-mechanisms`}
-                        label={`Mechanisms (${family.mechanisms.length})`}
-                        onClick={() => {
-                          setDataView(getDataViewComponent(DataViewSelection.Mechanisms, family, (family) => { console.log(family.name) }));
-                        }}
-                      />
-                    </Tooltip>
+                    <TreeItem
+                      itemId={`${family.id}-${index}-species`}
+                      label={`Species (${family.species.filter((element) => !element.isDeleted).length})`}
+                      aria-label="Open Species Editor"
+                      onClick={() => {
+                        setDataView(getDataViewComponent(DataViewSelection.Species, family));
+                      }}
+                    />
+                    <TreeItem
+                      itemId={`${family.id}-${index}-reactions`}
+                      label={`Reactions (${family.reactions.length})`}
+                      aria-label="Open Reactions Editor"
+                      onClick={() => {
+                        setDataView(getDataViewComponent(DataViewSelection.Reactions, family));
+                      }}
+                    />
+                    <TreeItem
+                      itemId={`${family.id}-${index}-mechanisms`}
+                      label={`Mechanisms (${family.mechanisms.length})`}
+                      onClick={() => {
+                        setDataView(getDataViewComponent(DataViewSelection.Mechanisms, family));
+                      }}
+                    />
                   </FamilyTreeItem>
                 ))}
               </SimpleTreeView>
@@ -382,7 +371,7 @@ const RowActionsButton: React.FC<{
           <GridActionsCellItem
             aria-label="Expand Row Actions"
             icon={
-              <ExpandCircleDownIcon />
+              <MoreVertIcon />
             }
             label="View Properties"
             onClick={handleMenuOpen}
@@ -429,6 +418,47 @@ const DefaultView = memo(function DefaultView() {
 
 const SpeciesView = ({ family, updateFamily }: ViewProps) => {
   const { theme } = useCustomTheme();
+  const [speciesEditorOpen, setSpeciesEditorOpen] = useState<boolean>(false);
+  const [selectedSpecies, setSelectedSpecies] = useState<Species>();
+
+  const createSpecies = () => {
+    const species: Species = {
+      id: Date.now().toString(),
+      name: "",
+      description: "",
+      properties: {},
+      isModified: false,
+      isDeleted: false,
+    }
+    updateFamily({
+      ...family,
+      species: [species, ...family.species],
+    });
+    window.onbeforeunload = () => true;
+  }
+
+  const removeSpecies = (id: UUID | string) => {
+    const originalSpecies: Species | undefined = family.species.find((value) => value.id === id);
+    if (!originalSpecies) {
+      return;
+    }
+
+    updateFamily({
+      ...family,
+      species: family.species.map((element) => {
+        if (element.id !== id) {
+          return element;
+        }
+        else {
+          return {
+            ...element,
+            isDeleted: true,
+            isModified: true,
+          }
+        }
+      })
+    });
+  }
 
   const speciesColumns: GridColDef[] = [
     {
@@ -440,8 +470,15 @@ const SpeciesView = ({ family, updateFamily }: ViewProps) => {
       getActions: ({ id }) => {
         return [
           <RowActionsButton
-            handleDeleteButtonClick={() => alert(`Deleting ${id}`)}
-            handleEditButtonClick={() => alert(`Editing ${id}`)}
+            handleDeleteButtonClick={() => {
+              if (typeof id === "string") {
+                removeSpecies(id as string);
+              }
+            }}
+            handleEditButtonClick={() => {
+              setSelectedSpecies(family.species.find((value) => value.id === id));
+              setSpeciesEditorOpen(true);
+            }}
           />,
         ];
       },
@@ -485,14 +522,14 @@ const SpeciesView = ({ family, updateFamily }: ViewProps) => {
       sx={{
         display: "flex",
         flexDirection: "column",
-        height: "100%"
+        height: "100%",
       }}
     >
-      <Typography color="textPrimary" variant="h4">Chemical Species</Typography>
+      <Typography sx={{ paddingTop: "0.5em" }} color="textPrimary" variant="h4">Chemical Species</Typography>
       <Typography color="textSecondary" variant="h6">{family.name}</Typography>
       <DataGrid
         initialState={{ density: "compact" }}
-        rows={family.species}
+        rows={family.species.filter((element) => !element.isDeleted)}
         columns={speciesColumns}
         autoPageSize
         style={{
@@ -501,9 +538,20 @@ const SpeciesView = ({ family, updateFamily }: ViewProps) => {
         slots={{
           toolbar: () =>
             <DataViewToolbar
-              customButton={<Button />}
+              customButton={
+                <Button onClick={createSpecies} color="primary">
+                  <AddIcon />
+                  <Typography variant="caption">Add Species</Typography>
+                </Button>
+              }
             />
         }}
+      />
+      <SpeciesEditorModal
+        open={speciesEditorOpen}
+        onClose={() => setSpeciesEditorOpen(false)}
+        onUpdate={console.log}
+        species={selectedSpecies}
       />
     </Box>
   );
@@ -540,7 +588,7 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
           }}
           noWrap
         >
-          {params.value ?? "<Empty>"}
+          {params.value || "<Empty>"}
         </Typography>
       )
     },
@@ -557,11 +605,43 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
           }}
           noWrap
         >
-          {params.value ?? "<Empty>"}
+          {params.value || "<Empty>"}
         </Typography>
       )
     },
+    {
+      field: "type",
+      headerName: "Reaction Type",
+      flex: 1,
+      renderCell: (params: GridRenderCellParams<Family>) => (
+        <Typography
+          variant="body1"
+          sx={{
+            color: params.value ? theme.palette.text.primary : theme.palette.text.disabled,
+          }}
+          noWrap
+        >
+          {reactionTypeToString(params.value as ReactionTypeName)}
+        </Typography>
+      )
+    }
   ];
+
+  const createReaction = () => {
+    const reaction: Reaction = {
+      id: Date.now().toString(),
+      name: "",
+      description: "",
+      type: "NONE",
+      isModified: false,
+      isDeleted: false,
+    }
+    updateFamily({
+      ...family,
+      reactions: [reaction, ...family.reactions]
+    });
+    window.onbeforeunload = () => true;
+  }
 
   return (
     <Box
@@ -571,7 +651,7 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
         height: "100%"
       }}
     >
-      <Typography color="textPrimary" variant="h4">Chemical Reactions</Typography>
+      <Typography sx={{ paddingTop: "0.5em" }} color="textPrimary" variant="h4">Chemical Reactions</Typography>
       <Typography color="textSecondary" variant="h6">{family.name}</Typography>
       <DataGrid
         initialState={{ density: "compact" }}
@@ -582,7 +662,15 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
           flex: 1
         }}
         slots={{
-          toolbar: () => <DataViewToolbar />
+          toolbar: () =>
+            <DataViewToolbar
+              customButton={
+                <Button onClick={createReaction} color="primary">
+                  <AddIcon />
+                  <Typography variant="caption">Add Reaction</Typography>
+                </Button>
+              }
+            />
         }}
       />
     </Box>
@@ -592,7 +680,7 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
 const MechanismsView = ({ family, updateFamily }: ViewProps) => {
   return (
     <Box>
-      <Typography color="textPrimary" variant="h4">Mechanisms</Typography>
+      <Typography sx={{ paddingTop: "0.5em" }} color="textPrimary" variant="h4">Mechanisms</Typography>
       <Typography color="textSecondary" variant="h6">{family.name}</Typography>
       {family.mechanisms.map((mechanism, index) => (
         <Card

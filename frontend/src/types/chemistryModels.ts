@@ -15,8 +15,8 @@ export type SpeciesProperties = {
  * Represents a species utilized on the frontend. A species is a substance which can take on any name.
  */
 export type Species = {
-    /** ID stored in the SQL database */
-    id?: UUID;
+    /** ID stored in the SQL database. If this is not in the database, this is used for frontend purposes */
+    id: UUID | string;
 
     /** Name of the species */
     name: string;
@@ -26,7 +26,11 @@ export type Species = {
 
     /** Special properties set by the user */
     properties: {
-        [key: string]: SpeciesProperties
+        [key: string]: SpeciesProperties | undefined;
+        absoluteTolerance?: SpeciesProperties;
+        fixedConcentration?: SpeciesProperties;
+        molecularWeight?: SpeciesProperties;
+        diffusionCoefficient?: SpeciesProperties;
     };
 
     /** Determines whether the species has been modified from its original state */
@@ -34,10 +38,14 @@ export type Species = {
 
     /** Determines if the species has been marked for deletion */
     isDeleted?: boolean;
+
+    /** Determines if the species is in the database */
+    isInDatabase?: boolean;
 }
 
 export type ReactionTypeName =
-    "HL_PHASE_TRANSFER"
+    "NONE"
+    | "HL_PHASE_TRANSFER"
     | "SIMPOL_PHASE_TRANSFER"
     | "AQUEOUS_EQUILIBRIUM"
     | "ARRHENIUS"
@@ -57,8 +65,8 @@ export type ReactionTypeName =
  * A reaction is a collection of starting species and ending species as well as any specific properties or variable values.
  */
 export type Reaction = {
-    /** ID stored in the SQL database */
-    id?: UUID;
+    /** ID stored in the SQL database. If this is not in the database, this is used for frontend purposes */
+    id: UUID | string;
 
     /** Name of the reaction that the user sees*/
     name: string;
@@ -74,17 +82,20 @@ export type Reaction = {
 
     /** Determines if the Reaction has been marked for deletion */
     isDeleted?: boolean;
+
+    /** Determines if the reaction is in the database */
+    isInDatabase?: boolean;
 }
 
 export type ArrheniusReaction = {
     type: "ARRHENIUS";
     gasPhase: string;
     reactants: Array<{
-        species: Species,
+        speciesId: UUID | string,
         coefficient: number
     }>;
     products: Array<{
-        species: Species,
+        speciesId: UUID | string,
         coefficient: number
     }>;
     A: number;
@@ -109,7 +120,7 @@ export type Phase = {
     description: string | null;
 
     /** Species involved in the phase */
-    species: Array<Species>;
+    speciesIds: Array<UUID | string>;
 
     /** Determines whether the phase has been modified from its original state */
     isModified?: boolean;
@@ -136,11 +147,11 @@ export type Mechanism = {
     /** Collection of reaction phases associated with the mechanism */
     phases: Array<Phase>;
 
-    /** Species associated with the mechanism */
-    species: Array<Species>;
+    /** Species ids associated with the mechanism */
+    speciesIds: Array<UUID | string>;
 
     /** Reactions associated with the mechanism */
-    reactions: Array<Reaction>;
+    reactionIds: Array<UUID | string>;
 
     /** Determines whether the mechanism has been modified from its original state */
     isModified?: boolean;
@@ -155,8 +166,8 @@ export type Mechanism = {
  * Families represent an entire chemistry model.
  */
 export type Family = {
-    /** ID stored in the SQL database */
-    id?: UUID;
+    /** ID stored in the SQL database. If this object is not stored in the database, this is used for frontend purposes */
+    id: UUID | string;
 
     /** Name of the family */
     name: string;
@@ -184,4 +195,7 @@ export type Family = {
 
     /** Determines if the family has been marked for deletion */
     isDeleted?: boolean;
+
+    /** Determines if the family is in the database */
+    isInDatabase?: boolean;
 }
