@@ -69,7 +69,9 @@ export async function getMechanismsByFamilyId(
 // Get a specific mechanism by ID
 export async function getMechanism(id: string): Promise<APIMechanism> {
   try {
-    const response = await axios.get<APIMechanism>(`${BASE_URL}/mechanism/${id}`);
+    const response = await axios.get<APIMechanism>(
+      `${BASE_URL}/mechanism/${id}`,
+    );
     return response.data;
   } catch (error: any) {
     console.error(`Error fetching mechanism ${id}: ${error.message}`, error);
@@ -151,7 +153,9 @@ export async function getReactions(): Promise<APIReaction[]> {
 // Get a specific reaction by ID
 export async function getReaction(id: string): Promise<APIReaction> {
   try {
-    const response = await axios.get<APIReaction>(`${BASE_URL}/reactions/${id}`);
+    const response = await axios.get<APIReaction>(
+      `${BASE_URL}/reactions/${id}`,
+    );
     return response.data;
   } catch (error: any) {
     console.error(`Error fetching reaction ${id}: ${error.message}`, error);
@@ -243,7 +247,9 @@ export async function getUsers(): Promise<APIUser[]> {
 export async function getUserByEmail(email: string): Promise<APIUser | null> {
   try {
     // const encodedEmail = encodeURIComponent(email);
-    const response = await axios.get<APIUser>(`${BASE_URL}/users/email/${email}`);
+    const response = await axios.get<APIUser>(
+      `${BASE_URL}/users/email/${email}`,
+    );
     return response.data;
   } catch (error: any) {
     console.error(
@@ -269,9 +275,12 @@ export async function getUserById(id: string): Promise<APIUser> {
  */
 export async function getGoogleAuthUser(): Promise<APIUserClaims | null> {
   try {
-    const response = await axios.get<APIUserClaims>(`${AUTH_URL}/google/whoami`, {
-      withCredentials: true,
-    });
+    const response = await axios.get<APIUserClaims>(
+      `${AUTH_URL}/google/whoami`,
+      {
+        withCredentials: true,
+      },
+    );
     return response.data;
   } catch (error: any) {
     console.error(`Error fetching current user: ${error}`);

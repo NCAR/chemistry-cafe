@@ -21,7 +21,7 @@ import {
   Slider,
   Switch,
   Typography,
-  ToggleButton
+  ToggleButton,
 } from "@mui/material";
 import { memo, MouseEvent, useLayoutEffect, useState } from "react";
 import AccountBoxIcon from "@mui/icons-material/AccountBox";
@@ -32,7 +32,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import AddCircleOutlineOutlinedIcon from "@mui/icons-material/AddCircleOutlineOutlined";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import RemoveCircleOutlineOutlinedIcon from "@mui/icons-material/RemoveCircleOutlineOutlined";
-import SpellcheckIcon from '@mui/icons-material/Spellcheck';
+import SpellcheckIcon from "@mui/icons-material/Spellcheck";
 import {
   blue,
   cyan,
@@ -288,9 +288,11 @@ const AccessibilityMenu = () => {
   const toggleDyslexiaFont = () => {
     setAppearanceSettings({
       ...appearanceSettings,
-      fontFamily: appearanceSettings?.fontFamily ? undefined : dyslexiaFontFamily
+      fontFamily: appearanceSettings?.fontFamily
+        ? undefined
+        : dyslexiaFontFamily,
     });
-  }
+  };
 
   return (
     <>
@@ -300,7 +302,9 @@ const AccessibilityMenu = () => {
         }}
         subheader="Text Content"
       >
-        <ListItem>  {/* Font Size */}
+        <ListItem>
+          {" "}
+          {/* Font Size */}
           <Paper
             sx={{
               p: 1,
@@ -347,16 +351,18 @@ const AccessibilityMenu = () => {
             </Box>
           </Paper>
         </ListItem>
-        <ListItem>  {/* Dyslexia Font */}
-          <ToggleButton 
+        <ListItem>
+          {" "}
+          {/* Dyslexia Font */}
+          <ToggleButton
             value="dyslexiaButton"
-            selected={Boolean(appearanceSettings?.fontFamily)} 
-            onChange={toggleDyslexiaFont} 
+            selected={Boolean(appearanceSettings?.fontFamily)}
+            onChange={toggleDyslexiaFont}
             aria-label="Dyslexia Font"
             sx={{ textTransform: "none" }}
           >
-            <SpellcheckIcon/>
-              Dyslexia Font
+            <SpellcheckIcon />
+            Dyslexia Font
           </ToggleButton>
         </ListItem>
       </List>

@@ -84,7 +84,6 @@ export interface APIUserClaims {
   email?: string | null;
 }
 
-
 export interface APIProperty {
   id?: UUID; // UUID for the property entry
   speciesId: string; // Foreign key to the species table (UUID)

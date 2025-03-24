@@ -42,7 +42,8 @@ type ThemeOptionsType = Omit<ThemeOptions, "components"> &
         >;
   };
 
-export const dyslexiaFontFamily: string = "OpenDyslexic3,Comic Sans MS,Arial,Helvetica,sans-serif !important";
+export const dyslexiaFontFamily: string =
+  "OpenDyslexic3,Comic Sans MS,Arial,Helvetica,sans-serif !important";
 
 export const defaultAppearanceSettings: Readonly<AppearanceSettings> =
   Object.freeze({
@@ -74,7 +75,7 @@ const getThemeOptions = (settings: AppearanceSettings): ThemeOptionsType => ({
   },
   typography: {
     fontSize: settings.fontSize,
-    fontFamily: settings.fontFamily
+    fontFamily: settings.fontFamily,
   },
 });
 
