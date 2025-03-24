@@ -29,41 +29,30 @@ namespace Chemistry_Cafe_API.Tests
         const string _Email = "testuser@example.com";
         static DateTime _CreatedDate = DateTime.UtcNow;
 
-       [ClassInitialize]
+        [ClassInitialize]
         public static void ClassInit(TestContext context)
         {
             _Username = "TestUser_" + Guid.NewGuid().ToString();
         }
 
         [TestMethod]
-        public async Task CreateUser_Returns_Created_User()
+        public async Task SignIn_Created_User()
         {
             // Arrange
             var userService = new UserService(ctx);
-            var controller = new UsersController(userService);
 
-            var newUser = new User
-            {
-                Username = _Username,
-                Role = _Role,
-                Email = _Email,
-                CreatedDate = _CreatedDate
-            };
-
-            // Act
-            var result = await controller.CreateUser(newUser);
-
-            // Assert
-            var createdAtActionResult = result.Result as CreatedAtActionResult;
-            Assert.IsNotNull(createdAtActionResult);
-            var createdUser = createdAtActionResult.Value as User;
-            Assert.IsNotNull(createdUser);
-            Assert.AreEqual(_Username, createdUser.Username);
-            Assert.AreEqual(_Email, createdUser.Email);
+            //Act
+            var googleID = System.Guid.NewGuid().ToString();
+            var user = await userService.SignIn(googleID, _Email);
 
             // Store the UserId for cleanup
-            _UserId = createdUser.Id;
+            _UserId = user.Id;
             userCreated = true;
+
+            // Assert
+            Assert.AreEqual(_Email, user.Username);
+            Assert.AreEqual(_Email, user.Email);
+            Assert.AreEqual(googleID, user.GoogleId);
         }
 
         [TestMethod]
@@ -94,7 +83,7 @@ namespace Chemistry_Cafe_API.Tests
             // Ensure user exists
             if (!userCreated)
             {
-                await CreateUser_Returns_Created_User();
+                await SignIn_Created_User();
             }
 
             // Act
@@ -118,7 +107,7 @@ namespace Chemistry_Cafe_API.Tests
             // Ensure user exists
             if (!userCreated)
             {
-                await CreateUser_Returns_Created_User();
+                await SignIn_Created_User();
             }
 
             // Act
@@ -142,13 +131,13 @@ namespace Chemistry_Cafe_API.Tests
             // Ensure user exists
             if (!userCreated)
             {
-                await CreateUser_Returns_Created_User();
+                await SignIn_Created_User();
             }
 
             var updatedUser = new User
             {
                 Id = _UserId,
-                Username = _Username + "_Updated",
+                Username = _Username,
                 Role = _Role,
                 Email = _Email,
                 CreatedDate = _CreatedDate
@@ -166,7 +155,7 @@ namespace Chemistry_Cafe_API.Tests
             Assert.IsNotNull(okResult);
             var user = okResult.Value as User;
             Assert.IsNotNull(user);
-            Assert.AreEqual(_Username + "_Updated", user.Username);
+            Assert.AreEqual(_Username, user.Username);
         }
 
         [TestMethod]
@@ -179,7 +168,7 @@ namespace Chemistry_Cafe_API.Tests
             // Ensure user exists
             if (!userCreated)
             {
-                await CreateUser_Returns_Created_User();
+                await SignIn_Created_User();
             }
 
             // Act
@@ -236,10 +225,6 @@ namespace Chemistry_Cafe_API.Tests
             Assert.IsNotNull(badRequestResult);
         }
 
-
-
-
-
         [ClassCleanup]
         public static void ClassCleanup()
         {
@@ -253,7 +238,5 @@ namespace Chemistry_Cafe_API.Tests
                 deleteTask.Wait();
             }
         }
-
-
     }
 }
