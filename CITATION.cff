@@ -25,5 +25,15 @@ authors:
     given-names: Oreoluwa 
   - family-names: Ferris
     given-names: Sydney 
+  - family-names: Cook
+    given-names: Robert
+  - family-names: Stewart
+    given-names: Jackson
+  - family-names: Fogle
+    given-names: Kaili
+  - family-names: Curvino
+    given-names: Donato
+  - family-names: Fontenot
+    given-names: James
 license: Apache-2.0
 url: "https://github.com/NCAR/music-box-interactive-client"
