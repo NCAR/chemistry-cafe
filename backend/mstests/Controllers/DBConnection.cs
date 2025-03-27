@@ -1,8 +1,8 @@
 ﻿using MySqlConnector;
-using Chemistry_Cafe_API.Models;
+using ChemistryCafeAPI.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Chemistry_Cafe_API.Tests
+namespace ChemistryCafeAPI.Tests
 {
     public class DBConnection
     {

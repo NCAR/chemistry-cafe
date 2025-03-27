@@ -1,10 +1,10 @@
-﻿using Chemistry_Cafe_API.Models;
+﻿using ChemistryCafeAPI.Models;
 using System.Data.Common;
 using MySqlConnector;
 using Microsoft.EntityFrameworkCore;
 using System;
 
-namespace Chemistry_Cafe_API.Services
+namespace ChemistryCafeAPI.Services
 {
     public class UserService
     {

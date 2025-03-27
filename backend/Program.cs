@@ -1,8 +1,8 @@
-using Chemistry_Cafe_API.Services;
+using ChemistryCafeAPI.Services;
 using MySqlConnector;
 using Microsoft.AspNetCore.HttpOverrides;
-using Chemistry_Cafe_API.Controllers;
-using Chemistry_Cafe_API.Models;
+using ChemistryCafeAPI.Controllers;
+using ChemistryCafeAPI.Models;
 using dotenv.net;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;

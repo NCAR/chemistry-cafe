@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Pomelo.EntityFrameworkCore.MySql.Scaffolding.Internal;
 
-namespace Chemistry_Cafe_API.Models;
+namespace ChemistryCafeAPI.Models;
 
 public partial class ChemistryDbContext : DbContext
 {

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Chemistry_Cafe_API.Migrations
+namespace ChemistryCafeAPI.Migrations
 {
     /// <inheritdoc />
     public partial class ResetInitialCreate : Migration

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
-namespace Chemistry_Cafe_API.Models;
+namespace ChemistryCafeAPI.Models;
 
 [Index("Username", Name = "idx_users_username", IsUnique = true)]
 public partial class User
