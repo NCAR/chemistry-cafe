@@ -17,7 +17,23 @@ namespace Chemistry_Cafe_API.Services
 
         public async Task<IReadOnlyList<User>> GetUsersAsync()
         {
-            return await _context.Users.ToListAsync();
+            // Log the SQL query
+            var users = _context.Users;
+            Console.WriteLine($"SQL Query: {users.ToQueryString()}");
+            
+            // Execute query and log results
+            var result = await users.ToListAsync();
+            Console.WriteLine($"Number of users found: {result.Count}");
+            if (result.Any())
+            {
+                Console.WriteLine("First user properties:");
+                foreach (var prop in result.First().GetType().GetProperties())
+                {
+                    Console.WriteLine($"{prop.Name}: {prop.GetValue(result.First())}");
+                }
+            }
+            
+            return result;
         }
 
         public async Task<User?> GetUserByIdAsync(Guid id)

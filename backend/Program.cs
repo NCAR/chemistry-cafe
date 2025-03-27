@@ -20,17 +20,7 @@ DotEnv.Load();
 // Add services to the container.
 
 builder.Services.AddControllers();
-builder.Services.AddScoped<FamilyService>();
-builder.Services.AddScoped<MechanismService>();
-builder.Services.AddScoped<SpeciesService>();
-builder.Services.AddScoped<ReactionService>();
-builder.Services.AddScoped<ReactionSpeciesService>();
-builder.Services.AddScoped<MechanismSpeciesService>();
-builder.Services.AddScoped<MechanismReactionService>();
-builder.Services.AddScoped<InitialConditionSpeciesService>();
-builder.Services.AddScoped<OpenAtmosService>();
 builder.Services.AddScoped<UserService>();
-builder.Services.AddScoped<PropertyService>();
 builder.Services.AddScoped<GoogleOAuthService>();
 
 string googleClientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID") ?? throw new InvalidOperationException("GOOGLE_CLIENT_ID environment variable is missing.");
@@ -64,7 +54,6 @@ var port = Environment.GetEnvironmentVariable("MYSQL_PORT") ?? "3306";
 
 var connectionString = $"Server={server};Port={port};Database={database};User={user};Password={password};AllowUserVariables=True;UseAffectedRows=False;";
 /* TODO: Remove data source!!!*/
-builder.Services.AddMySqlDataSource(connectionString);
 builder.Services.AddDbContext<ChemistryDbContext>(options => options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
 string frontendHost = Environment.GetEnvironmentVariable("FRONTEND_HOST") ?? "http://localhost:5173";
