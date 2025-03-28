@@ -16,7 +16,7 @@ jobs:
     # runs-on: ${{ matrix.os }}
     runs-on: ubuntu-latest # does not run on other platforms
     env:
-      MYSQL_SERVER: mysql
+      MYSQL_SERVER: localhost:3306
       MYSQL_USER: chemistrycafedev
       MYSQL_PASSWORD: chemistrycafe
       MYSQL_DATABASE: chemistry_db
