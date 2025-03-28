@@ -1,13 +1,13 @@
 using System.Security.Claims;
-using Chemistry_Cafe_API.Models;
-using Chemistry_Cafe_API.Services;
+using ChemistryCafeAPI.Models;
+using ChemistryCafeAPI.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Protocols.Configuration;
 
-namespace Chemistry_Cafe_API.Controllers
+namespace ChemistryCafeAPI.Controllers
 {
     /// <summary>
     /// Controls routes related to Google OAuth 2.0 authentication

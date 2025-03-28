@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Chemistry_Cafe_API.Models;
-using Chemistry_Cafe_API.Services;
+using ChemistryCafeAPI.Models;
+using ChemistryCafeAPI.Services;
 
-namespace Chemistry_Cafe_API.Controllers
+namespace ChemistryCafeAPI.Controllers
 {
     [ApiController]
     [Route("api/users")]

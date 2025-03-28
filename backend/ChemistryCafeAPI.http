@@ -1,5 +1,5 @@
-@Chemistry_Cafe_API_HostAddress = http://localhost:8080
+@ChemistryCafeAPI_HostAddress = http://localhost:8080
 
-GET {{Chemistry_Cafe_API_HostAddress}}/weatherforecast/
+GET {{ChemistryCafeAPI_HostAddress}}/weatherforecast/
 Accept: application/json
 

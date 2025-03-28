@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Chemistry_Cafe_API.Models
+namespace ChemistryCafeAPI.Models
 {
     /// <summary>
     /// Represents a user's authentication claims. 
