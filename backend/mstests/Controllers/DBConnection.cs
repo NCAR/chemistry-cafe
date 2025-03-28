@@ -6,7 +6,7 @@ namespace ChemistryCafeAPI.Tests
 {
     public class DBConnection
     {
-        private static string server = Environment.GetEnvironmentVariable("MYSQL_SERVER") ?? "localhost";
+        private static string server = Environment.GetEnvironmentVariable("MYSQL_SERVER") ?? "127.0.0.1";
         private static string user = Environment.GetEnvironmentVariable("MYSQL_USER") ?? "chemistrycafedev";
         private static string password = Environment.GetEnvironmentVariable("MYSQL_PASSWORD") ?? "chemistrycafe";
         private static string database = Environment.GetEnvironmentVariable("MYSQL_DATABASE") ?? "chemistry_db";
