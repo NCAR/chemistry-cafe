@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  build:
+  test-backend:
     # strategy:
     #   matrix:
     #     os: [ubuntu-latest, macos-latest, windows-latest]
@@ -51,12 +51,7 @@ jobs:
           exit 1
 
       - name: Test
-        run: |
-          MYSQL_SERVER=localhost
-          MYSQL_USER=chemistrycafedev
-          MYSQL_PASSWORD=chemistrycafe
-          MYSQL_DATABASE=chemistry_db
-          dotnet test  ./backend --collect "Code Coverage;Format=Cobertura" --no-build --verbosity normal
+        run: dotnet test  ./backend --collect "Code Coverage;Format=Cobertura" --no-build --verbosity normal --environment MYSQL_SERVER="localhost" --environment MYSQL_USER="chemistrycafedev" --environment MYSQL_PASSWORD="chemistrycafe" --environment MYSQL_DATABASE="chemistry_db"
 
       - name: Stop and remove database container
         run: docker compose down
