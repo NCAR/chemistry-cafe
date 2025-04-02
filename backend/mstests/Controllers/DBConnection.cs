@@ -15,7 +15,6 @@ namespace ChemistryCafeAPI.Tests
         private static DbContextOptions<ChemistryDbContext> options = new DbContextOptionsBuilder<ChemistryDbContext>()
             .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
             .Options;
-        public static MySqlDataSource DataSource = new MySqlDataSource(connectionString);
         public static ChemistryDbContext Context = new ChemistryDbContext(options);
     }
 }

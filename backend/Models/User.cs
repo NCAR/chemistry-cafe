@@ -9,8 +9,8 @@ namespace ChemistryCafeAPI.Models;
 public partial class User
 {
     public Guid Id { get; set; }
-    public string Username { get; set; } = null!;
-    public string Role { get; set; } = null!;
+    public string Username { get; set; } = ""; //null!;
+    public string Role { get; set; } = "";
     public string? Email { get; set; }
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
     public string? GoogleId { get; set; } 
