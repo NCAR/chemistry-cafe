@@ -1,11 +1,8 @@
 using System.Security.Claims;
 using ChemistryCafeAPI.Models;
-using ChemistryCafeAPI.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Protocols.Configuration;
 
 namespace ChemistryCafeAPI.Controllers
 {
@@ -18,12 +15,10 @@ namespace ChemistryCafeAPI.Controllers
         private readonly GoogleOAuthService _googleOAuthService;
         private readonly string _baseUri = Environment.GetEnvironmentVariable("BACKEND_BASE_URL") ?? "";
         private readonly string _frontendHost = Environment.GetEnvironmentVariable("FRONTEND_HOST") ?? "";
-        private readonly UserService _userService;
         private readonly IConfiguration _configuration;
-        public GoogleOAuthController(IConfiguration configuration, GoogleOAuthService googleOAuthService, UserService userService)
+        public GoogleOAuthController(IConfiguration configuration, GoogleOAuthService googleOAuthService)
         {
             _googleOAuthService = googleOAuthService;
-            _userService = userService;
             _configuration = configuration;
         }
 
@@ -52,7 +47,7 @@ namespace ChemistryCafeAPI.Controllers
                 return BadRequest("Google OAuth Http Response did not succeed");
             }
 
-            ClaimsPrincipal? claimsIdentity = _googleOAuthService.GetUserClaims(result);
+            ClaimsPrincipal? claimsIdentity = await _googleOAuthService.GetUserClaimsAsync(result);
             if (claimsIdentity == null)
             {
                 return BadRequest("Invalid Credentials Passed");
@@ -60,10 +55,7 @@ namespace ChemistryCafeAPI.Controllers
 
             await HttpContext.SignInAsync("Application", claimsIdentity);
             string redirectUrl = Path.Combine(_frontendHost, "dashboard").Replace('\\', '/');
-            var ret = Redirect(redirectUrl);
-            var googleID = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var email = claimsIdentity.FindFirst(ClaimTypes.Email)?.Value;
-            await _userService.SignIn(googleID, email);
+            RedirectResult ret = Redirect(redirectUrl);
             return ret;
         }
 
