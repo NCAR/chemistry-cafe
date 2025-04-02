@@ -17,15 +17,6 @@ public partial class ChemistryDbContext : DbContext
     }
 
     public virtual DbSet<User> Users { get; set; }
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        modelBuilder
-            .UseCollation("utf8mb4_0900_ai_ci")
-            .HasCharSet("utf8mb4");
-
-        OnModelCreatingPartial(modelBuilder);
-    }
-
-    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+    public virtual DbSet<Family> Families { get; set; }
+    public virtual DbSet<Species> Species { get; set; }
 }

@@ -53,8 +53,10 @@ var database = Environment.GetEnvironmentVariable("MYSQL_DATABASE") ?? throw new
 var port = Environment.GetEnvironmentVariable("MYSQL_PORT") ?? "3306";
 
 var connectionString = $"Server={server};Port={port};Database={database};User={user};Password={password};AllowUserVariables=True;UseAffectedRows=False;";
-/* TODO: Remove data source!!!*/
-builder.Services.AddDbContext<ChemistryDbContext>(options => options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+builder.Services.AddDbContext<ChemistryDbContext>(options =>
+{
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+});
 
 string frontendHost = Environment.GetEnvironmentVariable("FRONTEND_HOST") ?? "http://localhost:5173";
 builder.Services.AddCors(options =>
