@@ -4,7 +4,7 @@ using ChemistryCafeAPI.Models;
 using ChemistryCafeAPI.Services;
 using Microsoft.AspNetCore.Authentication;
 
-namespace ChemistryCafeAPI.Controllers
+namespace ChemistryCafeAPI.Services
 {
     /// <summary>
     /// Adapted from: https://blog.rashik.com.np/adding-google-authentication-in-net-core-application-without-identity/

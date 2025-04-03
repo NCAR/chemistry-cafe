@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using ChemistryCafeAPI.Models;
+using ChemistryCafeAPI.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Mvc;
@@ -13,13 +14,16 @@ namespace ChemistryCafeAPI.Controllers
     public class GoogleOAuthController : Controller
     {
         private readonly GoogleOAuthService _googleOAuthService;
+        private readonly UserService _userService;
+
         private readonly string _baseUri = Environment.GetEnvironmentVariable("BACKEND_BASE_URL") ?? "";
         private readonly string _frontendHost = Environment.GetEnvironmentVariable("FRONTEND_HOST") ?? "";
         private readonly IConfiguration _configuration;
-        public GoogleOAuthController(IConfiguration configuration, GoogleOAuthService googleOAuthService)
+        public GoogleOAuthController(IConfiguration configuration, GoogleOAuthService googleOAuthService, UserService userService)
         {
             _googleOAuthService = googleOAuthService;
             _configuration = configuration;
+            _userService = userService;
         }
 
         /// <summary>
@@ -94,23 +98,12 @@ namespace ChemistryCafeAPI.Controllers
         /// Gives the user information on themselves
         /// </summary>
         [HttpGet("whoami")]
-        public UserClaims GetUserClaims()
+        public async Task<User> GetCurrentUser()
         {
-            ClaimsIdentity? claimsIdentity = HttpContext.User.Identity as ClaimsIdentity;
-            if (claimsIdentity == null)
-            {
-                return new UserClaims
-                {
-                    NameIdentifier = null,
-                    EmailClaim = null,
-                };
-            }
-
-            return new UserClaims
-            {
-                NameIdentifier = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier)?.Value,
-                EmailClaim = claimsIdentity.FindFirst(ClaimTypes.Email)?.Value
-            };
+            ClaimsIdentity? claimsIdentity = this.User.Identity as ClaimsIdentity;
+            var nameIdentifier = claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var guid = Guid.Parse(nameIdentifier);
+            return await _userService.GetUserByIdAsync(guid);
         }
     }
 }

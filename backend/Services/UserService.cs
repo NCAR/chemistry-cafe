@@ -2,6 +2,9 @@
 using System.Data.Common;
 using MySqlConnector;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.IdentityModel.Protocols.Configuration;
+using System.Security.Claims;
 using System;
 
 namespace ChemistryCafeAPI.Services
@@ -20,7 +23,7 @@ namespace ChemistryCafeAPI.Services
             // Log the SQL query
             var users = _context.Users;
             Console.WriteLine($"SQL Query: {users.ToQueryString()}");
-            
+
             // Execute query and log results
             var result = await users.ToListAsync();
             Console.WriteLine($"Number of users found: {result.Count}");
@@ -32,7 +35,7 @@ namespace ChemistryCafeAPI.Services
                     Console.WriteLine($"{prop.Name}: {prop.GetValue(result.First())}");
                 }
             }
-            
+
             return result;
         }
 
@@ -46,18 +49,22 @@ namespace ChemistryCafeAPI.Services
             return await _context.Users.SingleOrDefaultAsync(u => u.Email == email);
         }
 
-        public async Task<User> SignIn(string googleID, string email) {
+        public async Task<User> SignIn(string googleID, string email)
+        {
             var user = await _context.Users.SingleOrDefaultAsync(u => u.GoogleId == googleID);
-            if (user == null) {
+            if (user == null)
+            {
                 user = new User();
                 user.Id = Guid.NewGuid();
                 user.Username = email;
                 user.Role = "admin";
-                user.Email = email; 
+                user.Email = email;
                 user.CreatedDate = DateTime.UtcNow;
                 user.GoogleId = googleID;
                 _context.Users.Add(user);
-            } else {
+            }
+            else
+            {
                 user.Email = email;
             }
             await _context.SaveChangesAsync();
