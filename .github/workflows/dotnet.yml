@@ -33,23 +33,27 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Restore dependencies
-        run: dotnet restore ./backend
+        working-directory: ./backend
+        run: dotnet restore
 
       - name: Build
-        run: dotnet build ./backend --no-restore
+        working-directory: ./backend
+        run: dotnet build --no-restore
       
       - name: Install entity framework
         run: dotnet tool install --global dotnet-ef
 
       - name: Migrate Database
+        working-directory: ./backend
         env:
           MYSQL_SERVER: "127.0.0.1"
           MYSQL_USER: chemistrycafedev
           MYSQL_PASSWORD: chemistrycafe
           MYSQL_DATABASE: chemistry_db
-        run: dotnet ef database update --project .\backend\ChemistryCafeAPI.csproj
+        run: dotnet ef database update
 
       - name: Test
+        working-directory: ./backend
         env:
           MYSQL_SERVER: "127.0.0.1"
           MYSQL_USER: chemistrycafedev
