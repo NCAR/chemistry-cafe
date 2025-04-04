@@ -98,12 +98,21 @@ namespace ChemistryCafeAPI.Controllers
         /// Gives the user information on themselves
         /// </summary>
         [HttpGet("whoami")]
-        public async Task<User> GetCurrentUser()
+        public async Task<ActionResult<User>> GetCurrentUser()
         {
             ClaimsIdentity? claimsIdentity = this.User.Identity as ClaimsIdentity;
             var nameIdentifier = claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if(nameIdentifier == null){
+                return Unauthorized();
+            }
+            
             var guid = Guid.Parse(nameIdentifier);
-            return await _userService.GetUserByIdAsync(guid);
+            var user = await _userService.GetUserByIdAsync(guid);
+            if(user == null){
+                return NotFound();
+            }
+
+            return Ok(user);
         }
     }
 }
