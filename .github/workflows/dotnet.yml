@@ -10,11 +10,18 @@ on:
 
 jobs:
   test-backend:
-    # strategy:
-    #   matrix:
-    #     os: [ubuntu-latest, macos-latest, windows-latest]
-    # runs-on: ${{ matrix.os }}
-    runs-on: ubuntu-latest # does not run on other platforms
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:9.0
+        env:
+          MYSQL_SERVER: mysql
+          MYSQL_USER: chemistrycafedev
+          MYSQL_PASSWORD: chemistrycafe
+          MYSQL_DATABASE: chemistry_db
+        ports:
+          - "3306:3306"
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -29,29 +36,25 @@ jobs:
 
       - name: Build
         run: dotnet build ./backend --no-restore
+      
+      - name: Install entity framework
+        run: dotnet tool install --global dotnet-ef
 
-      - name: Start database container
-        run: docker compose up -d mysql
-
-      - name: List running containers
-        run: docker ps -a
-
-      - name: Wait for database to be ready
-        run: |
-          for i in {1..30}; do
-            if docker exec $(docker ps -q --filter "name=mysql") mysqladmin ping -h"localhost" --silent; then
-              echo "Database is ready!"
-              sleep 10
-              exit 0
-            fi
-            echo "Waiting for database connection..."
-            sleep 2
-          done
-          echo "Database failed to start within the expected time."
-          exit 1
+      - name: Migrate Database
+        env:
+          MYSQL_SERVER: "127.0.0.1"
+          MYSQL_USER: chemistrycafedev
+          MYSQL_PASSWORD: chemistrycafe
+          MYSQL_DATABASE: chemistry_db
+        run: dotnet ef database update --project .\backend\ChemistryCafeAPI.csproj
 
       - name: Test
-        run: dotnet test  ./backend --collect "Code Coverage;Format=Cobertura" --no-build --verbosity normal --environment MYSQL_SERVER="127.0.0.1" --environment MYSQL_USER="chemistrycafedev" --environment MYSQL_PASSWORD="chemistrycafe" --environment MYSQL_DATABASE="chemistry_db"
+        env:
+          MYSQL_SERVER: "127.0.0.1"
+          MYSQL_USER: chemistrycafedev
+          MYSQL_PASSWORD: chemistrycafe
+          MYSQL_DATABASE: chemistry_db
+        run: dotnet test ./backend --collect "Code Coverage;Format=Cobertura" --no-build --verbosity normal --environment MYSQL_SERVER="127.0.0.1" --environment MYSQL_USER="chemistrycafedev" --environment MYSQL_PASSWORD="chemistrycafe" --environment MYSQL_DATABASE="chemistry_db"
 
       - name: Stop and remove database container
         run: docker compose down
