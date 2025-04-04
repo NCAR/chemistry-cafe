@@ -50,6 +50,8 @@ jobs:
           MYSQL_USER: chemistrycafedev
           MYSQL_PASSWORD: chemistrycafe
           MYSQL_DATABASE: chemistry_db
+          GOOGLE_CLIENT_ID: "" # Default value for testing
+          GOOGLE_CLIENT_SECRET: "" # Default value for testing
         run: dotnet ef database update
 
       - name: Test
