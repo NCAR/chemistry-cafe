@@ -8,7 +8,7 @@ namespace ChemistryCafeAPI.Models;
 public partial class Species
 {
     [Key]
-    public Guid Id { get; set; }
+    public Guid Id { get; set; } = new Guid();
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedDate { get; set; } = DateTime.UtcNow;
     public string Name { get; set; } = null!;
