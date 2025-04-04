@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChemistryCafeAPI.Models;
 
 public partial class Family
 {
-    public Guid Id { get; set; }
+    [Key]
+    public Guid Id { get; set; } = new Guid();
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
