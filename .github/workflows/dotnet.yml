@@ -61,7 +61,7 @@ jobs:
           MYSQL_USER: chemistrycafedev
           MYSQL_PASSWORD: chemistrycafe
           MYSQL_DATABASE: chemistry_db
-        run: dotnet test ./backend --collect "Code Coverage;Format=Cobertura" --no-build --verbosity normal --environment MYSQL_SERVER="127.0.0.1" --environment MYSQL_USER="chemistrycafedev" --environment MYSQL_PASSWORD="chemistrycafe" --environment MYSQL_DATABASE="chemistry_db"
+        run: dotnet test --collect "Code Coverage;Format=Cobertura" --no-build --verbosity normal --environment MYSQL_SERVER="127.0.0.1" --environment MYSQL_USER="chemistrycafedev" --environment MYSQL_PASSWORD="chemistrycafe" --environment MYSQL_DATABASE="chemistry_db"
 
       - name: Stop and remove database container
         run: docker compose down
