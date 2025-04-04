@@ -22,7 +22,7 @@ jobs:
           MYSQL_ROOT_PASSWORD: testrootpassword
         ports:
           - "3306:3306"
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=6
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=10
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -61,7 +61,7 @@ jobs:
           MYSQL_USER: chemistrycafedev
           MYSQL_PASSWORD: chemistrycafe
           MYSQL_DATABASE: chemistry_db
-        run: dotnet test --collect "Code Coverage;Format=Cobertura" --no-build --verbosity normal --environment MYSQL_SERVER="127.0.0.1" --environment MYSQL_USER="chemistrycafedev" --environment MYSQL_PASSWORD="chemistrycafe" --environment MYSQL_DATABASE="chemistry_db"
+        run: dotnet test --no-build --verbosity normal --environment MYSQL_SERVER="127.0.0.1" --environment MYSQL_USER="chemistrycafedev" --environment MYSQL_PASSWORD="chemistrycafe" --environment MYSQL_DATABASE="chemistry_db"
 
       - name: Stop and remove database container
         run: docker compose down
