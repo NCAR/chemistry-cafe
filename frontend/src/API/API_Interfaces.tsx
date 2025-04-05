@@ -15,7 +15,7 @@ export interface APIFamily {
   name: string;
   description: string;
   owner: APIUser;
-  species: Array<APISpecies>
+  species?: Array<APISpecies>;
 }
 
 export interface APISpecies {
@@ -29,13 +29,10 @@ export interface APISpecies {
 
 export interface APIMechanism {
   id?: UUID;
-  family_id: string;
+  familyId: string;
   name: string;
   description: string;
-  created_by: string;
 }
-
-
 
 export interface APIReaction {
   id?: UUID;

@@ -2,19 +2,60 @@ import { describe, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
 import axios, { AxiosHeaders, AxiosResponse } from "axios";
 import {
-  createUser,
+  createFamily,
+  createSpecies,
+  createReaction,
+  createMechanism,
 } from "../src/API/API_CreateMethods";
-import { APIUser } from "../src/API/API_Interfaces";
+import { APIFamily, APIMechanism, APIReaction, APISpecies, APIUser } from "../src/API/API_Interfaces";
 
 // Mock axios using vitest's built-in mock function
 vi.mock("axios");
 
-describe("API create functions tests", () => {
-  const mockResponseData = { success: true };
+const mockUser: APIUser = {
+  id: "1-1-1-1-1",
+  username: "Test User",
+  role: "admin",
+};
 
+const mockAPIFamily: APIFamily = {
+  id: "1-2-3-4-5",
+  createdDate: "2025-04-05T02:47:33.375782",
+  name: "Test Family",
+  description: "",
+  owner: mockUser,
+  species: [],
+};
+
+const mockAPISpecies: APISpecies = {
+  createdDate: "",
+  updatedDate: "",
+  name: null,
+  description: null,
+  familyId: mockAPIFamily.id!,
+}
+
+const mockAPIMechanism: APIMechanism = {
+  familyId: "",
+  name: "",
+  description: "",
+}
+
+const mockAPIReaction: APIReaction = {
+  name: "",
+  description: null,
+  createdBy: ""
+}
+
+describe.each([
+  ["createFamily", createFamily, mockAPIFamily, "families"],
+  ["createSpecies", createSpecies, mockAPISpecies, "species"],
+  ["createReaction", createReaction, mockAPIReaction, "reactions"],
+  ["createMechanism", createMechanism, mockAPIMechanism, "mechanisms"],
+])("%s function", (_, createFunction: (object: any) => any, responseData: any, endpoint: string) => {
   function createMockResponse() {
     return {
-      data: mockResponseData,
+      data: responseData,
       status: 200,
       statusText: "OK",
       headers: {},
@@ -24,41 +65,29 @@ describe("API create functions tests", () => {
     } as AxiosResponse;
   }
 
-  it("should create user and return data", async () => {
+  it("Creates and return data", async () => {
     const mockedCreate = vi
       .spyOn(axios, "post")
       .mockResolvedValue(createMockResponse()) as Mock;
-    const userData: APIUser = {
-      id: "123-123-123-123-123",
-      username: "Test User",
-      email: "testuser@email.com",
-      role: "admin",
-    };
-    const result = await createUser(userData);
+    const result = await createFunction(responseData);
 
     expect(mockedCreate).toHaveBeenCalledWith(
-      "http://localhost:8080/api/users",
-      userData,
-      { headers: { "Content-Type": "application/json" } },
+      `http://localhost:8080/api/${endpoint}`,
+      responseData,
+      {
+        withCredentials: true,
+        headers: { "Content-Type": "application/json" }
+      },
     );
-    expect(result).toEqual(mockResponseData);
+    expect(result).toEqual(responseData);
   });
 
-  it("should handle error when creating user", async () => {
-    const userData: APIUser = {
-      id: "123-123-123-123-123",
-      username: "Test User",
-      email: "testuser@email.com",
-      role: "admin",
-    };
+  it("Handles errors by throwing the error", async () => {
     const errorMessage = "Request failed with status code 404";
-
     (
       axios.post as typeof axios.post & { mockRejectedValueOnce: Function }
     ).mockRejectedValueOnce(new Error(errorMessage));
     // Assert the function throws the correct error
-    await expect(createUser(userData)).rejects.toThrow(
-      "Failed to create user. Please try again later.",
-    );
+    await expect(createFunction(responseData)).rejects.toThrow(errorMessage);
   });
 });
