@@ -5,7 +5,7 @@ import {
   updateUser,
 } from "../src/API/API_UpdateMethods";
 import {
-  User
+  APIUser
 } from "../src/API/API_Interfaces";
 
 // Mock axios using vitest's built-in mock function
@@ -31,12 +31,13 @@ describe("API update functions tests", () => {
       .spyOn(axios, "put")
       .mockResolvedValue(createMockResponse()) as Mock;
 
-    const user: User = {
-      id: "5",
-      username: "testuser",
-      email: "test@example.com",
+    const user: APIUser = {
+      id: "123-123-123-123-123",
+      username: "Test User",
+      email: "testuser@example.com",
+      role: "admin",
     };
-    const result = await updateUser(user.id, user);
+    const result = await updateUser(user.id!, user);
 
     expect(mockedPut).toHaveBeenCalledWith(
       `http://localhost:8080/api/users/${user.id}`,
@@ -50,10 +51,11 @@ describe("API update functions tests", () => {
   });
 
   it("should handle error correctly for updateUser", async () => {
-    const user: User = {
-      id: "5",
-      username: "testuser",
-      email: "test@example.com",
+    const user: APIUser = {
+      id: "123-123-123-123-123",
+      username: "Test User",
+      email: "testuser@example.com",
+      role: "admin",
     };
     const errorMessage = "Request failed with status code 404";
 
@@ -61,7 +63,7 @@ describe("API update functions tests", () => {
       axios.put as typeof axios.put & { mockRejectedValueOnce: Function }
     ).mockRejectedValueOnce(new Error(errorMessage));
     // Assert the function throws the correct error
-    await expect(updateUser(user.id, user)).rejects.toThrow(
+    await expect(updateUser(user.id!, user)).rejects.toThrow(
       "Failed to update user. Please try again later.",
     );
   });
