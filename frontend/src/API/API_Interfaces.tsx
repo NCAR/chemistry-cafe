@@ -11,7 +11,7 @@ export interface APIUser {
 
 export interface APIFamily {
   id?: UUID;
-  createdDate: string;
+  createdDate?: string;
   name: string;
   description: string;
   owner: APIUser;
@@ -20,8 +20,8 @@ export interface APIFamily {
 
 export interface APISpecies {
   id?: UUID;
-  createdDate: string;
-  updatedDate: string;
+  createdDate?: string;
+  updatedDate?: string;
   name: string | null;
   description: string | null;
   familyId: UUID;
