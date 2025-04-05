@@ -9,7 +9,8 @@ import { BASE_URL } from "./API_config";
 
 /**
  * Creates a new family and returns the real family object from the database
- * @param familyData Data to upload 
+ * @param familyData Data to upload
+ * @throws HTTP errors
  * @returns Data as represented in the database
  */
 export async function createFamily(familyData: APIFamily): Promise<APIFamily> {
@@ -25,7 +26,8 @@ export async function createFamily(familyData: APIFamily): Promise<APIFamily> {
 
 /**
  * Creates a new species and returns the real species object from the database
- * @param speciesData Data to upload 
+ * @param speciesData Data to upload
+ * @throws HTTP errors
  * @returns Data as represented in the database
  */
 export async function createSpecies(speciesData: APISpecies): Promise<APISpecies> {
@@ -41,7 +43,8 @@ export async function createSpecies(speciesData: APISpecies): Promise<APISpecies
 
 /**
  * Creates a new reaction and returns the real reaction object from the database
- * @param reactionData Data to upload 
+ * @param reactionData Data to upload
+ * @throws HTTP errors
  * @returns Data as represented in the database
  */
 export async function createReaction(reactionData: APIReaction): Promise<APIReaction> {
@@ -58,7 +61,8 @@ export async function createReaction(reactionData: APIReaction): Promise<APIReac
 
 /**
  * Creates a new mechanism and returns the real mechanism object from the database
- * @param mechanismData Data to upload 
+ * @param mechanismData Data to upload
+ * @throws HTTP errors 
  * @returns Data as represented in the database
  */
 export async function createMechanism(mechanismData: APIMechanism): Promise<APIMechanism> {

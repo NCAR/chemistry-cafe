@@ -8,7 +8,10 @@ import {
 // Mock axios using vitest's built-in mock function
 vi.mock("axios");
 
-describe("API delete functions tests", () => {
+describe.each([
+  ["deleteUser", deleteUser, `1-1-1-1-1`, "users"],
+])("%s function", (_, deleteFunction: (object: any) => any, id: string, endpoint: string) => {
+
   const BASE_URL = "http://localhost:8080/api";
   const mockResponseData = { success: true };
 
@@ -22,40 +25,28 @@ describe("API delete functions tests", () => {
     } as AxiosResponse;
   }
 
-  it("should successfully delete a user", async () => {
+  it("Successfully calls the delete endpoint", async () => {
     const mockedDelete = vi
       .spyOn(axios, "delete")
       .mockResolvedValue(createMockResponse()) as Mock;
-
-    const id = "12345";
-    const result = await deleteUser(id);
+    const result = await deleteFunction(id);
 
     expect(mockedDelete).toHaveBeenCalledWith(
-      `http://localhost:8080/api/users/${id}`,
+      `${BASE_URL}/${endpoint}/${id}`,
       {
+        withCredentials: true,
         headers: { "Content-Type": "application/json" },
       },
     );
     expect(result).toEqual(mockResponseData);
   });
 
-  it("should handle error correctly for deleteUser", async () => {
-    const id = "12345";
+  it("Handles errors by throwing the error", async () => {
     const errorMessage = "Request failed with status code 404";
 
     (
       axios.delete as typeof axios.delete & { mockRejectedValueOnce: Function }
     ).mockRejectedValueOnce(new Error(errorMessage));
-    // Assert the function throws the correct error
-    await expect(deleteUser(id)).rejects.toThrow(
-      "Failed to delete user. Please try again later.",
-    );
-
-    expect(axios.delete).toHaveBeenCalledWith(`${BASE_URL}/users/${id}`, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    await expect(deleteFunction(id)).rejects.toThrow(errorMessage);
   });
-
 });
