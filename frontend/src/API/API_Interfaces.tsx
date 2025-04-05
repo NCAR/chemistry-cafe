@@ -1,10 +1,30 @@
 import { UUID } from "crypto";
 
+export interface APIUser {
+  id?: UUID;
+  username: string;
+  role: string;
+  email?: string | null;
+  createdDate?: string;
+  googleId?: string | null;
+}
+
 export interface APIFamily {
   id?: UUID;
+  createdDate: string;
   name: string;
   description: string;
-  createdBy: string;
+  owner: APIUser;
+  species: Array<APISpecies>
+}
+
+export interface APISpecies {
+  id?: UUID;
+  createdDate: string;
+  updatedDate: string;
+  name: string | null;
+  description: string | null;
+  familyId: UUID;
 }
 
 export interface APIMechanism {
@@ -15,12 +35,7 @@ export interface APIMechanism {
   created_by: string;
 }
 
-export interface APISpecies {
-  id?: UUID;
-  name: string;
-  description: string | null;
-  created_by: string | null;
-}
+
 
 export interface APIReaction {
   id?: UUID;
@@ -68,15 +83,6 @@ export interface APIReactionSpeciesDto {
   species_id: string;
   role: "reactant" | "product";
   species_name: string;
-}
-
-export interface APIUser {
-  id?: UUID;
-  username: string;
-  role: string;
-  email?: string | null;
-  created_date?: string;
-  google_id?: string | null;
 }
 
 export interface APIUserClaims {
