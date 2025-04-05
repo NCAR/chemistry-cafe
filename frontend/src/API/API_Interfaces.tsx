@@ -85,16 +85,11 @@ export interface APIReactionSpeciesDto {
   species_name: string;
 }
 
-export interface APIUserClaims {
-  nameId?: string | null;
-  email?: string | null;
-}
-
 export interface APIProperty {
   id?: UUID; // UUID for the property entry
   speciesId: string; // Foreign key to the species table (UUID)
   mechanismId: string; // Foreign key to mechanism table (UUID)
-  tolerance?: number; // Tolerance value (optional, as it might not be provided for every property)
+  tolerance?: number; // Tolerance value (optsional, as it might not be provided for every property)
   weight?: number; // Weight value (optional)
   concentration?: number; // Concentration value (optional)
   diffusion?: number; // Diffusion value (optional)
