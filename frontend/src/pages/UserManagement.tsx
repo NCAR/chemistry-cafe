@@ -32,7 +32,6 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogActions from "@mui/material/DialogActions";
 import { Button } from "@mui/material";
-import { handleActionWithDialog } from "../components/Modals";
 
 function RolesToolbar() {
   return (
@@ -76,7 +75,6 @@ const UserManagement: React.FC = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const handleDeleteDialogClose = () => setDeleteDialogOpen(false);
 
-  const [deleteType, setDeleteType] = useState<string>("");
 
   // contains id of item that will be deleted by delete dialog
   const [itemForDeletionID, setItemForDeletionID] = React.useState<
@@ -149,7 +147,6 @@ const UserManagement: React.FC = () => {
   };
 
   const handleDeleteClick = (id: GridRowId) => () => {
-    setDeleteType("User");
     setItemForDeletionID(id as string);
     setDeleteDialogOpen(true);
   };
@@ -291,24 +288,24 @@ const UserManagement: React.FC = () => {
       <footer>
         <Footer />
       </footer>
-      {deleteType === "User" && (
+      {(
         <Dialog open={deleteDialogOpen} onClose={handleDeleteDialogClose}>
           <DialogTitle>{`Are you sure you want to delete this?`}</DialogTitle>
 
           <DialogActions>
             <Button onClick={handleDeleteDialogClose}>No</Button>
 
-            {/* what we are deleting changes based on deleteType */}
-            {deleteType === "User" && (
+            {(
               <Button
-                onClick={() =>
-                  handleActionWithDialog({
-                    deleteType: deleteType,
-                    action: deleteUser,
-                    id: itemForDeletionID!,
-                    onClose: handleDeleteDialogClose,
-                    setUsers: setUsers,
-                  })
+                onClick={async () => {
+                  if (!itemForDeletionID) {
+                    setDeleteDialogOpen(false);
+                    return;
+                  }
+                  await deleteUser(itemForDeletionID);
+                  setDeleteDialogOpen(false);
+                  setUsers((prevUsers) => prevUsers.filter((user) => user.id !== itemForDeletionID));
+                }
                 }
               >
                 Yes
