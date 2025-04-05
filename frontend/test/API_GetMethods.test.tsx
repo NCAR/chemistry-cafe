@@ -9,7 +9,7 @@ import {
   getUserByEmail,
   getUserById,
 } from "../src/API/API_GetMethods";
-import { Mechanism } from "../src/API/API_Interfaces";
+import { APIMechanism } from "../src/API/API_Interfaces";
 
 // Mock axios using vitest's built-in mock function
 vi.mock("axios");

@@ -4,6 +4,7 @@ import axios, { AxiosHeaders, AxiosResponse } from "axios";
 import {
   createUser,
 } from "../src/API/API_CreateMethods";
+import { APIUser } from "../src/API/API_Interfaces";
 
 // Mock axios using vitest's built-in mock function
 vi.mock("axios");
@@ -27,7 +28,12 @@ describe("API create functions tests", () => {
     const mockedCreate = vi
       .spyOn(axios, "post")
       .mockResolvedValue(createMockResponse()) as Mock;
-    const userData = { id: "123", name: "Test User" };
+    const userData: APIUser = {
+      id: "123-123-123-123-123",
+      username: "Test User",
+      email: "testuser@email.com",
+      role: "admin",
+    };
     const result = await createUser(userData);
 
     expect(mockedCreate).toHaveBeenCalledWith(
@@ -39,7 +45,12 @@ describe("API create functions tests", () => {
   });
 
   it("should handle error when creating user", async () => {
-    const userData = { id: "123", name: "Test User" };
+    const userData: APIUser = {
+      id: "123-123-123-123-123",
+      username: "Test User",
+      email: "testuser@email.com",
+      role: "admin",
+    };
     const errorMessage = "Request failed with status code 404";
 
     (
