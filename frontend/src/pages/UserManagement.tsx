@@ -24,7 +24,7 @@ import { Header, Footer } from "../components/HeaderFooter";
 
 import "../styles/UserManagement.css";
 //import { useAuth } from "../contexts/AuthContext"; // Import the AuthContext
-import { getUsers } from "../API/API_GetMethods";
+import { getAllUsers } from "../API/API_GetMethods";
 import { APIUser } from "../API/API_Interfaces";
 import { updateUser } from "../API/API_UpdateMethods";
 import { deleteUser } from "../API/API_DeleteMethods";
@@ -85,7 +85,7 @@ const UserManagement: React.FC = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await getUsers();
+        const response = await getAllUsers();
         setUsers(response);
       } catch (error) {
         console.error("Error fetching users:", error);
