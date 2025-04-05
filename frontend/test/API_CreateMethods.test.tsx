@@ -54,7 +54,7 @@ describe.each([
   ["createReaction", createReaction, mockAPIReaction, "reactions"],
   ["createMechanism", createMechanism, mockAPIMechanism, "mechanisms"],
 ])("%s function", (_, createFunction: (object: any) => any, responseData: any, endpoint: string) => {
-  function createMockResponse() {
+  function createMockResponse(): AxiosResponse {
     return {
       data: responseData,
       status: 200,
