@@ -3,8 +3,7 @@
 import axios from "axios";
 
 import {
-  APIUser,
-  APIUserClaims
+  APIUser
 } from "./API_Interfaces";
 import { AUTH_URL, BASE_URL } from "./API_config";
 
@@ -47,11 +46,11 @@ export async function getUserById(id: string): Promise<APIUser> {
 }
 
 /**
- * Gets the currently logged in user claims
+ * Gets the currently logged in user
  */
-export async function getGoogleAuthUser(): Promise<APIUserClaims | null> {
+export async function getCurrentUser(): Promise<APIUser | null> {
   try {
-    const response = await axios.get<APIUserClaims>(
+    const response = await axios.get<APIUser>(
       `${AUTH_URL}/google/whoami`,
       {
         withCredentials: true,

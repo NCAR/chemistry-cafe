@@ -68,9 +68,6 @@ const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<APIUser[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedRoles, setSelectedRoles] = useState<{ [key: string]: string }>(
-    {},
-  );
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const handleDeleteDialogClose = () => setDeleteDialogOpen(false);
@@ -80,36 +77,16 @@ const UserManagement: React.FC = () => {
   const [itemForDeletionID, setItemForDeletionID] = React.useState<
     string | null
   >(null);
-  // const [search, setSearch] = useState<string>(""); // State for search input
-  // const [roleFilter, setRoleFilter] = useState<string>("all"); // State for role filter
 
   const [rowModesModel, setRowModesModel] = React.useState<GridRowModesModel>(
     {},
   );
 
-  // Fetch the current logged-in user from the AuthContext
-  //  const { user: loggedInUser } = useAuth(); // Access the logged-in user
-
-  // Fetch users from the backend when the component mounts
-  useEffect(() => {
-    console.log("Selected Roles:", selectedRoles); // Temporary logging
-  }, [selectedRoles]);
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const response = await getUsers();
         setUsers(response);
-        // Initialize selectedRoles with each user's current role
-        const initialRoles = response.reduce(
-          (acc, user) => {
-            if (user.id) {
-              acc[user.id] = user.role;
-            }
-            return acc;
-          },
-          {} as { [key: string]: string },
-        );
-        setSelectedRoles(initialRoles);
       } catch (error) {
         console.error("Error fetching users:", error);
         setError("Failed to fetch users");
