@@ -8,6 +8,7 @@ import {
   createMechanism,
 } from "../src/API/API_CreateMethods";
 import { APIFamily, APIMechanism, APIReaction, APISpecies, APIUser } from "../src/API/API_Interfaces";
+import { BASE_URL } from "../src/API/API_config";
 
 // Mock axios using vitest's built-in mock function
 vi.mock("axios");
@@ -72,7 +73,7 @@ describe.each([
     const result = await createFunction(responseData);
 
     expect(mockedCreate).toHaveBeenCalledWith(
-      `http://localhost:8080/api/${endpoint}`,
+      `${BASE_URL}/${endpoint}`,
       responseData,
       {
         withCredentials: true,
