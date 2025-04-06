@@ -1,15 +1,70 @@
 import { UUID } from "crypto";
+import { APIUser } from "../API/API_Interfaces";
 
-export type SpeciesProperties = {
-  /** ID stored in the SQL database */
-  id?: UUID;
+export type SpeciesProperty = {
 
-  /** The unit of the specific property */
-  units: string;
+  /** Name of the property */
+  name: string;
 
-  /** Numerical value of the property */
-  value: number;
+  /** What the property should be serialized as (Defaults to "<name> [<unit>]"). */
+  serializedKey?: string;
+
+  /** The unit of the specific property. This can be empty if unitless. */
+  units?: string;
+
+  /** Value of the property. This is *usually* numerical */
+  value: number | string;
 };
+
+/**
+ * Default properties a species can have
+ */
+export const defaultSpeciesProperties: Array<SpeciesProperty> = [
+  Object.freeze({
+    name: "Absolute Tolerance",
+    serializedKey: "absolute tolerance",
+    value: 0.0,
+  }),
+  Object.freeze({
+    name: "Diffusion Coefficient",
+    serializedKey: "diffusion coefficient [m2 s-1]",
+    units: "m2 s-1",
+    value: 0.0,
+  }),
+  Object.freeze({
+    name: "Molecular Weight",
+    serializedKey: "molecular weight [kg mol-1]",
+    units: "kg mol-1",
+    value: 0.0,
+  }),
+  Object.freeze({
+    name: "Henry's Law Constant (298K)",
+    serializedKey: "HLC(298K) [mol m-3 Pa-1]",
+    units: "mol m-3 Pa-1",
+    value: 0.0,
+  }),
+  Object.freeze({
+    name: "Henry's Law Exponential Factor",
+    serializedKey: "HLC exponential factor [K]",
+    units: "K",
+    value: 0.0,
+  }),
+  Object.freeze({
+    name: "N star",
+    value: 0.0,
+  }),
+  Object.freeze({
+    name: "Density",
+    serializedKey: "density [kg m-3]",
+    units: "kg m-3",
+    value: 0.0,
+  }),
+  Object.freeze({
+    name: "Tracer Type",
+    serializedKey: "tracer type",
+    value: "",
+  }),
+]
 
 /**
  * Represents a species utilized on the frontend. A species is a substance which can take on any name.
@@ -24,14 +79,16 @@ export type Species = {
   /** Description of the species */
   description: string | null;
 
+  /** Id of the family on the frontend this mechanism is a part of */
+  familyId: UUID | string;
+
   /** Special properties set by the user */
   properties: {
-    [key: string]: SpeciesProperties | undefined;
-    absoluteTolerance?: SpeciesProperties;
-    fixedConcentration?: SpeciesProperties;
-    molecularWeight?: SpeciesProperties;
-    diffusionCoefficient?: SpeciesProperties;
+    [key: string]: SpeciesProperty;
   };
+
+  /** The id of the phase this species is in. If unspecified, defaults to gas when serialized */
+  phaseId?: UUID;
 
   /** Determines whether the species has been modified from its original state */
   isModified?: boolean;
@@ -150,6 +207,9 @@ export type Mechanism = {
   /** Collection of reaction phases associated with the mechanism */
   phases: Array<Phase>;
 
+  /** Id of the family on the frontend this mechanism is a part of */
+  familyId: UUID | string;
+
   /** Species ids associated with the mechanism */
   speciesIds: Array<UUID | string>;
 
@@ -179,7 +239,7 @@ export type Family = {
   description: string;
 
   /** SQL id of the owner of the family */
-  ownerId?: UUID;
+  owner?: APIUser;
 
   /** SQL ids of the contributors to the family */
   contributorIds?: Array<UUID>;

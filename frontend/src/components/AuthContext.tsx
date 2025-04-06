@@ -22,12 +22,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<APIUser | null>(null);
 
   useLayoutEffect(() => {
+    const abortController = new AbortController();
     const getUser = async () => {
-      let userInfo: APIUser | null = await getCurrentUser();
-      setUser(userInfo);
+      try {
+        let userInfo: APIUser | null = await getCurrentUser();
+        setUser(userInfo);
+      } catch (err) {
+        if (!abortController.signal.aborted) {
+          console.error(err);
+        }
+      }
     };
 
     getUser();
+
+    return () => abortController.abort();
   }, []);
 
   return (
