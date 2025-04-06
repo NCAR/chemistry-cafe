@@ -3,6 +3,7 @@
 import axios from "axios";
 
 import {
+  APIFamily,
   APIUser
 } from "./API_Interfaces";
 import { AUTH_URL, BASE_URL } from "./API_config";
@@ -57,7 +58,19 @@ export async function getCurrentUser(): Promise<APIUser | null> {
       },
     );
     return response.data;
-  } catch (_) {
+  } catch (err: unknown) {
+    console.error(`There was an issue fetching the currently logged in user: ${err}`);
     return null;
   }
+}
+
+export async function getAllFamilies(): Promise<Array<APIFamily>> {
+  const response = await axios.get<Array<APIFamily>>(
+    `${BASE_URL}/families`,
+    {
+      withCredentials: true,
+    }
+  );
+
+  return response.data;
 }

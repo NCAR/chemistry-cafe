@@ -25,9 +25,7 @@ import DownloadIcon from "@mui/icons-material/Download";
 import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
 import { TreeItem, treeItemClasses } from "@mui/x-tree-view/TreeItem";
 import {
-  ArrheniusReaction,
   Family,
-  Mechanism,
   Reaction,
   ReactionTypeName,
   Species,
@@ -51,115 +49,15 @@ import {
 import { reactionToString, reactionTypeToString } from "../helpers/stringify";
 import { UUID } from "crypto";
 import { serializeMechanism } from "../helpers/serialization";
-
-const carbon: Species = {
-  id: "11111111-11111111-11111111-11111111-11111111",
-  name: "C",
-  description: "Carbon",
-  properties: {
-    "molecular weight": {
-      units: "kg mol-1",
-      value: 0.045,
-    },
-  },
-};
-
-const oxygen: Species = {
-  id: "22222222-22222222-22222222-22222222-22222222",
-  name: "O2",
-  description: null,
-  properties: {},
-};
-
-const carbonDioxide: Species = {
-  id: "33333333-33333333-33333333-33333333-33333333",
-  name: "CO2",
-  description:
-    "This is a really long description that will hopefully break the ui because I really want to break the ui beacus that would be cool 11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
-  properties: {},
-};
-
-const testReaction: ArrheniusReaction = {
-  id: "11111111-11111111-11111111-11111111-11111111",
-  type: "ARRHENIUS",
-  gasPhase: "gas",
-  reactants: [
-    {
-      speciesId: "11111111-11111111-11111111-11111111-11111111",
-      coefficient: 1,
-    },
-    {
-      speciesId: "22222222-22222222-22222222-22222222-22222222",
-      coefficient: 1,
-    },
-  ],
-  products: [
-    {
-      speciesId: "33333333-33333333-33333333-33333333-33333333",
-      coefficient: 1,
-    },
-  ],
-  name: "Test Reaction",
-  description:
-    "This is a really long description llllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllF",
-  A: 1,
-  B: 1,
-  C: 1,
-  D: 1,
-  E: 1,
-};
-
-const testMechanism: Mechanism = {
-  id: "11111111-11111111-11111111-11111111-11111111",
-  name: "Test Mechanism",
-  description: "This is just a test. Nothing else.",
-  phases: [
-    {
-      name: "gas",
-      description: "Gas Phase",
-      speciesIds: [
-        "11111111-11111111-11111111-11111111-11111111",
-        "22222222-22222222-22222222-22222222-22222222",
-      ],
-    },
-  ],
-  speciesIds: [
-    "11111111-11111111-11111111-11111111-11111111",
-    "22222222-22222222-22222222-22222222-22222222",
-  ],
-  reactionIds: ["11111111-11111111-11111111-11111111-11111111"],
-};
-
-const dummyFamilyData: Array<Family> = [
-  {
-    id: "11111111-11111111-11111111-11111111-11111111",
-    name: "Test Family",
-    description: "Test Family",
-    mechanisms: [
-      testMechanism,
-      { ...testMechanism, name: "Another Test Mechanism", description: "" },
-    ],
-    species: [carbon, oxygen, carbonDioxide],
-    reactions: [testReaction],
-    isModified: true,
-  },
-  {
-    id: "22222222-22222222-22222222-22222222-22222222",
-    name: "Another test family with a really long name that will surely not break the ui :D aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 11111111111111111111111111111111111111111111111111111111111111",
-    description: "Test Family",
-    mechanisms: [],
-    species: [{ ...carbon }, { ...oxygen }, { ...carbonDioxide }],
-    reactions: [],
-    isModified: true,
-  },
-];
+import { getAllFamilies } from "../API/API_GetMethods";
+import { apiToFrontendFamily } from "../helpers/backendInteractions";
 
 const FamilyPage = () => {
   enum DataViewSelection {
-    Species,
-    Reactions,
-    Mechanisms,
-    Default,
+    Species = "species",
+    Reactions = "reactions",
+    Mechanisms = "mechanisms",
+    Default = "default",
   }
 
   const [loadingFamilies, setLoadingFamilies] = useState<boolean>(true);
@@ -187,33 +85,69 @@ const FamilyPage = () => {
     setDataView(getDataViewComponent(currentMenuName.current, family));
   };
 
+  /**
+   * Creates a selected menu for a specific family
+   * @param menuName Menu to be selected. This is usually encoded in the id of a treeitem
+   * @param family Family object to view
+   * @returns Editor Component
+   */
   const getDataViewComponent = (
-    menuName: DataViewSelection,
+    menuName: string,
     family: Family,
-  ) => {
-    currentMenuName.current = menuName;
+  ): React.JSX.Element => {
     switch (menuName) {
       case DataViewSelection.Species:
+        currentMenuName.current = menuName;
         return <SpeciesView family={family} updateFamily={updateFamily} />;
       case DataViewSelection.Reactions:
+        currentMenuName.current = menuName;
         return <ReactionsView family={family} updateFamily={updateFamily} />;
       case DataViewSelection.Mechanisms:
+        currentMenuName.current = menuName;
         return <MechanismsView family={family} updateFamily={updateFamily} />;
-      default:
       case DataViewSelection.Default:
+        currentMenuName.current = menuName;
+        return <DefaultView />;
+      default:
         return <DefaultView />;
     }
   };
+
+  /**
+   * Callback when a tree item is selected. 
+   * @param _ 
+   * @param itemId 
+   * @param isSelected 
+   * @returns 
+   */
+  const handleTreeItemToggle = (_: React.SyntheticEvent, itemId: string, isSelected: boolean) => {
+    if (!isSelected) {
+      return;
+    }
+
+    const [familyId, menuName] = itemId.split(";");
+    const family = families?.find((element) => element.id == familyId);
+
+    // This happens if a treeitem that expands a selection is chosen.
+    if (!family) {
+      return;
+    }
+
+    setDataView(
+      getDataViewComponent(
+        menuName,
+        family,
+      ),
+    );
+  }
 
   useEffect(() => {
     const abortController = new AbortController();
     const fetchFamilyData = async () => {
       try {
-        // Mock network request
-        setTimeout(() => {
-          setFamilies(dummyFamilyData);
-          setLoadingFamilies(false);
-        }, 500);
+        const allFamilies = await getAllFamilies();
+        setFamilies(allFamilies.map((element) => apiToFrontendFamily(element)));
+        setLoadingFamilies(false);
       } catch (err) {
         if (!abortController.signal.aborted) {
           alert(err);
@@ -223,9 +157,7 @@ const FamilyPage = () => {
 
     fetchFamilyData();
 
-    return () => {
-      abortController.abort();
-    };
+    return () => abortController.abort();
   }, []);
 
   const createFamily = (family: Family): void => {
@@ -274,7 +206,7 @@ const FamilyPage = () => {
           {loadingFamilies ? (
             <CircularProgress />
           ) : (
-            <SimpleTreeView>
+            <SimpleTreeView onItemSelectionToggle={handleTreeItemToggle}>
               {families &&
                 families.map((family, index) => (
                   <FamilyTreeItem
@@ -305,14 +237,7 @@ const FamilyPage = () => {
                           </Typography>
                         </Tooltip>
                         <IconButton
-                          onClick={() => {}}
-                          aria-label="edit"
-                          edge="start"
-                        >
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton
-                          onClick={() => {}}
+                          onClick={() => { }}
                           aria-label="delete"
                           style={{ color: "red" }}
                           edge="start"
@@ -323,42 +248,18 @@ const FamilyPage = () => {
                     }
                   >
                     <TreeItem
-                      itemId={`${family.id}-${index}-species`}
+                      itemId={`${family.id};${DataViewSelection.Species}`}
                       label={`Species (${family.species.filter((element) => !element.isDeleted).length})`}
                       aria-label="Open Species Editor"
-                      onClick={() => {
-                        setDataView(
-                          getDataViewComponent(
-                            DataViewSelection.Species,
-                            family,
-                          ),
-                        );
-                      }}
                     />
                     <TreeItem
-                      itemId={`${family.id}-${index}-reactions`}
+                      itemId={`${family.id};${DataViewSelection.Reactions}`}
                       label={`Reactions (${family.reactions.filter((element) => !element.isDeleted).length})`}
                       aria-label="Open Reactions Editor"
-                      onClick={() => {
-                        setDataView(
-                          getDataViewComponent(
-                            DataViewSelection.Reactions,
-                            family,
-                          ),
-                        );
-                      }}
                     />
                     <TreeItem
-                      itemId={`${family.id}-${index}-mechanisms`}
+                      itemId={`${family.id};${DataViewSelection.Mechanisms}`}
                       label={`Mechanisms (${family.mechanisms.length})`}
-                      onClick={() => {
-                        setDataView(
-                          getDataViewComponent(
-                            DataViewSelection.Mechanisms,
-                            family,
-                          ),
-                        );
-                      }}
                     />
                   </FamilyTreeItem>
                 ))}
@@ -473,19 +374,20 @@ const SpeciesView = ({ family, updateFamily }: ViewProps) => {
   const [selectedSpecies, setSelectedSpecies] = useState<Species>();
 
   const createSpecies = () => {
+    const frontendId: string = `${Date.now()}-${Math.floor(Math.random() * 10000000000)}`;
     const species: Species = {
-      id: Date.now().toString(),
+      id: frontendId,
       name: "",
       description: "",
       properties: {},
       isModified: false,
       isDeleted: false,
+      isInDatabase: false,
+      familyId: family.id,
     };
-    updateFamily({
-      ...family,
-      species: [species, ...family.species],
-    });
     window.onbeforeunload = () => true;
+    setSelectedSpecies(species);
+    setSpeciesEditorOpen(true);
   };
 
   const removeSpecies = (id: UUID | string) => {
@@ -511,15 +413,24 @@ const SpeciesView = ({ family, updateFamily }: ViewProps) => {
     });
   };
 
+  /**
+   * Updates a given species or inserts it if it doesn't already exist in the list
+   * @param species 
+   */
   const updateSpecies = (species: Species) => {
+    const speciesList = [...family.species];
+    const existingIndex = speciesList.findIndex(element => element.id == species.id)
+
+    if (existingIndex >= 0) {
+      speciesList[existingIndex] = species;
+    }
+    else {
+      speciesList.unshift(species);
+    }
+
     updateFamily({
       ...family,
-      species: family.species.map((element) => {
-        if (element.id !== species.id) {
-          return element;
-        }
-        return species;
-      }),
+      species: speciesList,
     });
   };
 
@@ -605,8 +516,14 @@ const SpeciesView = ({ family, updateFamily }: ViewProps) => {
         rows={family.species.filter((element) => !element.isDeleted)}
         columns={speciesColumns}
         autoPageSize
-        style={{
+        sx={{
           flex: 1,
+          ".MuiDataGrid-columnHeaderTitle": {
+            fontFamily: theme.typography.fontFamily,
+          },
+          ".MuiDataGrid-overlay": {
+            fontFamily: theme.typography.fontFamily,
+          },
         }}
         slots={{
           toolbar: () => (
@@ -638,8 +555,9 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
   const [selectedReaction, setSelectedReaction] = useState<Reaction>();
 
   const createReaction = () => {
+    const frontendId: string = `${Date.now()}-${Math.floor(Math.random() * 10000000000)}`;
     const reaction: Reaction = {
-      id: Date.now().toString(),
+      id: frontendId,
       name: "",
       description: "",
       type: "ARRHENIUS",
@@ -647,6 +565,7 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       products: [],
       isModified: false,
       isDeleted: false,
+      isInDatabase: false,
     };
     updateFamily({
       ...family,
@@ -815,6 +734,12 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
         autoPageSize
         sx={{
           flex: 1,
+          ".MuiDataGrid-columnHeaderTitle": {
+            fontFamily: theme.typography.fontFamily,
+          },
+          ".MuiDataGrid-overlay": {
+            fontFamily: theme.typography.fontFamily,
+          },
         }}
         slots={{
           toolbar: () => (

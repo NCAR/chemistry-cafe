@@ -11,32 +11,39 @@ import {
   Paper,
   Select,
   Snackbar,
+  SxProps,
   TextField,
+  Theme,
   Typography,
 } from "@mui/material";
 import React, {
   MouseEvent,
-  useEffect,
   useLayoutEffect,
   useRef,
   useState,
 } from "react";
 import {
   ArrheniusReaction,
+  defaultSpeciesProperties,
   Family,
   Mechanism,
   Reaction,
   Species,
+  SpeciesProperty,
 } from "../types/chemistryModels";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { useCustomTheme } from "./CustomThemeContext";
+import { UnitComponent } from "./UnitComponent";
 
-const modalStyle = {
+const modalStyle: SxProps<Theme> = {
   position: "absolute" as const,
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  minWidth: "40%",
+  minWidth: "50%",
+  maxHeight: "85%",
+  overflowY: "auto",
   bgcolor: "background.paper",
   border: "2px solid #000",
   boxShadow: 24,
@@ -90,7 +97,7 @@ export const FamilyCreationModal: React.FC<FamilyCreationModalProps> = ({
   };
 
   return (
-    <div>
+    <>
       <Modal open={open} onClose={onClose}>
         <Box role="menu" sx={modalStyle}>
           <Typography variant="h5">
@@ -168,7 +175,7 @@ export const FamilyCreationModal: React.FC<FamilyCreationModalProps> = ({
           Name must not be empty!
         </Alert>
       </Snackbar>
-    </div>
+    </>
   );
 };
 
@@ -195,72 +202,39 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
   onUpdate,
   species,
 }) => {
-  const [speciesName, setSpeciesName] = useState<string | undefined>(
-    species?.name,
-  );
-  const [speciesDescription, setSpeciesDescription] = useState<
-    string | undefined | null
-  >(species?.description);
-  const [absoluteTolerance, setAbsoluteTolerance] = useState<number>(0);
-  const [fixedConcentration, setFixedConcentration] = useState<number>(0);
-  const [molecularWeight, setMolecularWeight] = useState<number>(0);
-  const [diffusionCoefficient, setDiffusionCoefficient] = useState<number>(0);
+  const { theme } = useCustomTheme();
+  const [modifiedSpecies, setModifiedSpecies] = useState<Species | undefined>();
+  const [showAlert, setShowAlert] = useState<boolean>(false);
+  const [alertMessage, setAlertMessage] = useState<string>("None");
 
   useLayoutEffect(() => {
-    if (species) {
-      Object.keys(species.properties).forEach((propertyName) => {
-        switch (propertyName) {
-          case "absoluteTolerance":
-            setAbsoluteTolerance(
-              species.properties.absoluteTolerance?.value ?? 0,
-            );
-            break;
-          case "fixedConcentration":
-            setFixedConcentration(
-              species.properties.fixedConcentration?.value ?? 0,
-            );
-            break;
-          case "molecularWeight":
-            setMolecularWeight(species.properties.molecularWeight?.value ?? 0);
-            break;
-          case "diffusionCoefficient":
-            setDiffusionCoefficient(
-              species.properties.diffusionCoefficient?.value ?? 0,
-            );
-            break;
-        }
-      });
-    }
+    setModifiedSpecies(species);
   }, [species]);
 
   const handleUpdateSpecies = () => {
-    const updatedSpecies: Species = {
-      id: Date.now().toString(),
-      ...species,
-      name: speciesName ?? "",
-      description: speciesDescription ?? "",
-      properties: {
-        absoluteTolerance: {
-          value: absoluteTolerance,
-          units: "",
-        },
-        fixedConcentration: {
-          value: fixedConcentration,
-          units: "",
-        },
-        diffusionCoefficient: {
-          value: diffusionCoefficient,
-          units: "m2 s-1",
-        },
-        molecularWeight: {
-          value: molecularWeight,
-          units: "kg mol-1",
-        },
-      },
-    };
-    onUpdate(updatedSpecies);
+    if (!modifiedSpecies?.name) {
+      setAlertMessage("Name must not be empty");
+      setShowAlert(true);
+      return;
+    }
+
+    if (modifiedSpecies) {
+      onUpdate(modifiedSpecies);
+    }
     onClose();
   };
+
+  const changeSpeciesProperties = (properties: any) => {
+    setModifiedSpecies({
+      ...modifiedSpecies,
+      ...properties,
+    });
+  }
+
+  const handleAlertClose = () => {
+    setShowAlert(false);
+    setAlertMessage("None")
+  }
 
   return (
     <div>
@@ -268,16 +242,19 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
         <Box sx={modalStyle} role="menu">
           {species ? (
             <>
-              <Typography variant="h5">Edit Species</Typography>
+              <Typography color={theme.palette.text.primary} variant="h5">Edit Species</Typography>
               <TextField
                 sx={{
                   width: "100%",
                 }}
+                required={true}
                 defaultValue={species.name}
                 id="species-name"
                 label="Name"
                 onChange={(event) => {
-                  setSpeciesName(event.target.value);
+                  changeSpeciesProperties({
+                    name: event.target.value,
+                  });
                 }}
               />
               <TextField
@@ -289,100 +266,83 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
                 id="species-description"
                 label="Description"
                 onChange={(event) => {
-                  setSpeciesDescription(event.target.value);
+                  changeSpeciesProperties({
+                    description: event.target.value,
+                  });
                 }}
               />
-              <TextField
-                onWheel={(e) =>
-                  e.target instanceof HTMLElement && e.target.blur()
-                }
-                sx={{
-                  width: "100%",
-                }}
-                defaultValue={absoluteTolerance}
-                type="number"
-                id="species-tolerance"
-                label="Absolute Tolerance"
-                onChange={(event) => {
-                  const num = Number.parseFloat(event.target.value);
-                  if (Number.isFinite(num)) {
-                    setAbsoluteTolerance(num);
+              {
+                defaultSpeciesProperties.map((element: SpeciesProperty) => {
+                  const property = modifiedSpecies?.properties[element.serializedKey ?? element.name] ?? element
+                  if (typeof property.value == "number") {
+                    return (
+                      <TextField
+                        key={`${species.id}-${property.name}`}
+                        id={`${species.id}-${property.name}`}
+                        onWheel={(event) =>
+                          event.target instanceof HTMLElement && event.target.blur()
+                        }
+                        sx={{
+                          width: "100%",
+
+                          // Removes up and down arrows for number
+                          "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button": {
+                            display: "none",
+                          },
+                          "& input[type=number]": {
+                            MozAppearance: "textfield",
+                          },
+                        }}
+                        defaultValue={property.value}
+                        label={property.name}
+                        type="number"
+                        slotProps={{
+                          input: {
+                            endAdornment: (
+                              <InputAdornment position="start">
+                                {property.units && <UnitComponent
+                                  units={property.units}
+                                />}
+                              </InputAdornment>
+                            ),
+                          },
+                        }}
+                        onChange={(event) => {
+                          const num = Number.parseFloat(event.target.value);
+                          if (Number.isFinite(num)) {
+                            let properties: {
+                              [key: string]: SpeciesProperty;
+                            } = {
+                              ...modifiedSpecies?.properties,
+                            }
+
+                            properties[property.serializedKey ?? property.name] = {
+                              ...property,
+                              value: num,
+                            };
+
+                            changeSpeciesProperties({
+                              properties: properties,
+                            });
+                          }
+                        }}
+                      />);
                   }
-                }}
-              />
-              <TextField
-                onWheel={(e) =>
-                  e.target instanceof HTMLElement && e.target.blur()
-                }
-                sx={{
-                  width: "100%",
-                }}
-                defaultValue={fixedConcentration}
-                type="number"
-                id="species-concentration"
-                label="Fixed Concentration"
-                slotProps={{
-                  input: {
-                    endAdornment: (
-                      <InputAdornment position="start">M</InputAdornment>
-                    ),
-                  },
-                }}
-                onChange={(event) => {
-                  const num = Number.parseFloat(event.target.value);
-                  if (Number.isFinite(num)) {
-                    setFixedConcentration(num);
+                  else if (typeof property.value == "string") {
+                    return (
+                      <TextField
+                        key={`${species.id}-${property.name}`}
+                        label={property.name}
+                        value="Currently Unsupported"
+                        disabled
+                      />
+                    );
                   }
-                }}
-              />
-              <TextField
-                onWheel={(e) =>
-                  e.target instanceof HTMLElement && e.target.blur()
-                }
-                sx={{
-                  width: "100%",
-                }}
-                defaultValue={molecularWeight}
-                type="number"
-                id="species-weight"
-                label="Molecular Weight"
-                slotProps={{
-                  input: {
-                    endAdornment: (
-                      <InputAdornment position="start">
-                        kg mol<sup>-1</sup>
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-                onChange={(event) => {
-                  const num = Number.parseFloat(event.target.value);
-                  if (Number.isFinite(num)) {
-                    setFixedConcentration(num);
+                  else {
+                    return null;
                   }
-                }}
-              />
-              <TextField
-                onWheel={(e) =>
-                  e.target instanceof HTMLElement && e.target.blur()
-                }
-                sx={{
-                  width: "100%",
-                }}
-                defaultValue={diffusionCoefficient}
-                type="number"
-                id="species-diffusion-coefficient"
-                label="Diffusion Coefficient"
-                slotProps={{
-                  input: {
-                    endAdornment: (
-                      <InputAdornment position="start">
-                        m<sup>2</sup> s<sup>-1</sup>
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-              />
+                })
+              }
               <Box
                 sx={{
                   display: "flex",
@@ -394,7 +354,7 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
                   sx={{
                     flex: 1,
                   }}
-                  aria-label="Create Family"
+                  aria-label="Save changes to species."
                   color="primary"
                   variant="contained"
                   onClick={handleUpdateSpecies}
@@ -423,6 +383,21 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
           )}
         </Box>
       </Modal>
+      <Snackbar
+        open={showAlert}
+        autoHideDuration={5000}
+        onClose={handleAlertClose}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleAlertClose}
+          severity="warning"
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {alertMessage}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };
@@ -499,6 +474,7 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
   reaction,
   family,
 }) => {
+  const { theme } = useCustomTheme();
   const [modifiedReaction, setModifiedReaction] = useState<
     ArrheniusReaction | undefined
   >(reaction as ArrheniusReaction);
@@ -510,7 +486,7 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
     });
   };
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setModifiedReaction(reaction as ArrheniusReaction);
   }, [reaction]);
 
@@ -534,7 +510,9 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
           }}
           role="menu"
         >
-          <Typography variant="h4">Enter Reaction Details (WIP)</Typography>
+          <Typography color={theme.palette.text.primary} variant="h4">
+            Enter Reaction Details (WIP)
+          </Typography>
           <TextField
             sx={{
               width: "100%",
@@ -564,7 +542,7 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
             }}
           />
 
-          <Typography variant="h6">
+          <Typography color={theme.palette.text.primary} variant="h6">
             Reaction Type (Arrhenius is only available at the moment)
           </Typography>
           <Select
@@ -589,7 +567,9 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
               alignItems: "center",
             }}
           >
-            <Typography variant="h6">Reactants</Typography>
+            <Typography color={theme.palette.text.primary} variant="h6">
+              Reactants
+            </Typography>
             <SelectSpeciesButton
               aria-label="select-reaction-species"
               onSelect={(species) => {
@@ -665,7 +645,7 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
               alignItems: "center",
             }}
           >
-            <Typography variant="h6">Products</Typography>
+            <Typography color={theme.palette.text.primary} variant="h6">Products</Typography>
             <SelectSpeciesButton
               aria-label="Select Reaction Species"
               onSelect={(species) => {
@@ -734,7 +714,7 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
               </Box>
             );
           })}
-          <Typography variant="h6">Reaction Attributes</Typography>
+          <Typography color={theme.palette.text.primary} variant="h6">Reaction Attributes</Typography>
           <TextField
             onWheel={(e) => e.target instanceof HTMLElement && e.target.blur()}
             sx={{
@@ -836,7 +816,7 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
               sx={{
                 flex: 1,
               }}
-              aria-label="Create Family"
+              aria-label="Save changes to reaction."
               color="primary"
               variant="contained"
               onClick={handleUpdateReaction}

@@ -143,7 +143,6 @@ const UserManagement: React.FC = () => {
       // @ts-ignore
       // tslint:disable-next-line:no-unused-variable
       const response = await updateUser(
-        updatedUser.id as string,
         updatedUser as APIUser,
       ); // Ensure updatedUser.id is a string
       // if no error, assume it is fine
