@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - codecov_correction
+      - codecov_migration_fix
   pull_request:
     branches:
       - main
@@ -85,7 +86,7 @@ jobs:
           MYSQL_USER: chemistrycafedev
           MYSQL_PASSWORD: chemistrycafe
           MYSQL_DATABASE: chemistry_db
-        run: dotnet test backend --collect:"Code Coverage;Format=cobertura" --settings backend/.runsettings
+        run: dotnet test backend --collect:"Code Coverage;Format=cobertura"
 
       # Step 9: Stop Docker
       - name: Stop docker
@@ -100,7 +101,7 @@ jobs:
 
       # Step 11: Generate backend test report
       - name: Generate backend test report
-        run: reportgenerator -reports:"backend/TestResults/**/**.cobertura.xml" -targetdir:coveragereport -reporttypes:Html,lcov -classfilters:-MySqlConnector.* -filefilters:-/_/src/MySqlConnector/*,-backend/TestResults/**/coverage.cobertura.xml
+        run: reportgenerator -reports:"backend/TestResults/**/**.cobertura.xml" -targetdir:coveragereport -reporttypes:Html,lcov -classfilters:"-MySqlConnector.*;-ChemistryCafeAPI.Migrations.*" -filefilters:-/_/src/MySqlConnector/*,-backend/TestResults/**/coverage.cobertura.xml
 
         # Step 12: Upload the code coverage report to Codecov
       - name: Upload backend coverage to Codecov
