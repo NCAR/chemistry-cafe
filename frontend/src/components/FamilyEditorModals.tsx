@@ -111,7 +111,7 @@ export const FamilyCreationModal: React.FC<FamilyCreationModalProps> = ({
             sx={{
               width: "100%",
             }}
-            color="secondary"
+            color="primary"
             error={nameError}
             id="family-name"
             label="Name"
@@ -125,7 +125,7 @@ export const FamilyCreationModal: React.FC<FamilyCreationModalProps> = ({
             sx={{
               width: "100%",
             }}
-            color="secondary"
+            color="primary"
             id="family-description"
             label="Description"
             multiline
@@ -240,7 +240,7 @@ export const MechanismCreationModal: React.FC<MechanismCreationModalProps> = (
             sx={{
               width: "100%",
             }}
-            color="secondary"
+            color="primary"
             error={nameError}
             id="mechanism-name"
             label="Name"
@@ -254,7 +254,7 @@ export const MechanismCreationModal: React.FC<MechanismCreationModalProps> = (
             sx={{
               width: "100%",
             }}
-            color="secondary"
+            color="primary"
             id="mechanism-description"
             label="Description"
             multiline
@@ -355,9 +355,8 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
     });
   }
 
-  const handleAlertClose = () => {
-    setShowAlert(false);
-  }
+  const handleAlertClose = () => setShowAlert(false);
+
 
   return (
     <div>
@@ -371,7 +370,7 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
                 sx={{
                   width: "100%",
                 }}
-                color="secondary"
+                color="primary"
                 required={true}
                 defaultValue={species.name}
                 id="species-name"
@@ -386,7 +385,7 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
                 sx={{
                   width: "100%",
                 }}
-                color="secondary"
+                color="primary"
                 defaultValue={species.description}
                 minRows={2}
                 maxRows={4}
@@ -405,7 +404,7 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
                   if (typeof attribute.value == "number") {
                     return (
                       <TextField
-                        color="secondary"
+                        color="primary"
                         key={`${species.id}-${attribute.name}`}
                         id={`${species.id}-${attribute.name}`}
                         onWheel={(event) =>
@@ -460,7 +459,7 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
                   else if (typeof attribute.value == "string") {
                     return (
                       <TextField
-                        color="secondary"
+                        color="primary"
                         key={`${species.id}-${attribute.name}`}
                         label={attribute.name}
                         value="Currently Unsupported"
@@ -549,6 +548,7 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
 }) => {
   const [modifiedReaction, setModifiedReaction] = useState<Reaction | undefined>(reaction);
   const [defaultAttributes, setDefaultAttributes] = useState<Array<ReactionAttribute>>([]);
+  const [showAlert, setShowAlert] = useState<boolean>(false);
 
   const changeReactionProperties = (properties: Partial<Reaction>) => {
     setModifiedReaction({
@@ -582,12 +582,20 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
   }, [reaction]);
 
   const handleUpdateReaction = () => {
+    if (!modifiedReaction?.name) {
+      setShowAlert(true);
+      return;
+    }
+
     if (!modifiedReaction) {
       return;
     }
+
     onUpdate(modifiedReaction);
     onClose();
   };
+
+  const handleAlertClose = () => setShowAlert(false);
 
   return (
     <div>
@@ -608,7 +616,7 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
             sx={{
               width: "100%",
             }}
-            color="secondary"
+            color="primary"
             id="family-name"
             label="Name"
             required={true}
@@ -622,7 +630,7 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
             sx={{
               width: "100%",
             }}
-            color="secondary"
+            color="primary"
             id="family-description"
             label="Description"
             multiline
@@ -643,7 +651,7 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
             id="reaction-type"
             aria-label="Reaction Type"
             defaultValue={reaction?.type ?? "NONE"}
-            color="secondary"
+            color="primary"
             onChange={(event) => {
               const attributes = getReactionAttributes(event.target.value as ReactionTypeName);
               let reactionAttributes: {
@@ -916,7 +924,7 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
               defaultAttributes.map((attribute) => {
                 return (
                   <TextField
-                    color="secondary"
+                    color="primary"
                     key={`${reaction?.id}-${attribute.name}`}
                     id={`${reaction?.id}-${attribute.name}`}
                     onWheel={(event) =>
@@ -990,6 +998,21 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
           </Box>
         </Box>
       </Modal>
-    </div >
+      <Snackbar
+        open={showAlert}
+        autoHideDuration={5000}
+        onClose={handleAlertClose}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleAlertClose}
+          severity="warning"
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          Name must not be empty!
+        </Alert>
+      </Snackbar>
+    </div>
   );
 };
