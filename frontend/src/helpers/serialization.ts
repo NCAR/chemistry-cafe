@@ -6,7 +6,7 @@ import { Family, Mechanism } from "../types/chemistryModels";
  * @param family
  * @returns
  */
-export const serializeMechanism = (
+export const serializeMechanismJSON = (
   mechanism: Mechanism,
   family: Family,
 ): string => {

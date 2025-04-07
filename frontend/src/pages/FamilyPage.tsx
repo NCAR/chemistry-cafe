@@ -1,38 +1,31 @@
-import { memo, MouseEvent, useEffect, useRef, useState } from "react";
+import { memo, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Header, Footer } from "../components/HeaderFooter";
 import "../styles/FamilyPage.css";
 import {
   alpha,
   Box,
   Button,
-  Card,
-  CardContent,
   CircularProgress,
   IconButton,
-  ListItemIcon,
-  Menu,
-  MenuItem,
   Paper,
   styled,
   Tooltip,
   Typography,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
-import DownloadIcon from "@mui/icons-material/Download";
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
 import { TreeItem, treeItemClasses } from "@mui/x-tree-view/TreeItem";
 import {
   Family,
+  Mechanism,
   Reaction,
   ReactionTypeName,
   Species,
 } from "../types/chemistryModels";
 import {
   DataGrid,
-  GridActionsCellItem,
   GridColDef,
   GridRenderCellParams,
   GridToolbarColumnsButton,
@@ -43,14 +36,17 @@ import {
 import { useCustomTheme } from "../components/CustomThemeContext";
 import {
   FamilyCreationModal,
+  MechanismCreationModal,
   ReactionsEditorModal,
   SpeciesEditorModal,
 } from "../components/FamilyEditorModals";
 import { reactionToString, reactionTypeToString } from "../helpers/stringify";
 import { UUID } from "crypto";
-import { serializeMechanism } from "../helpers/serialization";
 import { getAllFamilies } from "../API/API_GetMethods";
 import { apiToFrontendFamily } from "../helpers/backendInteractions";
+import { RowActionsButton } from "../components/RowActionsButton";
+import { MechanismEditor } from "../components/MechanismEditor";
+import { MechanismBrowser } from "../components/MechanismBrowser";
 
 const FamilyPage = () => {
   enum DataViewSelection {
@@ -63,8 +59,7 @@ const FamilyPage = () => {
   const [loadingFamilies, setLoadingFamilies] = useState<boolean>(true);
   const [families, setFamilies] = useState<Array<Family>>();
   const [dataView, setDataView] = useState<React.JSX.Element>(<DefaultView />);
-  const [openFamilyCreationModal, setOpenFamilyCreationModal] =
-    useState<boolean>(false);
+  const [familyCreationModalOpen, setFamilyCreationModalOpen] = useState<boolean>(false);
   const currentMenuName = useRef<DataViewSelection>(DataViewSelection.Default);
 
   const { appearanceSettings } = useCustomTheme();
@@ -106,9 +101,8 @@ const FamilyPage = () => {
         currentMenuName.current = menuName;
         return <MechanismsView family={family} updateFamily={updateFamily} />;
       case DataViewSelection.Default:
-        currentMenuName.current = menuName;
-        return <DefaultView />;
       default:
+        currentMenuName.current = DataViewSelection.Default;
         return <DefaultView />;
     }
   };
@@ -166,16 +160,20 @@ const FamilyPage = () => {
     } else {
       setFamilies([family]);
     }
-    setOpenFamilyCreationModal(false);
+    setFamilyCreationModalOpen(false);
     window.onbeforeunload = () => true; // Sets "are you sure you want to leave" popup
   };
+
+  const removeFamilyLocally = (family: Family): void => {
+    setFamilies(families?.filter((element) => element.id != family.id));
+  }
 
   return (
     <div className="layout-family-editor">
       <header>
         <Header />
       </header>
-      <Paper square component="section" className="content-family-editor">
+      <Paper square component="main" className="content-family-editor main-content">
         <div className="family-selector">
           <Paper
             component="div"
@@ -194,7 +192,7 @@ const FamilyPage = () => {
             <Tooltip title="Create Family">
               <IconButton
                 aria-label="Create Family"
-                onClick={() => setOpenFamilyCreationModal(true)}
+                onClick={() => setFamilyCreationModalOpen(true)}
               >
                 <AddIcon
                   color="primary"
@@ -210,6 +208,7 @@ const FamilyPage = () => {
               {families &&
                 families.map((family, index) => (
                   <FamilyTreeItem
+                    aria-label={`Expand options for ${family.name || "No name"} family`}
                     key={`${family.id}-${index}`}
                     itemId={`${family.id}-${index}`}
                     label={
@@ -236,14 +235,23 @@ const FamilyPage = () => {
                             {family.name}
                           </Typography>
                         </Tooltip>
-                        <IconButton
-                          onClick={() => { }}
-                          aria-label="delete"
-                          style={{ color: "red" }}
-                          edge="start"
+                        <Tooltip
+                          title={"Remove this family from the editor"}
+                          placement="bottom-start"
+                          arrow
+                          disableInteractive
                         >
-                          <DeleteIcon />
-                        </IconButton>
+                          <IconButton
+                            onClick={() => {
+                              removeFamilyLocally(family);
+
+                            }}
+                            aria-label={`Remove ${family.name || "No Name"} family from the editor`}
+                            edge="start"
+                          >
+                            <RemoveCircleOutlineIcon />
+                          </IconButton>
+                        </Tooltip>
                       </div>
                     }
                   >
@@ -272,8 +280,8 @@ const FamilyPage = () => {
         <Footer />
       </footer>
       <FamilyCreationModal
-        open={openFamilyCreationModal}
-        onClose={() => setOpenFamilyCreationModal(false)}
+        open={familyCreationModalOpen}
+        onClose={() => setFamilyCreationModalOpen(false)}
         onCreation={createFamily}
       />
     </div>
@@ -314,58 +322,28 @@ const DataViewToolbar: React.FC<{ customButton?: React.ReactNode }> = ({
   );
 };
 
-const RowActionsButton: React.FC<{
-  handleEditButtonClick: () => void;
-  handleDeleteButtonClick: () => void;
-}> = ({ handleEditButtonClick, handleDeleteButtonClick }) => {
-  const [open, setOpen] = useState<boolean>(false);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-
-  const handleMenuOpen = (event: MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
-    setOpen(true);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-    setOpen(false);
-  };
-
-  return (
-    <>
-      <Tooltip title="Row Actions" disableInteractive>
-        <GridActionsCellItem
-          aria-label="Expand Row Actions"
-          icon={<MoreVertIcon />}
-          label="View Properties"
-          onClick={handleMenuOpen}
-        ></GridActionsCellItem>
-      </Tooltip>
-      <Menu open={open} anchorEl={anchorEl} onClose={handleMenuClose}>
-        <MenuItem onClick={handleEditButtonClick}>
-          <ListItemIcon>
-            <EditIcon color="action" />
-          </ListItemIcon>
-          <Typography>Edit</Typography>
-        </MenuItem>
-        <MenuItem onClick={handleDeleteButtonClick}>
-          <ListItemIcon>
-            <DeleteIcon color="error" />
-          </ListItemIcon>
-          <Typography>Delete</Typography>
-        </MenuItem>
-      </Menu>
-    </>
-  );
-};
-
 type ViewProps = {
   family: Family;
   updateFamily: (family: Family) => void;
 };
 
 const DefaultView = memo(function DefaultView() {
-  return <Typography>Select a Family to get started</Typography>;
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+      }}
+    >
+      <Typography sx={{ paddingTop: "0.5em" }} color="textPrimary" variant="h4">
+        No Family Selected
+      </Typography>
+      <Typography color="textSecondary" variant="h6">
+        Select or Create a family to get started
+      </Typography>
+    </Box>
+  );
 });
 
 const SpeciesView = ({ family, updateFamily }: ViewProps) => {
@@ -379,7 +357,7 @@ const SpeciesView = ({ family, updateFamily }: ViewProps) => {
       id: frontendId,
       name: "",
       description: "",
-      properties: {},
+      attributes: {},
       isModified: false,
       isDeleted: false,
       isInDatabase: false,
@@ -505,9 +483,23 @@ const SpeciesView = ({ family, updateFamily }: ViewProps) => {
         height: "100%",
       }}
     >
-      <Typography sx={{ paddingTop: "0.5em" }} color="textPrimary" variant="h4">
-        Chemical Species
-      </Typography>
+      <Box
+        sx={{
+          paddingTop: "0.5em",
+          display: "flex",
+          alignItems: "center",
+          columnGap: "0.5rem",
+        }}
+      >
+        <Typography
+          color="textPrimary"
+          variant="h4">
+          Chemical Species
+        </Typography>
+        <Tooltip title="Chemical species are forms of a specific chemical entity. They can be named anything as long as it is clear what it represents. For example, a chemical species may be represented as either 'O' or 'Ozone'.">
+          <HelpOutlineIcon />
+        </Tooltip>
+      </Box>
       <Typography color="textSecondary" variant="h6">
         {family.name}
       </Typography>
@@ -529,10 +521,14 @@ const SpeciesView = ({ family, updateFamily }: ViewProps) => {
           toolbar: () => (
             <DataViewToolbar
               customButton={
-                <Button onClick={createSpecies} color="primary">
-                  <AddIcon />
-                  <Typography variant="caption">Add Species</Typography>
-                </Button>
+                <Tooltip
+                  title="Add species to family"
+                >
+                  <Button onClick={createSpecies} color="primary">
+                    <AddIcon />
+                    <Typography variant="caption">Add Species</Typography>
+                  </Button>
+                </Tooltip>
               }
             />
           ),
@@ -560,17 +556,16 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       id: frontendId,
       name: "",
       description: "",
-      type: "ARRHENIUS",
+      type: "NONE",
       reactants: [],
       products: [],
+      attributes: {},
       isModified: false,
       isDeleted: false,
       isInDatabase: false,
     };
-    updateFamily({
-      ...family,
-      reactions: [reaction, ...family.reactions],
-    });
+    setSelectedReaction(reaction);
+    setReactionsEditorOpen(true);
     window.onbeforeunload = () => true;
   };
 
@@ -599,14 +594,19 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
   };
 
   const updateReaction = (reaction: Reaction) => {
+    const reactionList = [...family.reactions];
+    const existingIndex = reactionList.findIndex(element => element.id === reaction.id);
+
+    if (existingIndex >= 0) {
+      reactionList[existingIndex] = reaction;
+    }
+    else {
+      reactionList.unshift(reaction);
+    }
+
     updateFamily({
       ...family,
-      reactions: family.reactions.map((element) => {
-        if (element.id !== reaction.id) {
-          return element;
-        }
-        return reaction;
-      }),
+      reactions: reactionList,
     });
   };
 
@@ -721,9 +721,23 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
         height: "100%",
       }}
     >
-      <Typography sx={{ paddingTop: "0.5em" }} color="textPrimary" variant="h4">
-        Chemical Reactions
-      </Typography>
+      <Box
+        sx={{
+          paddingTop: "0.5em",
+          display: "flex",
+          alignItems: "center",
+          columnGap: "0.5rem",
+        }}
+      >
+        <Typography
+          color="textPrimary"
+          variant="h4">
+          Chemical Reactions
+        </Typography>
+        <Tooltip title="Chemical reactions consist of reactants which create products during a certain phase. They can also be tuned with specific parameters given by the reaction type.">
+          <HelpOutlineIcon />
+        </Tooltip>
+      </Box>
       <Typography color="textSecondary" variant="h6">
         {family.name}
       </Typography>
@@ -745,10 +759,14 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
           toolbar: () => (
             <DataViewToolbar
               customButton={
-                <Button onClick={createReaction} color="primary">
-                  <AddIcon />
-                  <Typography variant="caption">Add Reaction</Typography>
-                </Button>
+                <Tooltip
+                  title="Add reaction to family"
+                >
+                  <Button onClick={createReaction} color="primary">
+                    <AddIcon />
+                    <Typography variant="caption">Add Reaction</Typography>
+                  </Button>
+                </Tooltip>
               }
             />
           ),
@@ -765,55 +783,100 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
   );
 };
 
-const MechanismsView = ({ family }: ViewProps) => {
+const MechanismsView = ({ family, updateFamily }: ViewProps) => {
+  const [mechanismCreationModalOpen, setMechanismCreationModalOpen] = useState<boolean>(false);
+  const [selectedMechanism, setSelectedMechanism] = useState<Mechanism | null>(null);
+  const [menuComponent, setMenuComponent] = useState<React.JSX.Element | null>(null);
+
+  const createMechanism = (mechanism: Mechanism) => {
+    updateFamily({
+      ...family,
+      mechanisms: [mechanism, ...family.mechanisms],
+    });
+    setMechanismCreationModalOpen(false);
+    setSelectedMechanism(mechanism);
+    window.onbeforeunload = () => true;
+  }
+
+  const updateMechanism = (mechanism: Mechanism) => {
+    updateFamily({
+      ...family,
+      mechanisms: family.mechanisms.map((element) => {
+        if (element.id == mechanism.id) {
+          return {
+            ...mechanism,
+            isModified: false,
+          };
+        }
+        return element;
+      })
+    });
+    setSelectedMechanism(mechanism);
+    // TODO Update Mechanism in backend
+  }
+
+  const getMenuComponent = (mechanism: Mechanism | null): React.JSX.Element => {
+    if (!mechanism) {
+      return <MechanismBrowser family={family} onEditButtonClick={setSelectedMechanism} />
+    }
+
+    return (
+      <MechanismEditor
+        family={family}
+        mechanism={mechanism}
+        updateMechanism={updateMechanism}
+        navigateBack={() => {
+          setSelectedMechanism(null);
+        }}
+      />
+    );
+  }
+
+  useLayoutEffect(() => {
+    const component = getMenuComponent(selectedMechanism);
+    setMenuComponent(component);
+  }, [selectedMechanism]);
+
   return (
     <Box>
-      <Typography sx={{ paddingTop: "0.5em" }} color="textPrimary" variant="h4">
-        Mechanisms (WIP)
-      </Typography>
+      <Box
+        sx={{
+          paddingTop: "0.5em",
+          display: "flex",
+          alignItems: "center",
+          columnGap: "0.5rem",
+        }}
+      >
+        <Typography
+          color="textPrimary"
+          variant="h4">
+          Mechanisms
+        </Typography>
+        <Tooltip title="Mechanisms contain a subset of a family's entities. They represent an analytical model in a specific family.">
+          <HelpOutlineIcon />
+        </Tooltip>
+      </Box>
       <Typography color="textSecondary" variant="h6">
         {family.name}
       </Typography>
-      {family.mechanisms.map((mechanism, index) => (
-        <Card
-          key={`mechanism-${mechanism.id}-${index}`}
-          sx={{
-            padding: 1,
-          }}
+
+      {
+        !selectedMechanism &&
+        <Tooltip
+          title="Create a new chemical mechanism"
         >
-          <CardContent>
-            <Box>
-              <Typography color="textPrimary">{mechanism.name}</Typography>
-              <Typography color="textSecondary">
-                {mechanism.description}
-              </Typography>
-            </Box>
-            <Button
-              startIcon={<DownloadIcon />}
-              sx={{ textTransform: "none" }}
-              variant="contained"
-              color="primary"
-              onClick={() => {
-                const link = document.createElement("a");
-                const body = serializeMechanism(mechanism, family);
-                const blob = new Blob([body], { type: "application/json" });
-                const blobUrl = window.URL.createObjectURL(blob);
-
-                link.download = "openAtmos.json";
-                link.href = blobUrl;
-                link.click();
-
-                window.URL.revokeObjectURL(blobUrl);
-                document.removeChild(link);
-              }}
-            >
-              <Typography variant="subtitle1">
-                Download (Not currently in spec)
-              </Typography>
-            </Button>
-          </CardContent>
-        </Card>
-      ))}
+          <Button onClick={() => setMechanismCreationModalOpen(true)} color="primary">
+            <AddIcon />
+            <Typography variant="caption">Create New Mechanism</Typography>
+          </Button>
+        </Tooltip>
+      }
+      {menuComponent}
+      <MechanismCreationModal
+        open={mechanismCreationModalOpen}
+        onClose={() => setMechanismCreationModalOpen(false)}
+        onCreation={createMechanism}
+      />
     </Box>
   );
 };
