@@ -51,7 +51,8 @@ namespace Chemistry_Cafe_API.Services
                 user.CreatedDate = DateTime.UtcNow;
                 user.GoogleId = googleID;
                 _context.Users.Add(user);
-            } else 
+            } 
+            else 
             {
                 user.Email = email;
             }
