@@ -1,9 +1,9 @@
 import { Family, Mechanism, Reaction, Species } from "../types/chemistryModels";
-
+import * as YAML from "yaml";
 /**
- * Converts a species to the V1 format
+ * Converts a species to the CAMP V1 format
  */
-const serializeSpeciesJSON = (
+const speciesToCAMPV1 = (
   species: Species,
 ): Object => {
   let serializedSpecies: any = {
@@ -17,7 +17,7 @@ const serializeSpeciesJSON = (
   return serializedSpecies;
 }
 
-const serializeReactionJSON = (
+const reactionToCAMPV1 = (
   reaction: Reaction,
   family: Family,
 ): Object => {
@@ -64,14 +64,14 @@ const serializeReactionJSON = (
  * @param family
  * @returns
  */
-export const serializeMechanismJSON = (
+const mechanismToCAMPV1 = (
   mechanism: Mechanism,
   family: Family,
-): string => {
+): Object => {
   const jsonObject = {
     version: "1.0.0",
     name: mechanism.name,
-    species: family.species.filter((e) => mechanism.speciesIds.includes(e.id)).map((e) => serializeSpeciesJSON(e)),
+    species: family.species.filter((e) => mechanism.speciesIds.includes(e.id)).map((e) => speciesToCAMPV1(e)),
     phases: [
       {
         name: "gas",
@@ -80,8 +80,22 @@ export const serializeMechanismJSON = (
         ).map((e) => e.name),
       },
     ],
-    reactions: family.reactions.filter((e) => mechanism.reactionIds.includes(e.id)).map((e) => serializeReactionJSON(e, family)),
+    reactions: family.reactions.filter((e) => mechanism.reactionIds.includes(e.id)).map((e) => reactionToCAMPV1(e, family)),
   };
 
-  return JSON.stringify(jsonObject);
+  return jsonObject;
 };
+
+export const serializeMechanismJSON = (
+  mechanism: Mechanism,
+  family: Family,
+): string => {
+  return JSON.stringify(mechanismToCAMPV1(mechanism, family), null, 2);
+}
+
+export const serializeMechanismYAML = (
+  mechanism: Mechanism,
+  family: Family,
+): string => {
+  return YAML.stringify(mechanismToCAMPV1(mechanism, family), null, 2);
+}

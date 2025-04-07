@@ -2,7 +2,7 @@ import { Button, ButtonGroup, Popover, Tooltip } from "@mui/material";
 import { useState, MouseEvent } from "react";
 import DownloadIcon from "@mui/icons-material/Download";
 import { Family, Mechanism } from "../types/chemistryModels";
-import { serializeMechanismJSON } from "../helpers/serialization";
+import { serializeMechanismJSON, serializeMechanismYAML } from "../helpers/serialization";
 
 type RowActionsButtonProps = {
     mechanism: Mechanism;
@@ -91,6 +91,12 @@ export const DownloadMechanismButton: React.FC<RowActionsButtonProps> =
                             <Button
                                 sx={{
                                     textTransform: "none"
+                                }}
+                                onClick={() => {
+                                    console.log("ASUHFIUAH");
+                                    const serializedMechanism = serializeMechanismYAML(mechanism, family);
+                                    const blob = new Blob([serializedMechanism], { type: "octet/stream" });
+                                    downloadBlob(blob, "YAML");
                                 }}
                             >
                                 YAML
