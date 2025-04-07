@@ -32,7 +32,7 @@ const allUsers: Array<APIUser> = [
     username: "verified test user",
     role: "verified",
   },
-]
+];
 
 describe("User get functions", () => {
   function createSuccessMockResponse(data: any): AxiosResponse {
@@ -47,7 +47,6 @@ describe("User get functions", () => {
     } as AxiosResponse;
   }
   describe("getAllUsers", () => {
-
     it("Gets all users when called", async () => {
       const mockedGet = vi
         .spyOn(axios, "get")
@@ -79,7 +78,9 @@ describe("User get functions", () => {
           .mockResolvedValue(createSuccessMockResponse(user)) as Mock;
         const result = await getUserByEmail(user.email);
 
-        expect(mockedGet).toHaveBeenCalledWith(`${BASE_URL}/users/email/${user.email}`);
+        expect(mockedGet).toHaveBeenCalledWith(
+          `${BASE_URL}/users/email/${user.email}`,
+        );
         expect(result).toEqual(user);
       }
     });
@@ -111,7 +112,9 @@ describe("User get functions", () => {
           .mockResolvedValue(createSuccessMockResponse(user)) as Mock;
         const result = await getUserById(user.id);
 
-        expect(mockedGet).toHaveBeenCalledWith(`${BASE_URL}/users/id/${user.id}`);
+        expect(mockedGet).toHaveBeenCalledWith(
+          `${BASE_URL}/users/id/${user.id}`,
+        );
         expect(result).toEqual(user);
       }
     });
@@ -139,12 +142,9 @@ describe("User get functions", () => {
           .mockResolvedValue(createSuccessMockResponse(user)) as Mock;
         const result = await getCurrentUser();
 
-        expect(mockedGet).toHaveBeenCalledWith(
-          `${AUTH_URL}/google/whoami`,
-          {
-            withCredentials: true,
-          },
-        );
+        expect(mockedGet).toHaveBeenCalledWith(`${AUTH_URL}/google/whoami`, {
+          withCredentials: true,
+        });
         expect(result).toEqual(user);
       }
     });

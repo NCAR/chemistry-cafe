@@ -72,7 +72,6 @@ const UserManagement: React.FC = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const handleDeleteDialogClose = () => setDeleteDialogOpen(false);
 
-
   // contains id of item that will be deleted by delete dialog
   const [itemForDeletionID, setItemForDeletionID] = React.useState<
     string | null
@@ -142,9 +141,7 @@ const UserManagement: React.FC = () => {
     try {
       // @ts-ignore
       // tslint:disable-next-line:no-unused-variable
-      const response = await updateUser(
-        updatedUser as APIUser,
-      ); // Ensure updatedUser.id is a string
+      const response = await updateUser(updatedUser as APIUser); // Ensure updatedUser.id is a string
       // if no error, assume it is fine
       return updatedUser;
     } catch (error) {
@@ -264,14 +261,14 @@ const UserManagement: React.FC = () => {
       <footer>
         <Footer />
       </footer>
-      {(
+      {
         <Dialog open={deleteDialogOpen} onClose={handleDeleteDialogClose}>
           <DialogTitle>{`Are you sure you want to delete this?`}</DialogTitle>
 
           <DialogActions>
             <Button onClick={handleDeleteDialogClose}>No</Button>
 
-            {(
+            {
               <Button
                 onClick={async () => {
                   if (!itemForDeletionID) {
@@ -280,16 +277,17 @@ const UserManagement: React.FC = () => {
                   }
                   await deleteUser(itemForDeletionID);
                   setDeleteDialogOpen(false);
-                  setUsers((prevUsers) => prevUsers.filter((user) => user.id !== itemForDeletionID));
-                }
-                }
+                  setUsers((prevUsers) =>
+                    prevUsers.filter((user) => user.id !== itemForDeletionID),
+                  );
+                }}
               >
                 Yes
               </Button>
-            )}
+            }
           </DialogActions>
         </Dialog>
-      )}
+      }
     </div>
   );
 };

@@ -73,10 +73,7 @@ const Dashboard = () => {
         </div>
         <div className="dashboard-family-explorer">
           <Typography variant="h5">Recent Mechanism Families</Typography>
-          {
-            loadingFamilies &&
-            <CircularProgress />
-          }
+          {loadingFamilies && <CircularProgress />}
           <List>
             {families?.map((family: APIFamily, index: number) => {
               return (

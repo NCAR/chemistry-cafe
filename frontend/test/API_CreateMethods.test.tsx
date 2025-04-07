@@ -7,7 +7,13 @@ import {
   createReaction,
   createMechanism,
 } from "../src/API/API_CreateMethods";
-import { APIFamily, APIMechanism, APIReaction, APISpecies, APIUser } from "../src/API/API_Interfaces";
+import {
+  APIFamily,
+  APIMechanism,
+  APIReaction,
+  APISpecies,
+  APIUser,
+} from "../src/API/API_Interfaces";
 import { BASE_URL } from "../src/API/API_config";
 
 // Mock axios using vitest's built-in mock function
@@ -34,61 +40,69 @@ const mockAPISpecies: APISpecies = {
   name: null,
   description: null,
   familyId: mockAPIFamily.id!,
-}
+};
 
 const mockAPIMechanism: APIMechanism = {
   familyId: "",
   name: "",
   description: "",
-}
+};
 
 const mockAPIReaction: APIReaction = {
   name: "",
   description: null,
-  createdBy: ""
-}
+  createdBy: "",
+};
 
 describe.each([
   ["createFamily", createFamily, mockAPIFamily, "families"],
   ["createSpecies", createSpecies, mockAPISpecies, "species"],
   ["createReaction", createReaction, mockAPIReaction, "reactions"],
   ["createMechanism", createMechanism, mockAPIMechanism, "mechanisms"],
-])("%s function", (_, createFunction: (object: any) => any, responseData: any, endpoint: string) => {
-  function createMockResponse(): AxiosResponse {
-    return {
-      data: responseData,
-      status: 200,
-      statusText: "OK",
-      headers: {},
-      config: {
-        headers: new AxiosHeaders({ "Content-Type": "application/json" }),
-      },
-    } as AxiosResponse;
-  }
+])(
+  "%s function",
+  (
+    _,
+    createFunction: (object: any) => any,
+    responseData: any,
+    endpoint: string,
+  ) => {
+    function createMockResponse(): AxiosResponse {
+      return {
+        data: responseData,
+        status: 200,
+        statusText: "OK",
+        headers: {},
+        config: {
+          headers: new AxiosHeaders({ "Content-Type": "application/json" }),
+        },
+      } as AxiosResponse;
+    }
 
-  it("Creates and return data", async () => {
-    const mockedCreate = vi
-      .spyOn(axios, "post")
-      .mockResolvedValue(createMockResponse()) as Mock;
-    const result = await createFunction(responseData);
+    it("Creates and return data", async () => {
+      const mockedCreate = vi
+        .spyOn(axios, "post")
+        .mockResolvedValue(createMockResponse()) as Mock;
+      const result = await createFunction(responseData);
 
-    expect(mockedCreate).toHaveBeenCalledWith(
-      `${BASE_URL}/${endpoint}`,
-      responseData,
-      {
-        withCredentials: true,
-        headers: { "Content-Type": "application/json" }
-      },
-    );
-    expect(result).toEqual(responseData);
-  });
+      expect(mockedCreate).toHaveBeenCalledWith(
+        `${BASE_URL}/${endpoint}`,
+        responseData,
+        {
+          withCredentials: true,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+      expect(result).toEqual(responseData);
+    });
 
-  it("Handles errors by throwing the error", async () => {
-    const errorMessage = "Request failed with status code 404";
-    (
-      axios.post as typeof axios.post & { mockRejectedValueOnce: Function }
-    ).mockRejectedValueOnce(new Error(errorMessage));
-    // Assert the function throws the correct error
-    await expect(createFunction(responseData)).rejects.toThrow(errorMessage);
-  });
-});
+    it("Handles errors by throwing the error", async () => {
+      const errorMessage = "Request failed with status code 404";
+      (
+        axios.post as typeof axios.post & { mockRejectedValueOnce: Function }
+      ).mockRejectedValueOnce(new Error(errorMessage));
+      // Assert the function throws the correct error
+      await expect(createFunction(responseData)).rejects.toThrow(errorMessage);
+    });
+  },
+);

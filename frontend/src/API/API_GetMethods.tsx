@@ -2,10 +2,7 @@
 
 import axios from "axios";
 
-import {
-  APIFamily,
-  APIUser
-} from "./API_Interfaces";
+import { APIFamily, APIUser } from "./API_Interfaces";
 import { AUTH_URL, BASE_URL } from "./API_config";
 
 // Get all users
@@ -51,15 +48,14 @@ export async function getUserById(id: string): Promise<APIUser | null> {
  */
 export async function getCurrentUser(): Promise<APIUser | null> {
   try {
-    const response = await axios.get<APIUser>(
-      `${AUTH_URL}/google/whoami`,
-      {
-        withCredentials: true,
-      },
-    );
+    const response = await axios.get<APIUser>(`${AUTH_URL}/google/whoami`, {
+      withCredentials: true,
+    });
     return response.data;
   } catch (err: unknown) {
-    console.error(`There was an issue fetching the currently logged in user: ${err}`);
+    console.error(
+      `There was an issue fetching the currently logged in user: ${err}`,
+    );
     return null;
   }
 }
@@ -69,7 +65,7 @@ export async function getAllFamilies(): Promise<Array<APIFamily>> {
     `${BASE_URL}/families?expand=true`,
     {
       withCredentials: true,
-    }
+    },
   );
 
   return response.data;
