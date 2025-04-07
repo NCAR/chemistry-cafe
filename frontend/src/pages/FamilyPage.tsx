@@ -146,6 +146,8 @@ const FamilyPage = () => {
         if (!abortController.signal.aborted) {
           alert(err);
         }
+        setFamilies([]);
+        setLoadingFamilies(false);
       }
     };
 
