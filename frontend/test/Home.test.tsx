@@ -11,12 +11,12 @@ import React from "react";
 import Home from "../src/pages/Home";
 import { MemoryRouter } from "react-router-dom";
 import { AuthProvider } from "../src/components/AuthContext";
-import { User, UserClaims } from "../src/API/API_Interfaces";
+import { APIUser } from "../src/API/API_Interfaces";
 import axios, { AxiosHeaders, AxiosResponse } from "axios";
 
 vi.mock("axios");
 
-const mockUserInfo: User = {
+const mockUserInfo: APIUser = {
   role: "admin",
   email: "test@email.com",
   username: "Test Account",
@@ -27,11 +27,8 @@ describe("Unauthenticated Home Component", () => {
 
   function createMockUserData(): AxiosResponse {
     return {
-      data: {
-        nameId: null,
-        email: null,
-      } as UserClaims & User,
-      status: 200,
+      data: null,
+      status: 404,
       statusText: "OK",
       headers: {},
       config: {
@@ -44,7 +41,7 @@ describe("Unauthenticated Home Component", () => {
     window.location = {
       ...originalLocation,
       assign: vi.fn((_: string | URL) => {}),
-    };
+    } as any;
     vi.spyOn(axios, "get").mockResolvedValue(createMockUserData());
     vi.spyOn(axios, "post").mockResolvedValue(createMockUserData());
 
@@ -58,7 +55,7 @@ describe("Unauthenticated Home Component", () => {
   });
 
   afterEach(() => {
-    window.location = originalLocation;
+    window.location = originalLocation as any;
     localStorage.clear();
     cleanup();
   });
@@ -114,13 +111,7 @@ describe.each([
 
   function createMockUserData(): AxiosResponse {
     return {
-      data: {
-        nameId: "1234567890",
-        email: mockUserInfo.email,
-        id: "1234",
-        username: mockUserInfo.username,
-        role: mockUserInfo.role,
-      } as UserClaims & User,
+      data: mockUserInfo,
       status: 200,
       statusText: "OK",
       headers: {},
@@ -136,7 +127,7 @@ describe.each([
     window.location = {
       ...originalLocation,
       assign: vi.fn((_: string | URL) => {}),
-    };
+    } as any;
     localStorage.setItem("user", JSON.stringify(cachedUserInfo));
     render(
       <AuthProvider>
@@ -151,7 +142,7 @@ describe.each([
 
   afterEach(() => {
     cleanup();
-    window.location = originalLocation;
+    window.location = originalLocation as any;
     localStorage.clear();
   });
 
@@ -195,20 +186,8 @@ describe.each([
   });
 });
 
-describe("Sanity Check Tests", () => {
-  it("should always pass test 1", () => {
+describe("Sanity Check Test", () => {
+  it("should always pass test", () => {
     expect(true).toBe(true);
-  });
-
-  it("should always pass test 2", () => {
-    expect(1 + 1).toBe(2);
-  });
-
-  it("should always pass test 3", () => {
-    expect("dummy").toBe("dummy");
-  });
-
-  it("should always pass test 4", () => {
-    expect([]).toEqual([]);
   });
 });

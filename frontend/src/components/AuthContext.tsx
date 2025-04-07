@@ -6,7 +6,7 @@ import {
   useLayoutEffect,
 } from "react";
 import { APIUser } from "../API/API_Interfaces";
-import { getGoogleAuthUser, getUserByEmail } from "../API/API_GetMethods";
+import { getCurrentUser } from "../API/API_GetMethods";
 
 // Define the shape of the AuthContext
 interface AuthContextProps {
@@ -22,27 +22,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<APIUser | null>(null);
 
   useLayoutEffect(() => {
+    const abortController = new AbortController();
     const getUser = async () => {
-      const storedUser: string | null = localStorage.getItem("user");
-      let userInfo: APIUser | null = storedUser ? JSON.parse(storedUser) : null;
-
-      const authInfo = await getGoogleAuthUser();
-      if (
-        authInfo?.email &&
-        (!userInfo || userInfo?.email != authInfo?.email)
-      ) {
-        userInfo = await getUserByEmail(authInfo?.email);
+      try {
+        let userInfo: APIUser | null = await getCurrentUser();
         setUser(userInfo);
-        localStorage.setItem("user", JSON.stringify(userInfo));
-      } else if (!authInfo?.nameId) {
-        setUser(null);
-        localStorage.removeItem("user");
-      } else {
-        setUser(userInfo);
+      } catch (err) {
+        if (!abortController.signal.aborted) {
+          console.error(err);
+        }
       }
     };
 
     getUser();
+
+    return () => abortController.abort();
   }, []);
 
   return (

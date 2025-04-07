@@ -9,8 +9,16 @@ using System;
 
 namespace ChemistryCafeAPI.Services
 {
+
     public class UserService
     {
+        public enum Result 
+        {
+            Success,
+            NotFound, 
+            Forbidden
+        }
+
         private readonly ChemistryDbContext _context;
 
         public UserService(ChemistryDbContext context)
@@ -54,10 +62,11 @@ namespace ChemistryCafeAPI.Services
             return await _context.Users.SingleOrDefaultAsync(u => u.Email == email);
         }
 
-        public async Task<User> SignIn(string googleID, string email)
+
+        public async Task<User> SignIn(string googleID, string email) 
         {
             var user = await _context.Users.SingleOrDefaultAsync(u => u.GoogleId == googleID);
-            if (user == null)
+            if (user == null) 
             {
                 user = new User();
                 user.Id = Guid.NewGuid();
@@ -77,17 +86,22 @@ namespace ChemistryCafeAPI.Services
             return user;
         }
 
-        public async Task UpdateUserAsync(User user)
+        public async Task<UserService.Result> UpdateUserAsync(User user)
         {
             var existingUser = await GetUserByIdAsync(user.Id);
             if (existingUser == null)
             {
-                throw new KeyNotFoundException($"User with Id {user.Id} not found.");
+                return UserService.Result.NotFound;
+            }
+            if (existingUser.Role != "admin")
+            {
+                return UserService.Result.Forbidden;
             }
             existingUser.Username = user.Username;
             existingUser.Role = user.Role;
             existingUser.Email = user.Email;
             await _context.SaveChangesAsync();
+            return UserService.Result.Success;
         }
 
         public async Task DeleteUserAsync(Guid id)
