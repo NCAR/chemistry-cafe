@@ -350,7 +350,7 @@ export type Family = {
   /** Description of the family */
   description: string;
 
-  /** SQL id of the owner of the family */
+  /** API definition of the owner of the family */
   owner?: APIUser;
 
   /** SQL ids of the contributors to the family */
