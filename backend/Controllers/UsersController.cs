@@ -57,8 +57,15 @@ namespace ChemistryCafeAPI.Controllers
             if(id != user.Id) {
                 return BadRequest();
             }
-            await _userService.UpdateUserAsync(user);
-
+            var result = await _userService.UpdateUserAsync(user);
+            switch (result) {
+            case UserService.Result.Success:
+                return NoContent();
+            case UserService.Result.NotFound:
+                return NotFound();
+            case UserService.Result.Forbidden:
+                return Forbid();
+            }
             return NoContent();
         }
 
