@@ -1,10 +1,13 @@
-﻿using Chemistry_Cafe_API.Models;
+﻿using ChemistryCafeAPI.Models;
 using System.Data.Common;
 using MySqlConnector;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.IdentityModel.Protocols.Configuration;
+using System.Security.Claims;
 using System;
 
-namespace Chemistry_Cafe_API.Services
+namespace ChemistryCafeAPI.Services
 {
 
     public class UserService
@@ -25,7 +28,23 @@ namespace Chemistry_Cafe_API.Services
 
         public async Task<IReadOnlyList<User>> GetUsersAsync()
         {
-            return await _context.Users.ToListAsync();
+            // Log the SQL query
+            var users = _context.Users;
+            Console.WriteLine($"SQL Query: {users.ToQueryString()}");
+
+            // Execute query and log results
+            var result = await users.ToListAsync();
+            Console.WriteLine($"Number of users found: {result.Count}");
+            if (result.Any())
+            {
+                Console.WriteLine("First user properties:");
+                foreach (var prop in result.First().GetType().GetProperties())
+                {
+                    Console.WriteLine($"{prop.Name}: {prop.GetValue(result.First())}");
+                }
+            }
+
+            return result;
         }
 
         public async Task<User?> GetUserByIdAsync(Guid id)
@@ -38,6 +57,7 @@ namespace Chemistry_Cafe_API.Services
             return await _context.Users.SingleOrDefaultAsync(u => u.Email == email);
         }
 
+
         public async Task<User> SignIn(string googleID, string email) 
         {
             var user = await _context.Users.SingleOrDefaultAsync(u => u.GoogleId == googleID);
@@ -47,7 +67,7 @@ namespace Chemistry_Cafe_API.Services
                 user.Id = Guid.NewGuid();
                 user.Username = email;
                 user.Role = "admin";
-                user.Email = email; 
+                user.Email = email;
                 user.CreatedDate = DateTime.UtcNow;
                 user.GoogleId = googleID;
                 _context.Users.Add(user);

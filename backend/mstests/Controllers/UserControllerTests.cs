@@ -1,16 +1,16 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Chemistry_Cafe_API.Controllers;
-using Chemistry_Cafe_API.Services;
-using Chemistry_Cafe_API.Models;
+using ChemistryCafeAPI.Controllers;
+using ChemistryCafeAPI.Services;
+using ChemistryCafeAPI.Models;
 using MySqlConnector;
 using System;
 using System.Linq;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
-namespace Chemistry_Cafe_API.Tests
+namespace ChemistryCafeAPI.Tests
 {
     [TestClass]
     public class UsersControllerTests

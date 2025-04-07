@@ -3,127 +3,47 @@
 import axios from "axios";
 import {
   APIFamily,
-  APIMechanism,
-  APISpecies,
-  APIReaction,
-  APIUser,
-  APIProperty,
+  APIUser
 } from "./API_Interfaces";
 import { BASE_URL } from "./API_config";
 
-// Update a family
-export async function updateFamily(family: APIFamily) {
-  try {
-    const response = await axios.put(
-      `${BASE_URL}/families/${family.id}`,
-      family,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
-    );
-    return response.data as APIFamily;
-  } catch (error: any) {
-    console.error(`Error updating family ${family}: ${error.message}`, error);
-    throw new Error("Failed to update family. Please try again later.");
+/**
+ * Updates a user to 
+ * @param user User info
+ * @throws HTTP errors
+ * @returns Updated user from the database
+ */
+export async function updateUser(user: APIUser): Promise<void> {
+  if (!user.id) {
+    throw new Error("User id is undefined or empty");
   }
-}
 
-// Update a mechanism
-export async function updateMechanism(mechanism: APIMechanism) {
-  try {
-    const response = await axios.put(
-      `${BASE_URL}/mechanism/${mechanism.id}`,
-      mechanism,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
-    );
-    return response.data as APIMechanism;
-  } catch (error: any) {
-    console.error(
-      `Error updating mechanism ${mechanism}: ${error.message}`,
-      error,
-    );
-    throw new Error("Failed to update mechanism. Please try again later.");
-  }
-}
-
-// Update a species
-export async function updateSpecies(species: APISpecies) {
-  try {
-    const response = await axios.put(
-      `${BASE_URL}/species/${species.id}`,
-      species,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
-    );
-    return response.data as APISpecies;
-  } catch (error: any) {
-    console.error(`Error updating species ${species}: ${error.message}`, error);
-    throw new Error("Failed to update species. Please try again later.");
-  }
-}
-
-// Update a reaction
-export async function updateReaction(reaction: APIReaction) {
-  try {
-    const response = await axios.put(
-      `${BASE_URL}/reactions/${reaction.id}`,
-      reaction,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
-    );
-    return response.data as APIReaction;
-  } catch (error: any) {
-    console.error(
-      `Error updating reaction ${reaction}: ${error.message}`,
-      error,
-    );
-    throw new Error("Failed to update reaction. Please try again later.");
-  }
-}
-
-export async function updateUser(id: string, user: APIUser) {
-  try {
-    const response = await axios.put(`${BASE_URL}/users/${id}`, user, {
+  await axios.put(`${BASE_URL}/users/${user.id}`, user,
+    {
+      withCredentials: true,
       headers: {
         "Content-Type": "application/json",
       },
     });
-    return response.data as APIUser;
-  } catch (error: any) {
-    console.error(`Error updating user ${id}: ${error.message}`, error);
-    throw new Error("Failed to update user. Please try again later.");
-  }
 }
 
-export async function updateProperty(property: APIProperty) {
-  try {
-    const response = await axios.put(
-      `${BASE_URL}/properties/${property.id}`,
-      property,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
-    );
-    return response.data as APIProperty;
-  } catch (error: any) {
-    console.error(
-      `Error updating property ${property}: ${error.message}`,
-      error,
-    );
-    throw new Error("Failed to update property. Please try again later.");
+/**
+ * Updates the shallow values of a family (Not nested objects)
+ * @param family Family info
+ * @throws HTTP errors
+ */
+export async function updateFamily(family: APIFamily): Promise<void> {
+  if (!family.id) {
+    throw new Error("Family id is undefined or empty");
   }
+
+  await axios.patch(`${BASE_URL}/families/${family.id}`, family,
+    {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
 }
+
