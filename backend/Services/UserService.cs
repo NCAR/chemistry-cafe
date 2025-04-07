@@ -69,16 +69,9 @@ namespace ChemistryCafeAPI.Services
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
             }
-            else 
+            else
             {
-                if (user.GoogleId == googleID)
-                {
-                    user.Email = email;
-                }
-                else
-                {
-                    return null;
-                }
+                user.Email = email;
             }
             await _context.SaveChangesAsync();
             return user;
