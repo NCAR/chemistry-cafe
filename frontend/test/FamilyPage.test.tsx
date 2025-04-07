@@ -5,8 +5,9 @@ import React from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import axios, { AxiosHeaders, AxiosResponse } from "axios";
 import { APIFamily, APIUser } from "../src/API/API_Interfaces";
-import FamilyPage from "../src/pages/FamilyPage";
+import FamilyPage, { MechanismsView, ReactionsView, SpeciesView } from "../src/pages/FamilyPage";
 import { CustomThemeProvider } from "../src/components/CustomThemeContext";
+import { MechanismEditor } from "../src/components/MechanismEditor";
 
 vi.mock("axios");
 
@@ -109,5 +110,74 @@ describe("FamilyPage", () => {
         let creationButton = screen.getByText("Create");
         expect(creationButton).toBeTruthy();
         fireEvent.click(creationButton);
+    });
+});
+
+describe("MechanismEditor", () => {
+    it("renders", () => {
+        render(
+            <CustomThemeProvider>
+                <MechanismEditor
+                    family={{
+                        id: "111-111-111-111-111",
+                        name: "Test Family",
+                        description: "",
+                        mechanisms: [],
+                        species: [],
+                        reactions: [],
+                    }}
+                    mechanism={{
+                        name: "uofsa-w98fai-asf-asf-asf",
+                        description: "",
+                        phases: [],
+                        familyId: "111-111-111-111",
+                        speciesIds: [],
+                        reactionIds: [],
+                    }}
+                    updateMechanism={vi.fn()}
+                    navigateBack={vi.fn()}
+                />
+            </CustomThemeProvider>
+        );
+    });
+});
+
+describe("ReactionsView", () => {
+    it("renders", () => {
+        render(
+            <CustomThemeProvider>
+                <ReactionsView
+                    family={{
+                        id: "111-111-111-111-111",
+                        name: "Test Family",
+                        description: "",
+                        mechanisms: [],
+                        species: [],
+                        reactions: [],
+                    }}
+                    updateFamily={vi.fn()}
+                />
+            </CustomThemeProvider>
+        );
+    });
+});
+
+describe("MechanismsView", () => {
+    it("renders", () => {
+        render(
+            <CustomThemeProvider>
+                <MechanismsView
+                    family={{
+                        id: "111-111-111-111-111",
+                        name: "Test Family",
+                        description: "",
+                        mechanisms: [],
+                        species: [],
+                        reactions: [],
+                    }}
+                    updateFamily={vi.fn()}
+                />
+            </CustomThemeProvider>
+        );
     });
 });

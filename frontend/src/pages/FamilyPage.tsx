@@ -346,7 +346,7 @@ const DefaultView = memo(function DefaultView() {
   );
 });
 
-const SpeciesView = ({ family, updateFamily }: ViewProps) => {
+export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
   const { theme } = useCustomTheme();
   const [speciesEditorOpen, setSpeciesEditorOpen] = useState<boolean>(false);
   const [selectedSpecies, setSelectedSpecies] = useState<Species>();
@@ -544,7 +544,7 @@ const SpeciesView = ({ family, updateFamily }: ViewProps) => {
   );
 };
 
-const ReactionsView = ({ family, updateFamily }: ViewProps) => {
+export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
   const { theme } = useCustomTheme();
   const [reactionsEditorOpen, setReactionsEditorOpen] =
     useState<boolean>(false);
@@ -783,7 +783,7 @@ const ReactionsView = ({ family, updateFamily }: ViewProps) => {
   );
 };
 
-const MechanismsView = ({ family, updateFamily }: ViewProps) => {
+export const MechanismsView = ({ family, updateFamily }: ViewProps) => {
   const [mechanismCreationModalOpen, setMechanismCreationModalOpen] = useState<boolean>(false);
   const [selectedMechanism, setSelectedMechanism] = useState<Mechanism | null>(null);
   const [menuComponent, setMenuComponent] = useState<React.JSX.Element | null>(null);
