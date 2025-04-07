@@ -31,7 +31,7 @@ export interface APIMechanism {
   id?: UUID;
   familyId: string;
   name: string;
-  description: string;
+  description: string | null;
 }
 
 export interface APIReaction {
