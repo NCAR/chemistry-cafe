@@ -1,25 +1,25 @@
 import { UUID } from "crypto";
 import { APIUser } from "../API/API_Interfaces";
 
-export type SpeciesProperty = {
+export type SpeciesAttribute = {
 
-  /** Name of the property */
+  /** Name of the attribute */
   name: string;
 
-  /** What the property should be serialized as (Defaults to "<name> [<unit>]"). */
+  /** What the attribute should be serialized as (Defaults to <name> if unspecified). */
   serializedKey?: string;
 
-  /** The unit of the specific property. This can be empty if unitless. */
+  /** The unit of the specific attribute. This can be empty if unitless. */
   units?: string;
 
-  /** Value of the property. This is *usually* numerical */
+  /** Value of the attribute. This is *usually* numerical */
   value: number | string;
 };
 
 /**
- * Default properties a species can have
+ * Attribute options a species can have
  */
-export const defaultSpeciesProperties: Array<SpeciesProperty> = [
+export const speciesAttributeOptions: Array<SpeciesAttribute> = [
   Object.freeze({
     name: "Absolute Tolerance",
     serializedKey: "absolute tolerance",
@@ -82,9 +82,9 @@ export type Species = {
   /** Id of the family on the frontend this mechanism is a part of */
   familyId: UUID | string;
 
-  /** Special properties set by the user */
-  properties: {
-    [key: string]: SpeciesProperty;
+  /** Special attributes set by the user */
+  attributes: {
+    [key: string]: SpeciesAttribute;
   };
 
   /** The id of the phase this species is in. If unspecified, defaults to gas when serialized */
@@ -99,6 +99,109 @@ export type Species = {
   /** Determines if the species is in the database */
   isInDatabase?: boolean;
 };
+
+export type ReactionAttribute = {
+
+  /** Name of the property */
+  name: string;
+
+  /** What the property should be serialized as (Defaults to "<name> [<unit>]"). */
+  serializedKey?: string;
+
+  /** Value of the property. This is *usually* numerical */
+  value: number | string;
+
+  /** Used when the value is a string (This is not stored in the database) */
+  options?: Array<string>;
+};
+
+export const arrheniusAttributeOptions: Array<ReactionAttribute> = [
+  {
+    name: "A",
+    value: 0.0
+  },
+  {
+    name: "B",
+    value: 0.0
+  },
+  {
+    name: "C",
+    value: 0.0
+  },
+  {
+    name: "D",
+    value: 0.0
+  },
+  {
+    name: "E",
+    value: 0.0
+  },
+];
+
+export const emmissionAttributeOptions: Array<ReactionAttribute> = [
+  {
+    name: "Scaling Factor",
+    serializedKey: "scaling factor",
+    value: 0.0,
+  },
+];
+
+export const photolysisAttributeOptions: Array<ReactionAttribute> = [
+  {
+    name: "Scaling Factor",
+    serializedKey: "scaling factor",
+    value: 0.0,
+  },
+];
+
+export const firstOrderLossAttributeOptions: Array<ReactionAttribute> = [
+  {
+    name: "Scaling Factor",
+    serializedKey: "scaling factor",
+    value: 0.0,
+  },
+];
+
+export const troeAttributeOptions: Array<ReactionAttribute> = [
+  {
+    name: "k0 A",
+    serializedKey: "k0_A",
+    value: 0.0,
+  },
+  {
+    name: "k0 B",
+    serializedKey: "k0_B",
+    value: 0.0,
+  },
+  {
+    name: "k0 C",
+    serializedKey: "k0_C",
+    value: 0.0,
+  },
+  {
+    name: "kinf A",
+    serializedKey: "kinf_A",
+    value: 0.0,
+  },
+  {
+    name: "kinf B",
+    serializedKey: "kinf_B",
+    value: 0.0,
+  },
+  {
+    name: "kinf C",
+    serializedKey: "kinf_C",
+    value: 0.0,
+  },
+  {
+    name: "Fc",
+    value: 0.0,
+  },
+  {
+    name: "N",
+    value: 0.0,
+  },
+];
 
 export type ReactionTypeName =
   | "NONE"
@@ -143,20 +246,26 @@ export type Reaction = {
   /** Determines if the reaction is in the database */
   isInDatabase?: boolean;
 
+  /** List of reactants in the reaction */
   reactants: Array<{
     speciesId: UUID | string;
     coefficient: number;
   }>;
 
+  /** List of products in the reaction. These can be part of different branches */
   products: Array<{
     speciesId: UUID | string;
     coefficient: number;
     branch?: string;
   }>;
+
+  /** Special attributes related to the reaction */
+  attributes: {
+    [key: string]: ReactionAttribute;
+  };
 };
 
 export type ArrheniusReaction = {
-  type: "ARRHENIUS";
   gasPhase: string;
   A: number;
   B: number;
@@ -195,8 +304,8 @@ export type Phase = {
  * Mechanisms also contain information about different reaction phases.
  */
 export type Mechanism = {
-  /** ID stored in the SQL database */
-  id?: UUID;
+  /** ID stored in the SQL database. If this is not in the database, this is used for frontend purposes */
+  id?: UUID | string;
 
   /** Name of the mechanism */
   name: string;
@@ -221,6 +330,9 @@ export type Mechanism = {
 
   /** Determines if the mechanism has been marked for deletion */
   isDeleted?: boolean;
+
+  /** Determines if the family is in the database */
+  isInDatabase?: boolean;
 };
 
 /**

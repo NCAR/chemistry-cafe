@@ -20,7 +20,7 @@ export function apiToFrontendSpecies(apiSpecies: APISpecies): Species {
         id: apiSpecies.id,
         name: apiSpecies.name ?? "",
         description: apiSpecies.description,
-        properties: {},
+        attributes: {},
         familyId: apiSpecies.familyId,
     }
 
