@@ -86,14 +86,14 @@ public class FamilyController : ControllerBase
             return Unauthorized("User does not have access");
         }
 
-        User? currentUser = await _userService.GetUserByIdAsync(Guid.Parse(nameIdentifier));
+        User? currentUser = await _userService.GetUserByGoogleIdAsync(nameIdentifier);
         if (currentUser == null)
         {
             return Unauthorized("User does not exist");
         }
 
         // Defaults which the frontend user cannot specify
-        family.Id = new Guid();
+        family.Id = Guid.NewGuid();
         family.CreatedDate = DateTime.UtcNow;
         family.Owner = currentUser;
         family.Species = [];
@@ -136,7 +136,7 @@ public class FamilyController : ControllerBase
             return NotFound("Family not found");
         }
 
-        if (nameIdentifier != existingFamily.Owner.Id.ToString())
+        if (nameIdentifier != existingFamily.Owner.GoogleId.ToString())
         {
             return StatusCode(StatusCodes.Status403Forbidden);
         }
@@ -177,7 +177,7 @@ public class FamilyController : ControllerBase
             return NotFound("Family not found");
         }
 
-        if (family.Owner.Id.ToString() != nameIdentifier)
+        if (family.Owner.GoogleId.ToString() != nameIdentifier)
         {
             return StatusCode(StatusCodes.Status403Forbidden);
         }

@@ -16,7 +16,7 @@ namespace ChemistryCafeAPI.Tests
     public class FamilyControllerTests
     {
         readonly ChemistryDbContext ctx = DBConnection.Context;
-        static Guid _Id = new Guid("cccccccc-dddd-eeee-ffff-000000000000");
+        static Guid _Id = new Guid(); 
         static string _Name = "TestFamily";
         static string _Description = "A test family created by FamilyControllerTests.cs.";
         static string _Email = "JunkEmail@TestUsers.com";
@@ -148,6 +148,7 @@ namespace ChemistryCafeAPI.Tests
             string newName = "UpdatedTestFamily";
             string newDescription = "An updated test family.";
 
+            Console.Out.WriteLine(_Id);
             var updatedFamily = new Family
             {
                 Id = _Id,

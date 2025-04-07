@@ -44,6 +44,11 @@ namespace ChemistryCafeAPI.Services
             return await _context.Users.SingleOrDefaultAsync(u => u.Id == id);
         }
 
+        public async Task<User?> GetUserByGoogleIdAsync(string id)
+        {
+            return await _context.Users.SingleOrDefaultAsync(u => u.GoogleId == id);
+        }
+
         public async Task<User?> GetUserByEmailAsync(string email)
         {
             return await _context.Users.SingleOrDefaultAsync(u => u.Email == email);
@@ -55,7 +60,7 @@ namespace ChemistryCafeAPI.Services
             if (user == null)
             {
                 user = new User();
-                user.Id = Guid.Parse(googleID);
+                user.Id = Guid.NewGuid();
                 user.Username = email;
                 user.Role = "admin";
                 user.Email = email;
