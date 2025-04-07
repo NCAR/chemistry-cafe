@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - codecov_correction
+      - codecov_migration_fix
   pull_request:
     branches:
       - main
