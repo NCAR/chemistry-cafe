@@ -52,6 +52,11 @@ namespace ChemistryCafeAPI.Services
             return await _context.Users.SingleOrDefaultAsync(u => u.Id == id);
         }
 
+        public async Task<User?> GetUserByGoogleIdAsync(string id)
+        {
+            return await _context.Users.SingleOrDefaultAsync(u => u.GoogleId == id);
+        }
+
         public async Task<User?> GetUserByEmailAsync(string email)
         {
             return await _context.Users.SingleOrDefaultAsync(u => u.Email == email);
@@ -71,8 +76,9 @@ namespace ChemistryCafeAPI.Services
                 user.CreatedDate = DateTime.UtcNow;
                 user.GoogleId = googleID;
                 _context.Users.Add(user);
-            } 
-            else 
+                await _context.SaveChangesAsync();
+            }
+            else
             {
                 user.Email = email;
             }
