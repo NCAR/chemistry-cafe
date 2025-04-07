@@ -15,6 +15,12 @@ public class FamilyController : ControllerBase
     private readonly ChemistryDbContext _context;
     private readonly UserService _userService;
 
+    /* virtual for mocking purposes */
+    public virtual string? GetNameIdentifier() {
+        ClaimsIdentity? claimsIdentity = this.User.Identity as ClaimsIdentity;
+        return claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    }
+
     public FamilyController(ChemistryDbContext context, UserService userService)
     {
         _context = context;
@@ -74,8 +80,7 @@ public class FamilyController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Family>> CreateFamily(Family family)
     {
-        ClaimsIdentity? claimsIdentity = this.User.Identity as ClaimsIdentity;
-        string? nameIdentifier = claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        string? nameIdentifier = GetNameIdentifier();
         if (nameIdentifier == null)
         {
             return Unauthorized("User does not have access");
@@ -118,8 +123,7 @@ public class FamilyController : ControllerBase
             return BadRequest("id parameter does not match given family id");
         }
 
-        ClaimsIdentity? claimsIdentity = this.User.Identity as ClaimsIdentity;
-        string? nameIdentifier = claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        string? nameIdentifier = GetNameIdentifier();
         if (nameIdentifier == null)
         {
             return Unauthorized("Not authenticated");
@@ -160,8 +164,7 @@ public class FamilyController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteFamily(Guid id)
     {
-        ClaimsIdentity? claimsIdentity = this.User.Identity as ClaimsIdentity;
-        string? nameIdentifier = claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        string? nameIdentifier = GetNameIdentifier();
         if (nameIdentifier == null)
         {
             return Unauthorized("Not authenticated");

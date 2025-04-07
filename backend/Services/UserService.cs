@@ -55,17 +55,25 @@ namespace ChemistryCafeAPI.Services
             if (user == null)
             {
                 user = new User();
-                user.Id = Guid.NewGuid();
+                user.Id = Guid.Parse(googleID);
                 user.Username = email;
                 user.Role = "admin";
                 user.Email = email;
                 user.CreatedDate = DateTime.UtcNow;
                 user.GoogleId = googleID;
                 _context.Users.Add(user);
+                await _context.SaveChangesAsync();
             }
-            else
+            else 
             {
-                user.Email = email;
+                if (user.GoogleId == googleID)
+                {
+                    user.Email = email;
+                }
+                else
+                {
+                    return null;
+                }
             }
             await _context.SaveChangesAsync();
             return user;

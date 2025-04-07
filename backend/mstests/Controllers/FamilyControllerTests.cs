@@ -19,20 +19,38 @@ namespace ChemistryCafeAPI.Tests
         static Guid _Id = new Guid("cccccccc-dddd-eeee-ffff-000000000000");
         static string _Name = "TestFamily";
         static string _Description = "A test family created by FamilyControllerTests.cs.";
-        static User _Owner = new User{
-            Username = "FamilyUser",
-            Role = "DoubleAdmin",
-            Id = Guid.NewGuid(),
-            GoogleId = Guid.NewGuid().ToString()
-        };
+        static string _Email = "JunkEmail@TestUsers.com";
+        static string _GoogleId = Guid.NewGuid().ToString();
+        static User _Owner = null; 
         static DateTime _CreatedDate = DateTime.UtcNow;
         static bool found = false;
+
+        private class MockedFamilyController : FamilyController 
+        {
+            public MockedFamilyController(ChemistryDbContext ctx, UserService service) 
+                : base(ctx, service) 
+            {
+            }
+
+            public override string? GetNameIdentifier() 
+            {
+                return _GoogleId;
+            }
+        }
+
+        private async Task<FamilyController> CreateSignedInController()
+        {
+            var service = new UserService(ctx);
+            _Owner = await service.SignIn(_GoogleId, _Email);
+            return new MockedFamilyController(ctx, service);
+        }
 
         [TestMethod]
         public async Task Get_All_Family()
         {
             // Arrange
-            var controller = new FamilyController(ctx);
+            var service = new UserService(ctx);
+            var controller = new FamilyController(ctx, service);
 
             // Act
             var actionResult = await controller.GetFamilies();
@@ -67,13 +85,12 @@ namespace ChemistryCafeAPI.Tests
             }
 
             // Arrange
-            var controller = new FamilyController(ctx);
+            var controller = await CreateSignedInController();
 
             var testFamily = new Family
             {
                 Name = _Name,
                 Description = _Description,
-                //Owner = _Owner,
                 CreatedDate = _CreatedDate
             };
 
@@ -102,7 +119,8 @@ namespace ChemistryCafeAPI.Tests
         public async Task Get_Family_Given_ID()
         {
             // Arrange
-            var controller = new FamilyController(ctx);
+            var service = new UserService(ctx);
+            var controller = new FamilyController(ctx, service);
 
             // Act
             var actionResult = await controller.GetFamily(_Id);
@@ -121,12 +139,11 @@ namespace ChemistryCafeAPI.Tests
             Assert.AreEqual(_Owner, returnedFamily.Owner);
         }
 
-        /*
         [TestMethod]
         public async Task Updates_Family()
         {
             // Arrange
-            var controller = new FamilyController(ctx);
+            var controller = await CreateSignedInController();
 
             string newName = "UpdatedTestFamily";
             string newDescription = "An updated test family.";
@@ -162,7 +179,7 @@ namespace ChemistryCafeAPI.Tests
         public async Task Updates_Family_mismatchedId()
         {
             // Arrange
-            var controller = new FamilyController(ctx);
+            var controller = await CreateSignedInController();
 
             string newName = "UpdatedTestFamily";
             string newDescription = "An updated test family.";
@@ -181,14 +198,14 @@ namespace ChemistryCafeAPI.Tests
 
             // Assert
             Assert.IsNotNull(actionResult);
-            Assert.IsInstanceOfType(actionResult, typeof(BadRequestResult));
+            Assert.IsInstanceOfType(actionResult, typeof(BadRequestObjectResult));
         }
 
         [TestMethod]
         public async Task Delete_Family()
         {
             // Arrange
-            var controller = new FamilyController(ctx);
+            var controller = await CreateSignedInController();
 
             // Act
             var findResult = await controller.GetFamily(_Id);
@@ -202,6 +219,18 @@ namespace ChemistryCafeAPI.Tests
             // Assert
             Assert.IsInstanceOfType(findDeletedResult.Result, typeof(NotFoundResult));
         }
-        */
+
+        [ClassCleanup]
+        public static void ClassCleanup()
+        {
+            var ctx = DBConnection.Context;
+            if (_Owner != null) 
+            {
+                var service = new UserService(ctx);
+                service.DeleteUserAsync(_Owner.Id).Wait();
+                var controller = new MockedFamilyController(ctx, service);
+                controller.DeleteFamily(_Id).Wait();
+            }
+        }
     }
 }
