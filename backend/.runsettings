@@ -5,7 +5,7 @@
         <Configuration>
           <Format>Cobertura</Format>
           <Include>[ChemistryCafeAPI*]*</Include>
-          <Exclude> [MySqlConnector]*</Exclude>
+          <Exclude>[MySqlConnector]*, [ChemistryCafeAPI.Migrations]*</Exclude>
         </Configuration>
       </DataCollector>
     </DataCollectors>
