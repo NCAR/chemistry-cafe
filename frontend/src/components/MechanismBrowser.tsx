@@ -1,4 +1,11 @@
-import { Box, Button, ButtonGroup, Card, CardContent, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  ButtonGroup,
+  Card,
+  CardContent,
+  Typography,
+} from "@mui/material";
 import { Family, Mechanism } from "../types/chemistryModels";
 import { DownloadMechanismButton } from "./DownloadMechanismButton";
 import EditIcon from "@mui/icons-material/Edit";
@@ -6,16 +13,17 @@ import EditIcon from "@mui/icons-material/Edit";
 export type MechanismBrowserProps = {
   family: Family;
   onEditButtonClick?: (mechanism: Mechanism) => void;
-}
+};
 
 /**
- * Component for viewing mechanisms in a family and 
+ * Component for viewing mechanisms in a family and
  */
-export const MechanismBrowser: React.FC<MechanismBrowserProps> = ({ family, onEditButtonClick }) => {
+export const MechanismBrowser: React.FC<MechanismBrowserProps> = ({
+  family,
+  onEditButtonClick,
+}) => {
   if (family.mechanisms.length == 0) {
-    return (
-      <Typography>No Mechanisms Found</Typography>
-    )
+    return <Typography>No Mechanisms Found</Typography>;
   }
 
   return family.mechanisms.map((mechanism, index) => {
@@ -36,8 +44,7 @@ export const MechanismBrowser: React.FC<MechanismBrowserProps> = ({ family, onEd
             </Typography>
           </Box>
           <ButtonGroup variant="contained">
-            {
-              onEditButtonClick &&
+            {onEditButtonClick && (
               <Button
                 startIcon={<EditIcon />}
                 sx={{ textTransform: "none" }}
@@ -46,11 +53,11 @@ export const MechanismBrowser: React.FC<MechanismBrowserProps> = ({ family, onEd
               >
                 Edit
               </Button>
-            }
+            )}
             <DownloadMechanismButton mechanism={mechanism} family={family} />
           </ButtonGroup>
         </CardContent>
       </Card>
-    )
-  })
-}
+    );
+  });
+};

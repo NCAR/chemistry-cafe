@@ -94,14 +94,16 @@ const NavDropDown = () => {
           </ListItem>
         )}
 
-        {user && (<ListItem disablePadding>
-          <ListItemButton onClick={goLogOut}>
-            <ListItemIcon>
-              <LogoutIcon color="error" />
-            </ListItemIcon>
-            <ListItemText primary={"Log Out"} />
-          </ListItemButton>
-        </ListItem>)}
+        {user && (
+          <ListItem disablePadding>
+            <ListItemButton onClick={goLogOut}>
+              <ListItemIcon>
+                <LogoutIcon color="error" />
+              </ListItemIcon>
+              <ListItemText primary={"Log Out"} />
+            </ListItemButton>
+          </ListItem>
+        )}
       </List>
     </Box>
   );

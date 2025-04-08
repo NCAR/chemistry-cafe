@@ -1,14 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
 import axios, { AxiosHeaders, AxiosResponse } from "axios";
-import {
-  updateUser,
-  updateFamily,
-} from "../src/API/API_UpdateMethods";
-import {
-  APIFamily,
-  APIUser
-} from "../src/API/API_Interfaces";
+import { updateUser, updateFamily } from "../src/API/API_UpdateMethods";
+import { APIFamily, APIUser } from "../src/API/API_Interfaces";
 
 // Mock axios using vitest's built-in mock function
 vi.mock("axios");
@@ -101,8 +95,8 @@ describe("updateFamily function", () => {
       owner: {
         username: "Test User",
         role: "unverified",
-      }
-    }
+      },
+    };
 
     const result = await updateFamily(family);
     expect(result).toEqual(undefined);
@@ -123,9 +117,9 @@ describe("updateFamily function", () => {
       description: "",
       owner: {
         username: "",
-        role: ""
-      }
-    }
+        role: "",
+      },
+    };
 
     await expect(updateFamily(family)).rejects.toThrow();
   });

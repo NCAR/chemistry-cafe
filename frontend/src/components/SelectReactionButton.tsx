@@ -30,25 +30,23 @@ export const SelectReactionButton: React.FC<SelectReactionButtonProps> = ({
 
   return (
     <>
-      {
-        text ? (
-          <Button
-            startIcon={<AddIcon />}
-            color="primary"
-            onClick={handleMenuOpen}
-          >
-            {text}
-          </Button>
-        ) : (
-          <IconButton
-            aria-label={ariaLabel}
-            color="primary"
-            onClick={handleMenuOpen}
-          >
-            <AddIcon />
-          </IconButton>
-        )
-      }
+      {text ? (
+        <Button
+          startIcon={<AddIcon />}
+          color="primary"
+          onClick={handleMenuOpen}
+        >
+          {text}
+        </Button>
+      ) : (
+        <IconButton
+          aria-label={ariaLabel}
+          color="primary"
+          onClick={handleMenuOpen}
+        >
+          <AddIcon />
+        </IconButton>
+      )}
       <Menu open={open} anchorEl={anchorEl} onClose={handleMenuClose}>
         {reactions.length == 0 ? (
           <MenuItem disabled>

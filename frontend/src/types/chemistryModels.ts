@@ -2,7 +2,6 @@ import { UUID } from "crypto";
 import { APIUser } from "../API/API_Interfaces";
 
 export type SpeciesAttribute = {
-
   /** Name of the attribute */
   name: string;
 
@@ -64,7 +63,7 @@ export const speciesAttributeOptions: Array<SpeciesAttribute> = [
     serializedKey: "tracer type",
     value: "",
   }),
-]
+];
 
 /**
  * Represents a species utilized on the frontend. A species is a substance which can take on any name.
@@ -101,7 +100,6 @@ export type Species = {
 };
 
 export type ReactionAttribute = {
-
   /** Name of the property */
   name: string;
 
@@ -118,23 +116,23 @@ export type ReactionAttribute = {
 export const arrheniusAttributeOptions: Array<ReactionAttribute> = [
   {
     name: "A",
-    value: 0.0
+    value: 0.0,
   },
   {
     name: "B",
-    value: 0.0
+    value: 0.0,
   },
   {
     name: "C",
-    value: 0.0
+    value: 0.0,
   },
   {
     name: "D",
-    value: 0.0
+    value: 0.0,
   },
   {
     name: "E",
-    value: 0.0
+    value: 0.0,
   },
 ];
 

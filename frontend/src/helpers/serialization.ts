@@ -1,6 +1,6 @@
 import { Family, Mechanism, Reaction, Species } from "../types/chemistryModels";
 import * as YAML from "yaml";
-import JSZip from "jszip"
+import JSZip from "jszip";
 
 //////////////////////
 // V1 CONFIGURATION //
@@ -12,14 +12,14 @@ import JSZip from "jszip"
 const speciesToCAMPV1 = (species: Species): Object => {
   let serializedSpecies: any = {
     name: species.name,
-  }
+  };
 
   for (const key of Object.keys(species.attributes)) {
     serializedSpecies[key] = species.attributes[key].value;
   }
 
   return serializedSpecies;
-}
+};
 
 const reactionToCAMPV1 = (reaction: Reaction, family: Family): Object => {
   let serializedReaction: any = {
@@ -28,7 +28,7 @@ const reactionToCAMPV1 = (reaction: Reaction, family: Family): Object => {
     "gas phase": "gas",
     reactants: [],
     products: [],
-  }
+  };
 
   for (const { speciesId, coefficient } of reaction.reactants) {
     const species = family.species.find((e) => e.id === speciesId);
@@ -37,7 +37,7 @@ const reactionToCAMPV1 = (reaction: Reaction, family: Family): Object => {
     }
     serializedReaction.reactants.push({
       "species name": species.name,
-      "coefficient": coefficient,
+      coefficient: coefficient,
     });
   }
 
@@ -48,7 +48,7 @@ const reactionToCAMPV1 = (reaction: Reaction, family: Family): Object => {
     }
     serializedReaction.products.push({
       "species name": species.name,
-      "coefficient": coefficient,
+      coefficient: coefficient,
     });
   }
 
@@ -57,7 +57,7 @@ const reactionToCAMPV1 = (reaction: Reaction, family: Family): Object => {
   }
 
   return serializedReaction;
-}
+};
 
 /**
  * Stub of serialization of mechanism
@@ -69,16 +69,20 @@ const mechanismToCAMPV1 = (mechanism: Mechanism, family: Family): Object => {
   const jsonObject = {
     version: "1.0.0",
     name: mechanism.name,
-    species: family.species.filter((e) => mechanism.speciesIds.includes(e.id)).map((e) => speciesToCAMPV1(e)),
+    species: family.species
+      .filter((e) => mechanism.speciesIds.includes(e.id))
+      .map((e) => speciesToCAMPV1(e)),
     phases: [
       {
         name: "gas",
-        species: family.species.filter((e) =>
-          mechanism.speciesIds.includes(e.id),
-        ).map((e) => e.name),
+        species: family.species
+          .filter((e) => mechanism.speciesIds.includes(e.id))
+          .map((e) => e.name),
       },
     ],
-    reactions: family.reactions.filter((e) => mechanism.reactionIds.includes(e.id)).map((e) => reactionToCAMPV1(e, family)),
+    reactions: family.reactions
+      .filter((e) => mechanism.reactionIds.includes(e.id))
+      .map((e) => reactionToCAMPV1(e, family)),
   };
 
   return jsonObject;
@@ -95,7 +99,7 @@ export const serializeMechanismJSON = (
   family: Family,
 ): string => {
   return JSON.stringify(mechanismToCAMPV1(mechanism, family), null, 2);
-}
+};
 
 /**
  * Converts a given mechanism to a serialized YAML string which uses the CAMP V1 schema
@@ -103,10 +107,12 @@ export const serializeMechanismJSON = (
  * @param family Family mechanism is in
  * @returns Serialized Mechanism
  */
-export const serializeMechanismYAML = (mechanism: Mechanism, family: Family): string => {
+export const serializeMechanismYAML = (
+  mechanism: Mechanism,
+  family: Family,
+): string => {
   return YAML.stringify(mechanismToCAMPV1(mechanism, family), null, 2);
-}
-
+};
 
 /////////////////////////////////
 // V0 CONFIGURATION (MusicBox) //
@@ -118,7 +124,7 @@ const reactionToCAMPV0 = (reaction: Reaction, family: Family): Object => {
     "gas phase": "gas",
     reactants: {},
     products: {},
-  }
+  };
 
   for (const { speciesId, coefficient } of reaction.reactants) {
     const species = family.species.find((e) => e.id === speciesId);
@@ -145,86 +151,96 @@ const reactionToCAMPV0 = (reaction: Reaction, family: Family): Object => {
   }
 
   return serializedReaction;
-}
+};
 
 const speciesToCAMPV0 = (species: Species): Object => {
   let serializedSpecies: any = {
-    "initial value [mol m-3]": 1.0e-09
-  }
+    "initial value [mol m-3]": 1.0e-9,
+  };
 
   for (const key of Object.keys(species.attributes)) {
     serializedSpecies[key] = species.attributes[key].value;
   }
 
   return serializedSpecies;
-}
+};
 
-const createReactionsDataCAMPV0 = (mechanism: Mechanism, family: Family): Object => {
+const createReactionsDataCAMPV0 = (
+  mechanism: Mechanism,
+  family: Family,
+): Object => {
   return {
     "camp-data": [
       {
         type: "MECHANISM",
         name: mechanism.name,
-        reactions: family.reactions.filter((e) => mechanism.reactionIds.includes(e.id)).map((e) => reactionToCAMPV0(e, family))
-      }
-    ]
-  }
-}
+        reactions: family.reactions
+          .filter((e) => mechanism.reactionIds.includes(e.id))
+          .map((e) => reactionToCAMPV0(e, family)),
+      },
+    ],
+  };
+};
 
-const createSpeciesDataCAMPV0 = (mechanism: Mechanism, family: Family): Object => {
+const createSpeciesDataCAMPV0 = (
+  mechanism: Mechanism,
+  family: Family,
+): Object => {
   return {
     "camp-data": family.species
       .filter((e) => mechanism.speciesIds.includes(e.id))
-      .map((e) => ({ name: e.name, type: "CHEM_SPEC" }))
+      .map((e) => ({ name: e.name, type: "CHEM_SPEC" })),
   };
-}
+};
 
-export const serializeMechanismMusicBox = async (mechanism: Mechanism, family: Family): Promise<Blob> => {
+export const serializeMechanismMusicBox = async (
+  mechanism: Mechanism,
+  family: Family,
+): Promise<Blob> => {
   // ./camp_data/config.json
   const config = {
-    "camp-files": [
-      "species.json",
-      "reactions.json"
-    ]
-  }
+    "camp-files": ["species.json", "reactions.json"],
+  };
 
   // ./my_config.json
   const my_config: any = {
     "box model options": {
-      "grid": "box",
+      grid: "box",
       "chemistry time step [sec]": 1,
       "output time step [sec]": 1,
-      "simulation length [hr]": 1
+      "simulation length [hr]": 1,
     },
     "chemical species": {},
     // Begin hard coded values
     "environmental conditions": {
-      "temperature": {
-        "initial value [K]": 298.15
+      temperature: {
+        "initial value [K]": 298.15,
       },
-      "pressure": {
-        "initial value [Pa]": 101325.0
-      }
+      pressure: {
+        "initial value [Pa]": 101325.0,
+      },
     },
     "evolving conditions": {},
     "initial conditions": {},
     "model components": [
       {
-        "type": "CAMP",
+        type: "CAMP",
         "configuration file": "camp_data/config.json",
         "override species": {
-          "M": {
-            "mixing ratio mol mol-1": 1.0
-          }
+          M: {
+            "mixing ratio mol mol-1": 1.0,
+          },
         },
         "suppress output": {
-          "M": {}
-        }
-      }
-    ]
-  }
+          M: {},
+        },
+      },
+    ],
+  };
 
-  for (const species of family.species.filter((e) => mechanism.speciesIds.includes(e.id))) {
+  for (const species of family.species.filter((e) =>
+    mechanism.speciesIds.includes(e.id),
+  )) {
     my_config["chemical species"][species.name] = speciesToCAMPV0(species);
   }
 
@@ -242,4 +258,4 @@ export const serializeMechanismMusicBox = async (mechanism: Mechanism, family: F
   campData?.file("species.json", JSON.stringify(species, null, 2));
 
   return zip.generateAsync({ type: "blob" });
-}
+};

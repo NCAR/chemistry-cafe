@@ -30,25 +30,23 @@ export const SelectSpeciesButton: React.FC<SelectSpeciesButtonProps> = ({
 
   return (
     <>
-      {
-        text ? (
-          <Button
-            startIcon={<AddIcon />}
-            color="primary"
-            onClick={handleMenuOpen}
-          >
-            {text}
-          </Button>
-        ) : (
-          <IconButton
-            aria-label={ariaLabel}
-            color="primary"
-            onClick={handleMenuOpen}
-          >
-            <AddIcon />
-          </IconButton>
-        )
-      }
+      {text ? (
+        <Button
+          startIcon={<AddIcon />}
+          color="primary"
+          onClick={handleMenuOpen}
+        >
+          {text}
+        </Button>
+      ) : (
+        <IconButton
+          aria-label={ariaLabel}
+          color="primary"
+          onClick={handleMenuOpen}
+        >
+          <AddIcon />
+        </IconButton>
+      )}
       <Menu open={open} anchorEl={anchorEl} onClose={handleMenuClose}>
         {species.length == 0 ? (
           <MenuItem disabled>
