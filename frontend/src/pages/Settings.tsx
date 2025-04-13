@@ -22,6 +22,7 @@ import {
   Switch,
   Typography,
   ToggleButton,
+  Input,
 } from "@mui/material";
 import { memo, MouseEvent, useLayoutEffect, useState } from "react";
 import AccountBoxIcon from "@mui/icons-material/AccountBox";
@@ -249,6 +250,7 @@ const AppearanceMenu = () => {
 
 const AccessibilityMenu = () => {
   const { theme, appearanceSettings, setAppearanceSettings } = useCustomTheme();
+  const [fontSliderValue, setFontSliderValue] = useState(appearanceSettings.fontSize);
 
   /**
    * Modifies the main global value for a given color palette
@@ -294,6 +296,18 @@ const AccessibilityMenu = () => {
     });
   };
 
+  const marks = [
+    {value:  5, label:  '5'},
+    {value: 12, label: '12'},
+    {value: 14, label: '14'},
+    {value: 18, label: '18'},
+    {value: 24, label: '24'},
+    {value: 30, label: '30'},
+    {value: 36, label: '36'},
+    {value: 42, label: '42'},
+    {value: 50, label: '50'},
+  ]
+
   return (
     <>
       <List
@@ -308,6 +322,7 @@ const AccessibilityMenu = () => {
           <Paper
             sx={{
               p: 1,
+              width: "40vw"
             }}
           >
             <Box
@@ -329,25 +344,18 @@ const AccessibilityMenu = () => {
                 columnGap: 6,
               }}
             >
-              <IconButton
-                onClick={() =>
-                  setFontSize((appearanceSettings.fontSize ?? 14) - 1)
-                }
-                aria-label="decrease font size"
-              >
-                <RemoveCircleOutlineOutlinedIcon />
-              </IconButton>
-              <Typography sx={{ flex: 1 }}>
-                {appearanceSettings.fontSize?.toString()} pt
-              </Typography>
-              <IconButton
-                onClick={() =>
-                  setFontSize((appearanceSettings.fontSize ?? 14) + 1)
-                }
-                aria-label="increase font size"
-              >
-                <AddCircleOutlineOutlinedIcon />
-              </IconButton>
+              <Slider
+                // aria-label="font-size"
+                track={false}
+                defaultValue={appearanceSettings.fontSize ?? 12}
+                min={5}
+                max={50}
+                marks={marks}
+                // value={appearanceSettings.fontSize ?? 12}
+                valueLabelDisplay="auto"
+                onChange={(_, value) => {setFontSliderValue(Number(value))}}
+                onChangeCommitted={(_, value) => {setFontSize(Number(value))}}
+              />
             </Box>
           </Paper>
         </ListItem>
