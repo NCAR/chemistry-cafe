@@ -184,6 +184,8 @@ describe("SpeciesView", () => {
               familyId: "111-111-111-111-111",
               attributes: {},
               isDeleted: false,
+              isInDatabase: true,
+              isModified: false,
             }],
             reactions: [
               {

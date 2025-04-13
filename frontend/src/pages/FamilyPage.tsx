@@ -512,6 +512,7 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
         rows={family.species.filter((element) => !element.isDeleted)}
         columns={speciesColumns}
         autoPageSize
+        disableVirtualization // Enables DataGrid to be rendered in testing
         sx={{
           flex: 1,
           ".MuiDataGrid-columnHeaderTitle": {
@@ -747,6 +748,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
         rows={family.reactions.filter((element) => !element.isDeleted)}
         columns={reactionsColumns}
         autoPageSize
+        disableVirtualization
         sx={{
           flex: 1,
           ".MuiDataGrid-columnHeaderTitle": {
