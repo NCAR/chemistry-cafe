@@ -64,6 +64,12 @@ describe("Settings Page", () => {
     fireEvent.click(appearanceButton);
   });
 
+  it("Can navigate to the accessibility menu", () => {
+    const accessibilityButton = screen.getByTestId("accessibility-menu-button");
+    expect(accessibilityButton).toBeTruthy();
+    fireEvent.click(accessibilityButton);
+  });
+
   it("Can navigate to the user settings menu", () => {
     const userSettingsButton = screen.getByText("My Profile");
     expect(userSettingsButton).toBeTruthy();
