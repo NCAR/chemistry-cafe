@@ -10,7 +10,7 @@ import {
   waitFor,
 } from "@testing-library/react";
 import axios, { AxiosHeaders, AxiosResponse } from "axios";
-import { APIFamily, APIUser } from "../src/API/API_Interfaces";
+import { APIFamily } from "../src/API/API_Interfaces";
 import FamilyPage, {
   MechanismsView,
   ReactionsView,
@@ -21,22 +21,26 @@ import { MechanismEditor } from "../src/components/MechanismEditor";
 
 vi.mock("axios");
 
-describe("FamilyPage", () => {
+const testFamilies: Array<APIFamily> = [
+  {
+    id: "111-111-111-111-111",
+    name: "Test Family",
+    description: "Test Family",
+    owner: {
+      id: "11-22-33-44-55",
+      username: "Test User",
+      role: "admin",
+    },
+    species: [],
+    reactions: [],
+  },
+]
+
+describe("Family Editor Page", () => {
   const originalLocation = window.location;
   function createMockData(): AxiosResponse {
     return {
-      data: [
-        {
-          id: "111-111-111-111-111",
-          name: "Test Family",
-          description: "Test Family",
-          owner: {
-            id: "11-22-33-44-55",
-            username: "Test User",
-            role: "admin",
-          },
-        },
-      ] as Array<APIFamily>,
+      data: testFamilies as Array<APIFamily>,
       status: 200,
       statusText: "OK",
       headers: {},
@@ -49,7 +53,7 @@ describe("FamilyPage", () => {
   beforeEach(() => {
     window.location = {
       ...originalLocation,
-      assign: vi.fn((_: string | URL) => {}),
+      assign: vi.fn((_: string | URL) => { }),
     } as any;
     vi.spyOn(axios, "get").mockResolvedValue(createMockData());
 
@@ -134,12 +138,21 @@ describe("MechanismEditor", () => {
             id: "111-111-111-111-111",
             name: "Test Family",
             description: "",
-            mechanisms: [],
+            mechanisms: [{
+              id: "uofsa-w98fai-asf-asf-asf",
+              name: "Test Mechanism",
+              description: "",
+              phases: [],
+              familyId: "111-111-111-111",
+              speciesIds: [],
+              reactionIds: [],
+            }],
             species: [],
             reactions: [],
           }}
           mechanism={{
-            name: "uofsa-w98fai-asf-asf-asf",
+            id: "uofsa-w98fai-asf-asf-asf",
+            name: "Test Mechanism",
             description: "",
             phases: [],
             familyId: "111-111-111-111",
@@ -148,6 +161,52 @@ describe("MechanismEditor", () => {
           }}
           updateMechanism={vi.fn()}
           navigateBack={vi.fn()}
+        />
+      </CustomThemeProvider>,
+    );
+  });
+});
+
+describe("SpeciesView", () => {
+  it("renders", () => {
+    render(
+      <CustomThemeProvider>
+        <SpeciesView
+          family={{
+            id: "111-111-111-111-111",
+            name: "Test Family",
+            description: "",
+            mechanisms: [],
+            species: [{
+              id: "111-111-111-111-333",
+              name: "Test Species",
+              description: "Cool species",
+              familyId: "111-111-111-111-111",
+              attributes: {},
+              isDeleted: false,
+            }],
+            reactions: [
+              {
+                id: "111-111-111-111",
+                name: "Test Reaction",
+                description: "",
+                type: "NONE",
+                reactants: [],
+                products: [],
+                attributes: {}
+              },
+              {
+                id: "222-222-222-222",
+                name: "Another Test Reaction",
+                description: "",
+                type: "FIRST_ORDER_LOSS",
+                reactants: [],
+                products: [],
+                attributes: {}
+              },
+            ],
+          }}
+          updateFamily={vi.fn()}
         />
       </CustomThemeProvider>,
     );
@@ -165,7 +224,26 @@ describe("ReactionsView", () => {
             description: "",
             mechanisms: [],
             species: [],
-            reactions: [],
+            reactions: [
+              {
+                id: "111-111-111-111",
+                name: "Test Reaction",
+                description: "",
+                type: "NONE",
+                reactants: [],
+                products: [],
+                attributes: {}
+              },
+              {
+                id: "222-222-222-222",
+                name: "Another Test Reaction",
+                description: "This one has a description",
+                type: "FIRST_ORDER_LOSS",
+                reactants: [],
+                products: [],
+                attributes: {}
+              },
+            ],
           }}
           updateFamily={vi.fn()}
         />
@@ -183,7 +261,15 @@ describe("MechanismsView", () => {
             id: "111-111-111-111-111",
             name: "Test Family",
             description: "",
-            mechanisms: [],
+            mechanisms: [{
+              id: "uofsa-w98fai-asf-asf-asf",
+              name: "Test Mechanism",
+              description: "",
+              phases: [],
+              familyId: "111-111-111-111",
+              speciesIds: [],
+              reactionIds: [],
+            }],
             species: [],
             reactions: [],
           }}

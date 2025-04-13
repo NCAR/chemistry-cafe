@@ -33,7 +33,7 @@ import {
   emmissionAttributeOptions,
 } from "../types/chemistryModels";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { UnitComponent } from "./UnitComponent";
+import UnitComponent from "./UnitComponent";
 import { SelectSpeciesButton } from "./SelectSpeciesButton";
 
 const modalStyle: SxProps<Theme> = {
@@ -400,7 +400,7 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
               {speciesAttributeOptions.map((element: SpeciesAttribute) => {
                 const attribute =
                   modifiedSpecies?.attributes[
-                    element.serializedKey ?? element.name
+                  element.serializedKey ?? element.name
                   ] ?? element;
                 if (typeof attribute.value == "number") {
                   return (
@@ -417,9 +417,9 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
 
                         // Removes up and down arrows for number
                         "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                          {
-                            display: "none",
-                          },
+                        {
+                          display: "none",
+                        },
                         "& input[type=number]": {
                           MozAppearance: "textfield",
                         },
@@ -955,9 +955,9 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
                     width: "100%",
                     // Removes up and down arrows for number
                     "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                      {
-                        display: "none",
-                      },
+                    {
+                      display: "none",
+                    },
                     "& input[type=number]": {
                       MozAppearance: "textfield",
                     },

@@ -16,6 +16,7 @@ export interface APIFamily {
   description: string;
   owner: APIUser;
   species?: Array<APISpecies>;
+  reactions?: Array<APIReaction>;
 }
 
 export interface APISpecies {
