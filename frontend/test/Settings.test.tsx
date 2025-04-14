@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import Settings from "../src/pages/settings";
+import Settings from "../src/pages/Settings";
 import { AuthProvider } from "../src/components/AuthContext";
 import React from "react";
 import axios, { AxiosHeaders, AxiosResponse } from "axios";
