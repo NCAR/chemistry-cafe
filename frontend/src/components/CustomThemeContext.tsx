@@ -84,6 +84,15 @@ export const highSaturationColors: Readonly<AppearanceSettings> =
     theme: 'high saturation',
   })
 
+export const monochromeColors: Readonly<AppearanceSettings> =
+    Object.freeze({
+        primaryColor: '#696969',
+        secondaryColor: '#d1d1d1',
+        infoColor: '#c1c1c1',
+        errorColor: '#686868',
+        theme: 'monochrome',
+    })
+
 const getThemeOptions = (settings: AppearanceSettings): ThemeOptionsType => ({
   palette: {
     mode: settings.mode,

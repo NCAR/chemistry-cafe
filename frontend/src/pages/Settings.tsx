@@ -8,6 +8,7 @@ import {
   lowSaturationColors,
   highSaturationColors,
   defaultColorSettings,
+  monochromeColors
 } from "../components/CustomThemeContext";
 import {
   Box,
@@ -223,30 +224,29 @@ const AppearanceMenu = () => {
   };
 
   const toggleLowSaturationMode = () => {
-    if (appearanceSettings.theme != "low saturation") {
-      setAppearanceSettings({
-        ...appearanceSettings,
-        ...lowSaturationColors
-      })
-    } else {
-      setAppearanceSettings({
-        ...appearanceSettings,
-        ...defaultColorSettings
-      })
-    }
+    setAppearanceSettings({
+      ...appearanceSettings,
+      ...(appearanceSettings?.theme !== "low saturation"
+          ? lowSaturationColors
+          : defaultColorSettings)
+    })
   }
   const toggleHighSaturationMode = () => {
-    if (appearanceSettings.theme != "high saturation") {
-      setAppearanceSettings({
-        ...appearanceSettings,
-        ...highSaturationColors
-      })
-    } else {
-      setAppearanceSettings({
-        ...appearanceSettings,
-        ...defaultColorSettings
-      })
-    }
+    setAppearanceSettings({
+      ...appearanceSettings,
+      ...(appearanceSettings.theme !== "high saturation"
+          ? highSaturationColors
+          : defaultColorSettings)
+    })
+  }
+
+  const toggleMonochromeMode = () => {
+    setAppearanceSettings({
+      ...appearanceSettings,
+      ...(appearanceSettings?.theme !== "monochrome"
+          ? monochromeColors
+          : defaultColorSettings)
+    })
   }
 
   return (
@@ -304,6 +304,22 @@ const AppearanceMenu = () => {
               </Typography>
             </ListItemText>
             <Switch checked={appearanceSettings?.theme === "high saturation"} />
+          </ListItemButton>
+        </ListItem>
+        <ListItem disablePadding>
+          <ListItemButton
+              aria-label="toggle monochrome theme"
+              onClick={toggleMonochromeMode}
+          >
+            <ListItemText>
+              <Typography color="textPrimary" fontSize="large">
+                Monochrome Theme
+              </Typography>
+              <Typography color="textSecondary" fontSize="medium">
+                This theme may not work with all pages currently
+              </Typography>
+            </ListItemText>
+            <Switch checked={appearanceSettings?.theme === "monochrome"} />
           </ListItemButton>
         </ListItem>
       </List>
