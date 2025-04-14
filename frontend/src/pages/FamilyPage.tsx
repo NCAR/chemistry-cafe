@@ -141,12 +141,12 @@ const FamilyPage = () => {
       try {
         const allFamilies = await getAllFamilies();
         setFamilies(allFamilies.map((element) => apiToFrontendFamily(element)));
-        setLoadingFamilies(false);
       } catch (err) {
         if (!abortController.signal.aborted) {
-          alert(err);
+          console.error(err);
         }
         setFamilies([]);
+      } finally {
         setLoadingFamilies(false);
       }
     };
