@@ -22,6 +22,7 @@ export type AppearanceSettings = {
   infoColor?: string;
   errorColor?: string;
   fontFamily?: string;
+  theme?: string;
 };
 
 // Type used by createTheme() for the theming options
@@ -53,6 +54,16 @@ export const defaultAppearanceSettings: Readonly<AppearanceSettings> =
     secondaryColor: "#edc4ff",
     infoColor: "#03F4FC",
     errorColor: red[500],
+    theme: "default",
+  });
+
+export const lowSaturationSettings: Readonly<AppearanceSettings> =
+  Object.freeze({
+    primaryColor: '#416f9d',
+    secondaryColor: '#dfcae8',
+    infoColor: '#62dbdf',
+    errorColor: '#ae554f',
+    theme: 'low saturation'
   });
 
 const getThemeOptions = (settings: AppearanceSettings): ThemeOptionsType => ({

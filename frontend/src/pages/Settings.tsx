@@ -5,6 +5,7 @@ import {
   defaultAppearanceSettings,
   useCustomTheme,
   dyslexiaFontFamily,
+  lowSaturationSettings,
 } from "../components/CustomThemeContext";
 import {
   Box,
@@ -218,6 +219,24 @@ const AppearanceMenu = () => {
     });
   };
 
+  const toggleLowSaturationMode = () => {
+    if (appearanceSettings.theme != "low saturation") {
+      setAppearanceSettings({
+        ...appearanceSettings,
+        ...lowSaturationSettings
+      })
+    } else {
+      setAppearanceSettings({
+        ...appearanceSettings,
+        primaryColor: defaultAppearanceSettings.primaryColor,
+        secondaryColor: defaultAppearanceSettings.secondaryColor,
+        infoColor: defaultAppearanceSettings.infoColor,
+        errorColor: defaultAppearanceSettings.errorColor,
+        theme: defaultAppearanceSettings.theme,
+      })
+    }
+  }
+
   return (
     <>
       <List
@@ -241,6 +260,22 @@ const AppearanceMenu = () => {
               </Typography>
             </ListItemText>
             <Switch checked={appearanceSettings?.mode === "dark"} />
+          </ListItemButton>
+        </ListItem>
+        <ListItem disablePadding>
+          <ListItemButton
+              aria-label="toggle low saturation theme"
+              onClick={toggleLowSaturationMode}
+          >
+            <ListItemText>
+              <Typography color="textPrimary" fontSize="large">
+                Low Saturation Theme
+              </Typography>
+              <Typography color="textSecondary" fontSize="medium">
+                This theme may not work with all pages currently
+              </Typography>
+            </ListItemText>
+            <Switch checked={appearanceSettings?.theme === "low saturation"} />
           </ListItemButton>
         </ListItem>
       </List>
