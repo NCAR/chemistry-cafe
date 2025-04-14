@@ -1,65 +1,78 @@
-import { describe, expect, it } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import Settings from "../src/pages/settings";
-import { GoogleOAuthProvider } from "@react-oauth/google"; // if needed, depending on your setup
+import Settings from "../src/pages/Settings";
+import { AuthProvider } from "../src/components/AuthContext";
+import React from "react";
+import axios, { AxiosHeaders, AxiosResponse } from "axios";
+import { APIUser } from "../src/API/API_Interfaces";
+import { CustomThemeProvider } from "../src/components/CustomThemeContext";
 
-// describe('Settings Component', () => {
-//   const mockContextValue = {
-//     user: { role: 'admin' }, // Mock user context if necessary
-//     isAuthenticated: true,
-//   };
+const mockUserInfo: APIUser = {
+  role: "admin",
+  email: "test@email.com",
+  username: "Test Account",
+};
 
-//   it('should render the Settings page correctly', () => {
-//     render(
-//       <MemoryRouter>
-//         <GoogleOAuthProvider clientId="YOUR_GOOGLE_OAUTH_CLIENT_ID">
-//           <AuthContext.Provider value={mockContextValue}>
-//             <Settings />
-//           </AuthContext.Provider>
-//         </GoogleOAuthProvider>
-//       </MemoryRouter>
-//     );
+describe("Settings Page", () => {
+  const originalLocation = window.location;
 
-//     // Assert the button and its text
-//     expect(screen.getByText('Back')).toBeInTheDocument();
-//     expect(screen.getByText('WIP')).toBeInTheDocument();
-//   });
+  function createMockUserData(): AxiosResponse {
+    return {
+      data: null,
+      status: 404,
+      statusText: "OK",
+      headers: {},
+      config: {
+        headers: new AxiosHeaders({ "Content-Type": "text/plain" }),
+      },
+    } as AxiosResponse;
+  }
 
-//   it('should navigate to /LoggedIn when "Back" button is clicked', () => {
-//     const { container } = render(
-//       <MemoryRouter initialEntries={['/Settings']}>
-//         <GoogleOAuthProvider clientId="YOUR_GOOGLE_OAUTH_CLIENT_ID">
-//           <AuthContext.Provider value={mockContextValue}>
-//             <Settings />
-//           </AuthContext.Provider>
-//         </GoogleOAuthProvider>
-//       </MemoryRouter>
-//     );
+  beforeEach(() => {
+    window.location = {
+      ...originalLocation,
+      assign: vi.fn((_: string | URL) => {}),
+    } as any;
+    vi.spyOn(axios, "get").mockResolvedValue(createMockUserData());
+    vi.spyOn(axios, "post").mockResolvedValue(createMockUserData());
 
-//     // Get the "Back" button and simulate click
-//     const backButton = screen.getByText('Back');
-//     fireEvent.click(backButton);
-
-//     // Check if navigation occurs (check for the "LoggedIn" route)
-//     expect(container.innerHTML).toContain('/LoggedIn');
-//   });
-// });
-
-describe("Dummy Tests", () => {
-  it("should always pass test 1", () => {
-    expect(true).toBe(true);
+    render(
+      <AuthProvider>
+        <CustomThemeProvider>
+          <MemoryRouter initialEntries={["/", "/loggedIn"]}>
+            <Settings />
+          </MemoryRouter>
+        </CustomThemeProvider>
+      </AuthProvider>,
+    );
   });
 
-  it("should always pass test 2", () => {
-    expect(1 + 1).toBe(2);
+  afterEach(() => {
+    window.location = originalLocation as any;
+    localStorage.clear();
+    cleanup();
   });
 
-  it("should always pass test 3", () => {
-    expect("dummy").toBe("dummy");
+  it("Renders", () => {
+    expect(screen.getByText("App Settings")).toBeTruthy();
   });
 
-  it("should always pass test 4", () => {
-    expect([]).toEqual([]);
+  it("Can navigate to the appearance menu", () => {
+    const appearanceButton = screen.getByText("Appearance");
+    expect(appearanceButton).toBeTruthy();
+    fireEvent.click(appearanceButton);
+  });
+
+  it("Can navigate to the accessibility menu", () => {
+    const accessibilityButton = screen.getByTestId("accessibility-menu-button");
+    expect(accessibilityButton).toBeTruthy();
+    fireEvent.click(accessibilityButton);
+  });
+
+  it("Can navigate to the user settings menu", () => {
+    const userSettingsButton = screen.getByText("My Profile");
+    expect(userSettingsButton).toBeTruthy();
+    fireEvent.click(userSettingsButton);
   });
 });

@@ -41,19 +41,28 @@ export const RowActionsButton: React.FC<RowActionsButtonProps> = ({
       <Tooltip title="Row Actions" disableInteractive>
         <GridActionsCellItem
           aria-label="Expand Row Actions"
+          data-testid="row-actions-button"
           icon={<MoreVertIcon />}
           label="View Properties"
           onClick={handleMenuOpen}
         ></GridActionsCellItem>
       </Tooltip>
       <Menu open={open} anchorEl={anchorEl} onClose={handleMenuClose}>
-        <MenuItem onClick={handleEditButtonClick}>
+        <MenuItem
+          aria-label="Edit this table row"
+          data-testid="edit-row"
+          onClick={handleEditButtonClick}
+        >
           <ListItemIcon>
             <EditIcon color="action" />
           </ListItemIcon>
           <Typography>Edit</Typography>
         </MenuItem>
-        <MenuItem onClick={handleDeleteButtonClick}>
+        <MenuItem
+          aria-label="Delete this table row"
+          data-testid="delete-row"
+          onClick={handleDeleteButtonClick}
+        >
           <ListItemIcon>
             <DeleteIcon color="error" />
           </ListItemIcon>

@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: If you use this software, please cite it as below.
-title: Chemistry Cafes
-version: 0.0.0
+title: Chemistry Cafe
+version: 1.6.1
 authors:
   - family-names: Dawson
     given-names: Matthew
@@ -36,4 +36,4 @@ authors:
   - family-names: Fontenot
     given-names: James
 license: Apache-2.0
-url: "https://github.com/NCAR/music-box-interactive-client"
+url: "https://github.com/NCAR/chemistry-cafe"

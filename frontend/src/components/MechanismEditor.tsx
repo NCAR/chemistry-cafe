@@ -100,15 +100,29 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
         </Button>
       </Box>
       <Tabs value={selectedTab} onChange={(_, value) => setSelectedTab(value)}>
-        <Tab value={TabValue.Info} label={"Info"}></Tab>
-        <Tab value={TabValue.Species} label={"Species"}></Tab>
-        <Tab value={TabValue.Reactions} label={"Reactions"}></Tab>
-        <Tab value={TabValue.Phases} label={"Phases"} disabled></Tab>
+        <Tab data-testid="mechanism-tab" value={TabValue.Info} label={"Info"} />
         <Tab
+          data-testid="mechanism-tab"
+          value={TabValue.Species}
+          label={"Species"}
+        ></Tab>
+        <Tab
+          data-testid="mechanism-tab"
+          value={TabValue.Reactions}
+          label={"Reactions"}
+        />
+        <Tab
+          data-testid="mechanism-tab"
+          value={TabValue.Phases}
+          label={"Phases"}
+          disabled
+        />
+        <Tab
+          data-testid="mechanism-tab"
           value={TabValue.InitialConditions}
           label={"Initial Conditions"}
           disabled
-        ></Tab>
+        />
       </Tabs>
       {selectedTab === TabValue.Info && (
         <Box

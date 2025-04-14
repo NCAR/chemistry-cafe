@@ -17,12 +17,14 @@ import { updateFamily } from "../API/API_UpdateMethods";
  */
 export function apiToFrontendSpecies(apiSpecies: APISpecies): Species {
   if (!apiSpecies.id) {
-    throw new Error("Species id is undefined");
+    throw new Error(
+      "Species id is undefined. This means the API definition was either created on the frontend or the backend has a problem with its JSON.",
+    );
   }
 
   const formattedSpecies: Species = {
     id: apiSpecies.id,
-    name: apiSpecies.name ?? "",
+    name: apiSpecies.name ?? "<Empty>",
     description: apiSpecies.description,
     attributes: {},
     familyId: apiSpecies.familyId,
@@ -41,8 +43,9 @@ export function apiToFrontendSpecies(apiSpecies: APISpecies): Species {
 export function frontendToAPISpecies(species: Species): APISpecies {
   // FIXME
   const formattedSpecies: APISpecies = {
-    name: null,
-    description: null,
+    id: species.id as UUID,
+    name: species.name,
+    description: species.description,
     familyId: species.familyId as UUID,
   };
 
@@ -57,6 +60,11 @@ export function frontendToAPISpecies(species: Species): APISpecies {
  * @param apiReaction
  */
 export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
+  if (!apiReaction.id) {
+    throw new Error(
+      "Reaction id is undefined. This means the API definition was either created on the frontend or the backend has a problem with its JSON.",
+    );
+  }
   // FIXME
   return {
     id: apiReaction.id!,
@@ -79,9 +87,9 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
 export function frontendToAPIReaction(reaction: Reaction): APIReaction {
   // FIXME
   return {
+    id: reaction.id as UUID,
     name: reaction.name,
     description: reaction.description,
-    createdBy: "",
   };
 }
 
