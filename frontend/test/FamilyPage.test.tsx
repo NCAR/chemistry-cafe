@@ -266,14 +266,46 @@ describe("SpeciesView", () => {
     expect(nameBox).toBeTruthy();
     expect(nameBox.value).toBeFalsy();
 
-    // Input new species name
+    const descriptionBox = screen.getByLabelText("Description") as HTMLInputElement;
+    expect(descriptionBox).toBeTruthy();
+    expect(descriptionBox.value).toBeFalsy();
+
+    const molecularWeightBox = screen.getByLabelText("Molecular Weight") as HTMLInputElement;
+    expect(molecularWeightBox).toBeTruthy();
+    expect(molecularWeightBox.value).toEqual("0");
+
+    // Input new properties
     await user.type(nameBox, "Test Species");
     expect(nameBox.value).toEqual("Test Species");
+    await user.type(descriptionBox, "Species Description");
+    expect(descriptionBox.value).toEqual("Species Description");
+    await user.type(molecularWeightBox, "1e-7");
+    expect(molecularWeightBox.value).toEqual("1e-7");
 
     const saveButton = screen.getByTestId("save-species-changes");
     fireEvent.click(saveButton);
 
     expect(updateFamily).toHaveBeenCalled();
+  });
+
+  it("Errors when new species name is empty", async () => {
+    const user = userEvent.setup();
+    const addSpeciesButton = screen.getByTestId("add-species-button");
+    fireEvent.click(addSpeciesButton);
+
+    const nameBox = screen.getByLabelText("Name *") as HTMLInputElement;
+    expect(nameBox).toBeTruthy();
+    expect(nameBox.value).toBeFalsy();
+
+    const saveButton = screen.getByTestId("save-species-changes");
+    fireEvent.click(saveButton);
+
+    expect(updateFamily).not.toHaveBeenCalled();
+
+    // Try again
+    await user.type(nameBox, "Test Species");
+    expect(nameBox.value).toEqual("Test Species");
+    fireEvent.click(saveButton);
   });
 
   it("Can remove species", async () => {
@@ -313,7 +345,7 @@ describe("ReactionsView", () => {
                 id: "111-111-111-111",
                 name: "Test Reaction",
                 description: "",
-                type: "NONE",
+                type: "ARRHENIUS",
                 reactants: [{
                   speciesId: "111-111-111-111-333",
                   coefficient: 1.0
@@ -366,9 +398,13 @@ describe("ReactionsView", () => {
     expect(nameBox).toBeTruthy();
     expect(nameBox.value).toBeFalsy();
 
-    // Input new species name
+    const reactionTypeDropdown = screen.getByLabelText("Reaction Type");
+
+    // Input new species values
     await user.type(nameBox, "Test Species");
     expect(nameBox.value).toEqual("Test Species");
+
+    fireEvent.click(reactionTypeDropdown);
 
     const saveButton = screen.getByTestId("save-reaction-changes");
     fireEvent.click(saveButton);
@@ -475,6 +511,29 @@ describe("MechanismsView", () => {
     const finishMechanismButton = screen.getByTestId("create-new-mechanism-button");
     fireEvent.click(finishMechanismButton);
 
+    expect(updateFamily).toHaveBeenCalled();
+  });
+
+  it("Errors when new mechanism name is empty", async () => {
+    const user = userEvent.setup();
+
+    const createMechanismButton = screen.getByTestId("create-mechanism-button");
+    fireEvent.click(createMechanismButton);
+
+    const nameBox = screen.getByLabelText("Name *") as HTMLInputElement;
+    expect(nameBox).toBeTruthy();
+    expect(nameBox.value).toBeFalsy();
+
+    let finishMechanismButton = screen.getByTestId("create-new-mechanism-button");
+    fireEvent.click(finishMechanismButton);
+    expect(updateFamily).not.toHaveBeenCalled();
+
+    // Try again
+    await user.type(nameBox, "Another Test Mechanism");
+    expect(nameBox.value).toEqual("Another Test Mechanism");
+
+    finishMechanismButton = screen.getByTestId("create-new-mechanism-button");
+    fireEvent.click(finishMechanismButton);
     expect(updateFamily).toHaveBeenCalled();
   });
 

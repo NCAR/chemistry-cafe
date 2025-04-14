@@ -26,11 +26,7 @@ import {
   Species,
   SpeciesAttribute,
   ReactionAttribute,
-  arrheniusAttributeOptions,
-  firstOrderLossAttributeOptions,
-  troeAttributeOptions,
-  photolysisAttributeOptions,
-  emmissionAttributeOptions,
+  attributeOptions,
 } from "../types/chemistryModels";
 import DeleteIcon from "@mui/icons-material/Delete";
 import UnitComponent from "./UnitComponent";
@@ -145,7 +141,6 @@ export const FamilyCreationModal: React.FC<FamilyCreationModalProps> = ({
                 flex: 1,
               }}
               aria-label="Create Family"
-              data-testid
               color="primary"
               variant="contained"
               onClick={handleFamilyCreation}
@@ -573,21 +568,10 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
   const getReactionAttributes = (
     type?: ReactionTypeName,
   ): Array<ReactionAttribute> => {
-    switch (type) {
-      case "FIRST_ORDER_LOSS":
-        return firstOrderLossAttributeOptions;
-      case "TROE":
-        return troeAttributeOptions;
-      case "PHOTOLYSIS":
-        return photolysisAttributeOptions;
-      case "EMMISSION":
-        return emmissionAttributeOptions;
-      case "ARRHENIUS":
-        return arrheniusAttributeOptions;
-      case "NONE":
-      default:
-        return [];
+    if (!type) {
+      return [];
     }
+    return attributeOptions[type] ?? [];
   };
 
   useLayoutEffect(() => {
@@ -658,13 +642,13 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
             }}
           />
 
-          <Typography color="textPrimary" variant="h6">
+          <Typography component="label" id="reaction-type-label" color="textPrimary" variant="h6">
             Reaction Type
           </Typography>
           <Select
-            labelId="reaction-type-label"
+            aria-labelledby="reaction-type-label"
             id="reaction-type"
-            aria-label="Reaction Type"
+            aria-label="Choose Reaction Type"
             defaultValue={reaction?.type ?? "NONE"}
             color="primary"
             onChange={(event) => {
@@ -685,6 +669,7 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
               setDefaultAttributes(attributes);
             }}
           >
+            {/* TODO add more reaction types */}
             <MenuItem value="NONE">None</MenuItem>
             <MenuItem value="TROE">Troe</MenuItem>
             <MenuItem value="PHOTOLYSIS">Photolysis</MenuItem>
