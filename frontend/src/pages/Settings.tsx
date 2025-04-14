@@ -357,6 +357,23 @@ const AccessibilityMenu = () => {
                 onChangeCommitted={(_, value) => {setFontSize(Number(value))}}
               />
             </Box>
+            <Input
+              value={fontSliderValue}
+              size="small"
+              onChange={(e) => {
+                let n: number = Number(e.target.value);
+                if (n <  5)  n =  5;
+                if (n > 50)  n = 50;
+                setFontSliderValue(n); 
+                setFontSize(n);
+              }}
+              inputProps={{
+                step: 2,
+                min: 5,
+                max: 50,
+                type: 'number',
+              }}
+            />
           </Paper>
         </ListItem>
         <ListItem>
