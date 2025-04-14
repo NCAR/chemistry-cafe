@@ -146,6 +146,7 @@ const Settings = () => {
                         ? "primary"
                         : "textPrimary"
                     }
+                    data-testid="accessibility-menu-button"
                   >
                     Accessibility
                   </Typography>

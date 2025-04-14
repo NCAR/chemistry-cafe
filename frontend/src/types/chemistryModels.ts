@@ -2,7 +2,6 @@ import { UUID } from "crypto";
 import { APIUser } from "../API/API_Interfaces";
 
 export type SpeciesAttribute = {
-
   /** Name of the attribute */
   name: string;
 
@@ -64,7 +63,7 @@ export const speciesAttributeOptions: Array<SpeciesAttribute> = [
     serializedKey: "tracer type",
     value: "",
   }),
-]
+];
 
 /**
  * Represents a species utilized on the frontend. A species is a substance which can take on any name.
@@ -101,7 +100,6 @@ export type Species = {
 };
 
 export type ReactionAttribute = {
-
   /** Name of the property */
   name: string;
 
@@ -114,94 +112,6 @@ export type ReactionAttribute = {
   /** Used when the value is a string (This is not stored in the database) */
   options?: Array<string>;
 };
-
-export const arrheniusAttributeOptions: Array<ReactionAttribute> = [
-  {
-    name: "A",
-    value: 0.0
-  },
-  {
-    name: "B",
-    value: 0.0
-  },
-  {
-    name: "C",
-    value: 0.0
-  },
-  {
-    name: "D",
-    value: 0.0
-  },
-  {
-    name: "E",
-    value: 0.0
-  },
-];
-
-export const emmissionAttributeOptions: Array<ReactionAttribute> = [
-  {
-    name: "Scaling Factor",
-    serializedKey: "scaling factor",
-    value: 0.0,
-  },
-];
-
-export const photolysisAttributeOptions: Array<ReactionAttribute> = [
-  {
-    name: "Scaling Factor",
-    serializedKey: "scaling factor",
-    value: 0.0,
-  },
-];
-
-export const firstOrderLossAttributeOptions: Array<ReactionAttribute> = [
-  {
-    name: "Scaling Factor",
-    serializedKey: "scaling factor",
-    value: 0.0,
-  },
-];
-
-export const troeAttributeOptions: Array<ReactionAttribute> = [
-  {
-    name: "k0 A",
-    serializedKey: "k0_A",
-    value: 0.0,
-  },
-  {
-    name: "k0 B",
-    serializedKey: "k0_B",
-    value: 0.0,
-  },
-  {
-    name: "k0 C",
-    serializedKey: "k0_C",
-    value: 0.0,
-  },
-  {
-    name: "kinf A",
-    serializedKey: "kinf_A",
-    value: 0.0,
-  },
-  {
-    name: "kinf B",
-    serializedKey: "kinf_B",
-    value: 0.0,
-  },
-  {
-    name: "kinf C",
-    serializedKey: "kinf_C",
-    value: 0.0,
-  },
-  {
-    name: "Fc",
-    value: 0.0,
-  },
-  {
-    name: "N",
-    value: 0.0,
-  },
-];
 
 export type ReactionTypeName =
   | "NONE"
@@ -219,6 +129,105 @@ export type ReactionTypeName =
   | "BRANCHED_NO_RO2"
   | "TUNNELING"
   | "WET_DEPOSITION";
+
+export const attributeOptions: {
+  [Property in ReactionTypeName]: Array<ReactionAttribute>;
+} = {
+  ARRHENIUS: [
+    {
+      name: "A",
+      value: 0.0,
+    },
+    {
+      name: "B",
+      value: 0.0,
+    },
+    {
+      name: "C/Ea",
+      value: 0.0,
+    },
+    {
+      name: "D",
+      value: 0.0,
+    },
+    {
+      name: "E",
+      value: 0.0,
+    },
+  ],
+  EMMISSION: [
+    {
+      name: "Scaling Factor",
+      serializedKey: "scaling factor",
+      value: 0.0,
+    },
+  ],
+  PHOTOLYSIS: [
+    {
+      name: "Scaling Factor",
+      serializedKey: "scaling factor",
+      value: 0.0,
+    },
+  ],
+  FIRST_ORDER_LOSS: [
+    {
+      name: "Scaling Factor",
+      serializedKey: "scaling factor",
+      value: 0.0,
+    },
+  ],
+  TROE: [
+    {
+      name: "k0 A",
+      serializedKey: "k0_A",
+      value: 0.0,
+    },
+    {
+      name: "k0 B",
+      serializedKey: "k0_B",
+      value: 0.0,
+    },
+    {
+      name: "k0 C",
+      serializedKey: "k0_C",
+      value: 0.0,
+    },
+    {
+      name: "kinf A",
+      serializedKey: "kinf_A",
+      value: 0.0,
+    },
+    {
+      name: "kinf B",
+      serializedKey: "kinf_B",
+      value: 0.0,
+    },
+    {
+      name: "kinf C",
+      serializedKey: "kinf_C",
+      value: 0.0,
+    },
+    {
+      name: "Fc",
+      value: 0.0,
+    },
+    {
+      name: "N",
+      value: 0.0,
+    },
+  ],
+  // TODO add the rest of the reaction types
+  NONE: [],
+  HL_PHASE_TRANSFER: [],
+  SIMPOL_PHASE_TRANSFER: [],
+  AQUEOUS_EQUILIBRIUM: [],
+  CONDENSED_PHASE_ARRHENIUS: [],
+  CONDENSED_PHASE_PHOTOLYSIS: [],
+  SURFACE: [],
+  BRANCHED_NO_RO2: [],
+  TUNNELING: [],
+  WET_DEPOSITION: [],
+};
 
 /**
  * Represents a generic reaction on the frontend.

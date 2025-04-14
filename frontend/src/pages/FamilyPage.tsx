@@ -13,8 +13,8 @@ import {
   Typography,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
+import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
 import { TreeItem, treeItemClasses } from "@mui/x-tree-view/TreeItem";
 import {
@@ -59,7 +59,8 @@ const FamilyPage = () => {
   const [loadingFamilies, setLoadingFamilies] = useState<boolean>(true);
   const [families, setFamilies] = useState<Array<Family>>();
   const [dataView, setDataView] = useState<React.JSX.Element>(<DefaultView />);
-  const [familyCreationModalOpen, setFamilyCreationModalOpen] = useState<boolean>(false);
+  const [familyCreationModalOpen, setFamilyCreationModalOpen] =
+    useState<boolean>(false);
   const currentMenuName = useRef<DataViewSelection>(DataViewSelection.Default);
 
   const { appearanceSettings } = useCustomTheme();
@@ -108,13 +109,17 @@ const FamilyPage = () => {
   };
 
   /**
-   * Callback when a tree item is selected. 
-   * @param _ 
-   * @param itemId 
-   * @param isSelected 
-   * @returns 
+   * Callback when a tree item is selected.
+   * @param _
+   * @param itemId
+   * @param isSelected
+   * @returns
    */
-  const handleTreeItemToggle = (_: React.SyntheticEvent, itemId: string, isSelected: boolean) => {
+  const handleTreeItemToggle = (
+    _: React.SyntheticEvent,
+    itemId: string,
+    isSelected: boolean,
+  ) => {
     if (!isSelected) {
       return;
     }
@@ -127,13 +132,8 @@ const FamilyPage = () => {
       return;
     }
 
-    setDataView(
-      getDataViewComponent(
-        menuName,
-        family,
-      ),
-    );
-  }
+    setDataView(getDataViewComponent(menuName, family));
+  };
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -141,12 +141,12 @@ const FamilyPage = () => {
       try {
         const allFamilies = await getAllFamilies();
         setFamilies(allFamilies.map((element) => apiToFrontendFamily(element)));
-        setLoadingFamilies(false);
       } catch (err) {
         if (!abortController.signal.aborted) {
-          alert(err);
+          console.error(err);
         }
         setFamilies([]);
+      } finally {
         setLoadingFamilies(false);
       }
     };
@@ -168,14 +168,18 @@ const FamilyPage = () => {
 
   const removeFamilyLocally = (family: Family): void => {
     setFamilies(families?.filter((element) => element.id != family.id));
-  }
+  };
 
   return (
     <div className="layout-family-editor">
       <header>
         <Header />
       </header>
-      <Paper square component="main" className="content-family-editor main-content">
+      <Paper
+        square
+        component="main"
+        className="content-family-editor main-content"
+      >
         <div className="family-selector">
           <Paper
             component="div"
@@ -194,6 +198,8 @@ const FamilyPage = () => {
             <Tooltip title="Create Family">
               <IconButton
                 aria-label="Create Family"
+                id="create-family-button"
+                data-testid="create-family-button"
                 onClick={() => setFamilyCreationModalOpen(true)}
               >
                 <AddIcon
@@ -213,6 +219,7 @@ const FamilyPage = () => {
                     aria-label={`Expand options for ${family.name || "No name"} family`}
                     key={`${family.id}-${index}`}
                     itemId={`${family.id}-${index}`}
+                    data-testid={`${family.id}-tree-item`}
                     label={
                       <div
                         style={{
@@ -246,7 +253,6 @@ const FamilyPage = () => {
                           <IconButton
                             onClick={() => {
                               removeFamilyLocally(family);
-
                             }}
                             aria-label={`Remove ${family.name || "No Name"} family from the editor`}
                             edge="start"
@@ -261,15 +267,18 @@ const FamilyPage = () => {
                       itemId={`${family.id};${DataViewSelection.Species}`}
                       label={`Species (${family.species.filter((element) => !element.isDeleted).length})`}
                       aria-label="Open Species Editor"
+                      data-testid={`${family.id}-species-tree-button`}
                     />
                     <TreeItem
                       itemId={`${family.id};${DataViewSelection.Reactions}`}
                       label={`Reactions (${family.reactions.filter((element) => !element.isDeleted).length})`}
                       aria-label="Open Reactions Editor"
+                      data-testid={`${family.id}-reactions-tree-button`}
                     />
                     <TreeItem
                       itemId={`${family.id};${DataViewSelection.Mechanisms}`}
                       label={`Mechanisms (${family.mechanisms.length})`}
+                      data-testid={`${family.id}-mechanisms-tree-button`}
                     />
                   </FamilyTreeItem>
                 ))}
@@ -395,16 +404,17 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
 
   /**
    * Updates a given species or inserts it if it doesn't already exist in the list
-   * @param species 
+   * @param species
    */
   const updateSpecies = (species: Species) => {
     const speciesList = [...family.species];
-    const existingIndex = speciesList.findIndex(element => element.id == species.id)
+    const existingIndex = speciesList.findIndex(
+      (element) => element.id == species.id,
+    );
 
     if (existingIndex >= 0) {
       speciesList[existingIndex] = species;
-    }
-    else {
+    } else {
       speciesList.unshift(species);
     }
 
@@ -493,9 +503,7 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
           columnGap: "0.5rem",
         }}
       >
-        <Typography
-          color="textPrimary"
-          variant="h4">
+        <Typography color="textPrimary" variant="h4">
           Chemical Species
         </Typography>
         <Tooltip title="Chemical species are forms of a specific chemical entity. They can be named anything as long as it is clear what it represents. For example, a chemical species may be represented as either 'O' or 'Ozone'.">
@@ -509,7 +517,8 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
         initialState={{ density: "compact" }}
         rows={family.species.filter((element) => !element.isDeleted)}
         columns={speciesColumns}
-        autoPageSize
+        pageSizeOptions={[5, 10, 20, 100]}
+        disableVirtualization // Enables DataGrid to be rendered in testing
         sx={{
           flex: 1,
           ".MuiDataGrid-columnHeaderTitle": {
@@ -523,10 +532,13 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
           toolbar: () => (
             <DataViewToolbar
               customButton={
-                <Tooltip
-                  title="Add species to family"
-                >
-                  <Button onClick={createSpecies} color="primary">
+                <Tooltip title="Add species to family">
+                  <Button
+                    aria-label="Add species to family"
+                    data-testid="add-species-button"
+                    onClick={createSpecies}
+                    color="primary"
+                  >
                     <AddIcon />
                     <Typography variant="caption">Add Species</Typography>
                   </Button>
@@ -597,12 +609,13 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
 
   const updateReaction = (reaction: Reaction) => {
     const reactionList = [...family.reactions];
-    const existingIndex = reactionList.findIndex(element => element.id === reaction.id);
+    const existingIndex = reactionList.findIndex(
+      (element) => element.id === reaction.id,
+    );
 
     if (existingIndex >= 0) {
       reactionList[existingIndex] = reaction;
-    }
-    else {
+    } else {
       reactionList.unshift(reaction);
     }
 
@@ -731,9 +744,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
           columnGap: "0.5rem",
         }}
       >
-        <Typography
-          color="textPrimary"
-          variant="h4">
+        <Typography color="textPrimary" variant="h4">
           Chemical Reactions
         </Typography>
         <Tooltip title="Chemical reactions consist of reactants which create products during a certain phase. They can also be tuned with specific parameters given by the reaction type.">
@@ -747,7 +758,8 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
         initialState={{ density: "compact" }}
         rows={family.reactions.filter((element) => !element.isDeleted)}
         columns={reactionsColumns}
-        autoPageSize
+        pageSizeOptions={[5, 10, 20, 100]}
+        disableVirtualization
         sx={{
           flex: 1,
           ".MuiDataGrid-columnHeaderTitle": {
@@ -761,10 +773,13 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
           toolbar: () => (
             <DataViewToolbar
               customButton={
-                <Tooltip
-                  title="Add reaction to family"
-                >
-                  <Button onClick={createReaction} color="primary">
+                <Tooltip title="Add reaction to family">
+                  <Button
+                    aria-label="Add Reaction"
+                    data-testid="add-reaction-button"
+                    onClick={createReaction}
+                    color="primary"
+                  >
                     <AddIcon />
                     <Typography variant="caption">Add Reaction</Typography>
                   </Button>
@@ -786,19 +801,30 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
 };
 
 export const MechanismsView = ({ family, updateFamily }: ViewProps) => {
-  const [mechanismCreationModalOpen, setMechanismCreationModalOpen] = useState<boolean>(false);
-  const [selectedMechanism, setSelectedMechanism] = useState<Mechanism | null>(null);
-  const [menuComponent, setMenuComponent] = useState<React.JSX.Element | null>(null);
+  const [mechanismCreationModalOpen, setMechanismCreationModalOpen] =
+    useState<boolean>(false);
+  const [selectedMechanism, setSelectedMechanism] = useState<Mechanism | null>(
+    null,
+  );
+  const [menuComponent, setMenuComponent] = useState<React.JSX.Element | null>(
+    null,
+  );
 
   const createMechanism = (mechanism: Mechanism) => {
     updateFamily({
       ...family,
-      mechanisms: [mechanism, ...family.mechanisms],
+      mechanisms: [
+        {
+          ...mechanism,
+          familyId: family.id,
+        },
+        ...family.mechanisms,
+      ],
     });
     setMechanismCreationModalOpen(false);
     setSelectedMechanism(mechanism);
     window.onbeforeunload = () => true;
-  }
+  };
 
   const updateMechanism = (mechanism: Mechanism) => {
     updateFamily({
@@ -811,15 +837,20 @@ export const MechanismsView = ({ family, updateFamily }: ViewProps) => {
           };
         }
         return element;
-      })
+      }),
     });
     setSelectedMechanism(mechanism);
     // TODO Update Mechanism in backend
-  }
+  };
 
   const getMenuComponent = (mechanism: Mechanism | null): React.JSX.Element => {
     if (!mechanism) {
-      return <MechanismBrowser family={family} onEditButtonClick={setSelectedMechanism} />
+      return (
+        <MechanismBrowser
+          family={family}
+          onEditButtonClick={setSelectedMechanism}
+        />
+      );
     }
 
     return (
@@ -832,7 +863,7 @@ export const MechanismsView = ({ family, updateFamily }: ViewProps) => {
         }}
       />
     );
-  }
+  };
 
   useLayoutEffect(() => {
     const component = getMenuComponent(selectedMechanism);
@@ -849,9 +880,7 @@ export const MechanismsView = ({ family, updateFamily }: ViewProps) => {
           columnGap: "0.5rem",
         }}
       >
-        <Typography
-          color="textPrimary"
-          variant="h4">
+        <Typography color="textPrimary" variant="h4">
           Mechanisms
         </Typography>
         <Tooltip title="Mechanisms contain a subset of a family's entities. They represent an analytical model in a specific family.">
@@ -862,17 +891,19 @@ export const MechanismsView = ({ family, updateFamily }: ViewProps) => {
         {family.name}
       </Typography>
 
-      {
-        !selectedMechanism &&
-        <Tooltip
-          title="Create a new chemical mechanism"
-        >
-          <Button onClick={() => setMechanismCreationModalOpen(true)} color="primary">
-            <AddIcon />
+      {!selectedMechanism && (
+        <Tooltip title="Create a new chemical mechanism">
+          <Button
+            aria-label="Create a new mechanism"
+            data-testid="create-mechanism-button"
+            onClick={() => setMechanismCreationModalOpen(true)}
+            startIcon={<AddIcon />}
+            color="primary"
+          >
             <Typography variant="caption">Create New Mechanism</Typography>
           </Button>
         </Tooltip>
-      }
+      )}
       {menuComponent}
       <MechanismCreationModal
         open={mechanismCreationModalOpen}

@@ -17,9 +17,9 @@ export async function createFamily(familyData: APIFamily): Promise<APIFamily> {
   const response = await axios.post(`${BASE_URL}/families`, familyData, {
     withCredentials: true,
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
     },
-  })
+  });
 
   return response.data as APIFamily;
 }
@@ -30,13 +30,15 @@ export async function createFamily(familyData: APIFamily): Promise<APIFamily> {
  * @throws HTTP errors
  * @returns Data as represented in the database
  */
-export async function createSpecies(speciesData: APISpecies): Promise<APISpecies> {
+export async function createSpecies(
+  speciesData: APISpecies,
+): Promise<APISpecies> {
   const response = await axios.post(`${BASE_URL}/species`, speciesData, {
     withCredentials: true,
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
     },
-  })
+  });
 
   return response.data as APISpecies;
 }
@@ -47,14 +49,15 @@ export async function createSpecies(speciesData: APISpecies): Promise<APISpecies
  * @throws HTTP errors
  * @returns Data as represented in the database
  */
-export async function createReaction(reactionData: APIReaction): Promise<APIReaction> {
-  const response = await axios.post(`${BASE_URL}/reactions`, reactionData,
-    {
-      withCredentials: true,
-      headers: {
-        "Content-Type": "application/json"
-      },
-    })
+export async function createReaction(
+  reactionData: APIReaction,
+): Promise<APIReaction> {
+  const response = await axios.post(`${BASE_URL}/reactions`, reactionData, {
+    withCredentials: true,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 
   return response.data as APIReaction;
 }
@@ -62,16 +65,18 @@ export async function createReaction(reactionData: APIReaction): Promise<APIReac
 /**
  * Creates a new mechanism and returns the real mechanism object from the database
  * @param mechanismData Data to upload
- * @throws HTTP errors 
+ * @throws HTTP errors
  * @returns Data as represented in the database
  */
-export async function createMechanism(mechanismData: APIMechanism): Promise<APIMechanism> {
+export async function createMechanism(
+  mechanismData: APIMechanism,
+): Promise<APIMechanism> {
   const response = await axios.post(`${BASE_URL}/mechanisms`, mechanismData, {
     withCredentials: true,
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
     },
-  })
+  });
 
   return response.data as APIMechanism;
 }
