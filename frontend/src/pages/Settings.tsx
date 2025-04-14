@@ -14,7 +14,6 @@ import {
   Box,
   Button,
   Divider,
-  IconButton,
   List,
   ListItem,
   ListItemButton,
@@ -34,9 +33,7 @@ import SettingsAccessibilityIcon from "@mui/icons-material/SettingsAccessibility
 import TvIcon from "@mui/icons-material/Tv";
 import TextFieldsIcon from "@mui/icons-material/TextFields";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import AddCircleOutlineOutlinedIcon from "@mui/icons-material/AddCircleOutlineOutlined";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import RemoveCircleOutlineOutlinedIcon from "@mui/icons-material/RemoveCircleOutlineOutlined";
 import SpellcheckIcon from "@mui/icons-material/Spellcheck";
 import {
   blue,
