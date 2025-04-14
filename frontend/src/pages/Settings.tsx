@@ -5,7 +5,9 @@ import {
   defaultAppearanceSettings,
   useCustomTheme,
   dyslexiaFontFamily,
-  lowSaturationSettings,
+  lowSaturationColors,
+  highSaturationColors,
+  defaultColorSettings,
 } from "../components/CustomThemeContext";
 import {
   Box,
@@ -224,16 +226,25 @@ const AppearanceMenu = () => {
     if (appearanceSettings.theme != "low saturation") {
       setAppearanceSettings({
         ...appearanceSettings,
-        ...lowSaturationSettings
+        ...lowSaturationColors
       })
     } else {
       setAppearanceSettings({
         ...appearanceSettings,
-        primaryColor: defaultAppearanceSettings.primaryColor,
-        secondaryColor: defaultAppearanceSettings.secondaryColor,
-        infoColor: defaultAppearanceSettings.infoColor,
-        errorColor: defaultAppearanceSettings.errorColor,
-        theme: defaultAppearanceSettings.theme,
+        ...defaultColorSettings
+      })
+    }
+  }
+  const toggleHighSaturationMode = () => {
+    if (appearanceSettings.theme != "high saturation") {
+      setAppearanceSettings({
+        ...appearanceSettings,
+        ...highSaturationColors
+      })
+    } else {
+      setAppearanceSettings({
+        ...appearanceSettings,
+        ...defaultColorSettings
       })
     }
   }
@@ -277,6 +288,22 @@ const AppearanceMenu = () => {
               </Typography>
             </ListItemText>
             <Switch checked={appearanceSettings?.theme === "low saturation"} />
+          </ListItemButton>
+        </ListItem>
+        <ListItem disablePadding>
+          <ListItemButton
+              aria-label="toggle high saturation theme"
+              onClick={toggleHighSaturationMode}
+          >
+            <ListItemText>
+              <Typography color="textPrimary" fontSize="large">
+                High Saturation Theme
+              </Typography>
+              <Typography color="textSecondary" fontSize="medium">
+                This theme may not work with all pages currently
+              </Typography>
+            </ListItemText>
+            <Switch checked={appearanceSettings?.theme === "high saturation"} />
           </ListItemButton>
         </ListItem>
       </List>

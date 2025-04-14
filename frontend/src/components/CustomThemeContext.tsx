@@ -57,7 +57,16 @@ export const defaultAppearanceSettings: Readonly<AppearanceSettings> =
     theme: "default",
   });
 
-export const lowSaturationSettings: Readonly<AppearanceSettings> =
+export const defaultColorSettings: Readonly<AppearanceSettings> =
+  Object.freeze({
+    primaryColor: defaultAppearanceSettings.primaryColor,
+    secondaryColor: defaultAppearanceSettings.secondaryColor,
+    infoColor: defaultAppearanceSettings.infoColor,
+    errorColor: defaultAppearanceSettings.errorColor,
+    theme: defaultAppearanceSettings.theme,
+  })
+
+export const lowSaturationColors: Readonly<AppearanceSettings> =
   Object.freeze({
     primaryColor: '#416f9d',
     secondaryColor: '#dfcae8',
@@ -65,6 +74,15 @@ export const lowSaturationSettings: Readonly<AppearanceSettings> =
     errorColor: '#ae554f',
     theme: 'low saturation'
   });
+
+export const highSaturationColors: Readonly<AppearanceSettings> =
+  Object.freeze({
+    primaryColor: '#0083ff',
+    secondaryColor: '#ffb7ff',
+    infoColor: '#00ffff',
+    errorColor: '#ff1e04',
+    theme: 'high saturation',
+  })
 
 const getThemeOptions = (settings: AppearanceSettings): ThemeOptionsType => ({
   palette: {
