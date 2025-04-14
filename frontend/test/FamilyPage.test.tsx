@@ -9,6 +9,7 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
+import userEvent from '@testing-library/user-event';
 import axios, { AxiosHeaders, AxiosResponse } from "axios";
 import { APIFamily } from "../src/API/API_Interfaces";
 import FamilyPage, {
@@ -78,6 +79,9 @@ describe("Family Editor Page", () => {
     await waitFor(() => {
       expect(screen.getByText("Test Family")).toBeTruthy();
     });
+
+    expect(screen.queryByText("Not Real Family")).toBeFalsy();
+
     const testFamilyTreeButton = screen.getByLabelText(
       "Expand options for Test Family family",
     );
@@ -86,29 +90,28 @@ describe("Family Editor Page", () => {
     fireEvent.click(testFamilyTreeButton!);
   });
 
-  it("Can create an entire family", async () => {
+  it("Can create a family", async () => {
+    const user = userEvent.setup();
     await waitFor(() => {
       expect(screen.getByText("Test Family")).toBeTruthy();
     });
-    const createFamilyButton = screen.getByLabelText("Create Family");
+    const createFamilyButton = screen.getByTestId("create-family-button");
     expect(createFamilyButton).toBeTruthy();
     fireEvent.click(createFamilyButton);
 
-    const nameBox = screen.getByLabelText("Name *");
+    const nameBox = screen.getByLabelText("Name *") as HTMLInputElement;
     expect(nameBox).toBeTruthy();
-    fireEvent.focus(nameBox);
-    fireEvent.keyDown(nameBox, {
-      key: "p",
-    });
+    expect(nameBox.value).toBeFalsy();
 
-    const descriptionBox = screen.getByLabelText("Description");
-    expect(descriptionBox).toBeTruthy();
+    // Input the new family name
+    await user.type(nameBox, "Another Family");
+    expect(nameBox.value).toEqual("Another Family");
 
     const creationButton = screen.getByText("Create");
     fireEvent.click(creationButton);
 
-    // const familyButton = screen.getByText("p");
-    // expect(familyButton).toBeTruthy();
+    const familyButton = screen.queryByText("Another Family");
+    expect(familyButton).toBeTruthy();
   });
 
   it("Errors when name is empty for family", () => {
@@ -118,7 +121,6 @@ describe("Family Editor Page", () => {
 
     const nameBox = screen.getByLabelText("Name *");
     expect(nameBox).toBeTruthy();
-    nameBox.innerText = "Test Family";
 
     const descriptionBox = screen.getByLabelText("Description");
     expect(descriptionBox).toBeTruthy();
@@ -126,6 +128,21 @@ describe("Family Editor Page", () => {
     let creationButton = screen.getByText("Create");
     expect(creationButton).toBeTruthy();
     fireEvent.click(creationButton);
+  });
+
+  it("Allows editing species for families", async () => {
+    const user = userEvent.setup();
+    await waitFor(() => {
+      expect(screen.getByText("Test Family")).toBeTruthy();
+    });
+
+    const testFamilyTreeItem = screen.getByTestId(`${testFamilies[0].id!}-tree-item`);
+    const expandTreeItemButton = testFamilyTreeItem.querySelector("div");
+    expect(expandTreeItemButton).toBeTruthy();
+    fireEvent.click(expandTreeItemButton!); // Clicks the clickable element in the <>
+
+    // TODO Fix non-deterministic behavior of this
+    // const speciesButton = screen.getByTestId(`${testFamilies[0].id!}-species-tree-button`);
   });
 });
 
@@ -185,7 +202,7 @@ describe("SpeciesView", () => {
               attributes: {},
               isDeleted: false,
               isInDatabase: true,
-              isModified: false,
+              isModified: false
             }],
             reactions: [
               {

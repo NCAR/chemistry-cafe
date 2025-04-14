@@ -110,6 +110,7 @@ export const FamilyCreationModal: React.FC<FamilyCreationModalProps> = ({
             color="primary"
             error={nameError}
             id="family-name"
+            role="textbox"
             label="Name"
             required
             onChange={(event) => {
@@ -123,6 +124,7 @@ export const FamilyCreationModal: React.FC<FamilyCreationModalProps> = ({
             }}
             color="primary"
             id="family-description"
+            data-testid="family-description-input"
             label="Description"
             multiline
             minRows={2}
@@ -143,6 +145,7 @@ export const FamilyCreationModal: React.FC<FamilyCreationModalProps> = ({
                 flex: 1,
               }}
               aria-label="Create Family"
+              data-testid
               color="primary"
               variant="contained"
               onClick={handleFamilyCreation}

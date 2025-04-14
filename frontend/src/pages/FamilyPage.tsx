@@ -198,6 +198,8 @@ const FamilyPage = () => {
             <Tooltip title="Create Family">
               <IconButton
                 aria-label="Create Family"
+                id="create-family-button"
+                data-testid="create-family-button"
                 onClick={() => setFamilyCreationModalOpen(true)}
               >
                 <AddIcon
@@ -217,6 +219,7 @@ const FamilyPage = () => {
                     aria-label={`Expand options for ${family.name || "No name"} family`}
                     key={`${family.id}-${index}`}
                     itemId={`${family.id}-${index}`}
+                    data-testid={`${family.id}-tree-item`}
                     label={
                       <div
                         style={{
@@ -264,15 +267,18 @@ const FamilyPage = () => {
                       itemId={`${family.id};${DataViewSelection.Species}`}
                       label={`Species (${family.species.filter((element) => !element.isDeleted).length})`}
                       aria-label="Open Species Editor"
-                    />
+                      data-testid={`${family.id}-species-tree-button`}
+                      />
                     <TreeItem
                       itemId={`${family.id};${DataViewSelection.Reactions}`}
                       label={`Reactions (${family.reactions.filter((element) => !element.isDeleted).length})`}
                       aria-label="Open Reactions Editor"
-                    />
+                      data-testid={`${family.id}-reactions-tree-button`}
+                      />
                     <TreeItem
                       itemId={`${family.id};${DataViewSelection.Mechanisms}`}
                       label={`Mechanisms (${family.mechanisms.length})`}
+                      data-testid={`${family.id}-mechanisms-tree-button`}
                     />
                   </FamilyTreeItem>
                 ))}
