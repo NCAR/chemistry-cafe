@@ -32,7 +32,7 @@ describe("Settings Page", () => {
   beforeEach(() => {
     window.location = {
       ...originalLocation,
-      assign: vi.fn((_: string | URL) => { }),
+      assign: vi.fn((_: string | URL) => {}),
     } as any;
     vi.spyOn(axios, "get").mockResolvedValue(createMockUserData());
     vi.spyOn(axios, "post").mockResolvedValue(createMockUserData());
@@ -76,4 +76,3 @@ describe("Settings Page", () => {
     fireEvent.click(userSettingsButton);
   });
 });
-

@@ -10,8 +10,8 @@ import { APIUser } from "../src/API/API_Interfaces";
 
 const userData: APIUser = {
   username: "",
-  role: "verified"
-}
+  role: "verified",
+};
 
 vi.mock("../src/components/AuthContext", () => {
   return {
@@ -19,17 +19,16 @@ vi.mock("../src/components/AuthContext", () => {
       return {
         user: userData,
       };
-    }
-  }
+    },
+  };
 });
-
 
 describe("Unauthorized Page", () => {
   it("Renders", () => {
     render(
       <MemoryRouter initialEntries={["/"]}>
         <Unauthorized />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     cleanup();
@@ -47,7 +46,7 @@ describe("ProtectedRoute", () => {
         <ProtectedRoute requiredRole="admin">
           <p>Test Page</p>
         </ProtectedRoute>
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     expect(screen.queryAllByText("Test Page").length).toBe(0);
@@ -61,7 +60,7 @@ describe("ProtectedRoute", () => {
         <ProtectedRoute requiredRole="verified">
           <p>Test Page</p>
         </ProtectedRoute>
-      </MemoryRouter>
+      </MemoryRouter>,
     );
   });
 });

@@ -1,4 +1,14 @@
-import { describe, expect, it, beforeEach, afterEach, vi, test, beforeAll, afterAll } from "vitest";
+import {
+  describe,
+  expect,
+  it,
+  beforeEach,
+  afterEach,
+  vi,
+  test,
+  beforeAll,
+  afterAll,
+} from "vitest";
 import { AuthProvider } from "../src/components/AuthContext";
 import { MemoryRouter } from "react-router-dom";
 import React from "react";
@@ -9,7 +19,7 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import userEvent from '@testing-library/user-event';
+import userEvent from "@testing-library/user-event";
 import axios, { AxiosHeaders, AxiosResponse } from "axios";
 import { APIFamily } from "../src/API/API_Interfaces";
 import FamilyPage, {
@@ -35,7 +45,7 @@ const testFamilies: Array<APIFamily> = [
     species: [],
     reactions: [],
   },
-]
+];
 
 describe("Family Editor Page", () => {
   const originalLocation = window.location;
@@ -54,7 +64,7 @@ describe("Family Editor Page", () => {
   beforeEach(() => {
     window.location = {
       ...originalLocation,
-      assign: vi.fn((_: string | URL) => { }),
+      assign: vi.fn((_: string | URL) => {}),
     } as any;
     vi.spyOn(axios, "get").mockResolvedValue(createMockData());
 
@@ -141,37 +151,47 @@ describe("MechanismEditor", () => {
             id: "111-111-111-111-111",
             name: "Test Family",
             description: "",
-            mechanisms: [{
-              id: "111-111-111-111-111",
-              name: "Test Mechanism",
-              description: "",
-              phases: [],
-              familyId: "111-111-111-111",
-              speciesIds: ["111-111-111-111-111"],
-              reactionIds: ["111-111-111-111-111"],
-            }],
-            species: [{
-              id: "111-111-111-111-111",
-              name: "Test Species",
-              description: null,
-              familyId: "",
-              attributes: {}
-            }],
-            reactions: [{
-              id: "111-111-111-111-111",
-              name: "Test Reaction",
-              description: null,
-              type: "NONE",
-              reactants: [{
-                speciesId: "111-111-111-111-111",
-                coefficient: 0
-              }],
-              products: [{
-                speciesId: "111-111-111-111-111",
-                coefficient: 0
-              }],
-              attributes: {}
-            }],
+            mechanisms: [
+              {
+                id: "111-111-111-111-111",
+                name: "Test Mechanism",
+                description: "",
+                phases: [],
+                familyId: "111-111-111-111",
+                speciesIds: ["111-111-111-111-111"],
+                reactionIds: ["111-111-111-111-111"],
+              },
+            ],
+            species: [
+              {
+                id: "111-111-111-111-111",
+                name: "Test Species",
+                description: null,
+                familyId: "",
+                attributes: {},
+              },
+            ],
+            reactions: [
+              {
+                id: "111-111-111-111-111",
+                name: "Test Reaction",
+                description: null,
+                type: "NONE",
+                reactants: [
+                  {
+                    speciesId: "111-111-111-111-111",
+                    coefficient: 0,
+                  },
+                ],
+                products: [
+                  {
+                    speciesId: "111-111-111-111-111",
+                    coefficient: 0,
+                  },
+                ],
+                attributes: {},
+              },
+            ],
           }}
           mechanism={{
             id: "111-111-111-111-111",
@@ -202,7 +222,7 @@ describe("SpeciesView", () => {
   let updateFamily = vi.fn();
 
   beforeEach(() => {
-    updateFamily = vi.fn()
+    updateFamily = vi.fn();
     render(
       <CustomThemeProvider>
         <SpeciesView
@@ -211,16 +231,18 @@ describe("SpeciesView", () => {
             name: "Test Family",
             description: "",
             mechanisms: [],
-            species: [{
-              id: "111-111-111-111-333",
-              name: "Test Species",
-              description: "Cool species",
-              familyId: "111-111-111-111-111",
-              attributes: {},
-              isDeleted: false,
-              isInDatabase: true,
-              isModified: false
-            }],
+            species: [
+              {
+                id: "111-111-111-111-333",
+                name: "Test Species",
+                description: "Cool species",
+                familyId: "111-111-111-111-111",
+                attributes: {},
+                isDeleted: false,
+                isInDatabase: true,
+                isModified: false,
+              },
+            ],
             reactions: [
               {
                 id: "111-111-111-111",
@@ -229,7 +251,7 @@ describe("SpeciesView", () => {
                 type: "NONE",
                 reactants: [],
                 products: [],
-                attributes: {}
+                attributes: {},
               },
               {
                 id: "222-222-222-222",
@@ -238,7 +260,7 @@ describe("SpeciesView", () => {
                 type: "FIRST_ORDER_LOSS",
                 reactants: [],
                 products: [],
-                attributes: {}
+                attributes: {},
               },
             ],
           }}
@@ -250,7 +272,7 @@ describe("SpeciesView", () => {
 
   afterEach(() => {
     cleanup();
-  })
+  });
 
   it("renders", () => {
     expect(screen.getByText("Chemical Species")).toBeTruthy();
@@ -266,11 +288,15 @@ describe("SpeciesView", () => {
     expect(nameBox).toBeTruthy();
     expect(nameBox.value).toBeFalsy();
 
-    const descriptionBox = screen.getByLabelText("Description") as HTMLInputElement;
+    const descriptionBox = screen.getByLabelText(
+      "Description",
+    ) as HTMLInputElement;
     expect(descriptionBox).toBeTruthy();
     expect(descriptionBox.value).toBeFalsy();
 
-    const molecularWeightBox = screen.getByLabelText("Molecular Weight") as HTMLInputElement;
+    const molecularWeightBox = screen.getByLabelText(
+      "Molecular Weight",
+    ) as HTMLInputElement;
     expect(molecularWeightBox).toBeTruthy();
     expect(molecularWeightBox.value).toEqual("0");
 
@@ -330,46 +356,56 @@ describe("ReactionsView", () => {
             name: "Test Family",
             description: "",
             mechanisms: [],
-            species: [{
-              id: "111-111-111-111-333",
-              name: "Test Species",
-              description: "Cool species",
-              familyId: "111-111-111-111-111",
-              attributes: {},
-              isDeleted: false,
-              isInDatabase: true,
-              isModified: false
-            }],
+            species: [
+              {
+                id: "111-111-111-111-333",
+                name: "Test Species",
+                description: "Cool species",
+                familyId: "111-111-111-111-111",
+                attributes: {},
+                isDeleted: false,
+                isInDatabase: true,
+                isModified: false,
+              },
+            ],
             reactions: [
               {
                 id: "111-111-111-111",
                 name: "Test Reaction",
                 description: "",
                 type: "ARRHENIUS",
-                reactants: [{
-                  speciesId: "111-111-111-111-333",
-                  coefficient: 1.0
-                }],
-                products: [{
-                  speciesId: "111-111-111-111-333",
-                  coefficient: 1.0
-                }],
-                attributes: {}
+                reactants: [
+                  {
+                    speciesId: "111-111-111-111-333",
+                    coefficient: 1.0,
+                  },
+                ],
+                products: [
+                  {
+                    speciesId: "111-111-111-111-333",
+                    coefficient: 1.0,
+                  },
+                ],
+                attributes: {},
               },
               {
                 id: "222-222-222-222",
                 name: "Another Test Reaction",
                 description: "This one has a description",
                 type: "FIRST_ORDER_LOSS",
-                reactants: [{
-                  speciesId: "111-111-111-111-333",
-                  coefficient: 2
-                }],
-                products: [{
-                  speciesId: "111-111-111-111-333",
-                  coefficient: 2
-                }],
-                attributes: {}
+                reactants: [
+                  {
+                    speciesId: "111-111-111-111-333",
+                    coefficient: 2,
+                  },
+                ],
+                products: [
+                  {
+                    speciesId: "111-111-111-111-333",
+                    coefficient: 2,
+                  },
+                ],
+                attributes: {},
               },
             ],
           }}
@@ -446,43 +482,53 @@ describe("MechanismsView", () => {
             id: "111-111-111-111-111",
             name: "Test Family",
             description: "",
-            mechanisms: [{
-              id: "111-111-111-111-111",
-              name: "Test Mechanism",
-              description: "",
-              phases: [],
-              familyId: "111-111-111-111",
-              speciesIds: ["111-111-111-111-111"],
-              reactionIds: ["111-111-111-111-111"],
-            }],
-            species: [{
-              id: "111-111-111-111-111",
-              name: "Test Species",
-              description: null,
-              familyId: "",
-              attributes: {}
-            }],
-            reactions: [{
-              id: "111-111-111-111-111",
-              name: "Test Reaction",
-              description: null,
-              type: "NONE",
-              reactants: [{
-                speciesId: "111-111-111-111-111",
-                coefficient: 0
-              }],
-              products: [{
-                speciesId: "111-111-111-111-111",
-                coefficient: 0
-              }],
-              attributes: {}
-            }],
+            mechanisms: [
+              {
+                id: "111-111-111-111-111",
+                name: "Test Mechanism",
+                description: "",
+                phases: [],
+                familyId: "111-111-111-111",
+                speciesIds: ["111-111-111-111-111"],
+                reactionIds: ["111-111-111-111-111"],
+              },
+            ],
+            species: [
+              {
+                id: "111-111-111-111-111",
+                name: "Test Species",
+                description: null,
+                familyId: "",
+                attributes: {},
+              },
+            ],
+            reactions: [
+              {
+                id: "111-111-111-111-111",
+                name: "Test Reaction",
+                description: null,
+                type: "NONE",
+                reactants: [
+                  {
+                    speciesId: "111-111-111-111-111",
+                    coefficient: 0,
+                  },
+                ],
+                products: [
+                  {
+                    speciesId: "111-111-111-111-111",
+                    coefficient: 0,
+                  },
+                ],
+                attributes: {},
+              },
+            ],
           }}
           updateFamily={updateFamily}
         />
       </CustomThemeProvider>,
     );
-  })
+  });
 
   afterEach(() => {
     window.URL.createObjectURL = originalCreateObjectURL;
@@ -508,7 +554,9 @@ describe("MechanismsView", () => {
     await user.type(nameBox, "Another Test Mechanism");
     expect(nameBox.value).toEqual("Another Test Mechanism");
 
-    const finishMechanismButton = screen.getByTestId("create-new-mechanism-button");
+    const finishMechanismButton = screen.getByTestId(
+      "create-new-mechanism-button",
+    );
     fireEvent.click(finishMechanismButton);
 
     expect(updateFamily).toHaveBeenCalled();
@@ -524,7 +572,9 @@ describe("MechanismsView", () => {
     expect(nameBox).toBeTruthy();
     expect(nameBox.value).toBeFalsy();
 
-    let finishMechanismButton = screen.getByTestId("create-new-mechanism-button");
+    let finishMechanismButton = screen.getByTestId(
+      "create-new-mechanism-button",
+    );
     fireEvent.click(finishMechanismButton);
     expect(updateFamily).not.toHaveBeenCalled();
 
@@ -549,7 +599,6 @@ describe("MechanismsView", () => {
     const jsonButton = screen.getByTestId("download-v1-json");
     const yamlButton = screen.getByTestId("download-v1-yaml");
     const musicBoxButton = screen.getByTestId("download-v0-zip");
-
 
     fireEvent.click(jsonButton);
     fireEvent.click(yamlButton);

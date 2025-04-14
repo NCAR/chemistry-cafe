@@ -17,7 +17,9 @@ import { updateFamily } from "../API/API_UpdateMethods";
  */
 export function apiToFrontendSpecies(apiSpecies: APISpecies): Species {
   if (!apiSpecies.id) {
-    throw new Error("Species id is undefined. This means the API definition was either created on the frontend or the backend has a problem with its JSON.");
+    throw new Error(
+      "Species id is undefined. This means the API definition was either created on the frontend or the backend has a problem with its JSON.",
+    );
   }
 
   const formattedSpecies: Species = {
@@ -59,7 +61,9 @@ export function frontendToAPISpecies(species: Species): APISpecies {
  */
 export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
   if (!apiReaction.id) {
-    throw new Error("Reaction id is undefined. This means the API definition was either created on the frontend or the backend has a problem with its JSON.");
+    throw new Error(
+      "Reaction id is undefined. This means the API definition was either created on the frontend or the backend has a problem with its JSON.",
+    );
   }
   // FIXME
   return {

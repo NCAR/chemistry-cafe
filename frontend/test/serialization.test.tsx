@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { Family, Mechanism, Reaction, Species } from "../src/types/chemistryModels";
-import { serializeMechanismJSON, serializeMechanismMusicBox, serializeMechanismYAML } from "../src/helpers/serialization";
+import {
+  Family,
+  Mechanism,
+  Reaction,
+  Species,
+} from "../src/types/chemistryModels";
+import {
+  serializeMechanismJSON,
+  serializeMechanismMusicBox,
+  serializeMechanismYAML,
+} from "../src/helpers/serialization";
 
 const species: Species = {
   id: "111-222-333-444-555",
@@ -8,7 +17,7 @@ const species: Species = {
   description: null,
   familyId: "",
   attributes: {
-    "weight": {
+    weight: {
       name: "weight",
       value: 1e-2,
     },
@@ -16,9 +25,9 @@ const species: Species = {
       name: "Density",
       serializedKey: "density [kg m3]",
       value: 1e-2,
-    }
-  }
-}
+    },
+  },
+};
 
 const reaction: Reaction = {
   id: "111-222-333-444-555",
@@ -43,7 +52,7 @@ const reaction: Reaction = {
     {
       speciesId: "not-real-id",
       coefficient: 1,
-    }
+    },
   ],
   attributes: {
     "attribute [mol]": {
@@ -55,8 +64,8 @@ const reaction: Reaction = {
       name: "another attribute",
       value: 1.0,
     },
-  }
-}
+  },
+};
 
 const mechanism: Mechanism = {
   name: "Test Mechanism",
@@ -64,8 +73,8 @@ const mechanism: Mechanism = {
   phases: [],
   familyId: "1234",
   speciesIds: [species.id],
-  reactionIds: [reaction.id]
-}
+  reactionIds: [reaction.id],
+};
 
 const family: Family = {
   id: "1234",
@@ -73,8 +82,8 @@ const family: Family = {
   description: "",
   mechanisms: [],
   species: [species],
-  reactions: [reaction]
-}
+  reactions: [reaction],
+};
 
 describe("Mechanism Serialization", () => {
   describe("JSON Serialization", () => {
@@ -96,7 +105,5 @@ describe("Mechanism Serialization", () => {
       const result = serializeMechanismMusicBox(mechanism, family);
       expect(typeof result).toBe("object");
     });
-  })
-
-
+  });
 });
