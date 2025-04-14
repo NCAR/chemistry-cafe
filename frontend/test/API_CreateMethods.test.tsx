@@ -51,7 +51,6 @@ const mockAPIMechanism: APIMechanism = {
 const mockAPIReaction: APIReaction = {
   name: "",
   description: null,
-  createdBy: "",
 };
 
 describe.each([

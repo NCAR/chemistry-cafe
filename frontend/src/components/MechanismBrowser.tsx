@@ -46,6 +46,8 @@ export const MechanismBrowser: React.FC<MechanismBrowserProps> = ({
           <ButtonGroup variant="contained">
             {onEditButtonClick && (
               <Button
+                aria-label="Edit this mechanism"
+                data-testid="edit-mechanism"
                 startIcon={<EditIcon />}
                 sx={{ textTransform: "none" }}
                 color="primary"

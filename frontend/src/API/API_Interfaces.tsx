@@ -39,7 +39,6 @@ export interface APIReaction {
   id?: UUID;
   name: string;
   description: string | null;
-  createdBy: string;
 }
 
 export interface APIReactionSpecies {

@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach, afterEach, vi, test } from "vitest";
+import { describe, expect, it, beforeEach, afterEach, vi, test, beforeAll, afterAll } from "vitest";
 import { AuthProvider } from "../src/components/AuthContext";
 import { MemoryRouter } from "react-router-dom";
 import React from "react";
@@ -95,6 +95,7 @@ describe("Family Editor Page", () => {
     await waitFor(() => {
       expect(screen.getByText("Test Family")).toBeTruthy();
     });
+
     const createFamilyButton = screen.getByTestId("create-family-button");
     expect(createFamilyButton).toBeTruthy();
     fireEvent.click(createFamilyButton);
@@ -129,25 +130,10 @@ describe("Family Editor Page", () => {
     expect(creationButton).toBeTruthy();
     fireEvent.click(creationButton);
   });
-
-  it("Allows editing species for families", async () => {
-    const user = userEvent.setup();
-    await waitFor(() => {
-      expect(screen.getByText("Test Family")).toBeTruthy();
-    });
-
-    const testFamilyTreeItem = screen.getByTestId(`${testFamilies[0].id!}-tree-item`);
-    const expandTreeItemButton = testFamilyTreeItem.querySelector("div");
-    expect(expandTreeItemButton).toBeTruthy();
-    fireEvent.click(expandTreeItemButton!); // Clicks the clickable element in the <>
-
-    // TODO Fix non-deterministic behavior of this
-    // const speciesButton = screen.getByTestId(`${testFamilies[0].id!}-species-tree-button`);
-  });
 });
 
 describe("MechanismEditor", () => {
-  it("renders", () => {
+  it("Can navigate between tabs", () => {
     render(
       <CustomThemeProvider>
         <MechanismEditor
@@ -156,36 +142,67 @@ describe("MechanismEditor", () => {
             name: "Test Family",
             description: "",
             mechanisms: [{
-              id: "uofsa-w98fai-asf-asf-asf",
+              id: "111-111-111-111-111",
               name: "Test Mechanism",
               description: "",
               phases: [],
               familyId: "111-111-111-111",
-              speciesIds: [],
-              reactionIds: [],
+              speciesIds: ["111-111-111-111-111"],
+              reactionIds: ["111-111-111-111-111"],
             }],
-            species: [],
-            reactions: [],
+            species: [{
+              id: "111-111-111-111-111",
+              name: "Test Species",
+              description: null,
+              familyId: "",
+              attributes: {}
+            }],
+            reactions: [{
+              id: "111-111-111-111-111",
+              name: "Test Reaction",
+              description: null,
+              type: "NONE",
+              reactants: [{
+                speciesId: "111-111-111-111-111",
+                coefficient: 0
+              }],
+              products: [{
+                speciesId: "111-111-111-111-111",
+                coefficient: 0
+              }],
+              attributes: {}
+            }],
           }}
           mechanism={{
-            id: "uofsa-w98fai-asf-asf-asf",
+            id: "111-111-111-111-111",
             name: "Test Mechanism",
             description: "",
             phases: [],
             familyId: "111-111-111-111",
-            speciesIds: [],
-            reactionIds: [],
+            speciesIds: ["111-111-111-111-111"],
+            reactionIds: ["111-111-111-111-111"],
           }}
           updateMechanism={vi.fn()}
           navigateBack={vi.fn()}
         />
       </CustomThemeProvider>,
     );
+
+    const tabs = screen.getAllByTestId("mechanism-tab");
+    for (const tab of tabs) {
+      expect(tab).toBeTruthy();
+      fireEvent.click(tab);
+    }
+
+    cleanup();
   });
 });
 
 describe("SpeciesView", () => {
-  it("renders", () => {
+  let updateFamily = vi.fn();
+
+  beforeEach(() => {
+    updateFamily = vi.fn()
     render(
       <CustomThemeProvider>
         <SpeciesView
@@ -225,15 +242,54 @@ describe("SpeciesView", () => {
               },
             ],
           }}
-          updateFamily={vi.fn()}
+          updateFamily={updateFamily}
         />
       </CustomThemeProvider>,
     );
   });
+
+  afterEach(() => {
+    cleanup();
+  })
+
+  it("renders", () => {
+    expect(screen.getByText("Chemical Species")).toBeTruthy();
+  });
+
+  it("Can create species", async () => {
+    const user = userEvent.setup();
+
+    const addSpeciesButton = screen.getByTestId("add-species-button");
+    fireEvent.click(addSpeciesButton);
+
+    const nameBox = screen.getByLabelText("Name *") as HTMLInputElement;
+    expect(nameBox).toBeTruthy();
+    expect(nameBox.value).toBeFalsy();
+
+    // Input new species name
+    await user.type(nameBox, "Test Species");
+    expect(nameBox.value).toEqual("Test Species");
+
+    const saveButton = screen.getByTestId("save-species-changes");
+    fireEvent.click(saveButton);
+
+    expect(updateFamily).toHaveBeenCalled();
+  });
+
+  it("Can remove species", async () => {
+    const actionsButton = screen.getByTestId("row-actions-button");
+    fireEvent.click(actionsButton);
+
+    const deleteButton = screen.getByTestId("delete-row");
+    fireEvent.click(deleteButton);
+    expect(updateFamily).toHaveBeenCalled();
+  });
 });
 
 describe("ReactionsView", () => {
-  it("renders", () => {
+  const updateFamily = vi.fn();
+
+  beforeEach(() => {
     render(
       <CustomThemeProvider>
         <ReactionsView
@@ -242,15 +298,30 @@ describe("ReactionsView", () => {
             name: "Test Family",
             description: "",
             mechanisms: [],
-            species: [],
+            species: [{
+              id: "111-111-111-111-333",
+              name: "Test Species",
+              description: "Cool species",
+              familyId: "111-111-111-111-111",
+              attributes: {},
+              isDeleted: false,
+              isInDatabase: true,
+              isModified: false
+            }],
             reactions: [
               {
                 id: "111-111-111-111",
                 name: "Test Reaction",
                 description: "",
                 type: "NONE",
-                reactants: [],
-                products: [],
+                reactants: [{
+                  speciesId: "111-111-111-111-333",
+                  coefficient: 1.0
+                }],
+                products: [{
+                  speciesId: "111-111-111-111-333",
+                  coefficient: 1.0
+                }],
                 attributes: {}
               },
               {
@@ -258,21 +329,80 @@ describe("ReactionsView", () => {
                 name: "Another Test Reaction",
                 description: "This one has a description",
                 type: "FIRST_ORDER_LOSS",
-                reactants: [],
-                products: [],
+                reactants: [{
+                  speciesId: "111-111-111-111-333",
+                  coefficient: 2
+                }],
+                products: [{
+                  speciesId: "111-111-111-111-333",
+                  coefficient: 2
+                }],
                 attributes: {}
               },
             ],
           }}
-          updateFamily={vi.fn()}
+          updateFamily={updateFamily}
         />
       </CustomThemeProvider>,
     );
   });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  it("renders", () => {
+    expect(screen.getByText("Chemical Reactions")).toBeTruthy();
+  });
+
+  it("Can create reactions", async () => {
+    const user = userEvent.setup();
+
+    const addReactionButton = screen.getAllByTestId("add-reaction-button")[0];
+    expect(addReactionButton).toBeTruthy();
+    fireEvent.click(addReactionButton);
+
+    const nameBox = screen.getByLabelText("Name *") as HTMLInputElement;
+    expect(nameBox).toBeTruthy();
+    expect(nameBox.value).toBeFalsy();
+
+    // Input new species name
+    await user.type(nameBox, "Test Species");
+    expect(nameBox.value).toEqual("Test Species");
+
+    const saveButton = screen.getByTestId("save-reaction-changes");
+    fireEvent.click(saveButton);
+
+    expect(updateFamily).toHaveBeenCalled();
+  });
+
+  it("Can remove reactions", async () => {
+    const actionsButton = screen.getAllByTestId("row-actions-button")[0];
+    fireEvent.click(actionsButton);
+
+    const deleteButton = screen.getByTestId("delete-row");
+    fireEvent.click(deleteButton);
+    expect(updateFamily).toHaveBeenCalled();
+  });
+
+  it("Can edit reactions", async () => {
+    const actionsButton = screen.getAllByTestId("row-actions-button")[0];
+    fireEvent.click(actionsButton);
+
+    const deleteButton = screen.getByTestId("edit-row");
+    fireEvent.click(deleteButton);
+  });
 });
 
 describe("MechanismsView", () => {
-  it("renders", () => {
+  let updateFamily = vi.fn();
+  const originalCreateObjectURL = window.URL.createObjectURL;
+  const originalRevokeObjectURL = window.URL.revokeObjectURL;
+
+  beforeEach(() => {
+    window.URL.createObjectURL = vi.fn(() => "blob:null/19483");
+    window.URL.revokeObjectURL = vi.fn(() => undefined);
+    updateFamily = vi.fn();
     render(
       <CustomThemeProvider>
         <MechanismsView
@@ -281,20 +411,89 @@ describe("MechanismsView", () => {
             name: "Test Family",
             description: "",
             mechanisms: [{
-              id: "uofsa-w98fai-asf-asf-asf",
+              id: "111-111-111-111-111",
               name: "Test Mechanism",
               description: "",
               phases: [],
               familyId: "111-111-111-111",
-              speciesIds: [],
-              reactionIds: [],
+              speciesIds: ["111-111-111-111-111"],
+              reactionIds: ["111-111-111-111-111"],
             }],
-            species: [],
-            reactions: [],
+            species: [{
+              id: "111-111-111-111-111",
+              name: "Test Species",
+              description: null,
+              familyId: "",
+              attributes: {}
+            }],
+            reactions: [{
+              id: "111-111-111-111-111",
+              name: "Test Reaction",
+              description: null,
+              type: "NONE",
+              reactants: [{
+                speciesId: "111-111-111-111-111",
+                coefficient: 0
+              }],
+              products: [{
+                speciesId: "111-111-111-111-111",
+                coefficient: 0
+              }],
+              attributes: {}
+            }],
           }}
-          updateFamily={vi.fn()}
+          updateFamily={updateFamily}
         />
       </CustomThemeProvider>,
     );
+  })
+
+  afterEach(() => {
+    window.URL.createObjectURL = originalCreateObjectURL;
+    window.URL.revokeObjectURL = originalRevokeObjectURL;
+    cleanup();
+  });
+
+  it("renders", () => {
+    expect(screen.getByText("Mechanisms")).toBeTruthy();
+  });
+
+  it("Can create mechanisms", async () => {
+    const user = userEvent.setup();
+
+    const createMechanismButton = screen.getByTestId("create-mechanism-button");
+    fireEvent.click(createMechanismButton);
+
+    const nameBox = screen.getByLabelText("Name *") as HTMLInputElement;
+    expect(nameBox).toBeTruthy();
+    expect(nameBox.value).toBeFalsy();
+
+    // Input new mechanism name
+    await user.type(nameBox, "Another Test Mechanism");
+    expect(nameBox.value).toEqual("Another Test Mechanism");
+
+    const finishMechanismButton = screen.getByTestId("create-new-mechanism-button");
+    fireEvent.click(finishMechanismButton);
+
+    expect(updateFamily).toHaveBeenCalled();
+  });
+
+  it("Can edit an existing mechanism", () => {
+    const editButton = screen.getAllByTestId("edit-mechanism")[0];
+    fireEvent.click(editButton);
+  });
+
+  it("Can download existing mechanisms", () => {
+    const downloadButton = screen.getAllByTestId("download-mechanism")[0];
+    fireEvent.click(downloadButton);
+
+    const jsonButton = screen.getByTestId("download-v1-json");
+    const yamlButton = screen.getByTestId("download-v1-yaml");
+    const musicBoxButton = screen.getByTestId("download-v0-zip");
+
+
+    fireEvent.click(jsonButton);
+    fireEvent.click(yamlButton);
+    fireEvent.click(musicBoxButton);
   });
 });

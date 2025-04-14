@@ -268,13 +268,13 @@ const FamilyPage = () => {
                       label={`Species (${family.species.filter((element) => !element.isDeleted).length})`}
                       aria-label="Open Species Editor"
                       data-testid={`${family.id}-species-tree-button`}
-                      />
+                    />
                     <TreeItem
                       itemId={`${family.id};${DataViewSelection.Reactions}`}
                       label={`Reactions (${family.reactions.filter((element) => !element.isDeleted).length})`}
                       aria-label="Open Reactions Editor"
                       data-testid={`${family.id}-reactions-tree-button`}
-                      />
+                    />
                     <TreeItem
                       itemId={`${family.id};${DataViewSelection.Mechanisms}`}
                       label={`Mechanisms (${family.mechanisms.length})`}
@@ -517,7 +517,7 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
         initialState={{ density: "compact" }}
         rows={family.species.filter((element) => !element.isDeleted)}
         columns={speciesColumns}
-        autoPageSize
+        pageSizeOptions={[5, 10, 20, 100]}
         disableVirtualization // Enables DataGrid to be rendered in testing
         sx={{
           flex: 1,
@@ -533,7 +533,12 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
             <DataViewToolbar
               customButton={
                 <Tooltip title="Add species to family">
-                  <Button onClick={createSpecies} color="primary">
+                  <Button
+                    aria-label="Add species to family"
+                    data-testid="add-species-button"
+                    onClick={createSpecies}
+                    color="primary"
+                  >
                     <AddIcon />
                     <Typography variant="caption">Add Species</Typography>
                   </Button>
@@ -753,7 +758,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
         initialState={{ density: "compact" }}
         rows={family.reactions.filter((element) => !element.isDeleted)}
         columns={reactionsColumns}
-        autoPageSize
+        pageSizeOptions={[5, 10, 20, 100]}
         disableVirtualization
         sx={{
           flex: 1,
@@ -769,7 +774,12 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
             <DataViewToolbar
               customButton={
                 <Tooltip title="Add reaction to family">
-                  <Button onClick={createReaction} color="primary">
+                  <Button
+                    aria-label="Add Reaction"
+                    data-testid="add-reaction-button"
+                    onClick={createReaction}
+                    color="primary"
+                  >
                     <AddIcon />
                     <Typography variant="caption">Add Reaction</Typography>
                   </Button>
@@ -803,7 +813,13 @@ export const MechanismsView = ({ family, updateFamily }: ViewProps) => {
   const createMechanism = (mechanism: Mechanism) => {
     updateFamily({
       ...family,
-      mechanisms: [mechanism, ...family.mechanisms],
+      mechanisms: [
+        {
+          ...mechanism,
+          familyId: family.id,
+        },
+        ...family.mechanisms,
+      ],
     });
     setMechanismCreationModalOpen(false);
     setSelectedMechanism(mechanism);
@@ -878,10 +894,12 @@ export const MechanismsView = ({ family, updateFamily }: ViewProps) => {
       {!selectedMechanism && (
         <Tooltip title="Create a new chemical mechanism">
           <Button
+            aria-label="Create a new mechanism"
+            data-testid="create-mechanism-button"
             onClick={() => setMechanismCreationModalOpen(true)}
+            startIcon={<AddIcon />}
             color="primary"
           >
-            <AddIcon />
             <Typography variant="caption">Create New Mechanism</Typography>
           </Button>
         </Tooltip>

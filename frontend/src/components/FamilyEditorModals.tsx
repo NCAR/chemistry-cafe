@@ -100,8 +100,8 @@ export const FamilyCreationModal: React.FC<FamilyCreationModalProps> = ({
     <>
       <Modal open={open} onClose={onClose}>
         <Box role="menu" sx={modalStyle}>
-          <Typography variant="h5">
-            Enter Details for the Family below.
+          <Typography color="textPrimary" variant="h5">
+            Enter Details for the Family below:
           </Typography>
           <TextField
             sx={{
@@ -109,8 +109,8 @@ export const FamilyCreationModal: React.FC<FamilyCreationModalProps> = ({
             }}
             color="primary"
             error={nameError}
-            id="family-name"
             role="textbox"
+            id="family-name"
             label="Name"
             required
             onChange={(event) => {
@@ -231,7 +231,7 @@ export const MechanismCreationModal: React.FC<MechanismCreationModalProps> = ({
       <Modal open={open} onClose={onClose}>
         <Box role="menu" sx={modalStyle}>
           <Typography color="textPrimary" variant="h5">
-            Enter Details for the Mechanism below.
+            Enter Details for the Mechanism below:
           </Typography>
           <TextField
             sx={{
@@ -239,9 +239,10 @@ export const MechanismCreationModal: React.FC<MechanismCreationModalProps> = ({
             }}
             color="primary"
             error={nameError}
+            role="textbox"
             id="mechanism-name"
             label="Name"
-            required={true}
+            required
             onChange={(event) => {
               mechanismName.current = event.target.value;
               setNameError(false);
@@ -272,7 +273,8 @@ export const MechanismCreationModal: React.FC<MechanismCreationModalProps> = ({
               sx={{
                 flex: 1,
               }}
-              aria-label="Create Family"
+              aria-label="Create Mechanism"
+              data-testid="create-new-mechanism-button"
               color="primary"
               variant="contained"
               onClick={handleMechanismCreation}
@@ -490,6 +492,7 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
                     flex: 1,
                   }}
                   aria-label="Save changes to species."
+                  data-testid="save-species-changes"
                   color="primary"
                   variant="contained"
                   onClick={handleUpdateSpecies}
@@ -622,14 +625,14 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
           role="menu"
         >
           <Typography color="textPrimary" variant="h4">
-            Enter Reaction Details (WIP)
+            Enter Reaction Details
           </Typography>
           <TextField
             sx={{
               width: "100%",
             }}
             color="primary"
-            id="family-name"
+            id="reaction-name"
             label="Name"
             required={true}
             onChange={(event) => {
@@ -1005,6 +1008,7 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
                 flex: 1,
               }}
               aria-label="Save changes to reaction."
+              data-testid="save-reaction-changes"
               color="primary"
               variant="contained"
               onClick={handleUpdateReaction}
