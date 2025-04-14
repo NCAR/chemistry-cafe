@@ -39,13 +39,12 @@ namespace ChemistryCafeAPI.Tests
         }
 
         [TestMethod]
-        public async Task GetCurrentUser()
+        public async Task GetCurrentUser_Exists()
         {
             var userService = new UserService(ctx);
             var googleService = new GoogleOAuthService(userService);
+            var googleController = new MockedGoogleOAuthController(googleService, userService);
             var googleID = "get-current-user0123456789";
-            var googleController = new MockedGoogleOAuthController(googleService, 
-                                                                   userService);
             var email = "get-current-user@test.com";
             var user = await userService.SignIn(googleID, email);
             googleController.Id = user.Id;
@@ -55,6 +54,18 @@ namespace ChemistryCafeAPI.Tests
             await userService.DeleteUserAsync(user.Id);
             Assert.IsNotNull(currentUser);
             Assert.AreEqual(currentUser.Id, user.Id);
+        }
+
+        [TestMethod]
+        public async Task GetCurrentUser_NotExists()
+        {
+            var userService = new UserService(ctx);
+            var googleService = new GoogleOAuthService(userService);
+            var googleController = new MockedGoogleOAuthController(googleService, userService);
+            var result = await googleController.GetCurrentUser();
+            var okResult = result.Result as OkObjectResult;
+            var user = okResult.Value as User;
+            Assert.IsNull(user);
         }
 
         [ClassCleanup]
