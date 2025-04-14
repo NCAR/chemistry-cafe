@@ -297,15 +297,15 @@ const AccessibilityMenu = () => {
   };
 
   const marks = [
-    {value:  5, label:  '5'},
-    {value: 12, label: '12'},
-    {value: 14, label: '14'},
-    {value: 18, label: '18'},
-    {value: 24, label: '24'},
-    {value: 30, label: '30'},
-    {value: 36, label: '36'},
-    {value: 42, label: '42'},
-    {value: 50, label: '50'},
+    { value: 5, label: '5' },
+    { value: 12, label: '12' },
+    { value: 14, label: '14' },
+    { value: 18, label: '18' },
+    { value: 24, label: '24' },
+    { value: 30, label: '30' },
+    { value: 36, label: '36' },
+    { value: 42, label: '42' },
+    { value: 50, label: '50' },
   ]
 
   return (
@@ -353,18 +353,27 @@ const AccessibilityMenu = () => {
                 marks={marks}
                 // value={appearanceSettings.fontSize ?? 12}
                 valueLabelDisplay="auto"
-                onChange={(_, value) => {setFontSliderValue(Number(value))}}
-                onChangeCommitted={(_, value) => {setFontSize(Number(value))}}
+                onChange={(_, value) => { setFontSliderValue(Number(value)) }}
+                onChangeCommitted={(_, value) => { setFontSize(Number(value)) }}
               />
             </Box>
             <Input
               value={fontSliderValue}
               size="small"
               onChange={(e) => {
-                let n: number = Number(e.target.value);
-                if (n <  5)  n =  5;
-                if (n > 50)  n = 50;
-                setFontSliderValue(n); 
+                let n: number = Number.parseInt(e.target.value);
+                if (Number.isFinite(n)) {
+                  setFontSliderValue(n);
+                }
+                else {
+                  setFontSliderValue(undefined);
+                }
+              }}
+              onBlur={() => {
+                let n = fontSliderValue ?? 14;
+                if (n < 5) n = 5;
+                if (n > 50) n = 50;
+                setFontSliderValue(n);
                 setFontSize(n);
               }}
               inputProps={{
@@ -408,17 +417,17 @@ const AccessibilityMenu = () => {
           />
           {theme.palette.primary.main !==
             defaultAppearanceSettings.primaryColor && (
-            <Button
-              onClick={() =>
-                modifyColorPalette(
-                  "primary",
-                  defaultAppearanceSettings.primaryColor!,
-                )
-              }
-            >
-              Reset
-            </Button>
-          )}
+              <Button
+                onClick={() =>
+                  modifyColorPalette(
+                    "primary",
+                    defaultAppearanceSettings.primaryColor!,
+                  )
+                }
+              >
+                Reset
+              </Button>
+            )}
         </ListItem>
         <ListItem>
           <ColorPicker
@@ -430,17 +439,17 @@ const AccessibilityMenu = () => {
           />
           {theme.palette.secondary.main !==
             defaultAppearanceSettings.secondaryColor && (
-            <Button
-              onClick={() =>
-                modifyColorPalette(
-                  "secondary",
-                  defaultAppearanceSettings.secondaryColor!,
-                )
-              }
-            >
-              Reset
-            </Button>
-          )}
+              <Button
+                onClick={() =>
+                  modifyColorPalette(
+                    "secondary",
+                    defaultAppearanceSettings.secondaryColor!,
+                  )
+                }
+              >
+                Reset
+              </Button>
+            )}
         </ListItem>
         <ListItem>
           <ColorPicker
@@ -470,17 +479,17 @@ const AccessibilityMenu = () => {
           />
           {theme.palette.error.main !==
             defaultAppearanceSettings.errorColor && (
-            <Button
-              onClick={() =>
-                modifyColorPalette(
-                  "error",
-                  defaultAppearanceSettings.errorColor!,
-                )
-              }
-            >
-              Reset
-            </Button>
-          )}
+              <Button
+                onClick={() =>
+                  modifyColorPalette(
+                    "error",
+                    defaultAppearanceSettings.errorColor!,
+                  )
+                }
+              >
+                Reset
+              </Button>
+            )}
         </ListItem>
       </List>
     </>
