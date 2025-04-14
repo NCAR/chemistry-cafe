@@ -27,7 +27,7 @@ describe("Dashboard", () => {
             role: "admin",
           },
           species: [],
-        }
+        },
       ] as Array<APIFamily>,
       status: 404,
       statusText: "OK",
@@ -41,7 +41,7 @@ describe("Dashboard", () => {
   beforeEach(() => {
     window.location = {
       ...originalLocation,
-      assign: vi.fn((_: string | URL) => { }),
+      assign: vi.fn((_: string | URL) => {}),
     } as any;
     vi.spyOn(axios, "get").mockResolvedValue(createMockFamilyData());
 
@@ -52,7 +52,7 @@ describe("Dashboard", () => {
             <Dashboard />
           </MemoryRouter>
         </CustomThemeProvider>
-      </AuthProvider>
+      </AuthProvider>,
     );
   });
 

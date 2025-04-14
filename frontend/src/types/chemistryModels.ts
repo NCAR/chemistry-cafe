@@ -131,9 +131,9 @@ export type ReactionTypeName =
   | "WET_DEPOSITION";
 
 export const attributeOptions: {
-  [Property in ReactionTypeName]: Array<ReactionAttribute>
+  [Property in ReactionTypeName]: Array<ReactionAttribute>;
 } = {
-  "ARRHENIUS": [
+  ARRHENIUS: [
     {
       name: "A",
       value: 0.0,
@@ -155,28 +155,28 @@ export const attributeOptions: {
       value: 0.0,
     },
   ],
-  "EMMISSION": [
+  EMMISSION: [
     {
       name: "Scaling Factor",
       serializedKey: "scaling factor",
       value: 0.0,
     },
   ],
-  "PHOTOLYSIS": [
+  PHOTOLYSIS: [
     {
       name: "Scaling Factor",
       serializedKey: "scaling factor",
       value: 0.0,
     },
   ],
-  "FIRST_ORDER_LOSS": [
+  FIRST_ORDER_LOSS: [
     {
       name: "Scaling Factor",
       serializedKey: "scaling factor",
       value: 0.0,
     },
   ],
-  "TROE": [
+  TROE: [
     {
       name: "k0 A",
       serializedKey: "k0_A",
@@ -226,8 +226,8 @@ export const attributeOptions: {
   SURFACE: [],
   BRANCHED_NO_RO2: [],
   TUNNELING: [],
-  WET_DEPOSITION: []
-}
+  WET_DEPOSITION: [],
+};
 
 /**
  * Represents a generic reaction on the frontend.

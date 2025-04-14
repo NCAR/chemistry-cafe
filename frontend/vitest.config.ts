@@ -15,7 +15,7 @@ export default defineConfig({
         ...configDefaults.exclude,
         "src/main.tsx", // Renders the app, but doesn't export anything so it's excluded
         "**/test/**", // No coverage of test files
-      ]
+      ],
     },
   },
 });

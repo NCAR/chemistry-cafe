@@ -400,7 +400,7 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
               {speciesAttributeOptions.map((element: SpeciesAttribute) => {
                 const attribute =
                   modifiedSpecies?.attributes[
-                  element.serializedKey ?? element.name
+                    element.serializedKey ?? element.name
                   ] ?? element;
                 if (typeof attribute.value == "number") {
                   return (
@@ -417,9 +417,9 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
 
                         // Removes up and down arrows for number
                         "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                        {
-                          display: "none",
-                        },
+                          {
+                            display: "none",
+                          },
                         "& input[type=number]": {
                           MozAppearance: "textfield",
                         },
@@ -642,7 +642,12 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
             }}
           />
 
-          <Typography component="label" id="reaction-type-label" color="textPrimary" variant="h6">
+          <Typography
+            component="label"
+            id="reaction-type-label"
+            color="textPrimary"
+            variant="h6"
+          >
             Reaction Type
           </Typography>
           <Select
@@ -946,9 +951,9 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
                     width: "100%",
                     // Removes up and down arrows for number
                     "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                    {
-                      display: "none",
-                    },
+                      {
+                        display: "none",
+                      },
                     "& input[type=number]": {
                       MozAppearance: "textfield",
                     },

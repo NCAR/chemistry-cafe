@@ -100,15 +100,12 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
         </Button>
       </Box>
       <Tabs value={selectedTab} onChange={(_, value) => setSelectedTab(value)}>
-        <Tab
-          data-testid="mechanism-tab"
-          value={TabValue.Info}
-          label={"Info"}
-        />
+        <Tab data-testid="mechanism-tab" value={TabValue.Info} label={"Info"} />
         <Tab
           data-testid="mechanism-tab"
           value={TabValue.Species}
-          label={"Species"}></Tab>
+          label={"Species"}
+        ></Tab>
         <Tab
           data-testid="mechanism-tab"
           value={TabValue.Reactions}
@@ -119,7 +116,7 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
           value={TabValue.Phases}
           label={"Phases"}
           disabled
-          />
+        />
         <Tab
           data-testid="mechanism-tab"
           value={TabValue.InitialConditions}
