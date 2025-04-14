@@ -7,7 +7,7 @@ type UnitComponentProps = {
 /**
  * Renders a unit value as represented in the v1 configuration into
  */
-export const UnitComponent = memo(
+export default memo(
   ({ units }: UnitComponentProps): React.JSX.Element => {
     const [renderedComponents, setRenderedComponents] = useState<
       Array<string | React.JSX.Element>

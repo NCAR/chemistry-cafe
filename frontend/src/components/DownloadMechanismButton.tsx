@@ -35,12 +35,17 @@ export const DownloadMechanismButton: React.FC<RowActionsButtonProps> = ({
 
   const downloadBlob = (blob: Blob, variant: "JSON" | "YAML" | "MusicBox") => {
     // Create invisible anchor tag
+
     const anchor = document.createElement("a");
     document.body.appendChild(anchor);
 
     // Setup blob rerefence
-    const url = window.URL.createObjectURL(blob);
-    anchor.href = url;
+    let url = "";
+    /* istanbul ignore if */
+    if (window.URL.createObjectURL != undefined) {
+      url = window.URL.createObjectURL(blob);
+      anchor.href = url;
+    }
     switch (variant) {
       case "JSON":
         anchor.download = "campData.json";
@@ -55,12 +60,18 @@ export const DownloadMechanismButton: React.FC<RowActionsButtonProps> = ({
 
     // Download the blob by simulating a click and cleanup anchor
     anchor.click();
-    window.URL.revokeObjectURL(url);
+
+    /* istanbul ignore if */
+    if (window.URL.revokeObjectURL != undefined) {
+      window.URL.revokeObjectURL(url);
+    }
   };
 
   return (
     <>
       <Button
+        aria-label="Download Mechanism Configuration"
+        data-testid="download-mechanism"
         startIcon={<DownloadIcon />}
         sx={{ textTransform: "none" }}
         color="primary"
@@ -78,8 +89,10 @@ export const DownloadMechanismButton: React.FC<RowActionsButtonProps> = ({
         }}
       >
         <ButtonGroup variant="outlined">
-          <Tooltip title="V1 CAMP configuration" arrow>
+          <Tooltip title="CAMP V1 configuration" arrow>
             <Button
+              aria-label="Download as a CAMP V1 JSON file"
+              data-testid="download-v1-json"
               sx={{
                 textTransform: "none",
               }}
@@ -97,8 +110,10 @@ export const DownloadMechanismButton: React.FC<RowActionsButtonProps> = ({
               JSON
             </Button>
           </Tooltip>
-          <Tooltip title="V1 CAMP configuration" arrow>
+          <Tooltip title="CAMP V1 configuration" arrow>
             <Button
+              aria-label="Download as a CAMP V1 YAML file"
+              data-testid="download-v1-yaml"
               sx={{
                 textTransform: "none",
               }}
@@ -116,8 +131,10 @@ export const DownloadMechanismButton: React.FC<RowActionsButtonProps> = ({
               YAML
             </Button>
           </Tooltip>
-          <Tooltip title="MusicBox CAMP configuration" arrow>
+          <Tooltip title="CAMP V0 configuration" arrow>
             <Button
+              aria-label="Download as a CAMP V0 ZIP file"
+              data-testid="download-v0-zip"
               sx={{
                 textTransform: "none",
               }}

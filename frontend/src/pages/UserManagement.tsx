@@ -248,6 +248,7 @@ const UserManagement: React.FC = () => {
             footer: CustomDataGridFooter,
           }}
           disableRowSelectionOnClick
+          disableVirtualization
           initialState={{
             pagination: {
               paginationModel: {

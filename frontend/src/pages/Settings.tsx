@@ -146,6 +146,7 @@ const Settings = () => {
                         ? "primary"
                         : "textPrimary"
                     }
+                    data-testid="accessibility-menu-button"
                   >
                     Accessibility
                   </Typography>
@@ -383,17 +384,17 @@ const AccessibilityMenu = () => {
           />
           {theme.palette.primary.main !==
             defaultAppearanceSettings.primaryColor && (
-            <Button
-              onClick={() =>
-                modifyColorPalette(
-                  "primary",
-                  defaultAppearanceSettings.primaryColor!,
-                )
-              }
-            >
-              Reset
-            </Button>
-          )}
+              <Button
+                onClick={() =>
+                  modifyColorPalette(
+                    "primary",
+                    defaultAppearanceSettings.primaryColor!,
+                  )
+                }
+              >
+                Reset
+              </Button>
+            )}
         </ListItem>
         <ListItem>
           <ColorPicker
@@ -405,17 +406,17 @@ const AccessibilityMenu = () => {
           />
           {theme.palette.secondary.main !==
             defaultAppearanceSettings.secondaryColor && (
-            <Button
-              onClick={() =>
-                modifyColorPalette(
-                  "secondary",
-                  defaultAppearanceSettings.secondaryColor!,
-                )
-              }
-            >
-              Reset
-            </Button>
-          )}
+              <Button
+                onClick={() =>
+                  modifyColorPalette(
+                    "secondary",
+                    defaultAppearanceSettings.secondaryColor!,
+                  )
+                }
+              >
+                Reset
+              </Button>
+            )}
         </ListItem>
         <ListItem>
           <ColorPicker
@@ -445,17 +446,17 @@ const AccessibilityMenu = () => {
           />
           {theme.palette.error.main !==
             defaultAppearanceSettings.errorColor && (
-            <Button
-              onClick={() =>
-                modifyColorPalette(
-                  "error",
-                  defaultAppearanceSettings.errorColor!,
-                )
-              }
-            >
-              Reset
-            </Button>
-          )}
+              <Button
+                onClick={() =>
+                  modifyColorPalette(
+                    "error",
+                    defaultAppearanceSettings.errorColor!,
+                  )
+                }
+              >
+                Reset
+              </Button>
+            )}
         </ListItem>
       </List>
     </>
