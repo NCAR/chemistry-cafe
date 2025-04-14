@@ -1,25 +1,37 @@
 import { UUID } from "crypto";
 
-export interface APIFamily {
+export interface APIUser {
   id?: UUID;
-  name: string;
-  description: string;
-  createdBy: string;
+  username: string;
+  role: string;
+  email?: string | null;
+  createdDate?: string;
+  googleId?: string | null;
 }
 
-export interface APIMechanism {
+export interface APIFamily {
   id?: UUID;
-  family_id: string;
+  createdDate?: string;
   name: string;
   description: string;
-  created_by: string;
+  owner: APIUser;
+  species?: Array<APISpecies>;
 }
 
 export interface APISpecies {
   id?: UUID;
+  createdDate?: string;
+  updatedDate?: string;
+  name: string | null;
+  description: string | null;
+  familyId: UUID;
+}
+
+export interface APIMechanism {
+  id?: UUID;
+  familyId: string;
   name: string;
   description: string | null;
-  created_by: string | null;
 }
 
 export interface APIReaction {
@@ -70,25 +82,11 @@ export interface APIReactionSpeciesDto {
   species_name: string;
 }
 
-export interface APIUser {
-  id?: UUID;
-  username: string;
-  role: string;
-  email?: string | null;
-  created_date?: string;
-  google_id?: string | null;
-}
-
-export interface APIUserClaims {
-  nameId?: string | null;
-  email?: string | null;
-}
-
 export interface APIProperty {
   id?: UUID; // UUID for the property entry
   speciesId: string; // Foreign key to the species table (UUID)
   mechanismId: string; // Foreign key to mechanism table (UUID)
-  tolerance?: number; // Tolerance value (optional, as it might not be provided for every property)
+  tolerance?: number; // Tolerance value (optsional, as it might not be provided for every property)
   weight?: number; // Weight value (optional)
   concentration?: number; // Concentration value (optional)
   diffusion?: number; // Diffusion value (optional)

@@ -3,7 +3,7 @@ import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import UserManagement from "../src/pages/UserManagement"; // Updated path to RoleManagement
 import { useAuth } from "../src/components/AuthContext";
-import { getUsers } from "../src/API/API_GetMethods";
+import { getAllUsers } from "../src/API/API_GetMethods";
 import { updateUser } from "../src/API/API_UpdateMethods";
 import { deleteUser } from "../src/API/API_DeleteMethods";
 import "@testing-library/jest-dom";
@@ -15,7 +15,7 @@ vi.mock("../src/components/AuthContext", () => ({
 }));
 
 vi.mock("../src/API/API_GetMethods", () => ({
-  getUsers: vi.fn(),
+  getAllUsers: vi.fn(),
 }));
 
 vi.mock("../src/API/API_UpdateMethods", () => ({
@@ -44,7 +44,7 @@ describe("RoleManagement Component", () => {
     (useAuth as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
       user: mockLoggedInUser,
     });
-    (getUsers as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(
+    (getAllUsers as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(
       mockUsers,
     );
   });
@@ -56,11 +56,11 @@ describe("RoleManagement Component", () => {
   it("renders loading state initially", async () => {
     render(<UserManagement />);
     expect(screen.getByText(/Loading users.../i)).toBeInTheDocument();
-    await waitFor(() => expect(getUsers).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(getAllUsers).toHaveBeenCalledTimes(1));
   });
 
   it("renders error state if fetching users fails", async () => {
-    (getUsers as unknown as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+    (getAllUsers as unknown as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
       new Error("Fetch error"),
     );
     render(<UserManagement />);

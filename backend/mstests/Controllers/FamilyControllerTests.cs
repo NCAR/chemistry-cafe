@@ -1,32 +1,56 @@
-﻿using Chemistry_Cafe_API.Controllers;
-using Chemistry_Cafe_API.Models;
-using Chemistry_Cafe_API.Services;
+using ChemistryCafeAPI.Controllers;
+using ChemistryCafeAPI.Models;
+using ChemistryCafeAPI.Services;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using MySqlConnector;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http.HttpResults;
+using System;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
-namespace Chemistry_Cafe_API.Tests
+namespace ChemistryCafeAPI.Tests
 {
     [TestClass]
     public class FamilyControllerTests
     {
-        readonly MySqlDataSource db = DBConnection.DataSource;
-        static Guid _Id = new Guid("cccccccc-dddd-eeee-ffff-000000000000");
+        readonly ChemistryDbContext ctx = DBConnection.Context;
+        static Guid _Id = new Guid(); 
         static string _Name = "TestFamily";
         static string _Description = "A test family created by FamilyControllerTests.cs.";
-        static string _CreatedBy = "FamilyControllerTests.cs";
+        static string _Email = "JunkEmail@TestUsers.com";
+        static string _GoogleId = Guid.NewGuid().ToString();
+        static User _Owner = null; 
         static DateTime _CreatedDate = DateTime.UtcNow;
         static bool found = false;
 
+        private class MockedFamilyController : FamilyController 
+        {
+            public MockedFamilyController(ChemistryDbContext ctx, UserService service) 
+                : base(ctx, service) 
+            {
+            }
+
+            public override string? GetNameIdentifier() 
+            {
+                return _GoogleId;
+            }
+        }
+
+        private async Task<FamilyController> CreateSignedInController()
+        {
+            var service = new UserService(ctx);
+            _Owner = await service.SignIn(_GoogleId, _Email);
+            return new MockedFamilyController(ctx, service);
+        }
+
         [TestMethod]
-        public async Task Get_All_Families()
+        public async Task Get_All_Family()
         {
             // Arrange
-            var familyService = new FamilyService(db);
-            var controller = new FamiliesController(familyService);
+            var service = new UserService(ctx);
+            var controller = new FamilyController(ctx, service);
 
             // Act
             var actionResult = await controller.GetFamilies();
@@ -61,14 +85,12 @@ namespace Chemistry_Cafe_API.Tests
             }
 
             // Arrange
-            var familyService = new FamilyService(db);
-            var controller = new FamiliesController(familyService);
+            var controller = await CreateSignedInController();
 
             var testFamily = new Family
             {
                 Name = _Name,
                 Description = _Description,
-                CreatedBy = _CreatedBy,
                 CreatedDate = _CreatedDate
             };
 
@@ -90,15 +112,15 @@ namespace Chemistry_Cafe_API.Tests
 
             Assert.AreEqual(_Name, returnedFamily.Name);
             Assert.AreEqual(_Description, returnedFamily.Description);
-            Assert.AreEqual(_CreatedBy, returnedFamily.CreatedBy);
+            Assert.AreEqual(_Owner, returnedFamily.Owner);
         }
 
         [TestMethod]
         public async Task Get_Family_Given_ID()
         {
             // Arrange
-            var familyService = new FamilyService(db);
-            var controller = new FamiliesController(familyService);
+            var service = new UserService(ctx);
+            var controller = new FamilyController(ctx, service);
 
             // Act
             var actionResult = await controller.GetFamily(_Id);
@@ -114,25 +136,25 @@ namespace Chemistry_Cafe_API.Tests
             Assert.AreEqual(_Id, returnedFamily.Id);
             Assert.AreEqual(_Name, returnedFamily.Name);
             Assert.AreEqual(_Description, returnedFamily.Description);
-            Assert.AreEqual(_CreatedBy, returnedFamily.CreatedBy);
+            Assert.AreEqual(_Owner, returnedFamily.Owner);
         }
 
         [TestMethod]
         public async Task Updates_Family()
         {
             // Arrange
-            var familyService = new FamilyService(db);
-            var controller = new FamiliesController(familyService);
+            var controller = await CreateSignedInController();
 
             string newName = "UpdatedTestFamily";
             string newDescription = "An updated test family.";
 
+            Console.Out.WriteLine(_Id);
             var updatedFamily = new Family
             {
                 Id = _Id,
                 Name = newName,
                 Description = newDescription,
-                CreatedBy = _CreatedBy,
+                Owner = _Owner,
                 CreatedDate = _CreatedDate
             };
 
@@ -151,15 +173,14 @@ namespace Chemistry_Cafe_API.Tests
             Assert.AreEqual(_Id, returnedFamily.Id);
             Assert.AreEqual(newName, returnedFamily.Name);
             Assert.AreEqual(newDescription, returnedFamily.Description);
-            Assert.AreEqual(_CreatedBy, returnedFamily.CreatedBy);
+            Assert.AreEqual(_Owner, returnedFamily.Owner);
         }
 
         [TestMethod]
         public async Task Updates_Family_mismatchedId()
         {
             // Arrange
-            var familyService = new FamilyService(db);
-            var controller = new FamiliesController(familyService);
+            var controller = await CreateSignedInController();
 
             string newName = "UpdatedTestFamily";
             string newDescription = "An updated test family.";
@@ -169,7 +190,7 @@ namespace Chemistry_Cafe_API.Tests
                 Id = new Guid("cccccccc-dddd-eeee-ffff-111111111111"),
                 Name = newName,
                 Description = newDescription,
-                CreatedBy = _CreatedBy,
+                Owner = _Owner,
                 CreatedDate = _CreatedDate
             };
 
@@ -178,15 +199,14 @@ namespace Chemistry_Cafe_API.Tests
 
             // Assert
             Assert.IsNotNull(actionResult);
-            Assert.IsInstanceOfType(actionResult, typeof(BadRequestResult));
+            Assert.IsInstanceOfType(actionResult, typeof(BadRequestObjectResult));
         }
 
         [TestMethod]
         public async Task Delete_Family()
         {
             // Arrange
-            var familyService = new FamilyService(db);
-            var controller = new FamiliesController(familyService);
+            var controller = await CreateSignedInController();
 
             // Act
             var findResult = await controller.GetFamily(_Id);
@@ -199,6 +219,19 @@ namespace Chemistry_Cafe_API.Tests
 
             // Assert
             Assert.IsInstanceOfType(findDeletedResult.Result, typeof(NotFoundResult));
+        }
+
+        [ClassCleanup]
+        public static void ClassCleanup()
+        {
+            var ctx = DBConnection.Context;
+            if (_Owner != null) 
+            {
+                var service = new UserService(ctx);
+                service.DeleteUserAsync(_Owner.Id).Wait();
+                var controller = new MockedFamilyController(ctx, service);
+                controller.DeleteFamily(_Id).Wait();
+            }
         }
     }
 }

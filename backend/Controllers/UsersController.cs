@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Chemistry_Cafe_API.Models;
-using Chemistry_Cafe_API.Services;
+using ChemistryCafeAPI.Models;
+using ChemistryCafeAPI.Services;
 
-namespace Chemistry_Cafe_API.Controllers
+namespace ChemistryCafeAPI.Controllers
 {
     [ApiController]
     [Route("api/users")]
@@ -57,8 +57,15 @@ namespace Chemistry_Cafe_API.Controllers
             if(id != user.Id) {
                 return BadRequest();
             }
-            await _userService.UpdateUserAsync(user);
-
+            var result = await _userService.UpdateUserAsync(user);
+            switch (result) {
+            case UserService.Result.Success:
+                return NoContent();
+            case UserService.Result.NotFound:
+                return NotFound();
+            case UserService.Result.Forbidden:
+                return Forbid();
+            }
             return NoContent();
         }
 
