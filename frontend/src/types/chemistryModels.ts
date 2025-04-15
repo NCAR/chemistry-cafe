@@ -1,6 +1,9 @@
 import { UUID } from "crypto";
 import { APIUser } from "../API/API_Interfaces";
 
+/**
+ * Represents a value a species can have. For example: Molecular Weight
+ */
 export type SpeciesAttribute = {
   /** Name of the attribute */
   name: string;
@@ -16,7 +19,7 @@ export type SpeciesAttribute = {
 };
 
 /**
- * Attribute options a species can have
+ * Represents attribute options a species can have
  */
 export const speciesAttributeOptions: Array<SpeciesAttribute> = [
   Object.freeze({
@@ -99,6 +102,9 @@ export type Species = {
   isInDatabase?: boolean;
 };
 
+/**
+ * Represents a value that the reaction may have.
+ */
 export type ReactionAttribute = {
   /** Name of the property */
   name: string;
@@ -130,9 +136,17 @@ export type ReactionTypeName =
   | "TUNNELING"
   | "WET_DEPOSITION";
 
+/**
+ * Represents all attributes configurable by the user for each reaction type.
+ */  
 export const attributeOptions: {
   [Property in ReactionTypeName]: Array<ReactionAttribute>;
 } = {
+  /**
+   * For Arrhenius reactions, there is another value, C, which we don't
+   * represent on the frontend. It is defined as C = -Ea / kb, so it's
+   * calculated elsewhere. See https://github.com/NCAR/chemistry-cafe/pull/166
+   */
   ARRHENIUS: [
     {
       name: "A",
