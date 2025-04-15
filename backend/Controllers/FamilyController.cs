@@ -30,33 +30,44 @@ namespace ChemistryCafeAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Family>>> GetFamilies([FromQuery] bool? expand = false)
         {
-            var families = new List<Family>();
+            IQueryable<Family> query = _context.Families;
+            
+            // Always include Owner
+            query = query.Include(f => f.Owner);
+            
             if (expand == true)
             {
-                families = await _context.Families
-                    .Include(f => f.Species).Include(f => f.Owner).ToListAsync();
-            }
-            else
-            {
-                families = await _context.Families.Include(f => f.Owner).ToListAsync();
+                query = query
+                    .Include(f => f.Species)
+                    .Include(f => f.Mechanisms)
+                    .Include(f => f.Reactions)
+                        .ThenInclude(r => r.Reactants)
+                            .ThenInclude(r => r.Species)
+                    .Include(f => f.Reactions)
+                        .ThenInclude(r => r.Products)
+                            .ThenInclude(p => p.Species);
             }
 
+            var families = await query.ToListAsync();
             return Ok(families);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Family>> GetFamily(Guid id, [FromQuery] bool? expand = true)
+        public async Task<ActionResult<Family>> GetFamily(Guid id)
         {
-            Family? family = null;
-            if (expand == true)
-            {
-                family = await _context.Families
-                    .Include(f => f.Species).Include(f => f.Owner).FirstOrDefaultAsync(f => f.Id == id);
-            }
-            else
-            {
-                family = await _context.Families.FirstOrDefaultAsync(f => f.Id == id);
-            }
+            var family = await _context.Families
+                .Include(f => f.Owner)
+                .Include(f => f.Species)
+                    .ThenInclude(s => s.Phase)
+                .Include(f => f.Reactions)
+                    .ThenInclude(r => r.Reactants)
+                        .ThenInclude(r => r.Species)
+                .Include(f => f.Reactions)
+                    .ThenInclude(r => r.Products)
+                        .ThenInclude(p => p.Species)
+                .Include(f => f.Mechanisms)
+                    .ThenInclude(m => m.Phases)
+                .FirstOrDefaultAsync(f => f.Id == id);
 
             if (family == null)
             {
@@ -92,15 +103,23 @@ namespace ChemistryCafeAPI.Controllers
                 return Unauthorized("User does not exist");
             }
 
-            // Defaults which the frontend user cannot specify
+            // Set defaults
             family.Id = Guid.NewGuid();
             family.CreatedDate = DateTime.UtcNow;
             family.Owner = currentUser;
-            family.Species = [];
+            family.Species = new List<Species>();
+            family.Reactions = new List<Reaction>();
+            family.Mechanisms = new List<Mechanism>();
+
             var createdFamily = _context.Families.Add(family);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetFamily), new { id = createdFamily.Entity.Id }, createdFamily.Entity);
+            // Return the created family with all relationships loaded
+            return CreatedAtAction(
+                nameof(GetFamily), 
+                new { id = createdFamily.Entity.Id }, 
+                await GetFamily(createdFamily.Entity.Id)
+            );
         }
 
         /// <summary>
@@ -129,30 +148,25 @@ namespace ChemistryCafeAPI.Controllers
                 return Unauthorized("Not authenticated");
             }
 
-            Family? existingFamily = await _context.Families
-                .Include(f => f.Owner).FirstOrDefaultAsync(f => f.Id == id);
+            var existingFamily = await _context.Families
+                .Include(f => f.Owner)
+                .FirstOrDefaultAsync(f => f.Id == id);
+
             if (existingFamily == null)
             {
                 return NotFound("Family not found");
             }
 
-            if (nameIdentifier != existingFamily.Owner.GoogleId.ToString())
+            if (existingFamily.Owner.GoogleId.ToString() != nameIdentifier)
             {
                 return StatusCode(StatusCodes.Status403Forbidden);
             }
 
-            User? updatedOwner = await _context.Users.FindAsync(family.Owner.Id);
-            if (updatedOwner == null)
-            {
-                return NotFound("New family owner to transfer not found");
-            }
-
-            // Set fields the user is allowed to change in this function
+            // Update allowed fields
             existingFamily.Name = family.Name;
             existingFamily.Description = family.Description;
-            existingFamily.Owner = updatedOwner;
-            await _context.SaveChangesAsync();
 
+            await _context.SaveChangesAsync();
             return NoContent();
         }
 
@@ -170,8 +184,10 @@ namespace ChemistryCafeAPI.Controllers
                 return Unauthorized("Not authenticated");
             }
 
-            Family? family = await _context.Families
-                .Include(f => f.Owner).FirstOrDefaultAsync(f => f.Id == id);
+            var family = await _context.Families
+                .Include(f => f.Owner)
+                .FirstOrDefaultAsync(f => f.Id == id);
+
             if (family == null)
             {
                 return NotFound("Family not found");
