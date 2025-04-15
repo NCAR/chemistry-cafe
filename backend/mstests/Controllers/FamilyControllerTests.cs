@@ -20,8 +20,9 @@ namespace ChemistryCafeAPI.Tests
         static string _Name = "TestFamily";
         static string _Description = "A test family created by FamilyControllerTests.cs.";
         static string _Email = "JunkEmail@TestUsers.com";
-        static string _GoogleId = Guid.NewGuid().ToString();
-        static User _Owner = null; 
+        static string _NameIdentifier = Guid.NewGuid().ToString();
+        static string _GoogleId = Guid.NewGuid().ToString(); // This is usually not a GUID when from Google OAuth
+        static User? _Owner = null; 
         static DateTime _CreatedDate = DateTime.UtcNow;
         static bool found = false;
 
@@ -32,9 +33,9 @@ namespace ChemistryCafeAPI.Tests
             {
             }
 
-            public override string? GetNameIdentifier() 
+            protected override string? GetNameIdentifier() 
             {
-                return _GoogleId;
+                return _NameIdentifier;
             }
         }
 
@@ -42,6 +43,7 @@ namespace ChemistryCafeAPI.Tests
         {
             var service = new UserService(ctx);
             _Owner = await service.SignIn(_GoogleId, _Email);
+            _NameIdentifier = _Owner.Id.ToString();
             return new MockedFamilyController(ctx, service);
         }
 
@@ -149,6 +151,7 @@ namespace ChemistryCafeAPI.Tests
             string newDescription = "An updated test family.";
 
             Console.Out.WriteLine(_Id);
+            Assert.IsNotNull(_Owner);
             var updatedFamily = new Family
             {
                 Id = _Id,
@@ -185,6 +188,7 @@ namespace ChemistryCafeAPI.Tests
             string newName = "UpdatedTestFamily";
             string newDescription = "An updated test family.";
 
+            Assert.IsNotNull(_Owner);
             var updatedFamily = new Family
             {
                 Id = new Guid("cccccccc-dddd-eeee-ffff-111111111111"),

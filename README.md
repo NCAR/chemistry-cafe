@@ -42,8 +42,9 @@ In order to use Google Authentication, a Google Cloud OAuth 2.0 project must be 
 
 **Note:**
 
-- When running locally, the `.env` file must be in the `/backend` directory. 
-- When running with docker, the `.env` file can either be in the root directory *or* `/backend`. If it is in another directory, simply use `docker compose --env-file <path/to/.env> up` instead of the default.  
+- When running locally, the `.env` file must be in the `/backend` directory.
+    - This includes when running **database migrations** locally
+- When running with docker, the `.env` file *should* be in the root directory unless otherwise specified. If it is in another directory, simply use `docker compose --env-file <path/to/.env> up` instead of the default.  
 
 ### Running Chemistry Cafe with Docker Compose
 
@@ -52,30 +53,30 @@ With Docker Desktop running, open a terminal window.
 To build the project run:
 
 ```
-docker compose up --build
+$ docker compose up --build
 ```
 
 To run project in background:
 
 ```
-docker compose up -d
+$ docker compose up -d
 ```
 
 When finished, run:
 ```
-docker compose down
+$ docker compose down
 ```
 
 To view logs for backend/frontend/sql:
 ```
-docker compose logs backend
-docker compose logs frontend 
-docker compose logs sql 
+$ docker compose logs backend
+$ docker compose logs frontend 
+$ docker compose logs sql 
 ```
 
 To view logs for all services:
 ```
-docker compose logs -f 
+$ docker compose logs -f 
 ```
 
 **Note:** To view changes, you must run the docker compose down and then run the project again.
@@ -94,20 +95,37 @@ Open a terminal window, navigate to a folder where you would like the Chemistry 
 and run the following commands:
 
     ```
-    git clone https://github.com/NCAR/chemistry-cafe.git
-    cd chemistrycafe
+    $ git clone https://github.com/NCAR/chemistry-cafe.git
+    $ cd chemistrycafe
     ```
 2. **Install dependencies for frontend**:
     ```shell
-    cd frontend
-    npm install
-    cd ..
+    $ cd frontend
+    $ npm install
+    $ cd ..
     ```
 4. **Install dependencies for backend**
     ```
-    cd backend
-    dotnet restore
+    $ cd backend
+    $ dotnet restore
     ```
+
+### Database Migrations
+
+When running the application initially, the database will be a blank slate. To create the different tables, migrations must be performed which require dotnet to be installed at the moment. We use a tool called dotnet-ef of which the documentation can be found [here](https://learn.microsoft.com/en-us/ef/core/cli/dotnet). 
+
+To install the tool:
+
+```bash
+$ dotnet tool install --global dotnet-ef
+```
+
+To apply migrations:
+
+```bash
+$ cd backend
+$ dotnet ef database update
+```
 
 ## Testing
 
@@ -160,7 +178,7 @@ MYSQL_PORT=3306
 
 #### Frontend variables
 
-The frontend requires a file named `.env.production` in its directory. This is because the final container will serve a static site to the user and it pulls the variables from this file instead
+The frontend *requires* a file named `.env.production` in its directory. This is because the final container will serve a static site to the user and it pastes the variables inline with the static code.
 
 ```py
 VITE_BASE_URL=http://localhost:8080/api  # Backend API endpoint
@@ -179,7 +197,9 @@ docker compose -f ./docker-compose.production.yml up -d
 
 After each container is built and running, the backend will be served in port `8080` and the frontend will be served on port `5173` just like the development environment. 
 
-To actually serve these containers to the world, 
+To actually serve these containers to the world, use a reverse proxy like `NGINX` or `Apache httpd` to redirect traffic to the different services.
+
+When serving on the same dns, it's generaly a good idea to put the frontend on `/` and the backend on something unique like `/api`. Though, if you use `/api`, do note that some routes in the backend may look like `https://<host>/api/api/<route>`.
 
 # License
 - [Apache 2.0](/LICENSE)
