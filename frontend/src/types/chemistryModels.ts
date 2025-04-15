@@ -1,6 +1,9 @@
 import { UUID } from "crypto";
 import { APIUser } from "../API/API_Interfaces";
 
+/**
+ * Represents a value a species can have. For example: Molecular Weight
+ */
 export type SpeciesAttribute = {
   /** Name of the attribute */
   name: string;
@@ -16,7 +19,7 @@ export type SpeciesAttribute = {
 };
 
 /**
- * Attribute options a species can have
+ * Represents attribute options a species can have
  */
 export const speciesAttributeOptions: Array<SpeciesAttribute> = [
   Object.freeze({
@@ -99,6 +102,9 @@ export type Species = {
   isInDatabase?: boolean;
 };
 
+/**
+ * Represents a value that the reaction may have.
+ */
 export type ReactionAttribute = {
   /** Name of the property */
   name: string;
@@ -112,94 +118,6 @@ export type ReactionAttribute = {
   /** Used when the value is a string (This is not stored in the database) */
   options?: Array<string>;
 };
-
-export const arrheniusAttributeOptions: Array<ReactionAttribute> = [
-  {
-    name: "A",
-    value: 0.0,
-  },
-  {
-    name: "B",
-    value: 0.0,
-  },
-  {
-    name: "C",
-    value: 0.0,
-  },
-  {
-    name: "D",
-    value: 0.0,
-  },
-  {
-    name: "E",
-    value: 0.0,
-  },
-];
-
-export const emmissionAttributeOptions: Array<ReactionAttribute> = [
-  {
-    name: "Scaling Factor",
-    serializedKey: "scaling factor",
-    value: 0.0,
-  },
-];
-
-export const photolysisAttributeOptions: Array<ReactionAttribute> = [
-  {
-    name: "Scaling Factor",
-    serializedKey: "scaling factor",
-    value: 0.0,
-  },
-];
-
-export const firstOrderLossAttributeOptions: Array<ReactionAttribute> = [
-  {
-    name: "Scaling Factor",
-    serializedKey: "scaling factor",
-    value: 0.0,
-  },
-];
-
-export const troeAttributeOptions: Array<ReactionAttribute> = [
-  {
-    name: "k0 A",
-    serializedKey: "k0_A",
-    value: 0.0,
-  },
-  {
-    name: "k0 B",
-    serializedKey: "k0_B",
-    value: 0.0,
-  },
-  {
-    name: "k0 C",
-    serializedKey: "k0_C",
-    value: 0.0,
-  },
-  {
-    name: "kinf A",
-    serializedKey: "kinf_A",
-    value: 0.0,
-  },
-  {
-    name: "kinf B",
-    serializedKey: "kinf_B",
-    value: 0.0,
-  },
-  {
-    name: "kinf C",
-    serializedKey: "kinf_C",
-    value: 0.0,
-  },
-  {
-    name: "Fc",
-    value: 0.0,
-  },
-  {
-    name: "N",
-    value: 0.0,
-  },
-];
 
 export type ReactionTypeName =
   | "NONE"
@@ -217,6 +135,113 @@ export type ReactionTypeName =
   | "BRANCHED_NO_RO2"
   | "TUNNELING"
   | "WET_DEPOSITION";
+
+/**
+ * Represents all attributes configurable by the user for each reaction type.
+ */
+export const attributeOptions: {
+  [Property in ReactionTypeName]: Array<ReactionAttribute>;
+} = {
+  /**
+   * For Arrhenius reactions, there is another value, C, which we don't
+   * represent on the frontend. It is defined as C = -Ea / kb, so it's
+   * calculated elsewhere. See https://github.com/NCAR/chemistry-cafe/pull/166
+   */
+  ARRHENIUS: [
+    {
+      name: "A",
+      value: 0.0,
+    },
+    {
+      name: "B",
+      value: 0.0,
+    },
+    {
+      name: "Ea",
+      value: 0.0,
+    },
+    {
+      name: "D",
+      value: 0.0,
+    },
+    {
+      name: "E",
+      value: 0.0,
+    },
+  ],
+  EMMISSION: [
+    {
+      name: "Scaling Factor",
+      serializedKey: "scaling factor",
+      value: 0.0,
+    },
+  ],
+  PHOTOLYSIS: [
+    {
+      name: "Scaling Factor",
+      serializedKey: "scaling factor",
+      value: 0.0,
+    },
+  ],
+  FIRST_ORDER_LOSS: [
+    {
+      name: "Scaling Factor",
+      serializedKey: "scaling factor",
+      value: 0.0,
+    },
+  ],
+  TROE: [
+    {
+      name: "k0 A",
+      serializedKey: "k0_A",
+      value: 0.0,
+    },
+    {
+      name: "k0 B",
+      serializedKey: "k0_B",
+      value: 0.0,
+    },
+    {
+      name: "k0 C",
+      serializedKey: "k0_C",
+      value: 0.0,
+    },
+    {
+      name: "kinf A",
+      serializedKey: "kinf_A",
+      value: 0.0,
+    },
+    {
+      name: "kinf B",
+      serializedKey: "kinf_B",
+      value: 0.0,
+    },
+    {
+      name: "kinf C",
+      serializedKey: "kinf_C",
+      value: 0.0,
+    },
+    {
+      name: "Fc",
+      value: 0.0,
+    },
+    {
+      name: "N",
+      value: 0.0,
+    },
+  ],
+  // TODO add the rest of the reaction types
+  NONE: [],
+  HL_PHASE_TRANSFER: [],
+  SIMPOL_PHASE_TRANSFER: [],
+  AQUEOUS_EQUILIBRIUM: [],
+  CONDENSED_PHASE_ARRHENIUS: [],
+  CONDENSED_PHASE_PHOTOLYSIS: [],
+  SURFACE: [],
+  BRANCHED_NO_RO2: [],
+  TUNNELING: [],
+  WET_DEPOSITION: [],
+};
 
 /**
  * Represents a generic reaction on the frontend.

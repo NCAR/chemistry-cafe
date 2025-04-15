@@ -16,7 +16,8 @@ namespace ChemistryCafeAPI.Controllers
         private readonly UserService _userService;
 
         /* virtual for mocking purposes */
-        public virtual string? GetNameIdentifier() {
+        protected virtual string? GetNameIdentifier()
+        {
             ClaimsIdentity? claimsIdentity = this.User.Identity as ClaimsIdentity;
             return claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         }
@@ -97,7 +98,15 @@ namespace ChemistryCafeAPI.Controllers
                 return Unauthorized("User does not have access");
             }
 
-            User? currentUser = await _userService.GetUserByGoogleIdAsync(nameIdentifier);
+            Guid userId;
+            bool isValidId = Guid.TryParse(nameIdentifier, out userId);
+
+            if(!isValidId)
+            {
+                return BadRequest("Name identifier is not parsable as a guid");
+            }
+
+            User? currentUser = await _userService.GetUserByIdAsync(userId);
             if (currentUser == null)
             {
                 return Unauthorized("User does not exist");
@@ -157,7 +166,8 @@ namespace ChemistryCafeAPI.Controllers
                 return NotFound("Family not found");
             }
 
-            if (existingFamily.Owner.GoogleId.ToString() != nameIdentifier)
+
+            if (nameIdentifier != existingFamily.Owner.Id.ToString())
             {
                 return StatusCode(StatusCodes.Status403Forbidden);
             }
@@ -193,7 +203,7 @@ namespace ChemistryCafeAPI.Controllers
                 return NotFound("Family not found");
             }
 
-            if (family.Owner.GoogleId.ToString() != nameIdentifier)
+            if (family.Owner.Id.ToString() != nameIdentifier)
             {
                 return StatusCode(StatusCodes.Status403Forbidden);
             }

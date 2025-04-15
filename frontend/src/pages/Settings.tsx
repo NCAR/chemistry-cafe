@@ -5,12 +5,15 @@ import {
   defaultAppearanceSettings,
   useCustomTheme,
   dyslexiaFontFamily,
+  lowSaturationColors,
+  highSaturationColors,
+  defaultColorSettings,
+  monochromeColors,
 } from "../components/CustomThemeContext";
 import {
   Box,
   Button,
   Divider,
-  IconButton,
   List,
   ListItem,
   ListItemButton,
@@ -22,6 +25,7 @@ import {
   Switch,
   Typography,
   ToggleButton,
+  Input,
 } from "@mui/material";
 import { memo, MouseEvent, useLayoutEffect, useState } from "react";
 import AccountBoxIcon from "@mui/icons-material/AccountBox";
@@ -29,9 +33,7 @@ import SettingsAccessibilityIcon from "@mui/icons-material/SettingsAccessibility
 import TvIcon from "@mui/icons-material/Tv";
 import TextFieldsIcon from "@mui/icons-material/TextFields";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import AddCircleOutlineOutlinedIcon from "@mui/icons-material/AddCircleOutlineOutlined";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import RemoveCircleOutlineOutlinedIcon from "@mui/icons-material/RemoveCircleOutlineOutlined";
 import SpellcheckIcon from "@mui/icons-material/Spellcheck";
 import {
   blue,
@@ -146,6 +148,7 @@ const Settings = () => {
                         ? "primary"
                         : "textPrimary"
                     }
+                    data-testid="accessibility-menu-button"
                   >
                     Accessibility
                   </Typography>
@@ -217,6 +220,32 @@ const AppearanceMenu = () => {
     });
   };
 
+  const toggleLowSaturationMode = () => {
+    setAppearanceSettings({
+      ...appearanceSettings,
+      ...(appearanceSettings?.theme !== "low saturation"
+        ? lowSaturationColors
+        : defaultColorSettings),
+    });
+  };
+  const toggleHighSaturationMode = () => {
+    setAppearanceSettings({
+      ...appearanceSettings,
+      ...(appearanceSettings.theme !== "high saturation"
+        ? highSaturationColors
+        : defaultColorSettings),
+    });
+  };
+
+  const toggleMonochromeMode = () => {
+    setAppearanceSettings({
+      ...appearanceSettings,
+      ...(appearanceSettings?.theme !== "monochrome"
+        ? monochromeColors
+        : defaultColorSettings),
+    });
+  };
+
   return (
     <>
       <List
@@ -242,6 +271,54 @@ const AppearanceMenu = () => {
             <Switch checked={appearanceSettings?.mode === "dark"} />
           </ListItemButton>
         </ListItem>
+        <ListItem disablePadding>
+          <ListItemButton
+            aria-label="toggle low saturation theme"
+            onClick={toggleLowSaturationMode}
+          >
+            <ListItemText>
+              <Typography color="textPrimary" fontSize="large">
+                Low Saturation Theme
+              </Typography>
+              <Typography color="textSecondary" fontSize="medium">
+                This theme may not work with all pages currently
+              </Typography>
+            </ListItemText>
+            <Switch checked={appearanceSettings?.theme === "low saturation"} />
+          </ListItemButton>
+        </ListItem>
+        <ListItem disablePadding>
+          <ListItemButton
+            aria-label="toggle high saturation theme"
+            onClick={toggleHighSaturationMode}
+          >
+            <ListItemText>
+              <Typography color="textPrimary" fontSize="large">
+                High Saturation Theme
+              </Typography>
+              <Typography color="textSecondary" fontSize="medium">
+                This theme may not work with all pages currently
+              </Typography>
+            </ListItemText>
+            <Switch checked={appearanceSettings?.theme === "high saturation"} />
+          </ListItemButton>
+        </ListItem>
+        <ListItem disablePadding>
+          <ListItemButton
+            aria-label="toggle monochrome theme"
+            onClick={toggleMonochromeMode}
+          >
+            <ListItemText>
+              <Typography color="textPrimary" fontSize="large">
+                Monochrome Theme
+              </Typography>
+              <Typography color="textSecondary" fontSize="medium">
+                This theme may not work with all pages currently
+              </Typography>
+            </ListItemText>
+            <Switch checked={appearanceSettings?.theme === "monochrome"} />
+          </ListItemButton>
+        </ListItem>
       </List>
     </>
   );
@@ -249,6 +326,9 @@ const AppearanceMenu = () => {
 
 const AccessibilityMenu = () => {
   const { theme, appearanceSettings, setAppearanceSettings } = useCustomTheme();
+  const [fontSliderValue, setFontSliderValue] = useState(
+    appearanceSettings.fontSize,
+  );
 
   /**
    * Modifies the main global value for a given color palette
@@ -294,6 +374,18 @@ const AccessibilityMenu = () => {
     });
   };
 
+  const marks = [
+    { value: 5, label: "5" },
+    { value: 12, label: "12" },
+    { value: 14, label: "14" },
+    { value: 18, label: "18" },
+    { value: 24, label: "24" },
+    { value: 30, label: "30" },
+    { value: 36, label: "36" },
+    { value: 42, label: "42" },
+    { value: 50, label: "50" },
+  ];
+
   return (
     <>
       <List
@@ -308,6 +400,7 @@ const AccessibilityMenu = () => {
           <Paper
             sx={{
               p: 1,
+              width: "40vw",
             }}
           >
             <Box
@@ -329,26 +422,48 @@ const AccessibilityMenu = () => {
                 columnGap: 6,
               }}
             >
-              <IconButton
-                onClick={() =>
-                  setFontSize((appearanceSettings.fontSize ?? 14) - 1)
-                }
-                aria-label="decrease font size"
-              >
-                <RemoveCircleOutlineOutlinedIcon />
-              </IconButton>
-              <Typography sx={{ flex: 1 }}>
-                {appearanceSettings.fontSize?.toString()} pt
-              </Typography>
-              <IconButton
-                onClick={() =>
-                  setFontSize((appearanceSettings.fontSize ?? 14) + 1)
-                }
-                aria-label="increase font size"
-              >
-                <AddCircleOutlineOutlinedIcon />
-              </IconButton>
+              <Slider
+                // aria-label="font-size"
+                track={false}
+                defaultValue={appearanceSettings.fontSize ?? 12}
+                min={5}
+                max={50}
+                marks={marks}
+                // value={appearanceSettings.fontSize ?? 12}
+                valueLabelDisplay="auto"
+                onChange={(_, value) => {
+                  setFontSliderValue(Number(value));
+                }}
+                onChangeCommitted={(_, value) => {
+                  setFontSize(Number(value));
+                }}
+              />
             </Box>
+            <Input
+              value={fontSliderValue}
+              size="small"
+              onChange={(e) => {
+                let n: number = Number.parseInt(e.target.value);
+                if (Number.isFinite(n)) {
+                  setFontSliderValue(n);
+                } else {
+                  setFontSliderValue(undefined);
+                }
+              }}
+              onBlur={() => {
+                let n = fontSliderValue ?? 14;
+                if (n < 5) n = 5;
+                if (n > 50) n = 50;
+                setFontSliderValue(n);
+                setFontSize(n);
+              }}
+              inputProps={{
+                step: 2,
+                min: 5,
+                max: 50,
+                type: "number",
+              }}
+            />
           </Paper>
         </ListItem>
         <ListItem>

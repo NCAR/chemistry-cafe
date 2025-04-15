@@ -26,14 +26,10 @@ import {
   Species,
   SpeciesAttribute,
   ReactionAttribute,
-  arrheniusAttributeOptions,
-  firstOrderLossAttributeOptions,
-  troeAttributeOptions,
-  photolysisAttributeOptions,
-  emmissionAttributeOptions,
+  attributeOptions,
 } from "../types/chemistryModels";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { UnitComponent } from "./UnitComponent";
+import UnitComponent from "./UnitComponent";
 import { SelectSpeciesButton } from "./SelectSpeciesButton";
 
 const modalStyle: SxProps<Theme> = {
@@ -100,8 +96,8 @@ export const FamilyCreationModal: React.FC<FamilyCreationModalProps> = ({
     <>
       <Modal open={open} onClose={onClose}>
         <Box role="menu" sx={modalStyle}>
-          <Typography variant="h5">
-            Enter Details for the Family below.
+          <Typography color="textPrimary" variant="h5">
+            Enter Details for the Family below:
           </Typography>
           <TextField
             sx={{
@@ -109,6 +105,7 @@ export const FamilyCreationModal: React.FC<FamilyCreationModalProps> = ({
             }}
             color="primary"
             error={nameError}
+            role="textbox"
             id="family-name"
             label="Name"
             required
@@ -123,6 +120,7 @@ export const FamilyCreationModal: React.FC<FamilyCreationModalProps> = ({
             }}
             color="primary"
             id="family-description"
+            data-testid="family-description-input"
             label="Description"
             multiline
             minRows={2}
@@ -228,7 +226,7 @@ export const MechanismCreationModal: React.FC<MechanismCreationModalProps> = ({
       <Modal open={open} onClose={onClose}>
         <Box role="menu" sx={modalStyle}>
           <Typography color="textPrimary" variant="h5">
-            Enter Details for the Mechanism below.
+            Enter Details for the Mechanism below:
           </Typography>
           <TextField
             sx={{
@@ -236,9 +234,10 @@ export const MechanismCreationModal: React.FC<MechanismCreationModalProps> = ({
             }}
             color="primary"
             error={nameError}
+            role="textbox"
             id="mechanism-name"
             label="Name"
-            required={true}
+            required
             onChange={(event) => {
               mechanismName.current = event.target.value;
               setNameError(false);
@@ -269,7 +268,8 @@ export const MechanismCreationModal: React.FC<MechanismCreationModalProps> = ({
               sx={{
                 flex: 1,
               }}
-              aria-label="Create Family"
+              aria-label="Create Mechanism"
+              data-testid="create-new-mechanism-button"
               color="primary"
               variant="contained"
               onClick={handleMechanismCreation}
@@ -487,6 +487,7 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
                     flex: 1,
                   }}
                   aria-label="Save changes to species."
+                  data-testid="save-species-changes"
                   color="primary"
                   variant="contained"
                   onClick={handleUpdateSpecies}
@@ -567,21 +568,10 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
   const getReactionAttributes = (
     type?: ReactionTypeName,
   ): Array<ReactionAttribute> => {
-    switch (type) {
-      case "FIRST_ORDER_LOSS":
-        return firstOrderLossAttributeOptions;
-      case "TROE":
-        return troeAttributeOptions;
-      case "PHOTOLYSIS":
-        return photolysisAttributeOptions;
-      case "EMMISSION":
-        return emmissionAttributeOptions;
-      case "ARRHENIUS":
-        return arrheniusAttributeOptions;
-      case "NONE":
-      default:
-        return [];
+    if (!type) {
+      return [];
     }
+    return attributeOptions[type] ?? [];
   };
 
   useLayoutEffect(() => {
@@ -619,14 +609,14 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
           role="menu"
         >
           <Typography color="textPrimary" variant="h4">
-            Enter Reaction Details (WIP)
+            Enter Reaction Details
           </Typography>
           <TextField
             sx={{
               width: "100%",
             }}
             color="primary"
-            id="family-name"
+            id="reaction-name"
             label="Name"
             required={true}
             onChange={(event) => {
@@ -652,13 +642,18 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
             }}
           />
 
-          <Typography color="textPrimary" variant="h6">
+          <Typography
+            component="label"
+            id="reaction-type-label"
+            color="textPrimary"
+            variant="h6"
+          >
             Reaction Type
           </Typography>
           <Select
-            labelId="reaction-type-label"
+            aria-labelledby="reaction-type-label"
             id="reaction-type"
-            aria-label="Reaction Type"
+            aria-label="Choose Reaction Type"
             defaultValue={reaction?.type ?? "NONE"}
             color="primary"
             onChange={(event) => {
@@ -679,6 +674,7 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
               setDefaultAttributes(attributes);
             }}
           >
+            {/* TODO add more reaction types */}
             <MenuItem value="NONE">None</MenuItem>
             <MenuItem value="TROE">Troe</MenuItem>
             <MenuItem value="PHOTOLYSIS">Photolysis</MenuItem>
@@ -1002,6 +998,7 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
                 flex: 1,
               }}
               aria-label="Save changes to reaction."
+              data-testid="save-reaction-changes"
               color="primary"
               variant="contained"
               onClick={handleUpdateReaction}

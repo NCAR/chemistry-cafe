@@ -1,5 +1,10 @@
 import { Reaction, ReactionTypeName, Species } from "../types/chemistryModels";
 
+/**
+ * Converts a reaction type key to a human-readable string
+ * @param reactionType Reaction type key
+ * @returns String value. Defaults to the given string by default
+ */
 export const reactionTypeToString = (
   reactionType: ReactionTypeName,
 ): string => {
@@ -16,8 +21,6 @@ export const reactionTypeToString = (
       return "First-Order Loss";
     case "EMMISSION":
       return "Emmission";
-    case "NONE":
-      return "N/A";
     case "TUNNELING":
       return "Tunneling";
     case "TROE":
@@ -28,6 +31,12 @@ export const reactionTypeToString = (
       return "Surface (Heterogenous)";
     case "WET_DEPOSITION":
       return "Wet Deposition";
+    case "BRANCHED_NO_RO2":
+      return "Branched NO RO2";
+    case "HL_PHASE_TRANSFER":
+      return "HL Phase Transfer";
+    case "SIMPOL_PHASE_TRANSFER":
+      return "Simpol Phase Transfer";
     default:
       return reactionType;
   }

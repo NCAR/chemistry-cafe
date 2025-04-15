@@ -36,11 +36,13 @@ const Dashboard = () => {
       try {
         const allFamilies = await getAllFamilies();
         setFamilies(allFamilies);
-        setLoadingFamilies(false);
       } catch (err) {
         if (!abortController.signal.aborted) {
           alert(err);
         }
+        setFamilies([]);
+      } finally {
+        setLoadingFamilies(false);
       }
     };
 
