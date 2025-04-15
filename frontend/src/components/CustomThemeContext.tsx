@@ -22,6 +22,7 @@ export type AppearanceSettings = {
   infoColor?: string;
   errorColor?: string;
   fontFamily?: string;
+  theme?: string;
 };
 
 // Type used by createTheme() for the theming options
@@ -53,7 +54,44 @@ export const defaultAppearanceSettings: Readonly<AppearanceSettings> =
     secondaryColor: "#edc4ff",
     infoColor: "#03F4FC",
     errorColor: red[500],
+    theme: "default",
   });
+
+export const defaultColorSettings: Readonly<AppearanceSettings> =
+  Object.freeze({
+    primaryColor: defaultAppearanceSettings.primaryColor,
+    secondaryColor: defaultAppearanceSettings.secondaryColor,
+    infoColor: defaultAppearanceSettings.infoColor,
+    errorColor: defaultAppearanceSettings.errorColor,
+    theme: defaultAppearanceSettings.theme,
+  })
+
+export const lowSaturationColors: Readonly<AppearanceSettings> =
+  Object.freeze({
+    primaryColor: '#416f9d',
+    secondaryColor: '#dfcae8',
+    infoColor: '#62dbdf',
+    errorColor: '#ae554f',
+    theme: 'low saturation'
+  });
+
+export const highSaturationColors: Readonly<AppearanceSettings> =
+  Object.freeze({
+    primaryColor: '#0083ff',
+    secondaryColor: '#ffb7ff',
+    infoColor: '#00ffff',
+    errorColor: '#ff1e04',
+    theme: 'high saturation',
+  })
+
+export const monochromeColors: Readonly<AppearanceSettings> =
+    Object.freeze({
+        primaryColor: '#696969',
+        secondaryColor: '#d1d1d1',
+        infoColor: '#c1c1c1',
+        errorColor: '#686868',
+        theme: 'monochrome',
+    })
 
 const getThemeOptions = (settings: AppearanceSettings): ThemeOptionsType => ({
   palette: {
