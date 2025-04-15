@@ -143,8 +143,7 @@ export const attributeOptions: {
       value: 0.0,
     },
     {
-      name: "C/Ea",
-      serializedKey: "Ea",
+      name: "Ea",
       value: 0.0,
     },
     {
