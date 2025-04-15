@@ -8,7 +8,7 @@ import {
   lowSaturationColors,
   highSaturationColors,
   defaultColorSettings,
-  monochromeColors
+  monochromeColors,
 } from "../components/CustomThemeContext";
 import {
   Box,
@@ -224,27 +224,27 @@ const AppearanceMenu = () => {
     setAppearanceSettings({
       ...appearanceSettings,
       ...(appearanceSettings?.theme !== "low saturation"
-          ? lowSaturationColors
-          : defaultColorSettings)
-    })
-  }
+        ? lowSaturationColors
+        : defaultColorSettings),
+    });
+  };
   const toggleHighSaturationMode = () => {
     setAppearanceSettings({
       ...appearanceSettings,
       ...(appearanceSettings.theme !== "high saturation"
-          ? highSaturationColors
-          : defaultColorSettings)
-    })
-  }
+        ? highSaturationColors
+        : defaultColorSettings),
+    });
+  };
 
   const toggleMonochromeMode = () => {
     setAppearanceSettings({
       ...appearanceSettings,
       ...(appearanceSettings?.theme !== "monochrome"
-          ? monochromeColors
-          : defaultColorSettings)
-    })
-  }
+        ? monochromeColors
+        : defaultColorSettings),
+    });
+  };
 
   return (
     <>
@@ -273,8 +273,8 @@ const AppearanceMenu = () => {
         </ListItem>
         <ListItem disablePadding>
           <ListItemButton
-              aria-label="toggle low saturation theme"
-              onClick={toggleLowSaturationMode}
+            aria-label="toggle low saturation theme"
+            onClick={toggleLowSaturationMode}
           >
             <ListItemText>
               <Typography color="textPrimary" fontSize="large">
@@ -289,8 +289,8 @@ const AppearanceMenu = () => {
         </ListItem>
         <ListItem disablePadding>
           <ListItemButton
-              aria-label="toggle high saturation theme"
-              onClick={toggleHighSaturationMode}
+            aria-label="toggle high saturation theme"
+            onClick={toggleHighSaturationMode}
           >
             <ListItemText>
               <Typography color="textPrimary" fontSize="large">
@@ -305,8 +305,8 @@ const AppearanceMenu = () => {
         </ListItem>
         <ListItem disablePadding>
           <ListItemButton
-              aria-label="toggle monochrome theme"
-              onClick={toggleMonochromeMode}
+            aria-label="toggle monochrome theme"
+            onClick={toggleMonochromeMode}
           >
             <ListItemText>
               <Typography color="textPrimary" fontSize="large">
@@ -326,7 +326,9 @@ const AppearanceMenu = () => {
 
 const AccessibilityMenu = () => {
   const { theme, appearanceSettings, setAppearanceSettings } = useCustomTheme();
-  const [fontSliderValue, setFontSliderValue] = useState(appearanceSettings.fontSize);
+  const [fontSliderValue, setFontSliderValue] = useState(
+    appearanceSettings.fontSize,
+  );
 
   /**
    * Modifies the main global value for a given color palette
@@ -373,16 +375,16 @@ const AccessibilityMenu = () => {
   };
 
   const marks = [
-    { value: 5, label: '5' },
-    { value: 12, label: '12' },
-    { value: 14, label: '14' },
-    { value: 18, label: '18' },
-    { value: 24, label: '24' },
-    { value: 30, label: '30' },
-    { value: 36, label: '36' },
-    { value: 42, label: '42' },
-    { value: 50, label: '50' },
-  ]
+    { value: 5, label: "5" },
+    { value: 12, label: "12" },
+    { value: 14, label: "14" },
+    { value: 18, label: "18" },
+    { value: 24, label: "24" },
+    { value: 30, label: "30" },
+    { value: 36, label: "36" },
+    { value: 42, label: "42" },
+    { value: 50, label: "50" },
+  ];
 
   return (
     <>
@@ -398,7 +400,7 @@ const AccessibilityMenu = () => {
           <Paper
             sx={{
               p: 1,
-              width: "40vw"
+              width: "40vw",
             }}
           >
             <Box
@@ -429,8 +431,12 @@ const AccessibilityMenu = () => {
                 marks={marks}
                 // value={appearanceSettings.fontSize ?? 12}
                 valueLabelDisplay="auto"
-                onChange={(_, value) => { setFontSliderValue(Number(value)) }}
-                onChangeCommitted={(_, value) => { setFontSize(Number(value)) }}
+                onChange={(_, value) => {
+                  setFontSliderValue(Number(value));
+                }}
+                onChangeCommitted={(_, value) => {
+                  setFontSize(Number(value));
+                }}
               />
             </Box>
             <Input
@@ -440,8 +446,7 @@ const AccessibilityMenu = () => {
                 let n: number = Number.parseInt(e.target.value);
                 if (Number.isFinite(n)) {
                   setFontSliderValue(n);
-                }
-                else {
+                } else {
                   setFontSliderValue(undefined);
                 }
               }}
@@ -456,7 +461,7 @@ const AccessibilityMenu = () => {
                 step: 2,
                 min: 5,
                 max: 50,
-                type: 'number',
+                type: "number",
               }}
             />
           </Paper>
@@ -493,17 +498,17 @@ const AccessibilityMenu = () => {
           />
           {theme.palette.primary.main !==
             defaultAppearanceSettings.primaryColor && (
-              <Button
-                onClick={() =>
-                  modifyColorPalette(
-                    "primary",
-                    defaultAppearanceSettings.primaryColor!,
-                  )
-                }
-              >
-                Reset
-              </Button>
-            )}
+            <Button
+              onClick={() =>
+                modifyColorPalette(
+                  "primary",
+                  defaultAppearanceSettings.primaryColor!,
+                )
+              }
+            >
+              Reset
+            </Button>
+          )}
         </ListItem>
         <ListItem>
           <ColorPicker
@@ -515,17 +520,17 @@ const AccessibilityMenu = () => {
           />
           {theme.palette.secondary.main !==
             defaultAppearanceSettings.secondaryColor && (
-              <Button
-                onClick={() =>
-                  modifyColorPalette(
-                    "secondary",
-                    defaultAppearanceSettings.secondaryColor!,
-                  )
-                }
-              >
-                Reset
-              </Button>
-            )}
+            <Button
+              onClick={() =>
+                modifyColorPalette(
+                  "secondary",
+                  defaultAppearanceSettings.secondaryColor!,
+                )
+              }
+            >
+              Reset
+            </Button>
+          )}
         </ListItem>
         <ListItem>
           <ColorPicker
@@ -555,17 +560,17 @@ const AccessibilityMenu = () => {
           />
           {theme.palette.error.main !==
             defaultAppearanceSettings.errorColor && (
-              <Button
-                onClick={() =>
-                  modifyColorPalette(
-                    "error",
-                    defaultAppearanceSettings.errorColor!,
-                  )
-                }
-              >
-                Reset
-              </Button>
-            )}
+            <Button
+              onClick={() =>
+                modifyColorPalette(
+                  "error",
+                  defaultAppearanceSettings.errorColor!,
+                )
+              }
+            >
+              Reset
+            </Button>
+          )}
         </ListItem>
       </List>
     </>
