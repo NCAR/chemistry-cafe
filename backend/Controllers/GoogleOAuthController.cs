@@ -18,11 +18,16 @@ namespace ChemistryCafeAPI.Controllers
 
         private readonly string _baseUri = Environment.GetEnvironmentVariable("BACKEND_BASE_URL") ?? "";
         private readonly string _frontendHost = Environment.GetEnvironmentVariable("FRONTEND_HOST") ?? "";
-        private readonly IConfiguration _configuration;
-        public GoogleOAuthController(IConfiguration configuration, GoogleOAuthService googleOAuthService, UserService userService)
+
+        protected virtual string? GetNameIdentifier() 
+        {
+            ClaimsIdentity? claimsIdentity = this.User.Identity as ClaimsIdentity;
+            return claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        }
+
+        public GoogleOAuthController(GoogleOAuthService googleOAuthService, UserService userService)
         {
             _googleOAuthService = googleOAuthService;
-            _configuration = configuration;
             _userService = userService;
         }
 
@@ -98,20 +103,14 @@ namespace ChemistryCafeAPI.Controllers
         /// Gives the user information on themselves
         /// </summary>
         [HttpGet("whoami")]
-        public async Task<ActionResult<User>> GetCurrentUser()
+        public async Task<ActionResult<User?>> GetCurrentUser()
         {
-            ClaimsIdentity? claimsIdentity = this.User.Identity as ClaimsIdentity;
-            var nameIdentifier = claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if(nameIdentifier == null){
+            var nameIdentifier = GetNameIdentifier();
+            if (nameIdentifier == null) {
                 return Unauthorized();
             }
-            
             var guid = Guid.Parse(nameIdentifier);
             var user = await _userService.GetUserByIdAsync(guid);
-            if(user == null){
-                return NotFound();
-            }
-
             return Ok(user);
         }
     }
