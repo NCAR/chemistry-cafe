@@ -138,7 +138,7 @@ export type ReactionTypeName =
 
 /**
  * Represents all attributes configurable by the user for each reaction type.
- */  
+ */
 export const attributeOptions: {
   [Property in ReactionTypeName]: Array<ReactionAttribute>;
 } = {
