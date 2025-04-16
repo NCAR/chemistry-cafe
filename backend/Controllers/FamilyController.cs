@@ -167,7 +167,7 @@ namespace ChemistryCafeAPI.Controllers
             }
 
 
-            if (nameIdentifier != existingFamily.Owner.Id.ToString())
+            if (existingFamily.Owner.Id.ToString() != nameIdentifier)
             {
                 return StatusCode(StatusCodes.Status403Forbidden);
             }

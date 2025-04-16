@@ -97,7 +97,7 @@ namespace ChemistryCafeAPI.Controllers
                 return NotFound("Family not found");
             }
 
-            if (family.Owner.GoogleId.ToString() != nameIdentifier)
+            if (family.Owner.Id.ToString() != nameIdentifier)
             {
                 return StatusCode(StatusCodes.Status403Forbidden);
             }
@@ -171,7 +171,7 @@ namespace ChemistryCafeAPI.Controllers
                 return NotFound("Mechanism not found");
             }
 
-            if (existingMechanism.Family.Owner.GoogleId.ToString() != nameIdentifier)
+            if (existingMechanism.Family.Owner.Id.ToString() != nameIdentifier)
             {
                 return StatusCode(StatusCodes.Status403Forbidden);
             }
@@ -242,7 +242,7 @@ namespace ChemistryCafeAPI.Controllers
                 return NotFound("Mechanism not found");
             }
 
-            if (mechanism.Family.Owner.GoogleId.ToString() != nameIdentifier)
+            if (mechanism.Family.Owner.Id.ToString() != nameIdentifier)
             {
                 return StatusCode(StatusCodes.Status403Forbidden);
             }
