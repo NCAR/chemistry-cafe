@@ -21,15 +21,15 @@ namespace ChemistryCafeAPI.Tests
         static string _Description = "A test family created by FamilyControllerTests.cs.";
         static string _Email = "JunkEmail@TestUsers.com";
         static string _NameIdentifier = Guid.NewGuid().ToString();
-        static string _GoogleId = Guid.NewGuid().ToString(); // This is usually not a GUID when from Google OAuth
+        static string _GoogleId = Guid.NewGuid().ToString(); 
+        // The above is usually not a GUID when from Google OAuth
         static User? _Owner = null; 
         static DateTime _CreatedDate = DateTime.UtcNow;
         static bool found = false;
 
         private class MockedFamilyController : FamilyController 
         {
-            public MockedFamilyController(ChemistryDbContext ctx, UserService service) 
-                : base(ctx, service) 
+            public MockedFamilyController(FamilyService service) : base(service) 
             {
             }
 
@@ -41,18 +41,18 @@ namespace ChemistryCafeAPI.Tests
 
         private async Task<FamilyController> CreateSignedInController()
         {
-            var service = new UserService(ctx);
-            _Owner = await service.SignIn(_GoogleId, _Email);
+            var userService = new UserService(ctx);
+            _Owner = await userService.SignIn(_GoogleId, _Email);
             _NameIdentifier = _Owner.Id.ToString();
-            return new MockedFamilyController(ctx, service);
+            var familyService = new FamilyService(ctx, userService);
+            return new MockedFamilyController(familyService);
         }
 
         [TestMethod]
         public async Task Get_All_Family()
         {
             // Arrange
-            var service = new UserService(ctx);
-            var controller = new FamilyController(ctx, service);
+            var controller = await CreateSignedInController();
 
             // Act
             var actionResult = await controller.GetFamilies();
@@ -121,8 +121,7 @@ namespace ChemistryCafeAPI.Tests
         public async Task Get_Family_Given_ID()
         {
             // Arrange
-            var service = new UserService(ctx);
-            var controller = new FamilyController(ctx, service);
+            var controller = await CreateSignedInController();
 
             // Act
             var actionResult = await controller.GetFamily(_Id);
@@ -231,10 +230,10 @@ namespace ChemistryCafeAPI.Tests
             var ctx = DBConnection.Context;
             if (_Owner != null) 
             {
-                var service = new UserService(ctx);
-                service.DeleteUserAsync(_Owner.Id).Wait();
-                var controller = new MockedFamilyController(ctx, service);
-                controller.DeleteFamily(_Id).Wait();
+                var userService = new UserService(ctx);
+                userService.DeleteUserAsync(_Owner.Id).Wait();
+                var familyService = new FamilyService(ctx, userService);
+                familyService.DeleteFamilyAsync(_Id, _NameIdentifier).Wait();
             }
         }
     }
