@@ -141,7 +141,7 @@ namespace ChemistryCafeAPI.Controllers
             return CreatedAtAction(
                 nameof(GetMechanism),
                 new { id = createdMechanism.Entity.Id },
-                await GetMechanism(createdMechanism.Entity.Id)
+                createdMechanism.Entity
             );
         }
 

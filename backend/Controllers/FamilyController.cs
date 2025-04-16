@@ -127,7 +127,7 @@ namespace ChemistryCafeAPI.Controllers
             return CreatedAtAction(
                 nameof(GetFamily), 
                 new { id = createdFamily.Entity.Id }, 
-                await GetFamily(createdFamily.Entity.Id)
+                createdFamily.Entity
             );
         }
 

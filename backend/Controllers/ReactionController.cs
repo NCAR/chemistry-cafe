@@ -130,7 +130,7 @@ namespace ChemistryCafeAPI.Controllers
             return CreatedAtAction(
                 nameof(GetReaction),
                 new { id = createdReaction.Entity.Id },
-                await GetReaction(createdReaction.Entity.Id)
+                createdReaction.Entity
             );
         }
 
