@@ -47,6 +47,7 @@ import { apiToFrontendFamily } from "../helpers/backendInteractions";
 import { RowActionsButton } from "../components/RowActionsButton";
 import { MechanismEditor } from "../components/MechanismEditor";
 import { MechanismBrowser } from "../components/MechanismBrowser";
+import SaveIcon from '@mui/icons-material/Save';
 
 const FamilyPage = () => {
   enum DataViewSelection {
@@ -170,6 +171,11 @@ const FamilyPage = () => {
     setFamilies(families?.filter((element) => element.id != family.id));
   };
 
+  const saveFamilies = () => {
+    // TODO: fill this out when backend is ready
+    console.log("saving families...");
+  }
+
   return (
     <div className="layout-family-editor">
       <header>
@@ -195,19 +201,40 @@ const FamilyPage = () => {
             variant="outlined"
           >
             <Typography variant="h4">Families</Typography>
-            <Tooltip title="Create Family">
-              <IconButton
-                aria-label="Create Family"
-                id="create-family-button"
-                data-testid="create-family-button"
-                onClick={() => setFamilyCreationModalOpen(true)}
-              >
-                <AddIcon
-                  color="primary"
-                  sx={{ fontSize: 32, fontWeight: "bold" }}
-                />
-              </IconButton>
-            </Tooltip>
+            <Box
+              sx={{
+                justifyContent: "right"
+              }}
+            >
+
+              {/*{TODO: Save icon button }*/}
+              <Tooltip title="Save Family">
+                <IconButton
+                  aria-label="Save Family"
+                  id="save-family-button"
+                  data-testid="save-family-button"
+                  onClick={saveFamilies}
+                >
+                  <SaveIcon
+                    color="primary"
+                    sx={{ fontSize: 32, fontWeight: "bold" }}
+                  />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Create Family">
+                <IconButton
+                  aria-label="Create Family"
+                  id="create-family-button"
+                  data-testid="create-family-button"
+                  onClick={() => setFamilyCreationModalOpen(true)}
+                >
+                  <AddIcon
+                    color="primary"
+                    sx={{ fontSize: 32, fontWeight: "bold" }}
+                  />
+                </IconButton>
+              </Tooltip>
+            </Box>
           </Paper>
           {loadingFamilies ? (
             <CircularProgress />
