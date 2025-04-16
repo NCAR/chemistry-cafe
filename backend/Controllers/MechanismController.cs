@@ -14,7 +14,7 @@ namespace ChemistryCafeAPI.Controllers
         private readonly ChemistryDbContext _context;
         private readonly UserService _userService;
 
-        public virtual string? GetNameIdentifier()
+        protected virtual string? GetNameIdentifier()
         {
             ClaimsIdentity? claimsIdentity = this.User.Identity as ClaimsIdentity;
             return claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
