@@ -14,5 +14,10 @@ public partial class Family
     public string? Description { get; set; }
     public User Owner { get; set; } = null!;
 
+    // Collections of species and reactions that belong to this family
     public ICollection<Species> Species { get; set; } = new List<Species>();
+    public ICollection<Reaction> Reactions { get; set; } = new List<Reaction>();
+
+    // Collection of mechanisms that reference this family's species and reactions
+    public ICollection<Mechanism> Mechanisms { get; set; } = new List<Mechanism>();
 }

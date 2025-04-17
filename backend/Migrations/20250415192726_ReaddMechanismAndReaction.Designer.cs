@@ -4,6 +4,7 @@ using ChemistryCafeAPI.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChemistryCafeAPI.Migrations
 {
     [DbContext(typeof(ChemistryDbContext))]
-    partial class ChemistryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250415192726_ReaddMechanismAndReaction")]
+    partial class ReaddMechanismAndReaction
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

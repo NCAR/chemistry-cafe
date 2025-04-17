@@ -12,8 +12,7 @@ namespace ChemistryCafeAPI.Controllers
     [Route("api/families")]
     public class FamilyController : ControllerBase
     {
-        private readonly ChemistryDbContext _context;
-        private readonly UserService _userService;
+        private readonly FamilyService _familyService;
 
         /* virtual for mocking purposes */
         protected virtual string? GetNameIdentifier()
@@ -22,49 +21,25 @@ namespace ChemistryCafeAPI.Controllers
             return claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         }
 
-        public FamilyController(ChemistryDbContext context, UserService userService)
+        public FamilyController(FamilyService familyService)
         {
-            _context = context;
-            _userService = userService;
+            _familyService = familyService;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Family>>> GetFamilies([FromQuery] bool? expand = false)
+        public async Task<ActionResult<IEnumerable<Family>>> 
+            GetFamilies([FromQuery] bool? expand = false)
         {
-            var families = new List<Family>();
-            if (expand == true)
-            {
-                families = await _context.Families
-                    .Include(f => f.Species).Include(f => f.Owner).ToListAsync();
-            }
-            else
-            {
-                families = await _context.Families.Include(f => f.Owner).ToListAsync();
-            }
-
+            var bExpand = expand ?? false;
+            var families = await _familyService.GetFamiliesAsync(bExpand);
             return Ok(families);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Family>> GetFamily(Guid id, [FromQuery] bool? expand = true)
+        public async Task<ActionResult<Family>> GetFamily(Guid id)
         {
-            Family? family = null;
-            if (expand == true)
-            {
-                family = await _context.Families
-                    .Include(f => f.Species).Include(f => f.Owner).FirstOrDefaultAsync(f => f.Id == id);
-            }
-            else
-            {
-                family = await _context.Families.FirstOrDefaultAsync(f => f.Id == id);
-            }
-
-            if (family == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(family);
+            var family = await _familyService.GetFamilyAsync(id);
+            return family == null ? NotFound() : Ok(family);
         }
 
         /// <summary>
@@ -89,27 +64,25 @@ namespace ChemistryCafeAPI.Controllers
 
             Guid userId;
             bool isValidId = Guid.TryParse(nameIdentifier, out userId);
-
             if(!isValidId)
             {
                 return BadRequest("Name identifier is not parsable as a guid");
             }
 
-            User? currentUser = await _userService.GetUserByIdAsync(userId);
-            if (currentUser == null)
-            {
-                return Unauthorized("User does not exist");
+            var (code, createdFamily) = await _familyService.CreateFamilyAsync(family, userId);
+            if(createdFamily == null){
+                switch (code) {
+                    default:
+                    case FamilyService.Result.NotFound:
+                        return Unauthorized("User does not exist");
+                }
             }
 
-            // Defaults which the frontend user cannot specify
-            family.Id = Guid.NewGuid();
-            family.CreatedDate = DateTime.UtcNow;
-            family.Owner = currentUser;
-            family.Species = [];
-            var createdFamily = _context.Families.Add(family);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetFamily), new { id = createdFamily.Entity.Id }, createdFamily.Entity);
+            return CreatedAtAction(
+                nameof(GetFamily), 
+                new { id = createdFamily.Entity.Id }, 
+                createdFamily.Entity
+            );
         }
 
         /// <summary>
@@ -131,37 +104,19 @@ namespace ChemistryCafeAPI.Controllers
             {
                 return BadRequest("id parameter does not match given family id");
             }
-
             string? nameIdentifier = GetNameIdentifier();
             if (nameIdentifier == null)
             {
                 return Unauthorized("Not authenticated");
             }
-
-            Family? existingFamily = await _context.Families
-                .Include(f => f.Owner).FirstOrDefaultAsync(f => f.Id == id);
-            if (existingFamily == null)
+            var code = await _familyService.UpdateFamilyAsync(id, family, nameIdentifier);
+            switch (code) 
             {
+            case FamilyService.Result.NotFound:
                 return NotFound("Family not found");
-            }
-
-            if (nameIdentifier != existingFamily.Owner.Id.ToString())
-            {
+            case FamilyService.Result.NoAccess:
                 return StatusCode(StatusCodes.Status403Forbidden);
             }
-
-            User? updatedOwner = await _context.Users.FindAsync(family.Owner.Id);
-            if (updatedOwner == null)
-            {
-                return NotFound("New family owner to transfer not found");
-            }
-
-            // Set fields the user is allowed to change in this function
-            existingFamily.Name = family.Name;
-            existingFamily.Description = family.Description;
-            existingFamily.Owner = updatedOwner;
-            await _context.SaveChangesAsync();
-
             return NoContent();
         }
 
@@ -178,20 +133,14 @@ namespace ChemistryCafeAPI.Controllers
             {
                 return Unauthorized("Not authenticated");
             }
-
-            Family? family = await _context.Families
-                .Include(f => f.Owner).FirstOrDefaultAsync(f => f.Id == id);
-            if (family == null)
+            var code = await _familyService.DeleteFamilyAsync(id, nameIdentifier);
+            switch (code) 
             {
+            case FamilyService.Result.NotFound:
                 return NotFound("Family not found");
-            }
-
-            if (family.Owner.Id.ToString() != nameIdentifier)
-            {
+            case FamilyService.Result.NoAccess:
                 return StatusCode(StatusCodes.Status403Forbidden);
             }
-
-            await _context.Families.Where(f => f.Id == id).ExecuteDeleteAsync();
             return NoContent();
         }
     }
