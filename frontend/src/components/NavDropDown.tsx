@@ -1,10 +1,10 @@
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Box from "@mui/material/Box";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemButton from "@mui/material/ListItemButton";
-import { useAuth } from "../components/AuthContext"; // Import useAuth to get the user data
+import { useAuth } from "./AuthContext.tsx"; // Import useAuth to get the user data
 import { AUTH_URL } from "../API/API_config";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import ScienceIcon from "@mui/icons-material/Science";
@@ -15,39 +15,20 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import { ListItemIcon } from "@mui/material";
 
 const NavDropDown = () => {
-  const navigate = useNavigate();
-
   // Get the logged-in user from the AuthContext
   const { user, setUser } = useAuth();
 
-  const goHome = () => {
-    window.onbeforeunload = null;
-    navigate("/");
-  };
-  const goFamily = () => {
-    window.onbeforeunload = null;
-    navigate("/familypage");
-  };
-  const goDashboard = () => {
-    window.onbeforeunload = null;
-    navigate("/dashboard");
-  };
-  const goSettings = () => {
-    window.onbeforeunload = null;
-    navigate("/settings");
-  };
   const goLogOut = () => {
     setUser(null);
     localStorage.removeItem("user");
     window.location.assign(`${AUTH_URL}/google/logout`);
   };
-  const goUserManagement = () => navigate("/usermanagement"); // Add navigation to Roles page
 
   return (
     <Box sx={{ width: 250 }} role="presentation">
       <List>
         <ListItem disablePadding>
-          <ListItemButton onClick={goHome}>
+          <ListItemButton component={Link} to="/">
             <ListItemIcon>
               <HomeIcon />
             </ListItemIcon>
@@ -56,7 +37,7 @@ const NavDropDown = () => {
         </ListItem>
 
         <ListItem disablePadding>
-          <ListItemButton onClick={goFamily}>
+          <ListItemButton component={Link} to="/familypage">
             <ListItemIcon>
               <ScienceIcon />
             </ListItemIcon>
@@ -65,7 +46,7 @@ const NavDropDown = () => {
         </ListItem>
 
         <ListItem disablePadding>
-          <ListItemButton onClick={goDashboard}>
+          <ListItemButton component={Link} to="/dashboard">
             <ListItemIcon>
               <DashboardIcon />
             </ListItemIcon>
@@ -74,7 +55,7 @@ const NavDropDown = () => {
         </ListItem>
 
         <ListItem disablePadding>
-          <ListItemButton onClick={goSettings}>
+          <ListItemButton component={Link} to="/settings">
             <ListItemIcon>
               <SettingsIcon />
             </ListItemIcon>
@@ -85,7 +66,7 @@ const NavDropDown = () => {
         {/* Conditionally render the Roles option only if the user is an admin */}
         {user && user.role === "admin" && (
           <ListItem disablePadding>
-            <ListItemButton onClick={goUserManagement}>
+            <ListItemButton component={Link} to="/usermanagement">
               <ListItemIcon>
                 <ManageAccountsIcon />
               </ListItemIcon>
