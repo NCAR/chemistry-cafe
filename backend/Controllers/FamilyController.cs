@@ -61,17 +61,23 @@ namespace ChemistryCafeAPI.Controllers
             {
                 return Unauthorized("User does not have access");
             }
+
             Guid userId;
             bool isValidId = Guid.TryParse(nameIdentifier, out userId);
             if(!isValidId)
             {
                 return BadRequest("Name identifier is not parsable as a guid");
             }
+
             var (code, createdFamily) = await _familyService.CreateFamilyAsync(family, userId);
-            switch (code) {
-            case FamilyService.Result.NotFound:
-                return Unauthorized("User does not exist");
+            if(createdFamily == null){
+                switch (code) {
+                    default:
+                    case FamilyService.Result.NotFound:
+                        return Unauthorized("User does not exist");
+                }
             }
+
             return CreatedAtAction(
                 nameof(GetFamily), 
                 new { id = createdFamily.Entity.Id }, 

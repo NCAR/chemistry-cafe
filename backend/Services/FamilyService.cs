@@ -49,7 +49,7 @@ public class FamilyService
         return families;
     }
 
-    public async Task<Family> GetFamilyAsync(Guid id)
+    public async Task<Family?> GetFamilyAsync(Guid id)
     {
         var family = await _context.Families
             .Include(f => f.Owner)
@@ -67,7 +67,7 @@ public class FamilyService
         return family;
     }
 
-    public async Task<(Result, EntityEntry<Family>)> CreateFamilyAsync(Family family, Guid userId)
+    public async Task<(Result, EntityEntry<Family>?)> CreateFamilyAsync(Family family, Guid userId)
     {
         User? currentUser = await _userService.GetUserByIdAsync(userId);
         if (currentUser == null)

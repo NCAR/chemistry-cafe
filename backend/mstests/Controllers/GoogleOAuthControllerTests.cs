@@ -49,8 +49,12 @@ namespace ChemistryCafeAPI.Tests
             var user = await userService.SignIn(googleID, email);
             googleController.Id = user.Id;
             var result = await googleController.GetCurrentUser();
+            
             var okResult = result.Result as OkObjectResult;
+            Assert.IsNotNull(okResult);
+
             var currentUser = okResult.Value as User;
+
             await userService.DeleteUserAsync(user.Id);
             Assert.IsNotNull(currentUser);
             Assert.AreEqual(currentUser.Id, user.Id);
@@ -63,8 +67,11 @@ namespace ChemistryCafeAPI.Tests
             var googleService = new GoogleOAuthService(userService);
             var googleController = new MockedGoogleOAuthController(googleService, userService);
             var result = await googleController.GetCurrentUser();
+            
             var okResult = result.Result as OkObjectResult;
-            var user = okResult.Value as User;
+            Assert.IsNotNull(okResult);
+
+            User? user = okResult.Value as User;
             Assert.IsNull(user);
         }
 
