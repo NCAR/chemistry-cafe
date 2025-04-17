@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ChemistryCafeAPI.Models;
 
+[Table("Phases")]
 public class Phase
 {
     [Key]

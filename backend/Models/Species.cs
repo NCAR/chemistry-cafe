@@ -6,6 +6,7 @@ using System.Text.Json;
 
 namespace ChemistryCafeAPI.Models;
 
+[Table("Species")]
 public class Species
 {
     [Key]

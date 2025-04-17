@@ -1,10 +1,9 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ChemistryCafeAPI.Models;
 
+[Table("Mechanisms")]
 public class Mechanism
 {
     [Key]
@@ -28,6 +27,7 @@ public class Mechanism
 }
 
 // Junction table for Mechanism-Species many-to-many relationship
+[Table("MechanismSpecies")]
 public class MechanismSpecies
 {
     public Guid MechanismId { get; set; }
@@ -38,6 +38,7 @@ public class MechanismSpecies
 }
 
 // Junction table for Mechanism-Reaction many-to-many relationship
+[Table("MechanismReactions")]
 public class MechanismReaction
 {
     public Guid MechanismId { get; set; }

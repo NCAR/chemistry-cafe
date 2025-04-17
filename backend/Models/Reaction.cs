@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChemistryCafeAPI.Models;
 
+[Table("Reactions")]
 public class Reaction
 {
     [Key]
