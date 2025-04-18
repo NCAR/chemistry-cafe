@@ -45,10 +45,25 @@ public partial class ChemistryDbContext : DbContext
             .HasForeignKey(s => s.FamilyId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        modelBuilder.Entity<SpeciesNumericalAttribute>()
+            .HasOne(s => s.Species)
+            .WithMany(s => s.NumericalAttributes)
+            .OnDelete(DeleteBehavior.Cascade);
+
         modelBuilder.Entity<Reaction>()
             .HasOne(r => r.Family)
             .WithMany(f => f.Reactions)
             .HasForeignKey(r => r.FamilyId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ReactionNumericalAttribute>()
+            .HasOne(r => r.Reaction)
+            .WithMany(r => r.NumericalAttributes)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ReactionStringAttribute>()
+            .HasOne(r => r.Reaction)
+            .WithMany(r => r.StringAttributes)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Mechanism>()
@@ -59,16 +74,12 @@ public partial class ChemistryDbContext : DbContext
 
         // Configure Phase relationships
         modelBuilder.Entity<Species>()
-            .HasOne(s => s.Phase)
-            .WithMany(p => p.Species)
-            .HasForeignKey(s => s.PhaseId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .HasMany(s => s.Phases)
+            .WithMany(p => p.Species);
 
         modelBuilder.Entity<Phase>()
-            .HasOne(p => p.Mechanism)
-            .WithMany(m => m.Phases)
-            .HasForeignKey(p => p.MechanismId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .HasMany(p => p.Mechanisms)
+            .WithMany(m => m.Phases);
 
         // Configure Reaction relationships
         modelBuilder.Entity<Reactant>()
@@ -94,5 +105,15 @@ public partial class ChemistryDbContext : DbContext
             .WithMany(r => r.Products)
             .HasForeignKey(p => p.ReactionId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Configure attribute composite keys
+        modelBuilder.Entity<SpeciesNumericalAttribute>()
+            .HasKey(s => new { s.SpeciesId, s.SerializationKey });
+
+        modelBuilder.Entity<ReactionNumericalAttribute>()
+            .HasKey(r => new { r.ReactionId, r.SerializationKey });
+
+        modelBuilder.Entity<ReactionStringAttribute>()
+            .HasKey(r => new { r.ReactionId, r.SerializationKey });
     }
 }

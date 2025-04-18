@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace ChemistryCafeAPI.Models;
 
@@ -17,9 +18,8 @@ public class Phase
 
     // Navigation property for species in this phase
     public ICollection<Species> Species { get; set; } = new List<Species>();
-
-    // Mechanism relationship
-    [ForeignKey("Mechanism")]
-    public Guid MechanismId { get; set; }
-    public Mechanism Mechanism { get; set; } = null!;
-} 
+    
+    // Navigation property for mechanisms referencing this phase
+    [JsonIgnore]
+    public ICollection<Mechanism> Mechanisms { get; set; } = new List<Mechanism>();
+}

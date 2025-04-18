@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace ChemistryCafeAPI.Models;
 
@@ -23,7 +24,8 @@ public class Mechanism
     // Family relationship
     [ForeignKey("Family")]
     public Guid FamilyId { get; set; }
-    public Family Family { get; set; } = null!;
+    [JsonIgnore]
+    public Family? Family { get; set; }
 }
 
 // Junction table for Mechanism-Species many-to-many relationship
@@ -31,7 +33,8 @@ public class Mechanism
 public class MechanismSpecies
 {
     public Guid MechanismId { get; set; }
-    public Mechanism Mechanism { get; set; } = null!;
+    [JsonIgnore]
+    public Mechanism? Mechanism { get; set; }
 
     public Guid SpeciesId { get; set; }
     public Species Species { get; set; } = null!;
@@ -42,7 +45,8 @@ public class MechanismSpecies
 public class MechanismReaction
 {
     public Guid MechanismId { get; set; }
-    public Mechanism Mechanism { get; set; } = null!;
+    [JsonIgnore]
+    public Mechanism? Mechanism { get; set; }
 
     public Guid ReactionId { get; set; }
     public Reaction Reaction { get; set; } = null!;

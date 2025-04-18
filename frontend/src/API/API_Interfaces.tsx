@@ -13,81 +13,102 @@ export interface APIFamily {
   id?: UUID;
   createdDate?: string;
   name: string;
-  description: string;
+  description: string | null;
   owner: APIUser;
-  species?: Array<APISpecies>;
-  reactions?: Array<APIReaction>;
+  species: Array<APISpecies>;
+  reactions: Array<APIReaction>;
+  mechanisms: Array<APIMechanism>;
 }
 
 export interface APISpecies {
   id?: UUID;
   createdDate?: string;
   updatedDate?: string;
-  name: string | null;
-  description: string | null;
+  name: string;
+  description?: string | null;
+  numericalAttributes: Array<{
+    speciesId: UUID;
+    serializationKey: string;
+    value: number;
+  }>;
+  phaseId: UUID;
   familyId: UUID;
 }
 
 export interface APIMechanism {
   id?: UUID;
-  familyId: string;
+  createdDate: string;
+  updatedDate: string;
   name: string;
   description: string | null;
+  mechanismSpecies: Array<APIMechanismSpecies>;
+  mechanismReactions: Array<APIMechanismReaction>;
+  familyId: UUID;
+}
+
+export interface APIMechanismSpecies {
+  mechanismId: UUID;
+  speciesId: UUID;
+  species: APISpecies;
+}
+
+export interface APIMechanismReaction {
+  mechanismId: UUID;
+  reactionId: UUID;
+  reaction: APIReaction;
 }
 
 export interface APIReaction {
   id?: UUID;
+  createdDate: string;
+  updatedDate: string;
   name: string;
   description: string | null;
+  numericalAttributes: Array<{
+    reactionId: UUID;
+    serializationKey: string;
+    value: number;
+  }>;
+  stringAttributes: Array<{
+    reactionId: UUID;
+    serializationKey: string;
+    value: string;
+  }>;
+  reactants: Array<{
+
+  }>
 }
 
-export interface APIReactionSpecies {
+export interface APIReaction {
   id?: UUID;
-  reaction_id: string;
-  species_id: string;
-  role: "reactant" | "product";
+  createdDate: string;
+  updatedDate: string;
+  name: string;
+  description: string | null;
+  numericalAttributes: Array<{
+    reactionId: UUID;
+    serializationKey: string;
+    value: number;
+  }>;
+  stringAttributes: Array<{
+    reactionId: UUID;
+    serializationKey: string;
+    value: string;
+  }>;
+  reactants: Array<{
+
+  }>
 }
 
-export interface APIMechanismReaction {
-  id?: UUID;
-  mechanism_id: string;
-  reaction_id: string;
+export interface APIReactant {
+  reactionId: UUID;
+  speciesId: UUID;
+  coefficient: number;
 }
 
-export interface APIMechanismSpecies {
-  id?: UUID;
-  mechanism_id: string;
-  species_id: string;
-}
-
-export interface APIInitialConditionSpecies {
-  id?: UUID;
-  mechanism_id: string;
-  species_id: string;
-  concentration?: number;
-  temperature?: number;
-  pressure?: number;
-  additional_conditions?: string;
-  abs_convergence_tolerance?: number;
-  diffusion_coefficient?: number;
-  molecular_weight?: number;
-  fixed_concentration?: number;
-}
-
-export interface APIReactionSpeciesDto {
-  id?: UUID;
-  reaction_id: string;
-  species_id: string;
-  role: "reactant" | "product";
-  species_name: string;
-}
-
-export interface APIProperty {
-  id?: UUID; // UUID for the property entry
-  speciesId: string; // Foreign key to the species table (UUID)
-  mechanismId: string; // Foreign key to mechanism table (UUID)
-  tolerance?: number; // Tolerance value (optsional, as it might not be provided for every property)
-  weight?: number; // Weight value (optional)
-  concentration?: number; // Concentration value (optional)
-  diffusion?: number; // Diffusion value (optional)
+export interface APIProduct {
+  reactionId: UUID;
+  speciesId: UUID;
+  coefficient: number;
+  branch?: string;
 }

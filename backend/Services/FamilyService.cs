@@ -54,7 +54,7 @@ public class FamilyService
         var family = await _context.Families
             .Include(f => f.Owner)
             .Include(f => f.Species)
-                .ThenInclude(s => s.Phase)
+                .ThenInclude(s => s.Phases)
             .Include(f => f.Reactions)
                 .ThenInclude(r => r.Reactants)
                     .ThenInclude(r => r.Species)

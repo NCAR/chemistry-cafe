@@ -161,7 +161,7 @@ namespace ChemistryCafeAPI.Controllers
 
             var existingMechanism = await _context.Mechanisms
                 .Include(m => m.Family)
-                .Include(m => m.Family.Owner)
+                .Include(m => m.Family!.Owner)
                 .Include(m => m.MechanismSpecies)
                 .Include(m => m.MechanismReactions)
                 .FirstOrDefaultAsync(m => m.Id == id);
@@ -171,7 +171,7 @@ namespace ChemistryCafeAPI.Controllers
                 return NotFound("Mechanism not found");
             }
 
-            if (existingMechanism.Family.Owner.Id.ToString() != nameIdentifier)
+            if (existingMechanism.Family!.Owner.Id.ToString() != nameIdentifier)
             {
                 return StatusCode(StatusCodes.Status403Forbidden);
             }
@@ -234,7 +234,7 @@ namespace ChemistryCafeAPI.Controllers
 
             var mechanism = await _context.Mechanisms
                 .Include(m => m.Family)
-                .Include(m => m.Family.Owner)
+                .Include(m => m.Family!.Owner)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (mechanism == null)
@@ -242,7 +242,7 @@ namespace ChemistryCafeAPI.Controllers
                 return NotFound("Mechanism not found");
             }
 
-            if (mechanism.Family.Owner.Id.ToString() != nameIdentifier)
+            if (mechanism.Family!.Owner.Id.ToString() != nameIdentifier)
             {
                 return StatusCode(StatusCodes.Status403Forbidden);
             }
