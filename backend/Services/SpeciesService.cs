@@ -14,14 +14,18 @@ public class SpeciesService
 
     public async Task<(QueryResult, IEnumerable<Species>)> GetAllSpeciesAsync()
     {
-        IQueryable<Species> query = _context.Species;
+        IQueryable<Species> query = _context.Species
+            .Include(s => s.NumericalAttributes);
+
         var species = await query.ToListAsync();
         return (QueryResult.Success, species);
     }
 
     public async Task<(QueryResult, Species?)> GetSpeciesAsync(Guid id)
     {
-        Species? species = await _context.Species.FirstOrDefaultAsync(s => s.Id == id);
+        Species? species = await _context.Species
+            .Include(s => s.NumericalAttributes)
+            .FirstOrDefaultAsync(s => s.Id == id);
 
         if (species == null)
         {
@@ -108,6 +112,7 @@ public class SpeciesService
         var currentSpecies = await _context.Species
             .Include(s => s.Family)
                 .ThenInclude(f => f!.Owner)
+            .Include(s => s.NumericalAttributes)
             .FirstOrDefaultAsync(s => s.Id == id);
         if (currentSpecies == null)
         {
@@ -122,7 +127,10 @@ public class SpeciesService
         currentSpecies.UpdatedDate = DateTime.UtcNow;
         currentSpecies.Name = species.Name;
         currentSpecies.Description = species.Description;
+        
+        _context.RemoveRange(currentSpecies.NumericalAttributes);
         currentSpecies.NumericalAttributes = species.NumericalAttributes;
+
         await _context.SaveChangesAsync();
 
         return QueryResult.Success;
