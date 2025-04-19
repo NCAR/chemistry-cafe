@@ -32,16 +32,13 @@ namespace ChemistryCafeAPI.Controllers
             IQueryable<Mechanism> query = _context.Mechanisms
                 .Include(m => m.Family)
                 .Include(m => m.Phases)
-                .Include(m => m.MechanismSpecies)
-                    .ThenInclude(ms => ms.Species)
-                .Include(m => m.MechanismReactions)
-                    .ThenInclude(mr => mr.Reaction)
-                        .ThenInclude(r => r.Reactants)
-                            .ThenInclude(r => r.Species)
-                .Include(m => m.MechanismReactions)
-                    .ThenInclude(mr => mr.Reaction)
-                        .ThenInclude(r => r.Products)
-                            .ThenInclude(p => p.Species);
+                .Include(m => m.Species)
+                .Include(mr => mr.Reactions)
+                    .ThenInclude(r => r.Reactants)
+                        .ThenInclude(r => r.Species)
+                .Include(mr => mr.Reactions)
+                    .ThenInclude(r => r.Products)
+                        .ThenInclude(p => p.Species);
 
             if (familyId.HasValue)
             {
@@ -58,16 +55,13 @@ namespace ChemistryCafeAPI.Controllers
             var mechanism = await _context.Mechanisms
                 .Include(m => m.Family)
                 .Include(m => m.Phases)
-                .Include(m => m.MechanismSpecies)
-                    .ThenInclude(ms => ms.Species)
-                .Include(m => m.MechanismReactions)
-                    .ThenInclude(mr => mr.Reaction)
-                        .ThenInclude(r => r.Reactants)
-                            .ThenInclude(r => r.Species)
-                .Include(m => m.MechanismReactions)
-                    .ThenInclude(mr => mr.Reaction)
-                        .ThenInclude(r => r.Products)
-                            .ThenInclude(p => p.Species)
+                .Include(m => m.Species)
+                .Include(mr => mr.Reactions)
+                    .ThenInclude(r => r.Reactants)
+                        .ThenInclude(r => r.Species)
+                .Include(mr => mr.Reactions)
+                    .ThenInclude(r => r.Products)
+                        .ThenInclude(p => p.Species)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (mechanism == null)
@@ -107,30 +101,30 @@ namespace ChemistryCafeAPI.Controllers
             mechanism.CreatedDate = DateTime.UtcNow;
             mechanism.UpdatedDate = DateTime.UtcNow;
             mechanism.Phases = new List<Phase>();
-            mechanism.MechanismSpecies = new List<MechanismSpecies>();
-            mechanism.MechanismReactions = new List<MechanismReaction>();
+            mechanism.Species = new List<Species>();
+            mechanism.Reactions = new List<Reaction>();
 
             // Verify all species and reactions belong to the family
-            if (mechanism.MechanismSpecies != null)
+            if (mechanism.Species != null)
             {
-                foreach (var ms in mechanism.MechanismSpecies)
+                foreach (var s in mechanism.Species)
                 {
-                    var species = await _context.Species.FindAsync(ms.SpeciesId);
+                    var species = await _context.Species.FindAsync(s.Id);
                     if (species == null || species.FamilyId != mechanism.FamilyId)
                     {
-                        return BadRequest($"Species {ms.SpeciesId} not found in family");
+                        return BadRequest($"Species {s.Id} not found in family");
                     }
                 }
             }
 
-            if (mechanism.MechanismReactions != null)
+            if (mechanism.Reactions != null)
             {
-                foreach (var mr in mechanism.MechanismReactions)
+                foreach (var r in mechanism.Reactions)
                 {
-                    var reaction = await _context.Reactions.FindAsync(mr.ReactionId);
+                    var reaction = await _context.Reactions.FindAsync(r.Id);
                     if (reaction == null || reaction.FamilyId != mechanism.FamilyId)
                     {
-                        return BadRequest($"Reaction {mr.ReactionId} not found in family");
+                        return BadRequest($"Reaction {r.Id} not found in family");
                     }
                 }
             }
@@ -162,8 +156,8 @@ namespace ChemistryCafeAPI.Controllers
             var existingMechanism = await _context.Mechanisms
                 .Include(m => m.Family)
                 .Include(m => m.Family!.Owner)
-                .Include(m => m.MechanismSpecies)
-                .Include(m => m.MechanismReactions)
+                .Include(m => m.Species)
+                .Include(m => m.Reactions)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (existingMechanism == null)
@@ -177,47 +171,36 @@ namespace ChemistryCafeAPI.Controllers
             }
 
             // Verify all new species and reactions belong to the family
-            if (mechanism.MechanismSpecies != null)
+            if (mechanism.Species != null)
             {
-                foreach (var ms in mechanism.MechanismSpecies)
+                foreach (var s in mechanism.Species)
                 {
-                    var species = await _context.Species.FindAsync(ms.SpeciesId);
+                    var species = await _context.Species.FindAsync(s.Id);
                     if (species == null || species.FamilyId != existingMechanism.FamilyId)
                     {
-                        return BadRequest($"Species {ms.SpeciesId} not found in family");
+                        return BadRequest($"Species {s.Id} not found in family");
                     }
                 }
+                existingMechanism.Species = mechanism.Species;
             }
 
-            if (mechanism.MechanismReactions != null)
+            if (mechanism.Reactions != null)
             {
-                foreach (var mr in mechanism.MechanismReactions)
+                foreach (var r in mechanism.Reactions)
                 {
-                    var reaction = await _context.Reactions.FindAsync(mr.ReactionId);
+                    var reaction = await _context.Reactions.FindAsync(r.Id);
                     if (reaction == null || reaction.FamilyId != existingMechanism.FamilyId)
                     {
-                        return BadRequest($"Reaction {mr.ReactionId} not found in family");
+                        return BadRequest($"Reaction {r.Id} not found in family");
                     }
                 }
+                existingMechanism.Reactions = mechanism.Reactions;
             }
 
             // Update allowed fields
             existingMechanism.Name = mechanism.Name;
             existingMechanism.Description = mechanism.Description;
             existingMechanism.UpdatedDate = DateTime.UtcNow;
-
-            // Update references
-            if (mechanism.MechanismSpecies != null)
-            {
-                _context.MechanismSpecies.RemoveRange(existingMechanism.MechanismSpecies);
-                _context.MechanismSpecies.AddRange(mechanism.MechanismSpecies);
-            }
-
-            if (mechanism.MechanismReactions != null)
-            {
-                _context.MechanismReactions.RemoveRange(existingMechanism.MechanismReactions);
-                _context.MechanismReactions.AddRange(mechanism.MechanismReactions);
-            }
 
             await _context.SaveChangesAsync();
             return NoContent();

@@ -18,36 +18,12 @@ public class Mechanism
     public ICollection<Phase> Phases { get; set; } = new List<Phase>();
 
     // References to species and reactions from the parent family
-    public ICollection<MechanismSpecies> MechanismSpecies { get; set; } = new List<MechanismSpecies>();
-    public ICollection<MechanismReaction> MechanismReactions { get; set; } = new List<MechanismReaction>();
+    public ICollection<Species> Species { get; set; } = new List<Species>();
+    public ICollection<Reaction> Reactions { get; set; } = new List<Reaction>();
 
     // Family relationship
     [ForeignKey("Family")]
     public Guid FamilyId { get; set; }
     [JsonIgnore]
     public Family? Family { get; set; }
-}
-
-// Junction table for Mechanism-Species many-to-many relationship
-[Table("MechanismSpecies")]
-public class MechanismSpecies
-{
-    public Guid MechanismId { get; set; }
-    [JsonIgnore]
-    public Mechanism? Mechanism { get; set; }
-
-    public Guid SpeciesId { get; set; }
-    public Species Species { get; set; } = null!;
-}
-
-// Junction table for Mechanism-Reaction many-to-many relationship
-[Table("MechanismReactions")]
-public class MechanismReaction
-{
-    public Guid MechanismId { get; set; }
-    [JsonIgnore]
-    public Mechanism? Mechanism { get; set; }
-
-    public Guid ReactionId { get; set; }
-    public Reaction Reaction { get; set; } = null!;
 }

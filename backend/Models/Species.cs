@@ -38,7 +38,7 @@ public class Species
 
     // Mechanisms that reference this species
     [JsonIgnore]
-    public ICollection<MechanismSpecies> MechanismSpecies { get; set; } = new List<MechanismSpecies>();
+    public ICollection<Mechanism> Mechanisms { get; set; } = new List<Mechanism>();
 }
 
 /// <summary>

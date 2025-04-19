@@ -28,7 +28,7 @@ public class Reaction
 
     // Mechanisms that reference this reaction
     [JsonIgnore]
-    public ICollection<MechanismReaction> MechanismReactions { get; set; } = new List<MechanismReaction>();
+    public ICollection<Mechanism> Mechanisms { get; set; } = new List<Mechanism>();
 
     // Family relationship
     [ForeignKey("Family")]
@@ -89,7 +89,7 @@ public class ReactionNumericalAttribute
     public Guid ReactionId { get; set; }
     
     [JsonIgnore]
-    public Reaction? Reaction { get; set; }
+    public Reaction? Reaction { get; set; } = null;
 
     // Key which is used in JSON/YAML serialization
     public string SerializationKey { get; set; } = null!;
@@ -107,7 +107,7 @@ public class ReactionStringAttribute
     public Guid ReactionId { get; set; }
     
     [JsonIgnore]
-    public Reaction? Reaction { get; set; }
+    public Reaction? Reaction { get; set; } = null;
 
     // Key which is used in JSON/YAML serialization
     public string SerializationKey { get; set; } = null!;

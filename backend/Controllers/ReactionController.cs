@@ -35,8 +35,7 @@ namespace ChemistryCafeAPI.Controllers
                     .ThenInclude(r => r.Species)
                 .Include(r => r.Products)
                     .ThenInclude(p => p.Species)
-                .Include(r => r.MechanismReactions)
-                    .ThenInclude(mr => mr.Mechanism)
+                .Include(r => r.Mechanisms)
                 .AsQueryable();
 
             if (familyId.HasValue)
@@ -57,8 +56,7 @@ namespace ChemistryCafeAPI.Controllers
                     .ThenInclude(r => r.Species)
                 .Include(r => r.Products)
                     .ThenInclude(p => p.Species)
-                .Include(r => r.MechanismReactions)
-                    .ThenInclude(mr => mr.Mechanism)
+                .Include(r => r.Mechanisms)
                 .FirstOrDefaultAsync(r => r.Id == id);
 
             if (reaction == null)
@@ -122,7 +120,7 @@ namespace ChemistryCafeAPI.Controllers
             reaction.Id = Guid.NewGuid();
             reaction.CreatedDate = DateTime.UtcNow;
             reaction.UpdatedDate = DateTime.UtcNow;
-            reaction.MechanismReactions = new List<MechanismReaction>();
+            reaction.Mechanisms = new List<Mechanism>();
 
             var createdReaction = _context.Reactions.Add(reaction);
             await _context.SaveChangesAsync();
@@ -150,7 +148,7 @@ namespace ChemistryCafeAPI.Controllers
 
             var existingReaction = await _context.Reactions
                 .Include(r => r.Family)
-                .Include(r => r.Family.Owner)
+                .Include(r => r.Family!.Owner)
                 .Include(r => r.Reactants)
                 .Include(r => r.Products)
                 .FirstOrDefaultAsync(r => r.Id == id);
@@ -160,7 +158,7 @@ namespace ChemistryCafeAPI.Controllers
                 return NotFound("Reaction not found");
             }
 
-            if (existingReaction.Family.Owner.Id.ToString() != nameIdentifier)
+            if (existingReaction.Family!.Owner.Id.ToString() != nameIdentifier)
             {
                 return StatusCode(StatusCodes.Status403Forbidden);
             }
@@ -231,7 +229,7 @@ namespace ChemistryCafeAPI.Controllers
 
             var reaction = await _context.Reactions
                 .Include(r => r.Family)
-                .Include(r => r.Family.Owner)
+                .Include(r => r.Family!.Owner)
                 .FirstOrDefaultAsync(r => r.Id == id);
 
             if (reaction == null)
@@ -239,7 +237,7 @@ namespace ChemistryCafeAPI.Controllers
                 return NotFound("Reaction not found");
             }
 
-            if (reaction.Family.Owner.Id.ToString() != nameIdentifier)
+            if (reaction.Family!.Owner.Id.ToString() != nameIdentifier)
             {
                 return StatusCode(StatusCodes.Status403Forbidden);
             }

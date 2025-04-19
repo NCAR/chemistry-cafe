@@ -24,21 +24,12 @@ public partial class ChemistryDbContext : DbContext
     public virtual DbSet<Reaction> Reactions { get; set; }
     public virtual DbSet<Reactant> Reactants { get; set; }
     public virtual DbSet<Product> Products { get; set; }
-    public virtual DbSet<MechanismSpecies> MechanismSpecies { get; set; }
-    public virtual DbSet<MechanismReaction> MechanismReactions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Configure junction tables for mechanism references
-        modelBuilder.Entity<MechanismSpecies>()
-            .HasKey(ms => new { ms.MechanismId, ms.SpeciesId });
-
-        modelBuilder.Entity<MechanismReaction>()
-            .HasKey(mr => new { mr.MechanismId, mr.ReactionId });
-
-        // Configure one-to-many relationships for Family
+        // Configure Species Relations
         modelBuilder.Entity<Species>()
             .HasOne(s => s.Family)
             .WithMany(f => f.Species)
@@ -50,6 +41,7 @@ public partial class ChemistryDbContext : DbContext
             .WithMany(s => s.NumericalAttributes)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // Configure Reaction Relations
         modelBuilder.Entity<Reaction>()
             .HasOne(r => r.Family)
             .WithMany(f => f.Reactions)
@@ -66,32 +58,10 @@ public partial class ChemistryDbContext : DbContext
             .WithMany(r => r.StringAttributes)
             .OnDelete(DeleteBehavior.Cascade);
 
-        modelBuilder.Entity<Mechanism>()
-            .HasOne(m => m.Family)
-            .WithMany(f => f.Mechanisms)
-            .HasForeignKey(m => m.FamilyId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        // Configure Phase relationships
-        modelBuilder.Entity<Species>()
-            .HasMany(s => s.Phases)
-            .WithMany(p => p.Species);
-
-        modelBuilder.Entity<Phase>()
-            .HasMany(p => p.Mechanisms)
-            .WithMany(m => m.Phases);
-
-        // Configure Reaction relationships
         modelBuilder.Entity<Reactant>()
             .HasOne(r => r.Species)
             .WithMany(s => s.AsReactant)
             .HasForeignKey(r => r.SpeciesId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        modelBuilder.Entity<Product>()
-            .HasOne(p => p.Species)
-            .WithMany(s => s.AsProduct)
-            .HasForeignKey(p => p.SpeciesId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Reactant>()
@@ -101,10 +71,40 @@ public partial class ChemistryDbContext : DbContext
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Product>()
+            .HasOne(p => p.Species)
+            .WithMany(s => s.AsProduct)
+            .HasForeignKey(p => p.SpeciesId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Product>()
             .HasOne(p => p.Reaction)
             .WithMany(r => r.Products)
             .HasForeignKey(p => p.ReactionId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Configure Mechanism relationships
+        modelBuilder.Entity<Mechanism>()
+            .HasOne(m => m.Family)
+            .WithMany(f => f.Mechanisms)
+            .HasForeignKey(m => m.FamilyId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Mechanism>()
+            .HasMany(m => m.Species)
+            .WithMany(r => r.Mechanisms);
+
+        modelBuilder.Entity<Mechanism>()
+            .HasMany(m => m.Reactions)
+            .WithMany(r => r.Mechanisms);
+
+        // Configure Phase relationships
+        modelBuilder.Entity<Phase>()
+            .HasMany(p => p.Species)
+            .WithMany(s => s.Phases);
+
+        modelBuilder.Entity<Phase>()
+            .HasMany(p => p.Mechanisms)
+            .WithMany(m => m.Phases);
 
         // Configure attribute composite keys
         modelBuilder.Entity<SpeciesNumericalAttribute>()
