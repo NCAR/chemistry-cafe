@@ -92,27 +92,21 @@ namespace ChemistryCafeAPI.Controllers
             }
 
             // Verify all species belong to the family
-            if (reaction.Reactants != null)
+            foreach (var reactant in reaction.Reactants)
             {
-                foreach (var reactant in reaction.Reactants)
+                var species = await _context.Species.FindAsync(reactant.SpeciesId);
+                if (species == null || species.FamilyId != reaction.FamilyId)
                 {
-                    var species = await _context.Species.FindAsync(reactant.SpeciesId);
-                    if (species == null || species.FamilyId != reaction.FamilyId)
-                    {
-                        return BadRequest($"Reactant species {reactant.SpeciesId} not found in family");
-                    }
+                    return BadRequest($"Reactant species {reactant.SpeciesId} not found in family");
                 }
             }
 
-            if (reaction.Products != null)
+            foreach (var product in reaction.Products)
             {
-                foreach (var product in reaction.Products)
+                var species = await _context.Species.FindAsync(product.SpeciesId);
+                if (species == null || species.FamilyId != reaction.FamilyId)
                 {
-                    var species = await _context.Species.FindAsync(product.SpeciesId);
-                    if (species == null || species.FamilyId != reaction.FamilyId)
-                    {
-                        return BadRequest($"Product species {product.SpeciesId} not found in family");
-                    }
+                    return BadRequest($"Product species {product.SpeciesId} not found in family");
                 }
             }
 
@@ -246,4 +240,4 @@ namespace ChemistryCafeAPI.Controllers
             return NoContent();
         }
     }
-} 
+}

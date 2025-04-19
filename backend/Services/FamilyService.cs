@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using ChemistryCafeAPI.Services;
 using ChemistryCafeAPI.Models;
 
 namespace ChemistryCafeAPI.Services;

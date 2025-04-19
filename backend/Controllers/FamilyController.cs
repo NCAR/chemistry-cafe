@@ -1,10 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using ChemistryCafeAPI.Services;
 using ChemistryCafeAPI.Models;
-using Microsoft.AspNetCore.Authorization;
-using NuGet.Protocol;
 
 namespace ChemistryCafeAPI.Controllers
 {
