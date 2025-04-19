@@ -20,15 +20,15 @@ public class Species
     // Specific attributes associated with this species
     public ICollection<SpeciesNumericalAttribute> NumericalAttributes { get; set; } = new List<SpeciesNumericalAttribute>();
 
-    // Phase relationships
-    [JsonIgnore]
-    public ICollection<Phase> Phases { get; set; } = new List<Phase>();
-
     // Family relationship
     [ForeignKey("Families")]
     public Guid FamilyId { get; set; }
     [JsonIgnore]
     public Family? Family { get; set; }
+    
+    // Phase relationships
+    [JsonIgnore]
+    public ICollection<Phase> Phases { get; set; } = new List<Phase>();
 
     // Navigation properties for reactions/
     [JsonIgnore]
@@ -48,6 +48,7 @@ public class Species
 [Table("SpeciesNumericalAttributes")]
 public class SpeciesNumericalAttribute
 {
+    [ForeignKey("Species")]
     public Guid SpeciesId { get; set; }
     [JsonIgnore]
     public Species? Species { get; set; }
