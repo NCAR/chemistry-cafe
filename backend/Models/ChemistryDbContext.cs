@@ -109,7 +109,13 @@ public partial class ChemistryDbContext : DbContext
             .HasMany(p => p.Mechanisms)
             .WithMany(m => m.Phases);
 
-        // Configure attribute composite keys
+        modelBuilder.Entity<Phase>()
+            .HasOne(p => p.Family)
+            .WithMany(f => f.Phases)
+            .HasForeignKey(p => p.FamilyId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Configure composite keys
         modelBuilder.Entity<SpeciesNumericalAttribute>()
             .HasKey(s => new { s.SpeciesId, s.SerializationKey });
 
@@ -118,5 +124,11 @@ public partial class ChemistryDbContext : DbContext
 
         modelBuilder.Entity<ReactionStringAttribute>()
             .HasKey(r => new { r.ReactionId, r.SerializationKey });
+
+        modelBuilder.Entity<Reactant>()
+            .HasKey(r => new { r.ReactionId, r.SpeciesId });
+        
+        modelBuilder.Entity<Product>()
+            .HasKey(r => new { r.ReactionId, r.SpeciesId });
     }
 }

@@ -24,9 +24,17 @@ namespace ChemistryCafeAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Species>>> GetAllSpecies()
+        public async Task<ActionResult<IEnumerable<Species>>> GetAllSpecies([FromQuery] Guid? familyId = null)
         {
-            var (_, speciesCollection) = await _speciesService.GetAllSpeciesAsync();
+            var (result, speciesCollection) = await _speciesService.GetAllSpeciesAsync(familyId);
+            if (speciesCollection == null)
+            {
+                return result switch
+                {
+                    QueryResult.ParentRelationNotFound => NotFound($"Family with id '{familyId}' was not found in the database."),
+                    _ => StatusCode(StatusCodes.Status500InternalServerError),
+                };
+            }
             return Ok(speciesCollection);
         }
 
@@ -49,22 +57,15 @@ namespace ChemistryCafeAPI.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult<Species>> CreateSpecies(Species species, [FromQuery] string familyId)
+        public async Task<ActionResult<Species>> CreateSpecies(Species species, [FromQuery] Guid familyId)
         {
-            Guid parsedFamilyId;
-            bool isValidFamilyId = Guid.TryParse(familyId, out parsedFamilyId);
-            if (!isValidFamilyId)
-            {
-                return BadRequest("Invalid UUID format for familyId");
-            }
-
             string? nameIdentifier = GetNameIdentifier();
             if (nameIdentifier == null)
             {
                 return Unauthorized("User is not logged in");
             }
 
-            var (result, createdSpecies) = await _speciesService.CreateSpeciesAsync(species, parsedFamilyId, nameIdentifier);
+            var (result, createdSpecies) = await _speciesService.CreateSpeciesAsync(species, familyId, nameIdentifier);
             if (createdSpecies == null)
             {
                 return result switch

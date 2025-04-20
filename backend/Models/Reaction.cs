@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
@@ -39,11 +37,10 @@ public class Reaction
     public Family? Family { get; set; }
 }
 
+[Table("Reactants")]
+[PrimaryKey(nameof(ReactionId), nameof(SpeciesId))]
 public class Reactant
 {
-    [Key]
-    public Guid Id { get; set; } = Guid.NewGuid();
-
     // Reaction relationship
     public Guid ReactionId { get; set; }
 
@@ -59,11 +56,10 @@ public class Reactant
     public double Coefficient { get; set; }
 }
 
+[Table("Products")]
+[PrimaryKey(nameof(ReactionId), nameof(SpeciesId))]
 public class Product
 {
-    [Key]
-    public Guid Id { get; set; } = Guid.NewGuid();
-
     // Reaction relationship
     public Guid ReactionId { get; set; }
     

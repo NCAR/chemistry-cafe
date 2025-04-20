@@ -12,10 +12,20 @@ public class SpeciesService
         _context = context;
     }
 
-    public async Task<(QueryResult, IEnumerable<Species>)> GetAllSpeciesAsync()
+    public async Task<(QueryResult, IEnumerable<Species>?)> GetAllSpeciesAsync(Guid? familyId = null)
     {
         IQueryable<Species> query = _context.Species
             .Include(s => s.NumericalAttributes);
+
+        if (familyId != null)
+        {
+            Family? family = await _context.Families.SingleOrDefaultAsync(f => f.Id == familyId);
+            if (family == null)
+            {
+                return (QueryResult.ParentRelationNotFound, null);
+            }
+            query = query.Where(s => s.FamilyId == familyId);
+        }
 
         var species = await query.ToListAsync();
         return (QueryResult.Success, species);
@@ -29,7 +39,7 @@ public class SpeciesService
 
         if (species == null)
         {
-            return (QueryResult.NotFound, species);
+            return (QueryResult.NotFound, null);
         }
 
         return (QueryResult.Success, species);
@@ -69,8 +79,8 @@ public class SpeciesService
         bool duplicateNumericalAttributes = species.NumericalAttributes
             .GroupBy(na => na.SerializationKey)
             .Any(e => e.Count() > 1);
-        
-        if(duplicateNumericalAttributes)
+
+        if (duplicateNumericalAttributes)
         {
             return (QueryResult.DuplicateKeyError, null);
         }
@@ -128,8 +138,8 @@ public class SpeciesService
         bool duplicateNumericalAttributes = species.NumericalAttributes
             .GroupBy(na => na.SerializationKey)
             .Any(e => e.Count() > 1);
-        
-        if(duplicateNumericalAttributes)
+
+        if (duplicateNumericalAttributes)
         {
             return (QueryResult.DuplicateKeyError, null);
         }
@@ -138,7 +148,7 @@ public class SpeciesService
         currentSpecies.Name = species.Name;
         currentSpecies.Description = species.Description;
 
-        _context.RemoveRange(currentSpecies.NumericalAttributes);
+        currentSpecies.NumericalAttributes.Clear();
         currentSpecies.NumericalAttributes = species.NumericalAttributes;
 
         await _context.SaveChangesAsync();

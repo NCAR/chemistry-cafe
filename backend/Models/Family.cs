@@ -1,8 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace ChemistryCafeAPI.Models;
 
@@ -19,6 +16,7 @@ public partial class Family
     // Collections of species and reactions that belong to this family
     public ICollection<Species> Species { get; set; } = new List<Species>();
     public ICollection<Reaction> Reactions { get; set; } = new List<Reaction>();
+    public ICollection<Phase> Phases { get; set; } = new List<Phase>();
 
     // Collection of mechanisms that reference this family's species and reactions
     public ICollection<Mechanism> Mechanisms { get; set; } = new List<Mechanism>();

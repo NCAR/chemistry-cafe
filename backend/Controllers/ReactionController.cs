@@ -48,22 +48,15 @@ namespace ChemistryCafeAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Reaction>> CreateReaction(Reaction reaction, [FromQuery] string familyId)
+        public async Task<ActionResult<Reaction>> CreateReaction(Reaction reaction, [FromQuery] Guid familyId)
         {
-            Guid parsedFamilyId;
-            bool isValidFamilyId = Guid.TryParse(familyId, out parsedFamilyId);
-            if (!isValidFamilyId)
-            {
-                return BadRequest("Invalid UUID format for familyId");
-            }
-
             string? nameIdentifier = GetNameIdentifier();
             if (nameIdentifier == null)
             {
                 return Unauthorized("User is not authenticated");
             }
 
-            var (result, createdReaction) = await _reactionService.CreateReactionAsync(reaction, parsedFamilyId, nameIdentifier);
+            var (result, createdReaction) = await _reactionService.CreateReactionAsync(reaction, familyId, nameIdentifier);
             if (createdReaction == null)
             {
                 return result switch

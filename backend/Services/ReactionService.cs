@@ -45,7 +45,7 @@ public class ReactionService
                 .ThenInclude(p => p.Species)
             .Include(r => r.Products)
                 .ThenInclude(p => p.Species)
-            .FirstOrDefaultAsync(r => r.Id == id);
+            .SingleOrDefaultAsync(r => r.Id == id);
 
         if (reaction == null)
         {
@@ -65,7 +65,7 @@ public class ReactionService
         }
 
         User? currentUser = await _context.Users
-            .FirstOrDefaultAsync(u => u.Id == userId);
+            .SingleOrDefaultAsync(u => u.Id == userId);
         if (currentUser == null)
         {
             return (QueryResult.OwnerNotFound, null);
@@ -73,7 +73,7 @@ public class ReactionService
 
         Family? family = await _context.Families
             .Include(f => f.Owner)
-            .FirstOrDefaultAsync(f => f.Id == familyId);
+            .SingleOrDefaultAsync(f => f.Id == familyId);
         if (family == null)
         {
             return (QueryResult.ParentRelationNotFound, null);
@@ -155,7 +155,7 @@ public class ReactionService
         }
 
         User? currentUser = await _context.Users
-            .FirstOrDefaultAsync(u => u.Id == userId);
+            .SingleOrDefaultAsync(u => u.Id == userId);
         if (currentUser == null)
         {
             return (QueryResult.OwnerNotFound, null);
@@ -170,7 +170,7 @@ public class ReactionService
                 .ThenInclude(p => p.Species)
             .Include(r => r.Products)
                 .ThenInclude(p => p.Species)
-            .FirstOrDefaultAsync(r => r.Id == id);
+            .SingleOrDefaultAsync(r => r.Id == id);
 
         if (currentReaction == null)
         {
@@ -227,16 +227,16 @@ public class ReactionService
         currentReaction.Description = reaction.Description;
         currentReaction.ReactionType = reaction.ReactionType;
 
-        _context.RemoveRange(currentReaction.Reactants);
+        currentReaction.Reactants.Clear();
         currentReaction.Reactants = reaction.Reactants;
 
-        _context.RemoveRange(currentReaction.Products);
+        currentReaction.Products.Clear();
         currentReaction.Products = reaction.Products;
 
-        _context.RemoveRange(currentReaction.StringAttributes);
+        currentReaction.StringAttributes.Clear();
         currentReaction.StringAttributes = reaction.StringAttributes;
 
-        _context.RemoveRange(currentReaction.NumericalAttributes);
+        currentReaction.NumericalAttributes.Clear();
         currentReaction.NumericalAttributes = reaction.NumericalAttributes;
 
         await _context.SaveChangesAsync();
@@ -254,7 +254,7 @@ public class ReactionService
         }
 
         User? currentUser = await _context.Users
-            .FirstOrDefaultAsync(u => u.Id == userId);
+            .SingleOrDefaultAsync(u => u.Id == userId);
         if (currentUser == null)
         {
             return QueryResult.OwnerNotFound;
@@ -264,7 +264,7 @@ public class ReactionService
         Reaction? reaction = await _context.Reactions
             .Include(r => r.Family)
                 .ThenInclude(f => f!.Owner)
-            .FirstOrDefaultAsync(r => r.Id == id);
+            .SingleOrDefaultAsync(r => r.Id == id);
         
         if(reaction == null)
         {

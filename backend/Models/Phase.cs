@@ -16,9 +16,14 @@ public class Phase
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
 
+    // Family this phase is a part of
+    public Guid FamilyId { get; set; }
+    [JsonIgnore]
+    public Family? Family { get; set; }
+
     // Navigation property for species in this phase
     public ICollection<Species> Species { get; set; } = new List<Species>();
-    
+
     // Navigation property for mechanisms referencing this phase
     [JsonIgnore]
     public ICollection<Mechanism> Mechanisms { get; set; } = new List<Mechanism>();

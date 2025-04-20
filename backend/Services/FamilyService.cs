@@ -13,7 +13,7 @@ public class FamilyService
     {
         Success,
         NoAccess,
-        NotFound, 
+        NotFound,
         ParseError,
     }
 
@@ -26,21 +26,28 @@ public class FamilyService
     public async Task<IEnumerable<Family>> GetFamiliesAsync(bool expand)
     {
         IQueryable<Family> query = _context.Families;
-        
+
         // Always include Owner
         query = query.Include(f => f.Owner);
-        
+
         if (expand)
         {
             query = query
                 .Include(f => f.Species)
                 .Include(f => f.Mechanisms)
+                    .ThenInclude(m => m.Species)
+                .Include(f => f.Mechanisms)
+                    .ThenInclude(m => m.Reactions)
+                .Include(f => f.Mechanisms)
+                    .ThenInclude(m => m.Phases)
                 .Include(f => f.Reactions)
                     .ThenInclude(r => r.Reactants)
                         .ThenInclude(r => r.Species)
                 .Include(f => f.Reactions)
                     .ThenInclude(r => r.Products)
-                        .ThenInclude(p => p.Species);
+                        .ThenInclude(p => p.Species)
+                .Include(f => f.Phases)
+                    .ThenInclude(p => p.Species);
         }
 
         var families = await query.ToListAsync();
