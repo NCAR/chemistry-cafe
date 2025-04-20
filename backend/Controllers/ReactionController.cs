@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using ChemistryCafeAPI.Services;
 using ChemistryCafeAPI.Models;
@@ -62,8 +61,8 @@ namespace ChemistryCafeAPI.Controllers
                 return result switch
                 {
                     QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier claim"),
-                    QueryResult.OwnerNotFound => NotFound("Current user not found in database"),
-                    QueryResult.ParentRelationNotFound => NotFound("Family not found in database"),
+                    QueryResult.OwnerNotFound => Unauthorized("Current user not found in database"),
+                    QueryResult.ParentRelationNotFound => NotFound($"Family with id '{familyId}' not found in database"),
                     QueryResult.DuplicateKeyError => BadRequest("One or more attributes have duplicate json keys"),
                     QueryResult.ChildRelationNotFound => NotFound("One or more reactant/product species do not exist"),
                     QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
@@ -79,7 +78,7 @@ namespace ChemistryCafeAPI.Controllers
         }
 
         [HttpPatch("{id}")]
-        public async Task<IActionResult> UpdateReaction(Guid id, Reaction reaction)
+        public async Task<ActionResult<Reaction>> UpdateReaction(Guid id, Reaction reaction)
         {
             string? nameIdentifier = GetNameIdentifier();
             if (nameIdentifier == null)
@@ -93,7 +92,7 @@ namespace ChemistryCafeAPI.Controllers
                 return result switch
                 {
                     QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier claim"),
-                    QueryResult.OwnerNotFound => NotFound("Current user not found in database"),
+                    QueryResult.OwnerNotFound => Unauthorized("Current user not found in database"),
                     QueryResult.NotFound => NotFound($"Reaction with id '{id}' was not found in the database"),
                     QueryResult.DuplicateKeyError => BadRequest("One or more attributes have duplicate json keys"),
                     QueryResult.ChildRelationNotFound => NotFound("One or more reactant/product species do not exist"),
@@ -111,7 +110,7 @@ namespace ChemistryCafeAPI.Controllers
             string? nameIdentifier = GetNameIdentifier();
             if (nameIdentifier == null)
             {
-                return Unauthorized("Not authenticated");
+                return Unauthorized("User is not authenticated");
             }
 
             var result = await _reactionService.DeleteReactionAsync(id, nameIdentifier);
@@ -120,7 +119,7 @@ namespace ChemistryCafeAPI.Controllers
             {
                 QueryResult.Success => NoContent(),
                 QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier claim"),
-                QueryResult.OwnerNotFound => NotFound("Current user not found in database"),
+                QueryResult.OwnerNotFound => Unauthorized("Current user not found in database"),
                 QueryResult.NotFound => NotFound($"Reaction with id '{id}' was not found in the database"),
                 QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
                 _ => StatusCode(StatusCodes.Status500InternalServerError),

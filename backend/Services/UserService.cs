@@ -6,12 +6,6 @@ namespace ChemistryCafeAPI.Services
 
     public class UserService
     {
-        public enum Result 
-        {
-            Success,
-            NotFound, 
-            Forbidden
-        }
 
         private readonly ChemistryDbContext _context;
 
@@ -63,22 +57,22 @@ namespace ChemistryCafeAPI.Services
             return user;
         }
 
-        public async Task<UserService.Result> UpdateUserAsync(User user)
+        public async Task<QueryResult> UpdateUserAsync(User user)
         {
             var existingUser = await GetUserByIdAsync(user.Id);
             if (existingUser == null)
             {
-                return UserService.Result.NotFound;
+                return QueryResult.NotFound;
             }
             if (existingUser.Role != "admin")
             {
-                return UserService.Result.Forbidden;
+                return QueryResult.NoAccess;
             }
             existingUser.Username = user.Username;
             existingUser.Role = user.Role;
             existingUser.Email = user.Email;
             await _context.SaveChangesAsync();
-            return UserService.Result.Success;
+            return QueryResult.Success;
         }
 
         public async Task DeleteUserAsync(Guid id)

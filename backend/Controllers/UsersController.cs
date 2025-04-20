@@ -59,11 +59,11 @@ namespace ChemistryCafeAPI.Controllers
             }
             var result = await _userService.UpdateUserAsync(user);
             switch (result) {
-            case UserService.Result.Success:
+            case QueryResult.Success:
                 return NoContent();
-            case UserService.Result.NotFound:
+            case QueryResult.NotFound:
                 return NotFound();
-            case UserService.Result.Forbidden:
+            case QueryResult.NoAccess:
                 return Forbid();
             }
             return NoContent();

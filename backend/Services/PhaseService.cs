@@ -79,14 +79,14 @@ public class PhaseService
         List<Species> phaseSpecies = new List<Species>();
         foreach (var userInputSpecies in phase.Species)
         {
-            var species = await _context.Species.FindAsync(userInputSpecies.Id);
-            if (species == null || species.FamilyId != family!.Id)
+            Species? databaseSpecies = await _context.Species.FindAsync(userInputSpecies.Id);
+            if (databaseSpecies == null || databaseSpecies.FamilyId != family.Id)
             {
                 return (QueryResult.ChildRelationNotFound, null);
             }
 
             // Ensure no accidental implicit updating of the species rows
-            phaseSpecies.Add(species);
+            phaseSpecies.Add(databaseSpecies);
         }
 
         Phase phaseInfo = new Phase
@@ -122,7 +122,7 @@ public class PhaseService
             return (QueryResult.OwnerNotFound, null);
         }
 
-        var currentPhase = await _context.Phases
+        Phase? currentPhase = await _context.Phases
             .Include(p => p.Family)
             .Include(p => p.Species)
             .SingleOrDefaultAsync(p => p.Id == id);
@@ -139,16 +139,16 @@ public class PhaseService
 
         // Verify each species exists and is in the family
         currentPhase.Species.Clear();
-        foreach (var userInputSpecies in phase.Species)
+        foreach (var species in phase.Species)
         {
-            var species = await _context.Species.FindAsync(userInputSpecies.Id);
-            if (species == null || species.FamilyId != phase.Family!.Id)
+            var databaseSpecies = await _context.Species.FindAsync(species.Id);
+            if (databaseSpecies == null || databaseSpecies.FamilyId != phase.Family!.Id)
             {
                 return (QueryResult.ChildRelationNotFound, null);
             }
 
             // Ensure no accidental implicit updating of the species rows
-            currentPhase.Species.Add(species);
+            currentPhase.Species.Add(databaseSpecies);
         }
 
         currentPhase.UpdatedDate = DateTime.UtcNow;

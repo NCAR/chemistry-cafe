@@ -12,7 +12,7 @@ namespace ChemistryCafeAPI.Controllers
     public class MechanismController : ControllerBase
     {
         private readonly ChemistryDbContext _context;
-        private readonly UserService _userService;
+        private readonly MechanismService _mechanismService;
 
         protected virtual string? GetNameIdentifier()
         {
@@ -20,190 +20,99 @@ namespace ChemistryCafeAPI.Controllers
             return claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         }
 
-        public MechanismController(ChemistryDbContext context, UserService userService)
+        public MechanismController(ChemistryDbContext context, MechanismService mechanismService)
         {
             _context = context;
-            _userService = userService;
+            _mechanismService = mechanismService;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Mechanism>>> GetMechanisms([FromQuery] Guid? familyId = null)
         {
-            IQueryable<Mechanism> query = _context.Mechanisms
-                .Include(m => m.Family)
-                .Include(m => m.Phases)
-                .Include(m => m.Species)
-                .Include(mr => mr.Reactions)
-                    .ThenInclude(r => r.Reactants)
-                        .ThenInclude(r => r.Species)
-                .Include(mr => mr.Reactions)
-                    .ThenInclude(r => r.Products)
-                        .ThenInclude(p => p.Species);
-
-            if (familyId.HasValue)
+            var (result, mechanismCollection) = await _mechanismService.GetAllMechanismsAsync(familyId);
+            if (mechanismCollection == null)
             {
-                query = query.Where(m => m.FamilyId == familyId);
+                return result switch
+                {
+                    QueryResult.ParentRelationNotFound => NotFound($"Family with id '{familyId}' was not found in the database."),
+                    _ => StatusCode(StatusCodes.Status500InternalServerError),
+                };
             }
 
-            var mechanisms = await query.ToListAsync();
-            return Ok(mechanisms);
+            return Ok(mechanismCollection);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Mechanism>> GetMechanism(Guid id)
         {
-            var mechanism = await _context.Mechanisms
-                .Include(m => m.Family)
-                .Include(m => m.Phases)
-                .Include(m => m.Species)
-                .Include(mr => mr.Reactions)
-                    .ThenInclude(r => r.Reactants)
-                        .ThenInclude(r => r.Species)
-                .Include(mr => mr.Reactions)
-                    .ThenInclude(r => r.Products)
-                        .ThenInclude(p => p.Species)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var (result, mechanism) = await _mechanismService.GetMechanismAsync(id);
 
             if (mechanism == null)
             {
-                return NotFound();
+                return result switch
+                {
+                    QueryResult.NotFound => NotFound($"Mechanism with id '{id}' was not found in the database."),
+                    _ => StatusCode(StatusCodes.Status500InternalServerError),
+                };
             }
 
             return Ok(mechanism);
         }
 
         [HttpPost]
-        public async Task<ActionResult<Mechanism>> CreateMechanism(Mechanism mechanism)
+        public async Task<ActionResult<Mechanism>> CreateMechanism(Mechanism mechanism, [FromQuery] Guid familyId)
         {
             string? nameIdentifier = GetNameIdentifier();
             if (nameIdentifier == null)
             {
-                return Unauthorized("User does not have access");
+                return Unauthorized("User is not authenticated");
             }
 
-            // Verify family exists and user has access
-            var family = await _context.Families
-                .Include(f => f.Owner)
-                .FirstOrDefaultAsync(f => f.Id == mechanism.FamilyId);
-
-            if (family == null)
+            var (result, createdMechanism) = await _mechanismService.CreateMechanismAsync(mechanism, familyId, nameIdentifier);
+            if (createdMechanism == null)
             {
-                return NotFound("Family not found");
-            }
-
-            if (family.Owner.Id.ToString() != nameIdentifier)
-            {
-                return StatusCode(StatusCodes.Status403Forbidden);
-            }
-
-            // Set defaults
-            mechanism.Id = Guid.NewGuid();
-            mechanism.CreatedDate = DateTime.UtcNow;
-            mechanism.UpdatedDate = DateTime.UtcNow;
-            mechanism.Phases = new List<Phase>();
-            mechanism.Species = new List<Species>();
-            mechanism.Reactions = new List<Reaction>();
-
-            // Verify all species and reactions belong to the family
-            if (mechanism.Species != null)
-            {
-                foreach (var s in mechanism.Species)
+                return result switch
                 {
-                    var species = await _context.Species.FindAsync(s.Id);
-                    if (species == null || species.FamilyId != mechanism.FamilyId)
-                    {
-                        return BadRequest($"Species {s.Id} not found in family");
-                    }
-                }
+                    QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier claim"),
+                    QueryResult.OwnerNotFound => Unauthorized("User not found in database"),
+                    QueryResult.ParentRelationNotFound => NotFound($"Family with id '{familyId}' not found in database"),
+                    QueryResult.ChildRelationNotFound => NotFound("One or more species, reactions, or phases were either not found or are not in this family"),
+                    QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
+                    _ => StatusCode(StatusCodes.Status500InternalServerError),
+                };
             }
-
-            if (mechanism.Reactions != null)
-            {
-                foreach (var r in mechanism.Reactions)
-                {
-                    var reaction = await _context.Reactions.FindAsync(r.Id);
-                    if (reaction == null || reaction.FamilyId != mechanism.FamilyId)
-                    {
-                        return BadRequest($"Reaction {r.Id} not found in family");
-                    }
-                }
-            }
-
-            var createdMechanism = _context.Mechanisms.Add(mechanism);
-            await _context.SaveChangesAsync();
 
             return CreatedAtAction(
                 nameof(GetMechanism),
-                new { id = createdMechanism.Entity.Id },
-                createdMechanism.Entity
+                new { id = createdMechanism.Id },
+                createdMechanism
             );
         }
 
         [HttpPatch("{id}")]
-        public async Task<IActionResult> UpdateMechanism(Guid id, Mechanism mechanism)
+        public async Task<ActionResult<Mechanism>> UpdateMechanism(Guid id, Mechanism mechanism)
         {
-            if (mechanism.Id != id)
-            {
-                return BadRequest("id parameter does not match given mechanism id");
-            }
-
             string? nameIdentifier = GetNameIdentifier();
             if (nameIdentifier == null)
             {
-                return Unauthorized("Not authenticated");
+                return Unauthorized("User is not authenticated");
             }
 
-            var existingMechanism = await _context.Mechanisms
-                .Include(m => m.Family)
-                .Include(m => m.Family!.Owner)
-                .Include(m => m.Species)
-                .Include(m => m.Reactions)
-                .FirstOrDefaultAsync(m => m.Id == id);
-
-            if (existingMechanism == null)
+            var (result, updatedMechanism) = await _mechanismService.UpdateMechanismAsync(id, mechanism, nameIdentifier);
+            if (updatedMechanism == null)
             {
-                return NotFound("Mechanism not found");
-            }
-
-            if (existingMechanism.Family!.Owner.Id.ToString() != nameIdentifier)
-            {
-                return StatusCode(StatusCodes.Status403Forbidden);
-            }
-
-            // Verify all new species and reactions belong to the family
-            if (mechanism.Species != null)
-            {
-                foreach (var s in mechanism.Species)
+                return result switch
                 {
-                    var species = await _context.Species.FindAsync(s.Id);
-                    if (species == null || species.FamilyId != existingMechanism.FamilyId)
-                    {
-                        return BadRequest($"Species {s.Id} not found in family");
-                    }
-                }
-                existingMechanism.Species = mechanism.Species;
+                    QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier claim"),
+                    QueryResult.OwnerNotFound => Unauthorized("Current user not found in database"),
+                    QueryResult.NotFound => NotFound($"Mechanism with id '{id}' was not found in the database"),
+                    QueryResult.ChildRelationNotFound => NotFound("One or more species, reactions, or phases were either not found or are not in this family"),
+                    QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
+                    _ => StatusCode(StatusCodes.Status500InternalServerError),
+                };
             }
 
-            if (mechanism.Reactions != null)
-            {
-                foreach (var r in mechanism.Reactions)
-                {
-                    var reaction = await _context.Reactions.FindAsync(r.Id);
-                    if (reaction == null || reaction.FamilyId != existingMechanism.FamilyId)
-                    {
-                        return BadRequest($"Reaction {r.Id} not found in family");
-                    }
-                }
-                existingMechanism.Reactions = mechanism.Reactions;
-            }
-
-            // Update allowed fields
-            existingMechanism.Name = mechanism.Name;
-            existingMechanism.Description = mechanism.Description;
-            existingMechanism.UpdatedDate = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-            return NoContent();
+            return Ok(updatedMechanism);
         }
 
         [HttpDelete("{id}")]
@@ -212,26 +121,20 @@ namespace ChemistryCafeAPI.Controllers
             string? nameIdentifier = GetNameIdentifier();
             if (nameIdentifier == null)
             {
-                return Unauthorized("Not authenticated");
+                return Unauthorized("User is not authenticated");
             }
 
-            var mechanism = await _context.Mechanisms
-                .Include(m => m.Family)
-                .Include(m => m.Family!.Owner)
-                .FirstOrDefaultAsync(m => m.Id == id);
-
-            if (mechanism == null)
+            var result = await _mechanismService.DeleteMechanismAsync(id, nameIdentifier);
+            
+            return result switch
             {
-                return NotFound("Mechanism not found");
-            }
-
-            if (mechanism.Family!.Owner.Id.ToString() != nameIdentifier)
-            {
-                return StatusCode(StatusCodes.Status403Forbidden);
-            }
-
-            await _context.Mechanisms.Where(m => m.Id == id).ExecuteDeleteAsync();
-            return NoContent();
+                QueryResult.Success => NoContent(),
+                QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier claim"),
+                QueryResult.OwnerNotFound => Unauthorized("Current user not found in database"),
+                QueryResult.NotFound => NotFound($"Mechanism with id '{id}' was not found in the database"),
+                QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
+                _ => StatusCode(StatusCodes.Status500InternalServerError),
+            };
         }
     }
-} 
+}

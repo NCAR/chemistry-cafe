@@ -42,12 +42,14 @@ public class Reaction
 public class Reactant
 {
     // Reaction relationship
+    [ForeignKey("Reactions")]
     public Guid ReactionId { get; set; }
 
     [JsonIgnore]
     public Reaction? Reaction { get; set; }
 
     // Species relationship (must be from same family as reaction)
+    [ForeignKey("Species")]
     public Guid SpeciesId { get; set; }
 
     [JsonIgnore]
@@ -61,12 +63,14 @@ public class Reactant
 public class Product
 {
     // Reaction relationship
+    [ForeignKey("Reactions")]
     public Guid ReactionId { get; set; }
     
     [JsonIgnore]
     public Reaction? Reaction { get; set; }
 
     // Species relationship (must be from same family as reaction)
+    [ForeignKey("Species")]
     public Guid SpeciesId { get; set; }
     
     [JsonIgnore]

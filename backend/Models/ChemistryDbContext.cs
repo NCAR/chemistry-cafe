@@ -94,20 +94,23 @@ public partial class ChemistryDbContext : DbContext
 
         modelBuilder.Entity<Mechanism>()
             .HasMany(m => m.Species)
-            .WithMany(r => r.Mechanisms);
+            .WithMany(r => r.Mechanisms)
+            .UsingEntity<MechanismSpecies>();
 
         modelBuilder.Entity<Mechanism>()
             .HasMany(m => m.Reactions)
-            .WithMany(r => r.Mechanisms);
+            .WithMany(r => r.Mechanisms)
+            .UsingEntity<MechanismReaction>();
+
+        modelBuilder.Entity<Mechanism>()
+            .HasMany(m => m.Phases)
+            .WithMany(p => p.Mechanisms)
+            .UsingEntity<MechanismPhase>();
 
         // Configure Phase relationships
         modelBuilder.Entity<Phase>()
             .HasMany(p => p.Species)
             .WithMany(s => s.Phases);
-
-        modelBuilder.Entity<Phase>()
-            .HasMany(p => p.Mechanisms)
-            .WithMany(m => m.Phases);
 
         modelBuilder.Entity<Phase>()
             .HasOne(p => p.Family)
@@ -127,7 +130,7 @@ public partial class ChemistryDbContext : DbContext
 
         modelBuilder.Entity<Reactant>()
             .HasKey(r => new { r.ReactionId, r.SpeciesId });
-        
+
         modelBuilder.Entity<Product>()
             .HasKey(r => new { r.ReactionId, r.SpeciesId });
     }

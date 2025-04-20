@@ -62,7 +62,7 @@ namespace ChemistryCafeAPI.Controllers
             string? nameIdentifier = GetNameIdentifier();
             if (nameIdentifier == null)
             {
-                return Unauthorized("User is not logged in");
+                return Unauthorized("User is not authenticated");
             }
 
             var (result, createdSpecies) = await _speciesService.CreateSpeciesAsync(species, familyId, nameIdentifier);
@@ -71,8 +71,8 @@ namespace ChemistryCafeAPI.Controllers
                 return result switch
                 {
                     QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier claim"),
-                    QueryResult.OwnerNotFound => NotFound("User not found in database"),
-                    QueryResult.ParentRelationNotFound => NotFound("Family not found in database"),
+                    QueryResult.OwnerNotFound => Unauthorized("User not found in database"),
+                    QueryResult.ParentRelationNotFound => NotFound($"Family with id '{familyId}' not found in database"),
                     QueryResult.DuplicateKeyError => BadRequest("One or more attributes have duplicate serialization keys"),
                     QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
                     _ => StatusCode(StatusCodes.Status500InternalServerError),
@@ -93,7 +93,7 @@ namespace ChemistryCafeAPI.Controllers
             string? nameIdentifier = GetNameIdentifier();
             if (nameIdentifier == null)
             {
-                return Unauthorized("User is not logged in");
+                return Unauthorized("User is not authenticated");
             }
 
             var (result, updatedSpecies) = await _speciesService.UpdateSpeciesAsync(id, species, nameIdentifier);
@@ -102,7 +102,7 @@ namespace ChemistryCafeAPI.Controllers
                 return result switch
                 {
                     QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier"),
-                    QueryResult.OwnerNotFound => NotFound("User not found in database"),
+                    QueryResult.OwnerNotFound => Unauthorized("User not found in database"),
                     QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
                     _ => StatusCode(StatusCodes.Status500InternalServerError),
                 };
@@ -122,7 +122,7 @@ namespace ChemistryCafeAPI.Controllers
             string? nameIdentifier = GetNameIdentifier();
             if (nameIdentifier == null)
             {
-                return Unauthorized("User is not logged in");
+                return Unauthorized("User is not authenticated");
             }
 
             var result = await _speciesService.DeleteSpeciesAsync(id, nameIdentifier);
@@ -130,7 +130,7 @@ namespace ChemistryCafeAPI.Controllers
             {
                 QueryResult.Success => NoContent(),
                 QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier"),
-                QueryResult.OwnerNotFound => NotFound("User not found in database"),
+                QueryResult.OwnerNotFound => Unauthorized("User not found in database"),
                 QueryResult.NotFound => NotFound("Given Species id not found in database"),
                 QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
                 _ => StatusCode(StatusCodes.Status500InternalServerError),

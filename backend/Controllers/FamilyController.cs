@@ -24,7 +24,7 @@ namespace ChemistryCafeAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Family>>> 
+        public async Task<ActionResult<IEnumerable<Family>>>
             GetFamilies([FromQuery] bool? expand = false)
         {
             var bExpand = expand ?? false;
@@ -56,28 +56,30 @@ namespace ChemistryCafeAPI.Controllers
             string? nameIdentifier = GetNameIdentifier();
             if (nameIdentifier == null)
             {
-                return Unauthorized("User does not have access");
+                return Unauthorized("User is not authenticated");
             }
 
             Guid userId;
             bool isValidId = Guid.TryParse(nameIdentifier, out userId);
-            if(!isValidId)
+            if (!isValidId)
             {
                 return BadRequest("Name identifier is not parsable as a guid");
             }
 
             var (code, createdFamily) = await _familyService.CreateFamilyAsync(family, userId);
-            if(createdFamily == null){
-                switch (code) {
-                    default:
-                    case FamilyService.Result.NotFound:
-                        return Unauthorized("User does not exist");
-                }
+            if (createdFamily == null)
+            {
+                return code switch
+                {
+                    QueryResult.OwnerNotFound => Unauthorized("User does not exist"),
+                    _ => Unauthorized("User does not exist"),
+                };
+
             }
 
             return CreatedAtAction(
-                nameof(GetFamily), 
-                new { id = createdFamily.Entity.Id }, 
+                nameof(GetFamily),
+                new { id = createdFamily.Entity.Id },
                 createdFamily.Entity
             );
         }
@@ -104,17 +106,16 @@ namespace ChemistryCafeAPI.Controllers
             string? nameIdentifier = GetNameIdentifier();
             if (nameIdentifier == null)
             {
-                return Unauthorized("Not authenticated");
+                return Unauthorized("User is not authenticated");
             }
             var code = await _familyService.UpdateFamilyAsync(id, family, nameIdentifier);
-            switch (code) 
+            return code switch
             {
-            case FamilyService.Result.NotFound:
-                return NotFound("Family not found");
-            case FamilyService.Result.NoAccess:
-                return StatusCode(StatusCodes.Status403Forbidden);
-            }
-            return NoContent();
+                QueryResult.NotFound => NotFound("Family not found"),
+                QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
+                _ => NoContent(),
+            };
+
         }
 
         /// <summary>
@@ -128,17 +129,15 @@ namespace ChemistryCafeAPI.Controllers
             string? nameIdentifier = GetNameIdentifier();
             if (nameIdentifier == null)
             {
-                return Unauthorized("Not authenticated");
+                return Unauthorized("User is not authenticated");
             }
             var code = await _familyService.DeleteFamilyAsync(id, nameIdentifier);
-            switch (code) 
+            return code switch
             {
-            case FamilyService.Result.NotFound:
-                return NotFound("Family not found");
-            case FamilyService.Result.NoAccess:
-                return StatusCode(StatusCodes.Status403Forbidden);
-            }
-            return NoContent();
+                QueryResult.NotFound => NotFound("Family not found"),
+                QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
+                _ => NoContent(),
+            };
         }
     }
 }
