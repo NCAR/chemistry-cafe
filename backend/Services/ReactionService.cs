@@ -12,6 +12,12 @@ public class ReactionService
         _context = context;
     }
 
+    /// <summary>
+    /// Retrieves a list of all reactions given specified constraints.
+    /// If a constraint is null, it is ignored.
+    /// </summary>
+    /// <param name="familyId">ID of the family the reactions belong to</param>
+    /// <returns>Tuple of result of the transaction and list of reactions</returns>
     public async Task<(QueryResult, IEnumerable<Reaction>?)> GetAllReactionsAsync(Guid? familyId = null)
     {
         IQueryable<Reaction> query = _context.Reactions
@@ -41,6 +47,12 @@ public class ReactionService
         return (QueryResult.Success, reactions);
     }
 
+    /// <summary>
+    /// Retrieves a specified reaction from the database.
+    /// Reaction is null if not found.
+    /// </summary>
+    /// <param name="id">ID of the reaction</param>
+    /// <returns>Tuple of transaction result and reaction</returns>
     public async Task<(QueryResult, Reaction?)> GetReactionAsync(Guid id)
     {
         Reaction? reaction = await _context.Reactions
@@ -65,6 +77,16 @@ public class ReactionService
         return (QueryResult.Success, reaction);
     }
 
+    /// <summary>
+    /// Creates a reaction in the database with a new ID.
+    /// 
+    /// Any nested objects are replaced with their database counterpart to ensure there are no unintentional side-effects.
+    /// An exception to this is the product, reactant, and attribute objects. These update their own properties but not their own nested objects.
+    /// </summary>
+    /// <param name="reaction">Reaction information specified by the user</param>
+    /// <param name="familyId">ID of the family this reaction belongs to</param>
+    /// <param name="nameIdentifier">ID of the user creating this reaction</param>
+    /// <returns>Tuple of transaction result and created reaction</returns>
     public async Task<(QueryResult, Reaction?)> CreateReactionAsync(Reaction reaction, Guid familyId, string nameIdentifier)
     {
         Guid userId;
@@ -201,6 +223,16 @@ public class ReactionService
         return (QueryResult.Success, createdReaction.Entity);
     }
 
+    /// <summary>
+    /// Updates a reaction in the database.
+    /// 
+    /// Any nested objects are replaced with their database counterpart to ensure there are no unintentional side-effects.
+    /// An exception to this is the product, reactant, and attribute objects. These update their own properties but not their own nested objects.
+    /// </summary>
+    /// <param name="id">ID of the reaction to update</param>
+    /// <param name="reaction">Reaction information specified by the user</param>
+    /// <param name="nameIdentifier">ID of the user updating this reaction</param>
+    /// <returns>Tuple of transaction result and updated reaction</returns>
     public async Task<(QueryResult, Reaction?)> UpdateReactionAsync(Guid id, Reaction reaction, string nameIdentifier)
     {
         Guid userId;
@@ -346,6 +378,13 @@ public class ReactionService
         return (QueryResult.Success, currentReaction);
     }
 
+    /// <summary>
+    /// Deletes a given reaction from the database.
+    /// This will also implicitly remove product, reactant, and attribute table rows.
+    /// </summary>
+    /// <param name="id">ID of the reaction to delete</param>
+    /// <param name="nameIdentifier">ID of the user deleting the reaction</param>
+    /// <returns>Result of the transaction</returns>
     public async Task<QueryResult> DeleteReactionAsync(Guid id, string nameIdentifier)
     {
         Guid userId;

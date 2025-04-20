@@ -13,6 +13,12 @@ public class MechanismService
         _context = context;
     }
 
+    /// <summary>
+    /// Retrieves a list of all mechanisms given specified constraints.
+    /// If a constraint is null, it is ignored.
+    /// </summary>
+    /// <param name="familyId">ID of the family the mechanisms belong to</param>
+    /// <returns>Tuple of result of the transaction and list of mechanisms</returns>
     public async Task<(QueryResult, IEnumerable<Mechanism>?)> GetAllMechanismsAsync(Guid? familyId = null)
     {
         IQueryable<Mechanism> query = _context.Mechanisms
@@ -45,6 +51,12 @@ public class MechanismService
         return (QueryResult.Success, mechanisms);
     }
 
+    /// <summary>
+    /// Retrieves a specified mechanism from the database. 
+    /// Mechanism is null if not found.
+    /// </summary>
+    /// <param name="id">ID of the mechanism</param>
+    /// <returns>Tuple of transaction result and mechanism</returns>
     public async Task<(QueryResult, Mechanism?)> GetMechanismAsync(Guid id)
     {
         Mechanism? mechanism = await _context.Mechanisms
@@ -72,6 +84,14 @@ public class MechanismService
         return (QueryResult.Success, mechanism);
     }
 
+    /// <summary>
+    /// Creates a mechanism in the database with a new ID.
+    /// Any nested objects are replaced with their database counterpart to ensure there are no unintentional side-effects.
+    /// </summary>
+    /// <param name="mechanism">Mechanism information specified by the user</param>
+    /// <param name="familyId">ID of the family this mechanism is a part of</param>
+    /// <param name="nameIdentifier">ID of the user creating the mechanism</param>
+    /// <returns>Tuple of transaction result and created mechanism</returns>
     public async Task<(QueryResult, Mechanism?)> CreateMechanismAsync(Mechanism mechanism, Guid familyId, string nameIdentifier)
     {
         Guid userId;
@@ -159,6 +179,14 @@ public class MechanismService
         return (QueryResult.Success, createdMechanism.Entity);
     }
 
+    /// <summary>
+    /// Updates the values of a given mechanism.
+    /// Any nested objects are replaced with their database counterpart to ensure there are no unintentional side-effects.
+    /// </summary>
+    /// <param name="id">ID of the mechanism to update</param>
+    /// <param name="mechanism">Mechanism information specified by the user</param>
+    /// <param name="nameIdentifier">ID of the user updating the mechanism</param>
+    /// <returns>Tuple of transaction result and the updated mechanism</returns>
     public async Task<(QueryResult, Mechanism?)> UpdateMechanismAsync(Guid id, Mechanism mechanism, string nameIdentifier)
     {
         Guid userId;
@@ -236,6 +264,13 @@ public class MechanismService
         return (QueryResult.Success, currentMechanism);
     }
 
+    /// <summary>
+    /// Deletes a given mechanism from the database.
+    /// This will also implicitly remove any junction table rows.
+    /// </summary>
+    /// <param name="id">ID of the mechanism to delete</param>
+    /// <param name="nameIdentifier">ID of the user deleting the mechanism</param>
+    /// <returns>Result of the transaction</returns>
     public async Task<QueryResult> DeleteMechanismAsync(Guid id, string nameIdentifier)
     {
         Guid userId;

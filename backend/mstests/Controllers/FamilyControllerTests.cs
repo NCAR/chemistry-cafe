@@ -231,7 +231,7 @@ namespace ChemistryCafeAPI.Tests
             if (_Owner != null) 
             {
                 var userService = new UserService(ctx);
-                userService.DeleteUserAsync(_Owner.Id).Wait();
+                userService.DeleteUserAsync(_Owner.Id, _Owner.Id.ToString()).Wait();
                 var familyService = new FamilyService(ctx, userService);
                 familyService.DeleteFamilyAsync(_Id, _NameIdentifier).Wait();
             }

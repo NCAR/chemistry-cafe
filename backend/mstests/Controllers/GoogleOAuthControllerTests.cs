@@ -55,7 +55,7 @@ namespace ChemistryCafeAPI.Tests
 
             var currentUser = okResult.Value as User;
 
-            await userService.DeleteUserAsync(user.Id);
+            await userService.DeleteUserAsync(user.Id, user.Id.ToString());
             Assert.IsNotNull(currentUser);
             Assert.AreEqual(currentUser.Id, user.Id);
         }

@@ -14,6 +14,12 @@ public class PhaseService
         _userService = userService;
     }
 
+    /// <summary>
+    /// Retrieves all phases given specified constraints.
+    /// If a constrain is null, it is ignored.
+    /// </summary>
+    /// <param name="familyId">ID of the family these phases belong to</param>
+    /// <returns>Tuple of transaction result and list of phases</returns>
     public async Task<(QueryResult, IEnumerable<Phase>?)> GetAllPhasesAsync(Guid? familyId = null)
     {
         IQueryable<Phase> query = _context.Phases
@@ -32,6 +38,12 @@ public class PhaseService
         return (QueryResult.Success, phases);
     }
 
+    /// <summary>
+    /// Retrieves a specified phase from the database.
+    /// Phase is null if not found
+    /// </summary>
+    /// <param name="id">ID of the phase</param>
+    /// <returns>Tuple of transaction result and phase</returns>
     public async Task<(QueryResult, Phase?)> GetPhaseAsync(Guid id)
     {
         Phase? phase = await _context.Phases
@@ -46,6 +58,14 @@ public class PhaseService
         return (QueryResult.Success, phase);
     }
 
+    /// <summary>
+    /// Creates a phase in the database with a new ID.
+    /// Any nested objects are replaced with their database counterpart to ensure there are no unintentional side-effects.
+    /// </summary>
+    /// <param name="phase">Phase information specified by the user</param>
+    /// <param name="familyId">ID of the family this phase is a part of</param>
+    /// <param name="nameIdentifier">ID of the user creating the phase</param>
+    /// <returns>Tuple of transaction result and created phase</returns>
     public async Task<(QueryResult, Phase?)> CreatePhaseAsync(Phase phase, Guid familyId, string nameIdentifier)
     {
         Guid userId;
@@ -106,6 +126,14 @@ public class PhaseService
         return (QueryResult.Success, createdPhase.Entity);
     }
 
+    /// <summary>
+    /// Updates a phase in the database.
+    /// Any nested objects are replaced with their database counterpart to ensure there are no unintentional side-effects.
+    /// </summary>
+    /// <param name="id">ID of the phase</param>
+    /// <param name="phase">Phase information specified by the user</param>
+    /// <param name="nameIdentifier">ID of the user updating the phase</param>
+    /// <returns>Tuple of transaction result and updated phase</returns>
     public async Task<(QueryResult, Phase?)> UpdatePhaseAsync(Guid id, Phase phase, string nameIdentifier)
     {
         Guid userId;
@@ -161,6 +189,13 @@ public class PhaseService
         return (QueryResult.Success, currentPhase);
     }
 
+    /// <summary>
+    /// Deletes a given phase from the database
+    /// This will also implicitly remove any junction table rows.
+    /// </summary>
+    /// <param name="id">ID of the phase to delete</param>
+    /// <param name="nameIdentifier">ID of the user deleting the phase</param>
+    /// <returns>Result of the transaction</returns>
     public async Task<QueryResult> DeletePhaseAsync(Guid id, string nameIdentifier)
     {
         Guid userId;

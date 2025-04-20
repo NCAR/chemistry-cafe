@@ -29,6 +29,16 @@ namespace ChemistryCafeAPI.Tests
         const string _Email = "testuser@example.com";
         static DateTime _CreatedDate = DateTime.UtcNow;
 
+        private class MockedUsersController : UsersController
+        {
+            public MockedUsersController(UserService userService) : base(userService) { }
+            protected override string? GetNameIdentifier()
+            {
+                return _UserId.ToString();
+            }
+
+        }
+
         [ClassInitialize]
         public static void ClassInit(TestContext context)
         {
@@ -60,7 +70,7 @@ namespace ChemistryCafeAPI.Tests
         {
             // Arrange
             var userService = new UserService(ctx);
-            var controller = new UsersController(userService);
+            var controller = new MockedUsersController(userService);
 
             // Act
             var result = await controller.GetUsers();
@@ -78,7 +88,7 @@ namespace ChemistryCafeAPI.Tests
         {
             // Arrange
             var userService = new UserService(ctx);
-            var controller = new UsersController(userService);
+            var controller = new MockedUsersController(userService);
 
             // Ensure user exists
             if (!userCreated)
@@ -102,7 +112,7 @@ namespace ChemistryCafeAPI.Tests
         {
             // Arrange
             var userService = new UserService(ctx);
-            var controller = new UsersController(userService);
+            var controller = new MockedUsersController(userService);
 
             // Ensure user exists
             if (!userCreated)
@@ -126,7 +136,7 @@ namespace ChemistryCafeAPI.Tests
         {
             // Arrange
             var userService = new UserService(ctx);
-            var controller = new UsersController(userService);
+            var controller = new MockedUsersController(userService);
 
             // Ensure user exists
             if (!userCreated)
@@ -163,7 +173,7 @@ namespace ChemistryCafeAPI.Tests
         {
             // Arrange
             var userService = new UserService(ctx);
-            var controller = new UsersController(userService);
+            var controller = new MockedUsersController(userService);
 
             // Ensure user exists
             if (!userCreated)
@@ -190,7 +200,7 @@ namespace ChemistryCafeAPI.Tests
         {
             // Arrange
             var userService = new UserService(ctx);
-            var controller = new UsersController(userService);
+            var controller = new MockedUsersController(userService);
             var invalidUserId = Guid.NewGuid();
 
             // Act
@@ -206,7 +216,7 @@ namespace ChemistryCafeAPI.Tests
         {
             // Arrange
             var userService = new UserService(ctx);
-            var controller = new UsersController(userService);
+            var controller = new MockedUsersController(userService);
 
             var updatedUser = new User
             {
@@ -234,7 +244,7 @@ namespace ChemistryCafeAPI.Tests
             if (userCreated)
             {
                 var userService = new UserService(ctx);
-                var deleteTask = userService.DeleteUserAsync(_UserId);
+                var deleteTask = userService.DeleteUserAsync(_UserId, _UserId.ToString());
                 deleteTask.Wait();
             }
         }

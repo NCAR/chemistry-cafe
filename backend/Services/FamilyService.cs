@@ -15,6 +15,12 @@ public class FamilyService
         _userService = userService;
     }
 
+    /// <summary>
+    /// Returns every family in the database with some constraints
+    /// </summary>
+    /// <param name="expand">Adds extra child classes if true. This is mainly false for large bulk queries where the nested objects aren't needed</param>
+    /// <param name="userId">User ID constraint to only query families from a certain user if not null</param>
+    /// <returns>List of families</returns>
     public async Task<IEnumerable<Family>> GetFamiliesAsync(bool expand, Guid? userId = null)
     {
         IQueryable<Family> query = _context.Families;
@@ -59,6 +65,11 @@ public class FamilyService
         return families;
     }
 
+    /// <summary>
+    /// Gets a specific family from the database
+    /// </summary>
+    /// <param name="id">The id of the family</param>
+    /// <returns>Family or null if not found</returns>
     public async Task<Family?> GetFamilyAsync(Guid id)
     {
         var family = await _context.Families
@@ -87,6 +98,14 @@ public class FamilyService
         return family;
     }
 
+    /// <summary>
+    /// Creates a family in the database. 
+    /// Only shallow values defined by the user are created:
+    /// name, description, owner
+    /// </summary>
+    /// <param name="family">Family information to create</param>
+    /// <param name="userId">ID of the owner of the family</param>
+    /// <returns>Result of the transaction and the entity entry</returns>
     public async Task<(QueryResult, EntityEntry<Family>?)> CreateFamilyAsync(Family family, Guid userId)
     {
         User? currentUser = await _userService.GetUserByIdAsync(userId);
@@ -115,6 +134,13 @@ public class FamilyService
         return (QueryResult.Success, createdFamily);
     }
 
+    /// <summary>
+    /// Updates the shallow values of a family: name, description
+    /// </summary>
+    /// <param name="id">ID of the family to update</param>
+    /// <param name="family">family information</param>
+    /// <param name="nameIdentifier">ID of he user updating the family</param>
+    /// <returns>Result of the transaction</returns>
     public async Task<QueryResult> UpdateFamilyAsync(Guid id, Family family, string nameIdentifier)
     {
         var existingFamily = await _context.Families
@@ -139,6 +165,12 @@ public class FamilyService
         return QueryResult.Success;
     }
 
+    /// <summary>
+    /// Removes a family from the database. This cascades to its children as well.
+    /// </summary>
+    /// <param name="id">ID of the family</param>
+    /// <param name="nameIdentifier">ID of the user deleting the family</param>
+    /// <returns>Result of the transaction</returns>
     public async Task<QueryResult> DeleteFamilyAsync(Guid id, string nameIdentifier)
     {
         var family = await _context.Families
