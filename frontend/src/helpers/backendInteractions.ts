@@ -25,7 +25,7 @@ export function apiToFrontendSpecies(apiSpecies: APISpecies): Species {
   const formattedSpecies: Species = {
     id: apiSpecies.id,
     name: apiSpecies.name ?? "<Empty>",
-    description: apiSpecies.description,
+    description: apiSpecies.description || "",
     attributes: {},
     familyId: apiSpecies.familyId,
   };
@@ -47,6 +47,8 @@ export function frontendToAPISpecies(species: Species): APISpecies {
     name: species.name,
     description: species.description,
     familyId: species.familyId as UUID,
+    numericalAttributes: [],
+    phaseId: "1-1-1-1-1"
   };
 
   return formattedSpecies;
@@ -90,6 +92,11 @@ export function frontendToAPIReaction(reaction: Reaction): APIReaction {
     id: reaction.id as UUID,
     name: reaction.name,
     description: reaction.description,
+    createdDate: "",
+    updatedDate: "",
+    numericalAttributes: [],
+    stringAttributes: [],
+    reactants: []
   };
 }
 
@@ -122,9 +129,13 @@ export function apiToFrontendMechanism(apiMechanism: APIMechanism): Mechanism {
 export function frontendToAPIMechanism(mechanism: Mechanism): APIMechanism {
   // FIXME
   return {
-    familyId: "",
+    familyId: "000000-000000-00000-0000-000000",
     name: mechanism.name,
     description: mechanism.description,
+    createdDate: "",
+    updatedDate: "",
+    mechanismSpecies: [],
+    mechanismReactions: [],
   };
 }
 
@@ -143,7 +154,7 @@ export function apiToFrontendFamily(apiFamily: APIFamily): Family {
   const formattedFamily: Family = {
     id: apiFamily.id,
     name: apiFamily.name,
-    description: apiFamily.description,
+    description: apiFamily.description || "",
     mechanisms: [],
     species: apiFamily.species?.map(apiToFrontendSpecies) ?? [],
     reactions: [],
@@ -167,12 +178,15 @@ export function frontendToAPIFamily(family: Family): APIFamily {
     throw new Error("family owner is undefined");
   }
 
+  // FIXME
   const formattedFamily: APIFamily = {
     id: family.id as UUID,
-    name: "",
-    description: "",
+    name: family.name,
+    description: family.description,
     owner: family.owner,
     species: family.species.map(frontendToAPISpecies),
+    reactions: [],
+    mechanisms: [],
   };
 
   return formattedFamily;
