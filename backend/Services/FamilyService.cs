@@ -15,7 +15,7 @@ public class FamilyService
         _userService = userService;
     }
 
-    public async Task<IEnumerable<Family>> GetFamiliesAsync(bool expand)
+    public async Task<IEnumerable<Family>> GetFamiliesAsync(bool expand, Guid? userId = null)
     {
         IQueryable<Family> query = _context.Families;
 
@@ -25,21 +25,33 @@ public class FamilyService
         if (expand)
         {
             query = query
+                .Include(f => f.Owner)
                 .Include(f => f.Species)
+                    .ThenInclude(s => s.NumericalAttributes)
+                .Include(f => f.Species)
+                    .ThenInclude(s => s.StringAttributes)
                 .Include(f => f.Reactions)
                     .ThenInclude(r => r.Reactants)
-                        .ThenInclude(r => r.Species)
                 .Include(f => f.Reactions)
                     .ThenInclude(r => r.Products)
-                        .ThenInclude(p => p.Species)
+                .Include(f => f.Reactions)
+                    .ThenInclude(r => r.NumericalAttributes)
+                .Include(f => f.Reactions)
+                    .ThenInclude(r => r.StringAttributes)
                 .Include(f => f.Phases)
-                    .ThenInclude(p => p.Species)
+                    .ThenInclude(r => r.Species)
                 .Include(f => f.Mechanisms)
                     .ThenInclude(m => m.Species)
                 .Include(f => f.Mechanisms)
                     .ThenInclude(m => m.Reactions)
                 .Include(f => f.Mechanisms)
                     .ThenInclude(m => m.Phases);
+        }
+
+        if (userId != null)
+        {
+            query = query
+                .Where(f => f.Owner.Id == userId);
         }
 
         var families = await query.ToListAsync();
@@ -52,13 +64,23 @@ public class FamilyService
         var family = await _context.Families
             .Include(f => f.Owner)
             .Include(f => f.Species)
-                .ThenInclude(s => s.Phases)
+                .ThenInclude(s => s.NumericalAttributes)
+            .Include(f => f.Species)
+                .ThenInclude(s => s.StringAttributes)
             .Include(f => f.Reactions)
                 .ThenInclude(r => r.Reactants)
-                    .ThenInclude(r => r.Species)
             .Include(f => f.Reactions)
                 .ThenInclude(r => r.Products)
-                    .ThenInclude(p => p.Species)
+            .Include(f => f.Reactions)
+                .ThenInclude(r => r.NumericalAttributes)
+            .Include(f => f.Reactions)
+                .ThenInclude(r => r.StringAttributes)
+            .Include(f => f.Phases)
+                .ThenInclude(r => r.Species)
+            .Include(f => f.Mechanisms)
+                .ThenInclude(m => m.Species)
+            .Include(f => f.Mechanisms)
+                .ThenInclude(m => m.Reactions)
             .Include(f => f.Mechanisms)
                 .ThenInclude(m => m.Phases)
             .SingleOrDefaultAsync(f => f.Id == id);
@@ -74,14 +96,19 @@ public class FamilyService
         }
 
         // Set defaults
-        family.Id = Guid.NewGuid();
-        family.CreatedDate = DateTime.UtcNow;
-        family.Owner = currentUser;
-        family.Species = new List<Species>();
-        family.Reactions = new List<Reaction>();
-        family.Mechanisms = new List<Mechanism>();
+        Family familyInfo = new Family
+        {
+            CreatedDate = DateTime.UtcNow,
+            Name = family.Name,
+            Description = family.Description,
+            Owner = currentUser,
+            Species = new List<Species>(),
+            Reactions = new List<Reaction>(),
+            Phases = new List<Phase>(),
+            Mechanisms = new List<Mechanism>(),
+        };
 
-        var createdFamily = _context.Families.Add(family);
+        var createdFamily = _context.Families.Add(familyInfo);
         await _context.SaveChangesAsync();
 
         // Return the created family with all relationships loaded

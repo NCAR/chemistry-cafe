@@ -25,10 +25,10 @@ namespace ChemistryCafeAPI.Controllers
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Family>>>
-            GetFamilies([FromQuery] bool? expand = false)
+            GetFamilies([FromQuery] bool? expand = false, [FromQuery] Guid? userId = null)
         {
             var bExpand = expand ?? false;
-            var families = await _familyService.GetFamiliesAsync(bExpand);
+            var families = await _familyService.GetFamiliesAsync(bExpand, userId);
             return Ok(families);
         }
 

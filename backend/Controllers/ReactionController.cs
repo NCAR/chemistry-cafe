@@ -64,7 +64,7 @@ namespace ChemistryCafeAPI.Controllers
                     QueryResult.OwnerNotFound => Unauthorized("Current user not found in database"),
                     QueryResult.ParentRelationNotFound => NotFound($"Family with id '{familyId}' not found in database"),
                     QueryResult.DuplicateKeyError => BadRequest("One or more attributes have duplicate json keys"),
-                    QueryResult.ChildRelationNotFound => NotFound("One or more reactant/product species do not exist"),
+                    QueryResult.ChildRelationNotFound => NotFound("One or more reactant/product species were either not found or are not in this family"),
                     QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
                     _ => StatusCode(StatusCodes.Status500InternalServerError),
                 };
@@ -95,7 +95,7 @@ namespace ChemistryCafeAPI.Controllers
                     QueryResult.OwnerNotFound => Unauthorized("Current user not found in database"),
                     QueryResult.NotFound => NotFound($"Reaction with id '{id}' was not found in the database"),
                     QueryResult.DuplicateKeyError => BadRequest("One or more attributes have duplicate json keys"),
-                    QueryResult.ChildRelationNotFound => NotFound("One or more reactant/product species do not exist"),
+                    QueryResult.ChildRelationNotFound => NotFound("One or more reactant/product species were either not found or are not in this family"),
                     QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
                     _ => StatusCode(StatusCodes.Status500InternalServerError),
                 };

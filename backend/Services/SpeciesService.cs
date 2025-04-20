@@ -15,7 +15,8 @@ public class SpeciesService
     public async Task<(QueryResult, IEnumerable<Species>?)> GetAllSpeciesAsync(Guid? familyId = null)
     {
         IQueryable<Species> query = _context.Species
-            .Include(s => s.NumericalAttributes);
+            .Include(s => s.NumericalAttributes)
+            .Include(s => s.StringAttributes);
 
         if (familyId != null)
         {
@@ -35,6 +36,7 @@ public class SpeciesService
     {
         Species? species = await _context.Species
             .Include(s => s.NumericalAttributes)
+            .Include(s => s.StringAttributes)
             .SingleOrDefaultAsync(s => s.Id == id);
 
         if (species == null)
@@ -76,11 +78,10 @@ public class SpeciesService
 
         // Verify there are no duplicate keys in the attributes
         // This is already a constraint in the database, but this tells the user the issue
-        bool duplicateNumericalAttributes = species.NumericalAttributes
-            .GroupBy(na => na.SerializationKey)
-            .Any(e => e.Count() > 1);
+        var serializationKeys = species.NumericalAttributes.Select(e => e.SerializationKey)
+            .Concat(species.StringAttributes.Select(e => e.SerializationKey));
 
-        if (duplicateNumericalAttributes)
+        if (serializationKeys.Count() != serializationKeys.Distinct().Count())
         {
             return (QueryResult.DuplicateKeyError, null);
         }
@@ -92,6 +93,7 @@ public class SpeciesService
             Name = species.Name,
             Description = species.Description,
             NumericalAttributes = species.NumericalAttributes,
+            StringAttributes = species.StringAttributes,
             Family = family,
         };
 
@@ -122,6 +124,7 @@ public class SpeciesService
             .Include(s => s.Family)
                 .ThenInclude(f => f!.Owner)
             .Include(s => s.NumericalAttributes)
+            .Include(s => s.StringAttributes)
             .SingleOrDefaultAsync(s => s.Id == id);
         if (currentSpecies == null)
         {
@@ -135,11 +138,10 @@ public class SpeciesService
 
         // Verify there are no duplicate keys in the attributes
         // This is already a constraint in the database, but this tells the user the issue
-        bool duplicateNumericalAttributes = species.NumericalAttributes
-            .GroupBy(na => na.SerializationKey)
-            .Any(e => e.Count() > 1);
+        var serializationKeys = species.NumericalAttributes.Select(e => e.SerializationKey)
+            .Concat(species.StringAttributes.Select(e => e.SerializationKey));
 
-        if (duplicateNumericalAttributes)
+        if (serializationKeys.Count() != serializationKeys.Distinct().Count())
         {
             return (QueryResult.DuplicateKeyError, null);
         }
@@ -150,6 +152,9 @@ public class SpeciesService
 
         currentSpecies.NumericalAttributes.Clear();
         currentSpecies.NumericalAttributes = species.NumericalAttributes;
+
+        currentSpecies.StringAttributes.Clear();
+        currentSpecies.StringAttributes = species.StringAttributes;
 
         await _context.SaveChangesAsync();
 

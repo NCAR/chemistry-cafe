@@ -17,15 +17,20 @@ public class ReactionService
         IQueryable<Reaction> query = _context.Reactions
             .Include(r => r.NumericalAttributes)
             .Include(r => r.StringAttributes)
+            .Include(r => r.GasPhase)
+            .Include(r => r.GasPhaseSpecies)
+            .Include(r => r.AerosolPhase)
+            .Include(r => r.AerosolPhaseSpecies)
+            .Include(r => r.AerosolPhaseWater)
             .Include(r => r.Reactants)
                 .ThenInclude(p => p.Species)
             .Include(r => r.Products)
                 .ThenInclude(p => p.Species);
 
-        if(familyId != null)
+        if (familyId != null)
         {
             Family? family = await _context.Families.SingleOrDefaultAsync(f => f.Id == familyId);
-            if(family == null)
+            if (family == null)
             {
                 return (QueryResult.ParentRelationNotFound, null);
             }
@@ -41,6 +46,11 @@ public class ReactionService
         Reaction? reaction = await _context.Reactions
             .Include(r => r.NumericalAttributes)
             .Include(r => r.StringAttributes)
+            .Include(r => r.GasPhase)
+            .Include(r => r.GasPhaseSpecies)
+            .Include(r => r.AerosolPhase)
+            .Include(r => r.AerosolPhaseSpecies)
+            .Include(r => r.AerosolPhaseWater)
             .Include(r => r.Reactants)
                 .ThenInclude(p => p.Species)
             .Include(r => r.Products)
@@ -86,15 +96,10 @@ public class ReactionService
 
         // Verify there are no duplicate keys in the attributes
         // This is already a constraint in the database, but this tells the user the issue
-        bool duplicateStringAttributes = reaction.StringAttributes
-                                                 .GroupBy(sa => sa.SerializationKey)
-                                                 .Any(e => e.Count() > 1);
+        var serializationKeys = reaction.NumericalAttributes.Select(e => e.SerializationKey)
+            .Concat(reaction.StringAttributes.Select(e => e.SerializationKey));
 
-        bool duplicateNumericalAttributes = reaction.NumericalAttributes
-                                                 .GroupBy(sa => sa.SerializationKey)
-                                                 .Any(e => e.Count() > 1);
-
-        if (duplicateStringAttributes || duplicateNumericalAttributes)
+        if (serializationKeys.Count() != serializationKeys.Distinct().Count())
         {
             return (QueryResult.DuplicateKeyError, null);
         }
@@ -137,6 +142,57 @@ public class ReactionService
             Reactants = reaction.Reactants,
             Family = family,
         };
+
+        // Verify phase relationships
+        if (reaction.GasPhaseId != null)
+        {
+            Phase? gasPhase = await _context.Phases.FindAsync(reaction.GasPhaseId);
+            if (gasPhase == null)
+            {
+                return (QueryResult.ChildRelationNotFound, null);
+            }
+            reactionInfo.GasPhase = gasPhase;
+        }
+
+        if (reaction.GasPhaseSpeciesId != null)
+        {
+            Species? species = await _context.Species.FindAsync(reaction.GasPhaseSpeciesId);
+            if (species == null)
+            {
+                return (QueryResult.ChildRelationNotFound, null);
+            }
+            reactionInfo.GasPhaseSpecies = species;
+        }
+
+        if (reaction.AerosolPhaseId != null)
+        {
+            Phase? aerosolPhase = await _context.Phases.FindAsync(reaction.AerosolPhaseId);
+            if (aerosolPhase == null)
+            {
+                return (QueryResult.ChildRelationNotFound, null);
+            }
+            reactionInfo.AerosolPhase = aerosolPhase;
+        }
+
+        if (reaction.AerosolPhaseSpeciesId != null)
+        {
+            Species? species = await _context.Species.FindAsync(reaction.AerosolPhaseSpeciesId);
+            if (species == null)
+            {
+                return (QueryResult.ChildRelationNotFound, null);
+            }
+            reactionInfo.AerosolPhaseSpecies = species;
+        }
+
+        if (reaction.AerosolPhaseWaterId != null)
+        {
+            Species? species = await _context.Species.FindAsync(reaction.AerosolPhaseWaterId);
+            if (species == null)
+            {
+                return (QueryResult.ChildRelationNotFound, null);
+            }
+            reactionInfo.AerosolPhaseWater = species;
+        }
 
         var createdReaction = _context.Reactions.Add(reactionInfo);
         family.Reactions.Add(createdReaction.Entity);
@@ -184,15 +240,10 @@ public class ReactionService
 
         // Verify there are no duplicate keys in the attributes
         // This is already a constraint in the database, but this tells the user the issue
-        bool duplicateStringAttributes = reaction.StringAttributes
-            .GroupBy(sa => sa.SerializationKey)
-            .Any(e => e.Count() > 1);
+        var serializationKeys = reaction.NumericalAttributes.Select(e => e.SerializationKey)
+            .Concat(reaction.StringAttributes.Select(e => e.SerializationKey));
 
-        bool duplicateNumericalAttributes = reaction.NumericalAttributes
-            .GroupBy(na => na.SerializationKey)
-            .Any(e => e.Count() > 1);
-
-        if (duplicateStringAttributes || duplicateNumericalAttributes)
+        if (serializationKeys.Count() != serializationKeys.Distinct().Count())
         {
             return (QueryResult.DuplicateKeyError, null);
         }
@@ -220,6 +271,57 @@ public class ReactionService
 
             // Ensure no implicit updating of the species rows
             product.Species = species;
+        }
+
+        // Verify phase relationships
+        if (reaction.GasPhaseId != null)
+        {
+            Phase? gasPhase = await _context.Phases.FindAsync(reaction.GasPhaseId);
+            if (gasPhase == null)
+            {
+                return (QueryResult.ChildRelationNotFound, null);
+            }
+            currentReaction.GasPhase = gasPhase;
+        }
+
+        if (reaction.GasPhaseSpeciesId != null)
+        {
+            Species? species = await _context.Species.FindAsync(reaction.GasPhaseSpeciesId);
+            if (species == null)
+            {
+                return (QueryResult.ChildRelationNotFound, null);
+            }
+            currentReaction.GasPhaseSpecies = species;
+        }
+
+        if (reaction.AerosolPhaseId != null)
+        {
+            Phase? aerosolPhase = await _context.Phases.FindAsync(reaction.AerosolPhaseId);
+            if (aerosolPhase == null)
+            {
+                return (QueryResult.ChildRelationNotFound, null);
+            }
+            currentReaction.AerosolPhase = aerosolPhase;
+        }
+
+        if (reaction.AerosolPhaseSpeciesId != null)
+        {
+            Species? species = await _context.Species.FindAsync(reaction.AerosolPhaseSpeciesId);
+            if (species == null)
+            {
+                return (QueryResult.ChildRelationNotFound, null);
+            }
+            currentReaction.AerosolPhaseSpecies = species;
+        }
+
+        if (reaction.AerosolPhaseWaterId != null)
+        {
+            Species? species = await _context.Species.FindAsync(reaction.AerosolPhaseWaterId);
+            if (species == null)
+            {
+                return (QueryResult.ChildRelationNotFound, null);
+            }
+            currentReaction.AerosolPhaseWater = species;
         }
 
         currentReaction.UpdatedDate = DateTime.UtcNow;
@@ -265,13 +367,13 @@ public class ReactionService
             .Include(r => r.Family)
                 .ThenInclude(f => f!.Owner)
             .SingleOrDefaultAsync(r => r.Id == id);
-        
-        if(reaction == null)
+
+        if (reaction == null)
         {
             return QueryResult.NotFound;
         }
 
-        if(reaction.Family!.Owner.Id.ToString() != nameIdentifier)
+        if (reaction.Family!.Owner.Id.ToString() != nameIdentifier)
         {
             return QueryResult.NoAccess;
         }

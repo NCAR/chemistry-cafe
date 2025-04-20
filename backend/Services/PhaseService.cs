@@ -124,6 +124,7 @@ public class PhaseService
 
         Phase? currentPhase = await _context.Phases
             .Include(p => p.Family)
+                .ThenInclude(f => f!.Owner)
             .Include(p => p.Species)
             .SingleOrDefaultAsync(p => p.Id == id);
 
@@ -142,7 +143,7 @@ public class PhaseService
         foreach (var species in phase.Species)
         {
             var databaseSpecies = await _context.Species.FindAsync(species.Id);
-            if (databaseSpecies == null || databaseSpecies.FamilyId != phase.Family!.Id)
+            if (databaseSpecies == null || databaseSpecies.FamilyId != currentPhase.Family!.Id)
             {
                 return (QueryResult.ChildRelationNotFound, null);
             }

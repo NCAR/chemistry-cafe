@@ -152,6 +152,9 @@ public partial class ChemistryDbContext : DbContext
         modelBuilder.Entity<SpeciesNumericalAttribute>()
             .HasKey(s => new { s.SpeciesId, s.SerializationKey });
 
+        modelBuilder.Entity<SpeciesStringAttribute>()
+            .HasKey(s => new { s.SpeciesId, s.SerializationKey });
+
         modelBuilder.Entity<ReactionNumericalAttribute>()
             .HasKey(r => new { r.ReactionId, r.SerializationKey });
 

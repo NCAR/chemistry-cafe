@@ -17,12 +17,17 @@ public class MechanismService
     {
         IQueryable<Mechanism> query = _context.Mechanisms
             .Include(f => f.Species)
+                .ThenInclude(s => s.NumericalAttributes)
+            .Include(f => f.Species)
+                .ThenInclude(s => s.StringAttributes)
             .Include(f => f.Reactions)
                 .ThenInclude(r => r.Reactants)
-                    .ThenInclude(r => r.Species)
             .Include(f => f.Reactions)
                 .ThenInclude(r => r.Products)
-                    .ThenInclude(p => p.Species)
+            .Include(f => f.Reactions)
+                .ThenInclude(r => r.NumericalAttributes)
+            .Include(f => f.Reactions)
+                .ThenInclude(r => r.StringAttributes)
             .Include(f => f.Phases)
                 .ThenInclude(p => p.Species);
 
@@ -44,12 +49,17 @@ public class MechanismService
     {
         Mechanism? mechanism = await _context.Mechanisms
             .Include(f => f.Species)
+                .ThenInclude(s => s.NumericalAttributes)
+            .Include(f => f.Species)
+                .ThenInclude(s => s.StringAttributes)
             .Include(f => f.Reactions)
                 .ThenInclude(r => r.Reactants)
-                    .ThenInclude(r => r.Species)
             .Include(f => f.Reactions)
                 .ThenInclude(r => r.Products)
-                    .ThenInclude(p => p.Species)
+            .Include(f => f.Reactions)
+                .ThenInclude(r => r.NumericalAttributes)
+            .Include(f => f.Reactions)
+                .ThenInclude(r => r.StringAttributes)
             .Include(f => f.Phases)
                 .ThenInclude(p => p.Species)
             .SingleOrDefaultAsync(m => m.Id == id);
