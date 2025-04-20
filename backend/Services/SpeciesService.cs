@@ -25,7 +25,7 @@ public class SpeciesService
     {
         Species? species = await _context.Species
             .Include(s => s.NumericalAttributes)
-            .FirstOrDefaultAsync(s => s.Id == id);
+            .SingleOrDefaultAsync(s => s.Id == id);
 
         if (species == null)
         {
@@ -45,7 +45,7 @@ public class SpeciesService
         }
 
         User? currentUser = await _context.Users
-            .FirstOrDefaultAsync(u => u.Id == userId);
+            .SingleOrDefaultAsync(u => u.Id == userId);
         if (currentUser == null)
         {
             return (QueryResult.OwnerNotFound, null);
@@ -53,7 +53,7 @@ public class SpeciesService
 
         Family? family = await _context.Families
             .Include(f => f.Owner)
-            .FirstOrDefaultAsync(f => f.Id == familyId);
+            .SingleOrDefaultAsync(f => f.Id == familyId);
         if (family == null)
         {
             return (QueryResult.ParentRelationNotFound, null);
@@ -64,27 +64,26 @@ public class SpeciesService
             return (QueryResult.NoAccess, null);
         }
 
+        // Verify there are no duplicate keys in the attributes
+        // This is already a constraint in the database, but this tells the user the issue
+        bool duplicateNumericalAttributes = species.NumericalAttributes
+            .GroupBy(na => na.SerializationKey)
+            .Any(e => e.Count() > 1);
+        
+        if(duplicateNumericalAttributes)
+        {
+            return (QueryResult.DuplicateKeyError, null);
+        }
+
         Species speciesInfo = new Species
         {
             CreatedDate = DateTime.UtcNow,
             UpdatedDate = DateTime.UtcNow,
             Name = species.Name,
             Description = species.Description,
-            NumericalAttributes = [],
+            NumericalAttributes = species.NumericalAttributes,
             Family = family,
-            FamilyId = family.Id,
         };
-
-        // Create each new attribute
-        foreach (var attribute in species.NumericalAttributes)
-        {
-            speciesInfo.NumericalAttributes.Add(new SpeciesNumericalAttribute
-            {
-                Species = speciesInfo,
-                SerializationKey = attribute.SerializationKey,
-                Value = attribute.Value,
-            });
-        }
 
         var createdSpecies = _context.Species.Add(speciesInfo);
         family.Species.Add(createdSpecies.Entity);
@@ -93,47 +92,58 @@ public class SpeciesService
         return (QueryResult.Success, createdSpecies.Entity);
     }
 
-    public async Task<QueryResult> UpdateSpeciesAsync(Guid id, Species species, string nameIdentifier)
+    public async Task<(QueryResult, Species?)> UpdateSpeciesAsync(Guid id, Species species, string nameIdentifier)
     {
         Guid userId;
         bool isValidUserId = Guid.TryParse(nameIdentifier, out userId);
         if (!isValidUserId)
         {
-            return QueryResult.ParseError;
+            return (QueryResult.ParseError, null);
         }
 
         User? currentUser = await _context.Users
-            .FirstOrDefaultAsync(u => u.Id == userId);
+            .SingleOrDefaultAsync(u => u.Id == userId);
         if (currentUser == null)
         {
-            return QueryResult.OwnerNotFound;
+            return (QueryResult.OwnerNotFound, null);
         }
 
         var currentSpecies = await _context.Species
             .Include(s => s.Family)
                 .ThenInclude(f => f!.Owner)
             .Include(s => s.NumericalAttributes)
-            .FirstOrDefaultAsync(s => s.Id == id);
+            .SingleOrDefaultAsync(s => s.Id == id);
         if (currentSpecies == null)
         {
-            return QueryResult.NotFound;
+            return (QueryResult.NotFound, null);
         }
 
         if (currentSpecies.Family!.Owner.Id.ToString() != nameIdentifier)
         {
-            return QueryResult.NoAccess;
+            return (QueryResult.NoAccess, null);
+        }
+
+        // Verify there are no duplicate keys in the attributes
+        // This is already a constraint in the database, but this tells the user the issue
+        bool duplicateNumericalAttributes = species.NumericalAttributes
+            .GroupBy(na => na.SerializationKey)
+            .Any(e => e.Count() > 1);
+        
+        if(duplicateNumericalAttributes)
+        {
+            return (QueryResult.DuplicateKeyError, null);
         }
 
         currentSpecies.UpdatedDate = DateTime.UtcNow;
         currentSpecies.Name = species.Name;
         currentSpecies.Description = species.Description;
-        
+
         _context.RemoveRange(currentSpecies.NumericalAttributes);
         currentSpecies.NumericalAttributes = species.NumericalAttributes;
 
         await _context.SaveChangesAsync();
 
-        return QueryResult.Success;
+        return (QueryResult.Success, currentSpecies);
     }
 
     public async Task<QueryResult> DeleteSpeciesAsync(Guid id, string nameIdentifier)
@@ -146,7 +156,7 @@ public class SpeciesService
         }
 
         User? currentUser = await _context.Users
-            .FirstOrDefaultAsync(u => u.Id == userId);
+            .SingleOrDefaultAsync(u => u.Id == userId);
         if (currentUser == null)
         {
             return QueryResult.OwnerNotFound;
@@ -155,14 +165,14 @@ public class SpeciesService
         Species? species = await _context.Species
             .Include(s => s.Family)
                 .ThenInclude(f => f!.Owner)
-            .FirstOrDefaultAsync(s => s.Id == id);
+            .SingleOrDefaultAsync(s => s.Id == id);
 
-        if(species == null)
+        if (species == null)
         {
             return QueryResult.NotFound;
         }
 
-        if(species.Family!.Owner.Id.ToString() != nameIdentifier)
+        if (species.Family!.Owner.Id.ToString() != nameIdentifier)
         {
             return QueryResult.NoAccess;
         }

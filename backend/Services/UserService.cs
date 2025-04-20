@@ -1,11 +1,5 @@
 ﻿using ChemistryCafeAPI.Models;
-using System.Data.Common;
-using MySqlConnector;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.IdentityModel.Protocols.Configuration;
-using System.Security.Claims;
-using System;
 
 namespace ChemistryCafeAPI.Services
 {

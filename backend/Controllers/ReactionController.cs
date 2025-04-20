@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using ChemistryCafeAPI.Services;
 using ChemistryCafeAPI.Models;
-using Microsoft.AspNetCore.Authorization;
 
 namespace ChemistryCafeAPI.Controllers
 {
@@ -11,8 +10,7 @@ namespace ChemistryCafeAPI.Controllers
     [Route("api/reactions")]
     public class ReactionController : ControllerBase
     {
-        private readonly ChemistryDbContext _context;
-        private readonly UserService _userService;
+        private readonly ReactionService _reactionService;
 
         protected virtual string? GetNameIdentifier()
         {
@@ -20,196 +18,98 @@ namespace ChemistryCafeAPI.Controllers
             return claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         }
 
-        public ReactionController(ChemistryDbContext context, UserService userService)
+        public ReactionController(ReactionService reactionService)
         {
-            _context = context;
-            _userService = userService;
+            _reactionService = reactionService;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Reaction>>> GetReactions([FromQuery] Guid? familyId = null)
         {
-            var query = _context.Reactions
-                .Include(r => r.Family)
-                .Include(r => r.Reactants)
-                    .ThenInclude(r => r.Species)
-                .Include(r => r.Products)
-                    .ThenInclude(p => p.Species)
-                .Include(r => r.Mechanisms)
-                .AsQueryable();
+            var (result, reactions) = await _reactionService.GetAllReactionsAsync(familyId);
 
-            if (familyId.HasValue)
+            return result switch
             {
-                query = query.Where(r => r.FamilyId == familyId);
-            }
-
-            var reactions = await query.ToListAsync();
-            return Ok(reactions);
+                QueryResult.Success => Ok(reactions),
+                QueryResult.ParentRelationNotFound => NotFound($"Family with id '{familyId}' was not found in the database"),
+                _ => StatusCode(StatusCodes.Status500InternalServerError),
+            };
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Reaction>> GetReaction(Guid id)
         {
-            var reaction = await _context.Reactions
-                .Include(r => r.Family)
-                .Include(r => r.Reactants)
-                    .ThenInclude(r => r.Species)
-                .Include(r => r.Products)
-                    .ThenInclude(p => p.Species)
-                .Include(r => r.Mechanisms)
-                .FirstOrDefaultAsync(r => r.Id == id);
-
-            if (reaction == null)
+            var (result, reaction) = await _reactionService.GetReactionAsync(id);
+            return result switch
             {
-                return NotFound();
-            }
-
-            return Ok(reaction);
+                QueryResult.Success => Ok(reaction),
+                _ => NotFound($"Reaction with id '{id}' was not found in the database."),
+            };
         }
 
         [HttpPost]
-        public async Task<ActionResult<Reaction>> CreateReaction(Reaction reaction)
+        public async Task<ActionResult<Reaction>> CreateReaction(Reaction reaction, [FromQuery] string familyId)
         {
+            Guid parsedFamilyId;
+            bool isValidFamilyId = Guid.TryParse(familyId, out parsedFamilyId);
+            if (!isValidFamilyId)
+            {
+                return BadRequest("Invalid UUID format for familyId");
+            }
+
             string? nameIdentifier = GetNameIdentifier();
             if (nameIdentifier == null)
             {
-                return Unauthorized("User does not have access");
+                return Unauthorized("User is not authenticated");
             }
 
-            // Verify family exists and user has access
-            var family = await _context.Families
-                .Include(f => f.Owner)
-                .FirstOrDefaultAsync(f => f.Id == reaction.FamilyId);
-
-            if (family == null)
+            var (result, createdReaction) = await _reactionService.CreateReactionAsync(reaction, parsedFamilyId, nameIdentifier);
+            if (createdReaction == null)
             {
-                return NotFound("Family not found");
-            }
-
-            if (family.Owner.Id.ToString() != nameIdentifier)
-            {
-                return StatusCode(StatusCodes.Status403Forbidden);
-            }
-
-            // Verify all species belong to the family
-            foreach (var reactant in reaction.Reactants)
-            {
-                var species = await _context.Species.FindAsync(reactant.SpeciesId);
-                if (species == null || species.FamilyId != reaction.FamilyId)
+                return result switch
                 {
-                    return BadRequest($"Reactant species {reactant.SpeciesId} not found in family");
-                }
+                    QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier claim"),
+                    QueryResult.OwnerNotFound => NotFound("Current user not found in database"),
+                    QueryResult.ParentRelationNotFound => NotFound("Family not found in database"),
+                    QueryResult.DuplicateKeyError => BadRequest("One or more attributes have duplicate json keys"),
+                    QueryResult.ChildRelationNotFound => NotFound("One or more reactant/product species do not exist"),
+                    QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
+                    _ => StatusCode(StatusCodes.Status500InternalServerError),
+                };
             }
-
-            foreach (var product in reaction.Products)
-            {
-                var species = await _context.Species.FindAsync(product.SpeciesId);
-                if (species == null || species.FamilyId != reaction.FamilyId)
-                {
-                    return BadRequest($"Product species {product.SpeciesId} not found in family");
-                }
-            }
-
-            // Set defaults
-            reaction.Id = Guid.NewGuid();
-            reaction.CreatedDate = DateTime.UtcNow;
-            reaction.UpdatedDate = DateTime.UtcNow;
-            reaction.Mechanisms = new List<Mechanism>();
-
-            var createdReaction = _context.Reactions.Add(reaction);
-            await _context.SaveChangesAsync();
 
             return CreatedAtAction(
                 nameof(GetReaction),
-                new { id = createdReaction.Entity.Id },
-                createdReaction.Entity
+                new { id = createdReaction.Id },
+                createdReaction
             );
         }
 
         [HttpPatch("{id}")]
         public async Task<IActionResult> UpdateReaction(Guid id, Reaction reaction)
         {
-            if (reaction.Id != id)
-            {
-                return BadRequest("id parameter does not match given reaction id");
-            }
-
             string? nameIdentifier = GetNameIdentifier();
             if (nameIdentifier == null)
             {
-                return Unauthorized("Not authenticated");
+                return Unauthorized("User is not authenticated");
             }
 
-            var existingReaction = await _context.Reactions
-                .Include(r => r.Family)
-                .Include(r => r.Family!.Owner)
-                .Include(r => r.Reactants)
-                .Include(r => r.Products)
-                .FirstOrDefaultAsync(r => r.Id == id);
-
-            if (existingReaction == null)
+            var (result, updatedReaction) = await _reactionService.UpdateReactionAsync(id, reaction, nameIdentifier);
+            if (updatedReaction == null)
             {
-                return NotFound("Reaction not found");
-            }
-
-            if (existingReaction.Family!.Owner.Id.ToString() != nameIdentifier)
-            {
-                return StatusCode(StatusCodes.Status403Forbidden);
-            }
-
-            // Verify all species belong to the family
-            if (reaction.Reactants != null)
-            {
-                foreach (var reactant in reaction.Reactants)
+                return result switch
                 {
-                    var species = await _context.Species.FindAsync(reactant.SpeciesId);
-                    if (species == null || species.FamilyId != existingReaction.FamilyId)
-                    {
-                        return BadRequest($"Reactant species {reactant.SpeciesId} not found in family");
-                    }
-                }
+                    QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier claim"),
+                    QueryResult.OwnerNotFound => NotFound("Current user not found in database"),
+                    QueryResult.NotFound => NotFound($"Reaction with id '{id}' was not found in the database"),
+                    QueryResult.DuplicateKeyError => BadRequest("One or more attributes have duplicate json keys"),
+                    QueryResult.ChildRelationNotFound => NotFound("One or more reactant/product species do not exist"),
+                    QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
+                    _ => StatusCode(StatusCodes.Status500InternalServerError),
+                };
             }
 
-            if (reaction.Products != null)
-            {
-                foreach (var product in reaction.Products)
-                {
-                    var species = await _context.Species.FindAsync(product.SpeciesId);
-                    if (species == null || species.FamilyId != existingReaction.FamilyId)
-                    {
-                        return BadRequest($"Product species {product.SpeciesId} not found in family");
-                    }
-                }
-            }
-
-            // Update allowed fields
-            existingReaction.Name = reaction.Name;
-            existingReaction.Description = reaction.Description;
-            existingReaction.UpdatedDate = DateTime.UtcNow;
-
-            // Update reactants and products
-            if (reaction.Reactants != null)
-            {
-                _context.Reactants.RemoveRange(existingReaction.Reactants);
-                foreach (var reactant in reaction.Reactants)
-                {
-                    reactant.ReactionId = id;
-                }
-                _context.Reactants.AddRange(reaction.Reactants);
-            }
-
-            if (reaction.Products != null)
-            {
-                _context.Products.RemoveRange(existingReaction.Products);
-                foreach (var product in reaction.Products)
-                {
-                    product.ReactionId = id;
-                }
-                _context.Products.AddRange(reaction.Products);
-            }
-
-            await _context.SaveChangesAsync();
-            return NoContent();
+            return Ok(updatedReaction);
         }
 
         [HttpDelete("{id}")]
@@ -221,23 +121,17 @@ namespace ChemistryCafeAPI.Controllers
                 return Unauthorized("Not authenticated");
             }
 
-            var reaction = await _context.Reactions
-                .Include(r => r.Family)
-                .Include(r => r.Family!.Owner)
-                .FirstOrDefaultAsync(r => r.Id == id);
+            var result = await _reactionService.DeleteReactionAsync(id, nameIdentifier);
 
-            if (reaction == null)
+            return result switch
             {
-                return NotFound("Reaction not found");
-            }
-
-            if (reaction.Family!.Owner.Id.ToString() != nameIdentifier)
-            {
-                return StatusCode(StatusCodes.Status403Forbidden);
-            }
-
-            await _context.Reactions.Where(r => r.Id == id).ExecuteDeleteAsync();
-            return NoContent();
+                QueryResult.Success => NoContent(),
+                QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier claim"),
+                QueryResult.OwnerNotFound => NotFound("Current user not found in database"),
+                QueryResult.NotFound => NotFound($"Reaction with id '{id}' was not found in the database"),
+                QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
+                _ => StatusCode(StatusCodes.Status500InternalServerError),
+            };
         }
     }
 }

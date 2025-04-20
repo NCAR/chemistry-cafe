@@ -15,6 +15,7 @@ public class Reaction
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedDate { get; set; } = DateTime.UtcNow;
     public string Name { get; set; } = null!;
+    public string ReactionType { get; set; } = null!;
     public string? Description { get; set; }
 
     // Attributes depending on the reaction type
@@ -84,8 +85,10 @@ public class Product
 /// Uses the ReactionId and SerializationKey as the primary key to ensure uniqueness.
 /// </summary>
 [Table("ReactionNumericalAttributes")]
+[PrimaryKey(nameof(ReactionId), nameof(SerializationKey))]
 public class ReactionNumericalAttribute
 {
+    [JsonIgnore]
     public Guid ReactionId { get; set; }
     
     [JsonIgnore]
@@ -104,6 +107,7 @@ public class ReactionNumericalAttribute
 [PrimaryKey(nameof(ReactionId), nameof(SerializationKey))]
 public class ReactionStringAttribute
 {
+    [JsonIgnore]
     public Guid ReactionId { get; set; }
     
     [JsonIgnore]

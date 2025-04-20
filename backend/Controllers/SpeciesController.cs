@@ -34,11 +34,17 @@ namespace ChemistryCafeAPI.Controllers
         public async Task<ActionResult<Species>> GetSpecies(Guid id)
         {
             var (result, species) = await _speciesService.GetSpeciesAsync(id);
-            return result switch
+
+            if (species == null)
             {
-                QueryResult.Success => Ok(species),
-                _ => NotFound(),
-            };
+                return result switch
+                {
+                    QueryResult.NotFound => NotFound($"Species with id '{id}' was not found in the database."),
+                    _ => StatusCode(StatusCodes.Status500InternalServerError),
+                };
+            }
+
+            return Ok(species);
         }
 
 
@@ -63,11 +69,12 @@ namespace ChemistryCafeAPI.Controllers
             {
                 return result switch
                 {
-                    QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier"),
+                    QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier claim"),
                     QueryResult.OwnerNotFound => NotFound("User not found in database"),
                     QueryResult.ParentRelationNotFound => NotFound("Family not found in database"),
+                    QueryResult.DuplicateKeyError => BadRequest("One or more attributes have duplicate serialization keys"),
                     QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
-                    _ => StatusCode(StatusCodes.Status403Forbidden),
+                    _ => StatusCode(StatusCodes.Status500InternalServerError),
                 };
             }
 
@@ -80,7 +87,7 @@ namespace ChemistryCafeAPI.Controllers
 
 
         [HttpPatch("{id}")]
-        public async Task<IActionResult> UpdateSpecies(Guid id, Species species)
+        public async Task<ActionResult<Species>> UpdateSpecies(Guid id, Species species)
         {
             string? nameIdentifier = GetNameIdentifier();
             if (nameIdentifier == null)
@@ -88,15 +95,19 @@ namespace ChemistryCafeAPI.Controllers
                 return Unauthorized("User is not logged in");
             }
 
-            var result = await _speciesService.UpdateSpeciesAsync(id, species, nameIdentifier);
-
-            return result switch
+            var (result, updatedSpecies) = await _speciesService.UpdateSpeciesAsync(id, species, nameIdentifier);
+            if (updatedSpecies == null)
             {
-                QueryResult.Success => NoContent(),
-                QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier"),
-                QueryResult.OwnerNotFound => NotFound("User not found in database"),
-                _ => StatusCode(StatusCodes.Status403Forbidden),
-            };
+                return result switch
+                {
+                    QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier"),
+                    QueryResult.OwnerNotFound => NotFound("User not found in database"),
+                    QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
+                    _ => StatusCode(StatusCodes.Status500InternalServerError),
+                };
+            }
+
+            return Ok(updatedSpecies);
         }
 
         /// <summary>
@@ -120,7 +131,8 @@ namespace ChemistryCafeAPI.Controllers
                 QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier"),
                 QueryResult.OwnerNotFound => NotFound("User not found in database"),
                 QueryResult.NotFound => NotFound("Given Species id not found in database"),
-                _ => StatusCode(StatusCodes.Status403Forbidden),
+                QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
+                _ => StatusCode(StatusCodes.Status500InternalServerError),
             };
         }
     }

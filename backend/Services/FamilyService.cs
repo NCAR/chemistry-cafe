@@ -62,7 +62,7 @@ public class FamilyService
                     .ThenInclude(p => p.Species)
             .Include(f => f.Mechanisms)
                 .ThenInclude(m => m.Phases)
-            .FirstOrDefaultAsync(f => f.Id == id);
+            .SingleOrDefaultAsync(f => f.Id == id);
         return family;
     }
 

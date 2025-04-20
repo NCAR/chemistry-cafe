@@ -39,6 +39,7 @@ public partial class ChemistryDbContext : DbContext
         modelBuilder.Entity<SpeciesNumericalAttribute>()
             .HasOne(s => s.Species)
             .WithMany(s => s.NumericalAttributes)
+            .HasForeignKey(na => na.SpeciesId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // Configure Reaction Relations
@@ -51,11 +52,13 @@ public partial class ChemistryDbContext : DbContext
         modelBuilder.Entity<ReactionNumericalAttribute>()
             .HasOne(r => r.Reaction)
             .WithMany(r => r.NumericalAttributes)
+            .HasForeignKey(na => na.ReactionId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<ReactionStringAttribute>()
             .HasOne(r => r.Reaction)
             .WithMany(r => r.StringAttributes)
+            .HasForeignKey(sa => sa.ReactionId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Reactant>()
