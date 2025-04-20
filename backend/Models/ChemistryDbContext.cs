@@ -85,6 +85,36 @@ public partial class ChemistryDbContext : DbContext
             .HasForeignKey(p => p.ReactionId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        modelBuilder.Entity<Reaction>()
+            .HasOne(r => r.GasPhase)
+            .WithMany(p => p.AsGasPhase)
+            .HasForeignKey(r => r.GasPhaseId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<Reaction>()
+            .HasOne(r => r.GasPhaseSpecies)
+            .WithMany(p => p.AsGasPhaseSpecies)
+            .HasForeignKey(r => r.GasPhaseSpeciesId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<Reaction>()
+            .HasOne(r => r.AerosolPhase)
+            .WithMany(p => p.AsAerosolPhase)
+            .HasForeignKey(r => r.AerosolPhaseId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<Reaction>()
+            .HasOne(r => r.AerosolPhaseSpecies)
+            .WithMany(p => p.AsAerosolPhaseSpecies)
+            .HasForeignKey(r => r.AerosolPhaseSpeciesId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<Reaction>()
+            .HasOne(r => r.AerosolPhaseWater)
+            .WithMany(p => p.AsAerosolPhaseWater)
+            .HasForeignKey(r => r.AerosolPhaseWaterId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         // Configure Mechanism relationships
         modelBuilder.Entity<Mechanism>()
             .HasOne(m => m.Family)

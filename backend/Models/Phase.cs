@@ -24,6 +24,12 @@ public class Phase
     // Navigation property for species in this phase
     public ICollection<Species> Species { get; set; } = new List<Species>();
 
+    // Navigation properties for reactions with this phase
+    [JsonIgnore]
+    public ICollection<Reaction> AsGasPhase { get; set; } = new List<Reaction>();
+    [JsonIgnore]
+    public ICollection<Reaction> AsAerosolPhase { get; set; } = new List<Reaction>();
+
     // Navigation property for mechanisms referencing this phase
     [JsonIgnore]
     public ICollection<Mechanism> Mechanisms { get; set; } = new List<Mechanism>();

@@ -25,6 +25,27 @@ public class Reaction
     public ICollection<Reactant> Reactants { get; set; } = new List<Reactant>();
     public ICollection<Product> Products { get; set; } = new List<Product>();
 
+    // Phase information
+    [ForeignKey("Phases")]
+    public Guid? GasPhaseId { get; set; }
+    public Phase? GasPhase { get; set; }
+
+    [ForeignKey("Species")]
+    public Guid? GasPhaseSpeciesId { get; set; }
+    public Species? GasPhaseSpecies { get; set; }
+    
+    [ForeignKey("Phases")]
+    public Guid? AerosolPhaseId { get; set; }
+    public Phase? AerosolPhase { get; set; }
+    
+    [ForeignKey("Species")]
+    public Guid? AerosolPhaseSpeciesId { get; set; }
+    public Species? AerosolPhaseSpecies { get; set; }
+    
+    [ForeignKey("Species")]
+    public Guid? AerosolPhaseWaterId { get; set; }
+    public Species? AerosolPhaseWater { get; set; }
+
     // Mechanisms that reference this reaction
     [JsonIgnore]
     public ICollection<Mechanism> Mechanisms { get; set; } = new List<Mechanism>();
@@ -65,14 +86,14 @@ public class Product
     // Reaction relationship
     [ForeignKey("Reactions")]
     public Guid ReactionId { get; set; }
-    
+
     [JsonIgnore]
     public Reaction? Reaction { get; set; }
 
     // Species relationship (must be from same family as reaction)
     [ForeignKey("Species")]
     public Guid SpeciesId { get; set; }
-    
+
     [JsonIgnore]
     public Species? Species { get; set; }
 
@@ -90,7 +111,7 @@ public class ReactionNumericalAttribute
 {
     [JsonIgnore]
     public Guid ReactionId { get; set; }
-    
+
     [JsonIgnore]
     public Reaction? Reaction { get; set; } = null;
 
@@ -109,7 +130,7 @@ public class ReactionStringAttribute
 {
     [JsonIgnore]
     public Guid ReactionId { get; set; }
-    
+
     [JsonIgnore]
     public Reaction? Reaction { get; set; } = null;
 
