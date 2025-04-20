@@ -6,10 +6,10 @@ using ChemistryCafeAPI.Models;
 namespace ChemistryCafeAPI.Controllers
 {
     [ApiController]
-    [Route("api/reactions")]
-    public class ReactionController : ControllerBase
+    [Route("api/phases")]
+    public class PhaseController : ControllerBase
     {
-        private readonly ReactionService _reactionService;
+        private readonly PhaseService _phaseService;
 
         protected virtual string? GetNameIdentifier()
         {
@@ -17,37 +17,37 @@ namespace ChemistryCafeAPI.Controllers
             return claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         }
 
-        public ReactionController(ReactionService reactionService)
+        public PhaseController(PhaseService phaseService)
         {
-            _reactionService = reactionService;
+            _phaseService = phaseService;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Reaction>>> GetReactions([FromQuery] Guid? familyId = null)
+        public async Task<ActionResult<IEnumerable<Phase>>> GetPhases([FromQuery] Guid? familyId = null)
         {
-            var (result, reactions) = await _reactionService.GetAllReactionsAsync(familyId);
+            var (result, phases) = await _phaseService.GetAllPhasesAsync(familyId);
 
             return result switch
             {
-                QueryResult.Success => Ok(reactions),
+                QueryResult.Success => Ok(phases),
                 QueryResult.ParentRelationNotFound => NotFound($"Family with id '{familyId}' was not found in the database"),
                 _ => StatusCode(StatusCodes.Status500InternalServerError),
             };
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Reaction>> GetReaction(Guid id)
+        public async Task<ActionResult<Phase>> GetPhase(Guid id)
         {
-            var (result, reaction) = await _reactionService.GetReactionAsync(id);
+            var (result, phase) = await _phaseService.GetPhaseAsync(id);
             return result switch
             {
-                QueryResult.Success => Ok(reaction),
-                _ => NotFound($"Reaction with id '{id}' was not found in the database."),
+                QueryResult.Success => Ok(phase),
+                _ => NotFound($"Phase with id '{id}' was not found in the database."),
             };
         }
 
         [HttpPost]
-        public async Task<ActionResult<Reaction>> CreateReaction(Reaction reaction, [FromQuery] Guid familyId)
+        public async Task<ActionResult<Phase>> CreatePhase(Phase phase, [FromQuery] Guid familyId)
         {
             string? nameIdentifier = GetNameIdentifier();
             if (nameIdentifier == null)
@@ -55,30 +55,29 @@ namespace ChemistryCafeAPI.Controllers
                 return Unauthorized("User is not authenticated");
             }
 
-            var (result, createdReaction) = await _reactionService.CreateReactionAsync(reaction, familyId, nameIdentifier);
-            if (createdReaction == null)
+            var (result, createdPhase) = await _phaseService.CreatePhaseAsync(phase, familyId, nameIdentifier);
+            if (createdPhase == null)
             {
                 return result switch
                 {
                     QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier claim"),
                     QueryResult.OwnerNotFound => Unauthorized("Current user not found in database"),
                     QueryResult.ParentRelationNotFound => NotFound($"Family with id '{familyId}' not found in database"),
-                    QueryResult.DuplicateKeyError => BadRequest("One or more attributes have duplicate json keys"),
-                    QueryResult.ChildRelationNotFound => NotFound("One or more reactant/product species were either not found or are not in this family"),
+                    QueryResult.ChildRelationNotFound => NotFound("One or more species were either not found or are not in this family"),
                     QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
                     _ => StatusCode(StatusCodes.Status500InternalServerError),
                 };
             }
 
             return CreatedAtAction(
-                nameof(GetReaction),
-                new { id = createdReaction.Id },
-                createdReaction
+                nameof(GetPhase),
+                new { id = createdPhase.Id },
+                createdPhase
             );
         }
 
         [HttpPatch("{id}")]
-        public async Task<ActionResult<Reaction>> UpdateReaction(Guid id, Reaction reaction)
+        public async Task<ActionResult<Phase>> UpdatePhase(Guid id, Phase phase)
         {
             string? nameIdentifier = GetNameIdentifier();
             if (nameIdentifier == null)
@@ -86,26 +85,26 @@ namespace ChemistryCafeAPI.Controllers
                 return Unauthorized("User is not authenticated");
             }
 
-            var (result, updatedReaction) = await _reactionService.UpdateReactionAsync(id, reaction, nameIdentifier);
-            if (updatedReaction == null)
+            var (result, updatedPhase) = await _phaseService.UpdatePhaseAsync(id, phase, nameIdentifier);
+            if (updatedPhase == null)
             {
                 return result switch
                 {
                     QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier claim"),
                     QueryResult.OwnerNotFound => Unauthorized("Current user not found in database"),
-                    QueryResult.NotFound => NotFound($"Reaction with id '{id}' was not found in the database"),
+                    QueryResult.NotFound => NotFound($"Phase with id '{id}' was not found in the database"),
                     QueryResult.DuplicateKeyError => BadRequest("One or more attributes have duplicate json keys"),
-                    QueryResult.ChildRelationNotFound => NotFound("One or more reactant/product species were either not found or are not in this family"),
+                    QueryResult.ChildRelationNotFound => NotFound("One or more species were either not found or are not in this family"),
                     QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
                     _ => StatusCode(StatusCodes.Status500InternalServerError),
                 };
             }
 
-            return Ok(updatedReaction);
+            return Ok(updatedPhase);
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteReaction(Guid id)
+        public async Task<IActionResult> DeletePhase(Guid id)
         {
             string? nameIdentifier = GetNameIdentifier();
             if (nameIdentifier == null)
@@ -113,14 +112,14 @@ namespace ChemistryCafeAPI.Controllers
                 return Unauthorized("User is not authenticated");
             }
 
-            var result = await _reactionService.DeleteReactionAsync(id, nameIdentifier);
+            var result = await _phaseService.DeletePhaseAsync(id, nameIdentifier);
 
             return result switch
             {
                 QueryResult.Success => NoContent(),
                 QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier claim"),
                 QueryResult.OwnerNotFound => Unauthorized("Current user not found in database"),
-                QueryResult.NotFound => NotFound($"Reaction with id '{id}' was not found in the database"),
+                QueryResult.NotFound => NotFound($"Phase with id '{id}' was not found in the database"),
                 QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
                 _ => StatusCode(StatusCodes.Status500InternalServerError),
             };

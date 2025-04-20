@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace ChemistryCafeAPI.Models;
 
+[Table("Phases")]
 public class Phase
 {
     [Key]
@@ -14,11 +16,21 @@ public class Phase
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
 
+    // Family this phase is a part of
+    public Guid FamilyId { get; set; }
+    [JsonIgnore]
+    public Family? Family { get; set; }
+
     // Navigation property for species in this phase
     public ICollection<Species> Species { get; set; } = new List<Species>();
 
-    // Mechanism relationship
-    [ForeignKey("Mechanism")]
-    public Guid MechanismId { get; set; }
-    public Mechanism Mechanism { get; set; } = null!;
-} 
+    // Navigation properties for reactions with this phase
+    [JsonIgnore]
+    public ICollection<Reaction> AsGasPhase { get; set; } = new List<Reaction>();
+    [JsonIgnore]
+    public ICollection<Reaction> AsAerosolPhase { get; set; } = new List<Reaction>();
+
+    // Navigation property for mechanisms referencing this phase
+    [JsonIgnore]
+    public ICollection<Mechanism> Mechanisms { get; set; } = new List<Mechanism>();
+}

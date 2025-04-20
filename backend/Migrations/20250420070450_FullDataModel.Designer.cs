@@ -4,6 +4,7 @@ using ChemistryCafeAPI.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChemistryCafeAPI.Migrations
 {
     [DbContext(typeof(ChemistryDbContext))]
-    partial class ChemistryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250420070450_FullDataModel")]
+    partial class FullDataModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -326,23 +329,6 @@ namespace ChemistryCafeAPI.Migrations
                     b.ToTable("SpeciesNumericalAttributes");
                 });
 
-            modelBuilder.Entity("ChemistryCafeAPI.Models.SpeciesStringAttribute", b =>
-                {
-                    b.Property<Guid>("SpeciesId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<string>("SerializationKey")
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("SpeciesId", "SerializationKey");
-
-                    b.ToTable("SpeciesStringAttributes");
-                });
-
             modelBuilder.Entity("ChemistryCafeAPI.Models.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -595,17 +581,6 @@ namespace ChemistryCafeAPI.Migrations
                     b.Navigation("Species");
                 });
 
-            modelBuilder.Entity("ChemistryCafeAPI.Models.SpeciesStringAttribute", b =>
-                {
-                    b.HasOne("ChemistryCafeAPI.Models.Species", "Species")
-                        .WithMany("StringAttributes")
-                        .HasForeignKey("SpeciesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Species");
-                });
-
             modelBuilder.Entity("PhaseSpecies", b =>
                 {
                     b.HasOne("ChemistryCafeAPI.Models.Phase", null)
@@ -663,8 +638,6 @@ namespace ChemistryCafeAPI.Migrations
                     b.Navigation("AsReactant");
 
                     b.Navigation("NumericalAttributes");
-
-                    b.Navigation("StringAttributes");
                 });
 #pragma warning restore 612, 618
         }

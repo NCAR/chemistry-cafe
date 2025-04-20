@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using ChemistryCafeAPI.Services;
 using ChemistryCafeAPI.Models;
 
 namespace ChemistryCafeAPI.Services;
@@ -10,38 +9,49 @@ public class FamilyService
     private readonly ChemistryDbContext _context;
     private readonly UserService _userService;
 
-    public enum Result
-    {
-        Success,
-        NoAccess,
-        NotFound, 
-        ParseError,
-    }
-
     public FamilyService(ChemistryDbContext context, UserService userService)
     {
         _context = context;
         _userService = userService;
     }
 
-    public async Task<IEnumerable<Family>> GetFamiliesAsync(bool expand)
+    public async Task<IEnumerable<Family>> GetFamiliesAsync(bool expand, Guid? userId = null)
     {
         IQueryable<Family> query = _context.Families;
-        
+
         // Always include Owner
         query = query.Include(f => f.Owner);
-        
+
         if (expand)
         {
             query = query
+                .Include(f => f.Owner)
                 .Include(f => f.Species)
-                .Include(f => f.Mechanisms)
+                    .ThenInclude(s => s.NumericalAttributes)
+                .Include(f => f.Species)
+                    .ThenInclude(s => s.StringAttributes)
                 .Include(f => f.Reactions)
                     .ThenInclude(r => r.Reactants)
-                        .ThenInclude(r => r.Species)
                 .Include(f => f.Reactions)
                     .ThenInclude(r => r.Products)
-                        .ThenInclude(p => p.Species);
+                .Include(f => f.Reactions)
+                    .ThenInclude(r => r.NumericalAttributes)
+                .Include(f => f.Reactions)
+                    .ThenInclude(r => r.StringAttributes)
+                .Include(f => f.Phases)
+                    .ThenInclude(r => r.Species)
+                .Include(f => f.Mechanisms)
+                    .ThenInclude(m => m.Species)
+                .Include(f => f.Mechanisms)
+                    .ThenInclude(m => m.Reactions)
+                .Include(f => f.Mechanisms)
+                    .ThenInclude(m => m.Phases);
+        }
+
+        if (userId != null)
+        {
+            query = query
+                .Where(f => f.Owner.Id == userId);
         }
 
         var families = await query.ToListAsync();
@@ -54,43 +64,58 @@ public class FamilyService
         var family = await _context.Families
             .Include(f => f.Owner)
             .Include(f => f.Species)
-                .ThenInclude(s => s.Phase)
+                .ThenInclude(s => s.NumericalAttributes)
+            .Include(f => f.Species)
+                .ThenInclude(s => s.StringAttributes)
             .Include(f => f.Reactions)
                 .ThenInclude(r => r.Reactants)
-                    .ThenInclude(r => r.Species)
             .Include(f => f.Reactions)
                 .ThenInclude(r => r.Products)
-                    .ThenInclude(p => p.Species)
+            .Include(f => f.Reactions)
+                .ThenInclude(r => r.NumericalAttributes)
+            .Include(f => f.Reactions)
+                .ThenInclude(r => r.StringAttributes)
+            .Include(f => f.Phases)
+                .ThenInclude(r => r.Species)
+            .Include(f => f.Mechanisms)
+                .ThenInclude(m => m.Species)
+            .Include(f => f.Mechanisms)
+                .ThenInclude(m => m.Reactions)
             .Include(f => f.Mechanisms)
                 .ThenInclude(m => m.Phases)
-            .FirstOrDefaultAsync(f => f.Id == id);
+            .SingleOrDefaultAsync(f => f.Id == id);
         return family;
     }
 
-    public async Task<(Result, EntityEntry<Family>?)> CreateFamilyAsync(Family family, Guid userId)
+    public async Task<(QueryResult, EntityEntry<Family>?)> CreateFamilyAsync(Family family, Guid userId)
     {
         User? currentUser = await _userService.GetUserByIdAsync(userId);
         if (currentUser == null)
         {
-            return (Result.NotFound, null);
+            return (QueryResult.OwnerNotFound, null);
         }
 
         // Set defaults
-        family.Id = Guid.NewGuid();
-        family.CreatedDate = DateTime.UtcNow;
-        family.Owner = currentUser;
-        family.Species = new List<Species>();
-        family.Reactions = new List<Reaction>();
-        family.Mechanisms = new List<Mechanism>();
+        Family familyInfo = new Family
+        {
+            CreatedDate = DateTime.UtcNow,
+            Name = family.Name,
+            Description = family.Description,
+            Owner = currentUser,
+            Species = new List<Species>(),
+            Reactions = new List<Reaction>(),
+            Phases = new List<Phase>(),
+            Mechanisms = new List<Mechanism>(),
+        };
 
-        var createdFamily = _context.Families.Add(family);
+        var createdFamily = _context.Families.Add(familyInfo);
         await _context.SaveChangesAsync();
 
         // Return the created family with all relationships loaded
-        return (Result.Success, createdFamily);
+        return (QueryResult.Success, createdFamily);
     }
 
-    public async Task<Result> UpdateFamilyAsync(Guid id, Family family, string nameIdentifier)
+    public async Task<QueryResult> UpdateFamilyAsync(Guid id, Family family, string nameIdentifier)
     {
         var existingFamily = await _context.Families
             .Include(f => f.Owner)
@@ -98,12 +123,12 @@ public class FamilyService
 
         if (existingFamily == null)
         {
-            return Result.NotFound;
+            return QueryResult.NotFound;
         }
 
         if (existingFamily.Owner.Id.ToString() != nameIdentifier)
         {
-            return Result.NoAccess;
+            return QueryResult.NoAccess;
         }
 
         // Update allowed fields
@@ -111,10 +136,10 @@ public class FamilyService
         existingFamily.Description = family.Description;
 
         await _context.SaveChangesAsync();
-        return Result.Success;
+        return QueryResult.Success;
     }
 
-    public async Task<Result> DeleteFamilyAsync(Guid id, string nameIdentifier)
+    public async Task<QueryResult> DeleteFamilyAsync(Guid id, string nameIdentifier)
     {
         var family = await _context.Families
             .Include(f => f.Owner)
@@ -122,15 +147,15 @@ public class FamilyService
 
         if (family == null)
         {
-            return Result.NotFound;
+            return QueryResult.NotFound;
         }
 
         if (family.Owner.Id.ToString() != nameIdentifier)
         {
-            return Result.NoAccess;
+            return QueryResult.NoAccess;
         }
 
         await _context.Families.Where(f => f.Id == id).ExecuteDeleteAsync();
-        return Result.Success;
+        return QueryResult.Success;
     }
 }
