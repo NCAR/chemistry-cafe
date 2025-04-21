@@ -17,6 +17,7 @@ import {
 import { APIFamily } from "../API/API_Interfaces";
 import { memo, useEffect, useState } from "react";
 import { getAllFamilies } from "../API/API_GetMethods";
+import { useAuth } from "../components/AuthContext";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ const Dashboard = () => {
   const handleClickSettings = () => navigate("/settings");
   const [families, setFamilies] = useState<Array<APIFamily>>();
   const [loadingFamilies, setLoadingFamilies] = useState<boolean>(true);
+  const { user } = useAuth();
 
   const buttonStyle = {
     height: "5rem",
@@ -74,12 +76,16 @@ const Dashboard = () => {
           </Button>
         </div>
         <div className="dashboard-family-explorer">
-          <Typography variant="h5">Recent Mechanism Families</Typography>
+          <Typography variant="h5">Other Mechanism Families</Typography>
           {loadingFamilies && <CircularProgress />}
           <List>
             {families?.map((family: APIFamily, index: number) => {
               return (
-                <FamilyInfoCard key={`${family.id}-${index}`} family={family} />
+                <FamilyInfoCard
+                  key={`${family.id}-${index}`}
+                  family={family}
+                  editable={family.owner.id === user?.id}
+                />
               );
             })}
           </List>
@@ -94,8 +100,10 @@ const Dashboard = () => {
 
 const FamilyInfoCard = memo(function FamilyInfoCard({
   family,
+  editable,
 }: {
   family: APIFamily;
+  editable: boolean;
 }) {
   return (
     <ListItem>
@@ -123,12 +131,22 @@ const FamilyInfoCard = memo(function FamilyInfoCard({
             >
               Learn More
             </Button>
+            {
+              editable &&
+              <Button
+                color="primary"
+                onClick={() => alert("Not Implemented")}
+                size="small"
+              >
+                Edit Family
+              </Button>
+            }
             <Button
               color="primary"
               onClick={() => alert("Not Implemented")}
               size="small"
             >
-              Edit Family
+              Clone Family
             </Button>
           </ButtonGroup>
         </CardActions>

@@ -2,6 +2,7 @@ import axios from "axios";
 import {
   APIFamily,
   APIMechanism,
+  APIPhase,
   APIReaction,
   APISpecies,
 } from "./API_Interfaces";
@@ -33,7 +34,7 @@ export async function createFamily(familyData: APIFamily): Promise<APIFamily> {
 export async function createSpecies(
   speciesData: APISpecies,
 ): Promise<APISpecies> {
-  const response = await axios.post(`${BASE_URL}/species`, speciesData, {
+  const response = await axios.post(`${BASE_URL}/species?familyId=${speciesData.familyId}`, speciesData, {
     withCredentials: true,
     headers: {
       "Content-Type": "application/json",
@@ -52,7 +53,7 @@ export async function createSpecies(
 export async function createReaction(
   reactionData: APIReaction,
 ): Promise<APIReaction> {
-  const response = await axios.post(`${BASE_URL}/reactions`, reactionData, {
+  const response = await axios.post(`${BASE_URL}/reactions?familyId=${reactionData.familyId}`, reactionData, {
     withCredentials: true,
     headers: {
       "Content-Type": "application/json",
@@ -63,6 +64,26 @@ export async function createReaction(
 }
 
 /**
+ * Creates a new phase and returns the real phase object from the database
+ * @param phaseData Data to upload
+ * @throws HTTP errors
+ * @returns Data as represented in the database
+ */
+export async function createPhase(
+  phaseData: APIPhase,
+): Promise<APIPhase> {
+  const response = await axios.post(`${BASE_URL}/reactions?familyId=${phaseData.familyId}`, phaseData, {
+    withCredentials: true,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  return response.data as APIPhase;
+}
+
+
+/**
  * Creates a new mechanism and returns the real mechanism object from the database
  * @param mechanismData Data to upload
  * @throws HTTP errors
@@ -71,7 +92,7 @@ export async function createReaction(
 export async function createMechanism(
   mechanismData: APIMechanism,
 ): Promise<APIMechanism> {
-  const response = await axios.post(`${BASE_URL}/mechanisms`, mechanismData, {
+  const response = await axios.post(`${BASE_URL}/mechanisms?familyId=${mechanismData.familyId}`, mechanismData, {
     withCredentials: true,
     headers: {
       "Content-Type": "application/json",

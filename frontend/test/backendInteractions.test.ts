@@ -51,6 +51,7 @@ const apiReaction: APIReaction = {
 };
 
 const frontendFamily: Family = {
+  owner: null,
   id: "00000000-0000-0000-0000-000000000000",
   name: "Test Family",
   description: "Test Description",

@@ -30,7 +30,9 @@ import {
 } from "../types/chemistryModels";
 import DeleteIcon from "@mui/icons-material/Delete";
 import UnitComponent from "./UnitComponent";
+import WarningIcon from '@mui/icons-material/Warning';
 import { SelectSpeciesButton } from "./SelectSpeciesButton";
+import { useAuth } from "./AuthContext";
 
 const modalStyle: SxProps<Theme> = {
   position: "absolute" as const,
@@ -64,6 +66,7 @@ export const FamilyCreationModal: React.FC<FamilyCreationModalProps> = ({
   const familyDescription = useRef<string>("");
   const [showAlert, setShowAlert] = useState<boolean>(false);
   const [nameError, setNameError] = useState<boolean>(false);
+  const { user } = useAuth();
 
   const handleFamilyCreation = () => {
     if (familyName.current.length === 0) {
@@ -76,6 +79,7 @@ export const FamilyCreationModal: React.FC<FamilyCreationModalProps> = ({
       id: frontendId,
       name: familyName.current,
       description: familyDescription.current,
+      owner: user,
       species: [],
       reactions: [],
       phases: [],
@@ -428,7 +432,7 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
                           MozAppearance: "textfield",
                         },
                       }}
-                      defaultValue=""
+                      defaultValue={species?.attributes[attribute.serializationKey]?.value.toString() ?? ""}
                       label={attribute.name || attribute.serializationKey}
                       type="number"
                       slotProps={{
@@ -475,8 +479,8 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
                     <TextField
                       color="primary"
                       key={`${species.id}-${attribute.serializationKey}`}
+                      defaultValue={species?.attributes[attribute.serializationKey]?.value.toString() ?? "Currently Unsupported"}
                       label={attribute.name || attribute.serializationKey}
-                      value="Currently Unsupported"
                       disabled
                     />
                   );
@@ -613,7 +617,6 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
             ...modalStyle,
             width: "60%",
             maxHeight: "80%",
-            overflowY: "scroll",
           }}
           role="menu"
         >
@@ -967,7 +970,7 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
                       MozAppearance: "textfield",
                     },
                   }}
-                  defaultValue=""
+                  defaultValue={reaction?.attributes[attribute.serializationKey]?.value.toString() ?? ""}
                   label={attribute.name || attribute.serializationKey}
                   type="number"
                   onChange={(event) => {
@@ -1050,3 +1053,79 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
     </div>
   );
 };
+
+type ConfirmActionModalProps = {
+  open: boolean;
+  onClose: () => void;
+  onAction: () => void;
+  message: string
+  subtitle: string
+  confirmColor?: "primary" | "secondary" | "warning" | "error"
+}
+
+export const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({ open, onClose, onAction, message, subtitle, confirmColor }) => {
+  return (
+    <Modal open={open} onClose={onClose}>
+      <Box
+        sx={{
+          ...modalStyle,
+          width: "60%",
+          maxHeight: "80%",
+          overflowY: "auto",
+        }}
+        role="menu"
+      >
+        <Typography
+          sx={{
+            display: "flex",
+            columnGap: "0.5em",
+            alignItems: "center",
+          }}
+          color="textPrimary"
+          variant="h5"
+        >
+          <WarningIcon color="warning" />
+          Attention
+        </Typography>
+        <Typography color="textPrimary" variant="h6">
+          {message}
+        </Typography>
+        <Typography color="textSecondary" variant="body1">
+          {subtitle}
+        </Typography>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "row",
+            columnGap: "1em",
+          }}
+        >
+          <Button
+            sx={{
+              flex: 1,
+            }}
+            aria-label="Confirm Irreversable Action"
+            data-testid="confirm-action"
+            color={confirmColor ?? "primary"}
+            variant="contained"
+            onClick={onAction}
+          >
+            Confirm
+          </Button>
+          <Button
+            sx={{
+              flex: 1,
+            }}
+            aria-label="Cancel Irreversable Action"
+            variant="outlined"
+            color="primary"
+            onClick={onClose}
+          >
+            Cancel
+          </Button>
+        </Box>
+      </Box>
+    </Modal>
+  );
+}
+

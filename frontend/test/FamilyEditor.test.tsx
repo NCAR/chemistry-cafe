@@ -153,6 +153,7 @@ describe("MechanismEditor", () => {
             id: "111-111-111-111-111",
             name: "Test Family",
             description: "",
+            owner: null,
             mechanisms: [
               {
                 id: "111-111-111-111-111",
@@ -234,6 +235,7 @@ describe("SpeciesView", () => {
             name: "Test Family",
             description: "",
             mechanisms: [],
+            owner: null,
             species: [
               {
                 id: "111-111-111-111-333",
@@ -358,6 +360,7 @@ describe("ReactionsView", () => {
             id: "111-111-111-111-111",
             name: "Test Family",
             description: "",
+            owner: null,
             mechanisms: [],
             species: [
               {
@@ -486,6 +489,7 @@ describe("MechanismsView", () => {
             id: "111-111-111-111-111",
             name: "Test Family",
             description: "",
+            owner: null,
             mechanisms: [
               {
                 id: "111-111-111-111-111",

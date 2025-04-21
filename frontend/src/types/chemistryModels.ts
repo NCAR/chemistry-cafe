@@ -384,7 +384,7 @@ export type Family = {
   description: string;
 
   /** API definition of the owner of the family */
-  owner?: APIUser;
+  owner: APIUser | null;
 
   /** SQL ids of the contributors to the family */
   contributorIds?: Array<UUID>;

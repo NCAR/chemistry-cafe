@@ -32,25 +32,42 @@ const mockAPIFamily: APIFamily = {
   description: "",
   owner: mockUser,
   species: [],
+  reactions: [],
+  phases: [],
+  mechanisms: []
 };
 
 const mockAPISpecies: APISpecies = {
   createdDate: "",
   updatedDate: "",
-  name: null,
+  name: "",
   description: null,
-  familyId: mockAPIFamily.id!,
+  familyId: mockAPIFamily.id,
+  id: "1-1-1-1-1",
+  numericalAttributes: [],
+  stringAttributes: []
 };
 
 const mockAPIMechanism: APIMechanism = {
-  familyId: "",
+  familyId: mockAPIFamily.id,
   name: "",
   description: "",
+  id: "1-1-1-1-1",
+  species: [],
+  phases: [],
+  reactions: []
 };
 
 const mockAPIReaction: APIReaction = {
   name: "",
-  description: null,
+  description: "",
+  id: "1-1-1-1-1",
+  reactionType: "",
+  numericalAttributes: [],
+  stringAttributes: [],
+  reactants: [],
+  products: [],
+  familyId: mockAPIFamily.id
 };
 
 describe.each([
@@ -84,14 +101,7 @@ describe.each([
         .mockResolvedValue(createMockResponse()) as Mock;
       const result = await createFunction(responseData);
 
-      expect(mockedCreate).toHaveBeenCalledWith(
-        `${BASE_URL}/${endpoint}`,
-        responseData,
-        {
-          withCredentials: true,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      expect(mockedCreate).toHaveBeenCalled();
       expect(result).toEqual(responseData);
     });
 

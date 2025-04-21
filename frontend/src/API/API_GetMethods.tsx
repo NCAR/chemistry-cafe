@@ -4,6 +4,7 @@ import axios from "axios";
 
 import { APIFamily, APIUser } from "./API_Interfaces";
 import { AUTH_URL, BASE_URL } from "./API_config";
+import { UUID } from "crypto";
 
 // Get all users
 export async function getAllUsers(): Promise<APIUser[]> {
@@ -60,9 +61,20 @@ export async function getCurrentUser(): Promise<APIUser | null> {
   }
 }
 
-export async function getAllFamilies(): Promise<Array<APIFamily>> {
+export async function getAllFamilies(urlParameters?: string): Promise<Array<APIFamily>> {
   const response = await axios.get<Array<APIFamily>>(
-    `${BASE_URL}/families?expand=true`,
+    encodeURI(`${BASE_URL}/families${urlParameters ?? ""}`),
+    {
+      withCredentials: true,
+    },
+  );
+
+  return response.data;
+}
+
+export async function getFamily(id: UUID) {
+  const response = await axios.get<APIFamily>(
+    `${BASE_URL}/families/${id}?expand=true`,
     {
       withCredentials: true,
     },

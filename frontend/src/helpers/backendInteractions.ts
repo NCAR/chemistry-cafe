@@ -9,7 +9,9 @@ import {
   APISpecies,
 } from "../API/API_Interfaces";
 import { Family, Mechanism, Phase, Reaction, reactionAttributeOptions, ReactionTypeName, Species, speciesAttributeOptions } from "../types/chemistryModels";
-import { updateFamily } from "../API/API_UpdateMethods";
+import { updateFamily, updateMechanism, updatePhase, updateReaction, updateSpecies } from "../API/API_UpdateMethods";
+import { getFamily } from "../API/API_GetMethods";
+import { createFamily, createMechanism, createPhase, createReaction, createSpecies } from "../API/API_CreateMethods";
 
 /**
  * Used to determine if a uuid is valid
@@ -61,7 +63,7 @@ export function apiToFrontendSpecies(apiSpecies: APISpecies): Species {
  * Converts a species as defined by the frontend to a species as defined by the backend.
  * This is intended to be called right before a backend request and assumes the family is already in the database.
  * 
- * If the species is not currently in the database, its id will default to '00000000-0000-0000-0000-00000000000'
+ * If the species is not currently in the database, its id will default to '00000000-0000-0000-0000-000000000000'
  * This will not reflect its returned id when creating the species
  *
  * Species -> APISpecies
@@ -69,7 +71,7 @@ export function apiToFrontendSpecies(apiSpecies: APISpecies): Species {
  * @param family Family this species belongs to
  */
 export function frontendToAPISpecies(species: Species, family: Family): APISpecies {
-  const id: UUID = uuidRegex.test(species.id) ? species.id as UUID : "00000000-0000-0000-0000-00000000000";
+  const id: UUID = uuidRegex.test(species.id) ? species.id as UUID : "00000000-0000-0000-0000-000000000000";
   const formattedSpecies: APISpecies = {
     id: id,
     name: species.name,
@@ -143,7 +145,7 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
  * Converts a reaction as defined by the frontend to a reaction as defined by the backend.
  * This is intended to be called right before a backend request.
  * 
- * If the reaction is not currently in the database, its id will default to '00000000-0000-0000-0000-00000000000'
+ * If the reaction is not currently in the database, its id will default to '00000000-0000-0000-0000-000000000000'
  * This will not reflect its returned id when creating the reaction
  *
  * Reaction -> APIReaction
@@ -153,16 +155,16 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
 export function frontendToAPIReaction(reaction: Reaction, family: Family): APIReaction {
   for (const reactant of reaction.reactants) {
     if (!uuidRegex.test(reactant.speciesId)) {
-      throw new Error("Reactant id is not a uuid");
+      throw new Error(`Reactant id is not a uuid: ${reactant.speciesId}`);
     }
   }
   for (const product of reaction.products) {
     if (!uuidRegex.test(product.speciesId)) {
-      throw new Error("Product id is not a uuid");
+      throw new Error(`Product id is not a uuid: ${product.speciesId}`);
     }
   }
 
-  const id: UUID = uuidRegex.test(reaction.id) ? reaction.id as UUID : "00000000-0000-0000-0000-00000000000";
+  const id: UUID = uuidRegex.test(reaction.id) ? reaction.id as UUID : "00000000-0000-0000-0000-000000000000";
   const formattedReaction: APIReaction = {
     id: id,
     familyId: family.id as UUID,
@@ -221,26 +223,33 @@ export function apiToFrontendPhase(phase: APIPhase): Phase {
  * Converts a phase as defined by the frontend to a phase as defined by the backend.
  * This is intended to be called right before a backend request.
  * 
- * If the phase is not currently in the database, its id will default to '00000000-0000-0000-0000-00000000000'
+ * If the phase is not currently in the database, its id will default to '00000000-0000-0000-0000-000000000000'
  * This will not reflect its returned id when creating the phase
+ * 
+ * Nested objects will be converted to shells with only the id being valid.
  *
  * Phase -> APIPhase
  * @param phase Phase information to convert
  * @param family Family this phase belongs to
  */
 export function frontendToAPIPhase(phase: Phase, family: Family): APIPhase {
-  const id: UUID = uuidRegex.test(phase.id) ? phase.id as UUID : "00000000-0000-0000-0000-00000000000";
+  const phaseId: UUID = uuidRegex.test(phase.id) ? phase.id as UUID : "00000000-0000-0000-0000-000000000000";
   const formattedPhase: APIPhase = {
-    id: id,
+    id: phaseId,
     name: phase.name,
     familyId: family.id as UUID,
     species: phase.speciesIds.map(id => {
-      const species = family.species.find(s => s.id == id);
-      if (!species) {
-        throw new Error(`Species with id '${id}' not found in family`)
+      // Creates temporary object which is used for setting up relations.
+      // This relies on the fact that the backend does not update nested objects.
+      const speciesId: UUID = uuidRegex.test(id) ? id as UUID : "00000000-0000-0000-0000-000000000000";
+      const species: APISpecies = {
+        id: speciesId,
+        name: "",
+        numericalAttributes: [],
+        stringAttributes: [],
+        familyId: family.id as UUID
       }
-
-      return frontendToAPISpecies(species, family);
+      return species;
     }),
   }
   return formattedPhase;
@@ -250,7 +259,7 @@ export function frontendToAPIPhase(phase: Phase, family: Family): APIPhase {
  * Converts a mechanism as defined by the backend to a mechanism as defined by the frontend.
  * This is intended to be called right after a backend request.
  *
- * If the species is not currently in the database, its id will default to '00000000-0000-0000-0000-00000000000'
+ * If the species is not currently in the database, its id will default to '00000000-0000-0000-0000-000000000000'
  * This will not reflect its returned id when creating the species
  * 
  * APIMechanism -> Mechanism
@@ -277,37 +286,53 @@ export function apiToFrontendMechanism(apiMechanism: APIMechanism): Mechanism {
  * Converts a mechanism as defined by the frontend to a mechanism as defined by the backend.
  * This is intended to be called right before a backend request.
  *
- * If the mechanism is not currently in the database, its id will default to '00000000-0000-0000-0000-00000000000'
+ * If the mechanism is not currently in the database, its id will default to '00000000-0000-0000-0000-000000000000'
  * This will not reflect its returned id when creating the mechanism
+ * 
+ * Nested objects will be converted to shells with only the id being valid.
  * 
  * Mechanism -> APIMechanism
  * @param apiMechanism
  */
 export function frontendToAPIMechanism(mechanism: Mechanism, family: Family): APIMechanism {
-  const id: UUID = uuidRegex.test(mechanism.id) ? mechanism.id as UUID : "00000000-0000-0000-0000-00000000000";
+  const mechanismId: UUID = uuidRegex.test(mechanism.id) ? mechanism.id as UUID : "00000000-0000-0000-0000-000000000000";
   const formattedMechanism: APIMechanism = {
-    id: id,
+    id: mechanismId,
     name: mechanism.name,
-    species: mechanism.speciesIds.map(e => {
-      const species = family.species.find(s => s.id == e);
-      if (!species) {
-        throw new Error(`Species with id '${e}' was not found in family`);
-      }
-      return frontendToAPISpecies(species, family)
+    species: mechanism.speciesIds.map(id => {
+      const speciesId: UUID = uuidRegex.test(id) ? id as UUID : "00000000-0000-0000-0000-000000000000";
+      const species: APISpecies = {
+        id: speciesId,
+        name: "",
+        numericalAttributes: [],
+        stringAttributes: [],
+        familyId: family.id as UUID,
+      };
+      return species;
     }),
-    phases: mechanism.speciesIds.map(e => {
-      const phase = family.phases.find(s => s.id == e);
-      if (!phase) {
-        throw new Error(`Phase with id '${e}' was not found in family`);
-      }
-      return frontendToAPIPhase(phase, family);
+    phases: mechanism.speciesIds.map(id => {
+      const phaseId: UUID = uuidRegex.test(id) ? id as UUID : "00000000-0000-0000-0000-000000000000";
+      const phase: APIPhase = {
+        id: phaseId,
+        name: "",
+        familyId: family.id as UUID,
+        species: []
+      };
+      return phase;
     }),
-    reactions: mechanism.reactionIds.map(e => {
-      const reaction = family.reactions.find(s => s.id == e);
-      if (!reaction) {
-        throw new Error(`Reaction with id '${e}' was not found in family`);
+    reactions: mechanism.reactionIds.map(id => {
+      const reactionId: UUID = uuidRegex.test(id) ? id as UUID : "00000000-0000-0000-0000-000000000000";
+      const reaction: APIReaction = {
+        id: reactionId,
+        name: "",
+        reactionType: "",
+        numericalAttributes: [],
+        stringAttributes: [],
+        reactants: [],
+        products: [],
+        familyId: family.id as UUID,
       }
-      return frontendToAPIReaction(reaction, family);
+      return reaction;
     }),
     familyId: family.id as UUID,
   };
@@ -331,6 +356,7 @@ export function apiToFrontendFamily(apiFamily: APIFamily): Family {
     id: apiFamily.id,
     name: apiFamily.name,
     description: apiFamily.description ?? "",
+    owner: apiFamily.owner,
     mechanisms: apiFamily.mechanisms.map(e => apiToFrontendMechanism(e)),
     species: apiFamily.species.map(e => apiToFrontendSpecies(e)),
     reactions: apiFamily.reactions.map(e => apiToFrontendReaction(e)),
@@ -350,20 +376,21 @@ export function apiToFrontendFamily(apiFamily: APIFamily): Family {
  * Family -> APIFamily
  * @param family Family information to convert
  */
-export function frontendToAPIFamily(family: Family): APIFamily {
+export function frontendToAPIFamily(family: Family, expand: boolean = true): APIFamily {
   if (!family.owner) {
-    throw new Error("family owner is undefined");
+    throw new Error("family owner is null");
   }
 
+  const familyId: UUID = uuidRegex.test(family.id) ? family.id as UUID : "00000000-0000-0000-0000-000000000000";
   const formattedFamily: APIFamily = {
-    id: family.id as UUID,
+    id: familyId,
     name: family.name,
     description: family.description,
     owner: family.owner,
-    species: family.species.map(e => frontendToAPISpecies(e, family)),
-    reactions: family.reactions.map(e => frontendToAPIReaction(e, family)),
-    phases: family.phases.map(e => frontendToAPIPhase(e, family)),
-    mechanisms: family.mechanisms.map(e => frontendToAPIMechanism(e, family)),
+    species: expand ? family.species.map(e => frontendToAPISpecies(e, family)) : [],
+    reactions: expand ? family.reactions.map(e => frontendToAPIReaction(e, family)) : [],
+    phases: expand ? family.phases.map(e => frontendToAPIPhase(e, family)) : [],
+    mechanisms: expand ? family.mechanisms.map(e => frontendToAPIMechanism(e, family)) : [],
   };
 
   return formattedFamily;
@@ -375,18 +402,25 @@ export function frontendToAPIFamily(family: Family): APIFamily {
  * @returns Family with updated UUIDs of each object
  */
 export async function uploadFamily(family: Family): Promise<Family> {
-  // FIXME
-  console.log(family);
-  return family;
+
+  const resultFamily = await createFamily(frontendToAPIFamily(family, false));
+
+  return saveFamilyChanges({
+    ...family,
+    id: resultFamily.id,
+    isInDatabase: true,
+    isModified: true,
+  });
 }
 
 /**
  * Saves any changes made to the family to the backend
  * @param family
+ * @throws HTTP errors
  * @returns Family with updated UUIDs of objects
  */
 export async function saveFamilyChanges(family: Family): Promise<Family> {
-  // Don't make a network request if the family has been modified
+  // Don't make a network request if the family has not been modified
   if (!family.isModified) {
     return family;
   }
@@ -401,29 +435,122 @@ export async function saveFamilyChanges(family: Family): Promise<Family> {
     );
   }
 
-  // TODO Add update family function
-  updateFamily(frontendToAPIFamily(family));
-  const updatedFamily: Family = {
-    ...family,
-    species: [],
-    mechanisms: [],
-    isInDatabase: true,
-    isModified: false,
-    isDeleted: false,
-  };
+  // Used to map frontend ids to real ids
+  const speciesIdMappings: Map<string, UUID> = new Map();
+  const phaseIdMappings: Map<string, UUID> = new Map();
+  const reactionIdMappings: Map<string, UUID> = new Map();
 
   for (const species of family.species) {
-    // TODO Create Species database interactions
-    if (!species.isInDatabase) {
-    } else if (species.isModified) {
+    const apiSpecies = frontendToAPISpecies(species, family);
+    if (species.isInDatabase) {
+      if (species.isDeleted) {
+        // TODO Add Deleting
+      }
+      else if (species.isModified) {
+        await updateSpecies(apiSpecies);
+        speciesIdMappings.set(species.id, apiSpecies.id as UUID);
+      }
     }
-    updatedFamily.species.push({
-      ...species,
-      isInDatabase: true,
-      isModified: false,
-      isDeleted: false,
-    });
+    else {
+      const resultSpecies: APISpecies = await createSpecies(apiSpecies);
+      speciesIdMappings.set(species.id, resultSpecies.id);
+    }
   }
 
-  return updatedFamily;
+  for (const phase of family.phases) {
+    const phaseWithMappings: Phase = {
+      ...phase,
+      speciesIds: phase.speciesIds
+        .filter(id => speciesIdMappings.get(id) != undefined)
+        .map(id => speciesIdMappings.get(id) as UUID),
+    }
+
+    const apiPhase = frontendToAPIPhase(phaseWithMappings, family);
+    if (phase.isInDatabase) {
+      if (phase.isDeleted) {
+        // TODO Add Deleting
+      }
+      else if (phase.isModified) {
+        await updatePhase(apiPhase);
+        phaseIdMappings.set(phase.id, apiPhase.id);
+      }
+    }
+    else {
+      const resultPhase = await createPhase(apiPhase);
+      phaseIdMappings.set(phase.id, resultPhase.id);
+    }
+  }
+
+  for (const reaction of family.reactions) {
+    const reactionWithMappings: Reaction = {
+      ...reaction,
+      reactants: reaction.reactants
+        .filter(e => speciesIdMappings.get(e.speciesId) != undefined)
+        .map(e => {
+          return {
+            ...e,
+            speciesId: speciesIdMappings.get(e.speciesId) as UUID
+          }
+        }),
+      products: reaction.products
+        .filter(e => speciesIdMappings.get(e.speciesId) != undefined)
+        .map(e => {
+          return {
+            ...e,
+            speciesId: speciesIdMappings.get(e.speciesId) as UUID
+          }
+        }),
+      gasPhaseId: phaseIdMappings.get(reaction.gasPhaseId ?? ""),
+      gasPhaseSpeciesId: speciesIdMappings.get(reaction.gasPhaseSpeciesId ?? ""),
+      aerosolPhaseId: phaseIdMappings.get(reaction.aerosolPhaseId ?? ""),
+      aerosolPhaseSpeciesId: speciesIdMappings.get(reaction.aerosolPhaseSpeciesId ?? ""),
+      aerosolPhaseWaterId: speciesIdMappings.get(reaction.aerosolPhaseWaterId ?? ""),
+    }
+
+    const apiReaction = frontendToAPIReaction(reactionWithMappings, family);
+    if (reaction.isInDatabase) {
+      if (reaction.isDeleted) {
+        // TODO Add Deleting
+      }
+      else if (reaction.isModified) {
+        await updateReaction(apiReaction);
+        reactionIdMappings.set(reaction.id, apiReaction.id);
+      }
+    }
+    else {
+      const resultReaction = await createReaction(apiReaction);
+      reactionIdMappings.set(reaction.id, resultReaction.id);
+    }
+  }
+
+  for (const mechanism of family.mechanisms) {
+    const mechanismWithMappings: Mechanism = {
+      ...mechanism,
+      speciesIds: mechanism.speciesIds
+        .filter(id => speciesIdMappings.get(id) != undefined)
+        .map(id => speciesIdMappings.get(id) as UUID),
+      reactionIds: mechanism.reactionIds
+        .filter(id => reactionIdMappings.get(id) != undefined)
+        .map(id => reactionIdMappings.get(id) as UUID),
+      phaseIds: mechanism.reactionIds
+        .filter(id => phaseIdMappings.get(id) != undefined)
+        .map(id => phaseIdMappings.get(id) as UUID),
+    }
+
+    const apiMechanism = frontendToAPIMechanism(mechanismWithMappings, family);
+    if (mechanism.isInDatabase) {
+      if (mechanism.isDeleted) {
+        // TODO Add Deleting
+      }
+      else if (mechanism.isModified) {
+        await updateMechanism(apiMechanism);
+      }
+    }
+    else {
+      await createMechanism(apiMechanism);
+    }
+  }
+
+  await updateFamily(frontendToAPIFamily(family, false));
+  return apiToFrontendFamily(await getFamily(family.id as UUID));
 }
