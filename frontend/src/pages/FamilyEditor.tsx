@@ -1,6 +1,6 @@
 import { memo, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Header, Footer } from "../components/HeaderFooter";
-import "../styles/FamilyPage.css";
+import "../styles/FamilyEditor.css";
 import {
   alpha,
   Box,
@@ -51,9 +51,11 @@ import SaveIcon from '@mui/icons-material/Save';
 
 const FamilyPage = () => {
   enum DataViewSelection {
+    GeneralInfo = "general",
     Species = "species",
     Reactions = "reactions",
     Mechanisms = "mechanisms",
+    Phases = "phases",
     Default = "default",
   }
 
@@ -301,6 +303,12 @@ const FamilyPage = () => {
                       label={`Reactions (${family.reactions.filter((element) => !element.isDeleted).length})`}
                       aria-label="Open Reactions Editor"
                       data-testid={`${family.id}-reactions-tree-button`}
+                    />
+                    <TreeItem
+                      itemId={`${family.id};${DataViewSelection.Phases}`}
+                      label={`Phases (${family.phases.filter((element) => !element.isDeleted).length})`}
+                      aria-label="Open Phase Editor"
+                      data-testid={`${family.id}-phases-tree-button`}
                     />
                     <TreeItem
                       itemId={`${family.id};${DataViewSelection.Mechanisms}`}

@@ -26,7 +26,7 @@ import {
   Species,
   SpeciesAttribute,
   ReactionAttribute,
-  attributeOptions,
+  reactionAttributeOptions,
 } from "../types/chemistryModels";
 import DeleteIcon from "@mui/icons-material/Delete";
 import UnitComponent from "./UnitComponent";
@@ -76,9 +76,10 @@ export const FamilyCreationModal: React.FC<FamilyCreationModalProps> = ({
       id: frontendId,
       name: familyName.current,
       description: familyDescription.current,
-      mechanisms: [],
       species: [],
       reactions: [],
+      phases: [],
+      mechanisms: [],
       isModified: false,
       isDeleted: false,
       isInDatabase: false,
@@ -207,10 +208,10 @@ export const MechanismCreationModal: React.FC<MechanismCreationModalProps> = ({
       id: frontendId,
       name: mechanismName.current,
       description: mechanismDescription.current,
-      phases: [],
       familyId: "",
       speciesIds: [],
       reactionIds: [],
+      phaseIds: [],
     };
 
     onCreation(mechanism);
@@ -397,17 +398,20 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
               <Typography color="textPrimary" variant="h6">
                 Species Attributes
               </Typography>
+              <Typography color="textSecondary" variant="subtitle1">
+                Empty values will be ignored
+              </Typography>
               {speciesAttributeOptions.map((element: SpeciesAttribute) => {
                 const attribute =
                   modifiedSpecies?.attributes[
-                    element.serializedKey ?? element.name
+                  element.serializationKey
                   ] ?? element;
                 if (typeof attribute.value == "number") {
                   return (
                     <TextField
                       color="primary"
-                      key={`${species.id}-${attribute.name}`}
-                      id={`${species.id}-${attribute.name}`}
+                      key={`${species.id}-${attribute.serializationKey}`}
+                      id={`${species.id}-${attribute.serializationKey}`}
                       onWheel={(event) =>
                         event.target instanceof HTMLElement &&
                         event.target.blur()
@@ -417,15 +421,15 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
 
                         // Removes up and down arrows for number
                         "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                          {
-                            display: "none",
-                          },
+                        {
+                          display: "none",
+                        },
                         "& input[type=number]": {
                           MozAppearance: "textfield",
                         },
                       }}
-                      defaultValue={attribute.value}
-                      label={attribute.name}
+                      defaultValue=""
+                      label={attribute.name || attribute.serializationKey}
                       type="number"
                       slotProps={{
                         input: {
@@ -440,19 +444,24 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
                       }}
                       onChange={(event) => {
                         const num = Number.parseFloat(event.target.value);
-                        if (Number.isFinite(num)) {
+                        if (Number.isFinite(num) || event.target.value.length === 0) {
                           let modifiedAttributes: {
                             [key: string]: SpeciesAttribute;
                           } = {
                             ...modifiedSpecies?.attributes,
                           };
 
-                          modifiedAttributes[
-                            attribute.serializedKey ?? attribute.name
-                          ] = {
-                            ...attribute,
-                            value: num,
-                          };
+                          if (event.target.value.length === 0) {
+                            delete modifiedAttributes[attribute.serializationKey];
+                          }
+                          else {
+                            modifiedAttributes[
+                              attribute.serializationKey
+                            ] = {
+                              ...attribute,
+                              value: num,
+                            };
+                          }
 
                           changeSpeciesProperties({
                             attributes: modifiedAttributes,
@@ -465,8 +474,8 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
                   return (
                     <TextField
                       color="primary"
-                      key={`${species.id}-${attribute.name}`}
-                      label={attribute.name}
+                      key={`${species.id}-${attribute.serializationKey}`}
+                      label={attribute.name || attribute.serializationKey}
                       value="Currently Unsupported"
                       disabled
                     />
@@ -571,7 +580,7 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
     if (!type) {
       return [];
     }
-    return attributeOptions[type] ?? [];
+    return reactionAttributeOptions[type] ?? [];
   };
 
   useLayoutEffect(() => {
@@ -664,7 +673,7 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
                 [key: string]: ReactionAttribute;
               } = {};
               for (const attribute of attributes) {
-                reactionAttributes[attribute.serializedKey ?? attribute.name] =
+                reactionAttributes[attribute.serializationKey] =
                   attribute;
               }
               changeReactionProperties({
@@ -942,8 +951,8 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
               return (
                 <TextField
                   color="primary"
-                  key={`${reaction?.id}-${attribute.name}`}
-                  id={`${reaction?.id}-${attribute.name}`}
+                  key={`${reaction?.id}-${attribute.serializationKey}`}
+                  id={`${reaction?.id}-${attribute.serializationKey}`}
                   onWheel={(event) =>
                     event.target instanceof HTMLElement && event.target.blur()
                   }
@@ -951,31 +960,36 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
                     width: "100%",
                     // Removes up and down arrows for number
                     "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                      {
-                        display: "none",
-                      },
+                    {
+                      display: "none",
+                    },
                     "& input[type=number]": {
                       MozAppearance: "textfield",
                     },
                   }}
-                  defaultValue={attribute.value}
-                  label={attribute.name}
+                  defaultValue=""
+                  label={attribute.name || attribute.serializationKey}
                   type="number"
                   onChange={(event) => {
                     const num = Number.parseFloat(event.target.value);
-                    if (Number.isFinite(num)) {
+                    if (Number.isFinite(num) || event.target.value.length === 0) {
                       let modifiedAttributes: {
                         [key: string]: ReactionAttribute;
                       } = {
                         ...modifiedReaction?.attributes,
                       };
 
-                      modifiedAttributes[
-                        attribute.serializedKey ?? attribute.name
-                      ] = {
-                        ...attribute,
-                        value: num,
-                      };
+                      if (event.target.value.length === 0) {
+                        delete modifiedAttributes[attribute.serializationKey];
+                      }
+                      else {
+                        modifiedAttributes[
+                          attribute.serializationKey
+                        ] = {
+                          ...attribute,
+                          value: num,
+                        };
+                      }
 
                       changeReactionProperties({
                         attributes: modifiedAttributes,

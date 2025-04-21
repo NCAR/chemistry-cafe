@@ -44,7 +44,8 @@ const testFamilies: Array<APIFamily> = [
     },
     species: [],
     reactions: [],
-    mechanisms: []
+    mechanisms: [],
+    phases: []
   },
 ];
 
@@ -65,7 +66,7 @@ describe("Family Editor Page", () => {
   beforeEach(() => {
     window.location = {
       ...originalLocation,
-      assign: vi.fn((_: string | URL) => {}),
+      assign: vi.fn((_: string | URL) => { }),
     } as any;
     vi.spyOn(axios, "get").mockResolvedValue(createMockData());
 
@@ -157,7 +158,7 @@ describe("MechanismEditor", () => {
                 id: "111-111-111-111-111",
                 name: "Test Mechanism",
                 description: "",
-                phases: [],
+                phaseIds: [],
                 familyId: "111-111-111-111",
                 speciesIds: ["111-111-111-111-111"],
                 reactionIds: ["111-111-111-111-111"],
@@ -193,12 +194,13 @@ describe("MechanismEditor", () => {
                 attributes: {},
               },
             ],
+            phases: [],
           }}
           mechanism={{
             id: "111-111-111-111-111",
             name: "Test Mechanism",
             description: "",
-            phases: [],
+            phaseIds: [],
             familyId: "111-111-111-111",
             speciesIds: ["111-111-111-111-111"],
             reactionIds: ["111-111-111-111-111"],
@@ -244,6 +246,7 @@ describe("SpeciesView", () => {
                 isModified: false,
               },
             ],
+            phases: [],
             reactions: [
               {
                 id: "111-111-111-111",
@@ -299,7 +302,6 @@ describe("SpeciesView", () => {
       "Molecular Weight",
     ) as HTMLInputElement;
     expect(molecularWeightBox).toBeTruthy();
-    expect(molecularWeightBox.value).toEqual("0");
 
     // Input new properties
     await user.type(nameBox, "Test Species");
@@ -369,6 +371,7 @@ describe("ReactionsView", () => {
                 isModified: false,
               },
             ],
+            phases: [],
             reactions: [
               {
                 id: "111-111-111-111",
@@ -488,7 +491,7 @@ describe("MechanismsView", () => {
                 id: "111-111-111-111-111",
                 name: "Test Mechanism",
                 description: "",
-                phases: [],
+                phaseIds: [],
                 familyId: "111-111-111-111",
                 speciesIds: ["111-111-111-111-111"],
                 reactionIds: ["111-111-111-111-111"],
@@ -503,6 +506,7 @@ describe("MechanismsView", () => {
                 attributes: {},
               },
             ],
+            phases: [],
             reactions: [
               {
                 id: "111-111-111-111-111",

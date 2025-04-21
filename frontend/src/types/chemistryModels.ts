@@ -5,17 +5,20 @@ import { APIUser } from "../API/API_Interfaces";
  * Represents a value a species can have. For example: Molecular Weight
  */
 export type SpeciesAttribute = {
-  /** Name of the attribute */
-  name: string;
+  /** Human-readable name of the attribute */
+  name?: string;
 
   /** What the attribute should be serialized as (Defaults to <name> if unspecified). */
-  serializedKey?: string;
+  serializationKey: string;
 
   /** The unit of the specific attribute. This can be empty if unitless. */
   units?: string;
 
   /** Value of the attribute. This is *usually* numerical */
   value: number | string;
+
+  /** Used when the value is a string (This is not stored in the database) */
+  options?: Array<string>;
 };
 
 /**
@@ -24,46 +27,47 @@ export type SpeciesAttribute = {
 export const speciesAttributeOptions: Array<SpeciesAttribute> = [
   Object.freeze({
     name: "Absolute Tolerance",
-    serializedKey: "absolute tolerance",
+    serializationKey: "__absolute tolerance",
     value: 0.0,
   }),
   Object.freeze({
     name: "Diffusion Coefficient",
-    serializedKey: "diffusion coefficient [m2 s-1]",
+    serializationKey: "diffusion coefficient [m2 s-1]",
     units: "m2 s-1",
     value: 0.0,
   }),
   Object.freeze({
     name: "Molecular Weight",
-    serializedKey: "molecular weight [kg mol-1]",
+    serializationKey: "molecular weight [kg mol-1]",
     units: "kg mol-1",
     value: 0.0,
   }),
   Object.freeze({
     name: "Henry's Law Constant (298K)",
-    serializedKey: "HLC(298K) [mol m-3 Pa-1]",
+    serializationKey: "HLC(298K) [mol m-3 Pa-1]",
     units: "mol m-3 Pa-1",
     value: 0.0,
   }),
   Object.freeze({
     name: "Henry's Law Exponential Factor",
-    serializedKey: "HLC exponential factor [K]",
+    serializationKey: "HLC exponential factor [K]",
     units: "K",
     value: 0.0,
   }),
   Object.freeze({
     name: "N star",
+    serializationKey: "N star",
     value: 0.0,
   }),
   Object.freeze({
     name: "Density",
-    serializedKey: "density [kg m-3]",
+    serializationKey: "density [kg m-3]",
     units: "kg m-3",
     value: 0.0,
   }),
   Object.freeze({
     name: "Tracer Type",
-    serializedKey: "tracer type",
+    serializationKey: "tracer type",
     value: "",
   }),
 ];
@@ -89,9 +93,6 @@ export type Species = {
     [key: string]: SpeciesAttribute;
   };
 
-  /** The id of the phase this species is in. If unspecified, defaults to gas when serialized */
-  phaseId?: UUID;
-
   /** Determines whether the species has been modified from its original state */
   isModified?: boolean;
 
@@ -106,11 +107,11 @@ export type Species = {
  * Represents a value that the reaction may have.
  */
 export type ReactionAttribute = {
-  /** Name of the property */
-  name: string;
+  /** Human-readable name of the property */
+  name?: string;
 
   /** What the property should be serialized as (Defaults to "<name> [<unit>]"). */
-  serializedKey?: string;
+  serializationKey: string;
 
   /** Value of the property. This is *usually* numerical */
   value: number | string;
@@ -139,7 +140,7 @@ export type ReactionTypeName =
 /**
  * Represents all attributes configurable by the user for each reaction type.
  */
-export const attributeOptions: {
+export const reactionAttributeOptions: {
   [Property in ReactionTypeName]: Array<ReactionAttribute>;
 } = {
   /**
@@ -149,84 +150,84 @@ export const attributeOptions: {
    */
   ARRHENIUS: [
     {
-      name: "A",
+      serializationKey: "A",
       value: 0.0,
     },
     {
-      name: "B",
+      serializationKey: "B",
       value: 0.0,
     },
     {
-      name: "Ea",
+      serializationKey: "Ea",
       value: 0.0,
     },
     {
-      name: "D",
+      serializationKey: "D",
       value: 0.0,
     },
     {
-      name: "E",
+      serializationKey: "E",
       value: 0.0,
     },
   ],
   EMMISSION: [
     {
       name: "Scaling Factor",
-      serializedKey: "scaling factor",
+      serializationKey: "scaling factor",
       value: 0.0,
     },
   ],
   PHOTOLYSIS: [
     {
       name: "Scaling Factor",
-      serializedKey: "scaling factor",
+      serializationKey: "scaling factor",
       value: 0.0,
     },
   ],
   FIRST_ORDER_LOSS: [
     {
       name: "Scaling Factor",
-      serializedKey: "scaling factor",
+      serializationKey: "scaling factor",
       value: 0.0,
     },
   ],
   TROE: [
     {
       name: "k0 A",
-      serializedKey: "k0_A",
+      serializationKey: "k0_A",
       value: 0.0,
     },
     {
       name: "k0 B",
-      serializedKey: "k0_B",
+      serializationKey: "k0_B",
       value: 0.0,
     },
     {
       name: "k0 C",
-      serializedKey: "k0_C",
+      serializationKey: "k0_C",
       value: 0.0,
     },
     {
       name: "kinf A",
-      serializedKey: "kinf_A",
+      serializationKey: "kinf_A",
       value: 0.0,
     },
     {
       name: "kinf B",
-      serializedKey: "kinf_B",
+      serializationKey: "kinf_B",
       value: 0.0,
     },
     {
       name: "kinf C",
-      serializedKey: "kinf_C",
+      serializationKey: "kinf_C",
       value: 0.0,
     },
     {
-      name: "Fc",
+      serializationKey: "Fc",
       value: 0.0,
     },
     {
-      name: "N",
+      serializationKey: "N",
       value: 0.0,
     },
   ],
@@ -260,6 +261,21 @@ export type Reaction = {
   /** Type of the reaction. This determines what other properties the reaction should have */
   type: ReactionTypeName;
 
+  /** Optional id for the gas phase. Required in certain reactions */
+  gasPhaseId?: UUID | null;
+
+  /** Optional id for the gas phase species. Required in certain reactions */
+  gasPhaseSpeciesId?: UUID | null;
+
+  /** Optional id for the aerosol phase. Required in certain reactions */
+  aerosolPhaseId?: UUID | null;
+
+  /** Optional id for the aerosol phase species. Required in certain reactions */
+  aerosolPhaseSpeciesId?: UUID | null;
+
+  /** Optional id for the aerosol phase water. Required in certain reactions */
+  aerosolPhaseWaterId?: UUID | null;
+
   /** Determines whether the Reaction has been modified from its original state */
   isModified?: boolean;
 
@@ -288,22 +304,13 @@ export type Reaction = {
   };
 };
 
-export type ArrheniusReaction = {
-  gasPhase: string;
-  A: number;
-  B: number;
-  C: number;
-  D: number;
-  E: number;
-} & Reaction;
-
 /**
  * Represents a generic phase on the frontend.
  * A phase is a collection of species that react together.
  */
 export type Phase = {
   /** ID stored in the SQL database */
-  id?: UUID;
+  id: UUID | string;
 
   /** Name of the phase */
   name: string;
@@ -319,6 +326,9 @@ export type Phase = {
 
   /** Determines if the phase has been marked for deletion */
   isDeleted?: boolean;
+
+  /** Determines if the phase is in the database */
+  isInDatabase?: boolean;
 };
 
 /**
@@ -328,7 +338,7 @@ export type Phase = {
  */
 export type Mechanism = {
   /** ID stored in the SQL database. If this is not in the database, this is used for frontend purposes */
-  id?: UUID | string;
+  id: UUID | string;
 
   /** Name of the mechanism */
   name: string;
@@ -336,17 +346,17 @@ export type Mechanism = {
   /** Description of the mechanism */
   description: string | null;
 
-  /** Collection of reaction phases associated with the mechanism */
-  phases: Array<Phase>;
-
   /** Id of the family on the frontend this mechanism is a part of */
   familyId: UUID | string;
 
   /** Species ids associated with the mechanism */
   speciesIds: Array<UUID | string>;
 
-  /** Reactions associated with the mechanism */
+  /** Reaction ids associated with the mechanism */
   reactionIds: Array<UUID | string>;
+
+  /** Phase ids associated with the mechanism */
+  phaseIds: Array<UUID | string>;
 
   /** Determines whether the mechanism has been modified from its original state */
   isModified?: boolean;
@@ -385,8 +395,11 @@ export type Family = {
   /** Species inside the family */
   species: Array<Species>;
 
-  /** Reaction inside the family */
+  /** Reactions inside the family */
   reactions: Array<Reaction>;
+
+  /** Phases inside the family */
+  phases: Array<Phase>;
 
   /** Determines whether the family has been modified from its original state */
   isModified?: boolean;
