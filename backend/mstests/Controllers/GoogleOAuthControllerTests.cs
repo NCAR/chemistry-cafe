@@ -33,11 +33,6 @@ namespace ChemistryCafeAPI.Tests
             }
         }
 
-        [ClassInitialize]
-        public static void ClassInit(TestContext context)
-        {
-        }
-
         [TestMethod]
         public async Task GetCurrentUser_Exists()
         {
@@ -73,11 +68,6 @@ namespace ChemistryCafeAPI.Tests
 
             User? user = okResult.Value as User;
             Assert.IsNull(user);
-        }
-
-        [ClassCleanup]
-        public static void ClassCleanup()
-        {
         }
     }
 }
