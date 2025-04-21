@@ -133,8 +133,6 @@ public class MechanismService
         foreach (var species in mechanism.Species)
         {
             var databaseSpecies = await _context.Species.FindAsync(species.Id);
-            Console.Write("AHHHH");
-            Console.Write(species.Id);
             if (databaseSpecies == null || databaseSpecies.FamilyId != family.Id)
             {
                 return (QueryResult.ChildRelationNotFound, null);
