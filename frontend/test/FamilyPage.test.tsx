@@ -22,11 +22,11 @@ import {
 import userEvent from "@testing-library/user-event";
 import axios, { AxiosHeaders, AxiosResponse } from "axios";
 import { APIFamily } from "../src/API/API_Interfaces";
-import FamilyPage, {
+import FamilyEditor, {
   MechanismsView,
   ReactionsView,
   SpeciesView,
-} from "../src/pages/FamilyPage";
+} from "../src/pages/FamilyEditor";
 import { CustomThemeProvider } from "../src/components/CustomThemeContext";
 import { MechanismEditor } from "../src/components/MechanismEditor";
 
@@ -44,6 +44,7 @@ const testFamilies: Array<APIFamily> = [
     },
     species: [],
     reactions: [],
+    mechanisms: []
   },
 ];
 
@@ -72,7 +73,7 @@ describe("Family Editor Page", () => {
       <AuthProvider>
         <CustomThemeProvider>
           <MemoryRouter initialEntries={["/", "/loggedIn"]}>
-            <FamilyPage />
+            <FamilyEditor />
           </MemoryRouter>
         </CustomThemeProvider>
       </AuthProvider>,

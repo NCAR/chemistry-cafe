@@ -27,6 +27,8 @@ describe("Dashboard", () => {
             role: "admin",
           },
           species: [],
+          reactions: [],
+          mechanisms: [],
         },
       ] as Array<APIFamily>,
       status: 404,

@@ -20,7 +20,7 @@ import { getAllFamilies } from "../API/API_GetMethods";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const handleClickFamily = () => navigate("/familypage");
+  const handleClickFamily = () => navigate("/familyeditor");
   const handleClickSettings = () => navigate("/settings");
   const [families, setFamilies] = useState<Array<APIFamily>>();
   const [loadingFamilies, setLoadingFamilies] = useState<boolean>(true);

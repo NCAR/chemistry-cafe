@@ -37,11 +37,11 @@ const NavDropDown = () => {
         </ListItem>
 
         <ListItem disablePadding>
-          <ListItemButton component={Link} to="/familypage">
+          <ListItemButton component={Link} to="/familyeditor">
             <ListItemIcon>
               <ScienceIcon />
             </ListItemIcon>
-            <ListItemText primary={"Families"} />
+            <ListItemText primary={"Family Editor"} />
           </ListItemButton>
         </ListItem>
 
