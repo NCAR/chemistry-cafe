@@ -1,20 +1,28 @@
 import { memo, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Header, Footer } from "../components/HeaderFooter";
-import "../styles/FamilyPage.css";
+import "../styles/FamilyEditor.css";
 import {
+  Alert,
   alpha,
   Box,
   Button,
   CircularProgress,
   IconButton,
+  Modal,
   Paper,
+  Snackbar,
   styled,
+  TextField,
   Tooltip,
   Typography,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import CloseIcon from '@mui/icons-material/Close';
+import CircleIcon from '@mui/icons-material/Circle';
+import CloudOffIcon from '@mui/icons-material/CloudOff';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
 import { TreeItem, treeItemClasses } from "@mui/x-tree-view/TreeItem";
 import {
@@ -35,6 +43,7 @@ import {
 } from "@mui/x-data-grid";
 import { useCustomTheme } from "../components/CustomThemeContext";
 import {
+  ConfirmActionModal,
   FamilyCreationModal,
   MechanismCreationModal,
   ReactionsEditorModal,
@@ -43,25 +52,31 @@ import {
 import { reactionToString, reactionTypeToString } from "../helpers/stringify";
 import { UUID } from "crypto";
 import { getAllFamilies } from "../API/API_GetMethods";
-import { apiToFrontendFamily } from "../helpers/backendInteractions";
+import { apiToFrontendFamily, saveFamilyChanges, uploadFamily } from "../helpers/backendInteractions";
 import { RowActionsButton } from "../components/RowActionsButton";
 import { MechanismEditor } from "../components/MechanismEditor";
 import { MechanismBrowser } from "../components/MechanismBrowser";
+import SaveIcon from '@mui/icons-material/Save';
+import { useAuth } from "../components/AuthContext";
+import { deleteFamily } from "../API/API_DeleteMethods";
 
 const FamilyPage = () => {
   enum DataViewSelection {
+    GeneralInfo = "general",
     Species = "species",
     Reactions = "reactions",
     Mechanisms = "mechanisms",
+    Phases = "phases",
     Default = "default",
   }
 
-  const [loadingFamilies, setLoadingFamilies] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [families, setFamilies] = useState<Array<Family>>();
   const [dataView, setDataView] = useState<React.JSX.Element>(<DefaultView />);
-  const [familyCreationModalOpen, setFamilyCreationModalOpen] =
-    useState<boolean>(false);
-  const currentMenuName = useRef<DataViewSelection>(DataViewSelection.Default);
+  const [familyCreationModalOpen, setFamilyCreationModalOpen] = useState<boolean>(false);
+  const [selectedFamilyId, setSelectedFamilyId] = useState<string>("");
+  const { user } = useAuth();
+  const currentMenuName = useRef<string>(DataViewSelection.Default);
 
   const { appearanceSettings } = useCustomTheme();
 
@@ -72,13 +87,18 @@ const FamilyPage = () => {
       }
       return families?.map((element) => {
         if (family.id === element.id) {
-          return family;
+          return {
+            ...family,
+            isModified: true,
+          };
         }
         return element;
       });
     });
 
-    setDataView(getDataViewComponent(currentMenuName.current, family));
+    setSelectedFamilyId(family.id);
+    setDataView(getDataViewComponent(currentMenuName.current, { ...family, isModified: true }));
+    window.onbeforeunload = () => true; // Sets "are you sure you want to leave" popup
   };
 
   /**
@@ -91,17 +111,37 @@ const FamilyPage = () => {
     menuName: string,
     family: Family,
   ): React.JSX.Element => {
+    currentMenuName.current = menuName;
     switch (menuName) {
       case DataViewSelection.Species:
-        currentMenuName.current = menuName;
         return <SpeciesView family={family} updateFamily={updateFamily} />;
       case DataViewSelection.Reactions:
-        currentMenuName.current = menuName;
         return <ReactionsView family={family} updateFamily={updateFamily} />;
       case DataViewSelection.Mechanisms:
-        currentMenuName.current = menuName;
         return <MechanismsView family={family} updateFamily={updateFamily} />;
-      case DataViewSelection.Default:
+      case DataViewSelection.GeneralInfo:
+        return <GeneralInfoView
+          family={family}
+          updateFamily={updateFamily}
+          onPublish={() => uploadFamily(family)
+            .then((family) => updateFamily(family))
+            .catch((e) => {
+              console.error(e);
+              alert("An issue occurred while uploading the family")
+            })}
+          onDelete={() => {
+            setLoading(true);
+            deleteFamily(family.id)
+              .then(() => removeFamilyLocally(family))
+              .catch(e => {
+                alert("An error occurred while deleting this family");
+                console.error(e);
+              })
+              .finally(() => setLoading(false));
+          }}
+        />;
+      case DataViewSelection.Phases:
+        return <PhaseView family={family} updateFamily={updateFamily} />;
       default:
         currentMenuName.current = DataViewSelection.Default;
         return <DefaultView />;
@@ -132,6 +172,7 @@ const FamilyPage = () => {
       return;
     }
 
+    setSelectedFamilyId(family.id);
     setDataView(getDataViewComponent(menuName, family));
   };
 
@@ -139,7 +180,11 @@ const FamilyPage = () => {
     const abortController = new AbortController();
     const fetchFamilyData = async () => {
       try {
-        const allFamilies = await getAllFamilies();
+        let queryParameters = "?expand=true";
+        if (user) {
+          queryParameters += `&userId=${user.id}`
+        }
+        const allFamilies = await getAllFamilies(queryParameters);
         setFamilies(allFamilies.map((element) => apiToFrontendFamily(element)));
       } catch (err) {
         if (!abortController.signal.aborted) {
@@ -147,7 +192,7 @@ const FamilyPage = () => {
         }
         setFamilies([]);
       } finally {
-        setLoadingFamilies(false);
+        setLoading(false);
       }
     };
 
@@ -158,7 +203,7 @@ const FamilyPage = () => {
 
   const createFamily = (family: Family): void => {
     if (families) {
-      setFamilies([...families, family]);
+      setFamilies([family, ...families]);
     } else {
       setFamilies([family]);
     }
@@ -167,8 +212,37 @@ const FamilyPage = () => {
   };
 
   const removeFamilyLocally = (family: Family): void => {
+    if (selectedFamilyId === family.id) {
+      setDataView(<DefaultView />);
+    }
     setFamilies(families?.filter((element) => element.id != family.id));
   };
+
+  const saveFamilies = async (): Promise<void> => {
+    if (!families) {
+      return;
+    }
+
+    setLoading(true);
+
+    const familyList: Family[] = []
+    for (const family of families) {
+      if (family.isModified && family.isInDatabase) {
+        await saveFamilyChanges(family)
+          .then((family) => familyList.push(family))
+          .catch((e) => {
+            alert("An error ocurred while saving families")
+            console.error(e)
+          });
+      }
+      else {
+        familyList.push(family);
+      }
+    }
+
+    setLoading(false);
+    setFamilies(familyList);
+  }
 
   return (
     <div className="layout-family-editor">
@@ -195,22 +269,41 @@ const FamilyPage = () => {
             variant="outlined"
           >
             <Typography variant="h4">Families</Typography>
-            <Tooltip title="Create Family">
-              <IconButton
-                aria-label="Create Family"
-                id="create-family-button"
-                data-testid="create-family-button"
-                onClick={() => setFamilyCreationModalOpen(true)}
-              >
-                <AddIcon
+            <Box
+              sx={{
+                justifyContent: "right"
+              }}
+            >
+              <Tooltip title="Save changes to all families">
+                <IconButton
+                  aria-label="Save changes to all families"
+                  id="save-family-button"
                   color="primary"
-                  sx={{ fontSize: 32, fontWeight: "bold" }}
-                />
-              </IconButton>
-            </Tooltip>
+                  data-testid="save-family-button"
+                  onClick={saveFamilies}
+                >
+                  <SaveIcon
+                    sx={{ fontSize: 32, fontWeight: "bold" }}
+                  />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Create Family">
+                <IconButton
+                  aria-label="Create Family"
+                  id="create-family-button"
+                  data-testid="create-family-button"
+                  onClick={() => setFamilyCreationModalOpen(true)}
+                >
+                  <AddIcon
+                    color="primary"
+                    sx={{ fontSize: 32, fontWeight: "bold" }}
+                  />
+                </IconButton>
+              </Tooltip>
+            </Box>
           </Paper>
-          {loadingFamilies ? (
-            <CircularProgress />
+          {families?.length === 0 ? (
+            <Typography color="">No families to edit</Typography>
           ) : (
             <SimpleTreeView onItemSelectionToggle={handleTreeItemToggle}>
               {families &&
@@ -244,25 +337,32 @@ const FamilyPage = () => {
                             {family.name}
                           </Typography>
                         </Tooltip>
-                        <Tooltip
-                          title={"Remove this family from the editor"}
-                          placement="bottom-start"
-                          arrow
-                          disableInteractive
-                        >
-                          <IconButton
-                            onClick={() => {
-                              removeFamilyLocally(family);
-                            }}
-                            aria-label={`Remove ${family.name || "No Name"} family from the editor`}
-                            edge="start"
+                        {
+                          !family.isInDatabase &&
+                          <Tooltip
+                            title="This family is not currently published"
+                            arrow
                           >
-                            <RemoveCircleOutlineIcon />
-                          </IconButton>
-                        </Tooltip>
+                            <CloudOffIcon />
+                          </Tooltip>
+                        }
+                        <RemoveFamilyButton
+                          changesMade={family.isModified ?? false}
+                          onClick={() => {
+                            if (!family.isModified && family.isInDatabase) {
+                              removeFamilyLocally(family);
+                            }
+                          }}
+                        />
                       </div>
                     }
                   >
+                    <TreeItem
+                      itemId={`${family.id};${DataViewSelection.GeneralInfo}`}
+                      label={`General Info`}
+                      aria-label="Edit General Family Information"
+                      data-testid={`${family.id}-info-tree-button`}
+                    />
                     <TreeItem
                       itemId={`${family.id};${DataViewSelection.Species}`}
                       label={`Species (${family.species.filter((element) => !element.isDeleted).length})`}
@@ -274,6 +374,12 @@ const FamilyPage = () => {
                       label={`Reactions (${family.reactions.filter((element) => !element.isDeleted).length})`}
                       aria-label="Open Reactions Editor"
                       data-testid={`${family.id}-reactions-tree-button`}
+                    />
+                    <TreeItem
+                      itemId={`${family.id};${DataViewSelection.Phases}`}
+                      label={`Phases (${family.phases.filter((element) => !element.isDeleted).length})`}
+                      aria-label="Open Phase Editor"
+                      data-testid={`${family.id}-phases-tree-button`}
                     />
                     <TreeItem
                       itemId={`${family.id};${DataViewSelection.Mechanisms}`}
@@ -295,7 +401,52 @@ const FamilyPage = () => {
         onClose={() => setFamilyCreationModalOpen(false)}
         onCreation={createFamily}
       />
+      {
+        loading &&
+        <CircularProgress
+          sx={{
+            position: "absolute",
+            top: "50vh",
+            left: "50%",
+          }}
+          size="5em"
+        />
+      }
     </div>
+  );
+};
+
+type RemoveFamilyButtonProps = {
+  changesMade: boolean,
+  onClick: () => any,
+  "aria-label"?: string
+}
+
+/**
+ * Used for removing a family from the editor. Also displays when family has been edited
+ */
+const RemoveFamilyButton = ({ changesMade, onClick, "aria-label": ariaLabel }: RemoveFamilyButtonProps) => {
+  const [hovering, setHovering] = useState<boolean>(false);
+
+  return (
+    <Tooltip
+      title={"Remove this family from the editor"}
+      placement="bottom-start"
+      arrow
+      disableInteractive
+    >
+      <IconButton
+        onClick={onClick}
+        onMouseEnter={() => setHovering(true)}
+        onMouseLeave={() => setHovering(false)}
+        aria-label={ariaLabel}
+      >
+        {changesMade && !hovering ?
+          <CircleIcon />
+          : <CloseIcon />
+        }
+      </IconButton>
+    </Tooltip>
   );
 };
 
@@ -357,7 +508,174 @@ const DefaultView = memo(function DefaultView() {
   );
 });
 
-export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
+type ExtraGeneralInfoViewProps = {
+  onDelete: () => any;
+  onPublish: () => any;
+}
+
+export const GeneralInfoView = memo(({ family, updateFamily, onDelete, onPublish }: ViewProps & ExtraGeneralInfoViewProps) => {
+
+  const [name, setName] = useState<string>(family.name);
+  const [showAlert, setShowAlert] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>();
+  const [description, setDescription] = useState<string>(family.description);
+
+  const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false);
+  const [openPublishModal, setOpenPublishModal] = useState<boolean>(false);
+
+  const handleSave = () => {
+    if (name.length === 0) {
+      setErrorMessage("Name must not be empty");
+      setShowAlert(true);
+      return;
+    }
+    setShowAlert(false);
+    updateFamily({
+      ...family,
+      name: name,
+      description: description,
+    });
+  }
+
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+      }}
+    >
+      <Box
+        sx={{
+          paddingTop: "0.5em",
+          display: "flex",
+          alignItems: "center",
+          columnGap: "0.5rem",
+        }}
+      >
+        <Typography color="textPrimary" variant="h4">
+          General Info
+        </Typography>
+        <Tooltip title="Chemical reactions consist of reactants which create products during a certain phase. They can also be tuned with specific parameters given by the reaction type.">
+          <HelpOutlineIcon />
+        </Tooltip>
+      </Box>
+      <Typography color="textSecondary" variant="h6">
+        {family.name}
+      </Typography>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          columnGap: "1em",
+        }}
+      >
+      </Box>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          rowGap: "1.5em",
+          paddingY: "2em",
+          maxWidth: "50em",
+        }}
+      >
+        <TextField
+          label="Name"
+          required
+          data-testid="family-name-input-general-info"
+          defaultValue={family.name}
+          error={name.length === 0}
+          onChange={(event) => {
+            setName(event.target.value)
+          }}
+          onBlur={handleSave}
+        />
+        <TextField
+          label="Description"
+          required
+          data-testid="family-description-input-general-info"
+          defaultValue={family.description}
+          multiline
+          minRows={3}
+          maxRows={5}
+          onChange={(event) => {
+            setDescription(event.target.value)
+          }}
+          onBlur={handleSave}
+        />
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "start",
+            columnGap: "3em",
+            width: "100%",
+          }}
+        >
+          {
+            !family.isInDatabase &&
+            <Button
+              startIcon={<CloudUploadIcon />}
+              color="secondary"
+              variant="contained"
+              onClick={() => setOpenPublishModal(true)}
+            >
+              Upload Family
+            </Button>
+          }
+          <Button
+            startIcon={<DeleteForeverIcon />}
+            color="error"
+            variant="contained"
+            onClick={() => setOpenDeleteModal(true)}
+          >
+            Delete Family
+          </Button>
+        </Box>
+      </Box>
+      <Snackbar
+        open={showAlert}
+        autoHideDuration={5000}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setShowAlert(false)}
+          severity="warning"
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {errorMessage}
+        </Alert>
+      </Snackbar>
+      <ConfirmActionModal
+        open={openDeleteModal}
+        onClose={() => setOpenDeleteModal(false)}
+        onAction={() => {
+          onDelete()
+          setOpenDeleteModal(false);
+        }}
+        message="This will permanently delete the entire family! This includes any Species, Reactions, Phases, and Mechanisms associated with this family."
+        subtitle="Are you sure you want to continue?"
+        confirmColor="error"
+      />
+      <ConfirmActionModal
+        open={openPublishModal}
+        onClose={() => setOpenPublishModal(false)}
+        onAction={() => {
+          onPublish()
+          setOpenPublishModal(false);
+        }}
+        message="This will make the family configuration publicly available."
+        subtitle="Are you sure you want to continue?"
+        confirmColor="secondary"
+      />
+    </Box >
+  );
+});
+
+export const SpeciesView = memo(({ family, updateFamily }: ViewProps) => {
   const { theme } = useCustomTheme();
   const [speciesEditorOpen, setSpeciesEditorOpen] = useState<boolean>(false);
   const [selectedSpecies, setSelectedSpecies] = useState<Species>();
@@ -374,7 +692,6 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
       isInDatabase: false,
       familyId: family.id,
     };
-    window.onbeforeunload = () => true;
     setSelectedSpecies(species);
     setSpeciesEditorOpen(true);
   };
@@ -413,9 +730,9 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
     );
 
     if (existingIndex >= 0) {
-      speciesList[existingIndex] = species;
+      speciesList[existingIndex] = { ...species, isModified: true };
     } else {
-      speciesList.unshift(species);
+      speciesList.unshift({ ...species, isModified: true });
     }
 
     updateFamily({
@@ -556,7 +873,7 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
       />
     </Box>
   );
-};
+});
 
 export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
   const { theme } = useCustomTheme();
@@ -580,7 +897,6 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
     };
     setSelectedReaction(reaction);
     setReactionsEditorOpen(true);
-    window.onbeforeunload = () => true;
   };
 
   const removeReaction = (id: UUID | string) => {
@@ -614,9 +930,9 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
     );
 
     if (existingIndex >= 0) {
-      reactionList[existingIndex] = reaction;
+      reactionList[existingIndex] = { ...reaction, isModified: true };
     } else {
-      reactionList.unshift(reaction);
+      reactionList.unshift({ ...reaction, isModified: true });
     }
 
     updateFamily({
@@ -800,6 +1116,34 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
   );
 };
 
+export const PhaseView = ({ family, updateFamily }: ViewProps) => {
+  return (
+    <Box>
+      <Box
+        sx={{
+          paddingTop: "0.5em",
+          display: "flex",
+          alignItems: "center",
+          columnGap: "0.5rem",
+        }}
+      >
+        <Typography color="textPrimary" variant="h4">
+          Phases
+        </Typography>
+        <Tooltip title="Species can be in multiple different phases in a model.">
+          <HelpOutlineIcon />
+        </Tooltip>
+      </Box>
+      <Typography color="textSecondary" variant="h6">
+        {family.name}
+      </Typography>
+      <Typography>
+        Phases are currently a work in progress. Everything is assumed to be in a gas phase.
+      </Typography>
+    </Box>
+  )
+}
+
 export const MechanismsView = ({ family, updateFamily }: ViewProps) => {
   const [mechanismCreationModalOpen, setMechanismCreationModalOpen] =
     useState<boolean>(false);
@@ -823,7 +1167,6 @@ export const MechanismsView = ({ family, updateFamily }: ViewProps) => {
     });
     setMechanismCreationModalOpen(false);
     setSelectedMechanism(mechanism);
-    window.onbeforeunload = () => true;
   };
 
   const updateMechanism = (mechanism: Mechanism) => {
@@ -833,14 +1176,13 @@ export const MechanismsView = ({ family, updateFamily }: ViewProps) => {
         if (element.id == mechanism.id) {
           return {
             ...mechanism,
-            isModified: false,
+            isModified: true,
           };
         }
         return element;
       }),
     });
     setSelectedMechanism(mechanism);
-    // TODO Update Mechanism in backend
   };
 
   const getMenuComponent = (mechanism: Mechanism | null): React.JSX.Element => {

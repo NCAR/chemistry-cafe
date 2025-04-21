@@ -1,7 +1,7 @@
 import { UUID } from "crypto";
 
 export interface APIUser {
-  id?: UUID;
+  id: UUID;
   username: string;
   role: string;
   email?: string | null;
@@ -10,105 +10,88 @@ export interface APIUser {
 }
 
 export interface APIFamily {
-  id?: UUID;
+  id: UUID;
   createdDate?: string;
   name: string;
   description: string | null;
   owner: APIUser;
   species: Array<APISpecies>;
   reactions: Array<APIReaction>;
+  phases: Array<APIPhase>;
   mechanisms: Array<APIMechanism>;
 }
 
 export interface APISpecies {
-  id?: UUID;
+  id: UUID;
   createdDate?: string;
   updatedDate?: string;
   name: string;
   description?: string | null;
   numericalAttributes: Array<{
-    speciesId: UUID;
-    serializationKey: string;
-    value: number;
-  }>;
-  phaseId: UUID;
-  familyId: UUID;
-}
-
-export interface APIMechanism {
-  id?: UUID;
-  createdDate: string;
-  updatedDate: string;
-  name: string;
-  description: string | null;
-  mechanismSpecies: Array<APIMechanismSpecies>;
-  mechanismReactions: Array<APIMechanismReaction>;
-  familyId: UUID;
-}
-
-export interface APIMechanismSpecies {
-  mechanismId: UUID;
-  speciesId: UUID;
-  species: APISpecies;
-}
-
-export interface APIMechanismReaction {
-  mechanismId: UUID;
-  reactionId: UUID;
-  reaction: APIReaction;
-}
-
-export interface APIReaction {
-  id?: UUID;
-  createdDate: string;
-  updatedDate: string;
-  name: string;
-  description: string | null;
-  numericalAttributes: Array<{
-    reactionId: UUID;
     serializationKey: string;
     value: number;
   }>;
   stringAttributes: Array<{
-    reactionId: UUID;
     serializationKey: string;
     value: string;
   }>;
-  reactants: Array<{
-
-  }>
+  familyId: UUID;
 }
 
 export interface APIReaction {
-  id?: UUID;
-  createdDate: string;
-  updatedDate: string;
+  id: UUID;
+  createdDate?: string;
+  updatedDate?: string;
   name: string;
-  description: string | null;
+  reactionType: string;
+  description?: string;
   numericalAttributes: Array<{
-    reactionId: UUID;
     serializationKey: string;
     value: number;
   }>;
   stringAttributes: Array<{
-    reactionId: UUID;
     serializationKey: string;
     value: string;
   }>;
-  reactants: Array<{
-
-  }>
+  reactants: Array<APIReactant>;
+  products: Array<APIProduct>;
+  gasPhaseId?: UUID | null;
+  gasPhaseSpeciesId?: UUID | null;
+  aerosolPhaseId?: UUID | null;
+  aerosolPhaseSpeciesId?: UUID | null;
+  aerosolPhaseWaterId?: UUID | null;
+  familyId: UUID;
 }
 
 export interface APIReactant {
-  reactionId: UUID;
   speciesId: UUID;
   coefficient: number;
 }
 
 export interface APIProduct {
-  reactionId: UUID;
   speciesId: UUID;
   coefficient: number;
   branch?: string;
+}
+
+export interface APIPhase {
+  id: UUID;
+  createdDate?: string;
+  updatedDate?: string;
+  name: string;
+  description?: string;
+  familyId: UUID;
+  species: Array<APISpecies>;
+}
+
+export interface APIMechanism {
+  id: UUID;
+  createdDate?: string;
+  updatedDate?: string;
+  name: string;
+  description?: string;
+  species: Array<APISpecies>;
+  phases: Array<APIPhase>;
+  reactions: Array<APIReaction>;
+  familyId: UUID;
 }

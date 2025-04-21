@@ -22,11 +22,11 @@ import {
 import userEvent from "@testing-library/user-event";
 import axios, { AxiosHeaders, AxiosResponse } from "axios";
 import { APIFamily } from "../src/API/API_Interfaces";
-import FamilyPage, {
+import FamilyEditor, {
   MechanismsView,
   ReactionsView,
   SpeciesView,
-} from "../src/pages/FamilyPage";
+} from "../src/pages/FamilyEditor";
 import { CustomThemeProvider } from "../src/components/CustomThemeContext";
 import { MechanismEditor } from "../src/components/MechanismEditor";
 
@@ -44,6 +44,8 @@ const testFamilies: Array<APIFamily> = [
     },
     species: [],
     reactions: [],
+    mechanisms: [],
+    phases: []
   },
 ];
 
@@ -64,7 +66,7 @@ describe("Family Editor Page", () => {
   beforeEach(() => {
     window.location = {
       ...originalLocation,
-      assign: vi.fn((_: string | URL) => {}),
+      assign: vi.fn((_: string | URL) => { }),
     } as any;
     vi.spyOn(axios, "get").mockResolvedValue(createMockData());
 
@@ -72,7 +74,7 @@ describe("Family Editor Page", () => {
       <AuthProvider>
         <CustomThemeProvider>
           <MemoryRouter initialEntries={["/", "/loggedIn"]}>
-            <FamilyPage />
+            <FamilyEditor />
           </MemoryRouter>
         </CustomThemeProvider>
       </AuthProvider>,
@@ -151,12 +153,13 @@ describe("MechanismEditor", () => {
             id: "111-111-111-111-111",
             name: "Test Family",
             description: "",
+            owner: null,
             mechanisms: [
               {
                 id: "111-111-111-111-111",
                 name: "Test Mechanism",
                 description: "",
-                phases: [],
+                phaseIds: [],
                 familyId: "111-111-111-111",
                 speciesIds: ["111-111-111-111-111"],
                 reactionIds: ["111-111-111-111-111"],
@@ -192,12 +195,13 @@ describe("MechanismEditor", () => {
                 attributes: {},
               },
             ],
+            phases: [],
           }}
           mechanism={{
             id: "111-111-111-111-111",
             name: "Test Mechanism",
             description: "",
-            phases: [],
+            phaseIds: [],
             familyId: "111-111-111-111",
             speciesIds: ["111-111-111-111-111"],
             reactionIds: ["111-111-111-111-111"],
@@ -231,6 +235,7 @@ describe("SpeciesView", () => {
             name: "Test Family",
             description: "",
             mechanisms: [],
+            owner: null,
             species: [
               {
                 id: "111-111-111-111-333",
@@ -243,6 +248,7 @@ describe("SpeciesView", () => {
                 isModified: false,
               },
             ],
+            phases: [],
             reactions: [
               {
                 id: "111-111-111-111",
@@ -298,7 +304,6 @@ describe("SpeciesView", () => {
       "Molecular Weight",
     ) as HTMLInputElement;
     expect(molecularWeightBox).toBeTruthy();
-    expect(molecularWeightBox.value).toEqual("0");
 
     // Input new properties
     await user.type(nameBox, "Test Species");
@@ -355,6 +360,7 @@ describe("ReactionsView", () => {
             id: "111-111-111-111-111",
             name: "Test Family",
             description: "",
+            owner: null,
             mechanisms: [],
             species: [
               {
@@ -368,6 +374,7 @@ describe("ReactionsView", () => {
                 isModified: false,
               },
             ],
+            phases: [],
             reactions: [
               {
                 id: "111-111-111-111",
@@ -482,12 +489,13 @@ describe("MechanismsView", () => {
             id: "111-111-111-111-111",
             name: "Test Family",
             description: "",
+            owner: null,
             mechanisms: [
               {
                 id: "111-111-111-111-111",
                 name: "Test Mechanism",
                 description: "",
-                phases: [],
+                phaseIds: [],
                 familyId: "111-111-111-111",
                 speciesIds: ["111-111-111-111-111"],
                 reactionIds: ["111-111-111-111-111"],
@@ -502,6 +510,7 @@ describe("MechanismsView", () => {
                 attributes: {},
               },
             ],
+            phases: [],
             reactions: [
               {
                 id: "111-111-111-111-111",

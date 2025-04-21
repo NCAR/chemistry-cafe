@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
-import { Reaction, Species } from "../src/types/chemistryModels";
-import { APIReaction, APISpecies } from "../src/API/API_Interfaces";
+import { Family, Reaction, Species } from "../src/types/chemistryModels";
+import { APIFamily, APIReaction, APISpecies } from "../src/API/API_Interfaces";
 import {
   apiToFrontendReaction,
   apiToFrontendSpecies,
@@ -10,10 +10,10 @@ import {
 import { UUID } from "crypto";
 
 const frontendSpecies: Species = {
-  id: "111-111-111-111-111",
+  id: "00000000-0000-0000-0000-000000000000",
   name: "Test Species",
   description: "Test Description",
-  familyId: "111-111-111-111-111",
+  familyId: "00000000-0000-0000-0000-000000000000",
   attributes: {},
 };
 
@@ -23,12 +23,62 @@ const apiSpecies: APISpecies = {
   description: frontendSpecies.description,
   familyId: frontendSpecies.id as UUID,
   numericalAttributes: [],
-  phaseId: "1-1-1-1-1"
+  stringAttributes: []
 };
 
-describe.skip("Species Conversion", () => {
+const frontendReaction: Reaction = {
+  id: "00000000-0000-0000-0000-000000000000",
+  name: "",
+  description: "Test Description",
+  type: "NONE",
+  reactants: [],
+  products: [],
+  attributes: {},
+};
+
+const apiReaction: APIReaction = {
+  id: frontendReaction.id as UUID,
+  name: frontendReaction.name,
+  description: frontendReaction.description!,
+  createdDate: "",
+  updatedDate: "",
+  numericalAttributes: [],
+  stringAttributes: [],
+  reactants: [],
+  reactionType: frontendReaction.type,
+  products: [],
+  familyId: "00000000-0000-0000-0000-000000000000",
+};
+
+const frontendFamily: Family = {
+  owner: null,
+  id: "00000000-0000-0000-0000-000000000000",
+  name: "Test Family",
+  description: "Test Description",
+  mechanisms: [],
+  species: [frontendSpecies],
+  reactions: [frontendReaction],
+  phases: []
+}
+
+const apiFamily: APIFamily = {
+  id: frontendFamily.id as UUID,
+  name: frontendFamily.name,
+  description: frontendFamily.description,
+  owner: {
+    id: "00000000-0000-0000-0000-000000000000",
+    username: "",
+    role: ""
+  },
+  species: [apiSpecies],
+  reactions: [apiReaction],
+  phases: [],
+  mechanisms: []
+}
+
+describe("Species Conversion", () => {
   test("Conversion from frontend to backend definition", () => {
-    const result = frontendToAPISpecies(frontendSpecies);
+    const result = frontendToAPISpecies(frontendSpecies, frontendFamily);
     expect(result.id).toEqual(apiSpecies.id);
     expect(result.name).toEqual(apiSpecies.name);
     expect(result.description).toEqual(apiSpecies.description);
@@ -42,44 +92,11 @@ describe.skip("Species Conversion", () => {
     expect(result.description).toEqual(frontendSpecies.description);
     expect(result.familyId).toEqual(frontendSpecies.familyId);
   });
-
-  test("Throws when api definition does not have an id", () => {
-    expect(() =>
-      apiToFrontendSpecies({
-        name: "",
-        description: null,
-        familyId: "111-111-111-111-111",
-        numericalAttributes: [],
-        phaseId: "1-1-1-1-1"
-      }),
-    ).toThrow();
-  });
 });
 
-const frontendReaction: Reaction = {
-  id: "111-111-111-111-111",
-  name: "",
-  description: null,
-  type: "NONE",
-  reactants: [],
-  products: [],
-  attributes: {},
-};
-
-const apiReaction: APIReaction = {
-  id: frontendReaction.id as UUID,
-  name: frontendReaction.name,
-  description: frontendReaction.description,
-  createdDate: "",
-  updatedDate: "",
-  numericalAttributes: [],
-  stringAttributes: [],
-  reactants: []
-};
-
-describe.skip("Reaction Conversion", () => {
+describe("Reaction Conversion", () => {
   test("Conversion from frontend to backend definition", () => {
-    const result = frontendToAPIReaction(frontendReaction);
+    const result = frontendToAPIReaction(frontendReaction, frontendFamily);
     expect(result.id).toEqual(apiReaction.id);
     expect(result.name).toEqual(apiReaction.name);
     expect(result.description).toEqual(apiReaction.description);
@@ -90,19 +107,5 @@ describe.skip("Reaction Conversion", () => {
     expect(result.id).toEqual(frontendReaction.id);
     expect(result.name).toEqual(frontendReaction.name);
     expect(result.description).toEqual(frontendReaction.description);
-  });
-
-  test("Throws when api definition does not have an id", () => {
-    expect(() =>
-      apiToFrontendReaction({
-        name: "",
-        description: null,
-        createdDate: "",
-        updatedDate: "",
-        numericalAttributes: [],
-        stringAttributes: [],
-        reactants: []
-      }),
-    ).toThrow();
   });
 });
