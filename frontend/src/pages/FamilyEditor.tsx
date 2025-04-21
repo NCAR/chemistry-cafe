@@ -8,7 +8,6 @@ import {
   Button,
   CircularProgress,
   IconButton,
-  Modal,
   Paper,
   Snackbar,
   styled,
@@ -1116,7 +1115,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
   );
 };
 
-export const PhaseView = ({ family, updateFamily }: ViewProps) => {
+export const PhaseView = ({ family }: ViewProps) => {
   return (
     <Box>
       <Box
