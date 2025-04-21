@@ -175,6 +175,10 @@ public class ReactionService
             }
             reactionInfo.GasPhase = gasPhase;
         }
+        else
+        {
+            reactionInfo.GasPhase = null;
+        }
 
         if (reaction.GasPhaseSpeciesId != null)
         {
@@ -184,6 +188,10 @@ public class ReactionService
                 return (QueryResult.ChildRelationNotFound, null);
             }
             reactionInfo.GasPhaseSpecies = species;
+        }
+        else
+        {
+            reaction.GasPhaseSpecies = null;
         }
 
         if (reaction.AerosolPhaseId != null)
@@ -195,6 +203,10 @@ public class ReactionService
             }
             reactionInfo.AerosolPhase = aerosolPhase;
         }
+        else
+        {
+            reactionInfo.AerosolPhase = null;
+        }
 
         if (reaction.AerosolPhaseSpeciesId != null)
         {
@@ -205,6 +217,10 @@ public class ReactionService
             }
             reactionInfo.AerosolPhaseSpecies = species;
         }
+        else
+        {
+            reactionInfo.AerosolPhaseSpecies = null;
+        }
 
         if (reaction.AerosolPhaseWaterId != null)
         {
@@ -214,6 +230,10 @@ public class ReactionService
                 return (QueryResult.ChildRelationNotFound, null);
             }
             reactionInfo.AerosolPhaseWater = species;
+        }
+        else
+        {
+            reactionInfo.AerosolPhaseWater = null;
         }
 
         var createdReaction = _context.Reactions.Add(reactionInfo);
