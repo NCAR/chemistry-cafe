@@ -173,8 +173,8 @@ export function frontendToAPIReaction(reaction: Reaction, family: Family): APIRe
     description: reaction.description ?? "",
     numericalAttributes: [],
     stringAttributes: [],
-    reactants: reaction.reactants as Array<APIReactant>,
-    products: reaction.products as Array<APIProduct>,
+    reactants: reaction.reactants.filter(e => uuidRegex.test(e.speciesId)) as Array<APIReactant>,
+    products: reaction.products.filter(e => uuidRegex.test(e.speciesId)) as Array<APIProduct>,
     gasPhaseId: reaction.gasPhaseId,
     gasPhaseSpeciesId: reaction.gasPhaseSpeciesId,
     aerosolPhaseId: reaction.aerosolPhaseId,
@@ -228,6 +228,7 @@ export function apiToFrontendPhase(phase: APIPhase): Phase {
  * This will not reflect its returned id when creating the phase
  * 
  * Nested objects will be converted to shells with only the id being valid.
+ * This will not add any nested object ids that have invalid UUIDs
  *
  * Phase -> APIPhase
  * @param phase Phase information to convert
@@ -239,19 +240,20 @@ export function frontendToAPIPhase(phase: Phase, family: Family): APIPhase {
     id: phaseId,
     name: phase.name,
     familyId: family.id as UUID,
-    species: phase.speciesIds.map(id => {
-      // Creates temporary object which is used for setting up relations.
-      // This relies on the fact that the backend does not update nested objects.
-      const speciesId: UUID = uuidRegex.test(id) ? id as UUID : "00000000-0000-0000-0000-000000000000";
-      const species: APISpecies = {
-        id: speciesId,
-        name: "",
-        numericalAttributes: [],
-        stringAttributes: [],
-        familyId: family.id as UUID
-      }
-      return species;
-    }),
+    species: phase.speciesIds
+      .filter(id => uuidRegex.test(id))
+      .map(id => {
+        // Creates temporary object which is used for setting up relations.
+        // This relies on the fact that the backend does not update nested objects.
+        const species: APISpecies = {
+          id: id as UUID,
+          name: "",
+          numericalAttributes: [],
+          stringAttributes: [],
+          familyId: family.id as UUID
+        }
+        return species;
+      }),
   }
   return formattedPhase;
 }
@@ -259,9 +261,6 @@ export function frontendToAPIPhase(phase: Phase, family: Family): APIPhase {
 /**
  * Converts a mechanism as defined by the backend to a mechanism as defined by the frontend.
  * This is intended to be called right after a backend request.
- *
- * If the species is not currently in the database, its id will default to '00000000-0000-0000-0000-000000000000'
- * This will not reflect its returned id when creating the species
  * 
  * APIMechanism -> Mechanism
  * @param apiMechanism
@@ -291,6 +290,7 @@ export function apiToFrontendMechanism(apiMechanism: APIMechanism): Mechanism {
  * This will not reflect its returned id when creating the mechanism
  * 
  * Nested objects will be converted to shells with only the id being valid.
+ * This will not add any nested object ids that aren't valid UUIDs
  * 
  * Mechanism -> APIMechanism
  * @param apiMechanism
@@ -300,41 +300,44 @@ export function frontendToAPIMechanism(mechanism: Mechanism, family: Family): AP
   const formattedMechanism: APIMechanism = {
     id: mechanismId,
     name: mechanism.name,
-    species: mechanism.speciesIds.map(id => {
-      const speciesId: UUID = uuidRegex.test(id) ? id as UUID : "00000000-0000-0000-0000-000000000000";
-      const species: APISpecies = {
-        id: speciesId,
-        name: "",
-        numericalAttributes: [],
-        stringAttributes: [],
-        familyId: family.id as UUID,
-      };
-      return species;
-    }),
-    phases: mechanism.speciesIds.map(id => {
-      const phaseId: UUID = uuidRegex.test(id) ? id as UUID : "00000000-0000-0000-0000-000000000000";
-      const phase: APIPhase = {
-        id: phaseId,
-        name: "",
-        familyId: family.id as UUID,
-        species: []
-      };
-      return phase;
-    }),
-    reactions: mechanism.reactionIds.map(id => {
-      const reactionId: UUID = uuidRegex.test(id) ? id as UUID : "00000000-0000-0000-0000-000000000000";
-      const reaction: APIReaction = {
-        id: reactionId,
-        name: "",
-        reactionType: "",
-        numericalAttributes: [],
-        stringAttributes: [],
-        reactants: [],
-        products: [],
-        familyId: family.id as UUID,
-      }
-      return reaction;
-    }),
+    species: mechanism.speciesIds
+      .filter(id => uuidRegex.test(id))
+      .map(id => {
+        const species: APISpecies = {
+          id: id as UUID,
+          name: "",
+          numericalAttributes: [],
+          stringAttributes: [],
+          familyId: family.id as UUID,
+        };
+        return species;
+      }),
+    phases: mechanism.phaseIds
+      .filter(id => uuidRegex.test(id))
+      .map(id => {
+        const phase: APIPhase = {
+          id: id as UUID,
+          name: "",
+          familyId: family.id as UUID,
+          species: []
+        };
+        return phase;
+      }),
+    reactions: mechanism.reactionIds
+      .filter(id => uuidRegex.test(id))
+      .map(id => {
+        const reaction: APIReaction = {
+          id: id as UUID,
+          name: "",
+          reactionType: "",
+          numericalAttributes: [],
+          stringAttributes: [],
+          reactants: [],
+          products: [],
+          familyId: family.id as UUID,
+        }
+        return reaction;
+      }),
     familyId: family.id as UUID,
   };
 
@@ -344,6 +347,8 @@ export function frontendToAPIMechanism(mechanism: Mechanism, family: Family): AP
 /**
  * Converts a family as defined by the backend to a family as defined by the frontend.
  * This is intended to be called right after a backend request.
+ * 
+ * This will not add any nested object ids that aren't valid UUIDs
  *
  * APIFamily -> Family
  * @param apiFamily
@@ -358,10 +363,18 @@ export function apiToFrontendFamily(apiFamily: APIFamily): Family {
     name: apiFamily.name,
     description: apiFamily.description ?? "",
     owner: apiFamily.owner,
-    mechanisms: apiFamily.mechanisms.map(e => apiToFrontendMechanism(e)),
-    species: apiFamily.species.map(e => apiToFrontendSpecies(e)),
-    reactions: apiFamily.reactions.map(e => apiToFrontendReaction(e)),
-    phases: apiFamily.phases.map(e => apiToFrontendPhase(e)),
+    mechanisms: apiFamily.mechanisms
+      .filter(e => uuidRegex.test(e.id))
+      .map(e => apiToFrontendMechanism(e)),
+    species: apiFamily.species
+      .filter(e => uuidRegex.test(e.id))
+      .map(e => apiToFrontendSpecies(e)),
+    reactions: apiFamily.reactions
+      .filter(e => uuidRegex.test(e.id))
+      .map(e => apiToFrontendReaction(e)),
+    phases: apiFamily.phases
+      .filter(e => uuidRegex.test(e.id))
+      .map(e => apiToFrontendPhase(e)),
     isInDatabase: true,
     isModified: false,
     isDeleted: false,
@@ -440,8 +453,6 @@ export async function saveFamilyChanges(family: Family): Promise<Family> {
   const speciesIdMappings: Map<string, UUID> = new Map();
   const phaseIdMappings: Map<string, UUID> = new Map();
   const reactionIdMappings: Map<string, UUID> = new Map();
-
-  console.log(speciesIdMappings);
 
   for (const species of family.species) {
     const apiSpecies = frontendToAPISpecies(species, family);
@@ -555,7 +566,6 @@ export async function saveFamilyChanges(family: Family): Promise<Family> {
         .map(id => phaseIdMappings.get(id) as UUID),
     }
 
-    console.log(mechanismWithMappings);
 
     const apiMechanism = frontendToAPIMechanism(mechanismWithMappings, family);
     if (mechanism.isInDatabase) {
