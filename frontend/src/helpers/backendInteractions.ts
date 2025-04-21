@@ -12,6 +12,7 @@ import { Family, Mechanism, Phase, Reaction, reactionAttributeOptions, ReactionT
 import { updateFamily, updateMechanism, updatePhase, updateReaction, updateSpecies } from "../API/API_UpdateMethods";
 import { getFamily } from "../API/API_GetMethods";
 import { createFamily, createMechanism, createPhase, createReaction, createSpecies } from "../API/API_CreateMethods";
+import { deleteMechanism, deletePhase, deleteReaction, deleteSpecies } from "../API/API_DeleteMethods";
 
 /**
  * Used to determine if a uuid is valid
@@ -440,20 +441,27 @@ export async function saveFamilyChanges(family: Family): Promise<Family> {
   const phaseIdMappings: Map<string, UUID> = new Map();
   const reactionIdMappings: Map<string, UUID> = new Map();
 
+  console.log(speciesIdMappings);
+
   for (const species of family.species) {
     const apiSpecies = frontendToAPISpecies(species, family);
     if (species.isInDatabase) {
       if (species.isDeleted) {
-        // TODO Add Deleting
+        await deleteSpecies(apiSpecies.id);
       }
       else if (species.isModified) {
         await updateSpecies(apiSpecies);
         speciesIdMappings.set(species.id, apiSpecies.id as UUID);
       }
+      else {
+        speciesIdMappings.set(species.id, apiSpecies.id as UUID);
+      }
     }
     else {
-      const resultSpecies: APISpecies = await createSpecies(apiSpecies);
-      speciesIdMappings.set(species.id, resultSpecies.id);
+      if (!species.isDeleted) {
+        const resultSpecies: APISpecies = await createSpecies(apiSpecies);
+        speciesIdMappings.set(species.id, resultSpecies.id);
+      }
     }
   }
 
@@ -468,16 +476,22 @@ export async function saveFamilyChanges(family: Family): Promise<Family> {
     const apiPhase = frontendToAPIPhase(phaseWithMappings, family);
     if (phase.isInDatabase) {
       if (phase.isDeleted) {
-        // TODO Add Deleting
+        deletePhase(phase.id)
+          .catch(e => console.error(e));
       }
       else if (phase.isModified) {
         await updatePhase(apiPhase);
         phaseIdMappings.set(phase.id, apiPhase.id);
       }
+      else {
+        phaseIdMappings.set(phase.id, apiPhase.id);
+      }
     }
     else {
-      const resultPhase = await createPhase(apiPhase);
-      phaseIdMappings.set(phase.id, resultPhase.id);
+      if (!phase.isDeleted) {
+        const resultPhase = await createPhase(apiPhase);
+        phaseIdMappings.set(phase.id, resultPhase.id);
+      }
     }
   }
 
@@ -510,10 +524,14 @@ export async function saveFamilyChanges(family: Family): Promise<Family> {
     const apiReaction = frontendToAPIReaction(reactionWithMappings, family);
     if (reaction.isInDatabase) {
       if (reaction.isDeleted) {
-        // TODO Add Deleting
+        deleteReaction(reaction.id)
+          .catch(e => console.error(e));
       }
       else if (reaction.isModified) {
         await updateReaction(apiReaction);
+        reactionIdMappings.set(reaction.id, apiReaction.id);
+      }
+      else {
         reactionIdMappings.set(reaction.id, apiReaction.id);
       }
     }
@@ -532,15 +550,18 @@ export async function saveFamilyChanges(family: Family): Promise<Family> {
       reactionIds: mechanism.reactionIds
         .filter(id => reactionIdMappings.get(id) != undefined)
         .map(id => reactionIdMappings.get(id) as UUID),
-      phaseIds: mechanism.reactionIds
+      phaseIds: mechanism.phaseIds
         .filter(id => phaseIdMappings.get(id) != undefined)
         .map(id => phaseIdMappings.get(id) as UUID),
     }
 
+    console.log(mechanismWithMappings);
+
     const apiMechanism = frontendToAPIMechanism(mechanismWithMappings, family);
     if (mechanism.isInDatabase) {
       if (mechanism.isDeleted) {
-        // TODO Add Deleting
+        deleteMechanism(mechanism.id)
+          .catch(e => console.error(e));
       }
       else if (mechanism.isModified) {
         await updateMechanism(apiMechanism);

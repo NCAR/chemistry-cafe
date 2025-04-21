@@ -14,7 +14,7 @@ public class MechanismService
     }
 
     /// <summary>
-    /// Retrieves a list of all mechanisms given specified constraints.
+    /// Gets a list of all mechanisms given specified constraints.
     /// If a constraint is null, it is ignored.
     /// </summary>
     /// <param name="familyId">ID of the family the mechanisms belong to</param>
@@ -121,17 +121,27 @@ public class MechanismService
             return (QueryResult.NoAccess, null);
         }
 
-        List<Species> mechanismSpecies = new List<Species>();
+        Mechanism mechanismInfo = new Mechanism
+        {
+            CreatedDate = DateTime.UtcNow,
+            UpdatedDate = DateTime.UtcNow,
+            Name = mechanism.Name,
+            Description = mechanism.Description,
+            Family = family,
+        };
+
         foreach (var species in mechanism.Species)
         {
             var databaseSpecies = await _context.Species.FindAsync(species.Id);
+            Console.Write("AHHHH");
+            Console.Write(species.Id);
             if (databaseSpecies == null || databaseSpecies.FamilyId != family.Id)
             {
                 return (QueryResult.ChildRelationNotFound, null);
             }
 
             // Ensure no implicit updating of the species rows
-            mechanismSpecies.Add(databaseSpecies);
+            mechanismInfo.Species.Add(databaseSpecies);
         }
 
         List<Reaction> mechanismReactions = new List<Reaction>();
@@ -144,7 +154,7 @@ public class MechanismService
             }
 
             // Ensure no implicit updating of the reaction rows
-            mechanismReactions.Add(databaseReaction);
+            mechanismInfo.Reactions.Add(databaseReaction);
         }
 
         List<Phase> mechanismPhases = new List<Phase>();
@@ -157,20 +167,8 @@ public class MechanismService
             }
 
             // Ensure no implicit updating of the phase rows
-            mechanismPhases.Add(databasePhase);
+            mechanismInfo.Phases.Add(databasePhase);
         }
-
-        Mechanism mechanismInfo = new Mechanism
-        {
-            CreatedDate = DateTime.UtcNow,
-            UpdatedDate = DateTime.UtcNow,
-            Name = mechanism.Name,
-            Description = mechanism.Description,
-            Species = mechanismSpecies,
-            Reactions = mechanismReactions,
-            Phases = mechanismPhases,
-            Family = family,
-        };
 
         var createdMechanism = _context.Mechanisms.Add(mechanismInfo);
         family.Mechanisms.Add(createdMechanism.Entity);
@@ -216,11 +214,16 @@ public class MechanismService
             return (QueryResult.NotFound, null);
         }
 
+        if (currentMechanism.Family!.Owner.Id.ToString() != nameIdentifier)
+        {
+            return (QueryResult.NoAccess, null);
+        }
+
         currentMechanism.Species.Clear();
         foreach (var species in mechanism.Species)
         {
             var databaseSpecies = await _context.Species.FindAsync(species.Id);
-            if (databaseSpecies == null || databaseSpecies.FamilyId != currentMechanism.Family!.Owner.Id)
+            if (databaseSpecies == null || databaseSpecies.FamilyId != currentMechanism.Family!.Id)
             {
                 return (QueryResult.ChildRelationNotFound, null);
             }
@@ -233,7 +236,7 @@ public class MechanismService
         foreach (var reaction in mechanism.Reactions)
         {
             var databaseReaction = await _context.Reactions.FindAsync(reaction.Id);
-            if (databaseReaction == null || databaseReaction.FamilyId != currentMechanism.Family!.Owner.Id)
+            if (databaseReaction == null || databaseReaction.FamilyId != currentMechanism.Family!.Id)
             {
                 return (QueryResult.ChildRelationNotFound, null);
             }
@@ -246,7 +249,7 @@ public class MechanismService
         foreach (var phase in mechanism.Phases)
         {
             var databasePhase = await _context.Phases.FindAsync(phase.Id);
-            if (databasePhase == null || databasePhase.FamilyId != currentMechanism.Family!.Owner.Id)
+            if (databasePhase == null || databasePhase.FamilyId != currentMechanism.Family!.Id)
             {
                 return (QueryResult.ChildRelationNotFound, null);
             }

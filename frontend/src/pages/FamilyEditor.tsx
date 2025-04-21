@@ -8,6 +8,7 @@ import {
   Button,
   CircularProgress,
   IconButton,
+  Modal,
   Paper,
   Snackbar,
   styled,
@@ -57,6 +58,7 @@ import { MechanismEditor } from "../components/MechanismEditor";
 import { MechanismBrowser } from "../components/MechanismBrowser";
 import SaveIcon from '@mui/icons-material/Save';
 import { useAuth } from "../components/AuthContext";
+import { deleteFamily } from "../API/API_DeleteMethods";
 
 const FamilyPage = () => {
   enum DataViewSelection {
@@ -68,7 +70,7 @@ const FamilyPage = () => {
     Default = "default",
   }
 
-  const [loadingFamilies, setLoadingFamilies] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [families, setFamilies] = useState<Array<Family>>();
   const [dataView, setDataView] = useState<React.JSX.Element>(<DefaultView />);
   const [familyCreationModalOpen, setFamilyCreationModalOpen] = useState<boolean>(false);
@@ -127,7 +129,16 @@ const FamilyPage = () => {
               console.error(e);
               alert("An issue occurred while uploading the family")
             })}
-          onDelete={alert}
+          onDelete={() => {
+            setLoading(true);
+            deleteFamily(family.id)
+              .then(() => removeFamilyLocally(family))
+              .catch(e => {
+                alert("An error occurred while deleting this family");
+                console.error(e);
+              })
+              .finally(() => setLoading(false));
+          }}
         />;
       case DataViewSelection.Phases:
         return <PhaseView family={family} updateFamily={updateFamily} />;
@@ -181,7 +192,7 @@ const FamilyPage = () => {
         }
         setFamilies([]);
       } finally {
-        setLoadingFamilies(false);
+        setLoading(false);
       }
     };
 
@@ -212,13 +223,25 @@ const FamilyPage = () => {
       return;
     }
 
+    setLoading(true);
+
+    const familyList: Family[] = []
     for (const family of families) {
       if (family.isModified && family.isInDatabase) {
-        saveFamilyChanges(family)
-          .then((family) => updateFamily(family))
-          .catch((e) => console.error(e));
+        await saveFamilyChanges(family)
+          .then((family) => familyList.push(family))
+          .catch((e) => {
+            alert("An error ocurred while saving families")
+            console.error(e)
+          });
+      }
+      else {
+        familyList.push(family);
       }
     }
+
+    setLoading(false);
+    setFamilies(familyList);
   }
 
   return (
@@ -279,8 +302,8 @@ const FamilyPage = () => {
               </Tooltip>
             </Box>
           </Paper>
-          {loadingFamilies ? (
-            <CircularProgress />
+          {families?.length === 0 ? (
+            <Typography color="">No families to edit</Typography>
           ) : (
             <SimpleTreeView onItemSelectionToggle={handleTreeItemToggle}>
               {families &&
@@ -378,6 +401,17 @@ const FamilyPage = () => {
         onClose={() => setFamilyCreationModalOpen(false)}
         onCreation={createFamily}
       />
+      {
+        loading &&
+        <CircularProgress
+          sx={{
+            position: "absolute",
+            top: "50vh",
+            left: "50%",
+          }}
+          size="5em"
+        />
+      }
     </div>
   );
 };
