@@ -147,7 +147,7 @@ namespace ChemistryCafeAPI.Tests
         {
             await _familyService.DeleteFamilyAsync(_family.Id, _nameIdentifier);
             _family = null;
-            var deleteResult = await _speciesController.DeleteSpecies(_species.Id);
+            await _speciesController.DeleteSpecies(_species.Id);
             var actionResult = await _speciesController.GetSpecies(_species.Id);
             Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundObjectResult));
             _species = null;
@@ -155,6 +155,10 @@ namespace ChemistryCafeAPI.Tests
 
         private async Task AsyncCleanup()
         {
+            if (_species != null)
+            {
+                await _speciesService.DeleteSpeciesAsync(_species.Id, _nameIdentifier);
+            }
             if (_family != null)
             {
                 await _familyService.DeleteFamilyAsync(_family.Id, _nameIdentifier);
@@ -162,10 +166,6 @@ namespace ChemistryCafeAPI.Tests
             if (_user != null)
             {
                 await _userService.DeleteUserAsync(_user.Id, _nameIdentifier);
-            }
-            if (_species != null)
-            {
-                await _speciesService.DeleteSpeciesAsync(_species.Id, _nameIdentifier);
             }
         }
 
