@@ -145,8 +145,8 @@ namespace ChemistryCafeAPI.Tests
         [TestMethod]
         public async Task DeleteSpecies()
         {
-            await _familyService.DeleteFamilyAsync(_family.Id, _nameIdentifier);
-            _family = null;
+            await _familyService.UpdateFamilyAsync(_family.Id, _family, _nameIdentifier);
+            _family.Species.Clear();
             await _speciesController.DeleteSpecies(_species.Id);
             var actionResult = await _speciesController.GetSpecies(_species.Id);
             Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundObjectResult));
