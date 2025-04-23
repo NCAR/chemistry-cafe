@@ -61,7 +61,9 @@ export async function getCurrentUser(): Promise<APIUser | null> {
   }
 }
 
-export async function getAllFamilies(urlParameters?: string): Promise<Array<APIFamily>> {
+export async function getAllFamilies(
+  urlParameters?: string,
+): Promise<Array<APIFamily>> {
   const response = await axios.get<Array<APIFamily>>(
     encodeURI(`${BASE_URL}/families${urlParameters ?? ""}`),
     {

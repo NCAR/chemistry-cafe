@@ -1,11 +1,4 @@
-import {
-  describe,
-  expect,
-  it,
-  beforeEach,
-  afterEach,
-  vi,
-} from "vitest";
+import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import { AuthProvider } from "../src/components/AuthContext";
 import { MemoryRouter } from "react-router-dom";
 import React from "react";
@@ -41,7 +34,7 @@ const testFamily: APIFamily = {
   species: [],
   reactions: [],
   mechanisms: [],
-  phases: []
+  phases: [],
 };
 
 describe("Family Editor Page", () => {
@@ -61,7 +54,7 @@ describe("Family Editor Page", () => {
   beforeEach(() => {
     window.location = {
       ...originalLocation,
-      assign: vi.fn((_: string | URL) => { }),
+      assign: vi.fn((_: string | URL) => {}),
     } as any;
     localStorage.setItem("uploadedFamilyIds", JSON.stringify([testFamily.id]));
     vi.spyOn(axios, "get").mockResolvedValue(createMockData());

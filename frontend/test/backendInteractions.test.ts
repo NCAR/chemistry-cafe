@@ -23,7 +23,7 @@ const apiSpecies: APISpecies = {
   description: frontendSpecies.description,
   familyId: frontendSpecies.id as UUID,
   numericalAttributes: [],
-  stringAttributes: []
+  stringAttributes: [],
 };
 
 const frontendReaction: Reaction = {
@@ -58,8 +58,8 @@ const frontendFamily: Family = {
   mechanisms: [],
   species: [frontendSpecies],
   reactions: [frontendReaction],
-  phases: []
-}
+  phases: [],
+};
 
 const apiFamily: APIFamily = {
   id: frontendFamily.id as UUID,
@@ -68,13 +68,13 @@ const apiFamily: APIFamily = {
   owner: {
     id: "00000000-0000-0000-0000-000000000000",
     username: "",
-    role: ""
+    role: "",
   },
   species: [apiSpecies],
   reactions: [apiReaction],
   phases: [],
-  mechanisms: []
-}
+  mechanisms: [],
+};
 
 describe("Species Conversion", () => {
   test("Conversion from frontend to backend definition", () => {

@@ -1,4 +1,10 @@
-import { useEffect, useLayoutEffect, useRef, useState, MouseEvent } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  MouseEvent,
+} from "react";
 import { Header, Footer } from "../components/HeaderFooter";
 import "../styles/FamilyEditor.css";
 import {
@@ -21,12 +27,12 @@ import {
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import CloseIcon from '@mui/icons-material/Close';
-import CircleIcon from '@mui/icons-material/Circle';
-import CloudOffIcon from '@mui/icons-material/CloudOff';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import CloseIcon from "@mui/icons-material/Close";
+import CircleIcon from "@mui/icons-material/Circle";
+import CloudOffIcon from "@mui/icons-material/CloudOff";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
+import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
 import { TreeItem, treeItemClasses } from "@mui/x-tree-view/TreeItem";
 import {
@@ -56,11 +62,15 @@ import {
 import { reactionToString, reactionTypeToString } from "../helpers/stringify";
 import { UUID } from "crypto";
 import { getAllFamilies, getFamily } from "../API/API_GetMethods";
-import { apiToFrontendFamily, saveFamilyChanges, uploadFamily } from "../helpers/backendInteractions";
+import {
+  apiToFrontendFamily,
+  saveFamilyChanges,
+  uploadFamily,
+} from "../helpers/backendInteractions";
 import { RowActionsButton } from "../components/RowActionsButton";
 import { MechanismEditor } from "../components/MechanismEditor";
 import { MechanismBrowser } from "../components/MechanismBrowser";
-import SaveIcon from '@mui/icons-material/Save';
+import SaveIcon from "@mui/icons-material/Save";
 import { useAuth } from "../components/AuthContext";
 import { deleteFamily } from "../API/API_DeleteMethods";
 import { APIFamily } from "../API/API_Interfaces";
@@ -79,7 +89,8 @@ const FamilyPage = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [families, setFamilies] = useState<Array<Family>>();
   const [dataView, setDataView] = useState<React.JSX.Element>(<DefaultView />);
-  const [familyCreationModalOpen, setFamilyCreationModalOpen] = useState<boolean>(false);
+  const [familyCreationModalOpen, setFamilyCreationModalOpen] =
+    useState<boolean>(false);
   const [selectedFamilyId, setSelectedFamilyId] = useState<string>("");
   const [importChoices, setImportChoices] = useState<Array<APIFamily>>(); // Used when user attempts to import families
   const [openImportMenu, setOpenImportMenu] = useState<boolean>(false); // Used when user attempts to import families
@@ -95,15 +106,20 @@ const FamilyPage = () => {
     if (!families) {
       return;
     }
-    const localFamilies = families.filter(e => !e.isInDatabase);
-    const uploadedFamilyIds = families.filter(e => e.isInDatabase).map(e => e.id);
+    const localFamilies = families.filter((e) => !e.isInDatabase);
+    const uploadedFamilyIds = families
+      .filter((e) => e.isInDatabase)
+      .map((e) => e.id);
     try {
       localStorage.setItem("localFamilies", JSON.stringify(localFamilies));
-      localStorage.setItem("uploadedFamilyIds", JSON.stringify(uploadedFamilyIds));
+      localStorage.setItem(
+        "uploadedFamilyIds",
+        JSON.stringify(uploadedFamilyIds),
+      );
     } catch (e) {
       console.error("There was an issue storing families locally:", e);
     }
-  }
+  };
 
   const updateFamily = (family: Family): void => {
     setFamilies((families) => {
@@ -122,7 +138,12 @@ const FamilyPage = () => {
     });
 
     setSelectedFamilyId(family.id);
-    setDataView(getDataViewComponent(currentMenuName.current, { ...family, isModified: true }));
+    setDataView(
+      getDataViewComponent(currentMenuName.current, {
+        ...family,
+        isModified: true,
+      }),
+    );
     window.onbeforeunload = () => true; // Sets "are you sure you want to leave" popup
   };
 
@@ -141,7 +162,7 @@ const FamilyPage = () => {
     family?: Family,
   ): React.JSX.Element => {
     if (!family) {
-      return <DefaultView />
+      return <DefaultView />;
     }
 
     currentMenuName.current = menuName;
@@ -153,54 +174,55 @@ const FamilyPage = () => {
       case DataViewSelection.Mechanisms:
         return <MechanismsView family={family} updateFamily={updateFamily} />;
       case DataViewSelection.GeneralInfo:
-        return <GeneralInfoView
-          family={family}
-          updateFamily={updateFamily}
-          onPublish={async () => {
-            setLoading(true);
-            await uploadFamily(family)
-              .then((databaseFamily) => {
-                setFamilies((families) => {
-                  if (!families) {
-                    return families;
-                  }
-                  return families.map((element) => {
-                    if (family.id === element.id) {
-                      return {
-                        ...databaseFamily,
-                      };
+        return (
+          <GeneralInfoView
+            family={family}
+            updateFamily={updateFamily}
+            onPublish={async () => {
+              setLoading(true);
+              await uploadFamily(family)
+                .then((databaseFamily) => {
+                  setFamilies((families) => {
+                    if (!families) {
+                      return families;
                     }
-                    return element;
+                    return families.map((element) => {
+                      if (family.id === element.id) {
+                        return {
+                          ...databaseFamily,
+                        };
+                      }
+                      return element;
+                    });
                   });
-                });
-
-              })
-              .catch((e) => {
-                console.error(e);
-                alert("An issue occurred while uploading the family")
-              })
-              .finally(() => setLoading(false));
-          }
-          }
-          onDelete={() => {
-            setLoading(true);
-            if (family.isInDatabase) {
-              deleteFamily(family.id)
-                .then(() => removeFamilyLocally(family))
-                .catch(e => {
-                  console.error(e);
-                  alert("An error occurred while deleting this family");
                 })
-                .finally(() => {
-                  setDataView(getDataViewComponent(DataViewSelection.Default));
-                  setLoading(false)
-                });
-            }
-            else {
-              removeFamilyLocally(family);
-            }
-          }}
-        />;
+                .catch((e) => {
+                  console.error(e);
+                  alert("An issue occurred while uploading the family");
+                })
+                .finally(() => setLoading(false));
+            }}
+            onDelete={() => {
+              setLoading(true);
+              if (family.isInDatabase) {
+                deleteFamily(family.id)
+                  .then(() => removeFamilyLocally(family))
+                  .catch((e) => {
+                    console.error(e);
+                    alert("An error occurred while deleting this family");
+                  })
+                  .finally(() => {
+                    setDataView(
+                      getDataViewComponent(DataViewSelection.Default),
+                    );
+                    setLoading(false);
+                  });
+              } else {
+                removeFamilyLocally(family);
+              }
+            }}
+          />
+        );
       case DataViewSelection.Phases:
         return <PhaseView family={family} updateFamily={updateFamily} />;
       default:
@@ -243,22 +265,31 @@ const FamilyPage = () => {
       try {
         let queryParameters = "?expand=true";
         if (user) {
-          queryParameters += `&userId=${user.id}`
+          queryParameters += `&userId=${user.id}`;
         }
         let allFamilies: Family[] = [];
 
-        const localFamilies: unknown = JSON.parse(localStorage.getItem("localFamilies") || "[]");
+        const localFamilies: unknown = JSON.parse(
+          localStorage.getItem("localFamilies") || "[]",
+        );
         if (Array.isArray(localFamilies)) {
           // TODO Check if these actually follow family schema
           allFamilies = allFamilies.concat(localFamilies);
         }
 
-        const uploadedFamilyIds: unknown = JSON.parse(localStorage.getItem("uploadedFamilyIds") || "[]");
+        const uploadedFamilyIds: unknown = JSON.parse(
+          localStorage.getItem("uploadedFamilyIds") || "[]",
+        );
         if (Array.isArray(uploadedFamilyIds)) {
           for (const familyId of uploadedFamilyIds) {
             if (typeof familyId == "string") {
-              const family: APIFamily | null = await getFamily(familyId as UUID).catch((err) => {
-                console.error(`Issue finding local family with id '${familyId}':`, err);
+              const family: APIFamily | null = await getFamily(
+                familyId as UUID,
+              ).catch((err) => {
+                console.error(
+                  `Issue finding local family with id '${familyId}':`,
+                  err,
+                );
                 return null;
               });
               if (family) {
@@ -308,24 +339,23 @@ const FamilyPage = () => {
 
     setLoading(true);
 
-    const familyList: Family[] = []
+    const familyList: Family[] = [];
     for (const family of families) {
       if (family.isModified && family.isInDatabase) {
         await saveFamilyChanges(family)
           .then((family) => familyList.push(family))
           .catch((e) => {
-            alert("An error ocurred while saving families")
-            console.error(e)
+            alert("An error ocurred while saving families");
+            console.error(e);
           });
-      }
-      else {
+      } else {
         familyList.push(family);
       }
     }
 
     setLoading(false);
     setFamilies(familyList);
-  }
+  };
 
   return (
     <div className="layout-family-editor">
@@ -354,7 +384,7 @@ const FamilyPage = () => {
             <Typography variant="h4">Families</Typography>
             <Box
               sx={{
-                justifyContent: "right"
+                justifyContent: "right",
               }}
             >
               <Tooltip title="Save changes to all families">
@@ -365,16 +395,23 @@ const FamilyPage = () => {
                   data-testid="save-family-button"
                   onClick={saveFamilies}
                 >
-                  <SaveIcon
-                    sx={{ fontSize: 32, fontWeight: "bold" }}
-                  />
+                  <SaveIcon sx={{ fontSize: 32, fontWeight: "bold" }} />
                 </IconButton>
               </Tooltip>
               <AddFamilyButton
                 handleCreateButtonClick={() => setFamilyCreationModalOpen(true)}
                 handleImportButtonClick={async () => {
-                  const allFamilies = await getAllFamilies(`?userId=${user?.id}`);
-                  setImportChoices(allFamilies.filter(apiFamily => !families?.find(localFamily => localFamily.id == apiFamily.id)));
+                  const allFamilies = await getAllFamilies(
+                    `?userId=${user?.id}`,
+                  );
+                  setImportChoices(
+                    allFamilies.filter(
+                      (apiFamily) =>
+                        !families?.find(
+                          (localFamily) => localFamily.id == apiFamily.id,
+                        ),
+                    ),
+                  );
                   setOpenImportMenu(true);
                 }}
               />
@@ -415,15 +452,14 @@ const FamilyPage = () => {
                             {family.name}
                           </Typography>
                         </Tooltip>
-                        {
-                          !family.isInDatabase &&
+                        {!family.isInDatabase && (
                           <Tooltip
                             title="This family is not currently published"
                             arrow
                           >
                             <CloudOffIcon />
                           </Tooltip>
-                        }
+                        )}
                         <RemoveFamilyButton
                           changesMade={family.isModified ?? false}
                           onClick={() => {
@@ -477,10 +513,7 @@ const FamilyPage = () => {
         onClose={() => setFamilyCreationModalOpen(false)}
         onCreation={createFamily}
       />
-      <Modal
-        open={openImportMenu}
-        onClose={() => setOpenImportMenu(false)}
-      >
+      <Modal open={openImportMenu} onClose={() => setOpenImportMenu(false)}>
         <Box
           sx={{
             position: "absolute",
@@ -499,31 +532,35 @@ const FamilyPage = () => {
             rowGap: "0.7em",
           }}
         >
-          {
-            importChoices?.length === 0 ?
-              <Typography color="textPrimary">No editable families found.</Typography > :
-              <FamilyBrowser
-                families={importChoices}
-                handleEditButtonClick={(familyId) => {
-                  getFamily(familyId)
-                    .then((family: APIFamily) => {
-                      setFamilies([
-                        apiToFrontendFamily(family),
-                        ...families ?? [],
-                      ])
-                    })
-                    .catch((err) => {
-                      console.error(`An error occurred while importing with id ${familyId}`, err);
-                      alert("An error occurred while importing a family");
-                    });
-                  setOpenImportMenu(false);
-                }}
-              />
-          }
+          {importChoices?.length === 0 ? (
+            <Typography color="textPrimary">
+              No editable families found.
+            </Typography>
+          ) : (
+            <FamilyBrowser
+              families={importChoices}
+              handleEditButtonClick={(familyId) => {
+                getFamily(familyId)
+                  .then((family: APIFamily) => {
+                    setFamilies([
+                      apiToFrontendFamily(family),
+                      ...(families ?? []),
+                    ]);
+                  })
+                  .catch((err) => {
+                    console.error(
+                      `An error occurred while importing with id ${familyId}`,
+                      err,
+                    );
+                    alert("An error occurred while importing a family");
+                  });
+                setOpenImportMenu(false);
+              }}
+            />
+          )}
         </Box>
       </Modal>
-      {
-        loading &&
+      {loading && (
         <CircularProgress
           sx={{
             position: "absolute",
@@ -532,7 +569,7 @@ const FamilyPage = () => {
           }}
           size="5em"
         />
-      }
+      )}
     </div>
   );
 };
@@ -540,9 +577,12 @@ const FamilyPage = () => {
 type AddFamilyButtonProps = {
   handleCreateButtonClick: () => void;
   handleImportButtonClick: () => void;
-}
+};
 
-const AddFamilyButton: React.FC<AddFamilyButtonProps> = ({ handleCreateButtonClick, handleImportButtonClick }) => {
+const AddFamilyButton: React.FC<AddFamilyButtonProps> = ({
+  handleCreateButtonClick,
+  handleImportButtonClick,
+}) => {
   const [open, setOpen] = useState<boolean>(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -565,10 +605,7 @@ const AddFamilyButton: React.FC<AddFamilyButtonProps> = ({ handleCreateButtonCli
           data-testid="add-family-button"
           onClick={handleMenuOpen}
         >
-          <AddIcon
-            color="primary"
-            sx={{ fontSize: 32, fontWeight: "bold" }}
-          />
+          <AddIcon color="primary" sx={{ fontSize: 32, fontWeight: "bold" }} />
         </IconButton>
       </Tooltip>
       <Menu open={open} anchorEl={anchorEl} onClose={handleMenuClose}>
@@ -594,18 +631,22 @@ const AddFamilyButton: React.FC<AddFamilyButtonProps> = ({ handleCreateButtonCli
       </Menu>
     </>
   );
-}
+};
 
 type RemoveFamilyButtonProps = {
-  changesMade: boolean,
-  onClick: () => any,
-  "aria-label"?: string
-}
+  changesMade: boolean;
+  onClick: () => any;
+  "aria-label"?: string;
+};
 
 /**
  * Used for removing a family from the editor. Also displays when family has been edited
  */
-const RemoveFamilyButton: React.FC<RemoveFamilyButtonProps> = ({ changesMade, onClick, "aria-label": ariaLabel }) => {
+const RemoveFamilyButton: React.FC<RemoveFamilyButtonProps> = ({
+  changesMade,
+  onClick,
+  "aria-label": ariaLabel,
+}) => {
   const [hovering, setHovering] = useState<boolean>(false);
 
   return (
@@ -621,10 +662,7 @@ const RemoveFamilyButton: React.FC<RemoveFamilyButtonProps> = ({ changesMade, on
         onMouseLeave={() => setHovering(false)}
         aria-label={ariaLabel}
       >
-        {changesMade && !hovering ?
-          <CircleIcon />
-          : <CloseIcon />
-        }
+        {changesMade && !hovering ? <CircleIcon /> : <CloseIcon />}
       </IconButton>
     </Tooltip>
   );
@@ -691,10 +729,14 @@ const DefaultView = function DefaultView() {
 type ExtraGeneralInfoViewProps = {
   onDelete: () => any;
   onPublish: () => any;
-}
+};
 
-export const GeneralInfoView = ({ family, updateFamily, onDelete, onPublish }: ViewProps & ExtraGeneralInfoViewProps) => {
-
+export const GeneralInfoView = ({
+  family,
+  updateFamily,
+  onDelete,
+  onPublish,
+}: ViewProps & ExtraGeneralInfoViewProps) => {
   const [name, setName] = useState<string>(family.name);
   const [showAlert, setShowAlert] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>();
@@ -715,7 +757,7 @@ export const GeneralInfoView = ({ family, updateFamily, onDelete, onPublish }: V
       name: name,
       description: description,
     });
-  }
+  };
 
   return (
     <Box
@@ -749,8 +791,7 @@ export const GeneralInfoView = ({ family, updateFamily, onDelete, onPublish }: V
           flexDirection: "row",
           columnGap: "1em",
         }}
-      >
-      </Box>
+      ></Box>
       <Box
         sx={{
           display: "flex",
@@ -767,7 +808,7 @@ export const GeneralInfoView = ({ family, updateFamily, onDelete, onPublish }: V
           defaultValue={family.name}
           error={name.length === 0}
           onChange={(event) => {
-            setName(event.target.value)
+            setName(event.target.value);
           }}
           onBlur={handleSave}
         />
@@ -780,7 +821,7 @@ export const GeneralInfoView = ({ family, updateFamily, onDelete, onPublish }: V
           minRows={3}
           maxRows={5}
           onChange={(event) => {
-            setDescription(event.target.value)
+            setDescription(event.target.value);
           }}
           onBlur={handleSave}
         />
@@ -794,8 +835,7 @@ export const GeneralInfoView = ({ family, updateFamily, onDelete, onPublish }: V
             width: "100%",
           }}
         >
-          {
-            !family.isInDatabase &&
+          {!family.isInDatabase && (
             <Button
               startIcon={<CloudUploadIcon />}
               color="secondary"
@@ -804,7 +844,7 @@ export const GeneralInfoView = ({ family, updateFamily, onDelete, onPublish }: V
             >
               Upload Family
             </Button>
-          }
+          )}
           <Button
             startIcon={<DeleteForeverIcon />}
             color="error"
@@ -833,7 +873,7 @@ export const GeneralInfoView = ({ family, updateFamily, onDelete, onPublish }: V
         open={openDeleteModal}
         onClose={() => setOpenDeleteModal(false)}
         onAction={() => {
-          onDelete()
+          onDelete();
           setOpenDeleteModal(false);
         }}
         message="This will permanently delete the entire family! This includes any Species, Reactions, Phases, and Mechanisms associated with this family."
@@ -844,14 +884,14 @@ export const GeneralInfoView = ({ family, updateFamily, onDelete, onPublish }: V
         open={openPublishModal}
         onClose={() => setOpenPublishModal(false)}
         onAction={() => {
-          onPublish()
+          onPublish();
           setOpenPublishModal(false);
         }}
         message="This will make the family configuration publicly available."
         subtitle="Are you sure you want to continue?"
         confirmColor="secondary"
       />
-    </Box >
+    </Box>
   );
 };
 
@@ -1318,11 +1358,12 @@ export const PhaseView = ({ family }: ViewProps) => {
         {family.name}
       </Typography>
       <Typography>
-        Phases are currently a work in progress. Everything is assumed to be in a gas phase.
+        Phases are currently a work in progress. Everything is assumed to be in
+        a gas phase.
       </Typography>
     </Box>
-  )
-}
+  );
+};
 
 export const MechanismsView = ({ family, updateFamily }: ViewProps) => {
   const [mechanismCreationModalOpen, setMechanismCreationModalOpen] =

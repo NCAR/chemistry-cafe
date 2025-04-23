@@ -34,7 +34,7 @@ const mockAPIFamily: APIFamily = {
   species: [],
   reactions: [],
   phases: [],
-  mechanisms: []
+  mechanisms: [],
 };
 
 const mockAPISpecies: APISpecies = {
@@ -45,7 +45,7 @@ const mockAPISpecies: APISpecies = {
   familyId: mockAPIFamily.id,
   id: "1-1-1-1-1",
   numericalAttributes: [],
-  stringAttributes: []
+  stringAttributes: [],
 };
 
 const mockAPIMechanism: APIMechanism = {
@@ -55,7 +55,7 @@ const mockAPIMechanism: APIMechanism = {
   id: "1-1-1-1-1",
   species: [],
   phases: [],
-  reactions: []
+  reactions: [],
 };
 
 const mockAPIReaction: APIReaction = {
@@ -67,7 +67,7 @@ const mockAPIReaction: APIReaction = {
   stringAttributes: [],
   reactants: [],
   products: [],
-  familyId: mockAPIFamily.id
+  familyId: mockAPIFamily.id,
 };
 
 describe.each([
