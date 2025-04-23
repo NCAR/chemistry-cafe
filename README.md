@@ -112,7 +112,7 @@ and run the following commands:
 
 ### Database Migrations
 
-When running the application initially, the database will be a blank slate. To create the different tables, migrations must be performed which require dotnet to be installed at the moment. We use a tool called dotnet-ef of which the documentation can be found [here](https://learn.microsoft.com/en-us/ef/core/cli/dotnet). 
+The database comes with a provided `init.sql` which creates all of the database tables. To create the migrations, we use a tool called `dotnet-ef` of which the documentation can be found [here](https://learn.microsoft.com/en-us/ef/core/cli/dotnet).
 
 To install the tool:
 
@@ -120,11 +120,24 @@ To install the tool:
 $ dotnet tool install --global dotnet-ef
 ```
 
-To apply migrations:
+The following commands are useful when developing the application. All of these must be executed in the `./backend` directory.
+
+To create a migration:
 
 ```bash
-$ cd backend
+$ dotnet ef migrations add <migration-name>
+```
+
+To apply migrations without generating a script:
+
+```bash
 $ dotnet ef database update
+```
+
+To generate a new init.sql script:
+
+```bash
+$ dotnet ef migrations script --idempotent -o init.sql
 ```
 
 ## Testing
