@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
-import axios, { AxiosHeaders, AxiosResponse } from "axios";
+import axios, { AxiosResponse } from "axios";
 import { updateUser, updateFamily } from "../src/API/API_UpdateMethods";
 import { APIFamily, APIUser } from "../src/API/API_Interfaces";
 
@@ -58,17 +58,6 @@ describe("updateUser function", () => {
     // Assert the function throws the correct error
     await expect(updateUser(user)).rejects.toThrow(errorMessage);
   });
-
-  it("Throws when id is not specified", async () => {
-    const user: APIUser = {
-      username: "Test User without id",
-      email: "testuser@example.com",
-      role: "admin",
-    };
-
-    // Assert the function throws the correct error
-    await expect(updateUser(user)).rejects.toThrow();
-  });
 });
 
 describe("updateFamily function", () => {
@@ -95,7 +84,12 @@ describe("updateFamily function", () => {
       owner: {
         username: "Test User",
         role: "unverified",
+        id: "1-1-1-1-1"
       },
+      species: [],
+      reactions: [],
+      phases: [],
+      mechanisms: []
     };
 
     const result = await updateFamily(family);
@@ -109,18 +103,5 @@ describe("updateFamily function", () => {
         headers: { "Content-Type": "application/json" },
       },
     );
-  });
-
-  it("Throws when family id is not specified", async () => {
-    const family: APIFamily = {
-      name: "",
-      description: "",
-      owner: {
-        username: "",
-        role: "",
-      },
-    };
-
-    await expect(updateFamily(family)).rejects.toThrow();
   });
 });

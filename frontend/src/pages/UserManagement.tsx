@@ -31,7 +31,7 @@ import { deleteUser } from "../API/API_DeleteMethods";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogActions from "@mui/material/DialogActions";
-import { Button } from "@mui/material";
+import { Button, Paper } from "@mui/material";
 
 function RolesToolbar() {
   return (
@@ -230,7 +230,11 @@ const UserManagement: React.FC = () => {
       <header>
         <Header />
       </header>
-      <section className="content-user-management">
+      <Paper
+        square
+        component="main"
+        className="content-user-management"
+      >
         <DataGrid
           rows={users}
           columns={userColumns}
@@ -258,7 +262,7 @@ const UserManagement: React.FC = () => {
           }}
           pageSizeOptions={[5, 10, 20, 50]}
         />
-      </section>
+      </Paper>
       <footer>
         <Footer />
       </footer>

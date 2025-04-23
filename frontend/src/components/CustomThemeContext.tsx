@@ -51,8 +51,8 @@ export const defaultAppearanceSettings: Readonly<AppearanceSettings> =
     fontSize: 14,
     mode: "light",
     primaryColor: "#1976d2",
-    secondaryColor: "#edc4ff",
-    infoColor: "#03F4FC",
+    secondaryColor: "#00797C",
+    infoColor: "#1A658F",
     errorColor: red[500],
     theme: "default",
   });
@@ -69,8 +69,8 @@ export const defaultColorSettings: Readonly<AppearanceSettings> = Object.freeze(
 
 export const lowSaturationColors: Readonly<AppearanceSettings> = Object.freeze({
   primaryColor: "#416f9d",
-  secondaryColor: "#dfcae8",
-  infoColor: "#62dbdf",
+  secondaryColor: "#1f5b5d",
+  infoColor: "#3d5b6c",
   errorColor: "#ae554f",
   theme: "low saturation",
 });
@@ -78,8 +78,8 @@ export const lowSaturationColors: Readonly<AppearanceSettings> = Object.freeze({
 export const highSaturationColors: Readonly<AppearanceSettings> = Object.freeze(
   {
     primaryColor: "#0083ff",
-    secondaryColor: "#ffb7ff",
-    infoColor: "#00ffff",
+    secondaryColor: "#00797C",
+    infoColor: "#1A658F",
     errorColor: "#ff1e04",
     theme: "high saturation",
   },

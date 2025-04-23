@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Security.Claims;
 using ChemistryCafeAPI.Models;
 using ChemistryCafeAPI.Services;
 
@@ -11,6 +10,11 @@ namespace ChemistryCafeAPI.Controllers
     public class UsersController : ControllerBase
     {
         private readonly UserService _userService;
+        protected virtual string? GetNameIdentifier()
+        {
+            ClaimsIdentity? claimsIdentity = this.User.Identity as ClaimsIdentity;
+            return claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        }
 
         public UsersController(UserService userService)
         {
@@ -26,11 +30,12 @@ namespace ChemistryCafeAPI.Controllers
         }
 
         [HttpGet("id/{id}")]
-        public async Task<ActionResult<User>> GetUserById(Guid id) 
+        public async Task<ActionResult<User>> GetUserById(Guid id)
         {
             var user = await _userService.GetUserByIdAsync(id);
 
-            if (user == null) {
+            if (user == null)
+            {
                 return NotFound();
             }
             return Ok(user);
@@ -54,17 +59,28 @@ namespace ChemistryCafeAPI.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(Guid id, User user)
         {
-            if(id != user.Id) {
+            if (id != user.Id)
+            {
                 return BadRequest();
             }
-            var result = await _userService.UpdateUserAsync(user);
-            switch (result) {
-            case UserService.Result.Success:
-                return NoContent();
-            case UserService.Result.NotFound:
-                return NotFound();
-            case UserService.Result.Forbidden:
-                return Forbid();
+
+            string? nameIdentifier = GetNameIdentifier();
+            if (nameIdentifier == null)
+            {
+                return Unauthorized("User is not authenticated");
+            }
+
+            var result = await _userService.UpdateUserAsync(user, nameIdentifier);
+            switch (result)
+            {
+                case QueryResult.Success:
+                    return NoContent();
+                case QueryResult.NotFound:
+                    return NotFound("Either the principal user or user being updated were not found");
+                case QueryResult.NoAccess:
+                    return StatusCode(StatusCodes.Status403Forbidden);
+                case QueryResult.ParseError:
+                    return BadRequest("Invalid UUID format for user's name identifier claim");
             }
             return NoContent();
         }
@@ -73,7 +89,24 @@ namespace ChemistryCafeAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(Guid id)
         {
-            await _userService.DeleteUserAsync(id);
+            string? nameIdentifier = GetNameIdentifier();
+            if (nameIdentifier == null)
+            {
+                return Unauthorized("User is not authenticated");
+            }
+
+            var result = await _userService.DeleteUserAsync(id, nameIdentifier);
+
+            switch (result)
+            {
+                case QueryResult.NotFound:
+                    return NotFound("Either the principal user or user being updated were not found");
+                case QueryResult.NoAccess:
+                    return StatusCode(StatusCodes.Status403Forbidden);
+                case QueryResult.ParseError:
+                    return BadRequest("Invalid UUID format for user's name identifier claim");
+            }
+
             return NoContent();
         }
     }

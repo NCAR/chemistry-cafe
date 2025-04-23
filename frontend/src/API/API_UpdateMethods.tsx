@@ -1,7 +1,7 @@
 // API_UpdateMethods.ts
 
 import axios from "axios";
-import { APIFamily, APIUser } from "./API_Interfaces";
+import { APIFamily, APIMechanism, APIPhase, APIReaction, APISpecies, APIUser } from "./API_Interfaces";
 import { BASE_URL } from "./API_config";
 
 /**
@@ -29,11 +29,41 @@ export async function updateUser(user: APIUser): Promise<void> {
  * @throws HTTP errors
  */
 export async function updateFamily(family: APIFamily): Promise<void> {
-  if (!family.id) {
-    throw new Error("Family id is undefined or empty");
-  }
-
   await axios.patch(`${BASE_URL}/families/${family.id}`, family, {
+    withCredentials: true,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+}
+
+export async function updateSpecies(species: APISpecies): Promise<void> {
+  await axios.patch(`${BASE_URL}/species/${species.id}`, species, {
+    withCredentials: true,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+}
+
+export async function updateReaction(reaction: APIReaction): Promise<void> {
+  await axios.patch(`${BASE_URL}/reactions/${reaction.id}`, reaction, {
+    withCredentials: true,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+}
+export async function updatePhase(phase: APIPhase): Promise<void> {
+  await axios.patch(`${BASE_URL}/phases/${phase.id}`, phase, {
+    withCredentials: true,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+}
+export async function updateMechanism(mechanism: APIMechanism): Promise<void> {
+  await axios.patch(`${BASE_URL}/mechanisms/${mechanism.id}`, mechanism, {
     withCredentials: true,
     headers: {
       "Content-Type": "application/json",

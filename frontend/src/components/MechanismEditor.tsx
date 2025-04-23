@@ -12,7 +12,7 @@ import {
   Typography,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import SaveIcon from "@mui/icons-material/Save";
+import EditNoteIcon from '@mui/icons-material/EditNote';
 import { SelectSpeciesButton } from "./SelectSpeciesButton";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { SelectReactionButton } from "./SelectReactionButton";
@@ -91,12 +91,12 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
         <Button
           color="success"
           aria-label="Back to mechanism list"
-          startIcon={<SaveIcon />}
+          startIcon={<EditNoteIcon />}
           onClick={handleSave}
           disabled={changesSaved}
           variant="contained"
         >
-          Save Changes
+          Apply Changes
         </Button>
       </Box>
       <Tabs value={selectedTab} onChange={(_, value) => setSelectedTab(value)}>
@@ -115,13 +115,6 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
           data-testid="mechanism-tab"
           value={TabValue.Phases}
           label={"Phases"}
-          disabled
-        />
-        <Tab
-          data-testid="mechanism-tab"
-          value={TabValue.InitialConditions}
-          label={"Initial Conditions"}
-          disabled
         />
       </Tabs>
       {selectedTab === TabValue.Info && (
@@ -269,6 +262,13 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
           </List>
         </div>
       )}
+      {
+        selectedTab === TabValue.Phases && (
+          <div>
+            <Typography color="textPrimary">Phases are currently a work in progress. Everything is assumed to be in a gas phase.</Typography>
+          </div>
+        )
+      }
     </Box>
   );
 };

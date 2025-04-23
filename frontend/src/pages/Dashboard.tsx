@@ -4,27 +4,22 @@ import { Header, Footer } from "../components/HeaderFooter";
 
 import "../styles/Dashboard.css";
 import {
-  ButtonGroup,
-  Card,
-  CardActions,
-  CardContent,
   CircularProgress,
-  List,
-  ListItem,
   Paper,
   Typography,
 } from "@mui/material";
 import { APIFamily } from "../API/API_Interfaces";
-import { memo, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { getAllFamilies } from "../API/API_GetMethods";
+import FamilyBrowser from "../components/FamilyBrowser";
+import { UUID } from "crypto";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const handleClickFamily = () => navigate("/familypage");
+  const handleClickFamily = () => navigate("/familyeditor");
   const handleClickSettings = () => navigate("/settings");
   const [families, setFamilies] = useState<Array<APIFamily>>();
   const [loadingFamilies, setLoadingFamilies] = useState<boolean>(true);
-
   const buttonStyle = {
     height: "5rem",
     width: "90%",
@@ -74,15 +69,32 @@ const Dashboard = () => {
           </Button>
         </div>
         <div className="dashboard-family-explorer">
-          <Typography variant="h5">Recent Mechanism Families</Typography>
+          <Typography variant="h5">Other Families of Mechanisms</Typography>
           {loadingFamilies && <CircularProgress />}
-          <List>
-            {families?.map((family: APIFamily, index: number) => {
-              return (
-                <FamilyInfoCard key={`${family.id}-${index}`} family={family} />
-              );
-            })}
-          </List>
+          <FamilyBrowser
+            families={families}
+            handleInfoButtonClick={() => alert("This is not implemented yet")}
+            handleEditButtonClick={(familyId) => {
+              let uploadedFamilyIds: Array<UUID> = [];
+              try {
+                uploadedFamilyIds = JSON.parse(localStorage.getItem("uploadedFamilyIds") || "[]");
+                if (Array.isArray(uploadedFamilyIds)) {
+                  if (!uploadedFamilyIds.find((e) => e == familyId)) {
+                    uploadedFamilyIds.unshift(familyId);
+                  }
+                }
+                else {
+                  uploadedFamilyIds = [familyId];
+                }
+                localStorage.setItem("uploadedFamilyIds", JSON.stringify(uploadedFamilyIds));
+              }
+              catch (err) {
+                console.error(err);
+                alert(`An error occurred: ${err}`);
+              }
+              handleClickFamily();
+            }}
+          />
         </div>
       </Paper>
       <footer>
@@ -91,50 +103,5 @@ const Dashboard = () => {
     </div>
   );
 };
-
-const FamilyInfoCard = memo(function FamilyInfoCard({
-  family,
-}: {
-  family: APIFamily;
-}) {
-  return (
-    <ListItem>
-      <Card sx={{ flex: 1 }} variant="outlined">
-        <CardContent>
-          <Typography
-            sx={{ fontWeight: "bold" }}
-            noWrap
-            variant="h6"
-            color="textPrimary"
-          >
-            {family.name}
-          </Typography>
-          <Typography noWrap variant="inherit" color="textSecondary">
-            {family.owner.username}
-          </Typography>
-          <Typography sx={{ marginY: 1 }}>{family.description}</Typography>
-        </CardContent>
-        <CardActions>
-          <ButtonGroup variant="outlined">
-            <Button
-              color="primary"
-              onClick={() => alert("Not Implemented")}
-              size="small"
-            >
-              Learn More
-            </Button>
-            <Button
-              color="primary"
-              onClick={() => alert("Not Implemented")}
-              size="small"
-            >
-              Edit Family
-            </Button>
-          </ButtonGroup>
-        </CardActions>
-      </Card>
-    </ListItem>
-  );
-});
 
 export default Dashboard;
