@@ -228,6 +228,7 @@ const AppearanceMenu = () => {
         : defaultColorSettings),
     });
   };
+
   const toggleHighSaturationMode = () => {
     setAppearanceSettings({
       ...appearanceSettings,
@@ -245,90 +246,6 @@ const AppearanceMenu = () => {
         : defaultColorSettings),
     });
   };
-
-  return (
-    <>
-      <List
-        sx={{
-          color: theme.palette.text.primary,
-          fontSize: theme.typography.fontSize + 4,
-        }}
-        subheader="Color Theme"
-      >
-        <ListItem disablePadding>
-          <ListItemButton
-            aria-label="toggle dark theme"
-            onClick={toggleDarkMode}
-          >
-            <ListItemText>
-              <Typography color="textPrimary" fontSize="large">
-                Dark Theme
-              </Typography>
-              <Typography color="textSecondary" fontSize="medium">
-                This theme may not work with all pages currently
-              </Typography>
-            </ListItemText>
-            <Switch checked={appearanceSettings?.mode === "dark"} />
-          </ListItemButton>
-        </ListItem>
-        <ListItem disablePadding>
-          <ListItemButton
-            aria-label="toggle low saturation theme"
-            onClick={toggleLowSaturationMode}
-          >
-            <ListItemText>
-              <Typography color="textPrimary" fontSize="large">
-                Low Saturation Theme
-              </Typography>
-              <Typography color="textSecondary" fontSize="medium">
-                This theme may not work with all pages currently
-              </Typography>
-            </ListItemText>
-            <Switch checked={appearanceSettings?.theme === "low saturation"} />
-          </ListItemButton>
-        </ListItem>
-        <ListItem disablePadding>
-          <ListItemButton
-            aria-label="toggle high saturation theme"
-            onClick={toggleHighSaturationMode}
-          >
-            <ListItemText>
-              <Typography color="textPrimary" fontSize="large">
-                High Saturation Theme
-              </Typography>
-              <Typography color="textSecondary" fontSize="medium">
-                This theme may not work with all pages currently
-              </Typography>
-            </ListItemText>
-            <Switch checked={appearanceSettings?.theme === "high saturation"} />
-          </ListItemButton>
-        </ListItem>
-        <ListItem disablePadding>
-          <ListItemButton
-            aria-label="toggle monochrome theme"
-            onClick={toggleMonochromeMode}
-          >
-            <ListItemText>
-              <Typography color="textPrimary" fontSize="large">
-                Monochrome Theme
-              </Typography>
-              <Typography color="textSecondary" fontSize="medium">
-                This theme may not work with all pages currently
-              </Typography>
-            </ListItemText>
-            <Switch checked={appearanceSettings?.theme === "monochrome"} />
-          </ListItemButton>
-        </ListItem>
-      </List>
-    </>
-  );
-};
-
-const AccessibilityMenu = () => {
-  const { theme, appearanceSettings, setAppearanceSettings } = useCustomTheme();
-  const [fontSliderValue, setFontSliderValue] = useState(
-    appearanceSettings.fontSize,
-  );
 
   /**
    * Modifies the main global value for a given color palette
@@ -357,6 +274,170 @@ const AccessibilityMenu = () => {
 
     setAppearanceSettings(modifiedAppearanceSettings);
   };
+
+  return (
+    <>
+      <List
+        sx={{
+          color: theme.palette.text.primary,
+          fontSize: theme.typography.fontSize + 4,
+        }}
+        subheader="Color Theme"
+      >
+        <ListItem disablePadding>
+          <ListItemButton
+            aria-label="toggle dark theme"
+            onClick={toggleDarkMode}
+          >
+            <ListItemText>
+              <Typography color="textPrimary" fontSize="large">
+                Dark Theme
+              </Typography>
+            </ListItemText>
+            <Switch checked={appearanceSettings?.mode === "dark"} />
+          </ListItemButton>
+        </ListItem>
+        <ListItem disablePadding>
+          <ListItemButton
+            aria-label="toggle low saturation theme"
+            onClick={toggleLowSaturationMode}
+          >
+            <ListItemText>
+              <Typography color="textPrimary" fontSize="large">
+                Low Saturation Theme
+              </Typography>
+            </ListItemText>
+            <Switch checked={appearanceSettings?.theme === "low saturation"} />
+          </ListItemButton>
+        </ListItem>
+        <ListItem disablePadding>
+          <ListItemButton
+            aria-label="toggle high saturation theme"
+            onClick={toggleHighSaturationMode}
+          >
+            <ListItemText>
+              <Typography color="textPrimary" fontSize="large">
+                High Saturation Theme
+              </Typography>
+            </ListItemText>
+            <Switch checked={appearanceSettings?.theme === "high saturation"} />
+          </ListItemButton>
+        </ListItem>
+        <ListItem disablePadding>
+          <ListItemButton
+            aria-label="toggle monochrome theme"
+            onClick={toggleMonochromeMode}
+          >
+            <ListItemText>
+              <Typography color="textPrimary" fontSize="large">
+                Monochrome Theme
+              </Typography>
+            </ListItemText>
+            <Switch checked={appearanceSettings?.theme === "monochrome"} />
+          </ListItemButton>
+        </ListItem>
+      </List>
+      <Divider />
+      <List
+        sx={{
+          fontSize: theme.typography.fontSize + 4,
+        }}
+        subheader="Custom Colors"
+      >
+        <ListItem>
+          <ColorPicker
+            initialColor={theme.palette.primary.main}
+            onColorChange={(color) => modifyColorPalette("primary", color)}
+            label="Primary Color"
+            id="primary-color-picker"
+            buttonColor="primary"
+          />
+          {theme.palette.primary.main !==
+            defaultAppearanceSettings.primaryColor && (
+              <Button
+                onClick={() =>
+                  modifyColorPalette(
+                    "primary",
+                    defaultAppearanceSettings.primaryColor!,
+                  )
+                }
+              >
+                Reset
+              </Button>
+            )}
+        </ListItem>
+        <ListItem>
+          <ColorPicker
+            initialColor={theme.palette.secondary.main}
+            onColorChange={(color) => modifyColorPalette("secondary", color)}
+            label="Secondary Color"
+            id="secondary-color-picker"
+            buttonColor="secondary"
+          />
+          {theme.palette.secondary.main !==
+            defaultAppearanceSettings.secondaryColor && (
+              <Button
+                onClick={() =>
+                  modifyColorPalette(
+                    "secondary",
+                    defaultAppearanceSettings.secondaryColor!,
+                  )
+                }
+              >
+                Reset
+              </Button>
+            )}
+        </ListItem>
+        <ListItem>
+          <ColorPicker
+            initialColor={theme.palette.info.main}
+            onColorChange={(color) => modifyColorPalette("info", color)}
+            label="Information Color"
+            id="primary-button-color-picker"
+            buttonColor="info"
+          />
+          {theme.palette.info.main !== defaultAppearanceSettings.infoColor && (
+            <Button
+              onClick={() =>
+                modifyColorPalette("info", defaultAppearanceSettings.infoColor!)
+              }
+            >
+              Reset
+            </Button>
+          )}
+        </ListItem>
+        <ListItem>
+          <ColorPicker
+            initialColor={theme.palette.error.main}
+            onColorChange={(color) => modifyColorPalette("error", color)}
+            label="Warning Color"
+            id="primary-button-color-picker"
+            buttonColor="error"
+          />
+          {theme.palette.error.main !==
+            defaultAppearanceSettings.errorColor && (
+              <Button
+                onClick={() =>
+                  modifyColorPalette(
+                    "error",
+                    defaultAppearanceSettings.errorColor!,
+                  )
+                }
+              >
+                Reset
+              </Button>
+            )}
+        </ListItem>
+      </List>
+    </>
+  );
+};
+
+const AccessibilityMenu = () => {
+  const { theme, appearanceSettings, setAppearanceSettings } = useCustomTheme();
+  const [fontSliderValue, setFontSliderValue] = useState(
+    appearanceSettings.fontSize,
+  );
 
   const setFontSize = (fontSize: number) => {
     setAppearanceSettings({
@@ -479,98 +560,6 @@ const AccessibilityMenu = () => {
             <SpellcheckIcon />
             Dyslexia Font
           </ToggleButton>
-        </ListItem>
-      </List>
-      <Divider variant="middle" />
-      <List
-        sx={{
-          fontSize: theme.typography.fontSize + 4,
-        }}
-        subheader="Colors"
-      >
-        <ListItem>
-          <ColorPicker
-            initialColor={theme.palette.primary.main}
-            onColorChange={(color) => modifyColorPalette("primary", color)}
-            label="Primary Color"
-            id="primary-color-picker"
-            buttonColor="primary"
-          />
-          {theme.palette.primary.main !==
-            defaultAppearanceSettings.primaryColor && (
-            <Button
-              onClick={() =>
-                modifyColorPalette(
-                  "primary",
-                  defaultAppearanceSettings.primaryColor!,
-                )
-              }
-            >
-              Reset
-            </Button>
-          )}
-        </ListItem>
-        <ListItem>
-          <ColorPicker
-            initialColor={theme.palette.secondary.main}
-            onColorChange={(color) => modifyColorPalette("secondary", color)}
-            label="Secondary Color"
-            id="secondary-color-picker"
-            buttonColor="secondary"
-          />
-          {theme.palette.secondary.main !==
-            defaultAppearanceSettings.secondaryColor && (
-            <Button
-              onClick={() =>
-                modifyColorPalette(
-                  "secondary",
-                  defaultAppearanceSettings.secondaryColor!,
-                )
-              }
-            >
-              Reset
-            </Button>
-          )}
-        </ListItem>
-        <ListItem>
-          <ColorPicker
-            initialColor={theme.palette.info.main}
-            onColorChange={(color) => modifyColorPalette("info", color)}
-            label="Information Color"
-            id="primary-button-color-picker"
-            buttonColor="info"
-          />
-          {theme.palette.info.main !== defaultAppearanceSettings.infoColor && (
-            <Button
-              onClick={() =>
-                modifyColorPalette("info", defaultAppearanceSettings.infoColor!)
-              }
-            >
-              Reset
-            </Button>
-          )}
-        </ListItem>
-        <ListItem>
-          <ColorPicker
-            initialColor={theme.palette.error.main}
-            onColorChange={(color) => modifyColorPalette("error", color)}
-            label="Warning Color"
-            id="primary-button-color-picker"
-            buttonColor="error"
-          />
-          {theme.palette.error.main !==
-            defaultAppearanceSettings.errorColor && (
-            <Button
-              onClick={() =>
-                modifyColorPalette(
-                  "error",
-                  defaultAppearanceSettings.errorColor!,
-                )
-              }
-            >
-              Reset
-            </Button>
-          )}
         </ListItem>
       </List>
     </>
