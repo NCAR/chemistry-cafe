@@ -30,7 +30,7 @@ import {
 } from "../types/chemistryModels";
 import DeleteIcon from "@mui/icons-material/Delete";
 import UnitComponent from "./UnitComponent";
-import WarningIcon from '@mui/icons-material/Warning';
+import WarningIcon from "@mui/icons-material/Warning";
 import { SelectSpeciesButton } from "./SelectSpeciesButton";
 import { useAuth } from "./AuthContext";
 
@@ -407,9 +407,8 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
               </Typography>
               {speciesAttributeOptions.map((element: SpeciesAttribute) => {
                 const attribute =
-                  modifiedSpecies?.attributes[
-                  element.serializationKey
-                  ] ?? element;
+                  modifiedSpecies?.attributes[element.serializationKey] ??
+                  element;
                 if (typeof attribute.value == "number") {
                   return (
                     <TextField
@@ -425,14 +424,18 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
 
                         // Removes up and down arrows for number
                         "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                        {
-                          display: "none",
-                        },
+                          {
+                            display: "none",
+                          },
                         "& input[type=number]": {
                           MozAppearance: "textfield",
                         },
                       }}
-                      defaultValue={species?.attributes[attribute.serializationKey]?.value.toString() ?? ""}
+                      defaultValue={
+                        species?.attributes[
+                          attribute.serializationKey
+                        ]?.value.toString() ?? ""
+                      }
                       label={attribute.name || attribute.serializationKey}
                       type="number"
                       slotProps={{
@@ -448,7 +451,10 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
                       }}
                       onChange={(event) => {
                         const num = Number.parseFloat(event.target.value);
-                        if (Number.isFinite(num) || event.target.value.length === 0) {
+                        if (
+                          Number.isFinite(num) ||
+                          event.target.value.length === 0
+                        ) {
                           let modifiedAttributes: {
                             [key: string]: SpeciesAttribute;
                           } = {
@@ -456,12 +462,11 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
                           };
 
                           if (event.target.value.length === 0) {
-                            delete modifiedAttributes[attribute.serializationKey];
-                          }
-                          else {
-                            modifiedAttributes[
+                            delete modifiedAttributes[
                               attribute.serializationKey
-                            ] = {
+                            ];
+                          } else {
+                            modifiedAttributes[attribute.serializationKey] = {
                               ...attribute,
                               value: num,
                             };
@@ -479,7 +484,11 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
                     <TextField
                       color="primary"
                       key={`${species.id}-${attribute.serializationKey}`}
-                      defaultValue={species?.attributes[attribute.serializationKey]?.value.toString() ?? "Currently Unsupported"}
+                      defaultValue={
+                        species?.attributes[
+                          attribute.serializationKey
+                        ]?.value.toString() ?? "Currently Unsupported"
+                      }
                       label={attribute.name || attribute.serializationKey}
                       disabled
                     />
@@ -676,8 +685,7 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
                 [key: string]: ReactionAttribute;
               } = {};
               for (const attribute of attributes) {
-                reactionAttributes[attribute.serializationKey] =
-                  attribute;
+                reactionAttributes[attribute.serializationKey] = attribute;
               }
               changeReactionProperties({
                 type: event.target.value as ReactionTypeName,
@@ -963,19 +971,26 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
                     width: "100%",
                     // Removes up and down arrows for number
                     "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                    {
-                      display: "none",
-                    },
+                      {
+                        display: "none",
+                      },
                     "& input[type=number]": {
                       MozAppearance: "textfield",
                     },
                   }}
-                  defaultValue={reaction?.attributes[attribute.serializationKey]?.value.toString() ?? ""}
+                  defaultValue={
+                    reaction?.attributes[
+                      attribute.serializationKey
+                    ]?.value.toString() ?? ""
+                  }
                   label={attribute.name || attribute.serializationKey}
                   type="number"
                   onChange={(event) => {
                     const num = Number.parseFloat(event.target.value);
-                    if (Number.isFinite(num) || event.target.value.length === 0) {
+                    if (
+                      Number.isFinite(num) ||
+                      event.target.value.length === 0
+                    ) {
                       let modifiedAttributes: {
                         [key: string]: ReactionAttribute;
                       } = {
@@ -984,11 +999,8 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
 
                       if (event.target.value.length === 0) {
                         delete modifiedAttributes[attribute.serializationKey];
-                      }
-                      else {
-                        modifiedAttributes[
-                          attribute.serializationKey
-                        ] = {
+                      } else {
+                        modifiedAttributes[attribute.serializationKey] = {
                           ...attribute,
                           value: num,
                         };
@@ -1058,12 +1070,19 @@ type ConfirmActionModalProps = {
   open: boolean;
   onClose: () => void;
   onAction: () => void;
-  message: string
-  subtitle: string
-  confirmColor?: "primary" | "secondary" | "warning" | "error"
-}
+  message: string;
+  subtitle: string;
+  confirmColor?: "primary" | "secondary" | "warning" | "error";
+};
 
-export const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({ open, onClose, onAction, message, subtitle, confirmColor }) => {
+export const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({
+  open,
+  onClose,
+  onAction,
+  message,
+  subtitle,
+  confirmColor,
+}) => {
   return (
     <Modal open={open} onClose={onClose}>
       <Box
@@ -1127,4 +1146,4 @@ export const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({ open, on
       </Box>
     </Modal>
   );
-}
+};

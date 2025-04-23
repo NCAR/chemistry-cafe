@@ -84,12 +84,12 @@ describe("updateFamily function", () => {
       owner: {
         username: "Test User",
         role: "unverified",
-        id: "1-1-1-1-1"
+        id: "1-1-1-1-1",
       },
       species: [],
       reactions: [],
       phases: [],
-      mechanisms: []
+      mechanisms: [],
     };
 
     const result = await updateFamily(family);

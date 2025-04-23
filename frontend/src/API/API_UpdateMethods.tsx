@@ -1,7 +1,14 @@
 // API_UpdateMethods.ts
 
 import axios from "axios";
-import { APIFamily, APIMechanism, APIPhase, APIReaction, APISpecies, APIUser } from "./API_Interfaces";
+import {
+  APIFamily,
+  APIMechanism,
+  APIPhase,
+  APIReaction,
+  APISpecies,
+  APIUser,
+} from "./API_Interfaces";
 import { BASE_URL } from "./API_config";
 
 /**

@@ -34,12 +34,16 @@ export async function createFamily(familyData: APIFamily): Promise<APIFamily> {
 export async function createSpecies(
   speciesData: APISpecies,
 ): Promise<APISpecies> {
-  const response = await axios.post(`${BASE_URL}/species?familyId=${speciesData.familyId}`, speciesData, {
-    withCredentials: true,
-    headers: {
-      "Content-Type": "application/json",
+  const response = await axios.post(
+    `${BASE_URL}/species?familyId=${speciesData.familyId}`,
+    speciesData,
+    {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+      },
     },
-  });
+  );
 
   return response.data as APISpecies;
 }
@@ -53,12 +57,16 @@ export async function createSpecies(
 export async function createReaction(
   reactionData: APIReaction,
 ): Promise<APIReaction> {
-  const response = await axios.post(`${BASE_URL}/reactions?familyId=${reactionData.familyId}`, reactionData, {
-    withCredentials: true,
-    headers: {
-      "Content-Type": "application/json",
+  const response = await axios.post(
+    `${BASE_URL}/reactions?familyId=${reactionData.familyId}`,
+    reactionData,
+    {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+      },
     },
-  });
+  );
 
   return response.data as APIReaction;
 }
@@ -69,19 +77,20 @@ export async function createReaction(
  * @throws HTTP errors
  * @returns Data as represented in the database
  */
-export async function createPhase(
-  phaseData: APIPhase,
-): Promise<APIPhase> {
-  const response = await axios.post(`${BASE_URL}/reactions?familyId=${phaseData.familyId}`, phaseData, {
-    withCredentials: true,
-    headers: {
-      "Content-Type": "application/json",
+export async function createPhase(phaseData: APIPhase): Promise<APIPhase> {
+  const response = await axios.post(
+    `${BASE_URL}/reactions?familyId=${phaseData.familyId}`,
+    phaseData,
+    {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+      },
     },
-  });
+  );
 
   return response.data as APIPhase;
 }
-
 
 /**
  * Creates a new mechanism and returns the real mechanism object from the database
@@ -92,12 +101,16 @@ export async function createPhase(
 export async function createMechanism(
   mechanismData: APIMechanism,
 ): Promise<APIMechanism> {
-  const response = await axios.post(`${BASE_URL}/mechanisms?familyId=${mechanismData.familyId}`, mechanismData, {
-    withCredentials: true,
-    headers: {
-      "Content-Type": "application/json",
+  const response = await axios.post(
+    `${BASE_URL}/mechanisms?familyId=${mechanismData.familyId}`,
+    mechanismData,
+    {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+      },
     },
-  });
+  );
 
   return response.data as APIMechanism;
 }

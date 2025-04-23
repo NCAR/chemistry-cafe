@@ -20,7 +20,8 @@ function App() {
           <Banner />
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/loggedin" element={<Dashboard />} /> {/* Legacy Route */}
+            <Route path="/loggedin" element={<Dashboard />} />{" "}
+            {/* Legacy Route */}
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/familyeditor" element={<FamilyEditor />} />
             <Route path="/settings" element={<Settings />} />

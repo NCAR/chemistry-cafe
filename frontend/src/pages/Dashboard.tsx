@@ -3,11 +3,7 @@ import Button from "@mui/material/Button";
 import { Header, Footer } from "../components/HeaderFooter";
 
 import "../styles/Dashboard.css";
-import {
-  CircularProgress,
-  Paper,
-  Typography,
-} from "@mui/material";
+import { CircularProgress, Paper, Typography } from "@mui/material";
 import { APIFamily } from "../API/API_Interfaces";
 import { useEffect, useState } from "react";
 import { getAllFamilies } from "../API/API_GetMethods";
@@ -77,18 +73,21 @@ const Dashboard = () => {
             handleEditButtonClick={(familyId) => {
               let uploadedFamilyIds: Array<UUID> = [];
               try {
-                uploadedFamilyIds = JSON.parse(localStorage.getItem("uploadedFamilyIds") || "[]");
+                uploadedFamilyIds = JSON.parse(
+                  localStorage.getItem("uploadedFamilyIds") || "[]",
+                );
                 if (Array.isArray(uploadedFamilyIds)) {
                   if (!uploadedFamilyIds.find((e) => e == familyId)) {
                     uploadedFamilyIds.unshift(familyId);
                   }
-                }
-                else {
+                } else {
                   uploadedFamilyIds = [familyId];
                 }
-                localStorage.setItem("uploadedFamilyIds", JSON.stringify(uploadedFamilyIds));
-              }
-              catch (err) {
+                localStorage.setItem(
+                  "uploadedFamilyIds",
+                  JSON.stringify(uploadedFamilyIds),
+                );
+              } catch (err) {
                 console.error(err);
                 alert(`An error occurred: ${err}`);
               }

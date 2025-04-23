@@ -230,11 +230,7 @@ const UserManagement: React.FC = () => {
       <header>
         <Header />
       </header>
-      <Paper
-        square
-        component="main"
-        className="content-user-management"
-      >
+      <Paper square component="main" className="content-user-management">
         <DataGrid
           rows={users}
           columns={userColumns}

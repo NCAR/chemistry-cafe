@@ -12,7 +12,7 @@ import {
   Typography,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import EditNoteIcon from '@mui/icons-material/EditNote';
+import EditNoteIcon from "@mui/icons-material/EditNote";
 import { SelectSpeciesButton } from "./SelectSpeciesButton";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { SelectReactionButton } from "./SelectReactionButton";
@@ -262,13 +262,14 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
           </List>
         </div>
       )}
-      {
-        selectedTab === TabValue.Phases && (
-          <div>
-            <Typography color="textPrimary">Phases are currently a work in progress. Everything is assumed to be in a gas phase.</Typography>
-          </div>
-        )
-      }
+      {selectedTab === TabValue.Phases && (
+        <div>
+          <Typography color="textPrimary">
+            Phases are currently a work in progress. Everything is assumed to be
+            in a gas phase.
+          </Typography>
+        </div>
+      )}
     </Box>
   );
 };
