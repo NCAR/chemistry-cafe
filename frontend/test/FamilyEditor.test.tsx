@@ -5,9 +5,6 @@ import {
   beforeEach,
   afterEach,
   vi,
-  test,
-  beforeAll,
-  afterAll,
 } from "vitest";
 import { AuthProvider } from "../src/components/AuthContext";
 import { MemoryRouter } from "react-router-dom";
@@ -32,28 +29,26 @@ import { MechanismEditor } from "../src/components/MechanismEditor";
 
 vi.mock("axios");
 
-const testFamilies: Array<APIFamily> = [
-  {
-    id: "111-111-111-111-111",
-    name: "Test Family",
-    description: "Test Family",
-    owner: {
-      id: "11-22-33-44-55",
-      username: "Test User",
-      role: "admin",
-    },
-    species: [],
-    reactions: [],
-    mechanisms: [],
-    phases: []
+const testFamily: APIFamily = {
+  id: "111-111-111-111-111",
+  name: "Test Family",
+  description: "Test Family",
+  owner: {
+    id: "11-22-33-44-55",
+    username: "Test User",
+    role: "admin",
   },
-];
+  species: [],
+  reactions: [],
+  mechanisms: [],
+  phases: []
+};
 
 describe("Family Editor Page", () => {
   const originalLocation = window.location;
   function createMockData(): AxiosResponse {
     return {
-      data: testFamilies as Array<APIFamily>,
+      data: testFamily,
       status: 200,
       statusText: "OK",
       headers: {},
@@ -68,6 +63,7 @@ describe("Family Editor Page", () => {
       ...originalLocation,
       assign: vi.fn((_: string | URL) => { }),
     } as any;
+    localStorage.setItem("uploadedFamilyIds", JSON.stringify([testFamily.id]));
     vi.spyOn(axios, "get").mockResolvedValue(createMockData());
 
     render(
@@ -108,6 +104,10 @@ describe("Family Editor Page", () => {
       expect(screen.getByText("Test Family")).toBeTruthy();
     });
 
+    const addFamilyButton = screen.getByTestId("add-family-button");
+    expect(addFamilyButton).toBeTruthy();
+    fireEvent.click(addFamilyButton);
+
     const createFamilyButton = screen.getByTestId("create-family-button");
     expect(createFamilyButton).toBeTruthy();
     fireEvent.click(createFamilyButton);
@@ -128,7 +128,11 @@ describe("Family Editor Page", () => {
   });
 
   it("Errors when name is empty for family", () => {
-    const createFamilyButton = screen.getByLabelText("Create Family");
+    const addFamilyButton = screen.getByTestId("add-family-button");
+    expect(addFamilyButton).toBeTruthy();
+    fireEvent.click(addFamilyButton);
+
+    const createFamilyButton = screen.getByTestId("create-family-button");
     expect(createFamilyButton).toBeTruthy();
     fireEvent.click(createFamilyButton);
 

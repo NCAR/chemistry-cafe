@@ -1128,4 +1128,3 @@ export const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({ open, on
     </Modal>
   );
 }
-

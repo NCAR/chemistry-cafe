@@ -1,4 +1,4 @@
-import { memo, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, MouseEvent } from "react";
 import { Header, Footer } from "../components/HeaderFooter";
 import "../styles/FamilyEditor.css";
 import {
@@ -8,6 +8,10 @@ import {
   Button,
   CircularProgress,
   IconButton,
+  ListItemIcon,
+  Menu,
+  MenuItem,
+  Modal,
   Paper,
   Snackbar,
   styled,
@@ -21,6 +25,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import CircleIcon from '@mui/icons-material/Circle';
 import CloudOffIcon from '@mui/icons-material/CloudOff';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
 import { TreeItem, treeItemClasses } from "@mui/x-tree-view/TreeItem";
@@ -50,7 +55,7 @@ import {
 } from "../components/FamilyEditorModals";
 import { reactionToString, reactionTypeToString } from "../helpers/stringify";
 import { UUID } from "crypto";
-import { getAllFamilies } from "../API/API_GetMethods";
+import { getAllFamilies, getFamily } from "../API/API_GetMethods";
 import { apiToFrontendFamily, saveFamilyChanges, uploadFamily } from "../helpers/backendInteractions";
 import { RowActionsButton } from "../components/RowActionsButton";
 import { MechanismEditor } from "../components/MechanismEditor";
@@ -58,6 +63,8 @@ import { MechanismBrowser } from "../components/MechanismBrowser";
 import SaveIcon from '@mui/icons-material/Save';
 import { useAuth } from "../components/AuthContext";
 import { deleteFamily } from "../API/API_DeleteMethods";
+import { APIFamily } from "../API/API_Interfaces";
+import FamilyBrowser from "../components/FamilyBrowser";
 
 const FamilyPage = () => {
   enum DataViewSelection {
@@ -74,21 +81,40 @@ const FamilyPage = () => {
   const [dataView, setDataView] = useState<React.JSX.Element>(<DefaultView />);
   const [familyCreationModalOpen, setFamilyCreationModalOpen] = useState<boolean>(false);
   const [selectedFamilyId, setSelectedFamilyId] = useState<string>("");
+  const [importChoices, setImportChoices] = useState<Array<APIFamily>>(); // Used when user attempts to import families
+  const [openImportMenu, setOpenImportMenu] = useState<boolean>(false); // Used when user attempts to import families
   const { user } = useAuth();
   const currentMenuName = useRef<string>(DataViewSelection.Default);
 
   const { appearanceSettings } = useCustomTheme();
+
+  /**
+   * Updates all locally stored families in localStorage
+   */
+  const updateLocalStorageFamilyInfo = (): void => {
+    if (!families) {
+      return;
+    }
+    const localFamilies = families.filter(e => !e.isInDatabase);
+    const uploadedFamilyIds = families.filter(e => e.isInDatabase).map(e => e.id);
+    try {
+      localStorage.setItem("localFamilies", JSON.stringify(localFamilies));
+      localStorage.setItem("uploadedFamilyIds", JSON.stringify(uploadedFamilyIds));
+    } catch (e) {
+      console.error("There was an issue storing families locally:", e);
+    }
+  }
 
   const updateFamily = (family: Family): void => {
     setFamilies((families) => {
       if (!families) {
         return families;
       }
-      return families?.map((element) => {
+      return families.map((element) => {
         if (family.id === element.id) {
           return {
             ...family,
-            isModified: true,
+            isModified: family.isInDatabase?.valueOf(),
           };
         }
         return element;
@@ -100,6 +126,10 @@ const FamilyPage = () => {
     window.onbeforeunload = () => true; // Sets "are you sure you want to leave" popup
   };
 
+  useEffect(() => {
+    updateLocalStorageFamilyInfo();
+  }, [families]);
+
   /**
    * Creates a selected menu for a specific family
    * @param menuName Menu to be selected. This is usually encoded in the id of a treeitem
@@ -108,8 +138,12 @@ const FamilyPage = () => {
    */
   const getDataViewComponent = (
     menuName: string,
-    family: Family,
+    family?: Family,
   ): React.JSX.Element => {
+    if (!family) {
+      return <DefaultView />
+    }
+
     currentMenuName.current = menuName;
     switch (menuName) {
       case DataViewSelection.Species:
@@ -122,21 +156,49 @@ const FamilyPage = () => {
         return <GeneralInfoView
           family={family}
           updateFamily={updateFamily}
-          onPublish={() => uploadFamily(family)
-            .then((family) => updateFamily(family))
-            .catch((e) => {
-              console.error(e);
-              alert("An issue occurred while uploading the family")
-            })}
-          onDelete={() => {
+          onPublish={async () => {
             setLoading(true);
-            deleteFamily(family.id)
-              .then(() => removeFamilyLocally(family))
-              .catch(e => {
-                alert("An error occurred while deleting this family");
+            await uploadFamily(family)
+              .then((databaseFamily) => {
+                setFamilies((families) => {
+                  if (!families) {
+                    return families;
+                  }
+                  return families.map((element) => {
+                    if (family.id === element.id) {
+                      return {
+                        ...databaseFamily,
+                      };
+                    }
+                    return element;
+                  });
+                });
+
+              })
+              .catch((e) => {
                 console.error(e);
+                alert("An issue occurred while uploading the family")
               })
               .finally(() => setLoading(false));
+          }
+          }
+          onDelete={() => {
+            setLoading(true);
+            if (family.isInDatabase) {
+              deleteFamily(family.id)
+                .then(() => removeFamilyLocally(family))
+                .catch(e => {
+                  console.error(e);
+                  alert("An error occurred while deleting this family");
+                })
+                .finally(() => {
+                  setDataView(getDataViewComponent(DataViewSelection.Default));
+                  setLoading(false)
+                });
+            }
+            else {
+              removeFamilyLocally(family);
+            }
           }}
         />;
       case DataViewSelection.Phases:
@@ -183,8 +245,30 @@ const FamilyPage = () => {
         if (user) {
           queryParameters += `&userId=${user.id}`
         }
-        const allFamilies = await getAllFamilies(queryParameters);
-        setFamilies(allFamilies.map((element) => apiToFrontendFamily(element)));
+        let allFamilies: Family[] = [];
+
+        const localFamilies: unknown = JSON.parse(localStorage.getItem("localFamilies") || "[]");
+        if (Array.isArray(localFamilies)) {
+          // TODO Check if these actually follow family schema
+          allFamilies = allFamilies.concat(localFamilies);
+        }
+
+        const uploadedFamilyIds: unknown = JSON.parse(localStorage.getItem("uploadedFamilyIds") || "[]");
+        if (Array.isArray(uploadedFamilyIds)) {
+          for (const familyId of uploadedFamilyIds) {
+            if (typeof familyId == "string") {
+              const family: APIFamily | null = await getFamily(familyId as UUID).catch((err) => {
+                console.error(`Issue finding local family with id '${familyId}':`, err);
+                return null;
+              });
+              if (family) {
+                allFamilies.push(apiToFrontendFamily(family));
+              }
+            }
+          }
+        }
+
+        setFamilies(allFamilies);
       } catch (err) {
         if (!abortController.signal.aborted) {
           console.error(err);
@@ -286,19 +370,14 @@ const FamilyPage = () => {
                   />
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Create Family">
-                <IconButton
-                  aria-label="Create Family"
-                  id="create-family-button"
-                  data-testid="create-family-button"
-                  onClick={() => setFamilyCreationModalOpen(true)}
-                >
-                  <AddIcon
-                    color="primary"
-                    sx={{ fontSize: 32, fontWeight: "bold" }}
-                  />
-                </IconButton>
-              </Tooltip>
+              <AddFamilyButton
+                handleCreateButtonClick={() => setFamilyCreationModalOpen(true)}
+                handleImportButtonClick={async () => {
+                  const allFamilies = await getAllFamilies(`?userId=${user?.id}`);
+                  setImportChoices(allFamilies.filter(apiFamily => !families?.find(localFamily => localFamily.id == apiFamily.id)));
+                  setOpenImportMenu(true);
+                }}
+              />
             </Box>
           </Paper>
           {families?.length === 0 ? (
@@ -348,9 +427,7 @@ const FamilyPage = () => {
                         <RemoveFamilyButton
                           changesMade={family.isModified ?? false}
                           onClick={() => {
-                            if (!family.isModified && family.isInDatabase) {
-                              removeFamilyLocally(family);
-                            }
+                            removeFamilyLocally(family);
                           }}
                         />
                       </div>
@@ -400,6 +477,51 @@ const FamilyPage = () => {
         onClose={() => setFamilyCreationModalOpen(false)}
         onCreation={createFamily}
       />
+      <Modal
+        open={openImportMenu}
+        onClose={() => setOpenImportMenu(false)}
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            minWidth: "50%",
+            maxHeight: "85%",
+            overflowY: "auto",
+            bgcolor: "background.paper",
+            border: "2px solid #000",
+            boxShadow: 24,
+            p: 4,
+            display: "flex",
+            flexDirection: "column",
+            rowGap: "0.7em",
+          }}
+        >
+          {
+            importChoices?.length === 0 ?
+              <Typography color="textPrimary">No editable families found.</Typography > :
+              <FamilyBrowser
+                families={importChoices}
+                handleEditButtonClick={(familyId) => {
+                  getFamily(familyId)
+                    .then((family: APIFamily) => {
+                      setFamilies([
+                        apiToFrontendFamily(family),
+                        ...families ?? [],
+                      ])
+                    })
+                    .catch((err) => {
+                      console.error(`An error occurred while importing with id ${familyId}`, err);
+                      alert("An error occurred while importing a family");
+                    });
+                  setOpenImportMenu(false);
+                }}
+              />
+          }
+        </Box>
+      </Modal>
       {
         loading &&
         <CircularProgress
@@ -415,6 +537,65 @@ const FamilyPage = () => {
   );
 };
 
+type AddFamilyButtonProps = {
+  handleCreateButtonClick: () => void;
+  handleImportButtonClick: () => void;
+}
+
+const AddFamilyButton: React.FC<AddFamilyButtonProps> = ({ handleCreateButtonClick, handleImportButtonClick }) => {
+  const [open, setOpen] = useState<boolean>(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+  const handleMenuOpen = (event: MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+    setOpen(true);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setOpen(false);
+  };
+
+  return (
+    <>
+      <Tooltip title="Add Family">
+        <IconButton
+          aria-label="Add a family to the editor"
+          id="add-family-button"
+          data-testid="add-family-button"
+          onClick={handleMenuOpen}
+        >
+          <AddIcon
+            color="primary"
+            sx={{ fontSize: 32, fontWeight: "bold" }}
+          />
+        </IconButton>
+      </Tooltip>
+      <Menu open={open} anchorEl={anchorEl} onClose={handleMenuClose}>
+        <MenuItem
+          aria-label="Create a new family"
+          data-testid="create-family-button"
+          onClick={handleCreateButtonClick}
+        >
+          <ListItemIcon>
+            <AddIcon color="primary" />
+          </ListItemIcon>
+          <Typography>New</Typography>
+        </MenuItem>
+        <MenuItem
+          aria-label="Import a published family"
+          onClick={handleImportButtonClick}
+        >
+          <ListItemIcon>
+            <CloudDownloadIcon color="secondary" />
+          </ListItemIcon>
+          <Typography>Import</Typography>
+        </MenuItem>
+      </Menu>
+    </>
+  );
+}
+
 type RemoveFamilyButtonProps = {
   changesMade: boolean,
   onClick: () => any,
@@ -424,7 +605,7 @@ type RemoveFamilyButtonProps = {
 /**
  * Used for removing a family from the editor. Also displays when family has been edited
  */
-const RemoveFamilyButton = ({ changesMade, onClick, "aria-label": ariaLabel }: RemoveFamilyButtonProps) => {
+const RemoveFamilyButton: React.FC<RemoveFamilyButtonProps> = ({ changesMade, onClick, "aria-label": ariaLabel }) => {
   const [hovering, setHovering] = useState<boolean>(false);
 
   return (
@@ -488,7 +669,7 @@ type ViewProps = {
   updateFamily: (family: Family) => void;
 };
 
-const DefaultView = memo(function DefaultView() {
+const DefaultView = function DefaultView() {
   return (
     <Box
       sx={{
@@ -505,14 +686,14 @@ const DefaultView = memo(function DefaultView() {
       </Typography>
     </Box>
   );
-});
+};
 
 type ExtraGeneralInfoViewProps = {
   onDelete: () => any;
   onPublish: () => any;
 }
 
-export const GeneralInfoView = memo(({ family, updateFamily, onDelete, onPublish }: ViewProps & ExtraGeneralInfoViewProps) => {
+export const GeneralInfoView = ({ family, updateFamily, onDelete, onPublish }: ViewProps & ExtraGeneralInfoViewProps) => {
 
   const [name, setName] = useState<string>(family.name);
   const [showAlert, setShowAlert] = useState<boolean>(false);
@@ -672,9 +853,9 @@ export const GeneralInfoView = memo(({ family, updateFamily, onDelete, onPublish
       />
     </Box >
   );
-});
+};
 
-export const SpeciesView = memo(({ family, updateFamily }: ViewProps) => {
+export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
   const { theme } = useCustomTheme();
   const [speciesEditorOpen, setSpeciesEditorOpen] = useState<boolean>(false);
   const [selectedSpecies, setSelectedSpecies] = useState<Species>();
@@ -872,7 +1053,7 @@ export const SpeciesView = memo(({ family, updateFamily }: ViewProps) => {
       />
     </Box>
   );
-});
+};
 
 export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
   const { theme } = useCustomTheme();
