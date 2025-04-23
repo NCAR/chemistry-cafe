@@ -64,7 +64,7 @@ namespace ChemistryCafeAPI.Services
                 user = new User();
                 user.Id = Guid.NewGuid();
                 user.Username = email;
-                user.Role = "admin";
+                user.Role = "unverified";
                 user.Email = email;
                 user.CreatedDate = DateTime.UtcNow;
                 user.GoogleId = googleID;
