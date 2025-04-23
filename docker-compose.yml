@@ -67,7 +67,16 @@ services:
       - mysql
     networks:
       - app-network
-    command: ["dotnet", "watch", "run", "--project", "ChemistryCafeAPI.csproj", "--urls", "http://0.0.0.0:8080"] # Command for development
+    command: >
+      sh -c "
+      until mysqladmin ping -h mysql --silent; do
+        echo 'Waiting for MySQL to be ready...';
+        sleep 2;
+      done &&
+      dotnet ef migrations add DockerMigrations --project ChemistryCafeAPI.csproj &&
+      dotnet ef database update &&
+      dotnet watch run --project ChemistryCafeAPI.csproj --urls http://0.0.0.0:8080
+      "
 
 volumes:
   db_data:
