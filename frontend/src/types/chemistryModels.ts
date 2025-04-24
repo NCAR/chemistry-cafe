@@ -300,13 +300,13 @@ export type Reaction = {
 export type Reactant = {
   speciesId: UUID | string;
   coefficient: number;
-}
+};
 
 export type Product = {
   speciesId: UUID | string;
   coefficient: number;
   branch?: string;
-}
+};
 
 /**
  * Represents a generic phase on the frontend.

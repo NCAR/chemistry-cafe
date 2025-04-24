@@ -54,7 +54,7 @@ describe("Family Editor Page", () => {
   beforeEach(() => {
     window.location = {
       ...originalLocation,
-      assign: vi.fn((_: string | URL) => { }),
+      assign: vi.fn((_: string | URL) => {}),
     } as any;
     localStorage.setItem("uploadedFamilyIds", JSON.stringify([testFamily.id]));
     vi.spyOn(axios, "get").mockResolvedValue(createMockData());
