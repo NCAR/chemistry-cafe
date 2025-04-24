@@ -7,7 +7,11 @@ import { APIFamily } from "../API/API_Interfaces";
 import { useEffect, useState } from "react";
 import { getAllFamilies, getFamily } from "../API/API_GetMethods";
 import FamilyBrowser from "../components/FamilyBrowser";
-import { addFamilyLocally, addUploadedFamilyIdLocally, cloneFamily } from "../helpers/localFamilies";
+import {
+  addFamilyLocally,
+  addUploadedFamilyIdLocally,
+  cloneFamily,
+} from "../helpers/localFamilies";
 import { apiToFrontendFamily } from "../helpers/backendInteractions";
 
 const Dashboard = () => {

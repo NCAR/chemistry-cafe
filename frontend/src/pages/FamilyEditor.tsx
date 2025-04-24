@@ -75,7 +75,12 @@ import { useAuth } from "../components/AuthContext";
 import { deleteFamily } from "../API/API_DeleteMethods";
 import { APIFamily } from "../API/API_Interfaces";
 import FamilyBrowser from "../components/FamilyBrowser";
-import { addFamilyLocally, cloneFamily, generateFrontendID, updateLocalStorageFamilyInfo } from "../helpers/localFamilies";
+import {
+  addFamilyLocally,
+  cloneFamily,
+  generateFrontendID,
+  updateLocalStorageFamilyInfo,
+} from "../helpers/localFamilies";
 
 const FamilyPage = () => {
   enum DataViewSelection {
@@ -538,12 +543,11 @@ const FamilyPage = () => {
               handleCloneButtonClick={(id) => {
                 getFamily(id)
                   .then((family) => {
-                    const clonedFamily = cloneFamily(apiToFrontendFamily(family));
+                    const clonedFamily = cloneFamily(
+                      apiToFrontendFamily(family),
+                    );
                     addFamilyLocally(clonedFamily);
-                    setFamilies([
-                      clonedFamily,
-                      ...families ?? [],
-                    ])
+                    setFamilies([clonedFamily, ...(families ?? [])]);
                   })
                   .catch((err) => {
                     console.error("An issue occurred cloning the family:", err);
