@@ -1,14 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import Button from "@mui/material/Button";
 import { Header, Footer } from "../components/HeaderFooter";
-
 import "../styles/Dashboard.css";
 import { CircularProgress, Paper, Typography } from "@mui/material";
 import { APIFamily } from "../API/API_Interfaces";
 import { useEffect, useState } from "react";
-import { getAllFamilies } from "../API/API_GetMethods";
+import { getAllFamilies, getFamily } from "../API/API_GetMethods";
 import FamilyBrowser from "../components/FamilyBrowser";
-import { UUID } from "crypto";
+import { addFamilyLocally, addUploadedFamilyIdLocally, cloneFamily } from "../helpers/localFamilies";
+import { apiToFrontendFamily } from "../helpers/backendInteractions";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -71,27 +71,20 @@ const Dashboard = () => {
             families={families}
             handleInfoButtonClick={() => alert("This is not implemented yet")}
             handleEditButtonClick={(familyId) => {
-              let uploadedFamilyIds: Array<UUID> = [];
-              try {
-                uploadedFamilyIds = JSON.parse(
-                  localStorage.getItem("uploadedFamilyIds") || "[]",
-                );
-                if (Array.isArray(uploadedFamilyIds)) {
-                  if (!uploadedFamilyIds.find((e) => e == familyId)) {
-                    uploadedFamilyIds.unshift(familyId);
-                  }
-                } else {
-                  uploadedFamilyIds = [familyId];
-                }
-                localStorage.setItem(
-                  "uploadedFamilyIds",
-                  JSON.stringify(uploadedFamilyIds),
-                );
-              } catch (err) {
-                console.error(err);
-                alert(`An error occurred: ${err}`);
-              }
-              handleClickFamily();
+              addUploadedFamilyIdLocally(familyId);
+              navigate("/familyeditor");
+            }}
+            handleCloneButtonClick={(id) => {
+              getFamily(id)
+                .then((family) => {
+                  const clonedFamily = cloneFamily(apiToFrontendFamily(family));
+                  addFamilyLocally(clonedFamily);
+                  navigate("/familyeditor");
+                })
+                .catch((err) => {
+                  console.error("An issue occurred cloning the family:", err);
+                  alert("An issue occurred cloning the family");
+                });
             }}
           />
         </div>

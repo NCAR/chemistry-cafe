@@ -75,6 +75,7 @@ import { useAuth } from "../components/AuthContext";
 import { deleteFamily } from "../API/API_DeleteMethods";
 import { APIFamily } from "../API/API_Interfaces";
 import FamilyBrowser from "../components/FamilyBrowser";
+import { addFamilyLocally, cloneFamily, generateFrontendID, updateLocalStorageFamilyInfo } from "../helpers/localFamilies";
 
 const FamilyPage = () => {
   enum DataViewSelection {
@@ -98,28 +99,6 @@ const FamilyPage = () => {
   const currentMenuName = useRef<string>(DataViewSelection.Default);
 
   const { appearanceSettings } = useCustomTheme();
-
-  /**
-   * Updates all locally stored families in localStorage
-   */
-  const updateLocalStorageFamilyInfo = (): void => {
-    if (!families) {
-      return;
-    }
-    const localFamilies = families.filter((e) => !e.isInDatabase);
-    const uploadedFamilyIds = families
-      .filter((e) => e.isInDatabase)
-      .map((e) => e.id);
-    try {
-      localStorage.setItem("localFamilies", JSON.stringify(localFamilies));
-      localStorage.setItem(
-        "uploadedFamilyIds",
-        JSON.stringify(uploadedFamilyIds),
-      );
-    } catch (e) {
-      console.error("There was an issue storing families locally:", e);
-    }
-  };
 
   const updateFamily = (family: Family): void => {
     setFamilies((families) => {
@@ -148,7 +127,9 @@ const FamilyPage = () => {
   };
 
   useEffect(() => {
-    updateLocalStorageFamilyInfo();
+    if (families) {
+      updateLocalStorageFamilyInfo(families);
+    }
   }, [families]);
 
   /**
@@ -401,9 +382,7 @@ const FamilyPage = () => {
               <AddFamilyButton
                 handleCreateButtonClick={() => setFamilyCreationModalOpen(true)}
                 handleImportButtonClick={async () => {
-                  const allFamilies = await getAllFamilies(
-                    `?userId=${user?.id}`,
-                  );
+                  const allFamilies = await getAllFamilies();
                   setImportChoices(
                     allFamilies.filter(
                       (apiFamily) =>
@@ -553,6 +532,22 @@ const FamilyPage = () => {
                       err,
                     );
                     alert("An error occurred while importing a family");
+                  });
+                setOpenImportMenu(false);
+              }}
+              handleCloneButtonClick={(id) => {
+                getFamily(id)
+                  .then((family) => {
+                    const clonedFamily = cloneFamily(apiToFrontendFamily(family));
+                    addFamilyLocally(clonedFamily);
+                    setFamilies([
+                      clonedFamily,
+                      ...families ?? [],
+                    ])
+                  })
+                  .catch((err) => {
+                    console.error("An issue occurred cloning the family:", err);
+                    alert("An issue occurred cloning the family");
                   });
                 setOpenImportMenu(false);
               }}
@@ -901,7 +896,7 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
   const [selectedSpecies, setSelectedSpecies] = useState<Species>();
 
   const createSpecies = () => {
-    const frontendId: string = `${Date.now()}-${Math.floor(Math.random() * 10000000000)}`;
+    const frontendId: string = generateFrontendID();
     const species: Species = {
       id: frontendId,
       name: "",
@@ -1102,7 +1097,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
   const [selectedReaction, setSelectedReaction] = useState<Reaction>();
 
   const createReaction = () => {
-    const frontendId: string = `${Date.now()}-${Math.floor(Math.random() * 10000000000)}`;
+    const frontendId: string = generateFrontendID();
     const reaction: Reaction = {
       id: frontendId,
       name: "",

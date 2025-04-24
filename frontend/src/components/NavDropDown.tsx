@@ -13,12 +13,14 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import SettingsIcon from "@mui/icons-material/Settings";
 import { ListItemIcon } from "@mui/material";
+import { clearFamiliesLocally } from "../helpers/localFamilies.ts";
 
 const NavDropDown = () => {
   // Get the logged-in user from the AuthContext
   const { user, setUser } = useAuth();
 
   const goLogOut = () => {
+    clearFamiliesLocally();
     setUser(null);
     localStorage.removeItem("user");
     window.location.assign(`${AUTH_URL}/google/logout`);
