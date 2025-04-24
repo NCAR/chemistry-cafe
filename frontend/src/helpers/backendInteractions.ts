@@ -222,11 +222,11 @@ export function frontendToAPIReaction(
     products: reaction.products.filter((e) =>
       uuidRegex.test(e.speciesId),
     ) as Array<APIProduct>,
-    gasPhaseId: reaction.gasPhaseId,
-    gasPhaseSpeciesId: reaction.gasPhaseSpeciesId,
-    aerosolPhaseId: reaction.aerosolPhaseId,
-    aerosolPhaseSpeciesId: reaction.aerosolPhaseSpeciesId,
-    aerosolPhaseWaterId: reaction.aerosolPhaseWaterId,
+    gasPhaseId: reaction.gasPhaseId as UUID,
+    gasPhaseSpeciesId: reaction.gasPhaseSpeciesId as UUID,
+    aerosolPhaseId: reaction.aerosolPhaseId as UUID,
+    aerosolPhaseSpeciesId: reaction.aerosolPhaseSpeciesId as UUID,
+    aerosolPhaseWaterId: reaction.aerosolPhaseWaterId as UUID,
     reactionType: reaction.type,
   };
 
