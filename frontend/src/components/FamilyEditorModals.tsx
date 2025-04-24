@@ -33,6 +33,7 @@ import UnitComponent from "./UnitComponent";
 import WarningIcon from "@mui/icons-material/Warning";
 import { SelectSpeciesButton } from "./SelectSpeciesButton";
 import { useAuth } from "./AuthContext";
+import { generateFrontendID } from "../helpers/localFamilies";
 
 const modalStyle: SxProps<Theme> = {
   position: "absolute" as const,
@@ -74,7 +75,7 @@ export const FamilyCreationModal: React.FC<FamilyCreationModalProps> = ({
       setNameError(true);
       return;
     }
-    const frontendId: string = `${Date.now()}-${Math.floor(Math.random() * 10000000000)}`;
+    const frontendId: string = generateFrontendID();
     const family: Family = {
       id: frontendId,
       name: familyName.current,
@@ -207,7 +208,7 @@ export const MechanismCreationModal: React.FC<MechanismCreationModalProps> = ({
       return;
     }
 
-    const frontendId: string = `${Date.now()}-${Math.floor(Math.random() * 10000000000)}`;
+    const frontendId: string = generateFrontendID();
     const mechanism: Mechanism = {
       id: frontendId,
       name: mechanismName.current,
@@ -424,9 +425,9 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
 
                         // Removes up and down arrows for number
                         "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                          {
-                            display: "none",
-                          },
+                        {
+                          display: "none",
+                        },
                         "& input[type=number]": {
                           MozAppearance: "textfield",
                         },
@@ -971,9 +972,9 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
                     width: "100%",
                     // Removes up and down arrows for number
                     "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                      {
-                        display: "none",
-                      },
+                    {
+                      display: "none",
+                    },
                     "& input[type=number]": {
                       MozAppearance: "textfield",
                     },

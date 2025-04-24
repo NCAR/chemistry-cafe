@@ -262,19 +262,19 @@ export type Reaction = {
   type: ReactionTypeName;
 
   /** Optional id for the gas phase. Required in certain reactions */
-  gasPhaseId?: UUID | null;
+  gasPhaseId?: UUID | string | null;
 
   /** Optional id for the gas phase species. Required in certain reactions */
-  gasPhaseSpeciesId?: UUID | null;
+  gasPhaseSpeciesId?: UUID | string | null;
 
   /** Optional id for the aerosol phase. Required in certain reactions */
-  aerosolPhaseId?: UUID | null;
+  aerosolPhaseId?: UUID | string | null;
 
   /** Optional id for the aerosol phase species. Required in certain reactions */
-  aerosolPhaseSpeciesId?: UUID | null;
+  aerosolPhaseSpeciesId?: UUID | string | null;
 
   /** Optional id for the aerosol phase water. Required in certain reactions */
-  aerosolPhaseWaterId?: UUID | null;
+  aerosolPhaseWaterId?: UUID | string | null;
 
   /** Determines whether the Reaction has been modified from its original state */
   isModified?: boolean;
@@ -286,23 +286,27 @@ export type Reaction = {
   isInDatabase?: boolean;
 
   /** List of reactants in the reaction */
-  reactants: Array<{
-    speciesId: UUID | string;
-    coefficient: number;
-  }>;
+  reactants: Array<Reactant>;
 
   /** List of products in the reaction. These can be part of different branches */
-  products: Array<{
-    speciesId: UUID | string;
-    coefficient: number;
-    branch?: string;
-  }>;
+  products: Array<Product>;
 
   /** Special attributes related to the reaction */
   attributes: {
     [key: string]: ReactionAttribute;
   };
 };
+
+export type Reactant = {
+  speciesId: UUID | string;
+  coefficient: number;
+}
+
+export type Product = {
+  speciesId: UUID | string;
+  coefficient: number;
+  branch?: string;
+}
 
 /**
  * Represents a generic phase on the frontend.
