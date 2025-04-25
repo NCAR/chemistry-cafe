@@ -126,6 +126,30 @@ namespace ChemistryCafeAPI.Tests
         }
 
         [TestMethod]
+        public async Task GetReactionsFromInvalidFamily()
+        {
+            var actionResult = await _reactionController.GetReactions(Guid.NewGuid());
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundObjectResult));
+        }
+
+        [TestMethod]
+        public async Task CreateReactionWithInvalidFamily()
+        {
+            var actionResult = await _reactionController.CreateReaction(_reaction, Guid.NewGuid());
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundObjectResult));
+        }
+
+        [TestMethod]
+        public async Task DeleteInvalidReaction()
+        {
+            var actionResult = await _reactionController.DeleteReaction(Guid.NewGuid());
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOfType(actionResult, typeof(NotFoundObjectResult));
+        }
+
+        [TestMethod]
         public async Task UpdateReaction()
         {
             _reaction.Name = "UPDATEDTest";

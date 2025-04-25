@@ -125,6 +125,30 @@ namespace ChemistryCafeAPI.Tests
         }
 
         [TestMethod]
+        public async Task GetPhasesFromInvalidFamily()
+        {
+            var actionResult = await _phaseController.GetPhases(Guid.NewGuid());
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundObjectResult));
+        }
+
+        [TestMethod]
+        public async Task CreatePhaseWithInvalidFamily()
+        {
+            var actionResult = await _phaseController.CreatePhase(_phase, Guid.NewGuid());
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundObjectResult));
+        }
+
+        [TestMethod]
+        public async Task DeleteInvalidPhase()
+        {
+            var actionResult = await _phaseController.DeletePhase(Guid.NewGuid());
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOfType(actionResult, typeof(NotFoundObjectResult));
+        }
+
+        [TestMethod]
         public async Task UpdatePhase()
         {
             _phase.Name = "UPDATEDTest";

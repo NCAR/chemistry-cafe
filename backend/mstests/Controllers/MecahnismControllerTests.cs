@@ -142,6 +142,14 @@ namespace ChemistryCafeAPI.Tests
         }
 
         [TestMethod]
+        public async Task DeleteInvalidMechanism()
+        {
+            var actionResult = await _mechanismController.DeleteMechanism(Guid.NewGuid());
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOfType(actionResult, typeof(NotFoundObjectResult));
+        }
+
+        [TestMethod]
         public async Task UpdateMechanism()
         {
             _mechanism.Name = "UPDATEDTest";
