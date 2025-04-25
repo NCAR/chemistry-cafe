@@ -133,6 +133,15 @@ namespace ChemistryCafeAPI.Tests
         }
 
         [TestMethod]
+        public async Task CreateMechanismWithInvalidFamily()
+        {
+            var actionResult = await _mechanismController.CreateMechanism(_mechanism, 
+                                                                          Guid.NewGuid());
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundObjectResult));
+        }
+
+        [TestMethod]
         public async Task UpdateMechanism()
         {
             _mechanism.Name = "UPDATEDTest";
