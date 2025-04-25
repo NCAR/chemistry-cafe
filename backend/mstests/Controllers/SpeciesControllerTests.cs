@@ -153,6 +153,30 @@ namespace ChemistryCafeAPI.Tests
             _species = null;
         }
 
+        [TestMethod]
+        public async Task GetSpeciesFromInvalidFamily()
+        {
+            var actionResult = await _speciesController.GetSpecies(Guid.NewGuid());
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundObjectResult));
+        }
+
+        [TestMethod]
+        public async Task CreateSpeciesWithInvalidFamily()
+        {
+            var actionResult = await _speciesController.CreateSpecies(_species, Guid.NewGuid());
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundObjectResult));
+        }
+
+        [TestMethod]
+        public async Task DeleteInvalidSpecies()
+        {
+            var actionResult = await _speciesController.DeleteSpecies(Guid.NewGuid());
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOfType(actionResult, typeof(NotFoundObjectResult));
+        }
+
         private async Task AsyncCleanup()
         {
             if (_species != null)
