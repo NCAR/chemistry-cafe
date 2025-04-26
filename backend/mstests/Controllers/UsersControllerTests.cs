@@ -21,7 +21,6 @@ namespace ChemistryCafeAPI.Tests
         static Guid _UserId;
 
         // Flags to track created data
-        static bool userCreated = false;
 
         // Test data constants
         static string _Username = string.Empty;
@@ -57,7 +56,6 @@ namespace ChemistryCafeAPI.Tests
 
             // Store the UserId for cleanup
             _UserId = user.Id;
-            userCreated = true;
 
             // Assert
             Assert.AreEqual(_Email, user.Username);
@@ -90,11 +88,6 @@ namespace ChemistryCafeAPI.Tests
             var userService = new UserService(ctx);
             var controller = new MockedUsersController(userService);
 
-            // Ensure user exists
-            if (!userCreated)
-            {
-                await SignIn_Created_User();
-            }
 
             // Act
             var result = await controller.GetUserById(_UserId);
@@ -114,12 +107,6 @@ namespace ChemistryCafeAPI.Tests
             var userService = new UserService(ctx);
             var controller = new MockedUsersController(userService);
 
-            // Ensure user exists
-            if (!userCreated)
-            {
-                await SignIn_Created_User();
-            }
-
             // Act
             var result = await controller.GetUser(_Email);
 
@@ -137,12 +124,6 @@ namespace ChemistryCafeAPI.Tests
             // Arrange
             var userService = new UserService(ctx);
             var controller = new MockedUsersController(userService);
-
-            // Ensure user exists
-            if (!userCreated)
-            {
-                await SignIn_Created_User();
-            }
 
             var updatedUser = new User
             {
@@ -175,12 +156,6 @@ namespace ChemistryCafeAPI.Tests
             var userService = new UserService(ctx);
             var controller = new MockedUsersController(userService);
 
-            // Ensure user exists
-            if (!userCreated)
-            {
-                await SignIn_Created_User();
-            }
-
             // Act
             var result = await controller.DeleteUser(_UserId);
 
@@ -191,8 +166,6 @@ namespace ChemistryCafeAPI.Tests
             var getResult = await controller.GetUserById(_UserId);
             var notFoundResult = getResult.Result as NotFoundResult;
             Assert.IsNotNull(notFoundResult);
-
-            userCreated = false; // Since it's deleted
         }
 
         [TestMethod]
@@ -233,20 +206,6 @@ namespace ChemistryCafeAPI.Tests
             // Assert
             var badRequestResult = result as BadRequestResult;
             Assert.IsNotNull(badRequestResult);
-        }
-
-        [ClassCleanup]
-        public static void ClassCleanup()
-        {
-            var ctx = DBConnection.Context;
-
-            // Delete User if it exists
-            if (userCreated)
-            {
-                var userService = new UserService(ctx);
-                var deleteTask = userService.DeleteUserAsync(_UserId, _UserId.ToString());
-                deleteTask.Wait();
-            }
         }
     }
 }

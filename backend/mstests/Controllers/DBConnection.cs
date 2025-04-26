@@ -1,9 +1,11 @@
 ﻿using MySqlConnector;
 using ChemistryCafeAPI.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ChemistryCafeAPI.Tests
 {
+    [ExcludeFromCodeCoverage]
     public class DBConnection
     {
         private static string server = Environment.GetEnvironmentVariable("MYSQL_SERVER") ?? "127.0.0.1";

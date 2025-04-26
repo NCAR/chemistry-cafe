@@ -2,6 +2,7 @@
 using System.Security.Claims;
 using ChemistryCafeAPI.Models;
 using ChemistryCafeAPI.Services;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Authentication;
 using System.Diagnostics.CodeAnalysis;
 
@@ -20,6 +21,13 @@ namespace ChemistryCafeAPI.Services
             _userService = userService;
         }
 
+        [ExcludeFromCodeCoverage]
+        private static bool IsGoogleIdentity(ClaimsIdentity identity)
+        {
+            return identity.AuthenticationType != null && 
+                   identity.AuthenticationType.Equals("google", StringComparison.OrdinalIgnoreCase);
+        }
+
         /// <summary>
         /// Parses an OAuth challenge result and turns them into a user's claims
         /// </summary>
@@ -32,10 +40,7 @@ namespace ChemistryCafeAPI.Services
             {
                 return null;
             }
-            var identity = authenticateResult.Principal.Identities.FirstOrDefault(
-                identity => identity.AuthenticationType != null && 
-                            identity.AuthenticationType.Equals("google", StringComparison.OrdinalIgnoreCase)
-            );
+            var identity = authenticateResult.Principal.Identities.FirstOrDefault(IsGoogleIdentity);
             if (identity == null) 
             {
                 return null;

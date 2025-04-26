@@ -179,10 +179,6 @@ namespace ChemistryCafeAPI.Tests
 
         private async Task AsyncCleanup()
         {
-            if (_phase != null)
-            {
-                await _phaseService.DeletePhaseAsync(_phase.Id, _nameIdentifier);
-            }
             if (_family != null)
             {
                 await _familyService.DeleteFamilyAsync(_family.Id, _nameIdentifier);

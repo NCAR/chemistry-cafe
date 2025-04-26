@@ -65,27 +65,11 @@ namespace ChemistryCafeAPI.Tests
             var familyList = okResult.Value as IEnumerable<Family>;
             Assert.IsNotNull(familyList);
 
-            foreach (var family in familyList)
-            {
-                if (family.Name == _Name)
-                {
-                    Console.WriteLine($"Test family already found in DB: ID: {family.Id}, Name: {family.Name}");
-                    _Id = family.Id;
-                    found = true;
-                    break;
-                }
-            }
         }
 
         [TestMethod]
         public async Task Creates_Family()
         {
-            if (found)
-            {
-                Console.WriteLine("Duplicate test family. Skipping creation.");
-                Assert.Inconclusive("Test family already exists.");
-            }
-
             // Arrange
             var controller = await CreateSignedInController();
 

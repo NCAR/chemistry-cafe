@@ -180,10 +180,6 @@ namespace ChemistryCafeAPI.Tests
 
         private async Task AsyncCleanup()
         {
-            if (_mechanism != null)
-            {
-                await _mechanismService.DeleteMechanismAsync(_mechanism.Id, _nameIdentifier);
-            }
             if (_family != null)
             {
                 await _familyService.DeleteFamilyAsync(_family.Id, _nameIdentifier);
