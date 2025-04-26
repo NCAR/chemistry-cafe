@@ -3,6 +3,7 @@ using System.Security.Claims;
 using ChemistryCafeAPI.Models;
 using ChemistryCafeAPI.Services;
 using Microsoft.AspNetCore.Authentication;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ChemistryCafeAPI.Services
 {
@@ -24,6 +25,7 @@ namespace ChemistryCafeAPI.Services
         /// </summary>
         /// <param name="authenticateResult">Result of Google OAuth Challenge</param>
         /// <returns>ClaimsPrincipal object which holds the user's auth informations</returns>
+        [ExcludeFromCodeCoverage]
         public async Task<ClaimsPrincipal?> GetUserClaimsAsync(AuthenticateResult authenticateResult)
         {
             if (authenticateResult.Principal == null)

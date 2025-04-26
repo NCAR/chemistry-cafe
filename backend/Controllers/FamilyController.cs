@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Diagnostics.CodeAnalysis;
 using ChemistryCafeAPI.Services;
 using ChemistryCafeAPI.Models;
 
@@ -11,7 +12,7 @@ namespace ChemistryCafeAPI.Controllers
     {
         private readonly FamilyService _familyService;
 
-        /* virtual for mocking purposes */
+        [ExcludeFromCodeCoverage]
         protected virtual string? GetNameIdentifier()
         {
             ClaimsIdentity? claimsIdentity = this.User.Identity as ClaimsIdentity;

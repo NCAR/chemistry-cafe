@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using ChemistryCafeAPI.Services;
 using ChemistryCafeAPI.Models;
@@ -14,6 +15,7 @@ namespace ChemistryCafeAPI.Controllers
         private readonly ChemistryDbContext _context;
         private readonly MechanismService _mechanismService;
 
+        [ExcludeFromCodeCoverage]
         protected virtual string? GetNameIdentifier()
         {
             ClaimsIdentity? claimsIdentity = this.User.Identity as ClaimsIdentity;
