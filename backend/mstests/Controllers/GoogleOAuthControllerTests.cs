@@ -69,5 +69,16 @@ namespace ChemistryCafeAPI.Tests
             User? user = okResult.Value as User;
             Assert.IsNull(user);
         }
+        
+        [TestMethod]
+        public async Task LoginLogoutNonnull()
+        {
+            var userService = new UserService(ctx);
+            var googleService = new GoogleOAuthService(userService);
+            var googleController = new MockedGoogleOAuthController(googleService, userService);
+            Assert.IsNotNull(googleController.LoginRedirect());
+            Assert.IsNotNull(googleController.Logout(null));
+            Assert.IsNotNull(googleController.Logout("www.google.com"));
+        }
     }
 }
