@@ -23,7 +23,8 @@ namespace ChemistryCafeAPI.Tests
         // Flags to track created data
 
         // Test data constants
-        static string _Username = string.Empty;
+        static string _Username = "";
+        static string _GoogleId = "";
         const string _Role = "TestRole";
         const string _Email = "testuser@example.com";
         static DateTime _CreatedDate = DateTime.UtcNow;
@@ -58,6 +59,7 @@ namespace ChemistryCafeAPI.Tests
         public static void ClassInit(TestContext context)
         {
             _Username = "TestUser_" + Guid.NewGuid().ToString();
+            _GoogleId = Guid.NewGuid().ToString();
         }
 
         [TestMethod]
@@ -67,8 +69,7 @@ namespace ChemistryCafeAPI.Tests
             var userService = new UserService(ctx);
 
             //Act
-            var googleID = System.Guid.NewGuid().ToString();
-            var user = await userService.SignIn(googleID, _Email);
+            var user = await userService.SignIn(_GoogleId, _Email);
 
             // Store the UserId for cleanup
             _UserId = user.Id;
@@ -76,7 +77,7 @@ namespace ChemistryCafeAPI.Tests
             // Assert
             Assert.AreEqual(_Email, user.Username);
             Assert.AreEqual(_Email, user.Email);
-            Assert.AreEqual(googleID, user.GoogleId);
+            Assert.AreEqual(_GoogleId, user.GoogleId);
         }
 
         [TestMethod]
@@ -135,6 +136,14 @@ namespace ChemistryCafeAPI.Tests
         }
 
         [TestMethod]
+        public async Task GetUserByGoogleIdAsync()
+        {
+            var service = new UserService(ctx);
+            var user = await service.GetUserByGoogleIdAsync(_GoogleId);
+            Assert.IsNotNull(user);
+        }
+
+        [TestMethod]
         public async Task GetUserByInvalidEmail()
         {
             var userService = new UserService(ctx);
@@ -154,10 +163,65 @@ namespace ChemistryCafeAPI.Tests
                 Username = _Username,
                 Role = _Role,
                 Email = _Email,
-                CreatedDate = _CreatedDate
+                CreatedDate = _CreatedDate,
+                GoogleId = _GoogleId
             };
             var result = await controller.UpdateUser(updatedUser.Id, updatedUser);
             Assert.IsInstanceOfType(result, typeof(NotFoundObjectResult));
+        }
+
+        [TestMethod]
+        public async Task UpdateUserSignedUserNotFound()
+        {
+            var userService = new UserService(ctx);
+            var controller = new NameController(userService, Guid.NewGuid().ToString());
+            var updatedUser = new User
+            {
+                Id = _UserId,
+                Username = _Username,
+                Role = _Role,
+                Email = _Email,
+                CreatedDate = _CreatedDate,
+                GoogleId = _GoogleId
+            };
+            var result = await controller.UpdateUser(updatedUser.Id, updatedUser);
+            Assert.IsInstanceOfType(result, typeof(NotFoundObjectResult));
+        }
+
+        [TestMethod]
+        public async Task UpdateUserAdmin()
+        {
+            var admin = new User
+            {
+                Id = Guid.NewGuid(),
+                Username = "AdminTestUser",
+                Role = "admin",
+                Email = "admin@admin.com",
+                CreatedDate = DateTime.UtcNow,
+                GoogleId = "ADMIN-GOOGLE-ID"
+            };
+            ctx.Users.Add(admin);
+            await ctx.SaveChangesAsync();
+            var userService = new UserService(ctx);
+            var controller = new NameController(userService, admin.Id.ToString());
+            var updatedUser = new User
+            {
+                Id = _UserId,
+                Username = _Username,
+                Role = "NewRole",
+                Email = _Email,
+                CreatedDate = _CreatedDate,
+                GoogleId = _GoogleId
+            };
+            var result = await controller.UpdateUser(updatedUser.Id, updatedUser);
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            var getResult = await controller.GetUserById(_UserId);
+            var okResult = getResult.Result as OkObjectResult;
+            Assert.IsNotNull(okResult);
+            var user = okResult.Value as User;
+            Assert.IsNotNull(user);
+            Assert.AreEqual(user.Role, updatedUser.Role);
+            await controller.DeleteUser(admin.Id);
         }
 
         [TestMethod]
