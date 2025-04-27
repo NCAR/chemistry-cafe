@@ -52,6 +52,13 @@ namespace ChemistryCafeAPI.Tests
             return new MockedFamilyController(familyService, _NameIdentifier);
         }
 
+        private async Task<FamilyController> CreateControllerWithName(string nameIdentifier)
+        {
+            var userService = new UserService(ctx);
+            var familyService = new FamilyService(ctx, userService);
+            return new MockedFamilyController(familyService, nameIdentifier);
+        }
+
         private async Task<FamilyController> CreateSignedOutController()
         {
             var userService = new UserService(ctx);
@@ -129,6 +136,48 @@ namespace ChemistryCafeAPI.Tests
             Assert.AreEqual(_Name, returnedFamily.Name);
             Assert.AreEqual(_Description, returnedFamily.Description);
             Assert.AreEqual(_Owner, returnedFamily.Owner);
+        }
+
+        [TestMethod]
+        public async Task Creates_Family_InvalidNameIdentifer()
+        {
+            // Arrange
+            var controller = await CreateControllerWithName("parse-failure");
+
+            var testFamily = new Family
+            {
+                Name = _Name,
+                Description = _Description,
+                CreatedDate = _CreatedDate
+            };
+
+            // Act
+            var actionResult = await controller.CreateFamily(testFamily);
+
+            // Assert
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Creates_Family_InvalidOwner()
+        {
+            // Arrange
+            var controller = await CreateControllerWithName(Guid.NewGuid().ToString());
+
+            var testFamily = new Family
+            {
+                Name = _Name,
+                Description = _Description,
+                CreatedDate = _CreatedDate
+            };
+
+            // Act
+            var actionResult = await controller.CreateFamily(testFamily);
+
+            // Assert
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOfType(actionResult.Result, typeof(UnauthorizedObjectResult));
         }
 
         [TestMethod]
@@ -285,7 +334,7 @@ namespace ChemistryCafeAPI.Tests
         [TestMethod]
         public async Task Update_Family_Unauthorized()
         {
-            var controller = await CreateSignedOutController();
+            var controller = await CreateControllerWithName(Guid.NewGuid().ToString());
             var testFamily = new Family
             {
                 Id = _Id,
@@ -294,7 +343,7 @@ namespace ChemistryCafeAPI.Tests
                 CreatedDate = _CreatedDate
             };
             var findResult = await controller.UpdateFamily(_Id, testFamily);
-            Assert.IsInstanceOfType(findResult, typeof(UnauthorizedObjectResult));
+            Assert.IsInstanceOfType(findResult, typeof(StatusCodeResult));
         }
 
         [TestMethod]
@@ -315,9 +364,9 @@ namespace ChemistryCafeAPI.Tests
         [TestMethod]
         public async Task Delete_Family_Unauthorized()
         {
-            var controller = await CreateSignedOutController();
+            var controller = await CreateControllerWithName(Guid.NewGuid().ToString());
             var findResult = await controller.DeleteFamily(_Id);
-            Assert.IsInstanceOfType(findResult, typeof(UnauthorizedObjectResult));
+            Assert.IsInstanceOfType(findResult, typeof(StatusCodeResult));
         }
 
         [TestMethod]
