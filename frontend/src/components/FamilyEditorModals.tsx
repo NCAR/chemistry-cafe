@@ -632,6 +632,7 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
             color="primary"
             id="reaction-name"
             label="Name"
+            defaultValue={reaction?.name ?? ""}
             onChange={(event) => {
               changeReactionProperties({
                 name: event.target.value,
@@ -645,6 +646,7 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
             color="primary"
             id="family-description"
             label="Description"
+            defaultValue={reaction?.description ?? ""}
             multiline
             minRows={2}
             maxRows={4}

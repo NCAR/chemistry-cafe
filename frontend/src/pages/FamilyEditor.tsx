@@ -1046,7 +1046,7 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
         <Typography color="textPrimary" variant="h4">
           Chemical Species
         </Typography>
-        <Tooltip title="Chemical species are forms of a specific chemical entity. They can be named anything as long as it is clear what it represents. For example, a chemical species may be represented as either 'O' or 'Ozone'.">
+        <Tooltip title="Chemical species are forms of a specific chemical entity. They can be named anything as long as it is clear what it represents. For example, a chemical species may be represented as either 'O3' or 'Ozone'.">
           <HelpOutlineIcon />
         </Tooltip>
       </Box>
