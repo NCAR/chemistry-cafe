@@ -283,6 +283,52 @@ namespace ChemistryCafeAPI.Tests
         }
 
         [TestMethod]
+        public async Task Update_Family_Unauthorized()
+        {
+            var controller = await CreateSignedOutController();
+            var testFamily = new Family
+            {
+                Id = _Id,
+                Name = _Name,
+                Description = _Description,
+                CreatedDate = _CreatedDate
+            };
+            var findResult = await controller.UpdateFamily(_Id, testFamily);
+            Assert.IsInstanceOfType(findResult, typeof(UnauthorizedObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Update_Family_NotExist()
+        {
+            var controller = await CreateSignedInController();
+            var testFamily = new Family
+            {
+                Id = Guid.NewGuid(),
+                Name = _Name,
+                Description = _Description,
+                CreatedDate = _CreatedDate
+            };
+            var findResult = await controller.UpdateFamily(testFamily.Id, testFamily);
+            Assert.IsInstanceOfType(findResult, typeof(NotFoundObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Delete_Family_Unauthorized()
+        {
+            var controller = await CreateSignedOutController();
+            var findResult = await controller.DeleteFamily(_Id);
+            Assert.IsInstanceOfType(findResult, typeof(UnauthorizedObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Delete_Family_NotExist()
+        {
+            var controller = await CreateSignedInController();
+            var findResult = await controller.DeleteFamily(Guid.NewGuid());
+            Assert.IsInstanceOfType(findResult, typeof(NotFoundObjectResult));
+        }
+
+        [TestMethod]
         public async Task Delete_Family()
         {
             // Arrange
