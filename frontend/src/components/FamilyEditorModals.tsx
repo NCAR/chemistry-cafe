@@ -425,9 +425,9 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
 
                         // Removes up and down arrows for number
                         "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                          {
-                            display: "none",
-                          },
+                        {
+                          display: "none",
+                        },
                         "& input[type=number]": {
                           MozAppearance: "textfield",
                         },
@@ -579,7 +579,6 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
   const [defaultAttributes, setDefaultAttributes] = useState<
     Array<ReactionAttribute>
   >([]);
-  const [showAlert, setShowAlert] = useState<boolean>(false);
 
   const changeReactionProperties = (properties: Partial<Reaction>) => {
     setModifiedReaction({
@@ -604,11 +603,6 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
   }, [reaction]);
 
   const handleUpdateReaction = () => {
-    if (!modifiedReaction?.name) {
-      setShowAlert(true);
-      return;
-    }
-
     if (!modifiedReaction) {
       return;
     }
@@ -616,8 +610,6 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
     onUpdate(modifiedReaction);
     onClose();
   };
-
-  const handleAlertClose = () => setShowAlert(false);
 
   return (
     <div>
@@ -640,7 +632,6 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
             color="primary"
             id="reaction-name"
             label="Name"
-            required={true}
             onChange={(event) => {
               changeReactionProperties({
                 name: event.target.value,
@@ -682,12 +673,15 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
               const attributes = getReactionAttributes(
                 event.target.value as ReactionTypeName,
               );
+
               let reactionAttributes: {
                 [key: string]: ReactionAttribute;
               } = {};
+
               for (const attribute of attributes) {
                 reactionAttributes[attribute.serializationKey] = attribute;
               }
+
               changeReactionProperties({
                 type: event.target.value as ReactionTypeName,
                 attributes: reactionAttributes,
@@ -972,9 +966,9 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
                     width: "100%",
                     // Removes up and down arrows for number
                     "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                      {
-                        display: "none",
-                      },
+                    {
+                      display: "none",
+                    },
                     "& input[type=number]": {
                       MozAppearance: "textfield",
                     },
@@ -1048,21 +1042,6 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
           </Box>
         </Box>
       </Modal>
-      <Snackbar
-        open={showAlert}
-        autoHideDuration={5000}
-        onClose={handleAlertClose}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert
-          onClose={handleAlertClose}
-          severity="warning"
-          variant="filled"
-          sx={{ width: "100%" }}
-        >
-          Name must not be empty!
-        </Alert>
-      </Snackbar>
     </div>
   );
 };

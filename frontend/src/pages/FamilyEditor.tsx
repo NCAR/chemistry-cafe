@@ -1189,6 +1189,27 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       },
     },
     {
+      field: "id",
+      headerName: "Equation",
+      flex: 1,
+      renderCell: (params: GridRenderCellParams<Family>) => (
+        <Typography
+          variant="body1"
+          sx={{
+            color: params.value
+              ? theme.palette.text.primary
+              : theme.palette.text.disabled,
+          }}
+          noWrap
+        >
+          {reactionToString(
+            family.reactions.find((e) => e.id == params.value),
+            family.species,
+          )}
+        </Typography>
+      ),
+    },
+    {
       field: "name",
       headerName: "Name",
       type: "string",
@@ -1241,27 +1262,6 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
           noWrap
         >
           {reactionTypeToString(params.value as ReactionTypeName)}
-        </Typography>
-      ),
-    },
-    {
-      field: "id",
-      headerName: "Equation",
-      flex: 1,
-      renderCell: (params: GridRenderCellParams<Family>) => (
-        <Typography
-          variant="body1"
-          sx={{
-            color: params.value
-              ? theme.palette.text.primary
-              : theme.palette.text.disabled,
-          }}
-          noWrap
-        >
-          {reactionToString(
-            family.reactions.find((e) => e.id == params.value),
-            family.species,
-          )}
         </Typography>
       ),
     },
