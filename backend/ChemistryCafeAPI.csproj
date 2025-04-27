@@ -15,6 +15,7 @@
     <IsTestProject>true</IsTestProject>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <StartupObject>Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>

@@ -4,7 +4,6 @@ using ChemistryCafeAPI.Models;
 using ChemistryCafeAPI.Services;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Authentication;
-using System.Diagnostics.CodeAnalysis;
 
 namespace ChemistryCafeAPI.Services
 {
