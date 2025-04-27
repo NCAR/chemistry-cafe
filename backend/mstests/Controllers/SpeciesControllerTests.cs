@@ -129,6 +129,24 @@ namespace ChemistryCafeAPI.Tests
         {
             _species.Name = "UPDATEDTest";
             _species.Description = "UPDATEDDesc";
+            _species.NumericalAttributes.Add(
+                new SpeciesNumericalAttribute
+                {
+                    SpeciesId = _species.Id,
+                    Species = _species,
+                    SerializationKey = "test-numerical-serial-key",
+                    Value = 10000
+                }
+            );
+            _species.StringAttributes.Add(
+                new SpeciesStringAttribute
+                {
+                    SpeciesId = _species.Id,
+                    Species = _species,
+                    SerializationKey = "test-string-serial-key",
+                    Value = "test-value"
+                }
+            );
             var actionResult = await _speciesController.UpdateSpecies(_species.Id, _species);
             Assert.IsNotNull(actionResult);
             Assert.IsInstanceOfType(actionResult.Result, typeof(OkObjectResult));
