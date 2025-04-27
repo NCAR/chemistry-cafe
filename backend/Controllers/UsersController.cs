@@ -76,8 +76,6 @@ namespace ChemistryCafeAPI.Controllers
             var result = await _userService.UpdateUserAsync(user, nameIdentifier);
             switch (result)
             {
-                case QueryResult.Success:
-                    return NoContent();
                 case QueryResult.NotFound:
                     return NotFound("Either the principal user or user being updated were not found");
                 case QueryResult.NoAccess:

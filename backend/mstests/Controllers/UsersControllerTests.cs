@@ -254,9 +254,10 @@ namespace ChemistryCafeAPI.Tests
         public async Task DeleteUserNotFound()
         {
             var userService = new UserService(ctx);
-            var controller = new MockedUsersController(userService);
-            var result = await controller.DeleteUser(Guid.NewGuid());
-            Assert.IsInstanceOfType(result, typeof(StatusCodeResult));
+            var id = Guid.NewGuid();
+            var controller = new NameController(userService, id.ToString());
+            var result = await controller.DeleteUser(id);
+            Assert.IsInstanceOfType(result, typeof(NotFoundObjectResult));
         }
 
         [TestMethod]
