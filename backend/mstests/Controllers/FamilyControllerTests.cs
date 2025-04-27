@@ -29,13 +29,17 @@ namespace ChemistryCafeAPI.Tests
 
         private class MockedFamilyController : FamilyController 
         {
-            public MockedFamilyController(FamilyService service) : base(service) 
+            private string nameIdentifier;
+
+            public MockedFamilyController(FamilyService service, string identifer) 
+                : base(service) 
             {
+                nameIdentifier = identifer;
             }
 
             protected override string? GetNameIdentifier() 
             {
-                return _NameIdentifier;
+                return nameIdentifier;
             }
         }
 
@@ -45,7 +49,14 @@ namespace ChemistryCafeAPI.Tests
             _Owner = await userService.SignIn(_GoogleId, _Email);
             _NameIdentifier = _Owner.Id.ToString();
             var familyService = new FamilyService(ctx, userService);
-            return new MockedFamilyController(familyService);
+            return new MockedFamilyController(familyService, _NameIdentifier);
+        }
+
+        private async Task<FamilyController> CreateSignedOutController()
+        {
+            var userService = new UserService(ctx);
+            var familyService = new FamilyService(ctx, userService);
+            return new MockedFamilyController(familyService, null);
         }
 
         [TestMethod]
@@ -99,6 +110,69 @@ namespace ChemistryCafeAPI.Tests
             Assert.AreEqual(_Name, returnedFamily.Name);
             Assert.AreEqual(_Description, returnedFamily.Description);
             Assert.AreEqual(_Owner, returnedFamily.Owner);
+        }
+
+        [TestMethod]
+        public async Task Creates_Family_NameIdentifierNull()
+        {
+            // Arrange
+            var controller = await CreateSignedOutController();
+
+            var testFamily = new Family
+            {
+                Name = _Name,
+                Description = _Description,
+                CreatedDate = _CreatedDate
+            };
+
+            // Act
+            var actionResult = await controller.CreateFamily(testFamily);
+
+            // Assert
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOfType(actionResult.Result, typeof(UnauthorizedObjectResult));
+        }
+
+        public async Task Updates_Family_NameIdentifierNull()
+        {
+            // Arrange
+            var controller = await CreateSignedOutController();
+
+            var testFamily = new Family
+            {
+                Id = _Id,
+                Name = _Name,
+                Description = _Description,
+                CreatedDate = _CreatedDate
+            };
+
+            // Act
+            var actionResult = await controller.UpdateFamily(_Id, testFamily);
+
+            // Assert
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOfType(actionResult, typeof(UnauthorizedObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Delete_Family_NameIdentifierNull()
+        {
+            // Arrange
+            var controller = await CreateSignedOutController();
+
+            var testFamily = new Family
+            {
+                Name = _Name,
+                Description = _Description,
+                CreatedDate = _CreatedDate
+            };
+
+            // Act
+            var actionResult = await controller.DeleteFamily(_Id);
+
+            // Assert
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOfType(actionResult, typeof(UnauthorizedObjectResult));
         }
 
         [TestMethod]
