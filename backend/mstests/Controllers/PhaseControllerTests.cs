@@ -174,7 +174,33 @@ namespace ChemistryCafeAPI.Tests
             await _phaseController.DeletePhase(_phase.Id);
             var actionResult = await _phaseController.GetPhase(_phase.Id);
             Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundObjectResult));
-            _phase = null;
+        }
+
+        [TestMethod]
+        public async Task CreatePhaseNullNameIdentifer()
+        {
+            _nameIdentifier = null;
+            var result = await _phaseController.CreatePhase(_phase, _family.Id);
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(UnauthorizedObjectResult));
+        }
+
+        [TestMethod]
+        public async Task UpdatePhaseNullNameIdentifer()
+        {
+            _nameIdentifier = null;
+            var result = await _phaseController.UpdatePhase(_phase.Id, _phase); 
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(UnauthorizedObjectResult));
+        }
+
+        [TestMethod]
+        public async Task DeletePhaseNullNameIdentifer()
+        {
+            _nameIdentifier = null;
+            var result = await _phaseController.DeletePhase(_phase.Id); 
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result, typeof(UnauthorizedObjectResult));
         }
 
         private async Task AsyncCleanup()
