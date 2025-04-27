@@ -34,11 +34,7 @@ namespace ChemistryCafeAPI.Controllers
             var (result, mechanismCollection) = await _mechanismService.GetAllMechanismsAsync(familyId);
             if (mechanismCollection == null)
             {
-                return result switch
-                {
-                    QueryResult.ParentRelationNotFound => NotFound($"Family with id '{familyId}' was not found in the database."),
-                    _ => StatusCode(StatusCodes.Status500InternalServerError),
-                };
+                return NotFound($"Family with id '{familyId}' was not found in the database.");
             }
 
             return Ok(mechanismCollection);
@@ -51,11 +47,7 @@ namespace ChemistryCafeAPI.Controllers
 
             if (mechanism == null)
             {
-                return result switch
-                {
-                    QueryResult.NotFound => NotFound($"Mechanism with id '{id}' was not found in the database."),
-                    _ => StatusCode(StatusCodes.Status500InternalServerError),
-                };
+                return NotFound($"Mechanism with id '{id}' was not found in the database.");
             }
 
             return Ok(mechanism);

@@ -175,7 +175,33 @@ namespace ChemistryCafeAPI.Tests
             await _mechanismController.DeleteMechanism(_mechanism.Id);
             var actionResult = await _mechanismController.GetMechanism(_mechanism.Id);
             Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundObjectResult));
-            _mechanism = null;
+        }
+
+        [TestMethod]
+        public async Task CreateMechanismNullNameIdentifer()
+        {
+            _nameIdentifier = null;
+            var result = await _mechanismController.CreateMechanism(_mechanism, _family.Id);
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(UnauthorizedObjectResult));
+        }
+
+        [TestMethod]
+        public async Task UpdateMechanismNullNameIdentifer()
+        {
+            _nameIdentifier = null;
+            var result = await _mechanismController.UpdateMechanism(_mechanism.Id, _mechanism); 
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(UnauthorizedObjectResult));
+        }
+
+        [TestMethod]
+        public async Task DeleteMechanismNullNameIdentifer()
+        {
+            _nameIdentifier = null;
+            var result = await _mechanismController.DeleteMechanism(_mechanism.Id); 
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result, typeof(UnauthorizedObjectResult));
         }
 
         private async Task AsyncCleanup()
