@@ -17,7 +17,6 @@ import {
   ListItemIcon,
   Menu,
   MenuItem,
-  Modal,
   Paper,
   Snackbar,
   styled,
@@ -55,13 +54,14 @@ import { useCustomTheme } from "../components/CustomThemeContext";
 import {
   ConfirmActionModal,
   FamilyCreationModal,
+  ImportFamilyModal,
   MechanismCreationModal,
   ReactionEditorModal,
   SpeciesEditorModal,
 } from "../components/FamilyEditorModals";
 import { reactionToString, reactionTypeToString } from "../helpers/stringify";
 import { UUID } from "crypto";
-import { getAllFamilies, getFamily } from "../API/API_GetMethods";
+import { getFamily } from "../API/API_GetMethods";
 import {
   apiToFrontendFamily,
   saveFamilyChanges,
@@ -74,10 +74,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import { useAuth } from "../components/AuthContext";
 import { deleteFamily } from "../API/API_DeleteMethods";
 import { APIFamily } from "../API/API_Interfaces";
-import FamilyBrowser from "../components/FamilyBrowser";
 import {
-  addFamilyLocally,
-  cloneFamily,
   generateFrontendID,
   updateLocalStorageFamilyInfo,
 } from "../helpers/localFamilies";
@@ -98,7 +95,6 @@ const FamilyPage = () => {
   const [familyCreationModalOpen, setFamilyCreationModalOpen] =
     useState<boolean>(false);
   const [selectedFamilyId, setSelectedFamilyId] = useState<string>("");
-  const [importChoices, setImportChoices] = useState<Array<APIFamily>>(); // Used when user attempts to import families
   const [openImportMenu, setOpenImportMenu] = useState<boolean>(false); // Used when user attempts to import families
   const { user } = useAuth();
   const currentMenuName = useRef<string>(DataViewSelection.Default);
@@ -390,18 +386,7 @@ const FamilyPage = () => {
               </Tooltip>
               <AddFamilyButton
                 handleCreateButtonClick={() => setFamilyCreationModalOpen(true)}
-                handleImportButtonClick={async () => {
-                  const allFamilies = await getAllFamilies();
-                  setImportChoices(
-                    allFamilies.filter(
-                      (apiFamily) =>
-                        !families?.find(
-                          (localFamily) => localFamily.id == apiFamily.id,
-                        ),
-                    ),
-                  );
-                  setOpenImportMenu(true);
-                }}
+                handleImportButtonClick={async () => setOpenImportMenu(true)}
               />
             </Box>
           </Paper>
@@ -499,70 +484,13 @@ const FamilyPage = () => {
       <FamilyCreationModal
         open={familyCreationModalOpen}
         onClose={() => setFamilyCreationModalOpen(false)}
-        onCreation={createFamily}
+        onSubmit={createFamily}
       />
-      <Modal open={openImportMenu} onClose={() => setOpenImportMenu(false)}>
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            minWidth: "50%",
-            maxHeight: "85%",
-            overflowY: "auto",
-            bgcolor: "background.paper",
-            border: "2px solid #000",
-            boxShadow: 24,
-            p: 4,
-            display: "flex",
-            flexDirection: "column",
-            rowGap: "0.7em",
-          }}
-        >
-          {importChoices?.length === 0 ? (
-            <Typography color="textPrimary">
-              No editable families found.
-            </Typography>
-          ) : (
-            <FamilyBrowser
-              families={importChoices}
-              handleEditButtonClick={(familyId) => {
-                getFamily(familyId)
-                  .then((family: APIFamily) => {
-                    setFamilies([
-                      apiToFrontendFamily(family),
-                      ...(families ?? []),
-                    ]);
-                  })
-                  .catch((err) => {
-                    console.error(
-                      `An error occurred while importing with id ${familyId}`,
-                      err,
-                    );
-                    alert("An error occurred while importing a family");
-                  });
-                setOpenImportMenu(false);
-              }}
-              handleCloneButtonClick={(id) => {
-                getFamily(id)
-                  .then((family) => {
-                    const clonedFamily = cloneFamily(
-                      apiToFrontendFamily(family),
-                    );
-                    addFamilyLocally(clonedFamily);
-                    setFamilies([clonedFamily, ...(families ?? [])]);
-                  })
-                  .catch((err) => {
-                    console.error("An issue occurred cloning the family:", err);
-                    alert("An issue occurred cloning the family");
-                  });
-                setOpenImportMenu(false);
-              }}
-            />
-          )}
-        </Box>
-      </Modal>
+      <ImportFamilyModal
+        open={openImportMenu}
+        onClose={() => setOpenImportMenu(false)}
+        onSubmit={createFamily}
+      />
       {loading && (
         <CircularProgress
           sx={{
@@ -1350,8 +1278,22 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
 };
 
 export const PhaseView = ({ family }: ViewProps) => {
+  const { theme } = useCustomTheme();
+
+  const phaseColumns: GridColDef[] = [
+    {
+      field: "name",
+    }
+  ]
+
   return (
-    <Box>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+      }}
+    >
       <Box
         sx={{
           paddingTop: "0.5em",
@@ -1374,6 +1316,27 @@ export const PhaseView = ({ family }: ViewProps) => {
         Phases are currently a work in progress. Everything is assumed to be in
         a gas phase.
       </Typography>
+      <DataGrid
+        initialState={{ density: "compact" }}
+        rows={family.phases.filter((element) => !element.isDeleted)}
+        columns={phaseColumns}
+        pageSizeOptions={[5, 10, 20, 100]}
+        disableVirtualization
+        sx={{
+          flex: 1,
+          ".MuiDataGrid-columnHeaderTitle": {
+            fontFamily: theme.typography.fontFamily,
+          },
+          ".MuiDataGrid-overlay": {
+            fontFamily: theme.typography.fontFamily,
+          },
+        }}
+        slots={{
+          toolbar: () => (
+            <DataViewToolbar />
+          ),
+        }}
+      />
     </Box>
   );
 };
@@ -1484,7 +1447,7 @@ export const MechanismsView = ({ family, updateFamily }: ViewProps) => {
       <MechanismCreationModal
         open={mechanismCreationModalOpen}
         onClose={() => setMechanismCreationModalOpen(false)}
-        onCreation={createMechanism}
+        onSubmit={createMechanism}
       />
     </Box>
   );

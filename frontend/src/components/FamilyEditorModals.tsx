@@ -35,6 +35,7 @@ import WarningIcon from "@mui/icons-material/Warning";
 import { SelectSpeciesButton } from "./SelectSpeciesButton";
 import { useAuth } from "./AuthContext";
 import { generateFrontendID } from "../helpers/localFamilies";
+import CAMPFileUpload from "./CAMPFileUpload";
 
 const modalStyle: SxProps<Theme> = {
   position: "absolute" as const,
@@ -56,13 +57,13 @@ const modalStyle: SxProps<Theme> = {
 type FamilyCreationModalProps = {
   open: boolean;
   onClose: () => void;
-  onCreation: (family: Family) => void;
+  onSubmit: (family: Family) => void;
 };
 
 export const FamilyCreationModal: React.FC<FamilyCreationModalProps> = ({
   open,
   onClose,
-  onCreation,
+  onSubmit,
 }) => {
   const familyName = useRef<string>("");
   const familyDescription = useRef<string>("");
@@ -84,13 +85,18 @@ export const FamilyCreationModal: React.FC<FamilyCreationModalProps> = ({
       owner: user,
       species: [],
       reactions: [],
-      phases: [],
+      phases: [{
+        id: generateFrontendID(),
+        name: "gas",
+        description: null,
+        speciesIds: []
+      }],
       mechanisms: [],
       isModified: false,
       isDeleted: false,
       isInDatabase: false,
     };
-    onCreation(family);
+    onSubmit(family);
     familyName.current = "";
     familyDescription.current = "";
   };
@@ -189,13 +195,13 @@ export const FamilyCreationModal: React.FC<FamilyCreationModalProps> = ({
 type MechanismCreationModalProps = {
   open: boolean;
   onClose: () => void;
-  onCreation: (mechanism: Mechanism) => void;
+  onSubmit: (mechanism: Mechanism) => void;
 };
 
 export const MechanismCreationModal: React.FC<MechanismCreationModalProps> = ({
   open,
   onClose,
-  onCreation,
+  onSubmit,
 }) => {
   const mechanismName = useRef<string>("");
   const mechanismDescription = useRef<string>("");
@@ -220,7 +226,7 @@ export const MechanismCreationModal: React.FC<MechanismCreationModalProps> = ({
       phaseIds: [],
     };
 
-    onCreation(mechanism);
+    onSubmit(mechanism);
     mechanismName.current = "";
     mechanismDescription.current = "";
   };
@@ -868,10 +874,8 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                     if (!modifiedReaction) {
                       return true;
                     }
-                    for (const reactant of modifiedReaction?.reactants) {
-                      if (reactant.speciesId === species.id) {
-                        return false;
-                      }
+                    if (species.isDeleted || modifiedReaction.reactants.find(e => e.speciesId == species.id)) {
+                      return false;
                     }
                     return true;
                   })}
@@ -1040,10 +1044,8 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                     if (!modifiedReaction) {
                       return true;
                     }
-                    for (const product of modifiedReaction?.products) {
-                      if (product.speciesId === species.id) {
-                        return false;
-                      }
+                    if (species.isDeleted || modifiedReaction.products.find(e => e.speciesId == species.id)) {
+                      return false;
                     }
                     return true;
                   })}
@@ -1326,3 +1328,84 @@ export const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({
     </Modal>
   );
 };
+
+type ImportFamilyModalProps = {
+  open: boolean;
+  onClose: () => void;
+  onSubmit: (family: Family) => any;
+}
+
+export const ImportFamilyModal: React.FC<ImportFamilyModalProps> = ({ open, onClose, onSubmit }) => {
+  const [family, setFamily] = useState<Family | null>(null);
+
+  const onFileParse = (uploadedFamily: Family | null) => {
+    console.log(uploadedFamily);
+    setFamily(uploadedFamily)
+    if (!uploadedFamily) {
+      alert("Could not parse input file");
+    }
+  }
+
+
+  return (
+    <Modal open={open} onClose={() => {
+      setFamily(null);
+      onClose();
+    }}>
+      <Box
+        sx={{
+          ...modalStyle,
+          width: "60%",
+          maxHeight: "80%",
+          overflowY: "auto",
+        }}
+        role="menu"
+        component="div"
+      >
+        <CAMPFileUpload
+          onFileParse={onFileParse}
+        />
+        {
+          family &&
+          <Typography>Family Info:</Typography>
+        }
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "row",
+            columnGap: "1em",
+          }}
+        >
+          <Button
+            sx={{
+              flex: 1,
+            }}
+            aria-label="Create Family"
+            color="primary"
+            variant="contained"
+            disabled={!family}
+            onClick={() => {
+              if (!family) {
+                alert("Cannnot create null family");
+                return;
+              }
+              onSubmit(family);
+            }}
+          >
+            Create new Family
+          </Button>
+          <Button
+            sx={{
+              flex: 1,
+            }}
+            aria-label="Cancel Family Creation"
+            variant="outlined"
+            onClick={onClose}
+          >
+            Cancel
+          </Button>
+        </Box>
+      </Box>
+    </Modal>
+  )
+}

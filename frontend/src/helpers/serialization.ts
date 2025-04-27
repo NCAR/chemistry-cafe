@@ -1,15 +1,68 @@
-import { Family, Mechanism, Reaction, Species } from "../types/chemistryModels";
+import { Family, Mechanism, Phase, Reactant, Reaction, ReactionTypeName, Species } from "../types/chemistryModels";
 import * as YAML from "yaml";
 import JSZip from "jszip";
+import { generateFrontendID } from "./localFamilies";
 
 //////////////////////
 // V1 CONFIGURATION //
 //////////////////////
 
+type campV1Versions = "1.0.0";
+const supportedV1Versions: Array<campV1Versions> = ["1.0.0"];
+
+type serializedCampV1Species = {
+  [key: string]: number | string;
+  name: string;
+}
+
+type serializedCampV1Phase = {
+  name: string;
+  species: Array<string>;
+}
+
+type serializedCampV1Reaction = {
+  [key: string]: number | string | undefined | Array<any>;
+  name?: string;
+  type: string;
+  "gas phase"?: string;
+  "gas-phase species"?: string;
+  "aerosol phase"?: string;
+  "aerosol-phase species"?: string;
+  "aerosol-phase water"?: string;
+  "reactants"?: Array<{
+    "species name": string;
+    "coefficient": number;
+  }>;
+  "products"?: Array<{
+    "species name": string;
+    "coefficient": number;
+  }>;
+  "gas-phase products"?: Array<{
+    "species name": string;
+    "coefficient": number;
+  }>;
+  "alkoxy products"?: Array<{
+    "species name": string;
+    "coefficient": number;
+  }>;
+  "nitrate products"?: Array<{
+    "species name": string;
+    "coefficient": number;
+  }>;
+}
+
+type serializedCampV1Mechanism = {
+  version: campV1Versions;
+  name: string;
+  species: Array<serializedCampV1Species>;
+  phases: Array<serializedCampV1Phase>;
+  reactions: Array<serializedCampV1Reaction>
+}
+
 /**
  * Converts a species to the CAMP V1 format
  */
-const speciesToCAMPV1 = (species: Species): Object => {
+const speciesToCAMPV1 = (species: Species): serializedCampV1Species => {
   let serializedSpecies: any = {
     name: species.name,
   };
@@ -21,7 +74,7 @@ const speciesToCAMPV1 = (species: Species): Object => {
   return serializedSpecies;
 };
 
-const reactionToCAMPV1 = (reaction: Reaction, family: Family): Object => {
+const reactionToCAMPV1 = (reaction: Reaction, family: Family): serializedCampV1Reaction => {
   let serializedReaction: any = {
     name: reaction.name,
     type: reaction.type,
@@ -66,7 +119,7 @@ const reactionToCAMPV1 = (reaction: Reaction, family: Family): Object => {
  * @returns
  */
 const mechanismToCAMPV1 = (mechanism: Mechanism, family: Family): Object => {
-  const jsonObject = {
+  const jsonObject: serializedCampV1Mechanism = {
     version: "1.0.0",
     name: mechanism.name,
     species: family.species
@@ -113,6 +166,161 @@ export const serializeMechanismYAML = (
 ): string => {
   return YAML.stringify(mechanismToCAMPV1(mechanism, family), null, 2);
 };
+
+/**
+ * Takes a camp V1 string in either JSON or YAML and creates a new family
+ * @throws Parsing errors
+ */
+export const deserializeFamilyCAMPV1 = (
+  fileText: string,
+): Family | null => {
+  const parsedMechanism: Partial<serializedCampV1Mechanism> = YAML.parse(fileText);
+
+  if (!supportedV1Versions.find(e => e == parsedMechanism.version)) {
+    console.warn(`Errors may occur due to an unsupported CAMP V1 version: ${parsedMechanism.version}`)
+  }
+
+  if (
+    !Array.isArray(parsedMechanism.species)
+    || !Array.isArray(parsedMechanism.phases)
+    || !Array.isArray(parsedMechanism.reactions)
+  ) {
+    throw new Error("Mechanism is missing 'species', 'phases', or 'reactions' arrays");
+  }
+
+
+  const createdFamily: Family = {
+    id: generateFrontendID(),
+    name: parsedMechanism.name || "New Family",
+    description: "This family was automatically generated from a file",
+    owner: null,
+    mechanisms: [],
+    species: [],
+    reactions: [],
+    phases: []
+  }
+
+  const speciesIdMappings = new Map<string, string>();
+  const phaseIdMappings = new Map<string, string>();
+
+  for (const species of parsedMechanism.species) {
+    const id = generateFrontendID();
+    speciesIdMappings.set(species.name, id);
+
+    const createdSpecies: Species = {
+      id: id,
+      name: species.name,
+      description: null,
+      familyId: createdFamily.id,
+      attributes: {}
+    }
+
+    for (const [key, value] of Object.entries(species)) {
+      if (
+        (typeof value !== "number" && typeof value !== "string")
+        || key === "name"
+      ) {
+        continue;
+      }
+
+      createdSpecies.attributes[key] = {
+        serializationKey: key,
+        value: value,
+      }
+    }
+
+    createdFamily.species.push(createdSpecies);
+  }
+
+  for (const phase of parsedMechanism.phases) {
+    const id = generateFrontendID();
+    phaseIdMappings.set(phase.name, id);
+
+    const createdPhase: Phase = {
+      id: id,
+      name: phase.name,
+      description: null,
+      speciesIds: phase.species.map(e => speciesIdMappings.get(e)).filter(e => e != undefined),
+    }
+
+    createdFamily.phases.push(createdPhase);
+  }
+
+  for (const reaction of parsedMechanism.reactions) {
+    const id = generateFrontendID();
+
+    const createdReaction: Reaction = {
+      id: id,
+      name: reaction.name || "",
+      description: null,
+      type: reaction.type as ReactionTypeName,
+      reactants: reaction.reactants?.reduce((accumulator: Reactant[], reactant) => {
+        const speciesId = speciesIdMappings.get(reactant["species name"]);
+        if (!speciesId) {
+          return accumulator;
+        }
+        accumulator.push({
+          speciesId: speciesId,
+          coefficient: reactant.coefficient,
+        })
+        return accumulator;
+      }, []) || [],
+      products: reaction.products?.reduce((accumulator: Reactant[], reactant) => {
+        const speciesId = speciesIdMappings.get(reactant["species name"]);
+        if (!speciesId) {
+          return accumulator;
+        }
+        accumulator.push({
+          speciesId: speciesId,
+          coefficient: reactant.coefficient,
+        })
+        return accumulator;
+      }, []) || [],
+      attributes: {}
+    }
+
+    // Keys to not put in attributes
+    const skipKeys: Array<keyof serializedCampV1Reaction> = [
+      "name",
+      "gas phase",
+      "gas-phase species",
+      "aerosol phase",
+      "aerosol-phase species",
+      "aerosol-phase water",
+      "reactants",
+      "products",
+    ];
+
+    for (const [key, value] of Object.entries(reaction)) {
+      if (
+        (typeof value !== "number" && typeof value !== "string")
+        || skipKeys.find(e => e == key)
+      ) {
+        continue;
+      }
+
+      createdReaction.attributes[key] = {
+        serializationKey: key,
+        value: value,
+      }
+    }
+
+    createdFamily.reactions.push(createdReaction);
+  }
+
+  const createdMechanism: Mechanism = {
+    id: generateFrontendID(),
+    name: parsedMechanism.name || "New Mechanism",
+    description: "This mechanism was automatically generated from a file",
+    familyId: createdFamily.id,
+    speciesIds: createdFamily.species.map(e => e.id),
+    reactionIds: createdFamily.reactions.map(e => e.id),
+    phaseIds: createdFamily.phases.map(e => e.id),
+  }
+
+  createdFamily.mechanisms.push(createdMechanism);
+  return createdFamily;
+}
 
 /////////////////////////////////
 // V0 CONFIGURATION (MusicBox) //

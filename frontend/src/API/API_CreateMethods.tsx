@@ -79,7 +79,7 @@ export async function createReaction(
  */
 export async function createPhase(phaseData: APIPhase): Promise<APIPhase> {
   const response = await axios.post(
-    `${BASE_URL}/reactions?familyId=${phaseData.familyId}`,
+    `${BASE_URL}/phases?familyId=${phaseData.familyId}`,
     phaseData,
     {
       withCredentials: true,
