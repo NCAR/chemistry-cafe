@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ChemistryCafeAPI.Models;
 
@@ -29,6 +30,7 @@ public class Mechanism
 
 // Junction table for Mechanism-Species many-to-many relationship
 [PrimaryKey(nameof(MechanismId), nameof(SpeciesId))]
+[ExcludeFromCodeCoverage]
 public class MechanismSpecies
 {
     [ForeignKey("Mechanisms")]
@@ -39,6 +41,7 @@ public class MechanismSpecies
 }
 
 [PrimaryKey(nameof(MechanismId), nameof(ReactionId))]
+[ExcludeFromCodeCoverage]
 public class MechanismReaction
 {
     [ForeignKey("Mechanisms")]
@@ -49,6 +52,7 @@ public class MechanismReaction
 }
 
 [PrimaryKey(nameof(MechanismId), nameof(PhaseId))]
+[ExcludeFromCodeCoverage]
 public class MechanismPhase
 {
     [ForeignKey("Mechanisms")]
