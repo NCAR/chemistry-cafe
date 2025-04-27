@@ -124,7 +124,6 @@ export type ReactionAttribute = {
 };
 
 export type ReactionTypeName =
-  | "NONE"
   | "HL_PHASE_TRANSFER"
   | "SIMPOL_PHASE_TRANSFER"
   | "AQUEOUS_EQUILIBRIUM"
@@ -313,11 +312,26 @@ export type Family = {
 
 
 /**
+ * All reaction types that are fully supported by the application.
+ * Other reaction types may be imported via a file, but haven't been fully tested.
+ */
+export const supportedReactionTypes: Array<ReactionTypeName> = [
+  "ARRHENIUS",
+  "CONDENSED_PHASE_ARRHENIUS",
+  "CONDENSED_PHASE_PHOTOLYSIS",
+  "EMISSION",
+  "PHOTOLYSIS",
+  "TROE",
+  "FIRST_ORDER_LOSS",
+]
+
+/**
  * Represents all attributes configurable by the user for each reaction type.
  */
 export const reactionAttributeOptions: {
-  [Type in ReactionTypeName]: Array<ReactionAttribute>;
+  [Type in ReactionTypeName | "NONE"]: Array<ReactionAttribute>;
 } = {
+  NONE: [],
   /**
    * For Arrhenius reactions, there is another value, C, which we don't
    * represent on the frontend. It is defined as C = -Ea / kb, so it's
@@ -496,7 +510,6 @@ export const reactionAttributeOptions: {
       value: 0.0
     },
   ],
-  NONE: [],
   // TODO add some way of representing B value for this, which is a list of numbers
   SIMPOL_PHASE_TRANSFER: [],
 };
@@ -527,7 +540,7 @@ export type ReactionConfiguration = {
  * This is used for reference to create a correct UI and serialize reactions correctly.
  */
 export const reactionConfigurations: {
-  [Type in ReactionTypeName]: ReactionConfiguration;
+  [Type in ReactionTypeName | "NONE"]: ReactionConfiguration;
 } = Object.freeze({
   NONE: {
     reactantCount: ReactionSpeciesCount.NONE,

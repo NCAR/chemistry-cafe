@@ -1,4 +1,4 @@
-import { Family, Mechanism, Phase, Reactant, Reaction, ReactionTypeName, Species } from "../types/chemistryModels";
+import { Family, Mechanism, Phase, Reactant, Reaction, reactionConfigurations, ReactionSpeciesCount, ReactionTypeName, Species, supportedReactionTypes } from "../types/chemistryModels";
 import * as YAML from "yaml";
 import JSZip from "jszip";
 import { generateFrontendID } from "./localFamilies";
@@ -63,7 +63,7 @@ type serializedCampV1Mechanism = {
  * Converts a species to the CAMP V1 format
  */
 const speciesToCAMPV1 = (species: Species): serializedCampV1Species => {
-  let serializedSpecies: any = {
+  let serializedSpecies: serializedCampV1Species = {
     name: species.name,
   };
 
@@ -75,34 +75,81 @@ const speciesToCAMPV1 = (species: Species): serializedCampV1Species => {
 };
 
 const reactionToCAMPV1 = (reaction: Reaction, family: Family): serializedCampV1Reaction => {
-  let serializedReaction: any = {
+  const serializedReaction: serializedCampV1Reaction = {
     name: reaction.name,
     type: reaction.type,
-    "gas phase": "gas",
-    reactants: [],
     products: [],
   };
 
-  for (const { speciesId, coefficient } of reaction.reactants) {
-    const species = family.species.find((e) => e.id === speciesId);
-    if (!species) {
-      continue;
-    }
-    serializedReaction.reactants.push({
-      "species name": species.name,
-      coefficient: coefficient,
-    });
+  const reactionConfiguration = reactionConfigurations[reaction.type];
+
+  // TODO Add other configuration attributes
+  if (reactionConfiguration.hasGasPhase) {
+    serializedReaction["gas phase"] = "gas"
   }
 
-  for (const { speciesId, coefficient } of reaction.products) {
-    const species = family.species.find((e) => e.id === speciesId);
-    if (!species) {
-      continue;
+  if (reactionConfiguration.reactantCount != ReactionSpeciesCount.NONE) {
+    serializedReaction.reactants = [];
+    for (const { speciesId, coefficient } of reaction.reactants) {
+      const species = family.species.find((e) => e.id === speciesId);
+      if (!species) {
+        continue;
+      }
+      serializedReaction.reactants.push({
+        "species name": species.name,
+        coefficient: coefficient,
+      });
     }
-    serializedReaction.products.push({
-      "species name": species.name,
-      coefficient: coefficient,
-    });
+  }
+
+  if (reactionConfiguration.productCount != ReactionSpeciesCount.NONE) {
+    if (reactionConfiguration.branches) {
+      for (const branch of reactionConfiguration.branches) {
+        serializedReaction[`${branch} products`] = [];
+      }
+    }
+    else {
+      serializedReaction.products = [];
+    }
+
+    for (const { speciesId, coefficient, branch } of reaction.products) {
+      const species = family.species.find((e) => e.id === speciesId);
+      if (!species) {
+        continue;
+      }
+
+      if (reactionConfiguration.branches) {
+        switch (branch) {
+          case "alkoxy":
+            serializedReaction["alkoxy products"]?.push({
+              "species name": species.name,
+              coefficient: coefficient,
+            });
+            break;
+          case "nitrate":
+            serializedReaction["nitrate products"]?.push({
+              "species name": species.name,
+              coefficient: coefficient,
+            });
+            break;
+          case "gas-phase":
+            serializedReaction["gas-phase products"]?.push({
+              "species name": species.name,
+              coefficient: coefficient,
+            });
+            break;
+          default:
+            console.warn("Skipping product with invalid branch name: ", branch);
+            break;
+        }
+      }
+      else {
+        serializedReaction.products?.push({
+          "species name": species.name,
+          coefficient: coefficient,
+        });
+      }
+    }
   }
 
   for (const key of Object.keys(reaction.attributes)) {
@@ -249,6 +296,10 @@ export const deserializeFamilyCAMPV1 = (
   for (const reaction of parsedMechanism.reactions) {
     const id = generateFrontendID();
 
+    if (!supportedReactionTypes.find(e => e == reaction.type)) {
+      console.warn(`Possibly unsupported reaction type: ${reaction.type}`);
+    }
+
     const createdReaction: Reaction = {
       id: id,
       name: reaction.name || "",
@@ -277,6 +328,29 @@ export const deserializeFamilyCAMPV1 = (
         return accumulator;
       }, []) || [],
       attributes: {}
+    }
+
+    // Branches that *may* exists in a reaction
+    const productBranches = ["gas-phase", "alkoxy", "nitrate"];
+
+    for (const branch of productBranches) {
+      const products = reaction[`${branch} products`]
+      if (!Array.isArray(products)) {
+        continue;
+      }
+
+      for (const product of products) {
+        const speciesId = speciesIdMappings.get(product["species name"]);
+        if (!speciesId) {
+          return product;
+        }
+
+        createdReaction.products.push({
+          speciesId: speciesId,
+          coefficient: product.coefficient,
+          branch: branch,
+        });
+      }
     }
 
     // Keys to not put in attributes

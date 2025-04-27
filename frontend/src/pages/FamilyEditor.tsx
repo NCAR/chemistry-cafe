@@ -1047,7 +1047,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       id: frontendId,
       name: "",
       description: "",
-      type: "NONE",
+      type: "ARRHENIUS",
       reactants: [],
       products: [],
       attributes: {},
@@ -1283,6 +1283,7 @@ export const PhaseView = ({ family }: ViewProps) => {
   const phaseColumns: GridColDef[] = [
     {
       field: "name",
+      flex: 1,
     }
   ]
 

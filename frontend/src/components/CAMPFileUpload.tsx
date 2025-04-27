@@ -18,8 +18,15 @@ const CAMPFileUpload: React.FC<CAMPFileUploadProps> = ({ onFileParse, sx }) => {
     const file: File = event.target.files[0]
     const fileText = await file.text();
 
-    const parsedFamily = deserializeFamilyCAMPV1(fileText);
-    onFileParse(parsedFamily);
+    try {
+      const parsedFamily = deserializeFamilyCAMPV1(fileText);
+      onFileParse(parsedFamily);
+    }
+    catch (err) {
+      console.error(err);
+      onFileParse(null);
+      return;
+    }
   }
 
   return (
@@ -37,7 +44,7 @@ const CAMPFileUpload: React.FC<CAMPFileUploadProps> = ({ onFileParse, sx }) => {
         type="file"
         slotProps={{
           input: {
-            accept: "application/json, application/yaml, .yml"
+            accept: "application/json, application/yaml, .yml, .yaml"
           }
         }}
         onChange={handleFileUpload}

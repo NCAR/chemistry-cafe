@@ -1,9 +1,12 @@
 import {
   Alert,
+  Autocomplete,
   Box,
   Button,
   IconButton,
   InputAdornment,
+  List,
+  ListItem,
   MenuItem,
   Modal,
   Paper,
@@ -28,6 +31,7 @@ import {
   ReactionConfiguration,
   reactionConfigurations,
   ReactionSpeciesCount,
+  supportedReactionTypes,
 } from "../types/chemistryModels";
 import DeleteIcon from "@mui/icons-material/Delete";
 import UnitComponent from "./UnitComponent";
@@ -36,6 +40,7 @@ import { SelectSpeciesButton } from "./SelectSpeciesButton";
 import { useAuth } from "./AuthContext";
 import { generateFrontendID } from "../helpers/localFamilies";
 import CAMPFileUpload from "./CAMPFileUpload";
+import { reactionTypeToString } from "../helpers/stringify";
 
 const modalStyle: SxProps<Theme> = {
   position: "absolute" as const,
@@ -752,14 +757,19 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
           >
             Reaction Type
           </Typography>
-          <Select
+          <Autocomplete
             aria-labelledby="reaction-type-label"
             id="reaction-type"
             aria-label="Choose Reaction Type"
-            defaultValue={reaction?.type ?? "NONE"}
             color="primary"
-            onChange={(event) => {
-              const reactionType = event.target.value as ReactionTypeName;
+            defaultValue={reaction?.type ?? "NONE"}
+            getOptionLabel={(option) => reactionTypeToString(option)}
+            options={
+              [...supportedReactionTypes].sort()
+            }
+            renderInput={(params) => <TextField {...params} />}
+            onChange={(event: any, newValue: string | null) => {
+              const reactionType = newValue as ReactionTypeName;
               const attributes = getReactionAttributes(reactionType);
 
               let reactionAttributes: {
@@ -780,15 +790,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
               const configuration = getReactionConfiguration(reactionType);
               setCurrentConfiguration(configuration);
             }}
-          >
-            {/* TODO add more reaction types */}
-            <MenuItem value="NONE">None</MenuItem>
-            <MenuItem value="TROE">Troe</MenuItem>
-            <MenuItem value="PHOTOLYSIS">Photolysis</MenuItem>
-            <MenuItem value="FIRST_ORDER_LOSS">First Order Loss</MenuItem>
-            <MenuItem value="EMISSION">Emission</MenuItem>
-            <MenuItem value="ARRHENIUS">Arrhenius</MenuItem>
-          </Select>
+          />
           {
             currentConfiguration.reactantCount == ReactionSpeciesCount.ONE &&
             <Box
@@ -1339,7 +1341,6 @@ export const ImportFamilyModal: React.FC<ImportFamilyModalProps> = ({ open, onCl
   const [family, setFamily] = useState<Family | null>(null);
 
   const onFileParse = (uploadedFamily: Family | null) => {
-    console.log(uploadedFamily);
     setFamily(uploadedFamily)
     if (!uploadedFamily) {
       alert("Could not parse input file");
@@ -1367,7 +1368,23 @@ export const ImportFamilyModal: React.FC<ImportFamilyModalProps> = ({ open, onCl
         />
         {
           family &&
-          <Typography>Family Info:</Typography>
+          <Box>
+            <Typography color="textPrimary">Configuration Info:</Typography>
+            <List>
+              <ListItem>
+                <Typography color="textPrimary">Name: {family.name}</Typography>
+              </ListItem>
+              <ListItem>
+                <Typography color="textPrimary">Species Count: {family.species.length}</Typography>
+              </ListItem>
+              <ListItem>
+                <Typography color="textPrimary">Reaction Count: {family.reactions.length}</Typography>
+              </ListItem>
+              <ListItem>
+                <Typography color="textPrimary">Phase Count: {family.phases.length}</Typography>
+              </ListItem>
+            </List>
+          </Box>
         }
         <Box
           sx={{
@@ -1380,7 +1397,7 @@ export const ImportFamilyModal: React.FC<ImportFamilyModalProps> = ({ open, onCl
             sx={{
               flex: 1,
             }}
-            aria-label="Create Family"
+            aria-label="Create imported Family"
             color="primary"
             variant="contained"
             disabled={!family}
@@ -1390,6 +1407,8 @@ export const ImportFamilyModal: React.FC<ImportFamilyModalProps> = ({ open, onCl
                 return;
               }
               onSubmit(family);
+              setFamily(null);
+              onClose();
             }}
           >
             Create new Family
