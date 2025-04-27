@@ -21,6 +21,7 @@ namespace ChemistryCafeAPI.Tests
         private ReactionService _reactionService; 
         private ReactionController _reactionController; 
         private UserService _userService; 
+        private SpeciesService _speciesService;
         private FamilyService _familyService; 
 
         private class MockedReactionController : ReactionController
@@ -41,6 +42,7 @@ namespace ChemistryCafeAPI.Tests
             _userService = new UserService(_context);
             _reactionService = new ReactionService(_context);
             _reactionController = new MockedReactionController(_reactionService);
+            _speciesService = new SpeciesService(_context);
             _familyService = new FamilyService(_context, _userService);
         }
 
@@ -152,8 +154,46 @@ namespace ChemistryCafeAPI.Tests
         [TestMethod]
         public async Task UpdateReaction()
         {
+            var _reactant = new Species 
+            {
+                Name = "TestReactant",
+                Description = "Reactant From SpeciesControllerTests.cs",
+                CreatedDate = DateTime.UtcNow 
+            };
+            var _product = new Species 
+            {
+                Name = "TestProduct",
+                Description = "Product from ReactionControllerTests.cs",
+                CreatedDate = DateTime.UtcNow 
+            };
+            var (result1, reactant) = await _speciesService.CreateSpeciesAsync(_reactant, 
+                                                                               _family.Id, 
+                                                                               _nameIdentifier);
+            var (result2, product) = await _speciesService.CreateSpeciesAsync(_product, 
+                                                                              _family.Id, 
+                                                                              _nameIdentifier);
             _reaction.Name = "UPDATEDTest";
             _reaction.Description = "UPDATEDDesc";
+            _reaction.Reactants.Add(
+                    new Reactant
+                    {
+                        ReactionId = _reaction.Id,
+                        Reaction = _reaction,
+                        SpeciesId = reactant.Id,
+                        Species = reactant,
+                        Coefficient = 1
+                    }
+            );
+            _reaction.Products.Add(
+                    new Product 
+                    {
+                        ReactionId = _reaction.Id,
+                        Reaction = _reaction,
+                        SpeciesId = product.Id,
+                        Species = product, 
+                        Coefficient = 2 
+                    }
+            );
             var actionResult = await _reactionController.UpdateReaction(_reaction.Id, _reaction);
             Assert.IsNotNull(actionResult);
             Assert.IsInstanceOfType(actionResult.Result, typeof(OkObjectResult));
