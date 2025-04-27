@@ -191,8 +191,27 @@ namespace ChemistryCafeAPI.Tests
                         Reaction = _reaction,
                         SpeciesId = product.Id,
                         Species = product, 
-                        Coefficient = 2 
+                        Coefficient = 2,
+                        Branch = "maybe?" 
                     }
+            );
+            _reaction.NumericalAttributes.Add(
+                new ReactionNumericalAttribute
+                {
+                    ReactionId = _reaction.Id,
+                    Reaction = _reaction,
+                    SerializationKey = "test-numerical-serial-key",
+                    Value = 10000
+                }
+            );
+            _reaction.StringAttributes.Add(
+                new ReactionStringAttribute
+                {
+                    ReactionId = _reaction.Id,
+                    Reaction = _reaction,
+                    SerializationKey = "test-string-serial-key",
+                    Value = "test-value"
+                }
             );
             var actionResult = await _reactionController.UpdateReaction(_reaction.Id, _reaction);
             Assert.IsNotNull(actionResult);
