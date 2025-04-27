@@ -35,7 +35,15 @@ namespace ChemistryCafeAPI.Tests
             {
                 return _UserId.ToString();
             }
+        }
 
+        private class NullUsersController : UsersController
+        {
+            public NullUsersController(UserService userService) : base(userService) { }
+            protected override string? GetNameIdentifier()
+            {
+                return null;
+            }
         }
 
         [ClassInitialize]
@@ -119,6 +127,38 @@ namespace ChemistryCafeAPI.Tests
         }
 
         [TestMethod]
+        public async Task GetUserByInvalidEmail()
+        {
+            var userService = new UserService(ctx);
+            var controller = new MockedUsersController(userService);
+            var result = await controller.GetUser("invalid@email.what");
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task UpdateUserNullNameIdentifer()
+        {
+            // Arrange
+            var userService = new UserService(ctx);
+            var controller = new NullUsersController(userService);
+
+            var updatedUser = new User
+            {
+                Id = _UserId,
+                Username = _Username,
+                Role = _Role,
+                Email = _Email,
+                CreatedDate = _CreatedDate
+            };
+
+            // Act
+            var result = await controller.UpdateUser(_UserId, updatedUser);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(UnauthorizedObjectResult));
+        }
+
+        [TestMethod]
         public async Task UpdateUser_Updates_User()
         {
             // Arrange
@@ -166,6 +206,15 @@ namespace ChemistryCafeAPI.Tests
             var getResult = await controller.GetUserById(_UserId);
             var notFoundResult = getResult.Result as NotFoundResult;
             Assert.IsNotNull(notFoundResult);
+        }
+
+        [TestMethod]
+        public async Task DeleteUserNullNameIdentifer()
+        {
+            var userService = new UserService(ctx);
+            var controller = new NullUsersController(userService);
+            var result = await controller.DeleteUser(_UserId);
+            Assert.IsInstanceOfType(result, typeof(UnauthorizedObjectResult));
         }
 
         [TestMethod]
