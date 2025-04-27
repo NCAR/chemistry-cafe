@@ -615,7 +615,10 @@ const AddFamilyButton: React.FC<AddFamilyButtonProps> = ({
         <MenuItem
           aria-label="Create a new family"
           data-testid="create-family-button"
-          onClick={handleCreateButtonClick}
+          onClick={() => {
+            handleCreateButtonClick();
+            setOpen(false);
+          }}
         >
           <ListItemIcon>
             <AddIcon color="primary" />
@@ -624,7 +627,10 @@ const AddFamilyButton: React.FC<AddFamilyButtonProps> = ({
         </MenuItem>
         <MenuItem
           aria-label="Import a published family"
-          onClick={handleImportButtonClick}
+          onClick={() => {
+            handleImportButtonClick();
+            setOpen(false);
+          }}
         >
           <ListItemIcon>
             <CloudDownloadIcon color="secondary" />

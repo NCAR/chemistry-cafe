@@ -51,7 +51,10 @@ export const RowActionsButton: React.FC<RowActionsButtonProps> = ({
         <MenuItem
           aria-label="Edit this table row"
           data-testid="edit-row"
-          onClick={handleEditButtonClick}
+          onClick={() => {
+            handleEditButtonClick();
+            setOpen(false);
+          }}
         >
           <ListItemIcon>
             <EditIcon color="action" />
@@ -61,7 +64,10 @@ export const RowActionsButton: React.FC<RowActionsButtonProps> = ({
         <MenuItem
           aria-label="Delete this table row"
           data-testid="delete-row"
-          onClick={handleDeleteButtonClick}
+          onClick={() => {
+            handleDeleteButtonClick();
+            setOpen(false);
+          }}
         >
           <ListItemIcon>
             <DeleteIcon color="error" />
