@@ -26,7 +26,7 @@ public class FamilyService
         IQueryable<Family> query = _context.Families;
 
         // Always include Owner
-        query = query.Include(f => f.Owner);
+        query = query.AsSplitQuery().Include(f => f.Owner);
 
         if (expand)
         {
@@ -73,6 +73,7 @@ public class FamilyService
     public async Task<Family?> GetFamilyAsync(Guid id)
     {
         var family = await _context.Families
+            .AsSplitQuery()
             .Include(f => f.Owner)
             .Include(f => f.Species)
                 .ThenInclude(s => s.NumericalAttributes)
