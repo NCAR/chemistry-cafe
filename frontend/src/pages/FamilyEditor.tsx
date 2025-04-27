@@ -102,8 +102,8 @@ const FamilyPage = () => {
   const [openImportMenu, setOpenImportMenu] = useState<boolean>(false); // Used when user attempts to import families
   const { user } = useAuth();
   const currentMenuName = useRef<string>(DataViewSelection.Default);
-
   const { appearanceSettings } = useCustomTheme();
+
 
   const updateFamily = (family: Family): void => {
     setFamilies((families) => {
@@ -165,8 +165,12 @@ const FamilyPage = () => {
             family={family}
             updateFamily={updateFamily}
             onPublish={async () => {
+              if (!user) {
+                alert("Please log in to upload a family");
+                return;
+              }
               setLoading(true);
-              await uploadFamily(family)
+              await uploadFamily(family, user)
                 .then((databaseFamily) => {
                   setFamilies((families) => {
                     if (!families) {
@@ -331,8 +335,8 @@ const FamilyPage = () => {
         await saveFamilyChanges(family)
           .then((family) => familyList.push(family))
           .catch((e) => {
-            alert("An error ocurred while saving families");
             console.error(e);
+            alert("An error ocurred while saving families");
           });
       } else {
         familyList.push(family);

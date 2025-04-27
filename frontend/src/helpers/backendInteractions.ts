@@ -7,6 +7,7 @@ import {
   APIReactant,
   APIReaction,
   APISpecies,
+  APIUser,
 } from "../API/API_Interfaces";
 import {
   Family,
@@ -481,11 +482,16 @@ export function frontendToAPIFamily(
  * @param family
  * @returns Family with updated UUIDs of each object
  */
-export async function uploadFamily(family: Family): Promise<Family> {
-  const resultFamily = await createFamily(frontendToAPIFamily(family, false));
+export async function uploadFamily(family: Family, owner: APIUser): Promise<Family> {
+  const familyToUpload: Family = {
+    ...family,
+    owner: owner,
+  }
+
+  const resultFamily = await createFamily(frontendToAPIFamily(familyToUpload, false));
 
   return saveFamilyChanges({
-    ...family,
+    ...familyToUpload,
     id: resultFamily.id,
     isInDatabase: true,
     isModified: true,
