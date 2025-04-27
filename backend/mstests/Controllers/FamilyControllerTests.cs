@@ -201,6 +201,7 @@ namespace ChemistryCafeAPI.Tests
             Assert.IsInstanceOfType(actionResult.Result, typeof(UnauthorizedObjectResult));
         }
 
+        [TestMethod]
         public async Task Updates_Family_NameIdentifierNull()
         {
             // Arrange
