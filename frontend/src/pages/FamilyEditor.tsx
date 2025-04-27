@@ -1198,7 +1198,8 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       field: "id",
       headerName: "Equation",
       flex: 1,
-      renderCell: (params: GridRenderCellParams<Family>) => (
+      valueGetter: (id: string) => reactionToString(family.reactions.find(e => e.id == id), family.species),
+      renderCell: (params: GridRenderCellParams<Reaction>) => (
         <Typography
           variant="body1"
           sx={{
@@ -1208,10 +1209,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
           }}
           noWrap
         >
-          {reactionToString(
-            family.reactions.find((e) => e.id == params.value),
-            family.species,
-          )}
+          {params.value || "<Empty>"}
         </Typography>
       ),
     },
@@ -1220,7 +1218,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       headerName: "Name",
       type: "string",
       flex: 1,
-      renderCell: (params: GridRenderCellParams<Family>) => (
+      renderCell: (params: GridRenderCellParams<Reaction>) => (
         <Typography
           variant="body1"
           sx={{
@@ -1239,7 +1237,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       headerName: "Description",
       type: "string",
       flex: 1,
-      renderCell: (params: GridRenderCellParams<Family>) => (
+      renderCell: (params: GridRenderCellParams<Reaction>) => (
         <Typography
           variant="body1"
           sx={{
@@ -1257,7 +1255,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       field: "type",
       headerName: "Reaction Type",
       flex: 1,
-      renderCell: (params: GridRenderCellParams<Family>) => (
+      renderCell: (params: GridRenderCellParams<Reaction>) => (
         <Typography
           variant="body1"
           sx={{
