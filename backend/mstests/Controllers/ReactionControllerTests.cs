@@ -234,7 +234,33 @@ namespace ChemistryCafeAPI.Tests
             await _reactionController.DeleteReaction(_reaction.Id);
             var actionResult = await _reactionController.GetReaction(_reaction.Id);
             Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundObjectResult));
-            _reaction = null;
+        }
+
+        [TestMethod]
+        public async Task CreateReactionNullNameIdentifer()
+        {
+            _nameIdentifier = null;
+            var result = await _reactionController.CreateReaction(_reaction, _family.Id);
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(UnauthorizedObjectResult));
+        }
+
+        [TestMethod]
+        public async Task UpdateReactionNullNameIdentifer()
+        {
+            _nameIdentifier = null;
+            var result = await _reactionController.UpdateReaction(_reaction.Id, _reaction); 
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(UnauthorizedObjectResult));
+        }
+
+        [TestMethod]
+        public async Task DeleteReactionNullNameIdentifer()
+        {
+            _nameIdentifier = null;
+            var result = await _reactionController.DeleteReaction(_reaction.Id); 
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result, typeof(UnauthorizedObjectResult));
         }
 
         private async Task AsyncCleanup()

@@ -168,7 +168,6 @@ namespace ChemistryCafeAPI.Tests
             await _speciesController.DeleteSpecies(_species.Id);
             var actionResult = await _speciesController.GetSpecies(_species.Id);
             Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundObjectResult));
-            _species = null;
         }
 
         [TestMethod]
@@ -193,6 +192,33 @@ namespace ChemistryCafeAPI.Tests
             var actionResult = await _speciesController.DeleteSpecies(Guid.NewGuid());
             Assert.IsNotNull(actionResult);
             Assert.IsInstanceOfType(actionResult, typeof(NotFoundObjectResult));
+        }
+
+        [TestMethod]
+        public async Task CreateSpeciesNullNameIdentifer()
+        {
+            _nameIdentifier = null;
+            var result = await _speciesController.CreateSpecies(_species, _family.Id);
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(UnauthorizedObjectResult));
+        }
+
+        [TestMethod]
+        public async Task UpdateSpeciesNullNameIdentifer()
+        {
+            _nameIdentifier = null;
+            var result = await _speciesController.UpdateSpecies(_species.Id, _species); 
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(UnauthorizedObjectResult));
+        }
+
+        [TestMethod]
+        public async Task DeleteSpeciesNullNameIdentifer()
+        {
+            _nameIdentifier = null;
+            var result = await _speciesController.DeleteSpecies(_species.Id); 
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result, typeof(UnauthorizedObjectResult));
         }
 
         private async Task AsyncCleanup()
