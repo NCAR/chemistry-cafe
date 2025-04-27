@@ -79,6 +79,25 @@ namespace ChemistryCafeAPI.Tests
         }
 
         [TestMethod]
+        public async Task Get_All_Family_Expanded()
+        {
+            // Arrange
+            var controller = await CreateSignedInController();
+
+            // Act
+            var actionResult = await controller.GetFamilies(true, _Owner.Id);
+
+            // Assert
+            Assert.IsNotNull(actionResult);
+            var okResult = actionResult.Result as OkObjectResult;
+            Assert.IsNotNull(okResult);
+
+            var familyList = okResult.Value as IEnumerable<Family>;
+            Assert.IsNotNull(familyList);
+
+        }
+
+        [TestMethod]
         public async Task Creates_Family()
         {
             // Arrange
