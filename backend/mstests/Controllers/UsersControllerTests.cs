@@ -30,19 +30,27 @@ namespace ChemistryCafeAPI.Tests
 
         private class MockedUsersController : UsersController
         {
-            public MockedUsersController(UserService userService) : base(userService) { }
+            public MockedUsersController(UserService userService) : base(userService) {}
+
             protected override string? GetNameIdentifier()
             {
                 return _UserId.ToString();
             }
         }
 
-        private class NullUsersController : UsersController
+        private class NameController : UsersController
         {
-            public NullUsersController(UserService userService) : base(userService) { }
+            private string? _NameIdentifer;
+
+            public NameController(UserService userService, string? NameIdentifer) 
+                : base(userService) 
+            {
+                _NameIdentifer = NameIdentifer;
+            }
+
             protected override string? GetNameIdentifier()
             {
-                return null;
+                return _NameIdentifer;
             }
         }
 
@@ -136,11 +144,64 @@ namespace ChemistryCafeAPI.Tests
         }
 
         [TestMethod]
+        public async Task UpdateUserNotFound()
+        {
+            var userService = new UserService(ctx);
+            var controller = new MockedUsersController(userService);
+            var updatedUser = new User
+            {
+                Id = Guid.NewGuid(),
+                Username = _Username,
+                Role = _Role,
+                Email = _Email,
+                CreatedDate = _CreatedDate
+            };
+            var result = await controller.UpdateUser(updatedUser.Id, updatedUser);
+            Assert.IsInstanceOfType(result, typeof(NotFoundObjectResult));
+        }
+
+        [TestMethod]
+        public async Task UpdateUserUnauthorized()
+        {
+            var userService = new UserService(ctx);
+            var user = await userService.SignIn("temp-id", "temp@email.com");
+            var controller = new NameController(userService, user.Id.ToString());
+            var updatedUser = new User
+            {
+                Id = _UserId,
+                Username = _Username,
+                Role = _Role,
+                Email = _Email,
+                CreatedDate = _CreatedDate
+            };
+            var result = await controller.UpdateUser(updatedUser.Id, updatedUser);
+            Assert.IsInstanceOfType(result, typeof(StatusCodeResult));
+            await controller.DeleteUser(user.Id);
+        }
+
+        [TestMethod]
+        public async Task UpdateUserParseError()
+        {
+            var userService = new UserService(ctx);
+            var controller = new NameController(userService, "invalid-uuid"); 
+            var updatedUser = new User
+            {
+                Id = _UserId,
+                Username = _Username,
+                Role = _Role,
+                Email = _Email,
+                CreatedDate = _CreatedDate
+            };
+            var result = await controller.UpdateUser(updatedUser.Id, updatedUser);
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
         public async Task UpdateUserNullNameIdentifer()
         {
             // Arrange
             var userService = new UserService(ctx);
-            var controller = new NullUsersController(userService);
+            var controller = new NameController(userService, null);
 
             var updatedUser = new User
             {
@@ -190,6 +251,35 @@ namespace ChemistryCafeAPI.Tests
         }
 
         [TestMethod]
+        public async Task DeleteUserNotFound()
+        {
+            var userService = new UserService(ctx);
+            var controller = new MockedUsersController(userService);
+            var result = await controller.DeleteUser(Guid.NewGuid());
+            Assert.IsInstanceOfType(result, typeof(StatusCodeResult));
+        }
+
+        [TestMethod]
+        public async Task DeleteUserUnauthorized()
+        {
+            var userService = new UserService(ctx);
+            var user = await userService.SignIn("temp-id", "temp@email.com");
+            var controller = new NameController(userService, user.Id.ToString());
+            var result = await controller.DeleteUser(_UserId);
+            Assert.IsInstanceOfType(result, typeof(StatusCodeResult));
+            await controller.DeleteUser(user.Id);
+        }
+
+        [TestMethod]
+        public async Task DeleteUserParseError()
+        {
+            var userService = new UserService(ctx);
+            var controller = new NameController(userService, "invalid-uuid"); 
+            var result = await controller.DeleteUser(_UserId);
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
         public async Task DeleteUser_Deletes_User()
         {
             // Arrange
@@ -212,7 +302,7 @@ namespace ChemistryCafeAPI.Tests
         public async Task DeleteUserNullNameIdentifer()
         {
             var userService = new UserService(ctx);
-            var controller = new NullUsersController(userService);
+            var controller = new NameController(userService, null);
             var result = await controller.DeleteUser(_UserId);
             Assert.IsInstanceOfType(result, typeof(UnauthorizedObjectResult));
         }
