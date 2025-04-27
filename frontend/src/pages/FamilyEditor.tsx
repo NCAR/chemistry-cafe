@@ -31,8 +31,8 @@ import CloseIcon from "@mui/icons-material/Close";
 import CircleIcon from "@mui/icons-material/Circle";
 import CloudOffIcon from "@mui/icons-material/CloudOff";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
+import FileUploadIcon from '@mui/icons-material/FileUpload';
 import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
 import { TreeItem, treeItemClasses } from "@mui/x-tree-view/TreeItem";
 import {
@@ -56,7 +56,7 @@ import {
   ConfirmActionModal,
   FamilyCreationModal,
   MechanismCreationModal,
-  ReactionsEditorModal,
+  ReactionEditorModal,
   SpeciesEditorModal,
 } from "../components/FamilyEditorModals";
 import { reactionToString, reactionTypeToString } from "../helpers/stringify";
@@ -633,7 +633,7 @@ const AddFamilyButton: React.FC<AddFamilyButtonProps> = ({
           }}
         >
           <ListItemIcon>
-            <CloudDownloadIcon color="secondary" />
+            <FileUploadIcon color="secondary" />
           </ListItemIcon>
           <Typography>Import</Typography>
         </MenuItem>
@@ -1096,7 +1096,10 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
       />
       <SpeciesEditorModal
         open={speciesEditorOpen}
-        onClose={() => setSpeciesEditorOpen(false)}
+        onClose={() => {
+          setSpeciesEditorOpen(false);
+          setSelectedSpecies(undefined);
+        }}
         onUpdate={updateSpecies}
         species={selectedSpecies}
       />
@@ -1332,9 +1335,12 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
           ),
         }}
       />
-      <ReactionsEditorModal
+      <ReactionEditorModal
         open={reactionsEditorOpen}
-        onClose={() => setReactionsEditorOpen(false)}
+        onClose={() => {
+          setReactionsEditorOpen(false);
+          setSelectedReaction(undefined);
+        }}
         onUpdate={updateReaction}
         reaction={selectedReaction}
         family={family}

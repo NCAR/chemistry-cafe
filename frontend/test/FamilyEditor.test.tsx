@@ -434,7 +434,7 @@ describe("ReactionsView", () => {
     expect(addReactionButton).toBeTruthy();
     fireEvent.click(addReactionButton);
 
-    const nameBox = screen.getByLabelText("Name *") as HTMLInputElement;
+    const nameBox = screen.getByLabelText("Name") as HTMLInputElement;
     expect(nameBox).toBeTruthy();
     expect(nameBox.value).toBeFalsy();
 
