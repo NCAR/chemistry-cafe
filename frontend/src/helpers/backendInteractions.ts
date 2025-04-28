@@ -408,10 +408,6 @@ export function frontendToAPIMechanism(
  * @param apiFamily
  */
 export function apiToFrontendFamily(apiFamily: APIFamily): Family {
-  if (!apiFamily.id) {
-    throw new Error("family id is undefined");
-  }
-
   const formattedFamily: Family = {
     id: apiFamily.id,
     name: apiFamily.name,

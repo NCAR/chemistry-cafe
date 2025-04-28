@@ -13,7 +13,9 @@ import userEvent from "@testing-library/user-event";
 import axios, { AxiosHeaders, AxiosResponse } from "axios";
 import { APIFamily } from "../src/API/API_Interfaces";
 import FamilyEditor, {
+  GeneralInfoView,
   MechanismsView,
+  PhaseView,
   ReactionsView,
   SpeciesView,
 } from "../src/pages/FamilyEditor";
@@ -54,7 +56,7 @@ describe("Family Editor Page", () => {
   beforeEach(() => {
     window.location = {
       ...originalLocation,
-      assign: vi.fn((_: string | URL) => {}),
+      assign: vi.fn((_: string | URL) => { }),
     } as any;
     localStorage.setItem("uploadedFamilyIds", JSON.stringify([testFamily.id]));
     vi.spyOn(axios, "get").mockResolvedValue(createMockData());
@@ -139,6 +141,16 @@ describe("Family Editor Page", () => {
     expect(creationButton).toBeTruthy();
     fireEvent.click(creationButton);
   });
+
+  it("Can open an import file dialogue", () => {
+    const addFamilyButton = screen.getByTestId("add-family-button");
+    expect(addFamilyButton).toBeTruthy();
+    fireEvent.click(addFamilyButton);
+
+    const createFamilyButton = screen.getByTestId("import-family-button");
+    expect(createFamilyButton).toBeTruthy();
+    fireEvent.click(createFamilyButton);
+  });
 });
 
 describe("MechanismEditor", () => {
@@ -176,7 +188,7 @@ describe("MechanismEditor", () => {
                 id: "111-111-111-111-111",
                 name: "Test Reaction",
                 description: null,
-                type: "NONE",
+                type: "ARRHENIUS",
                 reactants: [
                   {
                     speciesId: "111-111-111-111-111",
@@ -219,6 +231,129 @@ describe("MechanismEditor", () => {
   });
 });
 
+describe("GeneralInfoView", () => {
+  let updateFamily = vi.fn();
+  beforeEach(() => {
+    updateFamily = vi.fn();
+    render(
+      <CustomThemeProvider>
+        <GeneralInfoView
+          family={{
+            id: "111-111-111-111-111",
+            name: "Test Family",
+            description: "Test Description",
+            mechanisms: [],
+            owner: null,
+            species: [
+              {
+                id: "111-111-111-111-333",
+                name: "Test Species",
+                description: "Cool species",
+                familyId: "111-111-111-111-111",
+                attributes: {},
+                isDeleted: false,
+                isInDatabase: true,
+                isModified: false,
+              },
+            ],
+            phases: [],
+            reactions: [
+              {
+                id: "111-111-111-111",
+                name: "Test Reaction",
+                description: "",
+                type: "ARRHENIUS",
+                reactants: [],
+                products: [],
+                attributes: {},
+              },
+              {
+                id: "222-222-222-222",
+                name: "Another Test Reaction",
+                description: "",
+                type: "FIRST_ORDER_LOSS",
+                reactants: [],
+                products: [],
+                attributes: {},
+              },
+            ],
+          }}
+          updateFamily={updateFamily}
+          onDelete={vi.fn()}
+          onPublish={vi.fn()}
+        />
+      </CustomThemeProvider>,
+    );
+  });
+
+  it("renders", () => {
+    expect(screen.getByText("Test Description")).toBeTruthy();
+  });
+});
+
+describe("PhaseView", () => {
+  let updateFamily = vi.fn();
+  beforeEach(() => {
+    updateFamily = vi.fn();
+    render(
+      <CustomThemeProvider>
+        <PhaseView
+          family={{
+            id: "111-111-111-111-111",
+            name: "Test Family",
+            description: "Test Description",
+            mechanisms: [],
+            owner: null,
+            species: [
+              {
+                id: "111-111-111-111-333",
+                name: "Test Species",
+                description: "Cool species",
+                familyId: "111-111-111-111-111",
+                attributes: {},
+                isDeleted: false,
+                isInDatabase: true,
+                isModified: false,
+              },
+            ],
+            phases: [{
+              id: "120984",
+              name: "gas",
+              description: null,
+              speciesIds: []
+            }],
+            reactions: [
+              {
+                id: "111-111-111-111",
+                name: "Test Reaction",
+                description: "",
+                type: "ARRHENIUS",
+                reactants: [],
+                products: [],
+                attributes: {},
+              },
+              {
+                id: "222-222-222-222",
+                name: "Another Test Reaction",
+                description: "",
+                type: "FIRST_ORDER_LOSS",
+                reactants: [],
+                products: [],
+                attributes: {},
+              },
+            ],
+          }}
+          updateFamily={updateFamily}
+        />
+      </CustomThemeProvider>,
+    );
+  });
+
+  it("renders", () => {
+    expect(screen.getByText("gas")).toBeTruthy();
+  });
+});
+
 describe("SpeciesView", () => {
   let updateFamily = vi.fn();
 
@@ -251,7 +386,7 @@ describe("SpeciesView", () => {
                 id: "111-111-111-111",
                 name: "Test Reaction",
                 description: "",
-                type: "NONE",
+                type: "ARRHENIUS",
                 reactants: [],
                 products: [],
                 attributes: {},
@@ -513,7 +648,7 @@ describe("MechanismsView", () => {
                 id: "111-111-111-111-111",
                 name: "Test Reaction",
                 description: null,
-                type: "NONE",
+                type: "ARRHENIUS",
                 reactants: [
                   {
                     speciesId: "111-111-111-111-111",

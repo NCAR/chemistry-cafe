@@ -1,24 +1,25 @@
 import { describe, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
 import axios, { AxiosResponse } from "axios";
-import { updateUser, updateFamily } from "../src/API/API_UpdateMethods";
-import { APIFamily, APIUser } from "../src/API/API_Interfaces";
+import { updateUser, updateFamily, updateSpecies, updatePhase, updateReaction, updateMechanism } from "../src/API/API_UpdateMethods";
+import { APIFamily, APIMechanism, APIPhase, APIReaction, APISpecies, APIUser } from "../src/API/API_Interfaces";
+import { BASE_URL } from "../src/API/API_config";
 
 // Mock axios using vitest's built-in mock function
 vi.mock("axios");
 
+const mockResponseData = { success: true };
+
+function createMockResponse() {
+  return {
+    data: mockResponseData,
+    status: 200,
+    statusText: "OK",
+    headers: {},
+  } as AxiosResponse;
+}
+
 describe("updateUser function", () => {
-  const mockResponseData = { success: true };
-
-  function createMockResponse() {
-    return {
-      data: mockResponseData,
-      status: 200,
-      statusText: "OK",
-      headers: {},
-    } as AxiosResponse;
-  }
-
   it("updates user and returns nothing", async () => {
     const mockedPut = vi
       .spyOn(axios, "put")
@@ -61,17 +62,6 @@ describe("updateUser function", () => {
 });
 
 describe("updateFamily function", () => {
-  const mockResponseData = { success: true };
-
-  function createMockResponse() {
-    return {
-      data: mockResponseData,
-      status: 200,
-      statusText: "OK",
-      headers: {},
-    } as AxiosResponse;
-  }
-
   it("updates family and returns nothing", async () => {
     const mockedPatch = vi
       .spyOn(axios, "patch")
@@ -105,3 +95,67 @@ describe("updateFamily function", () => {
     );
   });
 });
+
+const testSpecies: APISpecies = {
+  id: "1-1-1-1-1",
+  name: "",
+  numericalAttributes: [],
+  stringAttributes: [],
+  familyId: "1-1-1-1-1"
+}
+
+const testPhase: APIPhase = {
+  id: "1-1-1-1-1",
+  name: "",
+  familyId: "1-1-1-1-1",
+  species: []
+}
+
+const testReaction: APIReaction = {
+  id: "1-1-1-1-1",
+  name: "",
+  reactionType: "",
+  numericalAttributes: [],
+  stringAttributes: [],
+  reactants: [],
+  products: [],
+  familyId: "1-1-1-1-1",
+}
+
+const testMechanism: APIMechanism = {
+  id: "1-1-1-1-1",
+  name: "",
+  species: [],
+  phases: [],
+  reactions: [],
+  familyId: "1-1-1-1-1"
+}
+
+describe.each([
+  ["updateSpecies", updateSpecies, testSpecies, "species"],
+  ["updatePhase", updatePhase, testPhase, "phases"],
+  ["updateReaction", updateReaction, testReaction, "reactions"],
+  ["updateMechanism", updateMechanism, testMechanism, "mechanisms"],
+])(
+  "%s function",
+  async (_, updateFunction: (object: any) => any, object: any, endpoint: string) => {
+
+    it("Successfully calls the update endpoint", async () => {
+      const mockedPatch = vi
+        .spyOn(axios, "patch")
+        .mockResolvedValue(createMockResponse()) as Mock;
+
+      await updateFunction(object);
+
+      expect(mockedPatch).toHaveBeenCalledWith(
+        `${BASE_URL}/${endpoint}/${object.id}`,
+        object,
+        {
+          withCredentials: true,
+          headers: { "Content-Type": "application/json" },
+        },
+
+      );
+    })
+  }
+)

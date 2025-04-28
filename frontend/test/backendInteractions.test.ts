@@ -1,20 +1,43 @@
-import { describe, expect, test } from "vitest";
-import { Family, Reaction, Species } from "../src/types/chemistryModels";
-import { APIFamily, APIReaction, APISpecies } from "../src/API/API_Interfaces";
+import { describe, expect, test, vi } from "vitest";
+import { Family, Mechanism, Phase, Reaction, Species } from "../src/types/chemistryModels";
+import { APIFamily, APIMechanism, APIPhase, APIReaction, APISpecies, APIUser } from "../src/API/API_Interfaces";
 import {
+  apiToFrontendFamily,
+  apiToFrontendMechanism,
+  apiToFrontendPhase,
   apiToFrontendReaction,
   apiToFrontendSpecies,
+  frontendToAPIFamily,
+  frontendToAPIMechanism,
+  frontendToAPIPhase,
   frontendToAPIReaction,
   frontendToAPISpecies,
+  uploadFamily,
 } from "../src/helpers/backendInteractions";
 import { UUID } from "crypto";
+import axios, { AxiosHeaders, AxiosResponse } from "axios";
+
+const user: APIUser = {
+  id: "00000000-0000-0000-0000-000000000000",
+  username: "Test User",
+  role: ""
+}
 
 const frontendSpecies: Species = {
   id: "00000000-0000-0000-0000-000000000000",
   name: "Test Species",
   description: "Test Description",
   familyId: "00000000-0000-0000-0000-000000000000",
-  attributes: {},
+  attributes: {
+    "weight": {
+      serializationKey: "weight",
+      value: 0.0
+    },
+    "another key [K]": {
+      serializationKey: "another key [K]",
+      value: "val"
+    },
+  },
 };
 
 const apiSpecies: APISpecies = {
@@ -22,18 +45,47 @@ const apiSpecies: APISpecies = {
   name: frontendSpecies.name,
   description: frontendSpecies.description,
   familyId: frontendSpecies.id as UUID,
-  numericalAttributes: [],
-  stringAttributes: [],
+  numericalAttributes: [{
+    serializationKey: frontendSpecies.attributes["weight"].serializationKey,
+    value: frontendSpecies.attributes["weight"].value as number,
+  }],
+  stringAttributes: [{
+    serializationKey: frontendSpecies.attributes["another key [K]"].serializationKey,
+    value: frontendSpecies.attributes["another key [K]"].value as string,
+  }],
 };
+
+const frontendPhase: Phase = {
+  id: "00000000-0000-0000-0000-000000000000",
+  name: "gas",
+  description: null,
+  speciesIds: [apiSpecies.id]
+}
+
+const apiPhase: APIPhase = {
+  id: frontendPhase.id as UUID,
+  name: frontendPhase.name,
+  familyId: "00000000-0000-0000-0000-000000000000",
+  species: []
+}
 
 const frontendReaction: Reaction = {
   id: "00000000-0000-0000-0000-000000000000",
   name: "",
   description: "Test Description",
-  type: "NONE",
+  type: "ARRHENIUS",
   reactants: [],
   products: [],
-  attributes: {},
+  attributes: {
+    "weight": {
+      serializationKey: "weight",
+      value: 0.0
+    },
+    "another key [K]": {
+      serializationKey: "another key [K]",
+      value: "val"
+    },
+  },
 };
 
 const apiReaction: APIReaction = {
@@ -42,38 +94,59 @@ const apiReaction: APIReaction = {
   description: frontendReaction.description!,
   createdDate: "",
   updatedDate: "",
-  numericalAttributes: [],
-  stringAttributes: [],
+  numericalAttributes: [{
+    serializationKey: frontendReaction.attributes["weight"].serializationKey,
+    value: frontendReaction.attributes["weight"].value as number,
+  }],
+  stringAttributes: [{
+    serializationKey: frontendReaction.attributes["another key [K]"].serializationKey,
+    value: frontendReaction.attributes["another key [K]"].value as string,
+  }],
   reactants: [],
   reactionType: frontendReaction.type,
   products: [],
   familyId: "00000000-0000-0000-0000-000000000000",
 };
 
+const frontendMechanism: Mechanism = {
+  id: "00000000-0000-0000-0000-000000000000",
+  name: "Test Mechanism",
+  description: null,
+  familyId: "00000000-0000-0000-0000-000000000000",
+  speciesIds: [frontendSpecies.id],
+  reactionIds: [frontendReaction.id],
+  phaseIds: [frontendPhase.id]
+}
+
+const apiMechanism: APIMechanism = {
+  id: frontendMechanism.id as UUID,
+  name: frontendMechanism.name,
+  species: [],
+  phases: [],
+  reactions: [],
+  familyId: frontendMechanism.familyId as UUID,
+}
+
 const frontendFamily: Family = {
-  owner: null,
+  owner: user,
   id: "00000000-0000-0000-0000-000000000000",
   name: "Test Family",
   description: "Test Description",
-  mechanisms: [],
+  mechanisms: [frontendMechanism],
   species: [frontendSpecies],
   reactions: [frontendReaction],
-  phases: [],
+  phases: [frontendPhase],
 };
 
 const apiFamily: APIFamily = {
   id: frontendFamily.id as UUID,
   name: frontendFamily.name,
   description: frontendFamily.description,
-  owner: {
-    id: "00000000-0000-0000-0000-000000000000",
-    username: "",
-    role: "",
-  },
+  owner: user,
   species: [apiSpecies],
   reactions: [apiReaction],
-  phases: [],
-  mechanisms: [],
+  phases: [apiPhase],
+  mechanisms: [apiMechanism],
 };
 
 describe("Species Conversion", () => {
@@ -107,5 +180,96 @@ describe("Reaction Conversion", () => {
     expect(result.id).toEqual(frontendReaction.id);
     expect(result.name).toEqual(frontendReaction.name);
     expect(result.description).toEqual(frontendReaction.description);
+  });
+});
+
+describe("Phase Conversion", () => {
+  test("Conversion from frontend to backend definition", () => {
+    const result = frontendToAPIPhase(frontendPhase, frontendFamily);
+    expect(result.id).toEqual(apiPhase.id);
+    expect(result.name).toEqual(apiPhase.name);
+  });
+
+  test("Conversion from backend to frontend definition", () => {
+    const result = apiToFrontendPhase(apiPhase);
+    expect(result.id).toEqual(frontendPhase.id);
+    expect(result.name).toEqual(frontendPhase.name);
+  });
+});
+
+describe("Mechanism Conversion", () => {
+  test("Conversion from frontend to backend definition", () => {
+    const result = frontendToAPIMechanism(frontendMechanism, frontendFamily);
+    expect(result.id).toEqual(apiMechanism.id);
+    expect(result.name).toEqual(apiMechanism.name);
+  });
+
+  test("Conversion from backend to frontend definition", () => {
+    const result = apiToFrontendMechanism(apiMechanism);
+    expect(result.id).toEqual(frontendMechanism.id);
+    expect(result.name).toEqual(frontendMechanism.name);
+  });
+});
+
+describe("Family Conversion", () => {
+  test("Conversion from frontend to backend definition", () => {
+    const result = frontendToAPIFamily(frontendFamily);
+    expect(result.id).toEqual(apiFamily.id);
+    expect(result.name).toEqual(apiFamily.name);
+    expect(result.species.length).not.toBe(0);
+    expect(result.reactions.length).not.toBe(0);
+    expect(result.phases.length).not.toBe(0);
+    expect(result.mechanisms.length).not.toBe(0);
+  });
+
+  test("Conversion from backend to frontend definition", () => {
+    const result = apiToFrontendFamily(apiFamily);
+    expect(result.id).toEqual(frontendFamily.id);
+    expect(result.name).toEqual(frontendFamily.name);
+  });
+
+  test("Conversion to non-expanded family (shallow values)", () => {
+    const result = frontendToAPIFamily(frontendFamily, false);
+    expect(result.species.length).toBe(0);
+    expect(result.reactions.length).toBe(0);
+    expect(result.phases.length).toBe(0);
+    expect(result.mechanisms.length).toBe(0);
+  })
+});
+
+
+vi.mock("axios");
+
+function createMockData(data: any): AxiosResponse {
+  return {
+    data: data,
+    status: 200,
+    statusText: "OK",
+    headers: {},
+    config: {
+      headers: new AxiosHeaders({ "Content-Type": "text/plain" }),
+    },
+  } as AxiosResponse;
+}
+
+describe("Uploading a family", () => {
+  test("Succeeds with a valid family", async () => {
+    vi.spyOn(axios, "post")
+      .mockResolvedValueOnce(createMockData(apiFamily))
+      .mockResolvedValueOnce(createMockData(apiSpecies))
+      .mockResolvedValueOnce(createMockData(apiPhase))
+      .mockResolvedValueOnce(createMockData(apiReaction))
+      .mockResolvedValueOnce(createMockData(apiMechanism));
+
+    vi.spyOn(axios, "get")
+      .mockResolvedValue(createMockData(apiFamily));
+
+    const result = await uploadFamily(frontendFamily, user);
+
+    expect(result.id).equals(apiFamily.id);
+    expect(result.species.at(0)?.id).equals(apiSpecies.id);
+    expect(result.reactions.at(0)?.id).equals(apiReaction.id);
+    expect(result.phases.at(0)?.id).equals(apiPhase.id);
+    expect(result.mechanisms.at(0)?.id).equals(apiMechanism.id);
   });
 });

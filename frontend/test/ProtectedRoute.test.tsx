@@ -11,6 +11,7 @@ import { APIUser } from "../src/API/API_Interfaces";
 const userData: APIUser = {
   username: "",
   role: "verified",
+  id: "0-0-0-0-0-0"
 };
 
 vi.mock("../src/components/AuthContext", () => {

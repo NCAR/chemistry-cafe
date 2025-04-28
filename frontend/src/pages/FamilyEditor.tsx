@@ -510,7 +510,7 @@ type AddFamilyButtonProps = {
   handleImportButtonClick: () => void;
 };
 
-const AddFamilyButton: React.FC<AddFamilyButtonProps> = ({
+export const AddFamilyButton: React.FC<AddFamilyButtonProps> = ({
   handleCreateButtonClick,
   handleImportButtonClick,
 }) => {
@@ -554,7 +554,8 @@ const AddFamilyButton: React.FC<AddFamilyButtonProps> = ({
           <Typography>New</Typography>
         </MenuItem>
         <MenuItem
-          aria-label="Import a published family"
+          aria-label="Import a family from a file"
+          data-testid="import-family-button"
           onClick={() => {
             handleImportButtonClick();
             setOpen(false);
