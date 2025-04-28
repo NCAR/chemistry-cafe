@@ -287,6 +287,7 @@ const AppearanceMenu = () => {
         <ListItem disablePadding>
           <ListItemButton
             aria-label="toggle dark theme"
+            data-testId="toggle-dark-theme"
             onClick={toggleDarkMode}
           >
             <ListItemText>
@@ -300,6 +301,7 @@ const AppearanceMenu = () => {
         <ListItem disablePadding>
           <ListItemButton
             aria-label="toggle low saturation theme"
+            data-testId="toggle-low-saturation-theme"
             onClick={toggleLowSaturationMode}
           >
             <ListItemText>
@@ -313,6 +315,7 @@ const AppearanceMenu = () => {
         <ListItem disablePadding>
           <ListItemButton
             aria-label="toggle high saturation theme"
+            data-testId="toggle-high-saturation-theme"
             onClick={toggleHighSaturationMode}
           >
             <ListItemText>
@@ -326,6 +329,7 @@ const AppearanceMenu = () => {
         <ListItem disablePadding>
           <ListItemButton
             aria-label="toggle monochrome theme"
+            data-testId="toggle-monochrome-theme"
             onClick={toggleMonochromeMode}
           >
             <ListItemText>
@@ -354,17 +358,17 @@ const AppearanceMenu = () => {
           />
           {theme.palette.primary.main !==
             defaultAppearanceSettings.primaryColor && (
-            <Button
-              onClick={() =>
-                modifyColorPalette(
-                  "primary",
-                  defaultAppearanceSettings.primaryColor!,
-                )
-              }
-            >
-              Reset
-            </Button>
-          )}
+              <Button
+                onClick={() =>
+                  modifyColorPalette(
+                    "primary",
+                    defaultAppearanceSettings.primaryColor!,
+                  )
+                }
+              >
+                Reset
+              </Button>
+            )}
         </ListItem>
         <ListItem>
           <ColorPicker
@@ -376,17 +380,17 @@ const AppearanceMenu = () => {
           />
           {theme.palette.secondary.main !==
             defaultAppearanceSettings.secondaryColor && (
-            <Button
-              onClick={() =>
-                modifyColorPalette(
-                  "secondary",
-                  defaultAppearanceSettings.secondaryColor!,
-                )
-              }
-            >
-              Reset
-            </Button>
-          )}
+              <Button
+                onClick={() =>
+                  modifyColorPalette(
+                    "secondary",
+                    defaultAppearanceSettings.secondaryColor!,
+                  )
+                }
+              >
+                Reset
+              </Button>
+            )}
         </ListItem>
         <ListItem>
           <ColorPicker
@@ -416,17 +420,17 @@ const AppearanceMenu = () => {
           />
           {theme.palette.error.main !==
             defaultAppearanceSettings.errorColor && (
-            <Button
-              onClick={() =>
-                modifyColorPalette(
-                  "error",
-                  defaultAppearanceSettings.errorColor!,
-                )
-              }
-            >
-              Reset
-            </Button>
-          )}
+              <Button
+                onClick={() =>
+                  modifyColorPalette(
+                    "error",
+                    defaultAppearanceSettings.errorColor!,
+                  )
+                }
+              >
+                Reset
+              </Button>
+            )}
         </ListItem>
       </List>
     </>

@@ -98,6 +98,7 @@ export const cloneFamily = (family: Family): Family => {
     idMappings.set(mechanism.id, frontendId);
     clonedFamily.mechanisms.push({
       ...mechanism,
+      id: frontendId,
       speciesIds: mechanism.speciesIds.reduce((accumulator: string[], id) => {
         const mappedId = idMappings.get(id);
         if (mappedId) {

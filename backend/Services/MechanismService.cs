@@ -22,6 +22,7 @@ public class MechanismService
     public async Task<(QueryResult, IEnumerable<Mechanism>?)> GetAllMechanismsAsync(Guid? familyId = null)
     {
         IQueryable<Mechanism> query = _context.Mechanisms
+            .AsSplitQuery()
             .Include(f => f.Species)
                 .ThenInclude(s => s.NumericalAttributes)
             .Include(f => f.Species)

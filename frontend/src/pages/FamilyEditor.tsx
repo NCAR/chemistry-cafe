@@ -17,7 +17,6 @@ import {
   ListItemIcon,
   Menu,
   MenuItem,
-  Modal,
   Paper,
   Snackbar,
   styled,
@@ -31,8 +30,8 @@ import CloseIcon from "@mui/icons-material/Close";
 import CircleIcon from "@mui/icons-material/Circle";
 import CloudOffIcon from "@mui/icons-material/CloudOff";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
+import FileUploadIcon from '@mui/icons-material/FileUpload';
 import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
 import { TreeItem, treeItemClasses } from "@mui/x-tree-view/TreeItem";
 import {
@@ -55,13 +54,14 @@ import { useCustomTheme } from "../components/CustomThemeContext";
 import {
   ConfirmActionModal,
   FamilyCreationModal,
+  ImportFamilyModal,
   MechanismCreationModal,
-  ReactionsEditorModal,
+  ReactionEditorModal,
   SpeciesEditorModal,
 } from "../components/FamilyEditorModals";
 import { reactionToString, reactionTypeToString } from "../helpers/stringify";
 import { UUID } from "crypto";
-import { getAllFamilies, getFamily } from "../API/API_GetMethods";
+import { getFamily } from "../API/API_GetMethods";
 import {
   apiToFrontendFamily,
   saveFamilyChanges,
@@ -74,10 +74,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import { useAuth } from "../components/AuthContext";
 import { deleteFamily } from "../API/API_DeleteMethods";
 import { APIFamily } from "../API/API_Interfaces";
-import FamilyBrowser from "../components/FamilyBrowser";
 import {
-  addFamilyLocally,
-  cloneFamily,
   generateFrontendID,
   updateLocalStorageFamilyInfo,
 } from "../helpers/localFamilies";
@@ -98,12 +95,11 @@ const FamilyPage = () => {
   const [familyCreationModalOpen, setFamilyCreationModalOpen] =
     useState<boolean>(false);
   const [selectedFamilyId, setSelectedFamilyId] = useState<string>("");
-  const [importChoices, setImportChoices] = useState<Array<APIFamily>>(); // Used when user attempts to import families
   const [openImportMenu, setOpenImportMenu] = useState<boolean>(false); // Used when user attempts to import families
   const { user } = useAuth();
   const currentMenuName = useRef<string>(DataViewSelection.Default);
-
   const { appearanceSettings } = useCustomTheme();
+
 
   const updateFamily = (family: Family): void => {
     setFamilies((families) => {
@@ -165,8 +161,12 @@ const FamilyPage = () => {
             family={family}
             updateFamily={updateFamily}
             onPublish={async () => {
+              if (!user) {
+                alert("Please log in to upload a family");
+                return;
+              }
               setLoading(true);
-              await uploadFamily(family)
+              await uploadFamily(family, user)
                 .then((databaseFamily) => {
                   setFamilies((families) => {
                     if (!families) {
@@ -331,8 +331,8 @@ const FamilyPage = () => {
         await saveFamilyChanges(family)
           .then((family) => familyList.push(family))
           .catch((e) => {
-            alert("An error ocurred while saving families");
             console.error(e);
+            alert("An error ocurred while saving families");
           });
       } else {
         familyList.push(family);
@@ -386,18 +386,7 @@ const FamilyPage = () => {
               </Tooltip>
               <AddFamilyButton
                 handleCreateButtonClick={() => setFamilyCreationModalOpen(true)}
-                handleImportButtonClick={async () => {
-                  const allFamilies = await getAllFamilies();
-                  setImportChoices(
-                    allFamilies.filter(
-                      (apiFamily) =>
-                        !families?.find(
-                          (localFamily) => localFamily.id == apiFamily.id,
-                        ),
-                    ),
-                  );
-                  setOpenImportMenu(true);
-                }}
+                handleImportButtonClick={async () => setOpenImportMenu(true)}
               />
             </Box>
           </Paper>
@@ -495,70 +484,13 @@ const FamilyPage = () => {
       <FamilyCreationModal
         open={familyCreationModalOpen}
         onClose={() => setFamilyCreationModalOpen(false)}
-        onCreation={createFamily}
+        onSubmit={createFamily}
       />
-      <Modal open={openImportMenu} onClose={() => setOpenImportMenu(false)}>
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            minWidth: "50%",
-            maxHeight: "85%",
-            overflowY: "auto",
-            bgcolor: "background.paper",
-            border: "2px solid #000",
-            boxShadow: 24,
-            p: 4,
-            display: "flex",
-            flexDirection: "column",
-            rowGap: "0.7em",
-          }}
-        >
-          {importChoices?.length === 0 ? (
-            <Typography color="textPrimary">
-              No editable families found.
-            </Typography>
-          ) : (
-            <FamilyBrowser
-              families={importChoices}
-              handleEditButtonClick={(familyId) => {
-                getFamily(familyId)
-                  .then((family: APIFamily) => {
-                    setFamilies([
-                      apiToFrontendFamily(family),
-                      ...(families ?? []),
-                    ]);
-                  })
-                  .catch((err) => {
-                    console.error(
-                      `An error occurred while importing with id ${familyId}`,
-                      err,
-                    );
-                    alert("An error occurred while importing a family");
-                  });
-                setOpenImportMenu(false);
-              }}
-              handleCloneButtonClick={(id) => {
-                getFamily(id)
-                  .then((family) => {
-                    const clonedFamily = cloneFamily(
-                      apiToFrontendFamily(family),
-                    );
-                    addFamilyLocally(clonedFamily);
-                    setFamilies([clonedFamily, ...(families ?? [])]);
-                  })
-                  .catch((err) => {
-                    console.error("An issue occurred cloning the family:", err);
-                    alert("An issue occurred cloning the family");
-                  });
-                setOpenImportMenu(false);
-              }}
-            />
-          )}
-        </Box>
-      </Modal>
+      <ImportFamilyModal
+        open={openImportMenu}
+        onClose={() => setOpenImportMenu(false)}
+        onSubmit={createFamily}
+      />
       {loading && (
         <CircularProgress
           sx={{
@@ -578,7 +510,7 @@ type AddFamilyButtonProps = {
   handleImportButtonClick: () => void;
 };
 
-const AddFamilyButton: React.FC<AddFamilyButtonProps> = ({
+export const AddFamilyButton: React.FC<AddFamilyButtonProps> = ({
   handleCreateButtonClick,
   handleImportButtonClick,
 }) => {
@@ -611,7 +543,10 @@ const AddFamilyButton: React.FC<AddFamilyButtonProps> = ({
         <MenuItem
           aria-label="Create a new family"
           data-testid="create-family-button"
-          onClick={handleCreateButtonClick}
+          onClick={() => {
+            handleCreateButtonClick();
+            setOpen(false);
+          }}
         >
           <ListItemIcon>
             <AddIcon color="primary" />
@@ -619,11 +554,15 @@ const AddFamilyButton: React.FC<AddFamilyButtonProps> = ({
           <Typography>New</Typography>
         </MenuItem>
         <MenuItem
-          aria-label="Import a published family"
-          onClick={handleImportButtonClick}
+          aria-label="Import a family from a file"
+          data-testid="import-family-button"
+          onClick={() => {
+            handleImportButtonClick();
+            setOpen(false);
+          }}
         >
           <ListItemIcon>
-            <CloudDownloadIcon color="secondary" />
+            <FileUploadIcon color="secondary" />
           </ListItemIcon>
           <Typography>Import</Typography>
         </MenuItem>
@@ -1042,7 +981,7 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
         <Typography color="textPrimary" variant="h4">
           Chemical Species
         </Typography>
-        <Tooltip title="Chemical species are forms of a specific chemical entity. They can be named anything as long as it is clear what it represents. For example, a chemical species may be represented as either 'O' or 'Ozone'.">
+        <Tooltip title="Chemical species are forms of a specific chemical entity. They can be named anything as long as it is clear what it represents. For example, a chemical species may be represented as either 'O3' or 'Ozone'.">
           <HelpOutlineIcon />
         </Tooltip>
       </Box>
@@ -1086,7 +1025,10 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
       />
       <SpeciesEditorModal
         open={speciesEditorOpen}
-        onClose={() => setSpeciesEditorOpen(false)}
+        onClose={() => {
+          setSpeciesEditorOpen(false);
+          setSelectedSpecies(undefined);
+        }}
         onUpdate={updateSpecies}
         species={selectedSpecies}
       />
@@ -1106,7 +1048,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       id: frontendId,
       name: "",
       description: "",
-      type: "NONE",
+      type: "ARRHENIUS",
       reactants: [],
       products: [],
       attributes: {},
@@ -1185,11 +1127,30 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       },
     },
     {
+      field: "id",
+      headerName: "Equation",
+      flex: 1,
+      valueGetter: (id: string) => reactionToString(family.reactions.find(e => e.id == id), family.species),
+      renderCell: (params: GridRenderCellParams<Reaction>) => (
+        <Typography
+          variant="body1"
+          sx={{
+            color: params.value
+              ? theme.palette.text.primary
+              : theme.palette.text.disabled,
+          }}
+          noWrap
+        >
+          {params.value || "<Empty>"}
+        </Typography>
+      ),
+    },
+    {
       field: "name",
       headerName: "Name",
       type: "string",
       flex: 1,
-      renderCell: (params: GridRenderCellParams<Family>) => (
+      renderCell: (params: GridRenderCellParams<Reaction>) => (
         <Typography
           variant="body1"
           sx={{
@@ -1208,7 +1169,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       headerName: "Description",
       type: "string",
       flex: 1,
-      renderCell: (params: GridRenderCellParams<Family>) => (
+      renderCell: (params: GridRenderCellParams<Reaction>) => (
         <Typography
           variant="body1"
           sx={{
@@ -1226,7 +1187,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       field: "type",
       headerName: "Reaction Type",
       flex: 1,
-      renderCell: (params: GridRenderCellParams<Family>) => (
+      renderCell: (params: GridRenderCellParams<Reaction>) => (
         <Typography
           variant="body1"
           sx={{
@@ -1237,27 +1198,6 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
           noWrap
         >
           {reactionTypeToString(params.value as ReactionTypeName)}
-        </Typography>
-      ),
-    },
-    {
-      field: "id",
-      headerName: "Equation",
-      flex: 1,
-      renderCell: (params: GridRenderCellParams<Family>) => (
-        <Typography
-          variant="body1"
-          sx={{
-            color: params.value
-              ? theme.palette.text.primary
-              : theme.palette.text.disabled,
-          }}
-          noWrap
-        >
-          {reactionToString(
-            family.reactions.find((e) => e.id == params.value),
-            family.species,
-          )}
         </Typography>
       ),
     },
@@ -1324,9 +1264,12 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
           ),
         }}
       />
-      <ReactionsEditorModal
+      <ReactionEditorModal
         open={reactionsEditorOpen}
-        onClose={() => setReactionsEditorOpen(false)}
+        onClose={() => {
+          setReactionsEditorOpen(false);
+          setSelectedReaction(undefined);
+        }}
         onUpdate={updateReaction}
         reaction={selectedReaction}
         family={family}
@@ -1336,8 +1279,23 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
 };
 
 export const PhaseView = ({ family }: ViewProps) => {
+  const { theme } = useCustomTheme();
+
+  const phaseColumns: GridColDef[] = [
+    {
+      field: "name",
+      flex: 1,
+    }
+  ]
+
   return (
-    <Box>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+      }}
+    >
       <Box
         sx={{
           paddingTop: "0.5em",
@@ -1360,6 +1318,27 @@ export const PhaseView = ({ family }: ViewProps) => {
         Phases are currently a work in progress. Everything is assumed to be in
         a gas phase.
       </Typography>
+      <DataGrid
+        initialState={{ density: "compact" }}
+        rows={family.phases.filter((element) => !element.isDeleted)}
+        columns={phaseColumns}
+        pageSizeOptions={[5, 10, 20, 100]}
+        disableVirtualization
+        sx={{
+          flex: 1,
+          ".MuiDataGrid-columnHeaderTitle": {
+            fontFamily: theme.typography.fontFamily,
+          },
+          ".MuiDataGrid-overlay": {
+            fontFamily: theme.typography.fontFamily,
+          },
+        }}
+        slots={{
+          toolbar: () => (
+            <DataViewToolbar />
+          ),
+        }}
+      />
     </Box>
   );
 };
@@ -1428,9 +1407,14 @@ export const MechanismsView = ({ family, updateFamily }: ViewProps) => {
   };
 
   useLayoutEffect(() => {
+    console.log(selectedMechanism);
     const component = getMenuComponent(selectedMechanism);
     setMenuComponent(component);
-  }, [selectedMechanism]);
+  }, [selectedMechanism, family]);
+
+  useLayoutEffect(() => {
+    setSelectedMechanism(null);
+  }, [family])
 
   return (
     <Box>
@@ -1470,7 +1454,7 @@ export const MechanismsView = ({ family, updateFamily }: ViewProps) => {
       <MechanismCreationModal
         open={mechanismCreationModalOpen}
         onClose={() => setMechanismCreationModalOpen(false)}
-        onCreation={createMechanism}
+        onSubmit={createMechanism}
       />
     </Box>
   );

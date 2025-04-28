@@ -1,4 +1,4 @@
-import { Reaction, ReactionTypeName, Species } from "../types/chemistryModels";
+import { Reaction, Species } from "../types/chemistryModels";
 
 /**
  * Converts a reaction type key to a human-readable string
@@ -6,7 +6,7 @@ import { Reaction, ReactionTypeName, Species } from "../types/chemistryModels";
  * @returns String value. Defaults to the given string by default
  */
 export const reactionTypeToString = (
-  reactionType: ReactionTypeName,
+  reactionType: string,
 ): string => {
   switch (reactionType) {
     case "AQUEOUS_EQUILIBRIUM":
@@ -15,26 +15,26 @@ export const reactionTypeToString = (
       return "Arrhenius";
     case "CONDENSED_PHASE_ARRHENIUS":
       return "Condensed Phase Arrhenius";
+    case "PHOTOLYSIS":
+      return "Photolysis";
     case "CONDENSED_PHASE_PHOTOLYSIS":
-      return "Contendes Phase Photolysis";
+      return "Condensed Phase Photolysis";
     case "FIRST_ORDER_LOSS":
       return "First-Order Loss";
-    case "EMMISSION":
-      return "Emmission";
+    case "EMISSION":
+      return "Emission";
     case "TUNNELING":
       return "Tunneling";
     case "TROE":
       return "Troe (Fall-Off)";
-    case "PHOTOLYSIS":
-      return "Photolysis";
     case "SURFACE":
-      return "Surface (Heterogenous)";
+      return "Surface Reaction (Heterogenous)";
     case "WET_DEPOSITION":
       return "Wet Deposition";
     case "BRANCHED_NO_RO2":
       return "Branched NO RO2";
     case "HL_PHASE_TRANSFER":
-      return "HL Phase Transfer";
+      return "Henry's Law Phase Transfer";
     case "SIMPOL_PHASE_TRANSFER":
       return "Simpol Phase Transfer";
     default:

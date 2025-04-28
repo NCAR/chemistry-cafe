@@ -110,8 +110,11 @@ export type ReactionAttribute = {
   /** Human-readable name of the property */
   name?: string;
 
-  /** What the property should be serialized as (Defaults to "<name> [<unit>]"). */
+  /** What the property should be serialized as (Usually in the form "<name> [<unit>]"). */
   serializationKey: string;
+
+  /** The unit of the specific attribute. This can be empty if unitless. */
+  units?: string;
 
   /** Value of the property. This is *usually* numerical */
   value: number | string;
@@ -121,7 +124,6 @@ export type ReactionAttribute = {
 };
 
 export type ReactionTypeName =
-  | "NONE"
   | "HL_PHASE_TRANSFER"
   | "SIMPOL_PHASE_TRANSFER"
   | "AQUEOUS_EQUILIBRIUM"
@@ -129,120 +131,13 @@ export type ReactionTypeName =
   | "CONDENSED_PHASE_ARRHENIUS"
   | "PHOTOLYSIS"
   | "CONDENSED_PHASE_PHOTOLYSIS"
-  | "EMMISSION"
+  | "EMISSION"
   | "FIRST_ORDER_LOSS"
   | "SURFACE"
   | "TROE"
   | "BRANCHED_NO_RO2"
   | "TUNNELING"
   | "WET_DEPOSITION";
-
-/**
- * Represents all attributes configurable by the user for each reaction type.
- */
-export const reactionAttributeOptions: {
-  [Property in ReactionTypeName]: Array<ReactionAttribute>;
-} = {
-  /**
-   * For Arrhenius reactions, there is another value, C, which we don't
-   * represent on the frontend. It is defined as C = -Ea / kb, so it's
-   * calculated elsewhere. See https://github.com/NCAR/chemistry-cafe/pull/166
-   */
-  ARRHENIUS: [
-    {
-      serializationKey: "A",
-      value: 0.0,
-    },
-    {
-      serializationKey: "B",
-      value: 0.0,
-    },
-    {
-      serializationKey: "Ea",
-      value: 0.0,
-    },
-    {
-      serializationKey: "D",
-      value: 0.0,
-    },
-    {
-      serializationKey: "E",
-      value: 0.0,
-    },
-  ],
-  EMMISSION: [
-    {
-      name: "Scaling Factor",
-      serializationKey: "scaling factor",
-      value: 0.0,
-    },
-  ],
-  PHOTOLYSIS: [
-    {
-      name: "Scaling Factor",
-      serializationKey: "scaling factor",
-      value: 0.0,
-    },
-  ],
-  FIRST_ORDER_LOSS: [
-    {
-      name: "Scaling Factor",
-      serializationKey: "scaling factor",
-      value: 0.0,
-    },
-  ],
-  TROE: [
-    {
-      name: "k0 A",
-      serializationKey: "k0_A",
-      value: 0.0,
-    },
-    {
-      name: "k0 B",
-      serializationKey: "k0_B",
-      value: 0.0,
-    },
-    {
-      name: "k0 C",
-      serializationKey: "k0_C",
-      value: 0.0,
-    },
-    {
-      name: "kinf A",
-      serializationKey: "kinf_A",
-      value: 0.0,
-    },
-    {
-      name: "kinf B",
-      serializationKey: "kinf_B",
-      value: 0.0,
-    },
-    {
-      name: "kinf C",
-      serializationKey: "kinf_C",
-      value: 0.0,
-    },
-    {
-      serializationKey: "Fc",
-      value: 0.0,
-    },
-    {
-      serializationKey: "N",
-      value: 0.0,
-    },
-  ],
-  // TODO add the rest of the reaction types
-  NONE: [],
-  HL_PHASE_TRANSFER: [],
-  SIMPOL_PHASE_TRANSFER: [],
-  AQUEOUS_EQUILIBRIUM: [],
-  CONDENSED_PHASE_ARRHENIUS: [],
-  CONDENSED_PHASE_PHOTOLYSIS: [],
-  SURFACE: [],
-  BRANCHED_NO_RO2: [],
-  TUNNELING: [],
-  WET_DEPOSITION: [],
-};
 
 /**
  * Represents a generic reaction on the frontend.
@@ -414,3 +309,375 @@ export type Family = {
   /** Determines if the family is in the database */
   isInDatabase?: boolean;
 };
+
+
+/**
+ * All reaction types that are fully supported by the application.
+ * Other reaction types may be imported via a file, but haven't been fully tested.
+ */
+export const supportedReactionTypes: Array<ReactionTypeName> = [
+  "ARRHENIUS",
+  "CONDENSED_PHASE_ARRHENIUS",
+  "CONDENSED_PHASE_PHOTOLYSIS",
+  "EMISSION",
+  "PHOTOLYSIS",
+  "TROE",
+  "FIRST_ORDER_LOSS",
+]
+
+/**
+ * Represents all attributes configurable by the user for each reaction type.
+ */
+export const reactionAttributeOptions: {
+  [Type in ReactionTypeName | "NONE"]: Array<ReactionAttribute>;
+} = {
+  NONE: [],
+  /**
+   * For Arrhenius reactions, there is another value, C, which we don't
+   * represent on the frontend. It is defined as C = -Ea / kb, so it's
+   * calculated elsewhere. See https://github.com/NCAR/chemistry-cafe/pull/166
+  */
+  ARRHENIUS: [
+    {
+      serializationKey: "A",
+      value: 0.0,
+    },
+    {
+      serializationKey: "B",
+      value: 0.0,
+    },
+    {
+      serializationKey: "Ea",
+      value: 0.0,
+    },
+    {
+      serializationKey: "D",
+      value: 0.0,
+    },
+    {
+      serializationKey: "E",
+      value: 0.0,
+    },
+  ],
+  CONDENSED_PHASE_ARRHENIUS: [
+    {
+      serializationKey: "A",
+      value: 0.0,
+    },
+    {
+      serializationKey: "B",
+      value: 0.0,
+    },
+    {
+      serializationKey: "Ea",
+      value: 0.0,
+    },
+    {
+      serializationKey: "D",
+      value: 0.0,
+    },
+    {
+      serializationKey: "E",
+      value: 0.0,
+    },
+  ],
+  EMISSION: [
+    {
+      name: "Scaling Factor",
+      serializationKey: "scaling factor",
+      value: 0.0,
+    },
+  ],
+  PHOTOLYSIS: [
+    {
+      name: "Scaling Factor",
+      serializationKey: "scaling factor",
+      value: 0.0,
+    },
+  ],
+  CONDENSED_PHASE_PHOTOLYSIS: [
+    {
+      name: "Scaling Factor",
+      serializationKey: "scaling factor",
+      value: 0.0,
+    },
+  ],
+  FIRST_ORDER_LOSS: [
+    {
+      name: "Scaling Factor",
+      serializationKey: "scaling factor",
+      value: 0.0,
+    },
+  ],
+  TROE: [
+    {
+      name: "k0 A",
+      serializationKey: "k0_A",
+      value: 0.0,
+    },
+    {
+      name: "k0 B",
+      serializationKey: "k0_B",
+      value: 0.0,
+    },
+    {
+      name: "k0 C",
+      serializationKey: "k0_C",
+      value: 0.0,
+    },
+    {
+      name: "kinf A",
+      serializationKey: "kinf_A",
+      value: 0.0,
+    },
+    {
+      name: "kinf B",
+      serializationKey: "kinf_B",
+      value: 0.0,
+    },
+    {
+      name: "kinf C",
+      serializationKey: "kinf_C",
+      value: 0.0,
+    },
+    {
+      serializationKey: "Fc",
+      value: 0.0,
+    },
+    {
+      serializationKey: "N",
+      value: 0.0,
+    },
+  ],
+  HL_PHASE_TRANSFER: [],
+  AQUEOUS_EQUILIBRIUM: [
+    {
+      serializationKey: "A",
+      value: 0.0,
+    },
+    {
+      serializationKey: "C",
+      value: 0.0,
+    },
+    {
+      serializationKey: "k_reverse",
+      value: 0.0,
+    },
+  ],
+  SURFACE: [
+    {
+      name: "Reaction Probability",
+      serializationKey: "reaction probability",
+      value: 0.0,
+    },
+  ],
+  BRANCHED_NO_RO2: [
+    {
+      serializationKey: "X",
+      value: 0.0
+    },
+    {
+      serializationKey: "Y",
+      value: 0.0
+    },
+    {
+      serializationKey: "a0",
+      value: 0.0
+    },
+    {
+      serializationKey: "n",
+      value: 0.0
+    },
+  ],
+  TUNNELING: [
+    {
+      serializationKey: "A",
+      value: 0.0,
+    },
+    {
+      serializationKey: "B",
+      value: 0.0,
+    },
+    {
+      serializationKey: "C",
+      value: 0.0,
+    },
+  ],
+  WET_DEPOSITION: [
+    {
+      name: "Scaling Factor",
+      serializationKey: "scaling factor",
+      value: 0.0
+    },
+  ],
+  // TODO add some way of representing B value for this, which is a list of numbers
+  SIMPOL_PHASE_TRANSFER: [],
+};
+
+export enum ReactionSpeciesCount {
+  NONE = "NONE",
+  ONE = "ONE",
+  MANY = "MANY",
+}
+
+/**
+ * Properties that may or may not exist for a specific reaction.
+ * These specify properties that are generic enough to exist on various reaction types, but not all.
+ */
+export type ReactionConfiguration = {
+  reactantCount: ReactionSpeciesCount;
+  productCount: ReactionSpeciesCount;
+  hasGasPhase: boolean;
+  hasGasPhaseSpecies: boolean;
+  hasAerosolPhase: boolean;
+  hasAerosolPhaseSpecies: boolean;
+  hasAerosolPhaseWater: boolean;
+  branches?: Array<string>
+}
+
+/**
+ * Specific properties for different reaction types.
+ * This is used for reference to create a correct UI and serialize reactions correctly.
+ */
+export const reactionConfigurations: {
+  [Type in ReactionTypeName | "NONE"]: ReactionConfiguration;
+} = Object.freeze({
+  NONE: {
+    reactantCount: ReactionSpeciesCount.NONE,
+    productCount: ReactionSpeciesCount.NONE,
+    hasGasPhase: false,
+    hasGasPhaseSpecies: false,
+    hasAerosolPhase: false,
+    hasAerosolPhaseSpecies: false,
+    hasAerosolPhaseWater: false
+  },
+  HL_PHASE_TRANSFER: {
+    reactantCount: ReactionSpeciesCount.NONE,
+    productCount: ReactionSpeciesCount.NONE,
+    hasGasPhase: true,
+    hasGasPhaseSpecies: true,
+    hasAerosolPhase: true,
+    hasAerosolPhaseSpecies: true,
+    hasAerosolPhaseWater: true
+  },
+  SIMPOL_PHASE_TRANSFER: {
+    reactantCount: ReactionSpeciesCount.NONE,
+    productCount: ReactionSpeciesCount.NONE,
+    hasGasPhase: true,
+    hasGasPhaseSpecies: true,
+    hasAerosolPhase: true,
+    hasAerosolPhaseSpecies: true,
+    hasAerosolPhaseWater: false
+  },
+  AQUEOUS_EQUILIBRIUM: {
+    reactantCount: ReactionSpeciesCount.MANY,
+    productCount: ReactionSpeciesCount.MANY,
+    hasGasPhase: false,
+    hasGasPhaseSpecies: false,
+    hasAerosolPhase: true,
+    hasAerosolPhaseSpecies: true,
+    hasAerosolPhaseWater: false
+  },
+  ARRHENIUS: {
+    reactantCount: ReactionSpeciesCount.MANY,
+    productCount: ReactionSpeciesCount.MANY,
+    hasGasPhase: false,
+    hasGasPhaseSpecies: false,
+    hasAerosolPhase: false,
+    hasAerosolPhaseSpecies: false,
+    hasAerosolPhaseWater: false
+  },
+  CONDENSED_PHASE_ARRHENIUS: {
+    reactantCount: ReactionSpeciesCount.MANY,
+    productCount: ReactionSpeciesCount.MANY,
+    hasGasPhase: false,
+    hasGasPhaseSpecies: false,
+    hasAerosolPhase: true,
+    hasAerosolPhaseSpecies: false,
+    hasAerosolPhaseWater: true
+  },
+  PHOTOLYSIS: {
+    reactantCount: ReactionSpeciesCount.ONE,
+    productCount: ReactionSpeciesCount.MANY,
+    hasGasPhase: true,
+    hasGasPhaseSpecies: false,
+    hasAerosolPhase: false,
+    hasAerosolPhaseSpecies: false,
+    hasAerosolPhaseWater: false
+  },
+  CONDENSED_PHASE_PHOTOLYSIS: {
+    reactantCount: ReactionSpeciesCount.ONE,
+    productCount: ReactionSpeciesCount.MANY,
+    hasGasPhase: false,
+    hasGasPhaseSpecies: false,
+    hasAerosolPhase: true,
+    hasAerosolPhaseSpecies: false,
+    hasAerosolPhaseWater: true
+  },
+  EMISSION: {
+    reactantCount: ReactionSpeciesCount.NONE,
+    productCount: ReactionSpeciesCount.ONE,
+    hasGasPhase: true,
+    hasGasPhaseSpecies: false,
+    hasAerosolPhase: false,
+    hasAerosolPhaseSpecies: false,
+    hasAerosolPhaseWater: false
+  },
+  FIRST_ORDER_LOSS: {
+    reactantCount: ReactionSpeciesCount.ONE,
+    productCount: ReactionSpeciesCount.NONE,
+    hasGasPhase: true,
+    hasGasPhaseSpecies: false,
+    hasAerosolPhase: false,
+    hasAerosolPhaseSpecies: false,
+    hasAerosolPhaseWater: false
+  },
+  SURFACE: {
+    reactantCount: ReactionSpeciesCount.NONE,
+    productCount: ReactionSpeciesCount.MANY,
+    hasGasPhase: false,
+    hasGasPhaseSpecies: false,
+    hasAerosolPhase: false,
+    hasAerosolPhaseSpecies: false,
+    hasAerosolPhaseWater: false,
+    branches: ["gas-phase"]
+  },
+  TROE: {
+    reactantCount: ReactionSpeciesCount.MANY,
+    productCount: ReactionSpeciesCount.MANY,
+    hasGasPhase: true,
+    hasGasPhaseSpecies: false,
+    hasAerosolPhase: false,
+    hasAerosolPhaseSpecies: false,
+    hasAerosolPhaseWater: false
+  },
+  BRANCHED_NO_RO2: {
+    reactantCount: ReactionSpeciesCount.MANY,
+    productCount: ReactionSpeciesCount.MANY,
+    hasGasPhase: true,
+    hasGasPhaseSpecies: false,
+    hasAerosolPhase: false,
+    hasAerosolPhaseSpecies: false,
+    hasAerosolPhaseWater: false,
+    branches: ["alkoxy", "nitrate"]
+  },
+  TUNNELING: {
+    reactantCount: ReactionSpeciesCount.MANY,
+    productCount: ReactionSpeciesCount.MANY,
+    hasGasPhase: true,
+    hasGasPhaseSpecies: false,
+    hasAerosolPhase: false,
+    hasAerosolPhaseSpecies: false,
+    hasAerosolPhaseWater: false
+  },
+  WET_DEPOSITION: {
+    reactantCount: ReactionSpeciesCount.NONE,
+    productCount: ReactionSpeciesCount.NONE,
+    hasGasPhase: false,
+    hasGasPhaseSpecies: false,
+    hasAerosolPhase: true,
+    hasAerosolPhaseSpecies: false,
+    hasAerosolPhaseWater: false
+  }
+});
+

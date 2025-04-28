@@ -6,6 +6,7 @@ import {
   Species,
 } from "../src/types/chemistryModels";
 import {
+  deserializeFamilyCAMPV1,
   serializeMechanismJSON,
   serializeMechanismMusicBox,
   serializeMechanismYAML,
@@ -19,11 +20,12 @@ const species: Species = {
   attributes: {
     weight: {
       name: "weight",
+      serializationKey: "weight",
       value: 1e-2,
     },
     "density [kg m3]": {
       name: "Density",
-      serializedKey: "density [kg m3]",
+      serializationKey: "density [kg m3]",
       value: 1e-2,
     },
   },
@@ -58,19 +60,21 @@ const reaction: Reaction = {
     "attribute [mol]": {
       name: "Attribute",
       value: 1.0,
-      serializedKey: "attribute [mol]",
+      serializationKey: "attribute [mol]",
     },
     "another attribute": {
       name: "another attribute",
+      serializationKey: "another attribute",
       value: 1.0,
     },
   },
 };
 
 const mechanism: Mechanism = {
+  id: "",
   name: "Test Mechanism",
   description: null,
-  phases: [],
+  phaseIds: [],
   familyId: "1234",
   speciesIds: [species.id],
   reactionIds: [reaction.id],
@@ -83,6 +87,8 @@ const family: Family = {
   mechanisms: [],
   species: [species],
   reactions: [reaction],
+  phases: [],
+  owner: null,
 };
 
 describe("Mechanism Serialization", () => {
@@ -90,6 +96,8 @@ describe("Mechanism Serialization", () => {
     it("Gives a string", () => {
       const result = serializeMechanismJSON(mechanism, family);
       expect(typeof result).toBe("string");
+      const reversedSerialization = deserializeFamilyCAMPV1(result);
+      expect(typeof reversedSerialization).toBe("object");
     });
   });
 
@@ -97,6 +105,8 @@ describe("Mechanism Serialization", () => {
     it("Gives a string", () => {
       const result = serializeMechanismYAML(mechanism, family);
       expect(typeof result).toBe("string");
+      const reversedSerialization = deserializeFamilyCAMPV1(result);
+      expect(typeof reversedSerialization).toBe("object");
     });
   });
 

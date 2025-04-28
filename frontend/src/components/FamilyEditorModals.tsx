@@ -1,11 +1,12 @@
 import {
   Alert,
+  Autocomplete,
   Box,
   Button,
-  FormControl,
   IconButton,
   InputAdornment,
-  InputLabel,
+  List,
+  ListItem,
   MenuItem,
   Modal,
   Paper,
@@ -27,6 +28,10 @@ import {
   SpeciesAttribute,
   ReactionAttribute,
   reactionAttributeOptions,
+  ReactionConfiguration,
+  reactionConfigurations,
+  ReactionSpeciesCount,
+  supportedReactionTypes,
 } from "../types/chemistryModels";
 import DeleteIcon from "@mui/icons-material/Delete";
 import UnitComponent from "./UnitComponent";
@@ -34,6 +39,8 @@ import WarningIcon from "@mui/icons-material/Warning";
 import { SelectSpeciesButton } from "./SelectSpeciesButton";
 import { useAuth } from "./AuthContext";
 import { generateFrontendID } from "../helpers/localFamilies";
+import CAMPFileUpload from "./CAMPFileUpload";
+import { reactionTypeToString } from "../helpers/stringify";
 
 const modalStyle: SxProps<Theme> = {
   position: "absolute" as const,
@@ -55,13 +62,13 @@ const modalStyle: SxProps<Theme> = {
 type FamilyCreationModalProps = {
   open: boolean;
   onClose: () => void;
-  onCreation: (family: Family) => void;
+  onSubmit: (family: Family) => void;
 };
 
 export const FamilyCreationModal: React.FC<FamilyCreationModalProps> = ({
   open,
   onClose,
-  onCreation,
+  onSubmit,
 }) => {
   const familyName = useRef<string>("");
   const familyDescription = useRef<string>("");
@@ -83,13 +90,18 @@ export const FamilyCreationModal: React.FC<FamilyCreationModalProps> = ({
       owner: user,
       species: [],
       reactions: [],
-      phases: [],
+      phases: [{
+        id: generateFrontendID(),
+        name: "gas",
+        description: null,
+        speciesIds: []
+      }],
       mechanisms: [],
       isModified: false,
       isDeleted: false,
       isInDatabase: false,
     };
-    onCreation(family);
+    onSubmit(family);
     familyName.current = "";
     familyDescription.current = "";
   };
@@ -188,13 +200,13 @@ export const FamilyCreationModal: React.FC<FamilyCreationModalProps> = ({
 type MechanismCreationModalProps = {
   open: boolean;
   onClose: () => void;
-  onCreation: (mechanism: Mechanism) => void;
+  onSubmit: (mechanism: Mechanism) => void;
 };
 
 export const MechanismCreationModal: React.FC<MechanismCreationModalProps> = ({
   open,
   onClose,
-  onCreation,
+  onSubmit,
 }) => {
   const mechanismName = useRef<string>("");
   const mechanismDescription = useRef<string>("");
@@ -219,7 +231,7 @@ export const MechanismCreationModal: React.FC<MechanismCreationModalProps> = ({
       phaseIds: [],
     };
 
-    onCreation(mechanism);
+    onSubmit(mechanism);
     mechanismName.current = "";
     mechanismDescription.current = "";
   };
@@ -422,12 +434,11 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
                       }
                       sx={{
                         width: "100%",
-
                         // Removes up and down arrows for number
                         "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                          {
-                            display: "none",
-                          },
+                        {
+                          display: "none",
+                        },
                         "& input[type=number]": {
                           MozAppearance: "textfield",
                         },
@@ -558,7 +569,7 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
   );
 };
 
-type ReactionsEditorModalProps = {
+type ReactionEditorModalProps = {
   open: boolean;
   onClose: () => void;
   onUpdate: (reaction: Reaction) => void;
@@ -566,7 +577,7 @@ type ReactionsEditorModalProps = {
   family: Family;
 };
 
-export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
+export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
   open,
   onClose,
   onUpdate,
@@ -576,9 +587,14 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
   const [modifiedReaction, setModifiedReaction] = useState<
     Reaction | undefined
   >(reaction);
+
   const [defaultAttributes, setDefaultAttributes] = useState<
     Array<ReactionAttribute>
   >([]);
+
+  const [currentConfiguration, setCurrentConfiguration] = useState<ReactionConfiguration>(reactionConfigurations.NONE);
+
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const [showAlert, setShowAlert] = useState<boolean>(false);
 
   const changeReactionProperties = (properties: Partial<Reaction>) => {
@@ -592,32 +608,100 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
     type?: ReactionTypeName,
   ): Array<ReactionAttribute> => {
     if (!type) {
-      return [];
+      return reactionAttributeOptions.NONE;
     }
-    return reactionAttributeOptions[type] ?? [];
+    return reactionAttributeOptions[type];
   };
+
+  const getReactionConfiguration = (
+    type?: ReactionTypeName,
+  ): ReactionConfiguration => {
+    if (!type) {
+      return reactionConfigurations.NONE;
+    }
+    return reactionConfigurations[type];
+  }
+
+  const handleAlertClose = () => {
+    setShowAlert(false);
+  }
 
   useLayoutEffect(() => {
     setModifiedReaction(reaction);
     const attributes = getReactionAttributes(reaction?.type);
     setDefaultAttributes(attributes);
+    const configuration = getReactionConfiguration(reaction?.type);
+    setCurrentConfiguration(configuration);
   }, [reaction]);
 
+  useLayoutEffect(() => {
+    const updatedReactionProperties: Partial<Reaction> = {};
+
+    // Converts previous reactant selection to current count 
+    switch (currentConfiguration.reactantCount) {
+      case ReactionSpeciesCount.NONE:
+      case ReactionSpeciesCount.ONE:
+        updatedReactionProperties.reactants = [];
+        break;
+      case ReactionSpeciesCount.MANY:
+        updatedReactionProperties.reactants = modifiedReaction?.reactants ?? [];
+        break;
+    }
+
+    if (modifiedReaction?.reactants.at(0)) {
+      updatedReactionProperties.reactants = [{
+        ...modifiedReaction.reactants.at(0)!,
+        coefficient: 1,
+      }];
+    }
+
+    // Converts previous product selection to current count
+    switch (currentConfiguration.productCount) {
+      case ReactionSpeciesCount.NONE:
+      case ReactionSpeciesCount.ONE:
+        updatedReactionProperties.products = [];
+        break;
+      case ReactionSpeciesCount.MANY:
+        updatedReactionProperties.products = modifiedReaction?.products ?? [];
+        break;
+    }
+
+    if (modifiedReaction?.reactants.at(0)) {
+      updatedReactionProperties.reactants = [{
+        ...modifiedReaction.reactants.at(0)!,
+        coefficient: 1,
+      }];
+    }
+
+    changeReactionProperties(updatedReactionProperties);
+  }, [defaultAttributes, currentConfiguration]);
+
   const handleUpdateReaction = () => {
-    if (!modifiedReaction?.name) {
+    if (!modifiedReaction) {
+      setErrorMessage("Reaction is undefined");
       setShowAlert(true);
       return;
     }
 
-    if (!modifiedReaction) {
-      return;
+    for (const reactant of modifiedReaction.reactants) {
+      if (reactant.coefficient <= 0) {
+        setErrorMessage("Coefficient for reactants must be a finite positive number");
+        setShowAlert(true);
+        return;
+      }
+    }
+
+    for (const product of modifiedReaction.products) {
+      if (product.coefficient <= 0) {
+        setErrorMessage("Coefficient for products must be a finite positive number");
+        setShowAlert(true);
+        return;
+      }
     }
 
     onUpdate(modifiedReaction);
     onClose();
   };
-
-  const handleAlertClose = () => setShowAlert(false);
 
   return (
     <div>
@@ -640,7 +724,7 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
             color="primary"
             id="reaction-name"
             label="Name"
-            required={true}
+            defaultValue={reaction?.name ?? ""}
             onChange={(event) => {
               changeReactionProperties({
                 name: event.target.value,
@@ -654,6 +738,7 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
             color="primary"
             id="family-description"
             label="Description"
+            defaultValue={reaction?.description ?? ""}
             multiline
             minRows={2}
             maxRows={4}
@@ -672,285 +757,382 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
           >
             Reaction Type
           </Typography>
-          <Select
+          <Autocomplete
             aria-labelledby="reaction-type-label"
             id="reaction-type"
             aria-label="Choose Reaction Type"
-            defaultValue={reaction?.type ?? "NONE"}
             color="primary"
-            onChange={(event) => {
-              const attributes = getReactionAttributes(
-                event.target.value as ReactionTypeName,
-              );
+            defaultValue={reaction?.type ?? "NONE"}
+            getOptionLabel={(option) => reactionTypeToString(option)}
+            options={
+              [...supportedReactionTypes].sort()
+            }
+            renderInput={(params) => <TextField {...params} />}
+            onChange={(event: any, newValue: string | null) => {
+              const reactionType = newValue as ReactionTypeName;
+              const attributes = getReactionAttributes(reactionType);
+
               let reactionAttributes: {
                 [key: string]: ReactionAttribute;
               } = {};
+
               for (const attribute of attributes) {
                 reactionAttributes[attribute.serializationKey] = attribute;
               }
+
               changeReactionProperties({
                 type: event.target.value as ReactionTypeName,
                 attributes: reactionAttributes,
               });
+
               setDefaultAttributes(attributes);
+
+              const configuration = getReactionConfiguration(reactionType);
+              setCurrentConfiguration(configuration);
             }}
-          >
-            {/* TODO add more reaction types */}
-            <MenuItem value="NONE">None</MenuItem>
-            <MenuItem value="TROE">Troe</MenuItem>
-            <MenuItem value="PHOTOLYSIS">Photolysis</MenuItem>
-            <MenuItem value="FIRST_ORDER_LOSS">First Order Loss</MenuItem>
-            <MenuItem value="EMMISSION">Emmission</MenuItem>
-            <MenuItem value="ARRHENIUS">Arrhenius</MenuItem>
-          </Select>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              alignItems: "center",
-            }}
-          >
-            <Typography color="textPrimary" variant="h6">
-              Reactants
-            </Typography>
-            <SelectSpeciesButton
-              aria-label="select-reaction-species"
-              onSelect={(species) => {
-                const reactantEntry = {
-                  speciesId: species.id,
-                  coefficient: 1,
-                };
-                if (!modifiedReaction?.reactants) {
-                  changeReactionProperties({
-                    reactants: [reactantEntry],
-                  });
-                } else {
-                  changeReactionProperties({
-                    reactants: [...modifiedReaction.reactants, reactantEntry],
-                  });
-                }
+          />
+          {
+            currentConfiguration.reactantCount == ReactionSpeciesCount.ONE &&
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                columnGap: "1em"
               }}
-              species={family.species.filter((species) => {
-                if (!modifiedReaction) {
-                  return true;
-                }
-                for (const reactant of modifiedReaction?.reactants) {
-                  if (reactant.speciesId === species.id) {
-                    return false;
+            >
+              <Typography id="input-species-label" component="label" color="textPrimary" variant="h6">
+                Reaction Input Species:
+              </Typography>
+              <Paper>
+                <Select
+                  labelId="input-species-label"
+                  aria-labelledby="input-species-label"
+                  defaultValue={modifiedReaction?.reactants.at(0)?.speciesId ?? "None"}
+                  onChange={(event) => {
+                    const speciesId = event.target.value;
+                    if (speciesId == "None") {
+                      changeReactionProperties({
+                        reactants: [],
+                      });
+                    }
+                    else {
+                      changeReactionProperties({
+                        reactants: [{
+                          speciesId: speciesId,
+                          coefficient: 1.0,
+                        }],
+                      });
+                    }
+                  }}
+                >
+                  <MenuItem value="None">None</MenuItem>
+                  {
+                    family.species
+                      .reduce((accumulator: React.JSX.Element[], species) => {
+                        if (!species.isDeleted) {
+                          accumulator.push((
+                            <MenuItem key={`${species.id}-input-species-menuitem`} value={species.id}>{species.name || "<No Name>"}</MenuItem>
+                          ));
+                        }
+                        return accumulator;
+                      }, [])
                   }
-                }
-                return true;
-              })}
-            />
-          </Box>
-          {modifiedReaction?.reactants.map((reactant, index) => {
-            const species = family.species.find(
-              (e) => e.id == reactant.speciesId,
-            );
-            return (
+                </Select>
+              </Paper>
+            </Box>
+          }
+          {
+            currentConfiguration.reactantCount == ReactionSpeciesCount.MANY &&
+            <div>
               <Box
-                key={`reactant-${reactant.speciesId}-${index}`}
                 sx={{
                   display: "flex",
+                  flexDirection: "row",
                   alignItems: "center",
-                  columnGap: "1em",
                 }}
               >
-                <Paper
-                  sx={{
-                    padding: "0.2em",
-                    display: "flex",
-                    alignItems: "center",
-                    columnGap: "2em",
-                    minWidth: "30%",
+                <Typography color="textPrimary" variant="h6">
+                  Reactants
+                </Typography>
+                <SelectSpeciesButton
+                  aria-label="select-reaction-species"
+                  onSelect={(species) => {
+                    const reactantEntry = {
+                      speciesId: species.id,
+                      coefficient: 1,
+                    };
+                    if (!modifiedReaction?.reactants) {
+                      changeReactionProperties({
+                        reactants: [reactantEntry],
+                      });
+                    } else {
+                      changeReactionProperties({
+                        reactants: [...modifiedReaction.reactants, reactantEntry],
+                      });
+                    }
                   }}
-                  elevation={1}
-                >
-                  <Typography color="textPrimary">{species?.name}</Typography>
-                  <FormControl sx={{ flex: 1 }}>
-                    <InputLabel id="Quantity">Quantity</InputLabel>
-                    <Select
-                      labelId={`${reactant.speciesId}-select-label`}
-                      id={`${reactant.speciesId}-select`}
-                      label="Quantity"
-                      defaultValue={reactant.coefficient}
-                      onChange={(event) => {
-                        if (!modifiedReaction) {
-                          return;
-                        }
-                        const coefficient = event.target.value as number;
+                  species={family.species.filter((species) => {
+                    if (!modifiedReaction) {
+                      return true;
+                    }
+                    if (species.isDeleted || modifiedReaction.reactants.find(e => e.speciesId == species.id)) {
+                      return false;
+                    }
+                    return true;
+                  })}
+                />
+              </Box>
+              {modifiedReaction?.reactants.map((reactant, index) => {
+                const species = family.species.find(
+                  (e) => e.id == reactant.speciesId,
+                );
+                return (
+                  <Box
+                    key={`reactant-${reactant.speciesId}-${index}`}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      columnGap: "1em",
+                    }}
+                  >
+                    <Paper
+                      sx={{
+                        padding: "0.2em",
+                        display: "flex",
+                        alignItems: "center",
+                        columnGap: "2em",
+                        width: "70%",
+                      }}
+                      elevation={1}
+                    >
+                      <Typography color="textPrimary">{species?.name}</Typography>
+                      <TextField
+                        color="primary"
+                        label="Quantity"
+                        defaultValue={reactant.coefficient}
+                        error={reactant.coefficient <= 0}
+                        type="number"
+                        sx={{
+                          flex: 1,
+                          // Removes up and down arrows for number
+                          "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
+                          {
+                            display: "none",
+                          },
+                          "& input[type=number]": {
+                            MozAppearance: "textfield",
+                          },
+                        }}
+                        onChange={(event) => {
+                          if (!modifiedReaction) {
+                            return;
+                          }
+                          const coefficient = Number.parseFloat(event.target.value);
+                          if (Number.isFinite(coefficient)) {
+                            changeReactionProperties({
+                              reactants: modifiedReaction.reactants.map((element) => {
+                                if (element.speciesId === reactant.speciesId) {
+                                  return {
+                                    ...reactant,
+                                    coefficient,
+                                  };
+                                }
+                                return element;
+                              }),
+                            });
+                          }
+                        }}
+                      />
+                    </Paper>
+                    <IconButton
+                      aria-label="Remove Species From Reactants"
+                      onClick={() => {
                         changeReactionProperties({
-                          reactants: modifiedReaction.reactants.map(
-                            (element) => {
-                              if (element.speciesId === reactant.speciesId) {
-                                return {
-                                  ...reactant,
-                                  coefficient,
-                                };
-                              }
-                              return element;
-                            },
+                          reactants: modifiedReaction.reactants.filter(
+                            (e) => e.speciesId !== reactant.speciesId,
                           ),
                         });
                       }}
+                      color="error"
                     >
-                      {
-                        /** Fills with menu with numbers 1-10 */
-                        Array(10)
-                          .fill(0)
-                          .map((_, i) => {
-                            return (
-                              <MenuItem
-                                key={`${reactant.speciesId}-coefficient-selection-${i}`}
-                                value={i + 1}
-                              >
-                                {i + 1}
-                              </MenuItem>
-                            );
-                          })
-                      }
-                    </Select>
-                  </FormControl>
-                </Paper>
-                <IconButton
-                  aria-label="Remove Species From Reactants"
-                  onClick={() => {
-                    changeReactionProperties({
-                      reactants: modifiedReaction.reactants.filter(
-                        (e) => e.speciesId !== reactant.speciesId,
-                      ),
-                    });
-                  }}
-                  color="error"
-                >
-                  <DeleteIcon />
-                </IconButton>
-              </Box>
-            );
-          })}
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              alignItems: "center",
-            }}
-          >
-            <Typography color="textPrimary" variant="h6">
-              Products
-            </Typography>
-            <SelectSpeciesButton
-              aria-label="Select Reaction Species"
-              onSelect={(species) => {
-                const productEntry = {
-                  speciesId: species.id,
-                  coefficient: 1,
-                };
-                if (!modifiedReaction?.reactants) {
-                  changeReactionProperties({
-                    products: [productEntry],
-                  });
-                } else {
-                  changeReactionProperties({
-                    products: [...modifiedReaction.products, productEntry],
-                  });
-                }
-              }}
-              species={family.species.filter((species) => {
-                if (!modifiedReaction) {
-                  return true;
-                }
-                for (const product of modifiedReaction?.products) {
-                  if (product.speciesId === species.id) {
-                    return false;
-                  }
-                }
-                return true;
+                      <DeleteIcon />
+                    </IconButton>
+                  </Box>
+                );
               })}
-            />
-          </Box>
-          {modifiedReaction?.products.map((product, index) => {
-            const species = family.species.find(
-              (element) => element.id == product.speciesId,
-            );
-            return (
-              <Box
-                key={`product-${product.speciesId}-${index}`}
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  columnGap: "1em",
+            </div>
+          }
+          {
+            currentConfiguration.productCount == ReactionSpeciesCount.ONE &&
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                columnGap: "1em",
+              }}
+            >
+              <Typography id="output-species-input-label" color="textPrimary" variant="h6">
+                Reaction Output Species:
+              </Typography>
+              <Select
+                labelId="output-species-input-label"
+                aria-labelledby="output-species-input-label"
+                defaultValue={modifiedReaction?.products.at(0)?.speciesId ?? "None"}
+                onChange={(event) => {
+                  const speciesId = event.target.value;
+                  if (speciesId == "None") {
+                    changeReactionProperties({
+                      products: [],
+                    });
+                  }
+                  else {
+                    changeReactionProperties({
+                      products: [{
+                        speciesId: speciesId,
+                        coefficient: 1.0,
+                      }],
+                    });
+                  }
                 }}
               >
-                <Paper
-                  sx={{
-                    padding: "0.2em",
-                    display: "flex",
-                    alignItems: "center",
-                    columnGap: "2em",
-                    minWidth: "30%",
+                <MenuItem value="None">None</MenuItem>
+                {
+                  family.species
+                    .reduce((accumulator: React.JSX.Element[], species) => {
+                      if (!species.isDeleted) {
+                        accumulator.push((
+                          <MenuItem key={`${species.id}-output-species-menuitem`} value={species.id}>{species.name || "<No Name>"}</MenuItem>
+                        ));
+                      }
+                      return accumulator;
+                    }, [])
+                }
+              </Select>
+            </Box>
+          }
+          {
+            currentConfiguration.productCount == ReactionSpeciesCount.MANY &&
+            <div>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                }}
+              >
+                <Typography color="textPrimary" variant="h6">
+                  Products
+                </Typography>
+                <SelectSpeciesButton
+                  aria-label="Select Reaction Species"
+                  onSelect={(species) => {
+                    const productEntry = {
+                      speciesId: species.id,
+                      coefficient: 1,
+                    };
+                    if (!modifiedReaction?.reactants) {
+                      changeReactionProperties({
+                        products: [productEntry],
+                      });
+                    } else {
+                      changeReactionProperties({
+                        products: [...modifiedReaction.products, productEntry],
+                      });
+                    }
                   }}
-                  elevation={1}
-                >
-                  <Typography color="textPrimary">{species?.name}</Typography>
-                  <FormControl sx={{ flex: 1 }}>
-                    <InputLabel id="Quantity">Quantity</InputLabel>
-                    <Select
-                      labelId={`${product.speciesId}-select-label`}
-                      id={`${product.speciesId}-select`}
-                      label="Quantity"
-                      defaultValue={product.coefficient}
-                      onChange={(event) => {
-                        if (!modifiedReaction) {
-                          return;
-                        }
-                        const coefficient = event.target.value as number;
+                  species={family.species.filter((species) => {
+                    if (!modifiedReaction) {
+                      return true;
+                    }
+                    if (species.isDeleted || modifiedReaction.products.find(e => e.speciesId == species.id)) {
+                      return false;
+                    }
+                    return true;
+                  })}
+                />
+              </Box>
+              {modifiedReaction?.products.map((product, index) => {
+                const species = family.species.find(
+                  (element) => element.id == product.speciesId,
+                );
+                return (
+                  <Box
+                    key={`product-${product.speciesId}-${index}`}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      columnGap: "1em",
+                    }}
+                  >
+                    <Paper
+                      sx={{
+                        padding: "0.2em",
+                        display: "flex",
+                        alignItems: "center",
+                        columnGap: "2em",
+                        width: "70%",
+                      }}
+                      elevation={1}
+                    >
+                      <Typography color="textPrimary">{species?.name}</Typography>
+                      <TextField
+                        color="primary"
+                        label="Quantity"
+                        defaultValue={product.coefficient}
+                        error={product.coefficient <= 0}
+                        type="number"
+                        sx={{
+                          flex: 1,
+                          // Removes up and down arrows for number
+                          "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
+                          {
+                            display: "none",
+                          },
+                          "& input[type=number]": {
+                            MozAppearance: "textfield",
+                          },
+                        }}
+                        onChange={(event) => {
+                          if (!modifiedReaction) {
+                            return;
+                          }
+                          const coefficient = Number.parseFloat(event.target.value);
+                          if (Number.isFinite(coefficient)) {
+                            changeReactionProperties({
+                              products: modifiedReaction.products.map((element) => {
+                                if (element.speciesId === product.speciesId) {
+                                  return {
+                                    ...product,
+                                    coefficient,
+                                  };
+                                }
+                                return element;
+                              }),
+                            });
+                          }
+                        }}
+                      />
+                    </Paper>
+                    <IconButton
+                      aria-label="Remove Species From Products"
+                      onClick={() => {
                         changeReactionProperties({
-                          products: modifiedReaction.products.map((element) => {
-                            if (element.speciesId === product.speciesId) {
-                              return {
-                                ...product,
-                                coefficient,
-                              };
-                            }
-                            return element;
-                          }),
+                          products: modifiedReaction.products.filter(
+                            (element) => element.speciesId !== product.speciesId,
+                          ),
                         });
                       }}
+                      color="error"
                     >
-                      {
-                        /** Fills with menu with numbers 1-10 */
-                        Array(10)
-                          .fill(0)
-                          .map((_, i) => {
-                            return (
-                              <MenuItem
-                                key={`${product.speciesId}-coefficient-selection-${i}`}
-                                value={i + 1}
-                              >
-                                {i + 1}
-                              </MenuItem>
-                            );
-                          })
-                      }
-                    </Select>
-                  </FormControl>
-                </Paper>
-                <IconButton
-                  aria-label="Remove Species From Products"
-                  onClick={() => {
-                    changeReactionProperties({
-                      products: modifiedReaction.products.filter(
-                        (element) => element.speciesId !== product.speciesId,
-                      ),
-                    });
-                  }}
-                  color="error"
-                >
-                  <DeleteIcon />
-                </IconButton>
-              </Box>
-            );
-          })}
+                      <DeleteIcon />
+                    </IconButton>
+                  </Box>
+                );
+              })}
+            </div>
+          }
           <Typography color="textPrimary" variant="h6">
             Reaction Attributes
           </Typography>
@@ -972,9 +1154,9 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
                     width: "100%",
                     // Removes up and down arrows for number
                     "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                      {
-                        display: "none",
-                      },
+                    {
+                      display: "none",
+                    },
                     "& input[type=number]": {
                       MozAppearance: "textfield",
                     },
@@ -1060,10 +1242,10 @@ export const ReactionsEditorModal: React.FC<ReactionsEditorModalProps> = ({
           variant="filled"
           sx={{ width: "100%" }}
         >
-          Name must not be empty!
+          {errorMessage}
         </Alert>
       </Snackbar>
-    </div>
+    </div >
   );
 };
 
@@ -1148,3 +1330,101 @@ export const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({
     </Modal>
   );
 };
+
+type ImportFamilyModalProps = {
+  open: boolean;
+  onClose: () => void;
+  onSubmit: (family: Family) => any;
+}
+
+export const ImportFamilyModal: React.FC<ImportFamilyModalProps> = ({ open, onClose, onSubmit }) => {
+  const [family, setFamily] = useState<Family | null>(null);
+
+  const onFileParse = (uploadedFamily: Family | null) => {
+    setFamily(uploadedFamily)
+    if (!uploadedFamily) {
+      alert("Could not parse input file");
+    }
+  }
+
+
+  return (
+    <Modal open={open} onClose={() => {
+      setFamily(null);
+      onClose();
+    }}>
+      <Box
+        sx={{
+          ...modalStyle,
+          width: "60%",
+          maxHeight: "80%",
+          overflowY: "auto",
+        }}
+        role="menu"
+        component="div"
+      >
+        <CAMPFileUpload
+          onFileParse={onFileParse}
+        />
+        {
+          family &&
+          <Box>
+            <Typography color="textPrimary">Configuration Info:</Typography>
+            <List>
+              <ListItem>
+                <Typography color="textPrimary">Name: {family.name}</Typography>
+              </ListItem>
+              <ListItem>
+                <Typography color="textPrimary">Species Count: {family.species.length}</Typography>
+              </ListItem>
+              <ListItem>
+                <Typography color="textPrimary">Reaction Count: {family.reactions.length}</Typography>
+              </ListItem>
+              <ListItem>
+                <Typography color="textPrimary">Phase Count: {family.phases.length}</Typography>
+              </ListItem>
+            </List>
+          </Box>
+        }
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "row",
+            columnGap: "1em",
+          }}
+        >
+          <Button
+            sx={{
+              flex: 1,
+            }}
+            aria-label="Create imported Family"
+            color="primary"
+            variant="contained"
+            disabled={!family}
+            onClick={() => {
+              if (!family) {
+                alert("Cannnot create null family");
+                return;
+              }
+              onSubmit(family);
+              setFamily(null);
+              onClose();
+            }}
+          >
+            Create new Family
+          </Button>
+          <Button
+            sx={{
+              flex: 1,
+            }}
+            aria-label="Cancel Family Creation"
+            variant="outlined"
+            onClick={onClose}
+          >
+            Cancel
+          </Button>
+        </Box>
+      </Box>
+    </Modal>
+  )
+}

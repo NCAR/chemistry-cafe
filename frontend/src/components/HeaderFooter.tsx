@@ -106,8 +106,13 @@ export const Footer = () => {
         <Box
           component="img"
           src={NSF_NCAR_Stackseallogo}
-          sx={{ height: "80px", width: "auto", pr: 10 }}
-        ></Box>
+          sx={{ height: "80px", width: "auto", pr: 2 }}
+        />
+        <Box
+          component="img"
+          src={TAMUlogo}
+          sx={{ height: "80px", width: "auto", pr: 6 }}
+        />
         <Box sx={{ pr: 10 }}>
           <Button onClick={handleAboutOpen}>About</Button>
         </Box>

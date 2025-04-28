@@ -14,7 +14,6 @@ import {
   APISpecies,
   APIUser,
 } from "../src/API/API_Interfaces";
-import { BASE_URL } from "../src/API/API_config";
 
 // Mock axios using vitest's built-in mock function
 vi.mock("axios");

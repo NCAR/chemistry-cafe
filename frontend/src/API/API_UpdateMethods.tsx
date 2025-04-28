@@ -18,10 +18,6 @@ import { BASE_URL } from "./API_config";
  * @returns Updated user from the database
  */
 export async function updateUser(user: APIUser): Promise<void> {
-  if (!user.id) {
-    throw new Error("User id is undefined or empty");
-  }
-
   await axios.put(`${BASE_URL}/users/${user.id}`, user, {
     withCredentials: true,
     headers: {
