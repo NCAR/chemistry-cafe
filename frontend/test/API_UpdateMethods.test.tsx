@@ -1,8 +1,22 @@
 import { describe, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
 import axios, { AxiosResponse } from "axios";
-import { updateUser, updateFamily, updateSpecies, updatePhase, updateReaction, updateMechanism } from "../src/API/API_UpdateMethods";
-import { APIFamily, APIMechanism, APIPhase, APIReaction, APISpecies, APIUser } from "../src/API/API_Interfaces";
+import {
+  updateUser,
+  updateFamily,
+  updateSpecies,
+  updatePhase,
+  updateReaction,
+  updateMechanism,
+} from "../src/API/API_UpdateMethods";
+import {
+  APIFamily,
+  APIMechanism,
+  APIPhase,
+  APIReaction,
+  APISpecies,
+  APIUser,
+} from "../src/API/API_Interfaces";
 import { BASE_URL } from "../src/API/API_config";
 
 // Mock axios using vitest's built-in mock function
@@ -101,15 +115,15 @@ const testSpecies: APISpecies = {
   name: "",
   numericalAttributes: [],
   stringAttributes: [],
-  familyId: "1-1-1-1-1"
-}
+  familyId: "1-1-1-1-1",
+};
 
 const testPhase: APIPhase = {
   id: "1-1-1-1-1",
   name: "",
   familyId: "1-1-1-1-1",
-  species: []
-}
+  species: [],
+};
 
 const testReaction: APIReaction = {
   id: "1-1-1-1-1",
@@ -120,7 +134,7 @@ const testReaction: APIReaction = {
   reactants: [],
   products: [],
   familyId: "1-1-1-1-1",
-}
+};
 
 const testMechanism: APIMechanism = {
   id: "1-1-1-1-1",
@@ -128,8 +142,8 @@ const testMechanism: APIMechanism = {
   species: [],
   phases: [],
   reactions: [],
-  familyId: "1-1-1-1-1"
-}
+  familyId: "1-1-1-1-1",
+};
 
 describe.each([
   ["updateSpecies", updateSpecies, testSpecies, "species"],
@@ -138,8 +152,12 @@ describe.each([
   ["updateMechanism", updateMechanism, testMechanism, "mechanisms"],
 ])(
   "%s function",
-  async (_, updateFunction: (object: any) => any, object: any, endpoint: string) => {
-
+  async (
+    _,
+    updateFunction: (object: any) => any,
+    object: any,
+    endpoint: string,
+  ) => {
     it("Successfully calls the update endpoint", async () => {
       const mockedPatch = vi
         .spyOn(axios, "patch")
@@ -154,8 +172,7 @@ describe.each([
           withCredentials: true,
           headers: { "Content-Type": "application/json" },
         },
-
       );
-    })
-  }
-)
+    });
+  },
+);

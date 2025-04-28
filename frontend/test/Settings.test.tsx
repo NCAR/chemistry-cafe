@@ -26,7 +26,7 @@ describe("Settings Page", () => {
   beforeEach(() => {
     window.location = {
       ...originalLocation,
-      assign: vi.fn((_: string | URL) => { }),
+      assign: vi.fn((_: string | URL) => {}),
     } as any;
     vi.spyOn(axios, "get").mockResolvedValue(createMockUserData());
     vi.spyOn(axios, "post").mockResolvedValue(createMockUserData());
@@ -72,8 +72,12 @@ describe("Settings Page", () => {
 
   it("Can toggle different button color palettes", () => {
     const darkThemeButton = screen.getByTestId("toggle-dark-theme");
-    const lowSaturationButton = screen.getByTestId("toggle-low-saturation-theme");
-    const highSaturationButton = screen.getByTestId("toggle-high-saturation-theme");
+    const lowSaturationButton = screen.getByTestId(
+      "toggle-low-saturation-theme",
+    );
+    const highSaturationButton = screen.getByTestId(
+      "toggle-high-saturation-theme",
+    );
     const monochromeButton = screen.getByTestId("toggle-monochrome-theme");
 
     fireEvent.click(darkThemeButton);

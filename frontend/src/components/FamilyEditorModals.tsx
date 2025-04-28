@@ -90,12 +90,14 @@ export const FamilyCreationModal: React.FC<FamilyCreationModalProps> = ({
       owner: user,
       species: [],
       reactions: [],
-      phases: [{
-        id: generateFrontendID(),
-        name: "gas",
-        description: null,
-        speciesIds: []
-      }],
+      phases: [
+        {
+          id: generateFrontendID(),
+          name: "gas",
+          description: null,
+          speciesIds: [],
+        },
+      ],
       mechanisms: [],
       isModified: false,
       isDeleted: false,
@@ -436,9 +438,9 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
                         width: "100%",
                         // Removes up and down arrows for number
                         "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                        {
-                          display: "none",
-                        },
+                          {
+                            display: "none",
+                          },
                         "& input[type=number]": {
                           MozAppearance: "textfield",
                         },
@@ -592,7 +594,8 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
     Array<ReactionAttribute>
   >([]);
 
-  const [currentConfiguration, setCurrentConfiguration] = useState<ReactionConfiguration>(reactionConfigurations.NONE);
+  const [currentConfiguration, setCurrentConfiguration] =
+    useState<ReactionConfiguration>(reactionConfigurations.NONE);
 
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [showAlert, setShowAlert] = useState<boolean>(false);
@@ -620,11 +623,11 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
       return reactionConfigurations.NONE;
     }
     return reactionConfigurations[type];
-  }
+  };
 
   const handleAlertClose = () => {
     setShowAlert(false);
-  }
+  };
 
   useLayoutEffect(() => {
     setModifiedReaction(reaction);
@@ -637,7 +640,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
   useLayoutEffect(() => {
     const updatedReactionProperties: Partial<Reaction> = {};
 
-    // Converts previous reactant selection to current count 
+    // Converts previous reactant selection to current count
     switch (currentConfiguration.reactantCount) {
       case ReactionSpeciesCount.NONE:
       case ReactionSpeciesCount.ONE:
@@ -649,10 +652,12 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
     }
 
     if (modifiedReaction?.reactants.at(0)) {
-      updatedReactionProperties.reactants = [{
-        ...modifiedReaction.reactants.at(0)!,
-        coefficient: 1,
-      }];
+      updatedReactionProperties.reactants = [
+        {
+          ...modifiedReaction.reactants.at(0)!,
+          coefficient: 1,
+        },
+      ];
     }
 
     // Converts previous product selection to current count
@@ -667,10 +672,12 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
     }
 
     if (modifiedReaction?.reactants.at(0)) {
-      updatedReactionProperties.reactants = [{
-        ...modifiedReaction.reactants.at(0)!,
-        coefficient: 1,
-      }];
+      updatedReactionProperties.reactants = [
+        {
+          ...modifiedReaction.reactants.at(0)!,
+          coefficient: 1,
+        },
+      ];
     }
 
     changeReactionProperties(updatedReactionProperties);
@@ -685,7 +692,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
 
     for (const reactant of modifiedReaction.reactants) {
       if (reactant.coefficient <= 0) {
-        setErrorMessage("Coefficient for reactants must be a finite positive number");
+        setErrorMessage(
+          "Coefficient for reactants must be a finite positive number",
+        );
         setShowAlert(true);
         return;
       }
@@ -693,7 +702,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
 
     for (const product of modifiedReaction.products) {
       if (product.coefficient <= 0) {
-        setErrorMessage("Coefficient for products must be a finite positive number");
+        setErrorMessage(
+          "Coefficient for products must be a finite positive number",
+        );
         setShowAlert(true);
         return;
       }
@@ -764,9 +775,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
             color="primary"
             defaultValue={reaction?.type ?? "NONE"}
             getOptionLabel={(option) => reactionTypeToString(option)}
-            options={
-              [...supportedReactionTypes].sort()
-            }
+            options={[...supportedReactionTypes].sort()}
             renderInput={(params) => <TextField {...params} />}
             onChange={(event: any, newValue: string | null) => {
               const reactionType = newValue as ReactionTypeName;
@@ -791,59 +800,70 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
               setCurrentConfiguration(configuration);
             }}
           />
-          {
-            currentConfiguration.reactantCount == ReactionSpeciesCount.ONE &&
+          {currentConfiguration.reactantCount == ReactionSpeciesCount.ONE && (
             <Box
               sx={{
                 display: "flex",
                 flexDirection: "row",
                 alignItems: "center",
-                columnGap: "1em"
+                columnGap: "1em",
               }}
             >
-              <Typography id="input-species-label" component="label" color="textPrimary" variant="h6">
+              <Typography
+                id="input-species-label"
+                component="label"
+                color="textPrimary"
+                variant="h6"
+              >
                 Reaction Input Species:
               </Typography>
               <Paper>
                 <Select
                   labelId="input-species-label"
                   aria-labelledby="input-species-label"
-                  defaultValue={modifiedReaction?.reactants.at(0)?.speciesId ?? "None"}
+                  defaultValue={
+                    modifiedReaction?.reactants.at(0)?.speciesId ?? "None"
+                  }
                   onChange={(event) => {
                     const speciesId = event.target.value;
                     if (speciesId == "None") {
                       changeReactionProperties({
                         reactants: [],
                       });
-                    }
-                    else {
+                    } else {
                       changeReactionProperties({
-                        reactants: [{
-                          speciesId: speciesId,
-                          coefficient: 1.0,
-                        }],
+                        reactants: [
+                          {
+                            speciesId: speciesId,
+                            coefficient: 1.0,
+                          },
+                        ],
                       });
                     }
                   }}
                 >
                   <MenuItem value="None">None</MenuItem>
-                  {
-                    family.species
-                      .reduce((accumulator: React.JSX.Element[], species) => {
-                        if (!species.isDeleted) {
-                          accumulator.push((
-                            <MenuItem key={`${species.id}-input-species-menuitem`} value={species.id}>{species.name || "<No Name>"}</MenuItem>
-                          ));
-                        }
-                        return accumulator;
-                      }, [])
-                  }
+                  {family.species.reduce(
+                    (accumulator: React.JSX.Element[], species) => {
+                      if (!species.isDeleted) {
+                        accumulator.push(
+                          <MenuItem
+                            key={`${species.id}-input-species-menuitem`}
+                            value={species.id}
+                          >
+                            {species.name || "<No Name>"}
+                          </MenuItem>,
+                        );
+                      }
+                      return accumulator;
+                    },
+                    [],
+                  )}
                 </Select>
               </Paper>
             </Box>
-          }
-          {
-            currentConfiguration.reactantCount == ReactionSpeciesCount.MANY &&
+          )}
+          {currentConfiguration.reactantCount == ReactionSpeciesCount.MANY && (
             <div>
               <Box
                 sx={{
@@ -868,7 +888,10 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                       });
                     } else {
                       changeReactionProperties({
-                        reactants: [...modifiedReaction.reactants, reactantEntry],
+                        reactants: [
+                          ...modifiedReaction.reactants,
+                          reactantEntry,
+                        ],
                       });
                     }
                   }}
@@ -876,7 +899,12 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                     if (!modifiedReaction) {
                       return true;
                     }
-                    if (species.isDeleted || modifiedReaction.reactants.find(e => e.speciesId == species.id)) {
+                    if (
+                      species.isDeleted ||
+                      modifiedReaction.reactants.find(
+                        (e) => e.speciesId == species.id,
+                      )
+                    ) {
                       return false;
                     }
                     return true;
@@ -906,7 +934,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                       }}
                       elevation={1}
                     >
-                      <Typography color="textPrimary">{species?.name}</Typography>
+                      <Typography color="textPrimary">
+                        {species?.name}
+                      </Typography>
                       <TextField
                         color="primary"
                         label="Quantity"
@@ -917,9 +947,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                           flex: 1,
                           // Removes up and down arrows for number
                           "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                          {
-                            display: "none",
-                          },
+                            {
+                              display: "none",
+                            },
                           "& input[type=number]": {
                             MozAppearance: "textfield",
                           },
@@ -928,18 +958,24 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                           if (!modifiedReaction) {
                             return;
                           }
-                          const coefficient = Number.parseFloat(event.target.value);
+                          const coefficient = Number.parseFloat(
+                            event.target.value,
+                          );
                           if (Number.isFinite(coefficient)) {
                             changeReactionProperties({
-                              reactants: modifiedReaction.reactants.map((element) => {
-                                if (element.speciesId === reactant.speciesId) {
-                                  return {
-                                    ...reactant,
-                                    coefficient,
-                                  };
-                                }
-                                return element;
-                              }),
+                              reactants: modifiedReaction.reactants.map(
+                                (element) => {
+                                  if (
+                                    element.speciesId === reactant.speciesId
+                                  ) {
+                                    return {
+                                      ...reactant,
+                                      coefficient,
+                                    };
+                                  }
+                                  return element;
+                                },
+                              ),
                             });
                           }
                         }}
@@ -962,9 +998,8 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                 );
               })}
             </div>
-          }
-          {
-            currentConfiguration.productCount == ReactionSpeciesCount.ONE &&
+          )}
+          {currentConfiguration.productCount == ReactionSpeciesCount.ONE && (
             <Box
               sx={{
                 display: "flex",
@@ -973,47 +1008,58 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                 columnGap: "1em",
               }}
             >
-              <Typography id="output-species-input-label" color="textPrimary" variant="h6">
+              <Typography
+                id="output-species-input-label"
+                color="textPrimary"
+                variant="h6"
+              >
                 Reaction Output Species:
               </Typography>
               <Select
                 labelId="output-species-input-label"
                 aria-labelledby="output-species-input-label"
-                defaultValue={modifiedReaction?.products.at(0)?.speciesId ?? "None"}
+                defaultValue={
+                  modifiedReaction?.products.at(0)?.speciesId ?? "None"
+                }
                 onChange={(event) => {
                   const speciesId = event.target.value;
                   if (speciesId == "None") {
                     changeReactionProperties({
                       products: [],
                     });
-                  }
-                  else {
+                  } else {
                     changeReactionProperties({
-                      products: [{
-                        speciesId: speciesId,
-                        coefficient: 1.0,
-                      }],
+                      products: [
+                        {
+                          speciesId: speciesId,
+                          coefficient: 1.0,
+                        },
+                      ],
                     });
                   }
                 }}
               >
                 <MenuItem value="None">None</MenuItem>
-                {
-                  family.species
-                    .reduce((accumulator: React.JSX.Element[], species) => {
-                      if (!species.isDeleted) {
-                        accumulator.push((
-                          <MenuItem key={`${species.id}-output-species-menuitem`} value={species.id}>{species.name || "<No Name>"}</MenuItem>
-                        ));
-                      }
-                      return accumulator;
-                    }, [])
-                }
+                {family.species.reduce(
+                  (accumulator: React.JSX.Element[], species) => {
+                    if (!species.isDeleted) {
+                      accumulator.push(
+                        <MenuItem
+                          key={`${species.id}-output-species-menuitem`}
+                          value={species.id}
+                        >
+                          {species.name || "<No Name>"}
+                        </MenuItem>,
+                      );
+                    }
+                    return accumulator;
+                  },
+                  [],
+                )}
               </Select>
             </Box>
-          }
-          {
-            currentConfiguration.productCount == ReactionSpeciesCount.MANY &&
+          )}
+          {currentConfiguration.productCount == ReactionSpeciesCount.MANY && (
             <div>
               <Box
                 sx={{
@@ -1046,7 +1092,12 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                     if (!modifiedReaction) {
                       return true;
                     }
-                    if (species.isDeleted || modifiedReaction.products.find(e => e.speciesId == species.id)) {
+                    if (
+                      species.isDeleted ||
+                      modifiedReaction.products.find(
+                        (e) => e.speciesId == species.id,
+                      )
+                    ) {
                       return false;
                     }
                     return true;
@@ -1076,7 +1127,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                       }}
                       elevation={1}
                     >
-                      <Typography color="textPrimary">{species?.name}</Typography>
+                      <Typography color="textPrimary">
+                        {species?.name}
+                      </Typography>
                       <TextField
                         color="primary"
                         label="Quantity"
@@ -1087,9 +1140,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                           flex: 1,
                           // Removes up and down arrows for number
                           "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                          {
-                            display: "none",
-                          },
+                            {
+                              display: "none",
+                            },
                           "& input[type=number]": {
                             MozAppearance: "textfield",
                           },
@@ -1098,18 +1151,22 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                           if (!modifiedReaction) {
                             return;
                           }
-                          const coefficient = Number.parseFloat(event.target.value);
+                          const coefficient = Number.parseFloat(
+                            event.target.value,
+                          );
                           if (Number.isFinite(coefficient)) {
                             changeReactionProperties({
-                              products: modifiedReaction.products.map((element) => {
-                                if (element.speciesId === product.speciesId) {
-                                  return {
-                                    ...product,
-                                    coefficient,
-                                  };
-                                }
-                                return element;
-                              }),
+                              products: modifiedReaction.products.map(
+                                (element) => {
+                                  if (element.speciesId === product.speciesId) {
+                                    return {
+                                      ...product,
+                                      coefficient,
+                                    };
+                                  }
+                                  return element;
+                                },
+                              ),
                             });
                           }
                         }}
@@ -1120,7 +1177,8 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                       onClick={() => {
                         changeReactionProperties({
                           products: modifiedReaction.products.filter(
-                            (element) => element.speciesId !== product.speciesId,
+                            (element) =>
+                              element.speciesId !== product.speciesId,
                           ),
                         });
                       }}
@@ -1132,7 +1190,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                 );
               })}
             </div>
-          }
+          )}
           <Typography color="textPrimary" variant="h6">
             Reaction Attributes
           </Typography>
@@ -1154,9 +1212,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                     width: "100%",
                     // Removes up and down arrows for number
                     "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                    {
-                      display: "none",
-                    },
+                      {
+                        display: "none",
+                      },
                     "& input[type=number]": {
                       MozAppearance: "textfield",
                     },
@@ -1245,7 +1303,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
           {errorMessage}
         </Alert>
       </Snackbar>
-    </div >
+    </div>
   );
 };
 
@@ -1335,24 +1393,30 @@ type ImportFamilyModalProps = {
   open: boolean;
   onClose: () => void;
   onSubmit: (family: Family) => any;
-}
+};
 
-export const ImportFamilyModal: React.FC<ImportFamilyModalProps> = ({ open, onClose, onSubmit }) => {
+export const ImportFamilyModal: React.FC<ImportFamilyModalProps> = ({
+  open,
+  onClose,
+  onSubmit,
+}) => {
   const [family, setFamily] = useState<Family | null>(null);
 
   const onFileParse = (uploadedFamily: Family | null) => {
-    setFamily(uploadedFamily)
+    setFamily(uploadedFamily);
     if (!uploadedFamily) {
       alert("Could not parse input file");
     }
-  }
-
+  };
 
   return (
-    <Modal open={open} onClose={() => {
-      setFamily(null);
-      onClose();
-    }}>
+    <Modal
+      open={open}
+      onClose={() => {
+        setFamily(null);
+        onClose();
+      }}
+    >
       <Box
         sx={{
           ...modalStyle,
@@ -1363,11 +1427,8 @@ export const ImportFamilyModal: React.FC<ImportFamilyModalProps> = ({ open, onCl
         role="menu"
         component="div"
       >
-        <CAMPFileUpload
-          onFileParse={onFileParse}
-        />
-        {
-          family &&
+        <CAMPFileUpload onFileParse={onFileParse} />
+        {family && (
           <Box>
             <Typography color="textPrimary">Configuration Info:</Typography>
             <List>
@@ -1375,17 +1436,23 @@ export const ImportFamilyModal: React.FC<ImportFamilyModalProps> = ({ open, onCl
                 <Typography color="textPrimary">Name: {family.name}</Typography>
               </ListItem>
               <ListItem>
-                <Typography color="textPrimary">Species Count: {family.species.length}</Typography>
+                <Typography color="textPrimary">
+                  Species Count: {family.species.length}
+                </Typography>
               </ListItem>
               <ListItem>
-                <Typography color="textPrimary">Reaction Count: {family.reactions.length}</Typography>
+                <Typography color="textPrimary">
+                  Reaction Count: {family.reactions.length}
+                </Typography>
               </ListItem>
               <ListItem>
-                <Typography color="textPrimary">Phase Count: {family.phases.length}</Typography>
+                <Typography color="textPrimary">
+                  Phase Count: {family.phases.length}
+                </Typography>
               </ListItem>
             </List>
           </Box>
-        }
+        )}
         <Box
           sx={{
             display: "flex",
@@ -1426,5 +1493,5 @@ export const ImportFamilyModal: React.FC<ImportFamilyModalProps> = ({ open, onCl
         </Box>
       </Box>
     </Modal>
-  )
-}
+  );
+};

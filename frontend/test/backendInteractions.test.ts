@@ -1,6 +1,19 @@
 import { describe, expect, test, vi } from "vitest";
-import { Family, Mechanism, Phase, Reaction, Species } from "../src/types/chemistryModels";
-import { APIFamily, APIMechanism, APIPhase, APIReaction, APISpecies, APIUser } from "../src/API/API_Interfaces";
+import {
+  Family,
+  Mechanism,
+  Phase,
+  Reaction,
+  Species,
+} from "../src/types/chemistryModels";
+import {
+  APIFamily,
+  APIMechanism,
+  APIPhase,
+  APIReaction,
+  APISpecies,
+  APIUser,
+} from "../src/API/API_Interfaces";
 import {
   apiToFrontendFamily,
   apiToFrontendMechanism,
@@ -20,8 +33,8 @@ import axios, { AxiosHeaders, AxiosResponse } from "axios";
 const user: APIUser = {
   id: "00000000-0000-0000-0000-000000000000",
   username: "Test User",
-  role: ""
-}
+  role: "",
+};
 
 const frontendSpecies: Species = {
   id: "00000000-0000-0000-0000-000000000000",
@@ -29,13 +42,13 @@ const frontendSpecies: Species = {
   description: "Test Description",
   familyId: "00000000-0000-0000-0000-000000000000",
   attributes: {
-    "weight": {
+    weight: {
       serializationKey: "weight",
-      value: 0.0
+      value: 0.0,
     },
     "another key [K]": {
       serializationKey: "another key [K]",
-      value: "val"
+      value: "val",
     },
   },
 };
@@ -45,29 +58,34 @@ const apiSpecies: APISpecies = {
   name: frontendSpecies.name,
   description: frontendSpecies.description,
   familyId: frontendSpecies.id as UUID,
-  numericalAttributes: [{
-    serializationKey: frontendSpecies.attributes["weight"].serializationKey,
-    value: frontendSpecies.attributes["weight"].value as number,
-  }],
-  stringAttributes: [{
-    serializationKey: frontendSpecies.attributes["another key [K]"].serializationKey,
-    value: frontendSpecies.attributes["another key [K]"].value as string,
-  }],
+  numericalAttributes: [
+    {
+      serializationKey: frontendSpecies.attributes["weight"].serializationKey,
+      value: frontendSpecies.attributes["weight"].value as number,
+    },
+  ],
+  stringAttributes: [
+    {
+      serializationKey:
+        frontendSpecies.attributes["another key [K]"].serializationKey,
+      value: frontendSpecies.attributes["another key [K]"].value as string,
+    },
+  ],
 };
 
 const frontendPhase: Phase = {
   id: "00000000-0000-0000-0000-000000000000",
   name: "gas",
   description: null,
-  speciesIds: [apiSpecies.id]
-}
+  speciesIds: [apiSpecies.id],
+};
 
 const apiPhase: APIPhase = {
   id: frontendPhase.id as UUID,
   name: frontendPhase.name,
   familyId: "00000000-0000-0000-0000-000000000000",
-  species: []
-}
+  species: [],
+};
 
 const frontendReaction: Reaction = {
   id: "00000000-0000-0000-0000-000000000000",
@@ -77,13 +95,13 @@ const frontendReaction: Reaction = {
   reactants: [],
   products: [],
   attributes: {
-    "weight": {
+    weight: {
       serializationKey: "weight",
-      value: 0.0
+      value: 0.0,
     },
     "another key [K]": {
       serializationKey: "another key [K]",
-      value: "val"
+      value: "val",
     },
   },
 };
@@ -94,14 +112,19 @@ const apiReaction: APIReaction = {
   description: frontendReaction.description!,
   createdDate: "",
   updatedDate: "",
-  numericalAttributes: [{
-    serializationKey: frontendReaction.attributes["weight"].serializationKey,
-    value: frontendReaction.attributes["weight"].value as number,
-  }],
-  stringAttributes: [{
-    serializationKey: frontendReaction.attributes["another key [K]"].serializationKey,
-    value: frontendReaction.attributes["another key [K]"].value as string,
-  }],
+  numericalAttributes: [
+    {
+      serializationKey: frontendReaction.attributes["weight"].serializationKey,
+      value: frontendReaction.attributes["weight"].value as number,
+    },
+  ],
+  stringAttributes: [
+    {
+      serializationKey:
+        frontendReaction.attributes["another key [K]"].serializationKey,
+      value: frontendReaction.attributes["another key [K]"].value as string,
+    },
+  ],
   reactants: [],
   reactionType: frontendReaction.type,
   products: [],
@@ -115,8 +138,8 @@ const frontendMechanism: Mechanism = {
   familyId: "00000000-0000-0000-0000-000000000000",
   speciesIds: [frontendSpecies.id],
   reactionIds: [frontendReaction.id],
-  phaseIds: [frontendPhase.id]
-}
+  phaseIds: [frontendPhase.id],
+};
 
 const apiMechanism: APIMechanism = {
   id: frontendMechanism.id as UUID,
@@ -125,7 +148,7 @@ const apiMechanism: APIMechanism = {
   phases: [],
   reactions: [],
   familyId: frontendMechanism.familyId as UUID,
-}
+};
 
 const frontendFamily: Family = {
   owner: user,
@@ -234,9 +257,8 @@ describe("Family Conversion", () => {
     expect(result.reactions.length).toBe(0);
     expect(result.phases.length).toBe(0);
     expect(result.mechanisms.length).toBe(0);
-  })
+  });
 });
-
 
 vi.mock("axios");
 
@@ -261,8 +283,7 @@ describe("Uploading a family", () => {
       .mockResolvedValueOnce(createMockData(apiReaction))
       .mockResolvedValueOnce(createMockData(apiMechanism));
 
-    vi.spyOn(axios, "get")
-      .mockResolvedValue(createMockData(apiFamily));
+    vi.spyOn(axios, "get").mockResolvedValue(createMockData(apiFamily));
 
     const result = await uploadFamily(frontendFamily, user);
 

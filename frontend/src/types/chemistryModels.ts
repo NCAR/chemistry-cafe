@@ -310,7 +310,6 @@ export type Family = {
   isInDatabase?: boolean;
 };
 
-
 /**
  * All reaction types that are fully supported by the application.
  * Other reaction types may be imported via a file, but haven't been fully tested.
@@ -323,7 +322,7 @@ export const supportedReactionTypes: Array<ReactionTypeName> = [
   "PHOTOLYSIS",
   "TROE",
   "FIRST_ORDER_LOSS",
-]
+];
 
 /**
  * Represents all attributes configurable by the user for each reaction type.
@@ -336,7 +335,7 @@ export const reactionAttributeOptions: {
    * For Arrhenius reactions, there is another value, C, which we don't
    * represent on the frontend. It is defined as C = -Ea / kb, so it's
    * calculated elsewhere. See https://github.com/NCAR/chemistry-cafe/pull/166
-  */
+   */
   ARRHENIUS: [
     {
       serializationKey: "A",
@@ -474,19 +473,19 @@ export const reactionAttributeOptions: {
   BRANCHED_NO_RO2: [
     {
       serializationKey: "X",
-      value: 0.0
+      value: 0.0,
     },
     {
       serializationKey: "Y",
-      value: 0.0
+      value: 0.0,
     },
     {
       serializationKey: "a0",
-      value: 0.0
+      value: 0.0,
     },
     {
       serializationKey: "n",
-      value: 0.0
+      value: 0.0,
     },
   ],
   TUNNELING: [
@@ -507,7 +506,7 @@ export const reactionAttributeOptions: {
     {
       name: "Scaling Factor",
       serializationKey: "scaling factor",
-      value: 0.0
+      value: 0.0,
     },
   ],
   // TODO add some way of representing B value for this, which is a list of numbers
@@ -532,8 +531,8 @@ export type ReactionConfiguration = {
   hasAerosolPhase: boolean;
   hasAerosolPhaseSpecies: boolean;
   hasAerosolPhaseWater: boolean;
-  branches?: Array<string>
-}
+  branches?: Array<string>;
+};
 
 /**
  * Specific properties for different reaction types.
@@ -549,7 +548,7 @@ export const reactionConfigurations: {
     hasGasPhaseSpecies: false,
     hasAerosolPhase: false,
     hasAerosolPhaseSpecies: false,
-    hasAerosolPhaseWater: false
+    hasAerosolPhaseWater: false,
   },
   HL_PHASE_TRANSFER: {
     reactantCount: ReactionSpeciesCount.NONE,
@@ -558,7 +557,7 @@ export const reactionConfigurations: {
     hasGasPhaseSpecies: true,
     hasAerosolPhase: true,
     hasAerosolPhaseSpecies: true,
-    hasAerosolPhaseWater: true
+    hasAerosolPhaseWater: true,
   },
   SIMPOL_PHASE_TRANSFER: {
     reactantCount: ReactionSpeciesCount.NONE,
@@ -567,7 +566,7 @@ export const reactionConfigurations: {
     hasGasPhaseSpecies: true,
     hasAerosolPhase: true,
     hasAerosolPhaseSpecies: true,
-    hasAerosolPhaseWater: false
+    hasAerosolPhaseWater: false,
   },
   AQUEOUS_EQUILIBRIUM: {
     reactantCount: ReactionSpeciesCount.MANY,
@@ -576,7 +575,7 @@ export const reactionConfigurations: {
     hasGasPhaseSpecies: false,
     hasAerosolPhase: true,
     hasAerosolPhaseSpecies: true,
-    hasAerosolPhaseWater: false
+    hasAerosolPhaseWater: false,
   },
   ARRHENIUS: {
     reactantCount: ReactionSpeciesCount.MANY,
@@ -585,7 +584,7 @@ export const reactionConfigurations: {
     hasGasPhaseSpecies: false,
     hasAerosolPhase: false,
     hasAerosolPhaseSpecies: false,
-    hasAerosolPhaseWater: false
+    hasAerosolPhaseWater: false,
   },
   CONDENSED_PHASE_ARRHENIUS: {
     reactantCount: ReactionSpeciesCount.MANY,
@@ -594,7 +593,7 @@ export const reactionConfigurations: {
     hasGasPhaseSpecies: false,
     hasAerosolPhase: true,
     hasAerosolPhaseSpecies: false,
-    hasAerosolPhaseWater: true
+    hasAerosolPhaseWater: true,
   },
   PHOTOLYSIS: {
     reactantCount: ReactionSpeciesCount.ONE,
@@ -603,7 +602,7 @@ export const reactionConfigurations: {
     hasGasPhaseSpecies: false,
     hasAerosolPhase: false,
     hasAerosolPhaseSpecies: false,
-    hasAerosolPhaseWater: false
+    hasAerosolPhaseWater: false,
   },
   CONDENSED_PHASE_PHOTOLYSIS: {
     reactantCount: ReactionSpeciesCount.ONE,
@@ -612,7 +611,7 @@ export const reactionConfigurations: {
     hasGasPhaseSpecies: false,
     hasAerosolPhase: true,
     hasAerosolPhaseSpecies: false,
-    hasAerosolPhaseWater: true
+    hasAerosolPhaseWater: true,
   },
   EMISSION: {
     reactantCount: ReactionSpeciesCount.NONE,
@@ -621,7 +620,7 @@ export const reactionConfigurations: {
     hasGasPhaseSpecies: false,
     hasAerosolPhase: false,
     hasAerosolPhaseSpecies: false,
-    hasAerosolPhaseWater: false
+    hasAerosolPhaseWater: false,
   },
   FIRST_ORDER_LOSS: {
     reactantCount: ReactionSpeciesCount.ONE,
@@ -630,7 +629,7 @@ export const reactionConfigurations: {
     hasGasPhaseSpecies: false,
     hasAerosolPhase: false,
     hasAerosolPhaseSpecies: false,
-    hasAerosolPhaseWater: false
+    hasAerosolPhaseWater: false,
   },
   SURFACE: {
     reactantCount: ReactionSpeciesCount.NONE,
@@ -640,7 +639,7 @@ export const reactionConfigurations: {
     hasAerosolPhase: false,
     hasAerosolPhaseSpecies: false,
     hasAerosolPhaseWater: false,
-    branches: ["gas-phase"]
+    branches: ["gas-phase"],
   },
   TROE: {
     reactantCount: ReactionSpeciesCount.MANY,
@@ -649,7 +648,7 @@ export const reactionConfigurations: {
     hasGasPhaseSpecies: false,
     hasAerosolPhase: false,
     hasAerosolPhaseSpecies: false,
-    hasAerosolPhaseWater: false
+    hasAerosolPhaseWater: false,
   },
   BRANCHED_NO_RO2: {
     reactantCount: ReactionSpeciesCount.MANY,
@@ -659,7 +658,7 @@ export const reactionConfigurations: {
     hasAerosolPhase: false,
     hasAerosolPhaseSpecies: false,
     hasAerosolPhaseWater: false,
-    branches: ["alkoxy", "nitrate"]
+    branches: ["alkoxy", "nitrate"],
   },
   TUNNELING: {
     reactantCount: ReactionSpeciesCount.MANY,
@@ -668,7 +667,7 @@ export const reactionConfigurations: {
     hasGasPhaseSpecies: false,
     hasAerosolPhase: false,
     hasAerosolPhaseSpecies: false,
-    hasAerosolPhaseWater: false
+    hasAerosolPhaseWater: false,
   },
   WET_DEPOSITION: {
     reactantCount: ReactionSpeciesCount.NONE,
@@ -677,7 +676,6 @@ export const reactionConfigurations: {
     hasGasPhaseSpecies: false,
     hasAerosolPhase: true,
     hasAerosolPhaseSpecies: false,
-    hasAerosolPhaseWater: false
-  }
+    hasAerosolPhaseWater: false,
+  },
 });
-
