@@ -1,4 +1,15 @@
-import { Family, Mechanism, Phase, Reactant, Reaction, reactionConfigurations, ReactionSpeciesCount, ReactionTypeName, Species, supportedReactionTypes } from "../types/chemistryModels";
+import {
+  Family,
+  Mechanism,
+  Phase,
+  Reactant,
+  Reaction,
+  reactionConfigurations,
+  ReactionSpeciesCount,
+  ReactionTypeName,
+  Species,
+  supportedReactionTypes,
+} from "../types/chemistryModels";
 import * as YAML from "yaml";
 import JSZip from "jszip";
 import { generateFrontendID } from "./localFamilies";
@@ -13,12 +24,12 @@ const supportedV1Versions: Array<campV1Versions> = ["1.0.0"];
 type serializedCampV1Species = {
   [key: string]: number | string;
   name: string;
-}
+};
 
 type serializedCampV1Phase = {
   name: string;
   species: Array<string>;
-}
+};
 
 type serializedCampV1Reaction = {
   [key: string]: number | string | undefined | Array<any>;
@@ -29,35 +40,35 @@ type serializedCampV1Reaction = {
   "aerosol phase"?: string;
   "aerosol-phase species"?: string;
   "aerosol-phase water"?: string;
-  "reactants"?: Array<{
+  reactants?: Array<{
     "species name": string;
-    "coefficient": number;
+    coefficient: number;
   }>;
-  "products"?: Array<{
+  products?: Array<{
     "species name": string;
-    "coefficient": number;
+    coefficient: number;
   }>;
   "gas-phase products"?: Array<{
     "species name": string;
-    "coefficient": number;
+    coefficient: number;
   }>;
   "alkoxy products"?: Array<{
     "species name": string;
-    "coefficient": number;
+    coefficient: number;
   }>;
   "nitrate products"?: Array<{
     "species name": string;
-    "coefficient": number;
+    coefficient: number;
   }>;
-}
+};
 
 type serializedCampV1Mechanism = {
   version: campV1Versions;
   name: string;
   species: Array<serializedCampV1Species>;
   phases: Array<serializedCampV1Phase>;
-  reactions: Array<serializedCampV1Reaction>
-}
+  reactions: Array<serializedCampV1Reaction>;
+};
 
 /**
  * Converts a species to the CAMP V1 format
@@ -74,7 +85,10 @@ const speciesToCAMPV1 = (species: Species): serializedCampV1Species => {
   return serializedSpecies;
 };
 
-const reactionToCAMPV1 = (reaction: Reaction, family: Family): serializedCampV1Reaction => {
+const reactionToCAMPV1 = (
+  reaction: Reaction,
+  family: Family,
+): serializedCampV1Reaction => {
   const serializedReaction: serializedCampV1Reaction = {
     name: reaction.name,
     type: reaction.type,
@@ -85,7 +99,7 @@ const reactionToCAMPV1 = (reaction: Reaction, family: Family): serializedCampV1R
 
   // TODO Add other configuration attributes
   if (reactionConfiguration.hasGasPhase) {
-    serializedReaction["gas phase"] = "gas"
+    serializedReaction["gas phase"] = "gas";
   }
 
   if (reactionConfiguration.reactantCount != ReactionSpeciesCount.NONE) {
@@ -107,8 +121,7 @@ const reactionToCAMPV1 = (reaction: Reaction, family: Family): serializedCampV1R
       for (const branch of reactionConfiguration.branches) {
         serializedReaction[`${branch} products`] = [];
       }
-    }
-    else {
+    } else {
       serializedReaction.products = [];
     }
 
@@ -142,8 +155,7 @@ const reactionToCAMPV1 = (reaction: Reaction, family: Family): serializedCampV1R
             console.warn("Skipping product with invalid branch name: ", branch);
             break;
         }
-      }
-      else {
+      } else {
         serializedReaction.products?.push({
           "species name": species.name,
           coefficient: coefficient,
@@ -218,23 +230,25 @@ export const serializeMechanismYAML = (
  * Takes a camp V1 string in either JSON or YAML and creates a new family
  * @throws Parsing errors
  */
-export const deserializeFamilyCAMPV1 = (
-  fileText: string,
-): Family | null => {
-  const parsedMechanism: Partial<serializedCampV1Mechanism> = YAML.parse(fileText);
+export const deserializeFamilyCAMPV1 = (fileText: string): Family | null => {
+  const parsedMechanism: Partial<serializedCampV1Mechanism> =
+    YAML.parse(fileText);
 
-  if (!supportedV1Versions.find(e => e == parsedMechanism.version)) {
-    console.warn(`Errors may occur due to an unsupported CAMP V1 version: ${parsedMechanism.version}`)
+  if (!supportedV1Versions.find((e) => e == parsedMechanism.version)) {
+    console.warn(
+      `Errors may occur due to an unsupported CAMP V1 version: ${parsedMechanism.version}`,
+    );
   }
 
   if (
-    !Array.isArray(parsedMechanism.species)
-    || !Array.isArray(parsedMechanism.phases)
-    || !Array.isArray(parsedMechanism.reactions)
+    !Array.isArray(parsedMechanism.species) ||
+    !Array.isArray(parsedMechanism.phases) ||
+    !Array.isArray(parsedMechanism.reactions)
   ) {
-    throw new Error("Mechanism is missing 'species', 'phases', or 'reactions' arrays");
+    throw new Error(
+      "Mechanism is missing 'species', 'phases', or 'reactions' arrays",
+    );
   }
-
 
   const createdFamily: Family = {
     id: generateFrontendID(),
@@ -244,8 +258,8 @@ export const deserializeFamilyCAMPV1 = (
     mechanisms: [],
     species: [],
     reactions: [],
-    phases: []
-  }
+    phases: [],
+  };
 
   const speciesIdMappings = new Map<string, string>();
   const phaseIdMappings = new Map<string, string>();
@@ -259,13 +273,13 @@ export const deserializeFamilyCAMPV1 = (
       name: species.name,
       description: null,
       familyId: createdFamily.id,
-      attributes: {}
-    }
+      attributes: {},
+    };
 
     for (const [key, value] of Object.entries(species)) {
       if (
-        (typeof value !== "number" && typeof value !== "string")
-        || key === "name"
+        (typeof value !== "number" && typeof value !== "string") ||
+        key === "name"
       ) {
         continue;
       }
@@ -273,7 +287,7 @@ export const deserializeFamilyCAMPV1 = (
       createdSpecies.attributes[key] = {
         serializationKey: key,
         value: value,
-      }
+      };
     }
 
     createdFamily.species.push(createdSpecies);
@@ -287,8 +301,10 @@ export const deserializeFamilyCAMPV1 = (
       id: id,
       name: phase.name,
       description: null,
-      speciesIds: phase.species.map(e => speciesIdMappings.get(e)).filter(e => e != undefined),
-    }
+      speciesIds: phase.species
+        .map((e) => speciesIdMappings.get(e))
+        .filter((e) => e != undefined),
+    };
 
     createdFamily.phases.push(createdPhase);
   }
@@ -296,7 +312,7 @@ export const deserializeFamilyCAMPV1 = (
   for (const reaction of parsedMechanism.reactions) {
     const id = generateFrontendID();
 
-    if (!supportedReactionTypes.find(e => e == reaction.type)) {
+    if (!supportedReactionTypes.find((e) => e == reaction.type)) {
       console.warn(`Possibly unsupported reaction type: ${reaction.type}`);
     }
 
@@ -305,36 +321,38 @@ export const deserializeFamilyCAMPV1 = (
       name: reaction.name || "",
       description: null,
       type: reaction.type as ReactionTypeName,
-      reactants: reaction.reactants?.reduce((accumulator: Reactant[], reactant) => {
-        const speciesId = speciesIdMappings.get(reactant["species name"]);
-        if (!speciesId) {
+      reactants:
+        reaction.reactants?.reduce((accumulator: Reactant[], reactant) => {
+          const speciesId = speciesIdMappings.get(reactant["species name"]);
+          if (!speciesId) {
+            return accumulator;
+          }
+          accumulator.push({
+            speciesId: speciesId,
+            coefficient: reactant.coefficient,
+          });
           return accumulator;
-        }
-        accumulator.push({
-          speciesId: speciesId,
-          coefficient: reactant.coefficient,
-        })
-        return accumulator;
-      }, []) || [],
-      products: reaction.products?.reduce((accumulator: Reactant[], reactant) => {
-        const speciesId = speciesIdMappings.get(reactant["species name"]);
-        if (!speciesId) {
+        }, []) || [],
+      products:
+        reaction.products?.reduce((accumulator: Reactant[], reactant) => {
+          const speciesId = speciesIdMappings.get(reactant["species name"]);
+          if (!speciesId) {
+            return accumulator;
+          }
+          accumulator.push({
+            speciesId: speciesId,
+            coefficient: reactant.coefficient,
+          });
           return accumulator;
-        }
-        accumulator.push({
-          speciesId: speciesId,
-          coefficient: reactant.coefficient,
-        })
-        return accumulator;
-      }, []) || [],
-      attributes: {}
-    }
+        }, []) || [],
+      attributes: {},
+    };
 
     // Branches that *may* exists in a reaction
     const productBranches = ["gas-phase", "alkoxy", "nitrate"];
 
     for (const branch of productBranches) {
-      const products = reaction[`${branch} products`]
+      const products = reaction[`${branch} products`];
       if (!Array.isArray(products)) {
         continue;
       }
@@ -367,8 +385,8 @@ export const deserializeFamilyCAMPV1 = (
 
     for (const [key, value] of Object.entries(reaction)) {
       if (
-        (typeof value !== "number" && typeof value !== "string")
-        || skipKeys.find(e => e == key)
+        (typeof value !== "number" && typeof value !== "string") ||
+        skipKeys.find((e) => e == key)
       ) {
         continue;
       }
@@ -376,7 +394,7 @@ export const deserializeFamilyCAMPV1 = (
       createdReaction.attributes[key] = {
         serializationKey: key,
         value: value,
-      }
+      };
     }
 
     createdFamily.reactions.push(createdReaction);
@@ -387,14 +405,14 @@ export const deserializeFamilyCAMPV1 = (
     name: parsedMechanism.name || "New Mechanism",
     description: "This mechanism was automatically generated from a file",
     familyId: createdFamily.id,
-    speciesIds: createdFamily.species.map(e => e.id),
-    reactionIds: createdFamily.reactions.map(e => e.id),
-    phaseIds: createdFamily.phases.map(e => e.id),
-  }
+    speciesIds: createdFamily.species.map((e) => e.id),
+    reactionIds: createdFamily.reactions.map((e) => e.id),
+    phaseIds: createdFamily.phases.map((e) => e.id),
+  };
 
   createdFamily.mechanisms.push(createdMechanism);
   return createdFamily;
-}
+};
 
 /////////////////////////////////
 // V0 CONFIGURATION (MusicBox) //

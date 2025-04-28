@@ -31,7 +31,7 @@ import CircleIcon from "@mui/icons-material/Circle";
 import CloudOffIcon from "@mui/icons-material/CloudOff";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
-import FileUploadIcon from '@mui/icons-material/FileUpload';
+import FileUploadIcon from "@mui/icons-material/FileUpload";
 import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
 import { TreeItem, treeItemClasses } from "@mui/x-tree-view/TreeItem";
 import {
@@ -99,7 +99,6 @@ const FamilyPage = () => {
   const { user } = useAuth();
   const currentMenuName = useRef<string>(DataViewSelection.Default);
   const { appearanceSettings } = useCustomTheme();
-
 
   const updateFamily = (family: Family): void => {
     setFamilies((families) => {
@@ -1130,7 +1129,11 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       field: "id",
       headerName: "Equation",
       flex: 1,
-      valueGetter: (id: string) => reactionToString(family.reactions.find(e => e.id == id), family.species),
+      valueGetter: (id: string) =>
+        reactionToString(
+          family.reactions.find((e) => e.id == id),
+          family.species,
+        ),
       renderCell: (params: GridRenderCellParams<Reaction>) => (
         <Typography
           variant="body1"
@@ -1285,8 +1288,8 @@ export const PhaseView = ({ family }: ViewProps) => {
     {
       field: "name",
       flex: 1,
-    }
-  ]
+    },
+  ];
 
   return (
     <Box
@@ -1334,9 +1337,7 @@ export const PhaseView = ({ family }: ViewProps) => {
           },
         }}
         slots={{
-          toolbar: () => (
-            <DataViewToolbar />
-          ),
+          toolbar: () => <DataViewToolbar />,
         }}
       />
     </Box>
@@ -1414,7 +1415,7 @@ export const MechanismsView = ({ family, updateFamily }: ViewProps) => {
 
   useLayoutEffect(() => {
     setSelectedMechanism(null);
-  }, [family])
+  }, [family]);
 
   return (
     <Box>

@@ -1,7 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
 import axios, { AxiosResponse } from "axios";
-import { deleteFamily, deleteMechanism, deletePhase, deleteReaction, deleteSpecies, deleteUser } from "../src/API/API_DeleteMethods";
+import {
+  deleteFamily,
+  deleteMechanism,
+  deletePhase,
+  deleteReaction,
+  deleteSpecies,
+  deleteUser,
+} from "../src/API/API_DeleteMethods";
 
 // Mock axios using vitest's built-in mock function
 vi.mock("axios");
@@ -29,7 +36,6 @@ describe.each([
 ])(
   "%s function",
   (_, deleteFunction: (object: any) => any, id: string, endpoint: string) => {
-
     it("Successfully calls the delete endpoint", async () => {
       const mockedDelete = vi
         .spyOn(axios, "delete")

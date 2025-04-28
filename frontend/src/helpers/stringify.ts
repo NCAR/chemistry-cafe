@@ -5,9 +5,7 @@ import { Reaction, Species } from "../types/chemistryModels";
  * @param reactionType Reaction type key
  * @returns String value. Defaults to the given string by default
  */
-export const reactionTypeToString = (
-  reactionType: string,
-): string => {
+export const reactionTypeToString = (reactionType: string): string => {
   switch (reactionType) {
     case "AQUEOUS_EQUILIBRIUM":
       return "Aqueous Equilibrium";

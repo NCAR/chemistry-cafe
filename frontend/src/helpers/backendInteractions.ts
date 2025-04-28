@@ -478,13 +478,18 @@ export function frontendToAPIFamily(
  * @param family
  * @returns Family with updated UUIDs of each object
  */
-export async function uploadFamily(family: Family, owner: APIUser): Promise<Family> {
+export async function uploadFamily(
+  family: Family,
+  owner: APIUser,
+): Promise<Family> {
   const familyToUpload: Family = {
     ...family,
     owner: owner,
-  }
+  };
 
-  const resultFamily = await createFamily(frontendToAPIFamily(familyToUpload, false));
+  const resultFamily = await createFamily(
+    frontendToAPIFamily(familyToUpload, false),
+  );
 
   return saveFamilyChanges({
     ...familyToUpload,

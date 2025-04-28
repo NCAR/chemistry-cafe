@@ -56,7 +56,7 @@ describe("Family Editor Page", () => {
   beforeEach(() => {
     window.location = {
       ...originalLocation,
-      assign: vi.fn((_: string | URL) => { }),
+      assign: vi.fn((_: string | URL) => {}),
     } as any;
     localStorage.setItem("uploadedFamilyIds", JSON.stringify([testFamily.id]));
     vi.spyOn(axios, "get").mockResolvedValue(createMockData());
@@ -316,12 +316,14 @@ describe("PhaseView", () => {
                 isModified: false,
               },
             ],
-            phases: [{
-              id: "120984",
-              name: "gas",
-              description: null,
-              speciesIds: []
-            }],
+            phases: [
+              {
+                id: "120984",
+                name: "gas",
+                description: null,
+                speciesIds: [],
+              },
+            ],
             reactions: [
               {
                 id: "111-111-111-111",
