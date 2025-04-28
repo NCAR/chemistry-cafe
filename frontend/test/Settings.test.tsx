@@ -8,12 +8,6 @@ import axios, { AxiosHeaders, AxiosResponse } from "axios";
 import { APIUser } from "../src/API/API_Interfaces";
 import { CustomThemeProvider } from "../src/components/CustomThemeContext";
 
-const mockUserInfo: APIUser = {
-  role: "admin",
-  email: "test@email.com",
-  username: "Test Account",
-};
-
 describe("Settings Page", () => {
   const originalLocation = window.location;
 
@@ -32,7 +26,7 @@ describe("Settings Page", () => {
   beforeEach(() => {
     window.location = {
       ...originalLocation,
-      assign: vi.fn((_: string | URL) => {}),
+      assign: vi.fn((_: string | URL) => { }),
     } as any;
     vi.spyOn(axios, "get").mockResolvedValue(createMockUserData());
     vi.spyOn(axios, "post").mockResolvedValue(createMockUserData());
@@ -74,5 +68,17 @@ describe("Settings Page", () => {
     const userSettingsButton = screen.getByText("My Profile");
     expect(userSettingsButton).toBeTruthy();
     fireEvent.click(userSettingsButton);
+  });
+
+  it("Can toggle different button color palettes", () => {
+    const darkThemeButton = screen.getByTestId("toggle-dark-theme");
+    const lowSaturationButton = screen.getByTestId("toggle-low-saturation-theme");
+    const highSaturationButton = screen.getByTestId("toggle-high-saturation-theme");
+    const monochromeButton = screen.getByTestId("toggle-monochrome-theme");
+
+    fireEvent.click(darkThemeButton);
+    fireEvent.click(lowSaturationButton);
+    fireEvent.click(highSaturationButton);
+    fireEvent.click(monochromeButton);
   });
 });
