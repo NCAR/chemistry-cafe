@@ -16,6 +16,7 @@ import EditNoteIcon from "@mui/icons-material/EditNote";
 import { SelectSpeciesButton } from "./SelectSpeciesButton";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { SelectReactionButton } from "./SelectReactionButton";
+import { reactionToString } from "../helpers/stringify";
 
 export type MechanismEditorProps = {
   family: Family;
@@ -221,6 +222,7 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
           <SelectReactionButton
             aria-label="select-mechanism-reactions"
             text="Add Reaction"
+            family={family}
             onSelect={(reaction) => {
               changeMechanismProperties({
                 reactionIds: [reaction.id, ...modifiedMechanism.reactionIds],
@@ -237,7 +239,7 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
           />
           <List>
             {modifiedMechanism.reactionIds.map((id) => {
-              const reactions = family.reactions.find(
+              const reaction = family.reactions.find(
                 (element) => element.id === id,
               );
               return (
@@ -250,9 +252,9 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
                     columnGap: "1rem",
                   }}
                 >
-                  <Typography>{reactions?.name || "<No name>"}</Typography>
-                  {reactions?.description && (
-                    <Tooltip title={reactions?.description}>
+                  <Typography>{reactionToString(reaction, family.species)}</Typography>
+                  {reaction?.description && (
+                    <Tooltip title={reaction?.description}>
                       <InfoOutlinedIcon />
                     </Tooltip>
                   )}

@@ -1,12 +1,14 @@
 import { useState, MouseEvent } from "react";
-import { Reaction } from "../types/chemistryModels";
+import { Family, Reaction } from "../types/chemistryModels";
 import { Button, IconButton, Menu, MenuItem, Typography } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import { reactionToString } from "../helpers/stringify";
 
 export type SelectReactionButtonProps = {
   onSelect: (reaction: Reaction) => void;
   "aria-label": string;
   reactions: Array<Reaction>;
+  family: Family;
   text?: string;
 };
 
@@ -15,6 +17,7 @@ export const SelectReactionButton: React.FC<SelectReactionButtonProps> = ({
   onSelect,
   reactions,
   text,
+  family,
 }) => {
   const [open, setOpen] = useState<boolean>(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -62,7 +65,7 @@ export const SelectReactionButton: React.FC<SelectReactionButtonProps> = ({
                   handleMenuClose();
                 }}
               >
-                <Typography>{reaction.name || "<No Name>"}</Typography>
+                <Typography>{reactionToString(reaction, family.species)}</Typography>
               </MenuItem>
             );
           })
