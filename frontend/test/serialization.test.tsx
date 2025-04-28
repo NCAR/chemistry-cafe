@@ -70,6 +70,53 @@ const reaction: Reaction = {
   },
 };
 
+const branchedReaction: Reaction = {
+  id: "555-444-333-222-111",
+  name: "",
+  description: null,
+  type: "BRANCHED_NO_RO2",
+  reactants: [
+    {
+      speciesId: species.id,
+      coefficient: 1,
+    },
+  ],
+  products: [
+    {
+      speciesId: species.id,
+      coefficient: 1,
+      branch: "alkoxy",
+    },
+    {
+      speciesId: species.id,
+      coefficient: 1,
+      branch: "nitrate",
+    },
+  ],
+  attributes: {}
+}
+
+const surfaceReaction: Reaction = {
+  id: "55525-444-333-222-111",
+  name: "",
+  description: null,
+  type: "SURFACE",
+  reactants: [],
+  products: [
+    {
+      speciesId: species.id,
+      coefficient: 1,
+      branch: "gas-phase",
+    },
+    {
+      speciesId: species.id,
+      coefficient: 1,
+      branch: "notreal",
+    },
+  ],
+  attributes: {}
+}
+
 const mechanism: Mechanism = {
   id: "",
   name: "Test Mechanism",
@@ -77,7 +124,7 @@ const mechanism: Mechanism = {
   phaseIds: [],
   familyId: "1234",
   speciesIds: [species.id],
-  reactionIds: [reaction.id],
+  reactionIds: [reaction.id, branchedReaction.id, surfaceReaction.id],
 };
 
 const family: Family = {
@@ -86,7 +133,7 @@ const family: Family = {
   description: "",
   mechanisms: [],
   species: [species],
-  reactions: [reaction],
+  reactions: [reaction, branchedReaction, surfaceReaction],
   phases: [],
   owner: null,
 };
