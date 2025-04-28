@@ -434,6 +434,10 @@ const reactionToCAMPV0 = (reaction: Reaction, family: Family): Object => {
     serializedReaction.reactants[species.name] = {
       qty: coefficient,
     };
+
+    if (reaction.type == "FIRST_ORDER_LOSS") {
+      serializedReaction.__species = species.name;
+    }
   }
 
   for (const { speciesId, coefficient } of reaction.products) {
@@ -444,6 +448,22 @@ const reactionToCAMPV0 = (reaction: Reaction, family: Family): Object => {
     serializedReaction.products[species.name] = {
       yield: coefficient,
     };
+
+    if (reaction.type == "EMISSION") {
+      serializedReaction.__species = species.name;
+    }
+  }
+
+  // Edge Cases
+  if (reaction.type == "FIRST_ORDER_LOSS" || reaction.type == "EMISSION") {
+    serializedReaction.type = "PHOTOLYSIS"
+    serializedReaction.__music_box_type = reaction.type;
+  }
+  else if (reaction.type == "CONDENSED_PHASE_ARRHENIUS") {
+    serializedReaction.type = "ARRHENIUS";
+  }
+  else if (reaction.type == "CONDENSED_PHASE_PHOTOLYSIS") {
+    serializedReaction.type = "PHOTOLYSIS";
   }
 
   for (const key of Object.keys(reaction.attributes)) {
@@ -511,7 +531,6 @@ export const serializeMechanismMusicBox = async (
       "simulation length [hr]": 1,
     },
     "chemical species": {},
-    // Begin hard coded values
     "environmental conditions": {
       temperature: {
         "initial value [K]": 298.15,

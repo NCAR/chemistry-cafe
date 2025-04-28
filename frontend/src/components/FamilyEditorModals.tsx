@@ -438,9 +438,9 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
                         width: "100%",
                         // Removes up and down arrows for number
                         "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                          {
-                            display: "none",
-                          },
+                        {
+                          display: "none",
+                        },
                         "& input[type=number]": {
                           MozAppearance: "textfield",
                         },
@@ -643,8 +643,10 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
     // Converts previous reactant selection to current count
     switch (currentConfiguration.reactantCount) {
       case ReactionSpeciesCount.NONE:
-      case ReactionSpeciesCount.ONE:
         updatedReactionProperties.reactants = [];
+        break;
+      case ReactionSpeciesCount.ONE:
+        updatedReactionProperties.reactants = modifiedReaction?.reactants.slice(0, 1) ?? [];
         break;
       case ReactionSpeciesCount.MANY:
         updatedReactionProperties.reactants = modifiedReaction?.reactants ?? [];
@@ -663,8 +665,10 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
     // Converts previous product selection to current count
     switch (currentConfiguration.productCount) {
       case ReactionSpeciesCount.NONE:
-      case ReactionSpeciesCount.ONE:
         updatedReactionProperties.products = [];
+        break;
+      case ReactionSpeciesCount.ONE:
+        updatedReactionProperties.products = modifiedReaction?.products.slice(0, 1) ?? [];
         break;
       case ReactionSpeciesCount.MANY:
         updatedReactionProperties.products = modifiedReaction?.products ?? [];
@@ -777,7 +781,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
             getOptionLabel={(option) => reactionTypeToString(option)}
             options={[...supportedReactionTypes].sort()}
             renderInput={(params) => <TextField {...params} />}
-            onChange={(event: any, newValue: string | null) => {
+            onChange={(_: any, newValue: string | null) => {
               const reactionType = newValue as ReactionTypeName;
               const attributes = getReactionAttributes(reactionType);
 
@@ -790,7 +794,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
               }
 
               changeReactionProperties({
-                type: event.target.value as ReactionTypeName,
+                type: reactionType as ReactionTypeName,
                 attributes: reactionAttributes,
               });
 
@@ -819,10 +823,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
               </Typography>
               <Paper>
                 <Select
-                  labelId="input-species-label"
                   aria-labelledby="input-species-label"
                   defaultValue={
-                    modifiedReaction?.reactants.at(0)?.speciesId ?? "None"
+                    reaction?.reactants.at(0)?.speciesId ?? "None"
                   }
                   onChange={(event) => {
                     const speciesId = event.target.value;
@@ -947,9 +950,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                           flex: 1,
                           // Removes up and down arrows for number
                           "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                            {
-                              display: "none",
-                            },
+                          {
+                            display: "none",
+                          },
                           "& input[type=number]": {
                             MozAppearance: "textfield",
                           },
@@ -1009,20 +1012,20 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
               }}
             >
               <Typography
-                id="output-species-input-label"
+                id="output-species-label"
                 color="textPrimary"
                 variant="h6"
               >
                 Reaction Output Species:
               </Typography>
               <Select
-                labelId="output-species-input-label"
-                aria-labelledby="output-species-input-label"
+                aria-labelledby="output-species-label"
                 defaultValue={
-                  modifiedReaction?.products.at(0)?.speciesId ?? "None"
+                  reaction?.products.at(0)?.speciesId ?? "None"
                 }
                 onChange={(event) => {
                   const speciesId = event.target.value;
+                  console.log(speciesId);
                   if (speciesId == "None") {
                     changeReactionProperties({
                       products: [],
@@ -1140,9 +1143,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                           flex: 1,
                           // Removes up and down arrows for number
                           "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                            {
-                              display: "none",
-                            },
+                          {
+                            display: "none",
+                          },
                           "& input[type=number]": {
                             MozAppearance: "textfield",
                           },
@@ -1212,9 +1215,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                     width: "100%",
                     // Removes up and down arrows for number
                     "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                      {
-                        display: "none",
-                      },
+                    {
+                      display: "none",
+                    },
                     "& input[type=number]": {
                       MozAppearance: "textfield",
                     },
