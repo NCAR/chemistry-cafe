@@ -93,8 +93,8 @@ const branchedReaction: Reaction = {
       branch: "nitrate",
     },
   ],
-  attributes: {}
-}
+  attributes: {},
+};
 
 const surfaceReaction: Reaction = {
   id: "55525-444-333-222-111",
@@ -114,8 +114,8 @@ const surfaceReaction: Reaction = {
       branch: "notreal",
     },
   ],
-  attributes: {}
-}
+  attributes: {},
+};
 
 const mechanism: Mechanism = {
   id: "",
