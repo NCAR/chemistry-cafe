@@ -65,7 +65,9 @@ export const SelectReactionButton: React.FC<SelectReactionButtonProps> = ({
                   handleMenuClose();
                 }}
               >
-                <Typography>{reactionToString(reaction, family.species)}</Typography>
+                <Typography>
+                  {reactionToString(reaction, family.species)}
+                </Typography>
               </MenuItem>
             );
           })

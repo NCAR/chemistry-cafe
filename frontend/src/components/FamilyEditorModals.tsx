@@ -438,9 +438,9 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
                         width: "100%",
                         // Removes up and down arrows for number
                         "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                        {
-                          display: "none",
-                        },
+                          {
+                            display: "none",
+                          },
                         "& input[type=number]": {
                           MozAppearance: "textfield",
                         },
@@ -646,7 +646,8 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
         updatedReactionProperties.reactants = [];
         break;
       case ReactionSpeciesCount.ONE:
-        updatedReactionProperties.reactants = modifiedReaction?.reactants.slice(0, 1) ?? [];
+        updatedReactionProperties.reactants =
+          modifiedReaction?.reactants.slice(0, 1) ?? [];
         break;
       case ReactionSpeciesCount.MANY:
         updatedReactionProperties.reactants = modifiedReaction?.reactants ?? [];
@@ -668,7 +669,8 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
         updatedReactionProperties.products = [];
         break;
       case ReactionSpeciesCount.ONE:
-        updatedReactionProperties.products = modifiedReaction?.products.slice(0, 1) ?? [];
+        updatedReactionProperties.products =
+          modifiedReaction?.products.slice(0, 1) ?? [];
         break;
       case ReactionSpeciesCount.MANY:
         updatedReactionProperties.products = modifiedReaction?.products ?? [];
@@ -824,9 +826,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
               <Paper>
                 <Select
                   aria-labelledby="input-species-label"
-                  defaultValue={
-                    reaction?.reactants.at(0)?.speciesId ?? "None"
-                  }
+                  defaultValue={reaction?.reactants.at(0)?.speciesId ?? "None"}
                   onChange={(event) => {
                     const speciesId = event.target.value;
                     if (speciesId == "None") {
@@ -950,9 +950,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                           flex: 1,
                           // Removes up and down arrows for number
                           "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                          {
-                            display: "none",
-                          },
+                            {
+                              display: "none",
+                            },
                           "& input[type=number]": {
                             MozAppearance: "textfield",
                           },
@@ -1020,9 +1020,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
               </Typography>
               <Select
                 aria-labelledby="output-species-label"
-                defaultValue={
-                  reaction?.products.at(0)?.speciesId ?? "None"
-                }
+                defaultValue={reaction?.products.at(0)?.speciesId ?? "None"}
                 onChange={(event) => {
                   const speciesId = event.target.value;
                   console.log(speciesId);
@@ -1143,9 +1141,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                           flex: 1,
                           // Removes up and down arrows for number
                           "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                          {
-                            display: "none",
-                          },
+                            {
+                              display: "none",
+                            },
                           "& input[type=number]": {
                             MozAppearance: "textfield",
                           },
@@ -1215,9 +1213,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                     width: "100%",
                     // Removes up and down arrows for number
                     "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                    {
-                      display: "none",
-                    },
+                      {
+                        display: "none",
+                      },
                     "& input[type=number]": {
                       MozAppearance: "textfield",
                     },

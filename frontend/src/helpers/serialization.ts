@@ -456,13 +456,11 @@ const reactionToCAMPV0 = (reaction: Reaction, family: Family): Object => {
 
   // Edge Cases
   if (reaction.type == "FIRST_ORDER_LOSS" || reaction.type == "EMISSION") {
-    serializedReaction.type = "PHOTOLYSIS"
+    serializedReaction.type = "PHOTOLYSIS";
     serializedReaction.__music_box_type = reaction.type;
-  }
-  else if (reaction.type == "CONDENSED_PHASE_ARRHENIUS") {
+  } else if (reaction.type == "CONDENSED_PHASE_ARRHENIUS") {
     serializedReaction.type = "ARRHENIUS";
-  }
-  else if (reaction.type == "CONDENSED_PHASE_PHOTOLYSIS") {
+  } else if (reaction.type == "CONDENSED_PHASE_PHOTOLYSIS") {
     serializedReaction.type = "PHOTOLYSIS";
   }
 

@@ -252,7 +252,9 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
                     columnGap: "1rem",
                   }}
                 >
-                  <Typography>{reactionToString(reaction, family.species)}</Typography>
+                  <Typography>
+                    {reactionToString(reaction, family.species)}
+                  </Typography>
                   {reaction?.description && (
                     <Tooltip title={reaction?.description}>
                       <InfoOutlinedIcon />
