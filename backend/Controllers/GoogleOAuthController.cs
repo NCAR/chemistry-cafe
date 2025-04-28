@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Diagnostics.CodeAnalysis;
 using ChemistryCafeAPI.Models;
 using ChemistryCafeAPI.Services;
 using Microsoft.AspNetCore.Authentication;
@@ -19,6 +20,7 @@ namespace ChemistryCafeAPI.Controllers
         private readonly string _baseUri = Environment.GetEnvironmentVariable("BACKEND_BASE_URL") ?? "";
         private readonly string _frontendHost = Environment.GetEnvironmentVariable("FRONTEND_HOST") ?? "";
 
+        [ExcludeFromCodeCoverage]
         protected virtual string? GetNameIdentifier() 
         {
             ClaimsIdentity? claimsIdentity = this.User.Identity as ClaimsIdentity;
@@ -48,6 +50,7 @@ namespace ChemistryCafeAPI.Controllers
         /// This route essentially sets a user's information in a cookie.
         /// </summary>
         [HttpGet("authenticate")]
+        [ExcludeFromCodeCoverage]
         public async Task<IActionResult> GoogleResponse()
         {
             AuthenticateResult result = await HttpContext.AuthenticateAsync("External");
@@ -72,6 +75,7 @@ namespace ChemistryCafeAPI.Controllers
         /// Removes all authentication cookies and signs a user out of the backend application
         /// </summary>
         [HttpGet("logout")]
+        [ExcludeFromCodeCoverage]
         public async Task<IActionResult> Logout(string? returnUrl)
         {
             // Ensure the redirect url is 

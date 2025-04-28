@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using ChemistryCafeAPI.Services;
 using ChemistryCafeAPI.Models;
@@ -11,6 +12,7 @@ namespace ChemistryCafeAPI.Controllers
     {
         private readonly PhaseService _phaseService;
 
+        [ExcludeFromCodeCoverage]
         protected virtual string? GetNameIdentifier()
         {
             ClaimsIdentity? claimsIdentity = this.User.Identity as ClaimsIdentity;

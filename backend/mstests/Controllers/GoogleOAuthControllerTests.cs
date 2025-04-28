@@ -19,7 +19,7 @@ namespace ChemistryCafeAPI.Tests
 
         private class MockedGoogleOAuthController : GoogleOAuthController 
         {
-            public Guid Id {get; set;}
+            public string? NameIdentifier {get; set;}
 
             public MockedGoogleOAuthController(GoogleOAuthService googleService, 
                                                UserService userService)
@@ -29,12 +29,12 @@ namespace ChemistryCafeAPI.Tests
 
             protected override string? GetNameIdentifier() 
             {
-                return Id.ToString();
+                return NameIdentifier;
             }
         }
 
         [TestMethod]
-        public async Task GetCurrentUser_Exists()
+        public async Task GetCurrentUserExists()
         {
             var userService = new UserService(ctx);
             var googleService = new GoogleOAuthService(userService);
@@ -42,7 +42,7 @@ namespace ChemistryCafeAPI.Tests
             var googleID = "get-current-user0123456789";
             var email = "get-current-user@test.com";
             var user = await userService.SignIn(googleID, email);
-            googleController.Id = user.Id;
+            googleController.NameIdentifier = user.Id.ToString();
             var result = await googleController.GetCurrentUser();
             
             var okResult = result.Result as OkObjectResult;
@@ -56,11 +56,12 @@ namespace ChemistryCafeAPI.Tests
         }
 
         [TestMethod]
-        public async Task GetCurrentUser_NotExists()
+        public async Task GetCurrentUserNotExists()
         {
             var userService = new UserService(ctx);
             var googleService = new GoogleOAuthService(userService);
             var googleController = new MockedGoogleOAuthController(googleService, userService);
+            googleController.NameIdentifier = Guid.NewGuid().ToString();
             var result = await googleController.GetCurrentUser();
             
             var okResult = result.Result as OkObjectResult;
@@ -68,6 +69,26 @@ namespace ChemistryCafeAPI.Tests
 
             User? user = okResult.Value as User;
             Assert.IsNull(user);
+        }
+
+        [TestMethod]
+        public async Task GetCurrentUserNull()
+        {
+            var userService = new UserService(ctx);
+            var googleService = new GoogleOAuthService(userService);
+            var googleController = new MockedGoogleOAuthController(googleService, userService);
+            var result = await googleController.GetCurrentUser();
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(UnauthorizedResult));
+        }
+        
+        [TestMethod]
+        public async Task LoginNonnull()
+        {
+            var userService = new UserService(ctx);
+            var googleService = new GoogleOAuthService(userService);
+            var googleController = new MockedGoogleOAuthController(googleService, userService);
+            Assert.IsNotNull(googleController.LoginRedirect());
         }
     }
 }

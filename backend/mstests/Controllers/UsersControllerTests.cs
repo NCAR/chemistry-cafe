@@ -21,28 +21,45 @@ namespace ChemistryCafeAPI.Tests
         static Guid _UserId;
 
         // Flags to track created data
-        static bool userCreated = false;
 
         // Test data constants
-        static string _Username = string.Empty;
+        static string _Username = "";
+        static string _GoogleId = "";
         const string _Role = "TestRole";
         const string _Email = "testuser@example.com";
         static DateTime _CreatedDate = DateTime.UtcNow;
 
         private class MockedUsersController : UsersController
         {
-            public MockedUsersController(UserService userService) : base(userService) { }
+            public MockedUsersController(UserService userService) : base(userService) {}
+
             protected override string? GetNameIdentifier()
             {
                 return _UserId.ToString();
             }
+        }
 
+        private class NameController : UsersController
+        {
+            private string? _NameIdentifer;
+
+            public NameController(UserService userService, string? NameIdentifer) 
+                : base(userService) 
+            {
+                _NameIdentifer = NameIdentifer;
+            }
+
+            protected override string? GetNameIdentifier()
+            {
+                return _NameIdentifer;
+            }
         }
 
         [ClassInitialize]
         public static void ClassInit(TestContext context)
         {
             _Username = "TestUser_" + Guid.NewGuid().ToString();
+            _GoogleId = Guid.NewGuid().ToString();
         }
 
         [TestMethod]
@@ -52,17 +69,15 @@ namespace ChemistryCafeAPI.Tests
             var userService = new UserService(ctx);
 
             //Act
-            var googleID = System.Guid.NewGuid().ToString();
-            var user = await userService.SignIn(googleID, _Email);
+            var user = await userService.SignIn(_GoogleId, _Email);
 
             // Store the UserId for cleanup
             _UserId = user.Id;
-            userCreated = true;
 
             // Assert
             Assert.AreEqual(_Email, user.Username);
             Assert.AreEqual(_Email, user.Email);
-            Assert.AreEqual(googleID, user.GoogleId);
+            Assert.AreEqual(_GoogleId, user.GoogleId);
         }
 
         [TestMethod]
@@ -90,11 +105,6 @@ namespace ChemistryCafeAPI.Tests
             var userService = new UserService(ctx);
             var controller = new MockedUsersController(userService);
 
-            // Ensure user exists
-            if (!userCreated)
-            {
-                await SignIn_Created_User();
-            }
 
             // Act
             var result = await controller.GetUserById(_UserId);
@@ -114,12 +124,6 @@ namespace ChemistryCafeAPI.Tests
             var userService = new UserService(ctx);
             var controller = new MockedUsersController(userService);
 
-            // Ensure user exists
-            if (!userCreated)
-            {
-                await SignIn_Created_User();
-            }
-
             // Act
             var result = await controller.GetUser(_Email);
 
@@ -132,17 +136,159 @@ namespace ChemistryCafeAPI.Tests
         }
 
         [TestMethod]
+        public async Task GetUserByGoogleIdAsync()
+        {
+            var service = new UserService(ctx);
+            var user = await service.GetUserByGoogleIdAsync(_GoogleId);
+            Assert.IsNotNull(user);
+        }
+
+        [TestMethod]
+        public async Task GetUserByInvalidEmail()
+        {
+            var userService = new UserService(ctx);
+            var controller = new MockedUsersController(userService);
+            var result = await controller.GetUser("invalid@email.what");
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task UpdateUserNotFound()
+        {
+            var userService = new UserService(ctx);
+            var controller = new MockedUsersController(userService);
+            var updatedUser = new User
+            {
+                Id = Guid.NewGuid(),
+                Username = _Username,
+                Role = _Role,
+                Email = _Email,
+                CreatedDate = _CreatedDate,
+                GoogleId = _GoogleId
+            };
+            var result = await controller.UpdateUser(updatedUser.Id, updatedUser);
+            Assert.IsInstanceOfType(result, typeof(NotFoundObjectResult));
+        }
+
+        [TestMethod]
+        public async Task UpdateUserSignedUserNotFound()
+        {
+            var userService = new UserService(ctx);
+            var controller = new NameController(userService, Guid.NewGuid().ToString());
+            var updatedUser = new User
+            {
+                Id = _UserId,
+                Username = _Username,
+                Role = _Role,
+                Email = _Email,
+                CreatedDate = _CreatedDate,
+                GoogleId = _GoogleId
+            };
+            var result = await controller.UpdateUser(updatedUser.Id, updatedUser);
+            Assert.IsInstanceOfType(result, typeof(NotFoundObjectResult));
+        }
+
+        [TestMethod]
+        public async Task UpdateUserAdmin()
+        {
+            var admin = new User
+            {
+                Id = Guid.NewGuid(),
+                Username = "AdminTestUser",
+                Role = "admin",
+                Email = "admin@admin.com",
+                CreatedDate = DateTime.UtcNow,
+                GoogleId = "ADMIN-GOOGLE-ID"
+            };
+            ctx.Users.Add(admin);
+            await ctx.SaveChangesAsync();
+            var userService = new UserService(ctx);
+            var controller = new NameController(userService, admin.Id.ToString());
+            var updatedUser = new User
+            {
+                Id = _UserId,
+                Username = _Username,
+                Role = "NewRole",
+                Email = _Email,
+                CreatedDate = _CreatedDate,
+                GoogleId = _GoogleId
+            };
+            var result = await controller.UpdateUser(updatedUser.Id, updatedUser);
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            var getResult = await controller.GetUserById(_UserId);
+            var okResult = getResult.Result as OkObjectResult;
+            Assert.IsNotNull(okResult);
+            var user = okResult.Value as User;
+            Assert.IsNotNull(user);
+            Assert.AreEqual(user.Role, updatedUser.Role);
+            await controller.DeleteUser(admin.Id);
+        }
+
+        [TestMethod]
+        public async Task UpdateUserUnauthorized()
+        {
+            var userService = new UserService(ctx);
+            var user = await userService.SignIn("temp-id", "temp@email.com");
+            var controller = new NameController(userService, user.Id.ToString());
+            var updatedUser = new User
+            {
+                Id = _UserId,
+                Username = _Username,
+                Role = _Role,
+                Email = _Email,
+                CreatedDate = _CreatedDate
+            };
+            var result = await controller.UpdateUser(updatedUser.Id, updatedUser);
+            Assert.IsInstanceOfType(result, typeof(StatusCodeResult));
+            await controller.DeleteUser(user.Id);
+        }
+
+        [TestMethod]
+        public async Task UpdateUserParseError()
+        {
+            var userService = new UserService(ctx);
+            var controller = new NameController(userService, "invalid-uuid"); 
+            var updatedUser = new User
+            {
+                Id = _UserId,
+                Username = _Username,
+                Role = _Role,
+                Email = _Email,
+                CreatedDate = _CreatedDate
+            };
+            var result = await controller.UpdateUser(updatedUser.Id, updatedUser);
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task UpdateUserNullNameIdentifer()
+        {
+            // Arrange
+            var userService = new UserService(ctx);
+            var controller = new NameController(userService, null);
+
+            var updatedUser = new User
+            {
+                Id = _UserId,
+                Username = _Username,
+                Role = _Role,
+                Email = _Email,
+                CreatedDate = _CreatedDate
+            };
+
+            // Act
+            var result = await controller.UpdateUser(_UserId, updatedUser);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(UnauthorizedObjectResult));
+        }
+
+        [TestMethod]
         public async Task UpdateUser_Updates_User()
         {
             // Arrange
             var userService = new UserService(ctx);
             var controller = new MockedUsersController(userService);
-
-            // Ensure user exists
-            if (!userCreated)
-            {
-                await SignIn_Created_User();
-            }
 
             var updatedUser = new User
             {
@@ -169,17 +315,41 @@ namespace ChemistryCafeAPI.Tests
         }
 
         [TestMethod]
+        public async Task DeleteUserNotFound()
+        {
+            var userService = new UserService(ctx);
+            var id = Guid.NewGuid();
+            var controller = new NameController(userService, id.ToString());
+            var result = await controller.DeleteUser(id);
+            Assert.IsInstanceOfType(result, typeof(NotFoundObjectResult));
+        }
+
+        [TestMethod]
+        public async Task DeleteUserUnauthorized()
+        {
+            var userService = new UserService(ctx);
+            var user = await userService.SignIn("temp-id", "temp@email.com");
+            var controller = new NameController(userService, user.Id.ToString());
+            var result = await controller.DeleteUser(_UserId);
+            Assert.IsInstanceOfType(result, typeof(StatusCodeResult));
+            await controller.DeleteUser(user.Id);
+        }
+
+        [TestMethod]
+        public async Task DeleteUserParseError()
+        {
+            var userService = new UserService(ctx);
+            var controller = new NameController(userService, "invalid-uuid"); 
+            var result = await controller.DeleteUser(_UserId);
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
         public async Task DeleteUser_Deletes_User()
         {
             // Arrange
             var userService = new UserService(ctx);
             var controller = new MockedUsersController(userService);
-
-            // Ensure user exists
-            if (!userCreated)
-            {
-                await SignIn_Created_User();
-            }
 
             // Act
             var result = await controller.DeleteUser(_UserId);
@@ -191,8 +361,15 @@ namespace ChemistryCafeAPI.Tests
             var getResult = await controller.GetUserById(_UserId);
             var notFoundResult = getResult.Result as NotFoundResult;
             Assert.IsNotNull(notFoundResult);
+        }
 
-            userCreated = false; // Since it's deleted
+        [TestMethod]
+        public async Task DeleteUserNullNameIdentifer()
+        {
+            var userService = new UserService(ctx);
+            var controller = new NameController(userService, null);
+            var result = await controller.DeleteUser(_UserId);
+            Assert.IsInstanceOfType(result, typeof(UnauthorizedObjectResult));
         }
 
         [TestMethod]
@@ -233,20 +410,6 @@ namespace ChemistryCafeAPI.Tests
             // Assert
             var badRequestResult = result as BadRequestResult;
             Assert.IsNotNull(badRequestResult);
-        }
-
-        [ClassCleanup]
-        public static void ClassCleanup()
-        {
-            var ctx = DBConnection.Context;
-
-            // Delete User if it exists
-            if (userCreated)
-            {
-                var userService = new UserService(ctx);
-                var deleteTask = userService.DeleteUserAsync(_UserId, _UserId.ToString());
-                deleteTask.Wait();
-            }
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using Pomelo.EntityFrameworkCore.MySql.Scaffolding.Internal;
 
@@ -7,10 +8,6 @@ namespace ChemistryCafeAPI.Models;
 
 public partial class ChemistryDbContext : DbContext
 {
-    public ChemistryDbContext()
-    {
-    }
-
     public ChemistryDbContext(DbContextOptions<ChemistryDbContext> options)
         : base(options)
     {

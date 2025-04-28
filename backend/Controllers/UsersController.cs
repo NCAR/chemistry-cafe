@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Diagnostics.CodeAnalysis;
 using ChemistryCafeAPI.Models;
 using ChemistryCafeAPI.Services;
 
@@ -10,6 +11,8 @@ namespace ChemistryCafeAPI.Controllers
     public class UsersController : ControllerBase
     {
         private readonly UserService _userService;
+
+        [ExcludeFromCodeCoverage]
         protected virtual string? GetNameIdentifier()
         {
             ClaimsIdentity? claimsIdentity = this.User.Identity as ClaimsIdentity;
@@ -73,8 +76,6 @@ namespace ChemistryCafeAPI.Controllers
             var result = await _userService.UpdateUserAsync(user, nameIdentifier);
             switch (result)
             {
-                case QueryResult.Success:
-                    return NoContent();
                 case QueryResult.NotFound:
                     return NotFound("Either the principal user or user being updated were not found");
                 case QueryResult.NoAccess:

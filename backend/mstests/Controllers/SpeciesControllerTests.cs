@@ -129,6 +129,24 @@ namespace ChemistryCafeAPI.Tests
         {
             _species.Name = "UPDATEDTest";
             _species.Description = "UPDATEDDesc";
+            _species.NumericalAttributes.Add(
+                new SpeciesNumericalAttribute
+                {
+                    SpeciesId = _species.Id,
+                    Species = _species,
+                    SerializationKey = "test-numerical-serial-key",
+                    Value = 10000
+                }
+            );
+            _species.StringAttributes.Add(
+                new SpeciesStringAttribute
+                {
+                    SpeciesId = _species.Id,
+                    Species = _species,
+                    SerializationKey = "test-string-serial-key",
+                    Value = "test-value"
+                }
+            );
             var actionResult = await _speciesController.UpdateSpecies(_species.Id, _species);
             Assert.IsNotNull(actionResult);
             Assert.IsInstanceOfType(actionResult.Result, typeof(OkObjectResult));
@@ -150,15 +168,61 @@ namespace ChemistryCafeAPI.Tests
             await _speciesController.DeleteSpecies(_species.Id);
             var actionResult = await _speciesController.GetSpecies(_species.Id);
             Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundObjectResult));
-            _species = null;
+        }
+
+        [TestMethod]
+        public async Task GetSpeciesFromInvalidFamily()
+        {
+            var actionResult = await _speciesController.GetSpecies(Guid.NewGuid());
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundObjectResult));
+        }
+
+        [TestMethod]
+        public async Task CreateSpeciesWithInvalidFamily()
+        {
+            var actionResult = await _speciesController.CreateSpecies(_species, Guid.NewGuid());
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundObjectResult));
+        }
+
+        [TestMethod]
+        public async Task DeleteInvalidSpecies()
+        {
+            var actionResult = await _speciesController.DeleteSpecies(Guid.NewGuid());
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOfType(actionResult, typeof(NotFoundObjectResult));
+        }
+
+        [TestMethod]
+        public async Task CreateSpeciesNullNameIdentifer()
+        {
+            _nameIdentifier = null;
+            var result = await _speciesController.CreateSpecies(_species, _family.Id);
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(UnauthorizedObjectResult));
+        }
+
+        [TestMethod]
+        public async Task UpdateSpeciesNullNameIdentifer()
+        {
+            _nameIdentifier = null;
+            var result = await _speciesController.UpdateSpecies(_species.Id, _species); 
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(UnauthorizedObjectResult));
+        }
+
+        [TestMethod]
+        public async Task DeleteSpeciesNullNameIdentifer()
+        {
+            _nameIdentifier = null;
+            var result = await _speciesController.DeleteSpecies(_species.Id); 
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result, typeof(UnauthorizedObjectResult));
         }
 
         private async Task AsyncCleanup()
         {
-            if (_species != null)
-            {
-                await _speciesService.DeleteSpeciesAsync(_species.Id, _nameIdentifier);
-            }
             if (_family != null)
             {
                 await _familyService.DeleteFamilyAsync(_family.Id, _nameIdentifier);
