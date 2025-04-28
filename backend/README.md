@@ -43,6 +43,10 @@ Install the `dotnet` tool
 brew install dotnet
 ```
 
+### Windows
+
+Windows has many ways of installing dotnet. The easiest way of doing so is to use the installer because it isn't bound to any specific IDE. More details about how to install dotnet on Windows can be found [here](https://learn.microsoft.com/en-us/dotnet/core/install/windows).
+
 ---
 
 Then build the project
@@ -52,15 +56,6 @@ dotnet run
 ```
 
 This should start a server. You should be able to access a swagger page on the port that the server stars, for example [http://localhost:8080/swagger](http://localhost:8080)
-
-## Installing the API locally
-To build and install Chemistry Cafe locally, you must have Visual Studio 2022.
-
-Simply clone the project then open the .sln file in Visual Studio.
-
-To change the locaiton of the web application, navigate to the Progran.cs folder then change the IP address on line 22.
-
-To change the database location, navigate to the appsetting.json and change the Default Connection String on line 10.
 
 # Database
 The database that the API is meant to call was made in MySQL. A script to create all the tables can be found in the file chemistry-cafe-database.sql.
