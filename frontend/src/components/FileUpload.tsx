@@ -1,14 +1,14 @@
 import { Box, FormLabel, Input, SxProps, Theme } from "@mui/material";
 import React from "react";
 import { Family } from "../types/chemistryModels";
-import { deserializeFamilyCAMPV1 } from "../helpers/serialization";
+import { deserializeV1Mechanism } from "../helpers/serialization";
 
-type CAMPFileUploadProps = {
+type FileUploadProps = {
   onFileParse: (family: Family | null) => any;
   sx?: SxProps<Theme>;
 };
 
-const CAMPFileUpload: React.FC<CAMPFileUploadProps> = ({ onFileParse, sx }) => {
+const FileUpload: React.FC<FileUploadProps> = ({ onFileParse, sx }) => {
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>,
   ): Promise<void> => {
@@ -20,7 +20,7 @@ const CAMPFileUpload: React.FC<CAMPFileUploadProps> = ({ onFileParse, sx }) => {
     const fileText = await file.text();
 
     try {
-      const parsedFamily = deserializeFamilyCAMPV1(fileText);
+      const parsedFamily = deserializeV1Mechanism(fileText);
       onFileParse(parsedFamily);
     } catch (err) {
       console.error(err);
@@ -37,10 +37,10 @@ const CAMPFileUpload: React.FC<CAMPFileUploadProps> = ({ onFileParse, sx }) => {
         ...sx,
       }}
     >
-      <FormLabel id="file-upload-label">Upload CAMP V1 Data:</FormLabel>
+      <FormLabel id="file-upload-label">Upload V1 Data:</FormLabel>
       <Input
         aria-labelledby="file-upload-label"
-        aria-label="Upload CAMP file"
+        aria-label="Upload mechanism file"
         type="file"
         slotProps={{
           input: {
@@ -53,4 +53,4 @@ const CAMPFileUpload: React.FC<CAMPFileUploadProps> = ({ onFileParse, sx }) => {
   );
 };
 
-export default CAMPFileUpload;
+export default FileUpload;

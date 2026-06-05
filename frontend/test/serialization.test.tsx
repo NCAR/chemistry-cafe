@@ -6,7 +6,7 @@ import {
   Species,
 } from "../src/types/chemistryModels";
 import {
-  deserializeFamilyCAMPV1,
+  deserializeV1Mechanism,
   serializeMechanismJSON,
   serializeMechanismMusicBox,
   serializeMechanismYAML,
@@ -143,7 +143,7 @@ describe("Mechanism Serialization", () => {
     it("Gives a string", () => {
       const result = serializeMechanismJSON(mechanism, family);
       expect(typeof result).toBe("string");
-      const reversedSerialization = deserializeFamilyCAMPV1(result);
+      const reversedSerialization = deserializeV1Mechanism(result);
       expect(typeof reversedSerialization).toBe("object");
     });
   });
@@ -152,7 +152,7 @@ describe("Mechanism Serialization", () => {
     it("Gives a string", () => {
       const result = serializeMechanismYAML(mechanism, family);
       expect(typeof result).toBe("string");
-      const reversedSerialization = deserializeFamilyCAMPV1(result);
+      const reversedSerialization = deserializeV1Mechanism(result);
       expect(typeof reversedSerialization).toBe("object");
     });
   });

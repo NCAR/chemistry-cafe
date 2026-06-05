@@ -4,7 +4,7 @@ import DownloadIcon from "@mui/icons-material/Download";
 import { Family, Mechanism } from "../types/chemistryModels";
 import {
   serializeMechanismJSON,
-  serializeMechanismMusicBox,
+  serializeMechanismMusicBox as serializeMusicBoxConfiguration,
   serializeMechanismYAML,
 } from "../helpers/serialization";
 
@@ -48,10 +48,10 @@ export const DownloadMechanismButton: React.FC<RowActionsButtonProps> = ({
     }
     switch (variant) {
       case "JSON":
-        anchor.download = "campData.json";
+        anchor.download = "mechanism.json";
         break;
       case "YAML":
-        anchor.download = "campData.yml";
+        anchor.download = "mechanism.yml";
         break;
       case "MusicBox":
         anchor.download = "musicbox.zip";
@@ -89,9 +89,9 @@ export const DownloadMechanismButton: React.FC<RowActionsButtonProps> = ({
         }}
       >
         <ButtonGroup variant="outlined">
-          <Tooltip title="CAMP V1 configuration" arrow>
+          <Tooltip title="V1 configuration" arrow>
             <Button
-              aria-label="Download as a CAMP V1 JSON file"
+              aria-label="Download as a V1 JSON file"
               data-testid="download-v1-json"
               sx={{
                 textTransform: "none",
@@ -110,9 +110,9 @@ export const DownloadMechanismButton: React.FC<RowActionsButtonProps> = ({
               JSON
             </Button>
           </Tooltip>
-          <Tooltip title="CAMP V1 configuration" arrow>
+          <Tooltip title="V1 configuration" arrow>
             <Button
-              aria-label="Download as a CAMP V1 YAML file"
+              aria-label="Download as a V1 YAML file"
               data-testid="download-v1-yaml"
               sx={{
                 textTransform: "none",
@@ -131,15 +131,15 @@ export const DownloadMechanismButton: React.FC<RowActionsButtonProps> = ({
               YAML
             </Button>
           </Tooltip>
-          <Tooltip title="CAMP V0 configuration" arrow>
+          <Tooltip title="CAMP V0 MusicBox configuration" arrow>
             <Button
-              aria-label="Download as a CAMP V0 ZIP file"
+              aria-label="Download as a MusicBox CAMP V0 ZIP file"
               data-testid="download-v0-zip"
               sx={{
                 textTransform: "none",
               }}
               onClick={() => {
-                serializeMechanismMusicBox(mechanism, family).then((blob) => {
+                serializeMusicBoxConfiguration(mechanism, family).then((blob) => {
                   console.log(blob);
                   downloadBlob(blob, "MusicBox");
                 });
