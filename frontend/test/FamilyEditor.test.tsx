@@ -1,7 +1,6 @@
 import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import { AuthProvider } from "../src/components/AuthContext";
 import { MemoryRouter } from "react-router-dom";
-import React from "react";
 import {
   cleanup,
   fireEvent,
@@ -753,7 +752,7 @@ describe("MechanismsView", () => {
     fireEvent.click(yamlButton);
   });
 
-  it.skip("Can download existing mechanisms as CAMP V0 (MusicBox)", () => {
+  it.skip("Can download existing mechanisms as CAMP V0", () => {
     const downloadButton = screen.getAllByTestId("download-mechanism")[0];
     fireEvent.click(downloadButton);
 

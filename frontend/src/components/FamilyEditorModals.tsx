@@ -39,7 +39,7 @@ import WarningIcon from "@mui/icons-material/Warning";
 import { SelectSpeciesButton } from "./SelectSpeciesButton";
 import { useAuth } from "./AuthContext";
 import { generateFrontendID } from "../helpers/localFamilies";
-import CAMPFileUpload from "./CAMPFileUpload";
+import FileUpload from "./FileUpload";
 import { reactionTypeToString } from "../helpers/stringify";
 
 const modalStyle: SxProps<Theme> = {
@@ -1428,7 +1428,7 @@ export const ImportFamilyModal: React.FC<ImportFamilyModalProps> = ({
         role="menu"
         component="div"
       >
-        <CAMPFileUpload onFileParse={onFileParse} />
+        <FileUpload onFileParse={onFileParse} />
         {family && (
           <Box>
             <Typography color="textPrimary">Configuration Info:</Typography>

@@ -71,9 +71,9 @@ type serializedCampV1Mechanism = {
 };
 
 /**
- * Converts a species to the CAMP V1 format
+ * Converts a species to the V1 format
  */
-const speciesToCAMPV1 = (species: Species): serializedCampV1Species => {
+const speciesToV1 = (species: Species): serializedCampV1Species => {
   let serializedSpecies: serializedCampV1Species = {
     name: species.name,
   };
@@ -85,7 +85,7 @@ const speciesToCAMPV1 = (species: Species): serializedCampV1Species => {
   return serializedSpecies;
 };
 
-const reactionToCAMPV1 = (
+const reactionToV1 = (
   reaction: Reaction,
   family: Family,
 ): serializedCampV1Reaction => {
@@ -177,13 +177,13 @@ const reactionToCAMPV1 = (
  * @param family
  * @returns
  */
-const mechanismToCAMPV1 = (mechanism: Mechanism, family: Family): Object => {
+const mechanismToV1 = (mechanism: Mechanism, family: Family): Object => {
   const jsonObject: serializedCampV1Mechanism = {
     version: "1.0.0",
     name: mechanism.name,
     species: family.species
       .filter((e) => mechanism.speciesIds.includes(e.id))
-      .map((e) => speciesToCAMPV1(e)),
+      .map((e) => speciesToV1(e)),
     phases: [
       {
         name: "gas",
@@ -194,14 +194,14 @@ const mechanismToCAMPV1 = (mechanism: Mechanism, family: Family): Object => {
     ],
     reactions: family.reactions
       .filter((e) => mechanism.reactionIds.includes(e.id))
-      .map((e) => reactionToCAMPV1(e, family)),
+      .map((e) => reactionToV1(e, family)),
   };
 
   return jsonObject;
 };
 
 /**
- * Converts a given mechanism to a serialized JSON string which uses the CAMP V1 schema
+ * Converts a given mechanism to a serialized JSON string which uses the V1 schema
  * @param mechanism Mechanism to serialize
  * @param family Family mechanism is in
  * @returns Serialized Mechanism
@@ -210,11 +210,11 @@ export const serializeMechanismJSON = (
   mechanism: Mechanism,
   family: Family,
 ): string => {
-  return JSON.stringify(mechanismToCAMPV1(mechanism, family), null, 2);
+  return JSON.stringify(mechanismToV1(mechanism, family), null, 2);
 };
 
 /**
- * Converts a given mechanism to a serialized YAML string which uses the CAMP V1 schema
+ * Converts a given mechanism to a serialized YAML string which uses the V1 schema
  * @param mechanism Mechanism to serialize
  * @param family Family mechanism is in
  * @returns Serialized Mechanism
@@ -223,20 +223,20 @@ export const serializeMechanismYAML = (
   mechanism: Mechanism,
   family: Family,
 ): string => {
-  return YAML.stringify(mechanismToCAMPV1(mechanism, family), null, 2);
+  return YAML.stringify(mechanismToV1(mechanism, family), null, 2);
 };
 
 /**
- * Takes a camp V1 string in either JSON or YAML and creates a new family
+ * Takes a V1 mechanism string in either JSON or YAML and creates a new Family with one Mechanism in it based on the data in the file
  * @throws Parsing errors
  */
-export const deserializeFamilyCAMPV1 = (fileText: string): Family | null => {
+export const deserializeV1Mechanism = (fileText: string): Family | null => {
   const parsedMechanism: Partial<serializedCampV1Mechanism> =
     YAML.parse(fileText);
 
   if (!supportedV1Versions.find((e) => e == parsedMechanism.version)) {
     console.warn(
-      `Errors may occur due to an unsupported CAMP V1 version: ${parsedMechanism.version}`,
+      `Errors may occur due to an unsupported V1 mechanism version: ${parsedMechanism.version}`,
     );
   }
 
@@ -415,7 +415,7 @@ export const deserializeFamilyCAMPV1 = (fileText: string): Family | null => {
 };
 
 /////////////////////////////////
-// V0 CONFIGURATION (MusicBox) //
+// V0 CONFIGURATION (CAMP) //
 /////////////////////////////////
 
 const reactionToCAMPV0 = (reaction: Reaction, family: Family): Object => {
