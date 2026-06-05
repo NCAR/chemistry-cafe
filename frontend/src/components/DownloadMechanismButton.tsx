@@ -139,10 +139,12 @@ export const DownloadMechanismButton: React.FC<RowActionsButtonProps> = ({
                 textTransform: "none",
               }}
               onClick={() => {
-                serializeMusicBoxConfiguration(mechanism, family).then((blob) => {
-                  console.log(blob);
-                  downloadBlob(blob, "MusicBox");
-                });
+                serializeMusicBoxConfiguration(mechanism, family).then(
+                  (blob) => {
+                    console.log(blob);
+                    downloadBlob(blob, "MusicBox");
+                  },
+                );
               }}
             >
               MusicBox
