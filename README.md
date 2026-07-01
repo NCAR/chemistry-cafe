@@ -85,8 +85,9 @@ $ docker compose logs -f
 
 #### Framework dependencies
 
-- [dotnet](https://dotnet.microsoft.com/en-us/download) (backend)
-- [Node.js](https://nodejs.org/en/download) (frontend)
+- [.NET SDK 8.0](https://dotnet.microsoft.com/en-us/download) (backend)
+- [Node.js 18](https://nodejs.org/en/download) (frontend)
+- [dotnet-ef 8](https://learn.microsoft.com/en-us/ef/core/cli/dotnet) (migrations)
 - [Docker](https://www.docker.com/) (optional but makes things easier)
 
 #### Setup
@@ -117,7 +118,7 @@ The database comes with a provided `init.sql` which creates all of the database 
 To install the tool:
 
 ```bash
-$ dotnet tool install --global dotnet-ef
+$ dotnet tool install --global dotnet-ef --version 8
 ```
 
 The following commands are useful when developing the application. All of these must be executed in the `./backend` directory.
@@ -142,6 +143,12 @@ $ dotnet ef migrations script --idempotent -o init.sql
 
 ## Testing
 
+### To test builds
+```
+dotnet build backend
+cd frontend && npm run build
+```
+
 ### To test frontend
 ```
 cd frontend
@@ -151,9 +158,13 @@ If all tests past, the coverage report will generate in frontend/coverage/index.
 
 ### To test backend
 
+Requires `backend/.env` (see `.env.example`) with `MYSQL_SERVER=localhost`.
+
 ```
 docker compose up mysql -d
-dotnet test backend --collect:"Code Coverage;Format=cobertura"
+cd backend
+dotnet test --collect:"Code Coverage;Format=cobertura"
+cd ..
 docker compose down
 ```
 
