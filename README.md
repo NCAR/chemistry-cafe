@@ -15,36 +15,52 @@ ChemistryCafe is a web application built with React, Vite, and TypeScript. The a
 
 ## Getting Started
 
-### Backend Environment Variables
+### Environment variables
 
-The backend of Chemistry Cafe requires certain secrets that cannot be stored in version control. These secrets are stored in environment variables that are either on the machine or loaded on runtime. Before running the application, make sure to define these variables ahead of time.
+Chemistry Cafe reads its configuration from `.env` files. A committed template,
+[`.env.example`](.env.example), lists every variable with working local-dev
+defaults. Copy it to create the files you need:
 
-To define required environment variables, a `.env` file should be created with the following schema:
+```bash
+# For Docker Compose (the usual way to run the app):
+cp .env.example .env
 
-```py
-# Required
-GOOGLE_CLIENT_ID=<client_id>
-GOOGLE_CLIENT_SECRET=<client_secret>
-MYSQL_USER=chemistrycafedev
-MYSQL_PASSWORD=chemistrycafe
-MYSQL_DATABASE=chemistry_db
-
-# Optional with defaults
-MYSQL_SERVER=localhost
-MYSQL_PORT=3306
-FRONTEND_HOST=http://localhost:5173
-BACKEND_BASE_URL=/
+# ONLY if you also run the backend outside Docker:
+cp .env.example backend/.env      # then edit it: MYSQL_SERVER=localhost
 ```
 
-In order to use Google Authentication, a Google Cloud OAuth 2.0 project must be used with a `client id` and `client secret`. When creating the project, `http://localhost:8080/signin-google` should be added to the list of "Authorized redirect URIs" for testing.
+Then fill in `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` — the only values
+with no default. For Google Authentication, create a Google Cloud OAuth 2.0
+client and add `http://localhost:8080/signin-google` to its "Authorized
+redirect URIs".
 
-`FRONTEND_HOST` and `BACKEND_BASE_URL` are required in a production environment. `FRONTEND_HOST` contains where the frontend is served and `BACKEND_BASE_URL` specifies what the backend urls should be prefixed with (eg. "/api/").
+**Which file is used when**
 
-**Note:**
+| File | Read by | Notes |
+|------|---------|-------|
+| `.env` (repo root) | `docker compose` | The normal way to run the app. |
+| `backend/.env` | the backend **only when run outside Docker** (`dotnet run`, `dotnet test`, `dotnet ef …`) | Not read inside Docker. Set `MYSQL_SERVER=localhost` here. |
+| `.env.example` | nobody at runtime | Committed template — update it when adding a variable. |
 
-- When running locally, the `.env` file must be in the `/backend` directory.
-    - This includes when running **database migrations** locally
-- When running with docker, the `.env` file *should* be in the root directory unless otherwise specified. If it is in another directory, simply use `docker compose --env-file <path/to/.env> up` instead of the default.  
+`.env` and `backend/.env` are git-ignored, so secrets are never committed.
+
+**Variables** (all live in each `.env`; the only value that differs by run mode is `MYSQL_SERVER`)
+
+| Variable | Required | Docker | Outside Docker |
+|----------|:--------:|--------|----------------|
+| `GOOGLE_CLIENT_ID` | ✅ | *(fill in)* | *(fill in)* |
+| `GOOGLE_CLIENT_SECRET` | ✅ | *(fill in)* | *(fill in)* |
+| `MYSQL_USER` | ✅ | `chemistrycafedev` | `chemistrycafedev` |
+| `MYSQL_PASSWORD` | ✅ | `chemistrycafe` | `chemistrycafe` |
+| `MYSQL_DATABASE` | ✅ | `chemistry_db` | `chemistry_db` |
+| `MYSQL_SERVER` | | `mysql` *(compose service name)* | `localhost` |
+| `MYSQL_PORT` | | `3306` | `3306` |
+| `FRONTEND_HOST` | | `http://localhost:5173` | `http://localhost:5173` |
+| `BACKEND_BASE_URL` | | `/` | `/` |
+
+`FRONTEND_HOST` is where the frontend is served (used for backend CORS and OAuth
+redirects); `BACKEND_BASE_URL` is the path prefix the backend is hosted under
+(e.g. `/api/`). Both matter mainly in production.
 
 ### Running Chemistry Cafe with Docker Compose
 
@@ -143,36 +159,45 @@ $ dotnet ef migrations script --idempotent -o init.sql
 
 ## Testing
 
-### To test builds
-```
-dotnet build backend
-cd frontend && npm run build
-```
+Both suites run **outside Docker**, so make sure you've done the local setup
+above (frontend `npm install`, backend `dotnet restore`).
 
-### To test frontend
-```
+### Frontend
+
+```bash
 cd frontend
 npm run test:coverage
 ```
-If all tests past, the coverage report will generate in frontend/coverage/index.html
+Coverage report: `frontend/coverage/index.html`.
 
-### To test backend
+### Backend
 
-Requires `backend/.env` (see `.env.example`) with `MYSQL_SERVER=localhost`.
+The backend tests need a running MySQL and a `backend/.env` with
+`MYSQL_SERVER=localhost` (see [Environment variables](#environment-variables)).
+The command below starts *only* the database in Docker and runs the tests on
+your host:
 
-```
-docker compose up mysql -d
+```bash
+docker compose up mysql -d      # start just the database
 cd backend
 dotnet test --collect:"Code Coverage;Format=cobertura"
 cd ..
 docker compose down
 ```
 
-```
+Generate an HTML + lcov coverage report:
+
+```bash
 reportgenerator -reports:"backend/TestResults/**/**.cobertura.xml" -targetdir:coveragereport -reporttypes:Html,lcov -classfilters:"-MySqlConnector.*;-ChemistryCafeAPI.Migrations.*" -filefilters:-/_/src/MySqlConnector/*,-backend/TestResults/**/coverage.cobertura.xml; rm -r ./backend/TestResults
 ```
+Report: `backend/coveragereport/index.html`.
 
-If all tests run, the coverage report will generate index.html and lcov.info under backend/coveragereport/.
+### Build check (compiles both, no tests)
+
+```bash
+dotnet build backend
+cd frontend && npm run build
+```
 
 
 ## Production
