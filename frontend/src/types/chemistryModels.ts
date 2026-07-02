@@ -1,5 +1,7 @@
 import { UUID } from "crypto";
 import { APIUser } from "../API/API_Interfaces";
+import { mechanismConfiguration } from '@ncar/musica';
+const { reactionTypes, Mechanism } = mechanismConfiguration;
 
 /**
  * Represents a value a species can have. For example: Molecular Weight
@@ -127,16 +129,16 @@ export type ReactionTypeName =
   | "HL_PHASE_TRANSFER"
   | "SIMPOL_PHASE_TRANSFER"
   | "AQUEOUS_EQUILIBRIUM"
-  | "ARRHENIUS"
+  | typeof reactionTypes.Arrhenius.type
   | "CONDENSED_PHASE_ARRHENIUS"
-  | "PHOTOLYSIS"
+  | typeof reactionTypes.Photolysis.type
   | "CONDENSED_PHASE_PHOTOLYSIS"
-  | "EMISSION"
-  | "FIRST_ORDER_LOSS"
-  | "SURFACE"
-  | "TROE"
-  | "BRANCHED_NO_RO2"
-  | "TUNNELING"
+  | typeof reactionTypes.Emission.type
+  | typeof reactionTypes.FirstOrderLoss.type
+  | typeof reactionTypes.Troe.type
+  | typeof reactionTypes.Surface.type
+  | typeof reactionTypes.Branched.type
+  | typeof reactionTypes.Tunneling.type
   | "WET_DEPOSITION";
 
 /**

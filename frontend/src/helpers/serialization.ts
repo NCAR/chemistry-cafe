@@ -18,20 +18,20 @@ import { generateFrontendID } from "./localFamilies";
 // V1 CONFIGURATION //
 //////////////////////
 
-type campV1Versions = "1.0.0";
-const supportedV1Versions: Array<campV1Versions> = ["1.0.0"];
+type version = "1.0.0";
+const supportedV1Versions: Array<version> = ["1.0.0"];
 
-type serializedCampV1Species = {
+type serializedV1Species = {
   [key: string]: number | string;
   name: string;
 };
 
-type serializedCampV1Phase = {
+type serializedV1Phase = {
   name: string;
   species: Array<string>;
 };
 
-type serializedCampV1Reaction = {
+type serializedV1Reaction = {
   [key: string]: number | string | undefined | Array<any>;
   name?: string;
   type: string;
@@ -62,19 +62,19 @@ type serializedCampV1Reaction = {
   }>;
 };
 
-type serializedCampV1Mechanism = {
-  version: campV1Versions;
+type serializedV1Mechanism = {
+  version: version;
   name: string;
-  species: Array<serializedCampV1Species>;
-  phases: Array<serializedCampV1Phase>;
-  reactions: Array<serializedCampV1Reaction>;
+  species: Array<serializedV1Species>;
+  phases: Array<serializedV1Phase>;
+  reactions: Array<serializedV1Reaction>;
 };
 
 /**
  * Converts a species to the V1 format
  */
-const speciesToV1 = (species: Species): serializedCampV1Species => {
-  let serializedSpecies: serializedCampV1Species = {
+const speciesToV1 = (species: Species): serializedV1Species => {
+  let serializedSpecies: serializedV1Species = {
     name: species.name,
   };
 
@@ -88,8 +88,8 @@ const speciesToV1 = (species: Species): serializedCampV1Species => {
 const reactionToV1 = (
   reaction: Reaction,
   family: Family,
-): serializedCampV1Reaction => {
-  const serializedReaction: serializedCampV1Reaction = {
+): serializedV1Reaction => {
+  const serializedReaction: serializedV1Reaction = {
     name: reaction.name,
     type: reaction.type,
     products: [],
@@ -178,7 +178,7 @@ const reactionToV1 = (
  * @returns
  */
 const mechanismToV1 = (mechanism: Mechanism, family: Family): Object => {
-  const jsonObject: serializedCampV1Mechanism = {
+  const jsonObject: serializedV1Mechanism = {
     version: "1.0.0",
     name: mechanism.name,
     species: family.species
@@ -231,7 +231,7 @@ export const serializeMechanismYAML = (
  * @throws Parsing errors
  */
 export const deserializeV1Mechanism = (fileText: string): Family | null => {
-  const parsedMechanism: Partial<serializedCampV1Mechanism> =
+  const parsedMechanism: Partial<serializedV1Mechanism> =
     YAML.parse(fileText);
 
   if (!supportedV1Versions.find((e) => e == parsedMechanism.version)) {
@@ -372,7 +372,7 @@ export const deserializeV1Mechanism = (fileText: string): Family | null => {
     }
 
     // Keys to not put in attributes
-    const skipKeys: Array<keyof serializedCampV1Reaction> = [
+    const skipKeys: Array<keyof serializedV1Reaction> = [
       "name",
       "gas phase",
       "gas-phase species",
