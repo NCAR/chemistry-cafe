@@ -1,6 +1,6 @@
 import { UUID } from "crypto";
 import { APIUser } from "../API/API_Interfaces";
-import { mechanismConfiguration } from '@ncar/musica';
+import { mechanismConfiguration } from "@ncar/musica";
 const { reactionTypes, Mechanism } = mechanismConfiguration;
 
 /**

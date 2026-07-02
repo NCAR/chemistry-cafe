@@ -10,7 +10,7 @@ import { Product, Reactant, ReactionTypeName } from "../types/chemistryModels";
 import { generateFrontendID } from "./localFamilies";
 
 /* Wrap @ncar/musica types for use in chemistry cafe
- * 
+ *
  * import/export is now done by the musica library
  * on import, chemistry cafe IDs are added
  */
@@ -19,14 +19,18 @@ const { types, reactionTypes, Mechanism } = mechanismConfiguration;
 
 // A musica reaction is any of the concrete reaction-rate class instances.
 // Derived from the runtime registry so it stays in lockstep with reactionTypes.
-type MusicaReaction = InstanceType<(typeof reactionTypes)[keyof typeof reactionTypes]>;
+type MusicaReaction = InstanceType<
+  (typeof reactionTypes)[keyof typeof reactionTypes]
+>;
 
 const V1_VERSION = "1.0.0";
 const MOLECULAR_WEIGHT_KEY = "molecular weight [kg mol-1]";
 
 /** Coerce an editable param (string | number | empty) to a number with a default. */
 const num = (value: unknown, fallback: number): number =>
-  value === undefined || value === null || value === "" ? fallback : Number(value);
+  value === undefined || value === null || value === ""
+    ? fallback
+    : Number(value);
 
 // types for exporting
 type NameResolver = (id: string) => string;
@@ -346,7 +350,9 @@ export function serializeMechanism(
  * parsed V1 object
  * @throws if the object is missing the required top-level arrays.
  */
-export function deserializeMechanism(parsed: Record<string, any>): EditableFamily {
+export function deserializeMechanism(
+  parsed: Record<string, any>,
+): EditableFamily {
   if (
     !Array.isArray(parsed?.species) ||
     !Array.isArray(parsed?.phases) ||

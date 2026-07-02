@@ -231,8 +231,7 @@ export const serializeMechanismYAML = (
  * @throws Parsing errors
  */
 export const deserializeV1Mechanism = (fileText: string): Family | null => {
-  const parsedMechanism: Partial<serializedV1Mechanism> =
-    YAML.parse(fileText);
+  const parsedMechanism: Partial<serializedV1Mechanism> = YAML.parse(fileText);
 
   if (!supportedV1Versions.find((e) => e == parsedMechanism.version)) {
     console.warn(
