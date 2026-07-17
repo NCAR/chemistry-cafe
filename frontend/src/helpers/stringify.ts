@@ -21,8 +21,6 @@ export const reactionTypeToString = (reactionType: string): string => {
       return "Troe (Fall-Off)";
     case "SURFACE":
       return "Surface Reaction (Heterogenous)";
-    case "WET_DEPOSITION":
-      return "Wet Deposition";
     case "BRANCHED_NO_RO2":
       return "Branched NO RO2";
     default:

@@ -21,7 +21,6 @@ describe("reactionTypeToString function", () => {
       TROE: "Troe (Fall-Off)",
       PHOTOLYSIS: "Photolysis",
       SURFACE: "Surface Reaction (Heterogenous)",
-      WET_DEPOSITION: "Wet Deposition",
       BRANCHED_NO_RO2: "Branched NO RO2",
       NONE: "NONE",
     };

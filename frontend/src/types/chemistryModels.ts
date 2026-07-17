@@ -134,7 +134,6 @@ export type ReactionTypeName =
   | typeof reactionTypes.Surface.type
   | typeof reactionTypes.Branched.type
   | typeof reactionTypes.Tunneling.type
-  | "WET_DEPOSITION";
 
 /**
  * Represents a generic reaction on the frontend.
@@ -453,13 +452,6 @@ export const reactionAttributeOptions: {
       value: 0.0,
     },
   ],
-  WET_DEPOSITION: [
-    {
-      name: "Scaling Factor",
-      serializationKey: "scaling factor",
-      value: 0.0,
-    },
-  ],
 };
 
 export enum ReactionSpeciesCount {
@@ -570,15 +562,6 @@ export const reactionConfigurations: {
     hasGasPhase: true,
     hasGasPhaseSpecies: false,
     hasAerosolPhase: false,
-    hasAerosolPhaseSpecies: false,
-    hasAerosolPhaseWater: false,
-  },
-  WET_DEPOSITION: {
-    reactantCount: ReactionSpeciesCount.NONE,
-    productCount: ReactionSpeciesCount.NONE,
-    hasGasPhase: false,
-    hasGasPhaseSpecies: false,
-    hasAerosolPhase: true,
     hasAerosolPhaseSpecies: false,
     hasAerosolPhaseWater: false,
   },
