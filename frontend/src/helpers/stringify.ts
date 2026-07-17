@@ -27,8 +27,6 @@ export const reactionTypeToString = (reactionType: string): string => {
       return "Wet Deposition";
     case "BRANCHED_NO_RO2":
       return "Branched NO RO2";
-    case "SIMPOL_PHASE_TRANSFER":
-      return "Simpol Phase Transfer";
     default:
       return reactionType;
   }

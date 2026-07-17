@@ -23,7 +23,6 @@ describe("reactionTypeToString function", () => {
       PHOTOLYSIS: "Photolysis",
       SURFACE: "Surface Reaction (Heterogenous)",
       WET_DEPOSITION: "Wet Deposition",
-      SIMPOL_PHASE_TRANSFER: "Simpol Phase Transfer",
       BRANCHED_NO_RO2: "Branched NO RO2",
       NONE: "NONE",
     };

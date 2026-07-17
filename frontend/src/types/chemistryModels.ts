@@ -126,7 +126,6 @@ export type ReactionAttribute = {
 };
 
 export type ReactionTypeName =
-  | "SIMPOL_PHASE_TRANSFER"
   | "AQUEOUS_EQUILIBRIUM"
   | typeof reactionTypes.Arrhenius.type
   | typeof reactionTypes.Photolysis.type
@@ -476,8 +475,6 @@ export const reactionAttributeOptions: {
       value: 0.0,
     },
   ],
-  // TODO add some way of representing B value for this, which is a list of numbers
-  SIMPOL_PHASE_TRANSFER: [],
 };
 
 export enum ReactionSpeciesCount {
@@ -515,15 +512,6 @@ export const reactionConfigurations: {
     hasGasPhaseSpecies: false,
     hasAerosolPhase: false,
     hasAerosolPhaseSpecies: false,
-    hasAerosolPhaseWater: false,
-  },
-  SIMPOL_PHASE_TRANSFER: {
-    reactantCount: ReactionSpeciesCount.NONE,
-    productCount: ReactionSpeciesCount.NONE,
-    hasGasPhase: true,
-    hasGasPhaseSpecies: true,
-    hasAerosolPhase: true,
-    hasAerosolPhaseSpecies: true,
     hasAerosolPhaseWater: false,
   },
   AQUEOUS_EQUILIBRIUM: {
