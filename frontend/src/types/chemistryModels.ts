@@ -130,9 +130,7 @@ export type ReactionTypeName =
   | "SIMPOL_PHASE_TRANSFER"
   | "AQUEOUS_EQUILIBRIUM"
   | typeof reactionTypes.Arrhenius.type
-  | "CONDENSED_PHASE_ARRHENIUS"
   | typeof reactionTypes.Photolysis.type
-  | "CONDENSED_PHASE_PHOTOLYSIS"
   | typeof reactionTypes.Emission.type
   | typeof reactionTypes.FirstOrderLoss.type
   | typeof reactionTypes.Troe.type
@@ -318,8 +316,6 @@ export type Family = {
  */
 export const supportedReactionTypes: Array<ReactionTypeName> = [
   "ARRHENIUS",
-  "CONDENSED_PHASE_ARRHENIUS",
-  "CONDENSED_PHASE_PHOTOLYSIS",
   "EMISSION",
   "PHOTOLYSIS",
   "TROE",
@@ -360,28 +356,6 @@ export const reactionAttributeOptions: {
       value: 0.0,
     },
   ],
-  CONDENSED_PHASE_ARRHENIUS: [
-    {
-      serializationKey: "A",
-      value: 0.0,
-    },
-    {
-      serializationKey: "B",
-      value: 0.0,
-    },
-    {
-      serializationKey: "Ea",
-      value: 0.0,
-    },
-    {
-      serializationKey: "D",
-      value: 0.0,
-    },
-    {
-      serializationKey: "E",
-      value: 0.0,
-    },
-  ],
   EMISSION: [
     {
       name: "Scaling Factor",
@@ -390,13 +364,6 @@ export const reactionAttributeOptions: {
     },
   ],
   PHOTOLYSIS: [
-    {
-      name: "Scaling Factor",
-      serializationKey: "scaling factor",
-      value: 0.0,
-    },
-  ],
-  CONDENSED_PHASE_PHOTOLYSIS: [
     {
       name: "Scaling Factor",
       serializationKey: "scaling factor",
@@ -588,15 +555,6 @@ export const reactionConfigurations: {
     hasAerosolPhaseSpecies: false,
     hasAerosolPhaseWater: false,
   },
-  CONDENSED_PHASE_ARRHENIUS: {
-    reactantCount: ReactionSpeciesCount.MANY,
-    productCount: ReactionSpeciesCount.MANY,
-    hasGasPhase: false,
-    hasGasPhaseSpecies: false,
-    hasAerosolPhase: true,
-    hasAerosolPhaseSpecies: false,
-    hasAerosolPhaseWater: true,
-  },
   PHOTOLYSIS: {
     reactantCount: ReactionSpeciesCount.ONE,
     productCount: ReactionSpeciesCount.MANY,
@@ -605,15 +563,6 @@ export const reactionConfigurations: {
     hasAerosolPhase: false,
     hasAerosolPhaseSpecies: false,
     hasAerosolPhaseWater: false,
-  },
-  CONDENSED_PHASE_PHOTOLYSIS: {
-    reactantCount: ReactionSpeciesCount.ONE,
-    productCount: ReactionSpeciesCount.MANY,
-    hasGasPhase: false,
-    hasGasPhaseSpecies: false,
-    hasAerosolPhase: true,
-    hasAerosolPhaseSpecies: false,
-    hasAerosolPhaseWater: true,
   },
   EMISSION: {
     reactantCount: ReactionSpeciesCount.NONE,

@@ -457,10 +457,6 @@ const reactionToCAMPV0 = (reaction: Reaction, family: Family): Object => {
   if (reaction.type == "FIRST_ORDER_LOSS" || reaction.type == "EMISSION") {
     serializedReaction.type = "PHOTOLYSIS";
     serializedReaction.__music_box_type = reaction.type;
-  } else if (reaction.type == "CONDENSED_PHASE_ARRHENIUS") {
-    serializedReaction.type = "ARRHENIUS";
-  } else if (reaction.type == "CONDENSED_PHASE_PHOTOLYSIS") {
-    serializedReaction.type = "PHOTOLYSIS";
   }
 
   for (const key of Object.keys(reaction.attributes)) {

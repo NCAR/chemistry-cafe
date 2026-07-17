@@ -16,8 +16,6 @@ describe("reactionTypeToString function", () => {
     } = {
       AQUEOUS_EQUILIBRIUM: "Aqueous Equilibrium",
       ARRHENIUS: "Arrhenius",
-      CONDENSED_PHASE_ARRHENIUS: "Condensed Phase Arrhenius",
-      CONDENSED_PHASE_PHOTOLYSIS: "Condensed Phase Photolysis",
       FIRST_ORDER_LOSS: "First-Order Loss",
       EMISSION: "Emission",
       TUNNELING: "Tunneling",

@@ -11,12 +11,8 @@ export const reactionTypeToString = (reactionType: string): string => {
       return "Aqueous Equilibrium";
     case "ARRHENIUS":
       return "Arrhenius";
-    case "CONDENSED_PHASE_ARRHENIUS":
-      return "Condensed Phase Arrhenius";
     case "PHOTOLYSIS":
       return "Photolysis";
-    case "CONDENSED_PHASE_PHOTOLYSIS":
-      return "Condensed Phase Photolysis";
     case "FIRST_ORDER_LOSS":
       return "First-Order Loss";
     case "EMISSION":
