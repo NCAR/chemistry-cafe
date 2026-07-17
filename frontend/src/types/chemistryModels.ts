@@ -126,7 +126,6 @@ export type ReactionAttribute = {
 };
 
 export type ReactionTypeName =
-  | "AQUEOUS_EQUILIBRIUM"
   | typeof reactionTypes.Arrhenius.type
   | typeof reactionTypes.Photolysis.type
   | typeof reactionTypes.Emission.type
@@ -415,20 +414,6 @@ export const reactionAttributeOptions: {
       value: 0.0,
     },
   ],
-  AQUEOUS_EQUILIBRIUM: [
-    {
-      serializationKey: "A",
-      value: 0.0,
-    },
-    {
-      serializationKey: "C",
-      value: 0.0,
-    },
-    {
-      serializationKey: "k_reverse",
-      value: 0.0,
-    },
-  ],
   SURFACE: [
     {
       name: "Reaction Probability",
@@ -512,15 +497,6 @@ export const reactionConfigurations: {
     hasGasPhaseSpecies: false,
     hasAerosolPhase: false,
     hasAerosolPhaseSpecies: false,
-    hasAerosolPhaseWater: false,
-  },
-  AQUEOUS_EQUILIBRIUM: {
-    reactantCount: ReactionSpeciesCount.MANY,
-    productCount: ReactionSpeciesCount.MANY,
-    hasGasPhase: false,
-    hasGasPhaseSpecies: false,
-    hasAerosolPhase: true,
-    hasAerosolPhaseSpecies: true,
     hasAerosolPhaseWater: false,
   },
   ARRHENIUS: {

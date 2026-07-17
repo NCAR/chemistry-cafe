@@ -14,7 +14,6 @@ describe("reactionTypeToString function", () => {
     const reactionTypeDict: {
       [Property in ReactionTypeName]: string;
     } = {
-      AQUEOUS_EQUILIBRIUM: "Aqueous Equilibrium",
       ARRHENIUS: "Arrhenius",
       FIRST_ORDER_LOSS: "First-Order Loss",
       EMISSION: "Emission",

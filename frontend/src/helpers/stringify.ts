@@ -7,8 +7,6 @@ import { Reaction, Species } from "../types/chemistryModels";
  */
 export const reactionTypeToString = (reactionType: string): string => {
   switch (reactionType) {
-    case "AQUEOUS_EQUILIBRIUM":
-      return "Aqueous Equilibrium";
     case "ARRHENIUS":
       return "Arrhenius";
     case "PHOTOLYSIS":
