@@ -133,7 +133,7 @@ export type ReactionTypeName =
   | typeof reactionTypes.Troe.type
   | typeof reactionTypes.Surface.type
   | typeof reactionTypes.Branched.type
-  | typeof reactionTypes.Tunneling.type
+  | typeof reactionTypes.Tunneling.type;
 
 /**
  * Represents a generic reaction on the frontend.
