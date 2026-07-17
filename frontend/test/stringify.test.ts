@@ -23,7 +23,6 @@ describe("reactionTypeToString function", () => {
       PHOTOLYSIS: "Photolysis",
       SURFACE: "Surface Reaction (Heterogenous)",
       WET_DEPOSITION: "Wet Deposition",
-      HL_PHASE_TRANSFER: "Henry's Law Phase Transfer",
       SIMPOL_PHASE_TRANSFER: "Simpol Phase Transfer",
       BRANCHED_NO_RO2: "Branched NO RO2",
       NONE: "NONE",
@@ -96,7 +95,7 @@ describe("reactionToString", () => {
       id: "",
       name: "",
       description: null,
-      type: "HL_PHASE_TRANSFER",
+      type: "ARRHENIUS",
       reactants: [
         {
           speciesId: "1",
@@ -129,7 +128,7 @@ describe("reactionToString", () => {
       id: "",
       name: "",
       description: null,
-      type: "HL_PHASE_TRANSFER",
+      type: "ARRHENIUS",
       reactants: [
         {
           speciesId: "1",

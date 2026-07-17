@@ -126,7 +126,6 @@ export type ReactionAttribute = {
 };
 
 export type ReactionTypeName =
-  | "HL_PHASE_TRANSFER"
   | "SIMPOL_PHASE_TRANSFER"
   | "AQUEOUS_EQUILIBRIUM"
   | typeof reactionTypes.Arrhenius.type
@@ -417,7 +416,6 @@ export const reactionAttributeOptions: {
       value: 0.0,
     },
   ],
-  HL_PHASE_TRANSFER: [],
   AQUEOUS_EQUILIBRIUM: [
     {
       serializationKey: "A",
@@ -518,15 +516,6 @@ export const reactionConfigurations: {
     hasAerosolPhase: false,
     hasAerosolPhaseSpecies: false,
     hasAerosolPhaseWater: false,
-  },
-  HL_PHASE_TRANSFER: {
-    reactantCount: ReactionSpeciesCount.NONE,
-    productCount: ReactionSpeciesCount.NONE,
-    hasGasPhase: true,
-    hasGasPhaseSpecies: true,
-    hasAerosolPhase: true,
-    hasAerosolPhaseSpecies: true,
-    hasAerosolPhaseWater: true,
   },
   SIMPOL_PHASE_TRANSFER: {
     reactantCount: ReactionSpeciesCount.NONE,
