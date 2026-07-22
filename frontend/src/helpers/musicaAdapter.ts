@@ -1,11 +1,4 @@
 import { mechanismConfiguration } from "@ncar/musica";
-import {
-  EditableFamily,
-  EditableMechanism,
-  EditablePhase,
-  EditableReaction,
-  EditableSpecies,
-} from "../types/editorModels";
 import { Product, Reactant, ReactionTypeName } from "../types/chemistryModels";
 import { generateFrontendID } from "./localFamilies";
 
