@@ -301,6 +301,43 @@ const TUNNELING: ReactionAdapter = {
   }),
 };
 
+// SURFACE: heterogeneous reaction with a single gas-phase species and a set of
+// gas-phase products. The single species comes from the reaction's
+// gasPhaseSpeciesId; products carry the "gas-phase" branch.
+// NOTE: musica's Surface.getJSON() requires gas_phase_species, so it is always
+// constructed (an unresolved id yields its raw value as the name). The editor
+// UI for setting gasPhaseSpeciesId, and relinking it on import, remain part of
+// #237 / #238.
+const SURFACE: ReactionAdapter = {
+  toMusica: (r, ctx) =>
+    new reactionTypes.Surface({
+      name: r.name,
+      reaction_probability: num(paramVal(r, "reaction probability"), 1.0),
+      gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
+      gas_phase_species: new types.ReactionComponent({
+        name: ctx.speciesName(String(r.gasPhaseSpeciesId)),
+      }),
+      gas_phase_products: componentsToMusica(
+        r.products.filter((p) => p.branch === "gas-phase"),
+        ctx,
+      ),
+    }),
+
+  fromMusica: (json) => ({
+    id: generateFrontendID(),
+    name: json.name ?? "",
+    description: null,
+    type: reactionTypes.Surface.type,
+    attributes: attrsFromParams({
+      "reaction probability": json["reaction probability"],
+    }),
+    reactants: [],
+    products: componentsFromJSON(json["gas-phase products"], "gas-phase"),
+    // Arrives as a species *name*; relinking to an id is tracked in #238.
+    gasPhaseSpeciesId: json["gas-phase species"],
+  }),
+};
+
 const REACTION_ADAPTERS: Partial<Record<ReactionTypeName, ReactionAdapter>> = {
   ARRHENIUS,
   BRANCHED_NO_RO2,
@@ -309,6 +346,7 @@ const REACTION_ADAPTERS: Partial<Record<ReactionTypeName, ReactionAdapter>> = {
   FIRST_ORDER_LOSS,
   TROE,
   TUNNELING,
+  SURFACE,
 };
 
 // ── species / phase mapping ──────────────────────────────────

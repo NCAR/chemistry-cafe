@@ -145,8 +145,9 @@ const branchedReaction: Reaction = {
   attributes: {},
 };
 
-// NOTE: SURFACE is not yet exportable via the musica adapter (tracked in #237),
-// so it is intentionally excluded from these round-trip fixtures.
+// NOTE: SURFACE export is covered in "Reaction type serialization" below. It is
+// kept out of these round-trip fixtures because import does not yet relink its
+// gas-phase species (tracked in #238); the editor UI for it is #237.
 
 const allSpecies = [
   mixingRatioSpecies,
@@ -401,5 +402,23 @@ describe("Reaction type serialization", () => {
     expect(rx.A).toBe(1);
     expect(rx.B).toBe(2);
     expect(rx.C).toBe(3);
+  });
+
+  it("SURFACE", () => {
+    const rx = serializeReaction({
+      id: "r",
+      name: "surf",
+      description: null,
+      type: "SURFACE",
+      attributes: attrs({ "reaction probability": 0.5 }),
+      gasPhaseSpeciesId: speciesA.id,
+      reactants: [],
+      products: [{ speciesId: speciesB.id, coefficient: 2, branch: "gas-phase" }],
+    });
+    expect(rx.type).toBe("SURFACE");
+    expect(rx["reaction probability"]).toBe(0.5);
+    // single gas-phase species resolves to its name
+    expect(rx["gas-phase species"]).toBe("A");
+    expect(rx["gas-phase products"][0]).toEqual({ name: "B", coefficient: 2 });
   });
 });
