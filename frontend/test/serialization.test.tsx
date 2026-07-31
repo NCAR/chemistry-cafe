@@ -413,7 +413,9 @@ describe("Reaction type serialization", () => {
       attributes: attrs({ "reaction probability": 0.5 }),
       gasPhaseSpeciesId: speciesA.id,
       reactants: [],
-      products: [{ speciesId: speciesB.id, coefficient: 2, branch: "gas-phase" }],
+      products: [
+        { speciesId: speciesB.id, coefficient: 2, branch: "gas-phase" },
+      ],
     });
     expect(rx.type).toBe("SURFACE");
     expect(rx["reaction probability"]).toBe(0.5);
