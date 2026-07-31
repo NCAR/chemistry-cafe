@@ -20,7 +20,7 @@ import { reactionTypes } from "@ncar/musica/javascript/mechanism_configuration";
 /**
  * Converts a species to a musica species
  */
-const SPECIES_ATTR_TO_MUSICA: Record<string, keyof SpeciesParams> = {
+const SPECIES_ATTR_TO_MUSICA: Record<string, keyof mechanismConfiguraiton.SpeciesParams> = {
   "molecular weight [kg mol-1]": "molecular_weight",
   "constant concentration [mol m-3]": "constant_concentration",
   "constant mixing ratio [mol mol-1]": "constant_mixing_ratio",
@@ -32,7 +32,6 @@ function speciesToMusica(s: Species) : mechanismConfiguration.types.Species {
   for (const attr of Object.values(s.attributes)) {
     if (attr.value === "") continue;
     const mapped = SPECIES_ATTR_TO_MUSICA[attr.serializationKey];
-    console.log("Mapped: ", mapped, " for ", attr.serializationKey);
     if (!mapped) {
       // an other property
       params.other_properties = params.other_properties || {};
@@ -45,16 +44,12 @@ function speciesToMusica(s: Species) : mechanismConfiguration.types.Species {
 const reactionToMusica = (
   reaction: Reaction,
   family: Family,
-): mechanismConfiguration.types.Reaction[] => {
-  const serializedReaction: serializedV1Reaction = {
-    name: reaction.name,
-    type: reaction.type,
-    products: [],
-  };
+): mechanismConfiguration.Reaction[] => {
+  console.log('Reaction type', reaction.type);
+  const serializedReaction: mechanismConfiguration.types.Reaction = {};
 
   const reactionConfiguration = reactionConfigurations[reaction.type];
 
-  // TODO Add other configuration attributes
   if (reactionConfiguration.hasGasPhase) {
     serializedReaction["gas phase"] = "gas";
   }
