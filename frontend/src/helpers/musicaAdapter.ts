@@ -1,14 +1,26 @@
 import { mechanismConfiguration } from "@ncar/musica";
-import { Product, Reactant, ReactionTypeName } from "../types/chemistryModels";
+import {
+  Family,
+  Mechanism,
+  Phase,
+  Product,
+  Reactant,
+  Reaction,
+  ReactionTypeName,
+  Species,
+} from "../types/chemistryModels";
 import { generateFrontendID } from "./localFamilies";
 
-/* Wrap @ncar/musica types for use in chemistry cafe
+/* Wrap @ncar/musica types for use in chemistry cafe.
  *
- * import/export is now done by the musica library
- * on import, chemistry cafe IDs are added
+ * import/export is done by the musica library. On export we build musica
+ * objects from the chemistry-cafe Family/Mechanism model and let musica
+ * serialize; on import we read the parsed wire object back into the model,
+ * assigning fresh frontend ids.
  */
 
-const { types, reactionTypes, Mechanism } = mechanismConfiguration;
+const { types, reactionTypes, Mechanism: MusicaMechanism } =
+  mechanismConfiguration;
 
 // A musica reaction is any of the concrete reaction-rate class instances.
 // Derived from the runtime registry so it stays in lockstep with reactionTypes.
@@ -17,15 +29,43 @@ type MusicaReaction = InstanceType<
 >;
 
 const V1_VERSION = "1.0.0";
-const MOLECULAR_WEIGHT_KEY = "molecular weight [kg mol-1]";
+const SCALING_FACTOR_KEY = "scaling factor";
 
-/** Coerce an editable param (string | number | empty) to a number with a default. */
+// Chemistry-cafe species attribute (serializationKey) -> musica Species param.
+// These are the only species properties musica models as first-class fields;
+// anything else is treated as an "other property" (see speciesToMusica).
+const SPECIES_ATTR_TO_MUSICA: Record<
+  string,
+  keyof mechanismConfiguration.SpeciesParams
+> = {
+  "molecular weight [kg mol-1]": "molecular_weight",
+  "constant concentration [mol m-3]": "constant_concentration",
+  "constant mixing ratio [mol mol-1]": "constant_mixing_ratio",
+  "is third body": "is_third_body",
+};
+
+/** Coerce an attribute value (string | number | empty) to a number with a default. */
 const num = (value: unknown, fallback: number): number =>
   value === undefined || value === null || value === ""
     ? fallback
     : Number(value);
 
-// types for exporting
+/** Read a reaction parameter value out of the reaction's attribute bag. */
+const paramVal = (r: Reaction, key: string): unknown => r.attributes[key]?.value;
+
+/** Build a reaction attribute bag from a params record, dropping undefined. */
+const attrsFromParams = (
+  params: Record<string, number | string | undefined>,
+): Reaction["attributes"] => {
+  const attributes: Reaction["attributes"] = {};
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined) continue;
+    attributes[key] = { serializationKey: key, value };
+  }
+  return attributes;
+};
+
+// ── identity bridge (export direction) ───────────────────────
 type NameResolver = (id: string) => string;
 type ExportCtx = { speciesName: NameResolver; phaseName: NameResolver };
 
@@ -54,39 +94,41 @@ function componentsFromJSON(
 
 // ── per-reaction-type registry ───────────────────────────────
 type ReactionAdapter = {
-  toMusica: (reaction: EditableReaction, ctx: ExportCtx) => MusicaReaction;
-  fromMusica: (json: Record<string, any>) => EditableReaction;
+  toMusica: (reaction: Reaction, ctx: ExportCtx) => MusicaReaction;
+  fromMusica: (json: Record<string, any>) => Reaction;
 };
 
 const ARRHENIUS: ReactionAdapter = {
-  toMusica: (r, ctx) =>
-    new reactionTypes.Arrhenius({
+  toMusica: (r, ctx) => {
+    const ea = paramVal(r, "Ea");
+    return new reactionTypes.Arrhenius({
       name: r.name,
-      A: num(r.params.A, 1.0),
-      B: num(r.params.B, 0.0),
+      A: num(paramVal(r, "A"), 1.0),
+      B: num(paramVal(r, "B"), 0.0),
       // C and Ea are mutually exclusive (see chemistry-cafe PR #166).
-      ...(r.params.Ea !== undefined && r.params.Ea !== ""
-        ? { Ea: num(r.params.Ea, 0) }
-        : { C: num(r.params.C, 0) }),
-      D: num(r.params.D, 300.0),
-      E: num(r.params.E, 0.0),
+      ...(ea !== undefined && ea !== ""
+        ? { Ea: num(ea, 0) }
+        : { C: num(paramVal(r, "C"), 0) }),
+      D: num(paramVal(r, "D"), 300.0),
+      E: num(paramVal(r, "E"), 0.0),
       gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
       reactants: componentsToMusica(r.reactants, ctx),
       products: componentsToMusica(r.products, ctx),
-    }),
+    });
+  },
 
   fromMusica: (json) => ({
     id: generateFrontendID(),
     name: json.name ?? "",
     description: null,
     type: reactionTypes.Arrhenius.type,
-    params: {
+    attributes: attrsFromParams({
       A: json.A,
       B: json.B,
       ...(json.Ea !== undefined ? { Ea: json.Ea } : { C: json.C }),
       D: json.D,
       E: json.E,
-    },
+    }),
     reactants: componentsFromJSON(json.reactants),
     products: componentsFromJSON(json.products),
   }),
@@ -96,10 +138,10 @@ const BRANCHED_NO_RO2: ReactionAdapter = {
   toMusica: (r, ctx) =>
     new reactionTypes.Branched({
       name: r.name,
-      X: num(r.params.X, 0),
-      Y: num(r.params.Y, 0),
-      a0: num(r.params.a0, 0),
-      n: num(r.params.n, 0),
+      X: num(paramVal(r, "X"), 0),
+      Y: num(paramVal(r, "Y"), 0),
+      a0: num(paramVal(r, "a0"), 0),
+      n: num(paramVal(r, "n"), 0),
       gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
       reactants: componentsToMusica(r.reactants, ctx),
       nitrate_products: componentsToMusica(
@@ -117,7 +159,12 @@ const BRANCHED_NO_RO2: ReactionAdapter = {
     name: json.name ?? "",
     description: null,
     type: reactionTypes.Branched.type,
-    params: { X: json.X, Y: json.Y, a0: json.a0, n: json.n },
+    attributes: attrsFromParams({
+      X: json.X,
+      Y: json.Y,
+      a0: json.a0,
+      n: json.n,
+    }),
     reactants: componentsFromJSON(json.reactants),
     products: [
       ...componentsFromJSON(json["nitrate products"], "nitrate"),
@@ -126,13 +173,11 @@ const BRANCHED_NO_RO2: ReactionAdapter = {
   }),
 };
 
-const SCALING_FACTOR_KEY = "scaling factor";
-
 const EMISSION: ReactionAdapter = {
   toMusica: (r, ctx) =>
     new reactionTypes.Emission({
       name: r.name,
-      scaling_factor: num(r.params[SCALING_FACTOR_KEY], 1.0),
+      scaling_factor: num(paramVal(r, SCALING_FACTOR_KEY), 1.0),
       gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
       products: componentsToMusica(r.products, ctx),
     }),
@@ -142,7 +187,9 @@ const EMISSION: ReactionAdapter = {
     name: json.name ?? "",
     description: null,
     type: reactionTypes.Emission.type,
-    params: { [SCALING_FACTOR_KEY]: json[SCALING_FACTOR_KEY] },
+    attributes: attrsFromParams({
+      [SCALING_FACTOR_KEY]: json[SCALING_FACTOR_KEY],
+    }),
     reactants: [],
     products: componentsFromJSON(json.products),
   }),
@@ -152,7 +199,7 @@ const PHOTOLYSIS: ReactionAdapter = {
   toMusica: (r, ctx) =>
     new reactionTypes.Photolysis({
       name: r.name,
-      scaling_factor: num(r.params[SCALING_FACTOR_KEY], 1.0),
+      scaling_factor: num(paramVal(r, SCALING_FACTOR_KEY), 1.0),
       gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
       reactants: componentsToMusica(r.reactants, ctx),
       products: componentsToMusica(r.products, ctx),
@@ -163,7 +210,9 @@ const PHOTOLYSIS: ReactionAdapter = {
     name: json.name ?? "",
     description: null,
     type: reactionTypes.Photolysis.type,
-    params: { [SCALING_FACTOR_KEY]: json[SCALING_FACTOR_KEY] },
+    attributes: attrsFromParams({
+      [SCALING_FACTOR_KEY]: json[SCALING_FACTOR_KEY],
+    }),
     reactants: componentsFromJSON(json.reactants),
     products: componentsFromJSON(json.products),
   }),
@@ -173,7 +222,7 @@ const FIRST_ORDER_LOSS: ReactionAdapter = {
   toMusica: (r, ctx) =>
     new reactionTypes.FirstOrderLoss({
       name: r.name,
-      scaling_factor: num(r.params[SCALING_FACTOR_KEY], 1.0),
+      scaling_factor: num(paramVal(r, SCALING_FACTOR_KEY), 1.0),
       gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
       reactants: componentsToMusica(r.reactants, ctx),
     }),
@@ -183,7 +232,9 @@ const FIRST_ORDER_LOSS: ReactionAdapter = {
     name: json.name ?? "",
     description: null,
     type: reactionTypes.FirstOrderLoss.type,
-    params: { [SCALING_FACTOR_KEY]: json[SCALING_FACTOR_KEY] },
+    attributes: attrsFromParams({
+      [SCALING_FACTOR_KEY]: json[SCALING_FACTOR_KEY],
+    }),
     reactants: componentsFromJSON(json.reactants),
     products: [],
   }),
@@ -193,14 +244,14 @@ const TROE: ReactionAdapter = {
   toMusica: (r, ctx) =>
     new reactionTypes.Troe({
       name: r.name,
-      k0_A: num(r.params.k0_A, 1.0),
-      k0_B: num(r.params.k0_B, 0.0),
-      k0_C: num(r.params.k0_C, 0.0),
-      kinf_A: num(r.params.kinf_A, 1.0),
-      kinf_B: num(r.params.kinf_B, 0.0),
-      kinf_C: num(r.params.kinf_C, 0.0),
-      Fc: num(r.params.Fc, 0.6),
-      N: num(r.params.N, 1.0),
+      k0_A: num(paramVal(r, "k0_A"), 1.0),
+      k0_B: num(paramVal(r, "k0_B"), 0.0),
+      k0_C: num(paramVal(r, "k0_C"), 0.0),
+      kinf_A: num(paramVal(r, "kinf_A"), 1.0),
+      kinf_B: num(paramVal(r, "kinf_B"), 0.0),
+      kinf_C: num(paramVal(r, "kinf_C"), 0.0),
+      Fc: num(paramVal(r, "Fc"), 0.6),
+      N: num(paramVal(r, "N"), 1.0),
       gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
       reactants: componentsToMusica(r.reactants, ctx),
       products: componentsToMusica(r.products, ctx),
@@ -211,7 +262,7 @@ const TROE: ReactionAdapter = {
     name: json.name ?? "",
     description: null,
     type: reactionTypes.Troe.type,
-    params: {
+    attributes: attrsFromParams({
       k0_A: json.k0_A,
       k0_B: json.k0_B,
       k0_C: json.k0_C,
@@ -220,7 +271,7 @@ const TROE: ReactionAdapter = {
       kinf_C: json.kinf_C,
       Fc: json.Fc,
       N: json.N,
-    },
+    }),
     reactants: componentsFromJSON(json.reactants),
     products: componentsFromJSON(json.products),
   }),
@@ -231,9 +282,9 @@ const TUNNELING: ReactionAdapter = {
   toMusica: (r, ctx) =>
     new reactionTypes.Tunneling({
       name: r.name,
-      A: num(r.params.A, 1.0),
-      B: num(r.params.B, 0.0),
-      C: num(r.params.C, 0.0),
+      A: num(paramVal(r, "A"), 1.0),
+      B: num(paramVal(r, "B"), 0.0),
+      C: num(paramVal(r, "C"), 0.0),
       gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
       reactants: componentsToMusica(r.reactants, ctx),
       products: componentsToMusica(r.products, ctx),
@@ -244,7 +295,7 @@ const TUNNELING: ReactionAdapter = {
     name: json.name ?? "",
     description: null,
     type: reactionTypes.Tunneling.type,
-    params: { A: json.A, B: json.B, C: json.C },
+    attributes: attrsFromParams({ A: json.A, B: json.B, C: json.C }),
     reactants: componentsFromJSON(json.reactants),
     products: componentsFromJSON(json.products),
   }),
@@ -261,30 +312,32 @@ const REACTION_ADAPTERS: Partial<Record<ReactionTypeName, ReactionAdapter>> = {
 };
 
 // ── species / phase mapping ──────────────────────────────────
-function speciesToMusica(s: EditableSpecies) {
-  const attrs = Object.values(s.attributes);
-  const molecularWeight = attrs.find(
-    (a) => a.serializationKey === MOLECULAR_WEIGHT_KEY,
+function speciesToMusica(s: Species) {
+  const params: Record<string, unknown> = { name: s.name };
+  for (const attr of Object.values(s.attributes)) {
+    if (attr.value === "") continue; // empty → omit
+    const mapped = SPECIES_ATTR_TO_MUSICA[attr.serializationKey];
+    if (mapped === "is_third_body") {
+      // mech config defaults is_third_body to false, so only write when true.
+      if (attr.value === "true" || attr.value === true) {
+        params.is_third_body = true;
+      }
+    } else if (mapped) {
+      params[mapped] = Number(attr.value);
+    } else {
+      // "other property": musica re-adds the `__` prefix on serialization, so
+      // strip one leading `__` here to avoid doubling it.
+      params[attr.serializationKey.replace(/^__/, "")] = attr.value;
+    }
+  }
+  // musica's Species constructor accepts the four named params plus arbitrary
+  // extras (routed to other_properties); the loose record is the honest input.
+  return new types.Species(
+    params as unknown as mechanismConfiguration.SpeciesParams,
   );
-  // Everything other than the named field falls through to other_properties.
-  const rest = Object.fromEntries(
-    attrs
-      .filter((a) => a.serializationKey !== MOLECULAR_WEIGHT_KEY)
-      .map((a) => [a.serializationKey, a.value]),
-  );
-  return new types.Species({
-    name: s.name,
-    // musica types molecular_weight as a number; the editable attribute bag
-    // stores it as string | number, so coerce (empty -> omit).
-    molecular_weight:
-      molecularWeight && molecularWeight.value !== ""
-        ? Number(molecularWeight.value)
-        : undefined,
-    ...rest,
-  });
 }
 
-function phaseToMusica(p: EditablePhase, ctx: ExportCtx) {
+function phaseToMusica(p: Phase, ctx: ExportCtx) {
   return new types.Phase({
     name: p.name,
     // musica's Phase holds PhaseSpecies objects (each serializes to
@@ -296,14 +349,11 @@ function phaseToMusica(p: EditablePhase, ctx: ExportCtx) {
 }
 
 /**
- * Serialize one mechanism of a family to a V1 JSON string by building the
- * canonical musica objects and having musica serialize the mechanism
+ * Serialize one mechanism of a family into a V1 mechanism-configuration object
+ * (the value musica's getJSON() produces). Callers format it as JSON or YAML.
  * @throws if the mechanism contains a reaction type without a registry entry.
  */
-export function serializeMechanism(
-  mech: EditableMechanism,
-  family: EditableFamily,
-): string {
+export function serializeMechanism(mech: Mechanism, family: Family) {
   const speciesIdToName = new Map(
     family.species.map((s) => [String(s.id), s.name]),
   );
@@ -315,7 +365,7 @@ export function serializeMechanism(
     phaseName: (id) => phaseIdToName.get(id) ?? id,
   };
 
-  const musicaMechanism = new Mechanism({
+  const musicaMechanism = new MusicaMechanism({
     name: mech.name,
     version: V1_VERSION,
     species: family.species
@@ -335,17 +385,16 @@ export function serializeMechanism(
       }),
   });
 
-  return musicaMechanism.getString();
+  return musicaMechanism.getJSON();
 }
 
 /**
- * Build a new EditableFamily (with one mechanism's worth of data) from a
- * parsed V1 object
+ * Build a new Family (with one mechanism's worth of data) from a parsed V1
+ * object. Species/phase references arrive as names on the wire and are relinked
+ * to freshly generated frontend ids.
  * @throws if the object is missing the required top-level arrays.
  */
-export function deserializeMechanism(
-  parsed: Record<string, any>,
-): EditableFamily {
+export function deserializeMechanism(parsed: Record<string, any>): Family {
   if (
     !Array.isArray(parsed?.species) ||
     !Array.isArray(parsed?.phases) ||
@@ -357,7 +406,7 @@ export function deserializeMechanism(
   }
 
   const familyId = generateFrontendID();
-  const family: EditableFamily = {
+  const family: Family = {
     id: familyId,
     name: parsed.name ?? "New Family",
     description: "This family was automatically generated from a file",
@@ -409,27 +458,38 @@ function speciesFromJSON(
   s: Record<string, unknown>,
   id: string,
   familyId: string,
-): EditableSpecies {
-  const species: EditableSpecies = {
+): Species {
+  const species: Species = {
     id,
     name: String(s.name),
     description: null,
     familyId,
     attributes: {},
   };
-  for (const [key, value] of Object.entries(s)) {
-    if (key === "name") continue;
-    if (typeof value !== "number" && typeof value !== "string") continue;
-    species.attributes[key] = { serializationKey: key, value };
+  for (const [rawKey, value] of Object.entries(s)) {
+    if (rawKey === "name") continue;
+    if (
+      typeof value !== "number" &&
+      typeof value !== "string" &&
+      typeof value !== "boolean"
+    ) {
+      continue;
+    }
+    // `__` is musica's serialization prefix for non-first-class properties;
+    // strip it so the stored key matches the chemistry-cafe serializationKey.
+    const key = rawKey.replace(/^__/, "");
+    // SpeciesAttribute.value is number | string, so normalize booleans.
+    const storedValue = typeof value === "boolean" ? String(value) : value;
+    species.attributes[key] = { serializationKey: key, value: storedValue };
   }
   return species;
 }
 
 /** fromMusica stores species *names* in component.speciesId; rewrite to ids. */
 function linkComponentIds(
-  r: EditableReaction,
+  r: Reaction,
   nameToId: Map<string, string>,
-): EditableReaction {
+): Reaction {
   const toId = (speciesId: Reactant["speciesId"]) =>
     nameToId.get(String(speciesId)) ?? speciesId;
   return {

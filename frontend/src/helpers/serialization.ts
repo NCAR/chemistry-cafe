@@ -1,151 +1,13 @@
-import {
-  Family,
-  Mechanism,
-  Phase,
-  Reactant,
-  Reaction,
-  reactionConfigurations,
-  ReactionSpeciesCount,
-  ReactionTypeName,
-  Species,
-  supportedReactionTypes,
-} from "../types/chemistryModels";
-import { mechanismConfiguration } from "@ncar/musica";
+import { Family, Mechanism, Reaction, Species } from "../types/chemistryModels";
+import { serializeMechanism, deserializeMechanism } from "./musicaAdapter";
 import * as YAML from "yaml";
 import JSZip from "jszip";
-import { generateFrontendID } from "./localFamilies";
-import { reactionTypes } from "@ncar/musica/javascript/mechanism_configuration";
 
+// V1 mechanism-configuration serialization is owned by @ncar/musica via the
+// adapter (musicaAdapter.ts). This module only handles file-level concerns:
+// parsing/formatting (JSON & YAML) and the separate MusicBox/CAMP-V0 export.
 
-/**
- * Converts a species to a musica species
- */
-const SPECIES_ATTR_TO_MUSICA: Record<string, keyof mechanismConfiguraiton.SpeciesParams> = {
-  "molecular weight [kg mol-1]": "molecular_weight",
-  "constant concentration [mol m-3]": "constant_concentration",
-  "constant mixing ratio [mol mol-1]": "constant_mixing_ratio",
-  "is third body": "is_third_body",
-};
-
-function speciesToMusica(s: Species) : mechanismConfiguration.types.Species {
-  const params: SpeciesParams = { name: s.name };
-  for (const attr of Object.values(s.attributes)) {
-    if (attr.value === "") continue;
-    const mapped = SPECIES_ATTR_TO_MUSICA[attr.serializationKey];
-    if (!mapped) {
-      // an other property
-      params.other_properties = params.other_properties || {};
-      params.other_properties[attr.serializationKey] = attr.value;
-    }
-  }
-  return new mechanismConfiguration.types.Species(params);
-}
-
-const reactionToMusica = (
-  reaction: Reaction,
-  family: Family,
-): mechanismConfiguration.Reaction[] => {
-  console.log('Reaction type', reaction.type);
-  const serializedReaction: mechanismConfiguration.types.Reaction = {};
-
-  const reactionConfiguration = reactionConfigurations[reaction.type];
-
-  if (reactionConfiguration.hasGasPhase) {
-    serializedReaction["gas phase"] = "gas";
-  }
-
-  if (reactionConfiguration.reactantCount != ReactionSpeciesCount.NONE) {
-    serializedReaction.reactants = [];
-    for (const { speciesId, coefficient } of reaction.reactants) {
-      const species = family.species.find((e) => e.id === speciesId);
-      if (!species) {
-        continue;
-      }
-      serializedReaction.reactants.push({
-        "species name": species.name,
-        coefficient: coefficient,
-      });
-    }
-  }
-
-  if (reactionConfiguration.productCount != ReactionSpeciesCount.NONE) {
-    if (reactionConfiguration.branches) {
-      for (const branch of reactionConfiguration.branches) {
-        serializedReaction[`${branch} products`] = [];
-      }
-    } else {
-      serializedReaction.products = [];
-    }
-
-    for (const { speciesId, coefficient, branch } of reaction.products) {
-      const species = family.species.find((e) => e.id === speciesId);
-      if (!species) {
-        continue;
-      }
-
-      if (reactionConfiguration.branches) {
-        switch (branch) {
-          case "alkoxy":
-            serializedReaction["alkoxy products"]?.push({
-              "species name": species.name,
-              coefficient: coefficient,
-            });
-            break;
-          case "nitrate":
-            serializedReaction["nitrate products"]?.push({
-              "species name": species.name,
-              coefficient: coefficient,
-            });
-            break;
-          case "gas-phase":
-            serializedReaction["gas-phase products"]?.push({
-              "species name": species.name,
-              coefficient: coefficient,
-            });
-            break;
-          default:
-            console.warn("Skipping product with invalid branch name: ", branch);
-            break;
-        }
-      } else {
-        serializedReaction.products?.push({
-          "species name": species.name,
-          coefficient: coefficient,
-        });
-      }
-    }
-  }
-
-  for (const key of Object.keys(reaction.attributes)) {
-    serializedReaction[key] = reaction.attributes[key].value;
-  }
-
-  return serializedReaction;
-};
-
-/**
- * Stub of serialization of mechanism
- * @param mechanism
- * @param family
- * @returns
- */
-const mechanismToV1 = (mechanism: Mechanism, family: Family): Object => {
-  let typed_mechanism: musicaMechanism = {
-    name: mechanism.name,
-    description: mechanism.description || "",
-    species: family.species
-      .filter((e) => mechanism.speciesIds.includes(e.id))
-      .map((e) => speciesToMusica(e)),
-    reactions: family.reactions
-      .filter((e) => mechanism.reactionIds.includes(e.id))
-      .map((e) => reactionToMusica(e, family)),
-    phases: {},
-  };
-
-  console.log("Mechanism to V1: ", typed_mechanism);
-
-  return typed_mechanism;
-};
+const supportedV1Versions = ["1.0.0"];
 
 /**
  * Converts a given mechanism to a serialized JSON string which uses the V1 schema
@@ -156,9 +18,7 @@ const mechanismToV1 = (mechanism: Mechanism, family: Family): Object => {
 export const serializeMechanismJSON = (
   mechanism: Mechanism,
   family: Family,
-): string => {
-  return JSON.stringify(mechanismToV1(mechanism, family), null, 2);
-};
+): string => JSON.stringify(serializeMechanism(mechanism, family), null, 2);
 
 /**
  * Converts a given mechanism to a serialized YAML string which uses the V1 schema
@@ -169,195 +29,22 @@ export const serializeMechanismJSON = (
 export const serializeMechanismYAML = (
   mechanism: Mechanism,
   family: Family,
-): string => {
-  return YAML.stringify(mechanismToV1(mechanism, family), null, 2);
-};
+): string => YAML.stringify(serializeMechanism(mechanism, family));
 
 /**
- * Takes a V1 mechanism string in either JSON or YAML and creates a new Family with one Mechanism in it based on the data in the file
+ * Takes a V1 mechanism string in either JSON or YAML and creates a new Family
+ * with one mechanism's worth of data based on the file.
  * @throws Parsing errors
  */
 export const deserializeV1Mechanism = (fileText: string): Family | null => {
-  // const parsedMechanism: Partial<serializedV1Mechanism> = mechanismConfiguration.Mechanism.
-
-  // if (!supportedV1Versions.find((e) => e == parsedMechanism.version)) {
-  //   console.warn(
-  //     `Errors may occur due to an unsupported V1 mechanism version: ${parsedMechanism.version}`,
-  //   );
-  // }
-
-  // if (
-  //   !Array.isArray(parsedMechanism.species) ||
-  //   !Array.isArray(parsedMechanism.phases) ||
-  //   !Array.isArray(parsedMechanism.reactions)
-  // ) {
-  //   throw new Error(
-  //     "Mechanism is missing 'species', 'phases', or 'reactions' arrays",
-  //   );
-  // }
-
-  // const createdFamily: Family = {
-  //   id: generateFrontendID(),
-  //   name: parsedMechanism.name || "New Family",
-  //   description: "This family was automatically generated from a file",
-  //   owner: null,
-  //   mechanisms: [],
-  //   species: [],
-  //   reactions: [],
-  //   phases: [],
-  // };
-
-  // const speciesIdMappings = new Map<string, string>();
-  // const phaseIdMappings = new Map<string, string>();
-
-  // for (const species of parsedMechanism.species) {
-  //   const id = generateFrontendID();
-  //   speciesIdMappings.set(species.name, id);
-
-  //   const createdSpecies: Species = {
-  //     id: id,
-  //     name: species.name,
-  //     description: null,
-  //     familyId: createdFamily.id,
-  //     attributes: {},
-  //   };
-
-  //   for (const [key, value] of Object.entries(species)) {
-  //     if (
-  //       (typeof value !== "number" && typeof value !== "string") ||
-  //       key === "name"
-  //     ) {
-  //       continue;
-  //     }
-
-  //     createdSpecies.attributes[key] = {
-  //       serializationKey: key,
-  //       value: value,
-  //     };
-  //   }
-
-  //   createdFamily.species.push(createdSpecies);
-  // }
-
-  // for (const phase of parsedMechanism.phases) {
-  //   const id = generateFrontendID();
-  //   phaseIdMappings.set(phase.name, id);
-
-  //   const createdPhase: Phase = {
-  //     id: id,
-  //     name: phase.name,
-  //     description: null,
-  //     speciesIds: phase.species
-  //       .map((e) => speciesIdMappings.get(e))
-  //       .filter((e) => e != undefined),
-  //   };
-
-  //   createdFamily.phases.push(createdPhase);
-  // }
-
-  // for (const reaction of parsedMechanism.reactions) {
-  //   const id = generateFrontendID();
-
-  //   if (!supportedReactionTypes.find((e) => e == reaction.type)) {
-  //     console.warn(`Possibly unsupported reaction type: ${reaction.type}`);
-  //   }
-
-  //   const createdReaction: Reaction = {
-  //     id: id,
-  //     name: reaction.name || "",
-  //     description: null,
-  //     type: reaction.type as ReactionTypeName,
-  //     reactants:
-  //       reaction.reactants?.reduce((accumulator: Reactant[], reactant) => {
-  //         const speciesId = speciesIdMappings.get(reactant["species name"]);
-  //         if (!speciesId) {
-  //           return accumulator;
-  //         }
-  //         accumulator.push({
-  //           speciesId: speciesId,
-  //           coefficient: reactant.coefficient,
-  //         });
-  //         return accumulator;
-  //       }, []) || [],
-  //     products:
-  //       reaction.products?.reduce((accumulator: Reactant[], reactant) => {
-  //         const speciesId = speciesIdMappings.get(reactant["species name"]);
-  //         if (!speciesId) {
-  //           return accumulator;
-  //         }
-  //         accumulator.push({
-  //           speciesId: speciesId,
-  //           coefficient: reactant.coefficient,
-  //         });
-  //         return accumulator;
-  //       }, []) || [],
-  //     attributes: {},
-  //   };
-
-  //   // Branches that *may* exists in a reaction
-  //   const productBranches = ["gas-phase", "alkoxy", "nitrate"];
-
-  //   for (const branch of productBranches) {
-  //     const products = reaction[`${branch} products`];
-  //     if (!Array.isArray(products)) {
-  //       continue;
-  //     }
-
-  //     for (const product of products) {
-  //       const speciesId = speciesIdMappings.get(product["species name"]);
-  //       if (!speciesId) {
-  //         return product;
-  //       }
-
-  //       createdReaction.products.push({
-  //         speciesId: speciesId,
-  //         coefficient: product.coefficient,
-  //         branch: branch,
-  //       });
-  //     }
-  //   }
-
-  //   // Keys to not put in attributes
-  //   const skipKeys: Array<keyof serializedV1Reaction> = [
-  //     "name",
-  //     "gas phase",
-  //     "gas-phase species",
-  //     "aerosol phase",
-  //     "aerosol-phase species",
-  //     "aerosol-phase water",
-  //     "reactants",
-  //     "products",
-  //   ];
-
-  //   for (const [key, value] of Object.entries(reaction)) {
-  //     if (
-  //       (typeof value !== "number" && typeof value !== "string") ||
-  //       skipKeys.find((e) => e == key)
-  //     ) {
-  //       continue;
-  //     }
-
-  //     createdReaction.attributes[key] = {
-  //       serializationKey: key,
-  //       value: value,
-  //     };
-  //   }
-
-  //   createdFamily.reactions.push(createdReaction);
-  // }
-
-  // const createdMechanism: Mechanism = {
-  //   id: generateFrontendID(),
-  //   name: parsedMechanism.name || "New Mechanism",
-  //   description: "This mechanism was automatically generated from a file",
-  //   familyId: createdFamily.id,
-  //   speciesIds: createdFamily.species.map((e) => e.id),
-  //   reactionIds: createdFamily.reactions.map((e) => e.id),
-  //   phaseIds: createdFamily.phases.map((e) => e.id),
-  // };
-
-  // createdFamily.mechanisms.push(createdMechanism);
-  // return createdFamily;
+  // YAML.parse also accepts JSON, so it covers both file formats.
+  const parsed = YAML.parse(fileText);
+  if (parsed?.version && !supportedV1Versions.includes(parsed.version)) {
+    console.warn(
+      `Errors may occur due to an unsupported V1 mechanism version: ${parsed.version}`,
+    );
+  }
+  return deserializeMechanism(parsed);
 };
 
 /////////////////////////////////

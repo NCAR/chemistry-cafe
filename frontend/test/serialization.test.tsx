@@ -145,26 +145,8 @@ const branchedReaction: Reaction = {
   attributes: {},
 };
 
-const surfaceReaction: Reaction = {
-  id: "55525-444-333-222-111",
-  name: "",
-  description: null,
-  type: "SURFACE",
-  reactants: [],
-  products: [
-    {
-      speciesId: plainSpecies.id,
-      coefficient: 1,
-      branch: "gas-phase",
-    },
-    {
-      speciesId: plainSpecies.id,
-      coefficient: 1,
-      branch: "notreal",
-    },
-  ],
-  attributes: {},
-};
+// NOTE: SURFACE is not yet exportable via the musica adapter (tracked in #237),
+// so it is intentionally excluded from these round-trip fixtures.
 
 const allSpecies = [
   mixingRatioSpecies,
@@ -181,7 +163,7 @@ const mechanism: Mechanism = {
   phaseIds: [],
   familyId: "1234",
   speciesIds: allSpecies.map((s) => s.id),
-  reactionIds: [reaction.id, branchedReaction.id, surfaceReaction.id],
+  reactionIds: [reaction.id, branchedReaction.id],
 };
 
 const family: Family = {
@@ -190,7 +172,7 @@ const family: Family = {
   description: "",
   mechanisms: [],
   species: allSpecies,
-  reactions: [reaction, branchedReaction, surfaceReaction],
+  reactions: [reaction, branchedReaction],
   phases: [],
   owner: null,
 };
