@@ -16,8 +16,8 @@ export type SpeciesAttribute = {
   /** The unit of the specific attribute. This can be empty if unitless. */
   units?: string;
 
-  /** Value of the attribute. This is *usually* numerical */
-  value: number | string;
+  /** Value of the attribute. */
+  value: number | string | boolean;
 
   /** Used when the value is a string (This is not stored in the database) */
   options?: Array<string>;
@@ -29,13 +29,7 @@ export type SpeciesAttribute = {
 export const speciesAttributeOptions: Array<SpeciesAttribute> = [
   Object.freeze({
     name: "Absolute Tolerance",
-    serializationKey: "__absolute tolerance",
-    value: 0.0,
-  }),
-  Object.freeze({
-    name: "Diffusion Coefficient",
-    serializationKey: "diffusion coefficient [m2 s-1]",
-    units: "m2 s-1",
+    serializationKey: "absolute tolerance",
     value: 0.0,
   }),
   Object.freeze({
@@ -45,32 +39,21 @@ export const speciesAttributeOptions: Array<SpeciesAttribute> = [
     value: 0.0,
   }),
   Object.freeze({
-    name: "Henry's Law Constant (298K)",
-    serializationKey: "HLC(298K) [mol m-3 Pa-1]",
-    units: "mol m-3 Pa-1",
+    name: "Constant concentration",
+    serializationKey: "constant concentration [mol m-3]",
+    units: "mol m-3",
     value: 0.0,
   }),
   Object.freeze({
-    name: "Henry's Law Exponential Factor",
-    serializationKey: "HLC exponential factor [K]",
-    units: "K",
+    name: "Constant mixing ratio",
+    serializationKey: "constant mixing ratio [mol mol-1]",
+    units: "mol mol-1",
     value: 0.0,
   }),
   Object.freeze({
-    name: "N star",
-    serializationKey: "N star",
-    value: 0.0,
-  }),
-  Object.freeze({
-    name: "Density",
-    serializationKey: "density [kg m-3]",
-    units: "kg m-3",
-    value: 0.0,
-  }),
-  Object.freeze({
-    name: "Tracer Type",
-    serializationKey: "tracer type",
-    value: "",
+    name: "Is third body?",
+    serializationKey: "is third body",
+    value: false,
   }),
 ];
 
