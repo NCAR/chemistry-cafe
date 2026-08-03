@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   Family,
   Mechanism,
+  Phase,
   Reaction,
   Species,
 } from "../src/types/chemistryModels";
@@ -224,6 +225,13 @@ const speciesB: Species = {
   attributes: {},
 };
 
+const gasPhase: Phase = {
+  id: "phase-gas",
+  name: "gas",
+  description: null,
+  speciesIds: [speciesA.id, speciesB.id],
+};
+
 /** Build a reaction attribute bag ({ [key]: { serializationKey, value } }). */
 const attrs = (obj: Record<string, number | string>): Reaction["attributes"] =>
   Object.fromEntries(
@@ -239,7 +247,7 @@ const serializeReaction = (reaction: Reaction): Record<string, any> => {
     mechanisms: [],
     species: [speciesA, speciesB],
     reactions: [reaction],
-    phases: [],
+    phases: [gasPhase],
     owner: null,
   };
   const mech: Mechanism = {
@@ -249,7 +257,7 @@ const serializeReaction = (reaction: Reaction): Record<string, any> => {
     familyId: "family",
     speciesIds: [speciesA.id, speciesB.id],
     reactionIds: [reaction.id],
-    phaseIds: [],
+    phaseIds: [gasPhase.id],
   };
   const parsed = JSON.parse(serializeMechanismJSON(mech, fam));
   return parsed.reactions[0];
@@ -420,5 +428,32 @@ describe("Reaction type serialization", () => {
     // single gas-phase species resolves to its name
     expect(rx["gas-phase species"]).toBe("A");
     expect(rx["gas-phase products"][0]).toEqual({ name: "B", coefficient: 2 });
+  });
+
+  it("resolves a reaction's gas phase id to the phase name", () => {
+    const rx = serializeReaction({
+      id: "r",
+      name: "arr-gas",
+      description: null,
+      type: "ARRHENIUS",
+      attributes: attrs({ A: 1 }),
+      gasPhaseId: gasPhase.id,
+      reactants: [{ speciesId: speciesA.id, coefficient: 1 }],
+      products: [{ speciesId: speciesB.id, coefficient: 1 }],
+    });
+    expect(rx["gas phase"]).toBe("gas");
+  });
+
+  it("omits gas phase when the reaction has none", () => {
+    const rx = serializeReaction({
+      id: "r",
+      name: "arr-nogas",
+      description: null,
+      type: "ARRHENIUS",
+      attributes: attrs({ A: 1 }),
+      reactants: [{ speciesId: speciesA.id, coefficient: 1 }],
+      products: [{ speciesId: speciesB.id, coefficient: 1 }],
+    });
+    expect(rx["gas phase"]).toBeUndefined();
   });
 });
