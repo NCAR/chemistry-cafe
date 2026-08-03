@@ -158,11 +158,25 @@ const allSpecies = [
   absoluteToleranceSpecies,
 ];
 
+const mainGasPhase: Phase = {
+  id: "phase-gas-main",
+  name: "gas",
+  description: null,
+  speciesIds: allSpecies.map((s) => s.id),
+};
+
+const aerosolPhase: Phase = {
+  id: "phase-aerosol",
+  name: "aerosol",
+  description: null,
+  speciesIds: [molecularWeightSpecies.id, plainSpecies.id],
+};
+
 const mechanism: Mechanism = {
   id: "",
   name: "Test Mechanism",
   description: null,
-  phaseIds: [],
+  phaseIds: [mainGasPhase.id, aerosolPhase.id],
   familyId: "1234",
   speciesIds: allSpecies.map((s) => s.id),
   reactionIds: [reaction.id, branchedReaction.id],
@@ -175,7 +189,7 @@ const family: Family = {
   mechanisms: [],
   species: allSpecies,
   reactions: [reaction, branchedReaction],
-  phases: [],
+  phases: [mainGasPhase, aerosolPhase],
   owner: null,
 };
 
@@ -202,6 +216,44 @@ describe("Mechanism Serialization", () => {
     it("Gives a resulting blob object", () => {
       const result = serializeMechanismMusicBox(mechanism, family);
       expect(typeof result).toBe("object");
+    });
+  });
+
+  describe("Phase serialization", () => {
+    it("serializes a mechanism's phases with their member species", () => {
+      const parsed = JSON.parse(serializeMechanismJSON(mechanism, family));
+      const phaseNames = parsed.phases.map((p: any) => p.name);
+      expect(phaseNames).toContain("gas");
+      expect(phaseNames).toContain("aerosol");
+
+      const gas = parsed.phases.find((p: any) => p.name === "gas");
+      // species ids are resolved to names, one entry per member species
+      expect(gas.species.map((s: any) => s.name).sort()).toEqual(
+        allSpecies.map((s) => s.name).sort(),
+      );
+
+      const aerosol = parsed.phases.find((p: any) => p.name === "aerosol");
+      expect(aerosol.species.map((s: any) => s.name).sort()).toEqual(
+        ["Molecular Weight Species", "Plain Species"].sort(),
+      );
+    });
+
+    it("only includes phases referenced by the mechanism", () => {
+      const otherPhase: Phase = {
+        id: "phase-unreferenced",
+        name: "unreferenced",
+        description: null,
+        speciesIds: [plainSpecies.id],
+      };
+      const familyWithExtra: Family = {
+        ...family,
+        phases: [...family.phases, otherPhase],
+      };
+      const parsed = JSON.parse(
+        serializeMechanismJSON(mechanism, familyWithExtra),
+      );
+      const phaseNames = parsed.phases.map((p: any) => p.name);
+      expect(phaseNames).not.toContain("unreferenced");
     });
   });
 });
