@@ -241,7 +241,7 @@ const FIRST_ORDER_LOSS: ReactionAdapter = {
 };
 
 const TROE: ReactionAdapter = {
-  toMusica: (r, ctx) =>
+  toMusica: (r, ctx) => 
     new reactionTypes.Troe({
       name: r.name,
       k0_A: num(paramVal(r, "k0_A"), 1.0),
@@ -486,7 +486,8 @@ export function deserializeMechanism(parsed: Record<string, any>): Family {
       console.warn(`Unsupported reaction type on import: ${r.type}`);
       continue;
     }
-    family.reactions.push(linkComponentIds(adapter.fromMusica(r), nameToId));
+    let reaction = adapter.fromMusica(r);
+    family.reactions.push(linkComponentIds(reaction, nameToId));
   }
 
   return family;

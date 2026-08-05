@@ -13,26 +13,12 @@ import {
   serializeMechanismYAML,
 } from "../src/helpers/serialization";
 
-// ─────────────────────────────────────────────────────────────
-// One shared fixture set — species, phases, one reaction per supported type,
-// a mechanism, and a family — used by every test below. The mechanism is
-// serialized once (`serialized`); tests assert against that output.
-//
-// A few cases are deliberately baked into the shared set so they need no
-// separate fixtures:
-//   • ARRHENIUS / PHOTOLYSIS carry a gas phase; TROE / TUNNELING do not
-//     (covers gas-phase present vs omitted).
-//   • the family has an extra phase the mechanism does not reference
-//     (covers phase filtering).
-// ─────────────────────────────────────────────────────────────
-
 /** Build a reaction/attribute bag ({ [key]: { serializationKey, value } }). */
 const attrs = (obj: Record<string, number | string>): Reaction["attributes"] =>
   Object.fromEntries(
     Object.entries(obj).map(([k, v]) => [k, { serializationKey: k, value: v }]),
   );
 
-// ── species (each carries a representative attribute) ─────────
 const molecularWeightSpecies: Species = {
   id: "species-molecular-weight",
   name: "Molecular Weight Species",
@@ -149,6 +135,7 @@ const branchedReaction: Reaction = {
   name: "branched",
   description: null,
   type: "BRANCHED_NO_RO2",
+  gasPhaseId: gasPhase.id,
   attributes: attrs({ X: 1, Y: 2, a0: 3, n: 4 }),
   reactants: [{ speciesId: reactant.id, coefficient: 1 }],
   products: [
@@ -162,6 +149,7 @@ const emissionReaction: Reaction = {
   name: "emission",
   description: null,
   type: "EMISSION",
+  gasPhaseId: gasPhase.id,
   attributes: attrs({ "scaling factor": 2.5 }),
   reactants: [],
   products: [{ speciesId: product.id, coefficient: 1 }],
@@ -183,6 +171,7 @@ const firstOrderLossReaction: Reaction = {
   name: "first order loss",
   description: null,
   type: "FIRST_ORDER_LOSS",
+  gasPhaseId: gasPhase.id,
   attributes: attrs({ "scaling factor": 1.5 }),
   reactants: [{ speciesId: reactant.id, coefficient: 1 }],
   products: [],
@@ -194,6 +183,7 @@ const troeReaction: Reaction = {
   name: "troe",
   description: null,
   type: "TROE",
+  gasPhaseId: gasPhase.id,
   attributes: attrs({
     k0_A: 1,
     k0_B: 2,
@@ -213,6 +203,7 @@ const tunnelingReaction: Reaction = {
   name: "tunneling",
   description: null,
   type: "TUNNELING",
+  gasPhaseId: gasPhase.id,
   attributes: attrs({ A: 1, B: 2, C: 3 }),
   reactants: [{ speciesId: reactant.id, coefficient: 1 }],
   products: [{ speciesId: product.id, coefficient: 1 }],
@@ -223,6 +214,7 @@ const surfaceReaction: Reaction = {
   name: "surface",
   description: null,
   type: "SURFACE",
+  gasPhaseId: gasPhase.id,
   attributes: attrs({ "reaction probability": 0.5 }),
   gasPhaseSpeciesId: reactant.id,
   reactants: [],
@@ -240,7 +232,6 @@ const reactions = [
   surfaceReaction,
 ];
 
-// ── mechanism + family ───────────────────────────────────────
 const mechanism: Mechanism = {
   id: "mechanism",
   name: "Test Mechanism",
@@ -273,17 +264,30 @@ const serialized = serialize();
 const reactionOfType = (type: string): Record<string, any> =>
   serialized.reactions.find((r: any) => r.type === type);
 
+const reactionHasGasPhase = (reaction: Reaction, gasPhaseId: string): boolean => {
+  return reaction.gasPhaseId !== undefined && reaction.gasPhaseId !== null && reaction.gasPhaseId === gasPhaseId;
+}
+
 describe("Mechanism Serialization", () => {
   it("serializes to a JSON string that deserializes to an object", () => {
     const result = serializeMechanismJSON(mechanism, family);
+    const deserialized = deserializeV1Mechanism(result);
     expect(typeof result).toBe("string");
-    expect(typeof deserializeV1Mechanism(result)).toBe("object");
+    expect(typeof deserialized).toBe("object");
+    console.log(deserialized);
+    deserialized?.reactions.forEach((reaction) => {
+      expect(reactionHasGasPhase(reaction, gasPhase.id)).toBe(true);
+    });
   });
 
   it("serializes to a YAML string that deserializes to an object", () => {
     const result = serializeMechanismYAML(mechanism, family);
     expect(typeof result).toBe("string");
-    expect(typeof deserializeV1Mechanism(result)).toBe("object");
+    const deserialized = deserializeV1Mechanism(result);
+    expect(typeof deserialized).toBe("object");
+    deserialized?.reactions.forEach((reaction) => {
+      expect(reactionHasGasPhase(reaction, gasPhase.id)).toBe(true);
+    });
   });
 
   it("serializes a MusicBox (V0) blob object", () => {
@@ -345,6 +349,7 @@ describe("Reaction type serialization", () => {
     const rx = parsed.reactions[0];
     expect(rx.C).toBe(9);
     expect(rx.Ea).toBeUndefined();
+    expect(rx["gas phase"]).toBe("gas");
   });
 
   it("BRANCHED_NO_RO2", () => {
@@ -355,12 +360,14 @@ describe("Reaction type serialization", () => {
     expect(rx.n).toBe(4);
     expect(rx["alkoxy products"][0].name).toBe(product.name);
     expect(rx["nitrate products"][0].name).toBe(reactant.name);
+    expect(rx["gas phase"]).toBe("gas");
   });
 
   it("EMISSION", () => {
     const rx = reactionOfType("EMISSION");
     expect(rx["scaling factor"]).toBe(2.5);
     expect(rx.products[0].name).toBe(product.name);
+    expect(rx["gas phase"]).toBe("gas");
   });
 
   it("PHOTOLYSIS", () => {
@@ -368,6 +375,7 @@ describe("Reaction type serialization", () => {
     expect(rx["scaling factor"]).toBe(3);
     expect(rx.reactants[0].name).toBe(reactant.name);
     expect(rx.products[0].name).toBe(product.name);
+    expect(rx["gas phase"]).toBe("gas");
   });
 
   it("FIRST_ORDER_LOSS", () => {
@@ -375,6 +383,7 @@ describe("Reaction type serialization", () => {
     expect(rx["scaling factor"]).toBe(1.5);
     expect(rx.reactants[0].name).toBe(reactant.name);
     expect(rx.products).toBeUndefined(); // no products supplied → key omitted
+    expect(rx["gas phase"]).toBe("gas");
   });
 
   it("TROE", () => {
@@ -384,6 +393,7 @@ describe("Reaction type serialization", () => {
     expect(rx.kinf_A).toBe(4);
     expect(rx.Fc).toBe(0.5);
     expect(rx.N).toBe(1);
+    expect(rx["gas phase"]).toBe("gas");
   });
 
   it("TUNNELING", () => {
@@ -391,6 +401,7 @@ describe("Reaction type serialization", () => {
     expect(rx.A).toBe(1);
     expect(rx.B).toBe(2);
     expect(rx.C).toBe(3);
+    expect(rx["gas phase"]).toBe("gas");
   });
 
   it("SURFACE", () => {
@@ -402,15 +413,6 @@ describe("Reaction type serialization", () => {
       name: product.name,
       coefficient: 2,
     });
-  });
-});
-
-describe("Gas phase serialization", () => {
-  it("resolves a reaction's gas phase id to the phase name", () => {
-    expect(reactionOfType("ARRHENIUS")["gas phase"]).toBe("gas");
-  });
-
-  it("omits gas phase when the reaction has none", () => {
-    expect(reactionOfType("TROE")["gas phase"]).toBeUndefined();
+    expect(rx["gas phase"]).toBe("gas");
   });
 });
