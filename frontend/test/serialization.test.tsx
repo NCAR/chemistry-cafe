@@ -275,8 +275,10 @@ describe("Mechanism Serialization", () => {
     expect(typeof result).toBe("string");
     expect(typeof deserialized).toBe("object");
     console.log(deserialized);
+    const deserializedGasPhase = deserialized?.phases.find((p) => p.name === "gas");
+    expect(deserializedGasPhase).toBeDefined();
     deserialized?.reactions.forEach((reaction) => {
-      expect(reactionHasGasPhase(reaction, gasPhase.id)).toBe(true);
+      expect(reactionHasGasPhase(reaction, deserializedGasPhase.id)).toBe(true);
     });
   });
 
@@ -285,8 +287,10 @@ describe("Mechanism Serialization", () => {
     expect(typeof result).toBe("string");
     const deserialized = deserializeV1Mechanism(result);
     expect(typeof deserialized).toBe("object");
+    const deserializedGasPhase = deserialized?.phases.find((p) => p.name === "gas");
+    expect(deserializedGasPhase).toBeDefined();
     deserialized?.reactions.forEach((reaction) => {
-      expect(reactionHasGasPhase(reaction, gasPhase.id)).toBe(true);
+      expect(reactionHasGasPhase(reaction, deserializedGasPhase.id)).toBe(true);
     });
   });
 
