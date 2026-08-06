@@ -196,26 +196,31 @@ const EMISSION: ReactionAdapter = {
 };
 
 const PHOTOLYSIS: ReactionAdapter = {
-  toMusica: (r, ctx) =>
-    new reactionTypes.Photolysis({
+  toMusica: (r, ctx) => {
+    console.log("photolysis toMusica reaction: ", r);
+    return new reactionTypes.Photolysis({
       name: r.name,
       scaling_factor: num(paramVal(r, SCALING_FACTOR_KEY), 1.0),
       gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
       reactants: componentsToMusica(r.reactants, ctx),
       products: componentsToMusica(r.products, ctx),
-    }),
+    })
+  },
 
-  fromMusica: (json) => ({
+  fromMusica: (json) => {
+    console.log("photolysis fromMusica json: ", json);
+    return {
     id: generateFrontendID(),
     name: json.name ?? "",
     description: null,
+    gasPhaseId: json.gas_phase,
     type: reactionTypes.Photolysis.type,
     attributes: attrsFromParams({
       [SCALING_FACTOR_KEY]: json[SCALING_FACTOR_KEY],
     }),
     reactants: componentsFromJSON(json.reactants),
     products: componentsFromJSON(json.products),
-  }),
+  }},
 };
 
 const FIRST_ORDER_LOSS: ReactionAdapter = {
@@ -464,9 +469,12 @@ export function deserializeMechanism(parsed: Record<string, any>): Family {
   }
 
   // 2. phases — resolve member species names back to ids.
+  const phaseToId = new Map<string, string>();
   for (const p of parsed.phases) {
+    const id = generateFrontendID();
+    phaseToId.set(p.name, id);
     family.phases.push({
-      id: generateFrontendID(),
+      id,
       name: p.name,
       description: null,
       speciesIds: (p.species ?? [])
@@ -487,7 +495,9 @@ export function deserializeMechanism(parsed: Record<string, any>): Family {
       continue;
     }
     let reaction = adapter.fromMusica(r);
-    family.reactions.push(linkComponentIds(reaction, nameToId));
+    reaction = linkPhaseIds(reaction, phaseToId);
+    reaction = linkComponentIds(reaction, nameToId);
+    family.reactions.push(reaction);
   }
 
   return family;
@@ -535,5 +545,12 @@ function linkComponentIds(
     ...r,
     reactants: r.reactants.map((c) => ({ ...c, speciesId: toId(c.speciesId) })),
     products: r.products.map((c) => ({ ...c, speciesId: toId(c.speciesId) })),
+  };
+}
+
+function linkPhaseIds(r: Reaction, nameToId: Map<string, string>) {
+  return {
+    ...r,
+    gasPhaseId: r.gasPhaseId ? nameToId.get(String(r.gasPhaseId)) ?? r.gasPhaseId : undefined,
   };
 }
