@@ -296,7 +296,9 @@ describe("Mechanism Serialization", () => {
     const deserialized = deserializeV1Mechanism(result);
     expect(typeof result).toBe("string");
     expect(typeof deserialized).toBe("object");
-    const deserializedGasPhase = deserialized?.phases.find((p) => p.name === "gas");
+    const deserializedGasPhase = deserialized?.phases.find(
+      (p) => p.name === "gas",
+    );
     expect(deserializedGasPhase).toBeDefined();
     deserialized?.reactions.forEach((reaction) => {
       expect(reactionHasGasPhase(reaction, deserializedGasPhase.id)).toBe(true);
@@ -308,7 +310,9 @@ describe("Mechanism Serialization", () => {
     expect(typeof result).toBe("string");
     const deserialized = deserializeV1Mechanism(result);
     expect(typeof deserialized).toBe("object");
-    const deserializedGasPhase = deserialized?.phases.find((p) => p.name === "gas");
+    const deserializedGasPhase = deserialized?.phases.find(
+      (p) => p.name === "gas",
+    );
     expect(deserializedGasPhase).toBeDefined();
     deserialized?.reactions.forEach((reaction) => {
       expect(reactionHasGasPhase(reaction, deserializedGasPhase.id)).toBe(true);
@@ -354,9 +358,9 @@ describe("Species serialization", () => {
     const byName = (name: string) =>
       serialized.species.find((s: any) => s.name === name);
 
-    expect(byName(molecularWeightSpecies.name)["molecular weight [kg mol-1]"]).toBe(
-      0.01,
-    );
+    expect(
+      byName(molecularWeightSpecies.name)["molecular weight [kg mol-1]"],
+    ).toBe(0.01);
     expect(
       byName(mixingRatioSpecies.name)["constant mixing ratio [mol mol-1]"],
     ).toBe(0.01);
@@ -375,8 +379,9 @@ describe("Species serialization", () => {
       imported.species.find((s) => s.name === name)!;
 
     expect(
-      byName(molecularWeightSpecies.name).attributes["molecular weight [kg mol-1]"]
-        ?.value,
+      byName(molecularWeightSpecies.name).attributes[
+        "molecular weight [kg mol-1]"
+      ]?.value,
     ).toBe(0.01);
     expect(
       byName(mixingRatioSpecies.name).attributes[
@@ -384,9 +389,9 @@ describe("Species serialization", () => {
       ]?.value,
     ).toBe(0.01);
     // booleans are normalized back to a string (SpeciesAttribute.value is number | string)
-    expect(byName(thirdBodySpecies.name).attributes["is third body"]?.value).toBe(
-      "true",
-    );
+    expect(
+      byName(thirdBodySpecies.name).attributes["is third body"]?.value,
+    ).toBe("true");
     // the `__` prefix is stripped so the key matches the chemistry-cafe serializationKey
     expect(
       byName(absoluteToleranceSpecies.name).attributes["absolute tolerance"]
@@ -403,7 +408,12 @@ describe("Species serialization", () => {
       },
     };
     const parsed = serialize(
-      { ...mechanism, speciesIds: [notThirdBody.id], reactionIds: [], phaseIds: [] },
+      {
+        ...mechanism,
+        speciesIds: [notThirdBody.id],
+        reactionIds: [],
+        phaseIds: [],
+      },
       { ...family, species: [notThirdBody], reactions: [], phases: [] },
     );
     expect(parsed.species[0]["is third body"]).toBeUndefined();
@@ -439,9 +449,7 @@ describe("Reaction type serialization and deserialization", () => {
         product.name,
       );
       expect(back.products[0].coefficient).toBe(2);
-      expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(
-        true,
-      );
+      expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(true);
     });
 
     it("serializes with C when Ea is absent", () => {
@@ -480,15 +488,9 @@ describe("Reaction type serialization and deserialization", () => {
       expect(back.attributes["n"]?.value).toBe(4);
       const alkoxy = back.products.filter((p) => p.branch === "alkoxy");
       const nitrate = back.products.filter((p) => p.branch === "nitrate");
-      expect(importedName(String(alkoxy[0].speciesId))).toBe(
-        product.name,
-      );
-      expect(importedName(String(nitrate[0].speciesId))).toBe(
-        reactant.name,
-      );
-      expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(
-        true,
-      );
+      expect(importedName(String(alkoxy[0].speciesId))).toBe(product.name);
+      expect(importedName(String(nitrate[0].speciesId))).toBe(reactant.name);
+      expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(true);
     });
   });
 
@@ -506,9 +508,7 @@ describe("Reaction type serialization and deserialization", () => {
       expect(importedName(String(back.products[0].speciesId))).toBe(
         product.name,
       );
-      expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(
-        true,
-      );
+      expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(true);
     });
   });
 
@@ -530,9 +530,7 @@ describe("Reaction type serialization and deserialization", () => {
       expect(importedName(String(back.products[0].speciesId))).toBe(
         product.name,
       );
-      expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(
-        true,
-      );
+      expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(true);
     });
   });
 
@@ -552,9 +550,7 @@ describe("Reaction type serialization and deserialization", () => {
         reactant.name,
       );
       expect(back.products).toHaveLength(0);
-      expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(
-        true,
-      );
+      expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(true);
     });
   });
 
@@ -577,9 +573,7 @@ describe("Reaction type serialization and deserialization", () => {
       expect(importedName(String(back.reactants[0].speciesId))).toBe(
         reactant.name,
       );
-      expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(
-        true,
-      );
+      expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(true);
     });
   });
 
@@ -599,9 +593,7 @@ describe("Reaction type serialization and deserialization", () => {
       expect(importedName(String(back.reactants[0].speciesId))).toBe(
         reactant.name,
       );
-      expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(
-        true,
-      );
+      expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(true);
     });
   });
 
@@ -628,9 +620,7 @@ describe("Reaction type serialization and deserialization", () => {
         product.name,
       );
       expect(importedName(String(back.gasPhaseSpeciesId))).toBe(reactant.name);
-      expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(
-        true,
-      );
+      expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(true);
     });
   });
 });
