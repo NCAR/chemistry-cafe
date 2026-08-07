@@ -19,8 +19,11 @@ import { generateFrontendID } from "./localFamilies";
  * assigning fresh frontend ids.
  */
 
-const { types, reactionTypes, Mechanism: MusicaMechanism } =
-  mechanismConfiguration;
+const {
+  types,
+  reactionTypes,
+  Mechanism: MusicaMechanism,
+} = mechanismConfiguration;
 
 // A musica reaction is any of the concrete reaction-rate class instances.
 // Derived from the runtime registry so it stays in lockstep with reactionTypes.
@@ -51,7 +54,8 @@ const num = (value: unknown, fallback: number): number =>
     : Number(value);
 
 /** Read a reaction parameter value out of the reaction's attribute bag. */
-const paramVal = (r: Reaction, key: string): unknown => r.attributes[key]?.value;
+const paramVal = (r: Reaction, key: string): unknown =>
+  r.attributes[key]?.value;
 
 /** Build a reaction attribute bag from a params record, dropping undefined. */
 const attrsFromParams = (
