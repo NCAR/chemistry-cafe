@@ -210,7 +210,7 @@ const PHOTOLYSIS: ReactionAdapter = {
       gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
       reactants: componentsToMusica(r.reactants, ctx),
       products: componentsToMusica(r.products, ctx),
-    })
+    });
   },
 
   fromMusica: (json) => {
@@ -225,7 +225,7 @@ const PHOTOLYSIS: ReactionAdapter = {
       }),
       reactants: componentsFromJSON(json.reactants),
       products: componentsFromJSON(json.products),
-    }
+    };
     return obj;
   },
 };
@@ -345,7 +345,7 @@ const SURFACE: ReactionAdapter = {
       reactants: [],
       products: componentsFromJSON(json["gas-phase products"], "gas-phase"),
       gasPhaseSpeciesId: json["gas-phase species"],
-    }
+    };
   },
 };
 
@@ -556,20 +556,24 @@ function linkComponentIds(
       products: r.products.map((c) =>
         c.branch === "gas-phase" ? { ...c, speciesId: toId(c.speciesId) } : c,
       ),
-    }
-  }
-  else {
+    };
+  } else {
     return {
       ...r,
-      reactants: r.reactants.map((c) => ({ ...c, speciesId: toId(c.speciesId) })),
+      reactants: r.reactants.map((c) => ({
+        ...c,
+        speciesId: toId(c.speciesId),
+      })),
       products: r.products.map((c) => ({ ...c, speciesId: toId(c.speciesId) })),
-    }
-  };
+    };
+  }
 }
 
 function linkPhaseIds(r: Reaction, nameToId: Map<string, string>) {
   return {
     ...r,
-    gasPhaseId: r.gasPhaseId ? nameToId.get(String(r.gasPhaseId)) ?? r.gasPhaseId : undefined,
+    gasPhaseId: r.gasPhaseId
+      ? (nameToId.get(String(r.gasPhaseId)) ?? r.gasPhaseId)
+      : undefined,
   };
 }
