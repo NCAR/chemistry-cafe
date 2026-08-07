@@ -347,6 +347,69 @@ describe("Phase serialization", () => {
   });
 });
 
+describe("Species serialization", () => {
+  beforeAll(initFixtures);
+
+  it("serializes species attributes to their v1 wire keys", () => {
+    const byName = (name: string) =>
+      serialized.species.find((s: any) => s.name === name);
+
+    expect(byName(molecularWeightSpecies.name)["molecular weight [kg mol-1]"]).toBe(
+      0.01,
+    );
+    expect(
+      byName(mixingRatioSpecies.name)["constant mixing ratio [mol mol-1]"],
+    ).toBe(0.01);
+    // string "true" is coerced to a boolean
+    expect(byName(thirdBodySpecies.name)["is third body"]).toBe(true);
+    // non-first-class properties are emitted with musica's `__` prefix
+    expect(byName(absoluteToleranceSpecies.name)["__absolute tolerance"]).toBe(
+      1e-9,
+    );
+    // a species with no attributes serializes to just its name
+    expect(Object.keys(byName(plainSpecies.name))).toEqual(["name"]);
+  });
+
+  it("deserializes species attributes back to the model", () => {
+    const byName = (name: string) =>
+      imported.species.find((s) => s.name === name)!;
+
+    expect(
+      byName(molecularWeightSpecies.name).attributes["molecular weight [kg mol-1]"]
+        ?.value,
+    ).toBe(0.01);
+    expect(
+      byName(mixingRatioSpecies.name).attributes[
+        "constant mixing ratio [mol mol-1]"
+      ]?.value,
+    ).toBe(0.01);
+    // booleans are normalized back to a string (SpeciesAttribute.value is number | string)
+    expect(byName(thirdBodySpecies.name).attributes["is third body"]?.value).toBe(
+      "true",
+    );
+    // the `__` prefix is stripped so the key matches the chemistry-cafe serializationKey
+    expect(
+      byName(absoluteToleranceSpecies.name).attributes["absolute tolerance"]
+        ?.value,
+    ).toBe(1e-9);
+  });
+
+  it("omits 'is third body' when the species is not a third body", () => {
+    const notThirdBody: Species = {
+      ...thirdBodySpecies,
+      id: "species-not-third-body",
+      attributes: {
+        "is third body": { serializationKey: "is third body", value: "false" },
+      },
+    };
+    const parsed = serialize(
+      { ...mechanism, speciesIds: [notThirdBody.id], reactionIds: [], phaseIds: [] },
+      { ...family, species: [notThirdBody], reactions: [], phases: [] },
+    );
+    expect(parsed.species[0]["is third body"]).toBeUndefined();
+  });
+});
+
 describe("Reaction type serialization and deserialization", () => {
   beforeAll(initFixtures);
 

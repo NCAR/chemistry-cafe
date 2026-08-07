@@ -314,7 +314,6 @@ const TUNNELING: ReactionAdapter = {
 
 const SURFACE: ReactionAdapter = {
   toMusica: (r, ctx) => {
-    console.log("SURFACE toMusica", r, ctx);
     return new reactionTypes.Surface({
       name: r.name,
       reaction_probability: num(paramVal(r, "reaction probability"), 1.0),
@@ -330,7 +329,6 @@ const SURFACE: ReactionAdapter = {
   },
 
   fromMusica: (json) => {
-    console.log("SURFACE fromMusica", json);
     return {
       id: generateFrontendID(),
       name: json.name ?? "",
