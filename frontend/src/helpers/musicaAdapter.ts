@@ -126,6 +126,7 @@ const ARRHENIUS: ReactionAdapter = {
     name: json.name ?? "",
     description: null,
     type: reactionTypes.Arrhenius.type,
+    gasPhaseId: json["gas phase"] ?? undefined,
     attributes: attrsFromParams({
       A: json.A,
       B: json.B,
@@ -163,6 +164,7 @@ const BRANCHED_NO_RO2: ReactionAdapter = {
     name: json.name ?? "",
     description: null,
     type: reactionTypes.Branched.type,
+    gasPhaseId: json["gas phase"] ?? undefined,
     attributes: attrsFromParams({
       X: json.X,
       Y: json.Y,
@@ -191,6 +193,7 @@ const EMISSION: ReactionAdapter = {
     name: json.name ?? "",
     description: null,
     type: reactionTypes.Emission.type,
+    gasPhaseId: json["gas phase"] ?? undefined,
     attributes: attrsFromParams({
       [SCALING_FACTOR_KEY]: json[SCALING_FACTOR_KEY],
     }),
@@ -200,26 +203,31 @@ const EMISSION: ReactionAdapter = {
 };
 
 const PHOTOLYSIS: ReactionAdapter = {
-  toMusica: (r, ctx) =>
-    new reactionTypes.Photolysis({
+  toMusica: (r, ctx) => {
+    return new reactionTypes.Photolysis({
       name: r.name,
       scaling_factor: num(paramVal(r, SCALING_FACTOR_KEY), 1.0),
       gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
       reactants: componentsToMusica(r.reactants, ctx),
       products: componentsToMusica(r.products, ctx),
-    }),
+    })
+  },
 
-  fromMusica: (json) => ({
-    id: generateFrontendID(),
-    name: json.name ?? "",
-    description: null,
-    type: reactionTypes.Photolysis.type,
-    attributes: attrsFromParams({
-      [SCALING_FACTOR_KEY]: json[SCALING_FACTOR_KEY],
-    }),
-    reactants: componentsFromJSON(json.reactants),
-    products: componentsFromJSON(json.products),
-  }),
+  fromMusica: (json) => {
+    let obj = {
+      id: generateFrontendID(),
+      name: json.name ?? "",
+      description: null,
+      gasPhaseId: json["gas phase"] ?? undefined,
+      type: reactionTypes.Photolysis.type,
+      attributes: attrsFromParams({
+        [SCALING_FACTOR_KEY]: json[SCALING_FACTOR_KEY],
+      }),
+      reactants: componentsFromJSON(json.reactants),
+      products: componentsFromJSON(json.products),
+    }
+    return obj;
+  },
 };
 
 const FIRST_ORDER_LOSS: ReactionAdapter = {
@@ -236,6 +244,7 @@ const FIRST_ORDER_LOSS: ReactionAdapter = {
     name: json.name ?? "",
     description: null,
     type: reactionTypes.FirstOrderLoss.type,
+    gasPhaseId: json["gas phase"] ?? undefined,
     attributes: attrsFromParams({
       [SCALING_FACTOR_KEY]: json[SCALING_FACTOR_KEY],
     }),
@@ -266,6 +275,7 @@ const TROE: ReactionAdapter = {
     name: json.name ?? "",
     description: null,
     type: reactionTypes.Troe.type,
+    gasPhaseId: json["gas phase"] ?? undefined,
     attributes: attrsFromParams({
       k0_A: json.k0_A,
       k0_B: json.k0_B,
@@ -299,22 +309,16 @@ const TUNNELING: ReactionAdapter = {
     name: json.name ?? "",
     description: null,
     type: reactionTypes.Tunneling.type,
+    gasPhaseId: json["gas phase"] ?? undefined,
     attributes: attrsFromParams({ A: json.A, B: json.B, C: json.C }),
     reactants: componentsFromJSON(json.reactants),
     products: componentsFromJSON(json.products),
   }),
 };
 
-// SURFACE: heterogeneous reaction with a single gas-phase species and a set of
-// gas-phase products. The single species comes from the reaction's
-// gasPhaseSpeciesId; products carry the "gas-phase" branch.
-// NOTE: musica's Surface.getJSON() requires gas_phase_species, so it is always
-// constructed (an unresolved id yields its raw value as the name). The editor
-// UI for setting gasPhaseSpeciesId, and relinking it on import, remain part of
-// #237 / #238.
 const SURFACE: ReactionAdapter = {
-  toMusica: (r, ctx) =>
-    new reactionTypes.Surface({
+  toMusica: (r, ctx) => {
+    return new reactionTypes.Surface({
       name: r.name,
       reaction_probability: num(paramVal(r, "reaction probability"), 1.0),
       gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
@@ -325,21 +329,24 @@ const SURFACE: ReactionAdapter = {
         r.products.filter((p) => p.branch === "gas-phase"),
         ctx,
       ),
-    }),
+    });
+  },
 
-  fromMusica: (json) => ({
-    id: generateFrontendID(),
-    name: json.name ?? "",
-    description: null,
-    type: reactionTypes.Surface.type,
-    attributes: attrsFromParams({
-      "reaction probability": json["reaction probability"],
-    }),
-    reactants: [],
-    products: componentsFromJSON(json["gas-phase products"], "gas-phase"),
-    // Arrives as a species *name*; relinking to an id is tracked in #238.
-    gasPhaseSpeciesId: json["gas-phase species"],
-  }),
+  fromMusica: (json) => {
+    return {
+      id: generateFrontendID(),
+      name: json.name ?? "",
+      description: null,
+      type: reactionTypes.Surface.type,
+      gasPhaseId: json["gas phase"] ?? undefined,
+      attributes: attrsFromParams({
+        "reaction probability": json["reaction probability"],
+      }),
+      reactants: [],
+      products: componentsFromJSON(json["gas-phase products"], "gas-phase"),
+      gasPhaseSpeciesId: json["gas-phase species"],
+    }
+  },
 };
 
 const REACTION_ADAPTERS: Partial<Record<ReactionTypeName, ReactionAdapter>> = {
@@ -468,9 +475,12 @@ export function deserializeMechanism(parsed: Record<string, any>): Family {
   }
 
   // 2. phases — resolve member species names back to ids.
+  const phaseToId = new Map<string, string>();
   for (const p of parsed.phases) {
+    const id = generateFrontendID();
+    phaseToId.set(p.name, id);
     family.phases.push({
-      id: generateFrontendID(),
+      id,
       name: p.name,
       description: null,
       speciesIds: (p.species ?? [])
@@ -490,7 +500,10 @@ export function deserializeMechanism(parsed: Record<string, any>): Family {
       console.warn(`Unsupported reaction type on import: ${r.type}`);
       continue;
     }
-    family.reactions.push(linkComponentIds(adapter.fromMusica(r), nameToId));
+    let reaction = adapter.fromMusica(r);
+    reaction = linkPhaseIds(reaction, phaseToId);
+    reaction = linkComponentIds(reaction, nameToId);
+    family.reactions.push(reaction);
   }
 
   return family;
@@ -534,9 +547,29 @@ function linkComponentIds(
 ): Reaction {
   const toId = (speciesId: Reactant["speciesId"]) =>
     nameToId.get(String(speciesId)) ?? speciesId;
+  if (r.type === reactionTypes.Surface.type) {
+    return {
+      ...r,
+      gasPhaseSpeciesId: r.gasPhaseSpeciesId
+        ? toId(r.gasPhaseSpeciesId)
+        : undefined,
+      products: r.products.map((c) =>
+        c.branch === "gas-phase" ? { ...c, speciesId: toId(c.speciesId) } : c,
+      ),
+    }
+  }
+  else {
+    return {
+      ...r,
+      reactants: r.reactants.map((c) => ({ ...c, speciesId: toId(c.speciesId) })),
+      products: r.products.map((c) => ({ ...c, speciesId: toId(c.speciesId) })),
+    }
+  };
+}
+
+function linkPhaseIds(r: Reaction, nameToId: Map<string, string>) {
   return {
     ...r,
-    reactants: r.reactants.map((c) => ({ ...c, speciesId: toId(c.speciesId) })),
-    products: r.products.map((c) => ({ ...c, speciesId: toId(c.speciesId) })),
+    gasPhaseId: r.gasPhaseId ? nameToId.get(String(r.gasPhaseId)) ?? r.gasPhaseId : undefined,
   };
 }
