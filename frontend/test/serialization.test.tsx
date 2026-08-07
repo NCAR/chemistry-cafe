@@ -376,6 +376,9 @@ describe("Reaction type serialization and deserialization", () => {
         product.name,
       );
       expect(back.products[0].coefficient).toBe(2);
+      expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(
+        true,
+      );
     });
 
     it("serializes with C when Ea is absent", () => {
@@ -420,6 +423,9 @@ describe("Reaction type serialization and deserialization", () => {
       expect(importedName(String(nitrate[0].speciesId))).toBe(
         reactant.name,
       );
+      expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(
+        true,
+      );
     });
   });
 
@@ -436,6 +442,9 @@ describe("Reaction type serialization and deserialization", () => {
       expect(back.attributes["scaling factor"]?.value).toBe(2.5);
       expect(importedName(String(back.products[0].speciesId))).toBe(
         product.name,
+      );
+      expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(
+        true,
       );
     });
   });
@@ -480,6 +489,9 @@ describe("Reaction type serialization and deserialization", () => {
         reactant.name,
       );
       expect(back.products).toHaveLength(0);
+      expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(
+        true,
+      );
     });
   });
 
@@ -502,6 +514,9 @@ describe("Reaction type serialization and deserialization", () => {
       expect(importedName(String(back.reactants[0].speciesId))).toBe(
         reactant.name,
       );
+      expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(
+        true,
+      );
     });
   });
 
@@ -521,33 +536,38 @@ describe("Reaction type serialization and deserialization", () => {
       expect(importedName(String(back.reactants[0].speciesId))).toBe(
         reactant.name,
       );
+      expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(
+        true,
+      );
     });
   });
 
   describe("SURFACE", () => {
-    // it("serializes", () => {
-    //   const rx = reactionOfType("SURFACE");
-    //   expect(rx["reaction probability"]).toBe(0.5);
-    //   // single gas-phase species resolves to its name
-    //   expect(rx["gas-phase species"]).toBe(reactant.name);
-    //   expect(rx["gas-phase products"][0]).toEqual({
-    //     name: product.name,
-    //     coefficient: 2,
-    //   });
-    //   expect(rx["gas phase"]).toBe("gas");
-    // });
+    it("serializes", () => {
+      const rx = reactionOfType("SURFACE");
+      expect(rx["reaction probability"]).toBe(0.5);
+      // single gas-phase species resolves to its name
+      expect(rx["gas-phase species"]).toBe(reactant.name);
+      expect(rx["gas-phase products"][0]).toEqual({
+        name: product.name,
+        coefficient: 2,
+      });
+      expect(rx["gas phase"]).toBe("gas");
+    });
 
-    // it("deserializes", () => {
-    //   const back = importedReactionOfType("SURFACE");
-    //   expect(back.attributes["reaction probability"]?.value).toBe(0.5);
-    //   const gasPhaseProducts = back.products.filter(
-    //     (p) => p.branch === "gas-phase",
-    //   );
-    //   expect(importedName(String(gasPhaseProducts[0].speciesId))).toBe(
-    //     product.name,
-    //   );
-    //   // #238: the single gas-phase species is relinked to a species id
-    //   expect(importedName(String(back.gasPhaseSpeciesId))).toBe(reactant.name);
-    // });
+    it("deserializes", () => {
+      const back = importedReactionOfType("SURFACE");
+      expect(back.attributes["reaction probability"]?.value).toBe(0.5);
+      const gasPhaseProducts = back.products.filter(
+        (p) => p.branch === "gas-phase",
+      );
+      expect(importedName(String(gasPhaseProducts[0].speciesId))).toBe(
+        product.name,
+      );
+      expect(importedName(String(back.gasPhaseSpeciesId))).toBe(reactant.name);
+      expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(
+        true,
+      );
+    });
   });
 });
