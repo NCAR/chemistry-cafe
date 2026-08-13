@@ -188,12 +188,31 @@ const firstOrderLossReaction: Reaction = {
   products: [],
 };
 
-// no gas phase — exercises the "gas phase omitted" case
 const troeReaction: Reaction = {
   id: "reaction-troe",
   name: "troe",
   description: null,
   type: "TROE",
+  gasPhaseId: gasPhase.id,
+  attributes: attrs({
+    k0_A: 1,
+    k0_B: 2,
+    k0_C: 3,
+    kinf_A: 4,
+    kinf_B: 5,
+    kinf_C: 6,
+    Fc: 0.5,
+    N: 1,
+  }),
+  reactants: [{ speciesId: reactant.id, coefficient: 1 }],
+  products: [{ speciesId: product.id, coefficient: 1 }],
+};
+
+const ternaryChemicalActivationReaction: Reaction = {
+  id: "reaction-ternary-chemical-activation",
+  name: "ternary chemical activation",
+  description: null,
+  type: "TERNARY_CHEMICAL_ACTIVATION",
   gasPhaseId: gasPhase.id,
   attributes: attrs({
     k0_A: 1,
@@ -240,6 +259,7 @@ const reactions = [
   userDefinedReaction,
   firstOrderLossReaction,
   troeReaction,
+  ternaryChemicalActivationReaction,
   tunnelingReaction,
   surfaceReaction,
 ];
@@ -559,7 +579,6 @@ describe("Reaction type serialization and deserialization", () => {
 
     it("deserializes", () => {
       const back = importedReactionOfType("USER_DEFINED");
-      console.log("back", back);
       expect(back.attributes["scaling factor"]?.value).toBe(4);
       expect(importedName(String(back.reactants[0].speciesId))).toBe(
         reactant.name,
@@ -610,6 +629,29 @@ describe("Reaction type serialization and deserialization", () => {
 
     it("deserializes", () => {
       const back = importedReactionOfType("TROE");
+      expect(back.attributes["k0_A"]?.value).toBe(1);
+      expect(back.attributes["Fc"]?.value).toBe(0.5);
+      expect(back.attributes["N"]?.value).toBe(1);
+      expect(importedName(String(back.reactants[0].speciesId))).toBe(
+        reactant.name,
+      );
+      expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(true);
+    });
+  });
+
+  describe("TERNARY_CHEMICAL_ACTIVATION", () => {
+    it("serializes", () => {
+      const rx = reactionOfType("TERNARY_CHEMICAL_ACTIVATION");
+      expect(rx.k0_A).toBe(1);
+      expect(rx.k0_C).toBe(3);
+      expect(rx.kinf_A).toBe(4);
+      expect(rx.Fc).toBe(0.5);
+      expect(rx.N).toBe(1);
+      expect(rx["gas phase"]).toBe("gas");
+    });
+
+    it("deserializes", () => {
+      const back = importedReactionOfType("TERNARY_CHEMICAL_ACTIVATION");
       expect(back.attributes["k0_A"]?.value).toBe(1);
       expect(back.attributes["Fc"]?.value).toBe(0.5);
       expect(back.attributes["N"]?.value).toBe(1);
