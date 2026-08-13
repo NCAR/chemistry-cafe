@@ -14,7 +14,7 @@ import {
 } from "../src/helpers/serialization";
 
 /** Build a reaction/attribute bag ({ [key]: { serializationKey, value } }). */
-const attrs = (obj: Record<string, number | string>): Reaction["attributes"] =>
+const attrs = (obj: Record<string, number | number[] | string>): Reaction["attributes"] =>
   Object.fromEntries(
     Object.entries(obj).map(([k, v]) => [k, { serializationKey: k, value: v }]),
   );
@@ -251,12 +251,24 @@ const surfaceReaction: Reaction = {
   products: [{ speciesId: product.id, coefficient: 2, branch: "gas-phase" }],
 };
 
+const taylorSeriesReaction: Reaction = {
+  id: "reaction-taylor-series",
+  name: "taylor series",
+  description: null,
+  type: "TAYLOR_SERIES",
+  gasPhaseId: gasPhase.id,
+  attributes: attrs({ A: 1, B: 2, C: 3, D: 4, E: 5, taylor_coefficients: [1, 2, 3] }),
+  reactants: [{ speciesId: reactant.id, coefficient: 1 }],
+  products: [{ speciesId: product.id, coefficient: 1 }],
+};
+
 const reactions = [
   arrheniusReaction,
   branchedReaction,
   emissionReaction,
   photolysisReaction,
   userDefinedReaction,
+  taylorSeriesReaction,
   firstOrderLossReaction,
   troeReaction,
   ternaryChemicalActivationReaction,
@@ -705,6 +717,29 @@ describe("Reaction type serialization and deserialization", () => {
         product.name,
       );
       expect(importedName(String(back.gasPhaseSpeciesId))).toBe(reactant.name);
+      expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(true);
+    });
+  });
+
+  describe("TAYLOR_SERIES", () => {
+    it("serializes", () => {
+      const rx = reactionOfType("TAYLOR_SERIES");
+      expect(rx.A).toBe(1);
+      expect(rx.B).toBe(2);
+      expect(rx.C).toBe(3);
+      expect(rx.D).toBe(4);
+      expect(rx.E).toBe(5);
+      expect(rx["taylor coefficients"]).toEqual([1, 2, 3]);
+      expect(rx["gas phase"]).toBe("gas");
+    });
+
+    it("deserializes", () => {
+      const back = importedReactionOfType("TAYLOR_SERIES");
+      expect(back.attributes["A"]?.value).toBe(1);
+      expect(back.attributes["C"]?.value).toBe(3);
+      expect(back.attributes["taylor_coefficients"]?.value).toEqual([1, 2, 3]);
+      expect(importedName(String(back.reactants[0].speciesId))).toBe(reactant.name);
+      expect(importedName(String(back.products[0].speciesId))).toBe(product.name);
       expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(true);
     });
   });

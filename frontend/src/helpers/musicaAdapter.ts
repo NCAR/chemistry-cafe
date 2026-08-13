@@ -59,7 +59,7 @@ const paramVal = (r: Reaction, key: string): unknown =>
 
 /** Build a reaction attribute bag from a params record, dropping undefined. */
 const attrsFromParams = (
-  params: Record<string, number | string | undefined>,
+  params: Record<string, number | number[] | string | undefined>,
 ): Reaction["attributes"] => {
   const attributes: Reaction["attributes"] = {};
   for (const [key, value] of Object.entries(params)) {
@@ -414,6 +414,43 @@ const SURFACE: ReactionAdapter = {
   },
 };
 
+const TAYLOR_SERIES: ReactionAdapter = {
+  toMusica: (r, ctx) => {
+    const ea = paramVal(r, "Ea");
+    return new reactionTypes.TaylorSeries({
+      name: r.name,
+      A: num(paramVal(r, "A"), 1.0),
+      B: num(paramVal(r, "B"), 0.0),
+      ...(ea !== undefined && ea !== ""
+        ? { Ea: num(ea, 0) }
+        : { C: num(paramVal(r, "C"), 0) }),
+      D: num(paramVal(r, "D"), 300.0),
+      E: num(paramVal(r, "E"), 0.0),
+      taylor_coefficients: paramVal(r, "taylor_coefficients") as number[],
+      gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
+      reactants: componentsToMusica(r.reactants, ctx),
+      products: componentsToMusica(r.products, ctx),
+    })},
+
+  fromMusica: (json) => ({
+    id: generateFrontendID(),
+    name: json.name ?? "",
+    description: null,
+    type: reactionTypes.TaylorSeries.type,
+    attributes: attrsFromParams({
+      A: json.A,
+      B: json.B,
+      ...(json.Ea !== undefined ? { Ea: json.Ea } : { C: json.C }),
+      D: json.D,
+      E: json.E,
+      taylor_coefficients: json["taylor coefficients"] as number[],
+    }),
+    gasPhaseId: json["gas phase"] ?? undefined,
+    reactants: componentsFromJSON(json.reactants),
+    products: componentsFromJSON(json.products),
+  }),
+};
+
 const REACTION_ADAPTERS: Partial<Record<ReactionTypeName, ReactionAdapter>> = {
   ARRHENIUS,
   BRANCHED_NO_RO2,
@@ -425,6 +462,7 @@ const REACTION_ADAPTERS: Partial<Record<ReactionTypeName, ReactionAdapter>> = {
   TERNARY_CHEMICAL_ACTIVATION,
   TUNNELING,
   SURFACE,
+  TAYLOR_SERIES
 };
 
 // ── species / phase mapping ──────────────────────────────────
