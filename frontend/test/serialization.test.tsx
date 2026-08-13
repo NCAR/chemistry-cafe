@@ -166,6 +166,17 @@ const photolysisReaction: Reaction = {
   products: [{ speciesId: product.id, coefficient: 1 }],
 };
 
+const userDefinedReaction: Reaction = {
+  id: "reaction-user-defined",
+  name: "user defined",
+  description: null,
+  type: "USER_DEFINED",
+  gasPhaseId: gasPhase.id,
+  attributes: attrs({ "scaling factor": 4 }),
+  reactants: [{ speciesId: reactant.id, coefficient: 1 }, { speciesId: product.id, coefficient: 1 }],
+  products: [{ speciesId: product.id, coefficient: 1 }, { speciesId: reactant.id, coefficient: 1 }],
+};
+
 const firstOrderLossReaction: Reaction = {
   id: "reaction-first-order-loss",
   name: "first order loss",
@@ -226,6 +237,7 @@ const reactions = [
   branchedReaction,
   emissionReaction,
   photolysisReaction,
+  userDefinedReaction,
   firstOrderLossReaction,
   troeReaction,
   tunnelingReaction,
@@ -529,6 +541,37 @@ describe("Reaction type serialization and deserialization", () => {
       );
       expect(importedName(String(back.products[0].speciesId))).toBe(
         product.name,
+      );
+      expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(true);
+    });
+  });
+
+  describe("USER_DEFINED", () => {
+    it("serializes", () => {
+      const rx = reactionOfType("USER_DEFINED");
+      expect(rx["scaling factor"]).toBe(4);
+      expect(rx.reactants[0].name).toBe(reactant.name);
+      expect(rx.reactants[1].name).toBe(product.name);
+      expect(rx.products[0].name).toBe(product.name);
+      expect(rx.products[1].name).toBe(reactant.name);
+      expect(rx["gas phase"]).toBe("gas");
+    });
+
+    it("deserializes", () => {
+      const back = importedReactionOfType("USER_DEFINED");
+      console.log("back", back);
+      expect(back.attributes["scaling factor"]?.value).toBe(4);
+      expect(importedName(String(back.reactants[0].speciesId))).toBe(
+        reactant.name,
+      );
+      expect(importedName(String(back.reactants[1].speciesId))).toBe(
+        product.name,
+      );
+      expect(importedName(String(back.products[0].speciesId))).toBe(
+        product.name,
+      );
+      expect(importedName(String(back.products[1].speciesId))).toBe(
+        reactant.name,
       );
       expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(true);
     });

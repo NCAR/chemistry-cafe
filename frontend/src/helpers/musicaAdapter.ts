@@ -230,6 +230,34 @@ const PHOTOLYSIS: ReactionAdapter = {
   },
 };
 
+const USER_DEFINED: ReactionAdapter = {
+  toMusica: (r, ctx) => {
+    return new reactionTypes.UserDefined({
+      name: r.name,
+      scaling_factor: num(paramVal(r, SCALING_FACTOR_KEY), 1.0),
+      gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
+      reactants: componentsToMusica(r.reactants, ctx),
+      products: componentsToMusica(r.products, ctx),
+    });
+  },
+
+  fromMusica: (json) => {
+    let obj = {
+      id: generateFrontendID(),
+      name: json.name ?? "",
+      description: null,
+      gasPhaseId: json["gas phase"] ?? undefined,
+      type: reactionTypes.UserDefined.type,
+      attributes: attrsFromParams({
+        [SCALING_FACTOR_KEY]: json[SCALING_FACTOR_KEY],
+      }),
+      reactants: componentsFromJSON(json.reactants),
+      products: componentsFromJSON(json.products),
+    };
+    return obj;
+  },
+};
+
 const FIRST_ORDER_LOSS: ReactionAdapter = {
   toMusica: (r, ctx) =>
     new reactionTypes.FirstOrderLoss({
@@ -291,7 +319,6 @@ const TROE: ReactionAdapter = {
   }),
 };
 
-// TUNNELING: Wigner tunneling correction — A/B/C params, reactants + products.
 const TUNNELING: ReactionAdapter = {
   toMusica: (r, ctx) =>
     new reactionTypes.Tunneling({
@@ -354,6 +381,7 @@ const REACTION_ADAPTERS: Partial<Record<ReactionTypeName, ReactionAdapter>> = {
   BRANCHED_NO_RO2,
   EMISSION,
   PHOTOLYSIS,
+  USER_DEFINED,
   FIRST_ORDER_LOSS,
   TROE,
   TUNNELING,

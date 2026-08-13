@@ -102,7 +102,7 @@ export type ReactionAttribute = {
   units?: string;
 
   /** Value of the property. This is *usually* numerical */
-  value: number | string;
+  value: number | number[] | string;
 
   /** Used when the value is a string (This is not stored in the database) */
   options?: Array<string>;
@@ -116,7 +116,12 @@ export type ReactionTypeName =
   | typeof reactionTypes.Troe.type
   | typeof reactionTypes.Surface.type
   | typeof reactionTypes.Branched.type
-  | typeof reactionTypes.Tunneling.type;
+  | typeof reactionTypes.Tunneling.type
+  | typeof reactionTypes.TernaryChemicalActivation.type
+  | typeof reactionTypes.UserDefined.type
+  | typeof reactionTypes.TaylorSeries.type
+  | typeof reactionTypes.LambdaRateConstant.type
+  ;
 
 /**
  * Represents a generic reaction on the frontend.
@@ -294,11 +299,11 @@ export type Family = {
  * Other reaction types may be imported via a file, but haven't been fully tested.
  */
 export const supportedReactionTypes: Array<ReactionTypeName> = [
-  "ARRHENIUS",
-  "EMISSION",
-  "PHOTOLYSIS",
-  "TROE",
-  "FIRST_ORDER_LOSS",
+  reactionTypes.Arrhenius.type,
+  reactionTypes.Emission.type,
+  reactionTypes.Photolysis.type,
+  reactionTypes.Troe.type,
+  reactionTypes.FirstOrderLoss.type,
 ];
 
 /**
@@ -349,6 +354,13 @@ export const reactionAttributeOptions: {
       value: 0.0,
     },
   ],
+  USER_DEFINED: [
+    {
+      name: "Scaling Factor",
+      serializationKey: "scaling factor",
+      value: 0.0,
+    },
+  ],
   FIRST_ORDER_LOSS: [
     {
       name: "Scaling Factor",
@@ -357,6 +369,46 @@ export const reactionAttributeOptions: {
     },
   ],
   TROE: [
+    {
+      name: "k0 A",
+      serializationKey: "k0_A",
+      value: 0.0,
+    },
+    {
+      name: "k0 B",
+      serializationKey: "k0_B",
+      value: 0.0,
+    },
+    {
+      name: "k0 C",
+      serializationKey: "k0_C",
+      value: 0.0,
+    },
+    {
+      name: "kinf A",
+      serializationKey: "kinf_A",
+      value: 0.0,
+    },
+    {
+      name: "kinf B",
+      serializationKey: "kinf_B",
+      value: 0.0,
+    },
+    {
+      name: "kinf C",
+      serializationKey: "kinf_C",
+      value: 0.0,
+    },
+    {
+      serializationKey: "Fc",
+      value: 0.0,
+    },
+    {
+      serializationKey: "N",
+      value: 0.0,
+    },
+  ],
+  TERNARY_CHEMICAL_ACTIVATION: [
     {
       name: "k0 A",
       serializationKey: "k0_A",
@@ -435,6 +487,38 @@ export const reactionAttributeOptions: {
       value: 0.0,
     },
   ],
+  TAYLOR_SERIES: [
+    {
+      serializationKey: "A",
+      value: 0.0,
+    },
+    {
+      serializationKey: "B",
+      value: 0.0,
+    },
+    {
+      serializationKey: "Ea",
+      value: 0.0,
+    },
+    {
+      serializationKey: "D",
+      value: 0.0,
+    },
+    {
+      serializationKey: "E",
+      value: 0.0,
+    },
+    {
+      serializationKey: "taylor coefficients",
+      value: [],
+    },
+  ],
+  LAMBDA_RATE_CONSTANT: [
+    {
+      serializationKey: "lambda function",
+      value: "",
+    },
+  ],
 };
 
 export enum ReactionSpeciesCount {
@@ -492,6 +576,15 @@ export const reactionConfigurations: {
     hasAerosolPhaseSpecies: false,
     hasAerosolPhaseWater: false,
   },
+  USER_DEFINED: {
+    reactantCount: ReactionSpeciesCount.MANY,
+    productCount: ReactionSpeciesCount.MANY,
+    hasGasPhase: true,
+    hasGasPhaseSpecies: false,
+    hasAerosolPhase: false,
+    hasAerosolPhaseSpecies: false,
+    hasAerosolPhaseWater: false,
+  },
   EMISSION: {
     reactantCount: ReactionSpeciesCount.NONE,
     productCount: ReactionSpeciesCount.ONE,
@@ -529,6 +622,15 @@ export const reactionConfigurations: {
     hasAerosolPhaseSpecies: false,
     hasAerosolPhaseWater: false,
   },
+  TERNARY_CHEMICAL_ACTIVATION: {
+    reactantCount: ReactionSpeciesCount.MANY,
+    productCount: ReactionSpeciesCount.MANY,
+    hasGasPhase: true,
+    hasGasPhaseSpecies: false,
+    hasAerosolPhase: false,
+    hasAerosolPhaseSpecies: false,
+    hasAerosolPhaseWater: false,
+  },
   BRANCHED_NO_RO2: {
     reactantCount: ReactionSpeciesCount.MANY,
     productCount: ReactionSpeciesCount.MANY,
@@ -540,6 +642,24 @@ export const reactionConfigurations: {
     branches: ["alkoxy", "nitrate"],
   },
   TUNNELING: {
+    reactantCount: ReactionSpeciesCount.MANY,
+    productCount: ReactionSpeciesCount.MANY,
+    hasGasPhase: true,
+    hasGasPhaseSpecies: false,
+    hasAerosolPhase: false,
+    hasAerosolPhaseSpecies: false,
+    hasAerosolPhaseWater: false,
+  },
+  TAYLOR_SERIES: {
+    reactantCount: ReactionSpeciesCount.MANY,
+    productCount: ReactionSpeciesCount.MANY,
+    hasGasPhase: true,
+    hasGasPhaseSpecies: false,
+    hasAerosolPhase: false,
+    hasAerosolPhaseSpecies: false,
+    hasAerosolPhaseWater: false,
+  },
+  LAMBDA_RATE_CONSTANT: {
     reactantCount: ReactionSpeciesCount.MANY,
     productCount: ReactionSpeciesCount.MANY,
     hasGasPhase: true,
