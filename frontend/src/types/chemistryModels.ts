@@ -301,7 +301,9 @@ export const supportedReactionTypes: Array<ReactionTypeName> = [
   reactionTypes.Arrhenius.type,
   reactionTypes.Emission.type,
   reactionTypes.Photolysis.type,
+  reactionTypes.UserDefined.type,
   reactionTypes.Troe.type,
+  reactionTypes.TernaryChemicalActivation.type,
   reactionTypes.FirstOrderLoss.type,
 ];
 
