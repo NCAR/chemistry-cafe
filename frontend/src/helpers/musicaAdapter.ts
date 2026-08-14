@@ -202,6 +202,29 @@ const EMISSION: ReactionAdapter = {
   }),
 };
 
+const FIRST_ORDER_LOSS: ReactionAdapter = {
+  toMusica: (r, ctx) =>
+    new reactionTypes.FirstOrderLoss({
+      name: r.name,
+      scaling_factor: num(paramVal(r, SCALING_FACTOR_KEY), 1.0),
+      gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
+      reactants: componentsToMusica(r.reactants, ctx),
+    }),
+
+  fromMusica: (json) => ({
+    id: generateFrontendID(),
+    name: json.name ?? "",
+    description: null,
+    type: reactionTypes.FirstOrderLoss.type,
+    gasPhaseId: json["gas phase"] ?? undefined,
+    attributes: attrsFromParams({
+      [SCALING_FACTOR_KEY]: json[SCALING_FACTOR_KEY],
+    }),
+    reactants: componentsFromJSON(json.reactants),
+    products: [],
+  }),
+};
+
 const PHOTOLYSIS: ReactionAdapter = {
   toMusica: (r, ctx) => {
     return new reactionTypes.Photolysis({
@@ -228,157 +251,6 @@ const PHOTOLYSIS: ReactionAdapter = {
     };
     return obj;
   },
-};
-
-const USER_DEFINED: ReactionAdapter = {
-  toMusica: (r, ctx) => {
-    return new reactionTypes.UserDefined({
-      name: r.name,
-      scaling_factor: num(paramVal(r, SCALING_FACTOR_KEY), 1.0),
-      gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
-      reactants: componentsToMusica(r.reactants, ctx),
-      products: componentsToMusica(r.products, ctx),
-    });
-  },
-
-  fromMusica: (json) => {
-    let obj = {
-      id: generateFrontendID(),
-      name: json.name ?? "",
-      description: null,
-      gasPhaseId: json["gas phase"] ?? undefined,
-      type: reactionTypes.UserDefined.type,
-      attributes: attrsFromParams({
-        [SCALING_FACTOR_KEY]: json[SCALING_FACTOR_KEY],
-      }),
-      reactants: componentsFromJSON(json.reactants),
-      products: componentsFromJSON(json.products),
-    };
-    return obj;
-  },
-};
-
-const FIRST_ORDER_LOSS: ReactionAdapter = {
-  toMusica: (r, ctx) =>
-    new reactionTypes.FirstOrderLoss({
-      name: r.name,
-      scaling_factor: num(paramVal(r, SCALING_FACTOR_KEY), 1.0),
-      gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
-      reactants: componentsToMusica(r.reactants, ctx),
-    }),
-
-  fromMusica: (json) => ({
-    id: generateFrontendID(),
-    name: json.name ?? "",
-    description: null,
-    type: reactionTypes.FirstOrderLoss.type,
-    gasPhaseId: json["gas phase"] ?? undefined,
-    attributes: attrsFromParams({
-      [SCALING_FACTOR_KEY]: json[SCALING_FACTOR_KEY],
-    }),
-    reactants: componentsFromJSON(json.reactants),
-    products: [],
-  }),
-};
-
-const TROE: ReactionAdapter = {
-  toMusica: (r, ctx) =>
-    new reactionTypes.Troe({
-      name: r.name,
-      k0_A: num(paramVal(r, "k0_A"), 1.0),
-      k0_B: num(paramVal(r, "k0_B"), 0.0),
-      k0_C: num(paramVal(r, "k0_C"), 0.0),
-      kinf_A: num(paramVal(r, "kinf_A"), 1.0),
-      kinf_B: num(paramVal(r, "kinf_B"), 0.0),
-      kinf_C: num(paramVal(r, "kinf_C"), 0.0),
-      Fc: num(paramVal(r, "Fc"), 0.6),
-      N: num(paramVal(r, "N"), 1.0),
-      gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
-      reactants: componentsToMusica(r.reactants, ctx),
-      products: componentsToMusica(r.products, ctx),
-    }),
-
-  fromMusica: (json) => ({
-    id: generateFrontendID(),
-    name: json.name ?? "",
-    description: null,
-    type: reactionTypes.Troe.type,
-    gasPhaseId: json["gas phase"] ?? undefined,
-    attributes: attrsFromParams({
-      k0_A: json.k0_A,
-      k0_B: json.k0_B,
-      k0_C: json.k0_C,
-      kinf_A: json.kinf_A,
-      kinf_B: json.kinf_B,
-      kinf_C: json.kinf_C,
-      Fc: json.Fc,
-      N: json.N,
-    }),
-    reactants: componentsFromJSON(json.reactants),
-    products: componentsFromJSON(json.products),
-  }),
-};
-
-const TERNARY_CHEMICAL_ACTIVATION: ReactionAdapter = {
-  toMusica: (r, ctx) =>
-    new reactionTypes.TernaryChemicalActivation({
-      name: r.name,
-      k0_A: num(paramVal(r, "k0_A"), 1.0),
-      k0_B: num(paramVal(r, "k0_B"), 0.0),
-      k0_C: num(paramVal(r, "k0_C"), 0.0),
-      kinf_A: num(paramVal(r, "kinf_A"), 1.0),
-      kinf_B: num(paramVal(r, "kinf_B"), 0.0),
-      kinf_C: num(paramVal(r, "kinf_C"), 0.0),
-      Fc: num(paramVal(r, "Fc"), 0.6),
-      N: num(paramVal(r, "N"), 1.0),
-      gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
-      reactants: componentsToMusica(r.reactants, ctx),
-      products: componentsToMusica(r.products, ctx),
-    }),
-
-  fromMusica: (json) => ({
-    id: generateFrontendID(),
-    name: json.name ?? "",
-    description: null,
-    type: reactionTypes.TernaryChemicalActivation.type,
-    gasPhaseId: json["gas phase"] ?? undefined,
-    attributes: attrsFromParams({
-      k0_A: json.k0_A,
-      k0_B: json.k0_B,
-      k0_C: json.k0_C,
-      kinf_A: json.kinf_A,
-      kinf_B: json.kinf_B,
-      kinf_C: json.kinf_C,
-      Fc: json.Fc,
-      N: json.N,
-    }),
-    reactants: componentsFromJSON(json.reactants),
-    products: componentsFromJSON(json.products),
-  }),
-};
-
-const TUNNELING: ReactionAdapter = {
-  toMusica: (r, ctx) =>
-    new reactionTypes.Tunneling({
-      name: r.name,
-      A: num(paramVal(r, "A"), 1.0),
-      B: num(paramVal(r, "B"), 0.0),
-      C: num(paramVal(r, "C"), 0.0),
-      gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
-      reactants: componentsToMusica(r.reactants, ctx),
-      products: componentsToMusica(r.products, ctx),
-    }),
-
-  fromMusica: (json) => ({
-    id: generateFrontendID(),
-    name: json.name ?? "",
-    description: null,
-    type: reactionTypes.Tunneling.type,
-    gasPhaseId: json["gas phase"] ?? undefined,
-    attributes: attrsFromParams({ A: json.A, B: json.B, C: json.C }),
-    reactants: componentsFromJSON(json.reactants),
-    products: componentsFromJSON(json.products),
-  }),
 };
 
 const SURFACE: ReactionAdapter = {
@@ -452,18 +324,146 @@ const TAYLOR_SERIES: ReactionAdapter = {
   }),
 };
 
+const TERNARY_CHEMICAL_ACTIVATION: ReactionAdapter = {
+  toMusica: (r, ctx) =>
+    new reactionTypes.TernaryChemicalActivation({
+      name: r.name,
+      k0_A: num(paramVal(r, "k0_A"), 1.0),
+      k0_B: num(paramVal(r, "k0_B"), 0.0),
+      k0_C: num(paramVal(r, "k0_C"), 0.0),
+      kinf_A: num(paramVal(r, "kinf_A"), 1.0),
+      kinf_B: num(paramVal(r, "kinf_B"), 0.0),
+      kinf_C: num(paramVal(r, "kinf_C"), 0.0),
+      Fc: num(paramVal(r, "Fc"), 0.6),
+      N: num(paramVal(r, "N"), 1.0),
+      gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
+      reactants: componentsToMusica(r.reactants, ctx),
+      products: componentsToMusica(r.products, ctx),
+    }),
+
+  fromMusica: (json) => ({
+    id: generateFrontendID(),
+    name: json.name ?? "",
+    description: null,
+    type: reactionTypes.TernaryChemicalActivation.type,
+    gasPhaseId: json["gas phase"] ?? undefined,
+    attributes: attrsFromParams({
+      k0_A: json.k0_A,
+      k0_B: json.k0_B,
+      k0_C: json.k0_C,
+      kinf_A: json.kinf_A,
+      kinf_B: json.kinf_B,
+      kinf_C: json.kinf_C,
+      Fc: json.Fc,
+      N: json.N,
+    }),
+    reactants: componentsFromJSON(json.reactants),
+    products: componentsFromJSON(json.products),
+  }),
+};
+
+const TROE: ReactionAdapter = {
+  toMusica: (r, ctx) =>
+    new reactionTypes.Troe({
+      name: r.name,
+      k0_A: num(paramVal(r, "k0_A"), 1.0),
+      k0_B: num(paramVal(r, "k0_B"), 0.0),
+      k0_C: num(paramVal(r, "k0_C"), 0.0),
+      kinf_A: num(paramVal(r, "kinf_A"), 1.0),
+      kinf_B: num(paramVal(r, "kinf_B"), 0.0),
+      kinf_C: num(paramVal(r, "kinf_C"), 0.0),
+      Fc: num(paramVal(r, "Fc"), 0.6),
+      N: num(paramVal(r, "N"), 1.0),
+      gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
+      reactants: componentsToMusica(r.reactants, ctx),
+      products: componentsToMusica(r.products, ctx),
+    }),
+
+  fromMusica: (json) => ({
+    id: generateFrontendID(),
+    name: json.name ?? "",
+    description: null,
+    type: reactionTypes.Troe.type,
+    gasPhaseId: json["gas phase"] ?? undefined,
+    attributes: attrsFromParams({
+      k0_A: json.k0_A,
+      k0_B: json.k0_B,
+      k0_C: json.k0_C,
+      kinf_A: json.kinf_A,
+      kinf_B: json.kinf_B,
+      kinf_C: json.kinf_C,
+      Fc: json.Fc,
+      N: json.N,
+    }),
+    reactants: componentsFromJSON(json.reactants),
+    products: componentsFromJSON(json.products),
+  }),
+};
+
+const TUNNELING: ReactionAdapter = {
+  toMusica: (r, ctx) =>
+    new reactionTypes.Tunneling({
+      name: r.name,
+      A: num(paramVal(r, "A"), 1.0),
+      B: num(paramVal(r, "B"), 0.0),
+      C: num(paramVal(r, "C"), 0.0),
+      gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
+      reactants: componentsToMusica(r.reactants, ctx),
+      products: componentsToMusica(r.products, ctx),
+    }),
+
+  fromMusica: (json) => ({
+    id: generateFrontendID(),
+    name: json.name ?? "",
+    description: null,
+    type: reactionTypes.Tunneling.type,
+    gasPhaseId: json["gas phase"] ?? undefined,
+    attributes: attrsFromParams({ A: json.A, B: json.B, C: json.C }),
+    reactants: componentsFromJSON(json.reactants),
+    products: componentsFromJSON(json.products),
+  }),
+};
+
+const USER_DEFINED: ReactionAdapter = {
+  toMusica: (r, ctx) => {
+    return new reactionTypes.UserDefined({
+      name: r.name,
+      scaling_factor: num(paramVal(r, SCALING_FACTOR_KEY), 1.0),
+      gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
+      reactants: componentsToMusica(r.reactants, ctx),
+      products: componentsToMusica(r.products, ctx),
+    });
+  },
+
+  fromMusica: (json) => {
+    let obj = {
+      id: generateFrontendID(),
+      name: json.name ?? "",
+      description: null,
+      gasPhaseId: json["gas phase"] ?? undefined,
+      type: reactionTypes.UserDefined.type,
+      attributes: attrsFromParams({
+        [SCALING_FACTOR_KEY]: json[SCALING_FACTOR_KEY],
+      }),
+      reactants: componentsFromJSON(json.reactants),
+      products: componentsFromJSON(json.products),
+    };
+    return obj;
+  },
+};
+
 const REACTION_ADAPTERS: Partial<Record<ReactionTypeName, ReactionAdapter>> = {
   ARRHENIUS,
   BRANCHED_NO_RO2,
   EMISSION,
-  PHOTOLYSIS,
-  USER_DEFINED,
   FIRST_ORDER_LOSS,
-  TROE,
-  TERNARY_CHEMICAL_ACTIVATION,
-  TUNNELING,
+  PHOTOLYSIS,
   SURFACE,
   TAYLOR_SERIES,
+  TERNARY_CHEMICAL_ACTIVATION,
+  TROE,
+  TUNNELING,
+  USER_DEFINED,
 };
 
 // ── species / phase mapping ──────────────────────────────────
