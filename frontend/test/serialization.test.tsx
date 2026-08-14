@@ -14,7 +14,7 @@ import {
 } from "../src/helpers/serialization";
 
 /** Build a reaction/attribute bag ({ [key]: { serializationKey, value } }). */
-const attrs = (obj: Record<string, number | string>): Reaction["attributes"] =>
+const attrs = (obj: Record<string, number | number[] | string>): Reaction["attributes"] =>
   Object.fromEntries(
     Object.entries(obj).map(([k, v]) => [k, { serializationKey: k, value: v }]),
   );
@@ -166,6 +166,17 @@ const photolysisReaction: Reaction = {
   products: [{ speciesId: product.id, coefficient: 1 }],
 };
 
+const userDefinedReaction: Reaction = {
+  id: "reaction-user-defined",
+  name: "user defined",
+  description: null,
+  type: "USER_DEFINED",
+  gasPhaseId: gasPhase.id,
+  attributes: attrs({ "scaling factor": 4 }),
+  reactants: [{ speciesId: reactant.id, coefficient: 1 }, { speciesId: product.id, coefficient: 1 }],
+  products: [{ speciesId: product.id, coefficient: 1 }, { speciesId: reactant.id, coefficient: 1 }],
+};
+
 const firstOrderLossReaction: Reaction = {
   id: "reaction-first-order-loss",
   name: "first order loss",
@@ -177,12 +188,31 @@ const firstOrderLossReaction: Reaction = {
   products: [],
 };
 
-// no gas phase — exercises the "gas phase omitted" case
 const troeReaction: Reaction = {
   id: "reaction-troe",
   name: "troe",
   description: null,
   type: "TROE",
+  gasPhaseId: gasPhase.id,
+  attributes: attrs({
+    k0_A: 1,
+    k0_B: 2,
+    k0_C: 3,
+    kinf_A: 4,
+    kinf_B: 5,
+    kinf_C: 6,
+    Fc: 0.5,
+    N: 1,
+  }),
+  reactants: [{ speciesId: reactant.id, coefficient: 1 }],
+  products: [{ speciesId: product.id, coefficient: 1 }],
+};
+
+const ternaryChemicalActivationReaction: Reaction = {
+  id: "reaction-ternary-chemical-activation",
+  name: "ternary chemical activation",
+  description: null,
+  type: "TERNARY_CHEMICAL_ACTIVATION",
   gasPhaseId: gasPhase.id,
   attributes: attrs({
     k0_A: 1,
@@ -221,13 +251,27 @@ const surfaceReaction: Reaction = {
   products: [{ speciesId: product.id, coefficient: 2, branch: "gas-phase" }],
 };
 
+const taylorSeriesReaction: Reaction = {
+  id: "reaction-taylor-series",
+  name: "taylor series",
+  description: null,
+  type: "TAYLOR_SERIES",
+  gasPhaseId: gasPhase.id,
+  attributes: attrs({ A: 1, B: 2, C: 3, D: 4, E: 5, taylor_coefficients: [1, 2, 3] }),
+  reactants: [{ speciesId: reactant.id, coefficient: 1 }],
+  products: [{ speciesId: product.id, coefficient: 1 }],
+};
+
 const reactions = [
   arrheniusReaction,
   branchedReaction,
   emissionReaction,
   photolysisReaction,
+  userDefinedReaction,
+  taylorSeriesReaction,
   firstOrderLossReaction,
   troeReaction,
+  ternaryChemicalActivationReaction,
   tunnelingReaction,
   surfaceReaction,
 ];
@@ -534,6 +578,36 @@ describe("Reaction type serialization and deserialization", () => {
     });
   });
 
+  describe("USER_DEFINED", () => {
+    it("serializes", () => {
+      const rx = reactionOfType("USER_DEFINED");
+      expect(rx["scaling factor"]).toBe(4);
+      expect(rx.reactants[0].name).toBe(reactant.name);
+      expect(rx.reactants[1].name).toBe(product.name);
+      expect(rx.products[0].name).toBe(product.name);
+      expect(rx.products[1].name).toBe(reactant.name);
+      expect(rx["gas phase"]).toBe("gas");
+    });
+
+    it("deserializes", () => {
+      const back = importedReactionOfType("USER_DEFINED");
+      expect(back.attributes["scaling factor"]?.value).toBe(4);
+      expect(importedName(String(back.reactants[0].speciesId))).toBe(
+        reactant.name,
+      );
+      expect(importedName(String(back.reactants[1].speciesId))).toBe(
+        product.name,
+      );
+      expect(importedName(String(back.products[0].speciesId))).toBe(
+        product.name,
+      );
+      expect(importedName(String(back.products[1].speciesId))).toBe(
+        reactant.name,
+      );
+      expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(true);
+    });
+  });
+
   describe("FIRST_ORDER_LOSS", () => {
     it("serializes", () => {
       const rx = reactionOfType("FIRST_ORDER_LOSS");
@@ -567,6 +641,29 @@ describe("Reaction type serialization and deserialization", () => {
 
     it("deserializes", () => {
       const back = importedReactionOfType("TROE");
+      expect(back.attributes["k0_A"]?.value).toBe(1);
+      expect(back.attributes["Fc"]?.value).toBe(0.5);
+      expect(back.attributes["N"]?.value).toBe(1);
+      expect(importedName(String(back.reactants[0].speciesId))).toBe(
+        reactant.name,
+      );
+      expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(true);
+    });
+  });
+
+  describe("TERNARY_CHEMICAL_ACTIVATION", () => {
+    it("serializes", () => {
+      const rx = reactionOfType("TERNARY_CHEMICAL_ACTIVATION");
+      expect(rx.k0_A).toBe(1);
+      expect(rx.k0_C).toBe(3);
+      expect(rx.kinf_A).toBe(4);
+      expect(rx.Fc).toBe(0.5);
+      expect(rx.N).toBe(1);
+      expect(rx["gas phase"]).toBe("gas");
+    });
+
+    it("deserializes", () => {
+      const back = importedReactionOfType("TERNARY_CHEMICAL_ACTIVATION");
       expect(back.attributes["k0_A"]?.value).toBe(1);
       expect(back.attributes["Fc"]?.value).toBe(0.5);
       expect(back.attributes["N"]?.value).toBe(1);
@@ -620,6 +717,29 @@ describe("Reaction type serialization and deserialization", () => {
         product.name,
       );
       expect(importedName(String(back.gasPhaseSpeciesId))).toBe(reactant.name);
+      expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(true);
+    });
+  });
+
+  describe("TAYLOR_SERIES", () => {
+    it("serializes", () => {
+      const rx = reactionOfType("TAYLOR_SERIES");
+      expect(rx.A).toBe(1);
+      expect(rx.B).toBe(2);
+      expect(rx.C).toBe(3);
+      expect(rx.D).toBe(4);
+      expect(rx.E).toBe(5);
+      expect(rx["taylor coefficients"]).toEqual([1, 2, 3]);
+      expect(rx["gas phase"]).toBe("gas");
+    });
+
+    it("deserializes", () => {
+      const back = importedReactionOfType("TAYLOR_SERIES");
+      expect(back.attributes["A"]?.value).toBe(1);
+      expect(back.attributes["C"]?.value).toBe(3);
+      expect(back.attributes["taylor_coefficients"]?.value).toEqual([1, 2, 3]);
+      expect(importedName(String(back.reactants[0].speciesId))).toBe(reactant.name);
+      expect(importedName(String(back.products[0].speciesId))).toBe(product.name);
       expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(true);
     });
   });
