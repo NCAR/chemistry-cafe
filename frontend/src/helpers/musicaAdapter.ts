@@ -430,7 +430,8 @@ const TAYLOR_SERIES: ReactionAdapter = {
       gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
       reactants: componentsToMusica(r.reactants, ctx),
       products: componentsToMusica(r.products, ctx),
-    })},
+    });
+  },
 
   fromMusica: (json) => ({
     id: generateFrontendID(),
@@ -462,7 +463,7 @@ const REACTION_ADAPTERS: Partial<Record<ReactionTypeName, ReactionAdapter>> = {
   TERNARY_CHEMICAL_ACTIVATION,
   TUNNELING,
   SURFACE,
-  TAYLOR_SERIES
+  TAYLOR_SERIES,
 };
 
 // ── species / phase mapping ──────────────────────────────────
