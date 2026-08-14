@@ -9,26 +9,26 @@ export const reactionTypeToString = (reactionType: string): string => {
   switch (reactionType) {
     case "ARRHENIUS":
       return "Arrhenius";
-    case "PHOTOLYSIS":
-      return "Photolysis";
-    case "USER_DEFINED":
-      return "User-Defined";
-    case "FIRST_ORDER_LOSS":
-      return "First-Order Loss";
-    case "EMISSION":
-      return "Emission";
-    case "TUNNELING":
-      return "Tunneling";
-    case "TROE":
-      return "Troe (Fall-Off)";
-    case "TERNARY_CHEMICAL_ACTIVATION":
-      return "Ternary Chemical Activation";
-    case "SURFACE":
-      return "Surface Reaction (Heterogenous)";
     case "BRANCHED_NO_RO2":
       return "Branched NO RO2";
+    case "EMISSION":
+      return "Emission";
+    case "FIRST_ORDER_LOSS":
+      return "First-Order Loss";
+    case "PHOTOLYSIS":
+      return "Photolysis";
+    case "SURFACE":
+      return "Surface Reaction (Heterogenous)";
     case "TAYLOR_SERIES":
       return "Taylor Series";
+    case "TERNARY_CHEMICAL_ACTIVATION":
+      return "Ternary Chemical Activation";
+    case "TROE":
+      return "Troe (Fall-Off)";
+    case "TUNNELING":
+      return "Tunneling";
+    case "USER_DEFINED":
+      return "User-Defined";
     default:
       return reactionType;
   }
