@@ -513,12 +513,6 @@ export const reactionAttributeOptions: {
       value: [],
     },
   ],
-  LAMBDA_RATE_CONSTANT: [
-    {
-      serializationKey: "lambda function",
-      value: "",
-    },
-  ],
 };
 
 export enum ReactionSpeciesCount {
@@ -651,15 +645,6 @@ export const reactionConfigurations: {
     hasAerosolPhaseWater: false,
   },
   TAYLOR_SERIES: {
-    reactantCount: ReactionSpeciesCount.MANY,
-    productCount: ReactionSpeciesCount.MANY,
-    hasGasPhase: true,
-    hasGasPhaseSpecies: false,
-    hasAerosolPhase: false,
-    hasAerosolPhaseSpecies: false,
-    hasAerosolPhaseWater: false,
-  },
-  LAMBDA_RATE_CONSTANT: {
     reactantCount: ReactionSpeciesCount.MANY,
     productCount: ReactionSpeciesCount.MANY,
     hasGasPhase: true,
