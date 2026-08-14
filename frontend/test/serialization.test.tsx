@@ -410,6 +410,53 @@ describe("Phase serialization", () => {
   });
 });
 
+// Guards against a regression to a hardcoded `"gas phase": "gas"`. Every other
+// suite names the gas phase "gas", so a hardcoded literal would still pass
+// there. This one names it "troposphere" and checks both directions.
+describe("Gas phase name fidelity (non-'gas')", () => {
+  const tropospherePhase: Phase = {
+    id: "phase-troposphere",
+    name: "troposphere",
+    description: null,
+    speciesIds: [reactant.id, product.id],
+  };
+
+  const reaction: Reaction = {
+    ...arrheniusReaction,
+    id: "reaction-troposphere",
+    gasPhaseId: tropospherePhase.id,
+  };
+
+  const tropoMechanism: Mechanism = {
+    ...mechanism,
+    speciesIds: [reactant.id, product.id],
+    reactionIds: [reaction.id],
+    phaseIds: [tropospherePhase.id],
+  };
+
+  const tropoFamily: Family = {
+    ...family,
+    species: [reactant, product],
+    reactions: [reaction],
+    phases: [tropospherePhase],
+  };
+
+  it("serializes the reaction's actual gas phase name", () => {
+    const parsed = serialize(tropoMechanism, tropoFamily);
+    expect(parsed.phases[0].name).toBe("troposphere");
+    expect(parsed.reactions[0]["gas phase"]).toBe("troposphere");
+  });
+
+  it("imports the reaction's gas phase by name", () => {
+    const back = deserializeV1Mechanism(
+      serializeMechanismJSON(tropoMechanism, tropoFamily),
+    )!;
+    const importedPhase = back.phases.find((p) => p.name === "troposphere");
+    expect(importedPhase).toBeDefined();
+    expect(back.reactions[0].gasPhaseId).toBe(importedPhase!.id);
+  });
+});
+
 describe("Species serialization", () => {
   beforeAll(initFixtures);
 
