@@ -120,7 +120,6 @@ export type ReactionTypeName =
   | typeof reactionTypes.TernaryChemicalActivation.type
   | typeof reactionTypes.UserDefined.type
   | typeof reactionTypes.TaylorSeries.type
-  | typeof reactionTypes.LambdaRateConstant.type
   ;
 
 /**
