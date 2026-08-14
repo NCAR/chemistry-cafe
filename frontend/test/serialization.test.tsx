@@ -12,6 +12,7 @@ import {
   serializeMechanismMusicBox,
   serializeMechanismYAML,
 } from "../src/helpers/serialization";
+import * as YAML from "yaml";
 
 /** Build a reaction/attribute bag ({ [key]: { serializationKey, value } }). */
 const attrs = (
@@ -381,6 +382,15 @@ describe("Mechanism Serialization", () => {
   it("serializes a MusicBox (V0) blob object", () => {
     const result = serializeMechanismMusicBox(mechanism, family);
     expect(typeof result).toBe("object");
+  });
+
+  it("always emits a pinned version on export (JSON and YAML)", () => {
+    expect(JSON.parse(serializeMechanismJSON(mechanism, family)).version).toBe(
+      "1.0.0",
+    );
+    expect(YAML.parse(serializeMechanismYAML(mechanism, family)).version).toBe(
+      "1.0.0",
+    );
   });
 });
 
