@@ -119,8 +119,7 @@ export type ReactionTypeName =
   | typeof reactionTypes.Tunneling.type
   | typeof reactionTypes.TernaryChemicalActivation.type
   | typeof reactionTypes.UserDefined.type
-  | typeof reactionTypes.TaylorSeries.type
-  ;
+  | typeof reactionTypes.TaylorSeries.type;
 
 /**
  * Represents a generic reaction on the frontend.
