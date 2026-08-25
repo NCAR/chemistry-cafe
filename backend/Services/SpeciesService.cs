@@ -99,17 +99,17 @@ public class SpeciesService
 
         Species speciesInfo = new Species
         {
-            CreatedDate = DateTime.UtcNow,
-            UpdatedDate = DateTime.UtcNow,
-            Name = species.Name,
-            Description = species.Description,
-            IsThirdBody = species.IsThirdBody,
-            MolecularWeight = species.MolecularWeight,
+            AbsoluteTolerance = species.AbsoluteTolerance,
             ConstantConcentration = species.ConstantConcentration,
             ConstantMixingRatio = species.ConstantMixingRatio,
-            OtherProperties = species.OtherProperties,
+            CreatedDate = DateTime.UtcNow,
+            Description = species.Description,
             Family = family,
-            AbsoluteTolerance = species.AbsoluteTolerance
+            IsThirdBody = species.IsThirdBody,
+            MolecularWeight = species.MolecularWeight,
+            Name = species.Name,
+            OtherProperties = species.OtherProperties,
+            UpdatedDate = DateTime.UtcNow,
         };
 
         var createdSpecies = _context.Species.Add(speciesInfo);
@@ -162,15 +162,15 @@ public class SpeciesService
             return (QueryResult.ValidationError, null);
         }
 
-        currentSpecies.UpdatedDate = DateTime.UtcNow;
-        currentSpecies.Name = species.Name;
+        currentSpecies.AbsoluteTolerance = species.AbsoluteTolerance;
+        currentSpecies.ConstantConcentration = species.ConstantConcentration;
+        currentSpecies.ConstantMixingRatio = species.ConstantMixingRatio;
         currentSpecies.Description = species.Description;
         currentSpecies.IsThirdBody = species.IsThirdBody;
         currentSpecies.MolecularWeight = species.MolecularWeight;
-        currentSpecies.ConstantConcentration = species.ConstantConcentration;
-        currentSpecies.ConstantMixingRatio = species.ConstantMixingRatio;
+        currentSpecies.Name = species.Name;
         currentSpecies.OtherProperties = species.OtherProperties;
-        currentSpecies.AbsoluteTolerance = species.AbsoluteTolerance;
+        currentSpecies.UpdatedDate = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 

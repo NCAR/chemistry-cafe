@@ -12,19 +12,19 @@ namespace ChemistryCafeAPI.Models;
 [Table("Species")]
 public class Species
 {
-    [Key]
-    public Guid Id { get; set; } = Guid.NewGuid();
-    public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedDate { get; set; } = DateTime.UtcNow;
-    public string Name { get; set; } = null!;
-    public string? Description { get; set; }
-    public bool? IsThirdBody { get; set; }
-    public double? MolecularWeight { get; set; }
+    public double? AbsoluteTolerance { get; set; }
     public double? ConstantConcentration { get; set; }
     public double? ConstantMixingRatio { get; set; }
+    public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+    public string? Description { get; set; }
+    [Key]
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public bool? IsThirdBody { get; set; }
+    public double? MolecularWeight { get; set; }
+    public string Name { get; set; } = null!;
     [Column(TypeName = "json")]
     public Dictionary<string, JsonElement>? OtherProperties { get; set; }
-    public double? AbsoluteTolerance { get; set; }
+    public DateTime UpdatedDate { get; set; } = DateTime.UtcNow;
 
     // Family relationship
     [ForeignKey("Families")]

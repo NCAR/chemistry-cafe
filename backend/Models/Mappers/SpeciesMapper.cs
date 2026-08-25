@@ -9,16 +9,16 @@ public static class SpeciesMapper
     {
         return new SpeciesDto
         {
-            Id = species.Id,
-            Name = species.Name,
-            Description = species.Description,
-            FamilyId = species.FamilyId,
-            IsThirdBody = species.IsThirdBody,
-            MolecularWeight = species.MolecularWeight,
+            AbsoluteTolerance = species.AbsoluteTolerance,
             ConstantConcentration = species.ConstantConcentration,
             ConstantMixingRatio = species.ConstantMixingRatio,
-            OtherProperties = species.OtherProperties,
-            AbsoluteTolerance = species.AbsoluteTolerance
+            Description = species.Description,
+            FamilyId = species.FamilyId,
+            Id = species.Id,
+            IsThirdBody = species.IsThirdBody,
+            MolecularWeight = species.MolecularWeight,
+            Name = species.Name,
+            OtherProperties = species.OtherProperties
         };
     }
 
@@ -26,16 +26,16 @@ public static class SpeciesMapper
     {
       return new Species
       {
-          Id = speciesDto.Id,
-          Name = speciesDto.Name,
-          Description = speciesDto.Description,
-          FamilyId = speciesDto.FamilyId,
-          IsThirdBody = speciesDto.IsThirdBody,
-          MolecularWeight = speciesDto.MolecularWeight,
+          AbsoluteTolerance = speciesDto.AbsoluteTolerance,
           ConstantConcentration = speciesDto.ConstantConcentration,
           ConstantMixingRatio = speciesDto.ConstantMixingRatio,
-          OtherProperties = speciesDto.OtherProperties,
-          AbsoluteTolerance = speciesDto.AbsoluteTolerance
+          Description = speciesDto.Description,
+          FamilyId = speciesDto.FamilyId,
+          Id = speciesDto.Id,
+          IsThirdBody = speciesDto.IsThirdBody,
+          MolecularWeight = speciesDto.MolecularWeight,
+          Name = speciesDto.Name,
+          OtherProperties = speciesDto.OtherProperties
       };
     }
 }
