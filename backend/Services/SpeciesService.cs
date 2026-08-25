@@ -92,6 +92,11 @@ public class SpeciesService
             return (QueryResult.NoAccess, null);
         }
 
+        if (species.ConstantConcentration != null && species.ConstantMixingRatio != null)
+        {
+            return (QueryResult.ValidationError, null);
+        }
+
         Species speciesInfo = new Species
         {
             CreatedDate = DateTime.UtcNow,
@@ -104,6 +109,7 @@ public class SpeciesService
             ConstantMixingRatio = species.ConstantMixingRatio,
             OtherProperties = species.OtherProperties,
             Family = family,
+            AbsoluteTolerance = species.AbsoluteTolerance
         };
 
         var createdSpecies = _context.Species.Add(speciesInfo);
@@ -151,6 +157,11 @@ public class SpeciesService
             return (QueryResult.NoAccess, null);
         }
 
+        if (species.ConstantConcentration != null && species.ConstantMixingRatio != null)
+        {
+            return (QueryResult.ValidationError, null);
+        }
+
         currentSpecies.UpdatedDate = DateTime.UtcNow;
         currentSpecies.Name = species.Name;
         currentSpecies.Description = species.Description;
@@ -159,6 +170,7 @@ public class SpeciesService
         currentSpecies.ConstantConcentration = species.ConstantConcentration;
         currentSpecies.ConstantMixingRatio = species.ConstantMixingRatio;
         currentSpecies.OtherProperties = species.OtherProperties;
+        currentSpecies.AbsoluteTolerance = species.AbsoluteTolerance;
 
         await _context.SaveChangesAsync();
 

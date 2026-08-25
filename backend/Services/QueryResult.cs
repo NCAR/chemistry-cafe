@@ -22,5 +22,7 @@ public enum QueryResult
     /// <summary>Something was not parsable. This is typically a name identifier as a GUID.</summary>
     ParseError,
     /// <summary>There are multiple objects in a collection with the same primary key.</summary>
-    DuplicateKeyError
+    DuplicateKeyError,
+    /// <summary>An input violated a validation constraint. ex: two mutually exclusive fields are both set.</summary>
+    ValidationError
 }

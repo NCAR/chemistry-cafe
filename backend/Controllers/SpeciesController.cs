@@ -77,6 +77,7 @@ namespace ChemistryCafeAPI.Controllers
                     QueryResult.OwnerNotFound => Unauthorized("User not found in database"),
                     QueryResult.ParentRelationNotFound => NotFound($"Family with id '{familyId}' not found in database"),
                     QueryResult.DuplicateKeyError => BadRequest("One or more attributes have duplicate serialization keys"),
+                    QueryResult.ValidationError => BadRequest("Constant concentration and constant mixing ratio are mutually exclusive"),
                     QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
                     _ => StatusCode(StatusCodes.Status500InternalServerError),
                 };
@@ -107,6 +108,7 @@ namespace ChemistryCafeAPI.Controllers
                     QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier"),
                     QueryResult.OwnerNotFound => Unauthorized("User not found in database"),
                     QueryResult.DuplicateKeyError => BadRequest("One or more attributes have duplicate serialization keys"),
+                    QueryResult.ValidationError => BadRequest("Constant concentration and constant mixing ratio are mutually exclusive"),
                     QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
                     _ => StatusCode(StatusCodes.Status500InternalServerError),
                 };

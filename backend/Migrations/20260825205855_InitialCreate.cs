@@ -126,6 +126,7 @@ namespace ChemistryCafeAPI.Migrations
                     ConstantMixingRatio = table.Column<double>(type: "double", nullable: true),
                     OtherProperties = table.Column<string>(type: "json", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    AbsoluteTolerance = table.Column<double>(type: "double", nullable: true),
                     FamilyId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci")
                 },
                 constraints: table =>

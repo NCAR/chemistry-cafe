@@ -154,6 +154,7 @@ namespace ChemistryCafeAPI.Tests
                 IsThirdBody = true,
                 MolecularWeight = 0.048,
                 ConstantConcentration = 1.2e-3,
+                AbsoluteTolerance = 1e-9,
                 OtherProperties = new Dictionary<string, JsonElement>
                 {
                     ["__long name"] = JsonSerializer.SerializeToElement("ozone"),
@@ -172,6 +173,7 @@ namespace ChemistryCafeAPI.Tests
             Assert.AreEqual(true, fetched!.IsThirdBody);
             Assert.AreEqual(0.048, fetched.MolecularWeight);
             Assert.AreEqual(1.2e-3, fetched.ConstantConcentration);
+            Assert.AreEqual(1e-9, fetched.AbsoluteTolerance);
             Assert.IsNull(fetched.ConstantMixingRatio);
             Assert.IsNotNull(fetched.OtherProperties);
             Assert.AreEqual("ozone", fetched.OtherProperties!["__long name"].GetString());
@@ -219,6 +221,7 @@ namespace ChemistryCafeAPI.Tests
             created!.IsThirdBody = true;
             created.MolecularWeight = 0.032;
             created.ConstantConcentration = 5.0e-4;
+            created.AbsoluteTolerance = 1e-10;
             var updateResult = await _speciesController.UpdateSpecies(created.Id, created);
             Assert.IsInstanceOfType(updateResult.Result, typeof(OkObjectResult));
 
@@ -229,6 +232,7 @@ namespace ChemistryCafeAPI.Tests
             Assert.AreEqual(true, fetched!.IsThirdBody);
             Assert.AreEqual(0.032, fetched.MolecularWeight);
             Assert.AreEqual(5.0e-4, fetched.ConstantConcentration);
+            Assert.AreEqual(1e-10, fetched.AbsoluteTolerance);
         }
 
         [TestMethod]
@@ -255,6 +259,20 @@ namespace ChemistryCafeAPI.Tests
             var actionResult = await _speciesController.CreateSpecies(_species, Guid.NewGuid());
             Assert.IsNotNull(actionResult);
             Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundObjectResult));
+        }
+
+        [TestMethod]
+        public async Task CreateSpeciesRejectsBothConcentrations()
+        {
+            _nameIdentifier = _user!.Id.ToString();
+            var species = new SpeciesDto
+            {
+                Name = "BothConcentrations",
+                ConstantConcentration = 1e-3,
+                ConstantMixingRatio = 2e-3,
+            };
+            var result = await _speciesController.CreateSpecies(species, _family!.Id);
+            Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
         }
 
         [TestMethod]

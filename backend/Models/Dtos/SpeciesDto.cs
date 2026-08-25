@@ -16,4 +16,5 @@ public class SpeciesDto
     public double? ConstantConcentration { get; set; }
     public double? ConstantMixingRatio { get; set; }
     public Dictionary<string, JsonElement>? OtherProperties { get; set; }
+    public double? AbsoluteTolerance { get; set; }
 }

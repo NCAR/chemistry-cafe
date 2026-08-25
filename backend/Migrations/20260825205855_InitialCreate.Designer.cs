@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChemistryCafeAPI.Migrations
 {
     [DbContext(typeof(ChemistryDbContext))]
-    [Migration("20260825164720_InitialCreate")]
+    [Migration("20260825205855_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -289,6 +289,9 @@ namespace ChemistryCafeAPI.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
+
+                    b.Property<double?>("AbsoluteTolerance")
+                        .HasColumnType("double");
 
                     b.Property<double?>("ConstantConcentration")
                         .HasColumnType("double");

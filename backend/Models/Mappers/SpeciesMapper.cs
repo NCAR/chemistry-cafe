@@ -18,6 +18,7 @@ public static class SpeciesMapper
             ConstantConcentration = species.ConstantConcentration,
             ConstantMixingRatio = species.ConstantMixingRatio,
             OtherProperties = species.OtherProperties,
+            AbsoluteTolerance = species.AbsoluteTolerance
         };
     }
 
@@ -34,6 +35,7 @@ public static class SpeciesMapper
           ConstantConcentration = speciesDto.ConstantConcentration,
           ConstantMixingRatio = speciesDto.ConstantMixingRatio,
           OtherProperties = speciesDto.OtherProperties,
+          AbsoluteTolerance = speciesDto.AbsoluteTolerance
       };
     }
 }

@@ -24,6 +24,7 @@ public class Species
     public double? ConstantMixingRatio { get; set; }
     [Column(TypeName = "json")]
     public Dictionary<string, JsonElement>? OtherProperties { get; set; }
+    public double? AbsoluteTolerance { get; set; }
 
     // Family relationship
     [ForeignKey("Families")]

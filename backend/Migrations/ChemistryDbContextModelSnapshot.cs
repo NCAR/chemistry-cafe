@@ -287,6 +287,9 @@ namespace ChemistryCafeAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
+                    b.Property<double?>("AbsoluteTolerance")
+                        .HasColumnType("double");
+
                     b.Property<double?>("ConstantConcentration")
                         .HasColumnType("double");
 
