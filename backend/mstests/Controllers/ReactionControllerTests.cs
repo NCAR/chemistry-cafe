@@ -14,7 +14,7 @@ namespace ChemistryCafeAPI.Tests
     {
         private static ChemistryDbContext _context = DBConnection.Context;
         private static User? _user;
-        private static Family? _family;
+        private static Family _family;
         private static Reaction? _reaction;
         private static string? _nameIdentifier;
 
