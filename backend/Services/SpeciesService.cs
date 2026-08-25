@@ -98,6 +98,11 @@ public class SpeciesService
             UpdatedDate = DateTime.UtcNow,
             Name = species.Name,
             Description = species.Description,
+            IsThirdBody = species.IsThirdBody,
+            MolecularWeight = species.MolecularWeight,
+            ConstantConcentration = species.ConstantConcentration,
+            ConstantMixingRatio = species.ConstantMixingRatio,
+            OtherProperties = species.OtherProperties,
             Family = family,
         };
 

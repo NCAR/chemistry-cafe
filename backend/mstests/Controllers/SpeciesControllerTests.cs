@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Text.Json;
 
 namespace ChemistryCafeAPI.Tests
 {
@@ -140,6 +141,94 @@ namespace ChemistryCafeAPI.Tests
             Assert.AreEqual(_species.Name, returnedSpecies.Name);
             Assert.AreEqual(_species.Description, returnedSpecies.Description);
             Assert.AreEqual(_species.FamilyId, returnedSpecies.FamilyId); 
+        }
+
+        [TestMethod]
+        public async Task CreateSpeciesPersistsFirstClassProperties()
+        {
+            _nameIdentifier = _user!.Id.ToString();
+            var species = new Species
+            {
+                Name = "PropsSpecies",
+                Description = "first-class properties",
+                IsThirdBody = true,
+                MolecularWeight = 0.048,
+                ConstantConcentration = 1.2e-3,
+                OtherProperties = new Dictionary<string, JsonElement>
+                {
+                    ["__long name"] = JsonSerializer.SerializeToElement("ozone"),
+                    ["custom number"] = JsonSerializer.SerializeToElement(42.0),
+                },
+            };
+
+            var createResult = await _speciesController.CreateSpecies(species, _family!.Id);
+            var created = (createResult.Result as CreatedAtActionResult)?.Value as Species;
+            Assert.IsNotNull(created);
+
+            _context.ChangeTracker.Clear();
+            var getResult = await _speciesController.GetSpecies(created!.Id);
+            var fetched = (getResult.Result as OkObjectResult)?.Value as Species;
+            Assert.IsNotNull(fetched);
+            Assert.AreEqual(true, fetched!.IsThirdBody);
+            Assert.AreEqual(0.048, fetched.MolecularWeight);
+            Assert.AreEqual(1.2e-3, fetched.ConstantConcentration);
+            Assert.IsNull(fetched.ConstantMixingRatio);
+            Assert.IsNotNull(fetched.OtherProperties);
+            Assert.AreEqual("ozone", fetched.OtherProperties!["__long name"].GetString());
+            Assert.AreEqual(42.0, fetched.OtherProperties["custom number"].GetDouble());
+        }
+
+        [TestMethod]
+        public async Task CreateSpeciesPersistsConstantMixingRatio()
+        {
+            _nameIdentifier = _user!.Id.ToString();
+            var species = new Species
+            {
+                Name = "MixingRatioSpecies",
+                Description = "mixing ratio",
+                ConstantMixingRatio = 3.4e-2,
+            };
+
+            var createResult = await _speciesController.CreateSpecies(species, _family!.Id);
+            var created = (createResult.Result as CreatedAtActionResult)?.Value as Species;
+            Assert.IsNotNull(created);
+
+            _context.ChangeTracker.Clear();
+            var getResult = await _speciesController.GetSpecies(created!.Id);
+            var fetched = (getResult.Result as OkObjectResult)?.Value as Species;
+            Assert.IsNotNull(fetched);
+            Assert.AreEqual(3.4e-2, fetched!.ConstantMixingRatio);
+            Assert.IsNull(fetched.ConstantConcentration);
+        }
+
+        [TestMethod]
+        public async Task UpdateSpeciesPersistsFirstClassProperties()
+        {
+            _nameIdentifier = _user!.Id.ToString();
+            var species = new Species
+            {
+                Name = "UpdatePropsSpecies",
+                Description = "before",
+                IsThirdBody = false,
+                MolecularWeight = 0.018,
+            };
+            var createResult = await _speciesController.CreateSpecies(species, _family!.Id);
+            var created = (createResult.Result as CreatedAtActionResult)?.Value as Species;
+            Assert.IsNotNull(created);
+
+            created!.IsThirdBody = true;
+            created.MolecularWeight = 0.032;
+            created.ConstantConcentration = 5.0e-4;
+            var updateResult = await _speciesController.UpdateSpecies(created.Id, created);
+            Assert.IsInstanceOfType(updateResult.Result, typeof(OkObjectResult));
+
+            _context.ChangeTracker.Clear();
+            var getResult = await _speciesController.GetSpecies(created.Id);
+            var fetched = (getResult.Result as OkObjectResult)?.Value as Species;
+            Assert.IsNotNull(fetched);
+            Assert.AreEqual(true, fetched!.IsThirdBody);
+            Assert.AreEqual(0.032, fetched.MolecularWeight);
+            Assert.AreEqual(5.0e-4, fetched.ConstantConcentration);
         }
 
         [TestMethod]
