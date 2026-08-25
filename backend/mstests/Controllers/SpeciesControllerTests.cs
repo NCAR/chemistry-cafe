@@ -1,6 +1,7 @@
 using ChemistryCafeAPI.Controllers;
 using ChemistryCafeAPI.Services;
 using ChemistryCafeAPI.Models;
+using ChemistryCafeAPI.Models.Dto;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
@@ -11,26 +12,26 @@ using System.Text.Json;
 namespace ChemistryCafeAPI.Tests
 {
     [TestClass]
-    public class SpeciesControllerTests 
+    public class SpeciesControllerTests
     {
         private static ChemistryDbContext _context = DBConnection.Context;
         private static User? _user;
         private static Family? _family;
-        private static Species _species = null!;
+        private static SpeciesDto _species = null!;
         private static string? _nameIdentifier;
 
-        private SpeciesService _speciesService; 
-        private SpeciesController _speciesController; 
-        private UserService _userService; 
-        private FamilyService _familyService; 
+        private SpeciesService _speciesService;
+        private SpeciesController _speciesController;
+        private UserService _userService;
+        private FamilyService _familyService;
 
         private class MockedSpeciesController : SpeciesController
         {
-            public MockedSpeciesController(SpeciesService service) : base(service) 
+            public MockedSpeciesController(SpeciesService service) : base(service)
             {
             }
 
-            protected override string? GetNameIdentifier() 
+            protected override string? GetNameIdentifier()
             {
                 return _nameIdentifier;
             }
@@ -54,7 +55,7 @@ namespace ChemistryCafeAPI.Tests
             {
                 Name = "TestFamily",
                 Description = "From SpeciesControllerTests.cs",
-                CreatedDate = DateTime.UtcNow 
+                CreatedDate = DateTime.UtcNow
             };
             var (result, family) = await _familyService.CreateFamilyAsync(_family, _user.Id);
             _family = family!.Entity;
@@ -64,8 +65,8 @@ namespace ChemistryCafeAPI.Tests
         [ClassInitialize]
         public static void ClassInit(TestContext context)
         {
-            var tests = new SpeciesControllerTests(); 
-            tests.AsyncInit().Wait(); 
+            var tests = new SpeciesControllerTests();
+            tests.AsyncInit().Wait();
         }
 
         [TestMethod]
@@ -80,21 +81,20 @@ namespace ChemistryCafeAPI.Tests
         [TestMethod]
         public async Task CreateSpecies()
         {
-            _species = new Species 
+            _species = new SpeciesDto
             {
                 Name = "TestSpecies",
                 Description = "From SpeciesControllerTests.cs",
-                CreatedDate = DateTime.UtcNow 
             };
             var actionResult = await _speciesController.CreateSpecies(_species, _family!.Id);
             Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
             var createdAtActionResult = actionResult.Result as CreatedAtActionResult;
             Assert.IsNotNull(createdAtActionResult);
-            var returnedSpecies = createdAtActionResult.Value as Species;
+            var returnedSpecies = createdAtActionResult.Value as SpeciesDto;
             Assert.IsNotNull(returnedSpecies);
             Assert.AreEqual(_species.Name, returnedSpecies.Name);
             Assert.AreEqual(_species.Description, returnedSpecies.Description);
-            Assert.AreEqual(_family.Id, returnedSpecies.FamilyId); 
+            Assert.AreEqual(_family.Id, returnedSpecies.FamilyId);
             _species = returnedSpecies;
         }
 
@@ -105,7 +105,7 @@ namespace ChemistryCafeAPI.Tests
             Assert.IsNotNull(actionResult);
             var okResult = actionResult.Result as OkObjectResult;
             Assert.IsNotNull(okResult);
-            var returnedSpecies = okResult.Value as Species;
+            var returnedSpecies = okResult.Value as SpeciesDto;
             Assert.IsNotNull(returnedSpecies);
             Assert.AreEqual(_species.Id, returnedSpecies.Id);
             Assert.AreEqual(_species.Name, returnedSpecies.Name);
@@ -120,7 +120,7 @@ namespace ChemistryCafeAPI.Tests
             Assert.IsNotNull(actionResult);
             var okResult = actionResult.Result as OkObjectResult;
             Assert.IsNotNull(okResult);
-            var speciesList = okResult.Value as IEnumerable<Species>;
+            var speciesList = okResult.Value as IEnumerable<SpeciesDto>;
             Assert.IsNotNull(speciesList);
             Assert.IsTrue(speciesList.Count() >= 1);
         }
@@ -135,19 +135,19 @@ namespace ChemistryCafeAPI.Tests
             Assert.IsInstanceOfType(actionResult.Result, typeof(OkObjectResult));
             var createdAtActionResult = actionResult.Result as OkObjectResult;
             Assert.IsNotNull(createdAtActionResult);
-            var returnedSpecies = createdAtActionResult.Value as Species;
+            var returnedSpecies = createdAtActionResult.Value as SpeciesDto;
             Assert.IsNotNull(returnedSpecies);
             Assert.AreEqual(_species.Id, returnedSpecies.Id);
             Assert.AreEqual(_species.Name, returnedSpecies.Name);
             Assert.AreEqual(_species.Description, returnedSpecies.Description);
-            Assert.AreEqual(_species.FamilyId, returnedSpecies.FamilyId); 
+            Assert.AreEqual(_species.FamilyId, returnedSpecies.FamilyId);
         }
 
         [TestMethod]
         public async Task CreateSpeciesPersistsFirstClassProperties()
         {
             _nameIdentifier = _user!.Id.ToString();
-            var species = new Species
+            var species = new SpeciesDto
             {
                 Name = "PropsSpecies",
                 Description = "first-class properties",
@@ -162,12 +162,12 @@ namespace ChemistryCafeAPI.Tests
             };
 
             var createResult = await _speciesController.CreateSpecies(species, _family!.Id);
-            var created = (createResult.Result as CreatedAtActionResult)?.Value as Species;
+            var created = (createResult.Result as CreatedAtActionResult)?.Value as SpeciesDto;
             Assert.IsNotNull(created);
 
             _context.ChangeTracker.Clear();
             var getResult = await _speciesController.GetSpecies(created!.Id);
-            var fetched = (getResult.Result as OkObjectResult)?.Value as Species;
+            var fetched = (getResult.Result as OkObjectResult)?.Value as SpeciesDto;
             Assert.IsNotNull(fetched);
             Assert.AreEqual(true, fetched!.IsThirdBody);
             Assert.AreEqual(0.048, fetched.MolecularWeight);
@@ -182,7 +182,7 @@ namespace ChemistryCafeAPI.Tests
         public async Task CreateSpeciesPersistsConstantMixingRatio()
         {
             _nameIdentifier = _user!.Id.ToString();
-            var species = new Species
+            var species = new SpeciesDto
             {
                 Name = "MixingRatioSpecies",
                 Description = "mixing ratio",
@@ -190,12 +190,12 @@ namespace ChemistryCafeAPI.Tests
             };
 
             var createResult = await _speciesController.CreateSpecies(species, _family!.Id);
-            var created = (createResult.Result as CreatedAtActionResult)?.Value as Species;
+            var created = (createResult.Result as CreatedAtActionResult)?.Value as SpeciesDto;
             Assert.IsNotNull(created);
 
             _context.ChangeTracker.Clear();
             var getResult = await _speciesController.GetSpecies(created!.Id);
-            var fetched = (getResult.Result as OkObjectResult)?.Value as Species;
+            var fetched = (getResult.Result as OkObjectResult)?.Value as SpeciesDto;
             Assert.IsNotNull(fetched);
             Assert.AreEqual(3.4e-2, fetched!.ConstantMixingRatio);
             Assert.IsNull(fetched.ConstantConcentration);
@@ -205,7 +205,7 @@ namespace ChemistryCafeAPI.Tests
         public async Task UpdateSpeciesPersistsFirstClassProperties()
         {
             _nameIdentifier = _user!.Id.ToString();
-            var species = new Species
+            var species = new SpeciesDto
             {
                 Name = "UpdatePropsSpecies",
                 Description = "before",
@@ -213,7 +213,7 @@ namespace ChemistryCafeAPI.Tests
                 MolecularWeight = 0.018,
             };
             var createResult = await _speciesController.CreateSpecies(species, _family!.Id);
-            var created = (createResult.Result as CreatedAtActionResult)?.Value as Species;
+            var created = (createResult.Result as CreatedAtActionResult)?.Value as SpeciesDto;
             Assert.IsNotNull(created);
 
             created!.IsThirdBody = true;
@@ -224,7 +224,7 @@ namespace ChemistryCafeAPI.Tests
 
             _context.ChangeTracker.Clear();
             var getResult = await _speciesController.GetSpecies(created.Id);
-            var fetched = (getResult.Result as OkObjectResult)?.Value as Species;
+            var fetched = (getResult.Result as OkObjectResult)?.Value as SpeciesDto;
             Assert.IsNotNull(fetched);
             Assert.AreEqual(true, fetched!.IsThirdBody);
             Assert.AreEqual(0.032, fetched.MolecularWeight);
@@ -278,7 +278,7 @@ namespace ChemistryCafeAPI.Tests
         public async Task UpdateSpeciesNullNameIdentifer()
         {
             _nameIdentifier = null;
-            var result = await _speciesController.UpdateSpecies(_species.Id, _species); 
+            var result = await _speciesController.UpdateSpecies(_species.Id, _species);
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(UnauthorizedObjectResult));
         }
@@ -287,7 +287,7 @@ namespace ChemistryCafeAPI.Tests
         public async Task DeleteSpeciesNullNameIdentifer()
         {
             _nameIdentifier = null;
-            var result = await _speciesController.DeleteSpecies(_species.Id); 
+            var result = await _speciesController.DeleteSpecies(_species.Id);
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result, typeof(UnauthorizedObjectResult));
         }
@@ -307,8 +307,8 @@ namespace ChemistryCafeAPI.Tests
         [ClassCleanup]
         public static void ClassCleanup()
         {
-            var tests = new SpeciesControllerTests(); 
-            tests.AsyncCleanup().Wait(); 
+            var tests = new SpeciesControllerTests();
+            tests.AsyncCleanup().Wait();
         }
     }
 }

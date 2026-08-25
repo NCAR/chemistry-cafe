@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using ChemistryCafeAPI.Services;
 using ChemistryCafeAPI.Models;
+using ChemistryCafeAPI.Models.Dto;
+using ChemistryCafeAPI.Models.Mappers;
 using System.Diagnostics.CodeAnalysis;
 
 namespace ChemistryCafeAPI.Controllers
@@ -25,7 +27,7 @@ namespace ChemistryCafeAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Species>>> GetAllSpecies([FromQuery] Guid? familyId = null)
+        public async Task<ActionResult<IEnumerable<SpeciesDto>>> GetAllSpecies([FromQuery] Guid? familyId = null)
         {
             var (result, speciesCollection) = await _speciesService.GetAllSpeciesAsync(familyId);
             if (speciesCollection == null)
@@ -36,11 +38,11 @@ namespace ChemistryCafeAPI.Controllers
                     _ => StatusCode(StatusCodes.Status500InternalServerError),
                 };
             }
-            return Ok(speciesCollection);
+            return Ok(speciesCollection.Select(s => s.ToDto()));
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Species>> GetSpecies(Guid id)
+        public async Task<ActionResult<SpeciesDto>> GetSpecies(Guid id)
         {
             var (result, species) = await _speciesService.GetSpeciesAsync(id);
 
@@ -53,12 +55,12 @@ namespace ChemistryCafeAPI.Controllers
                 };
             }
 
-            return Ok(species);
+            return Ok(species.ToDto());
         }
 
 
         [HttpPost]
-        public async Task<ActionResult<Species>> CreateSpecies(Species species, [FromQuery] Guid familyId)
+        public async Task<ActionResult<SpeciesDto>> CreateSpecies(SpeciesDto species, [FromQuery] Guid familyId)
         {
             string? nameIdentifier = GetNameIdentifier();
             if (nameIdentifier == null)
@@ -66,7 +68,7 @@ namespace ChemistryCafeAPI.Controllers
                 return Unauthorized("User is not authenticated");
             }
 
-            var (result, createdSpecies) = await _speciesService.CreateSpeciesAsync(species, familyId, nameIdentifier);
+            var (result, createdSpecies) = await _speciesService.CreateSpeciesAsync(species.ToEntity(), familyId, nameIdentifier);
             if (createdSpecies == null)
             {
                 return result switch
@@ -83,13 +85,13 @@ namespace ChemistryCafeAPI.Controllers
             return CreatedAtAction(
                 nameof(CreateSpecies),
                 new { id = createdSpecies.Id },
-                createdSpecies
+                createdSpecies.ToDto()
             );
         }
 
 
         [HttpPatch("{id}")]
-        public async Task<ActionResult<Species>> UpdateSpecies(Guid id, Species species)
+        public async Task<ActionResult<SpeciesDto>> UpdateSpecies(Guid id, SpeciesDto species)
         {
             string? nameIdentifier = GetNameIdentifier();
             if (nameIdentifier == null)
@@ -97,7 +99,7 @@ namespace ChemistryCafeAPI.Controllers
                 return Unauthorized("User is not authenticated");
             }
 
-            var (result, updatedSpecies) = await _speciesService.UpdateSpeciesAsync(id, species, nameIdentifier);
+            var (result, updatedSpecies) = await _speciesService.UpdateSpeciesAsync(id, species.ToEntity(), nameIdentifier);
             if (updatedSpecies == null)
             {
                 return result switch
@@ -110,7 +112,7 @@ namespace ChemistryCafeAPI.Controllers
                 };
             }
 
-            return Ok(updatedSpecies);
+            return Ok(updatedSpecies.ToDto());
         }
 
         /// <summary>

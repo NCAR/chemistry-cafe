@@ -154,6 +154,11 @@ public class SpeciesService
         currentSpecies.UpdatedDate = DateTime.UtcNow;
         currentSpecies.Name = species.Name;
         currentSpecies.Description = species.Description;
+        currentSpecies.IsThirdBody = species.IsThirdBody;
+        currentSpecies.MolecularWeight = species.MolecularWeight;
+        currentSpecies.ConstantConcentration = species.ConstantConcentration;
+        currentSpecies.ConstantMixingRatio = species.ConstantMixingRatio;
+        currentSpecies.OtherProperties = species.OtherProperties;
 
         await _context.SaveChangesAsync();
 
