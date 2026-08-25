@@ -14,8 +14,8 @@ namespace ChemistryCafeAPI.Tests
     {
         private static ChemistryDbContext _context = DBConnection.Context;
         private static User? _user;
-        private static Family _family;
-        private static Reaction? _reaction;
+        private static Family _family = null!;
+        private static Reaction _reaction = null!;
         private static string? _nameIdentifier;
 
         private ReactionService _reactionService; 
@@ -58,7 +58,7 @@ namespace ChemistryCafeAPI.Tests
                 CreatedDate = DateTime.UtcNow 
             };
             var (result, family) = await _familyService.CreateFamilyAsync(_family, _user.Id);
-            _family = family.Entity;
+            _family = family!.Entity;
             _nameIdentifier = _user.Id.ToString();
         }
 
@@ -168,10 +168,10 @@ namespace ChemistryCafeAPI.Tests
             };
             var (result1, reactant) = await _speciesService.CreateSpeciesAsync(_reactant, 
                                                                                _family.Id, 
-                                                                               _nameIdentifier);
+                                                                               _nameIdentifier!);
             var (result2, product) = await _speciesService.CreateSpeciesAsync(_product, 
                                                                               _family.Id, 
-                                                                              _nameIdentifier);
+                                                                              _nameIdentifier!);
             _reaction.Name = "UPDATEDTest";
             _reaction.Description = "UPDATEDDesc";
             _reaction.Reactants.Add(
@@ -179,7 +179,7 @@ namespace ChemistryCafeAPI.Tests
                     {
                         ReactionId = _reaction.Id,
                         Reaction = _reaction,
-                        SpeciesId = reactant.Id,
+                        SpeciesId = reactant!.Id,
                         Species = reactant,
                         Coefficient = 1
                     }
@@ -189,7 +189,7 @@ namespace ChemistryCafeAPI.Tests
                     {
                         ReactionId = _reaction.Id,
                         Reaction = _reaction,
-                        SpeciesId = product.Id,
+                        SpeciesId = product!.Id,
                         Species = product, 
                         Coefficient = 2,
                         Branch = "maybe?" 
@@ -229,7 +229,7 @@ namespace ChemistryCafeAPI.Tests
         [TestMethod]
         public async Task DeleteReaction()
         {
-            await _familyService.UpdateFamilyAsync(_family.Id, _family, _nameIdentifier);
+            await _familyService.UpdateFamilyAsync(_family.Id, _family, _nameIdentifier!);
             _family.Reactions.Clear();
             await _reactionController.DeleteReaction(_reaction.Id);
             var actionResult = await _reactionController.GetReaction(_reaction.Id);
@@ -267,11 +267,11 @@ namespace ChemistryCafeAPI.Tests
         {
             if (_family != null)
             {
-                await _familyService.DeleteFamilyAsync(_family.Id, _nameIdentifier);
+                await _familyService.DeleteFamilyAsync(_family.Id, _nameIdentifier!);
             }
             if (_user != null)
             {
-                await _userService.DeleteUserAsync(_user.Id, _nameIdentifier);
+                await _userService.DeleteUserAsync(_user.Id, _nameIdentifier!);
             }
         }
 

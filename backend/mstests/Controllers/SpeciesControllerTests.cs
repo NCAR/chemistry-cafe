@@ -15,7 +15,7 @@ namespace ChemistryCafeAPI.Tests
         private static ChemistryDbContext _context = DBConnection.Context;
         private static User? _user;
         private static Family? _family;
-        private static Species? _species;
+        private static Species _species = null!;
         private static string? _nameIdentifier;
 
         private SpeciesService _speciesService; 
@@ -56,7 +56,7 @@ namespace ChemistryCafeAPI.Tests
                 CreatedDate = DateTime.UtcNow 
             };
             var (result, family) = await _familyService.CreateFamilyAsync(_family, _user.Id);
-            _family = family.Entity;
+            _family = family!.Entity;
             _nameIdentifier = _user.Id.ToString();
         }
 
@@ -85,7 +85,7 @@ namespace ChemistryCafeAPI.Tests
                 Description = "From SpeciesControllerTests.cs",
                 CreatedDate = DateTime.UtcNow 
             };
-            var actionResult = await _speciesController.CreateSpecies(_species, _family.Id);
+            var actionResult = await _speciesController.CreateSpecies(_species, _family!.Id);
             Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
             var createdAtActionResult = actionResult.Result as CreatedAtActionResult;
             Assert.IsNotNull(createdAtActionResult);
@@ -115,7 +115,7 @@ namespace ChemistryCafeAPI.Tests
         [TestMethod]
         public async Task GetAllSpeciesFromFamily()
         {
-            var actionResult = await _speciesController.GetAllSpecies(_family.Id);
+            var actionResult = await _speciesController.GetAllSpecies(_family!.Id);
             Assert.IsNotNull(actionResult);
             var okResult = actionResult.Result as OkObjectResult;
             Assert.IsNotNull(okResult);
@@ -145,7 +145,7 @@ namespace ChemistryCafeAPI.Tests
         [TestMethod]
         public async Task DeleteSpecies()
         {
-            await _familyService.UpdateFamilyAsync(_family.Id, _family, _nameIdentifier);
+            await _familyService.UpdateFamilyAsync(_family!.Id, _family, _nameIdentifier!);
             _family.Species.Clear();
             await _speciesController.DeleteSpecies(_species.Id);
             var actionResult = await _speciesController.GetSpecies(_species.Id);
@@ -180,7 +180,7 @@ namespace ChemistryCafeAPI.Tests
         public async Task CreateSpeciesNullNameIdentifer()
         {
             _nameIdentifier = null;
-            var result = await _speciesController.CreateSpecies(_species, _family.Id);
+            var result = await _speciesController.CreateSpecies(_species, _family!.Id);
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(UnauthorizedObjectResult));
         }
@@ -207,11 +207,11 @@ namespace ChemistryCafeAPI.Tests
         {
             if (_family != null)
             {
-                await _familyService.DeleteFamilyAsync(_family.Id, _nameIdentifier);
+                await _familyService.DeleteFamilyAsync(_family!.Id, _nameIdentifier!);
             }
             if (_user != null)
             {
-                await _userService.DeleteUserAsync(_user.Id, _nameIdentifier);
+                await _userService.DeleteUserAsync(_user.Id, _nameIdentifier!);
             }
         }
 

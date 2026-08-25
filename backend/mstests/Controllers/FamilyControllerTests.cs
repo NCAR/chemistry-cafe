@@ -25,13 +25,12 @@ namespace ChemistryCafeAPI.Tests
         // The above is usually not a GUID when from Google OAuth
         static User? _Owner = null; 
         static DateTime _CreatedDate = DateTime.UtcNow;
-        static bool found = false;
 
         private class MockedFamilyController : FamilyController 
         {
-            private string nameIdentifier;
+            private string? nameIdentifier;
 
-            public MockedFamilyController(FamilyService service, string identifer) 
+            public MockedFamilyController(FamilyService service, string? identifer)
                 : base(service) 
             {
                 nameIdentifier = identifer;
@@ -52,18 +51,18 @@ namespace ChemistryCafeAPI.Tests
             return new MockedFamilyController(familyService, _NameIdentifier);
         }
 
-        private async Task<FamilyController> CreateControllerWithName(string nameIdentifier)
+        private Task<FamilyController> CreateControllerWithName(string nameIdentifier)
         {
             var userService = new UserService(ctx);
             var familyService = new FamilyService(ctx, userService);
-            return new MockedFamilyController(familyService, nameIdentifier);
+            return Task.FromResult<FamilyController>(new MockedFamilyController(familyService, nameIdentifier));
         }
 
-        private async Task<FamilyController> CreateSignedOutController()
+        private Task<FamilyController> CreateSignedOutController()
         {
             var userService = new UserService(ctx);
             var familyService = new FamilyService(ctx, userService);
-            return new MockedFamilyController(familyService, null);
+            return Task.FromResult<FamilyController>(new MockedFamilyController(familyService, null));
         }
 
         [TestMethod]
@@ -92,7 +91,7 @@ namespace ChemistryCafeAPI.Tests
             var controller = await CreateSignedInController();
 
             // Act
-            var actionResult = await controller.GetFamilies(true, _Owner.Id);
+            var actionResult = await controller.GetFamilies(true, _Owner!.Id);
 
             // Assert
             Assert.IsNotNull(actionResult);
