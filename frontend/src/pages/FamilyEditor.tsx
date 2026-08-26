@@ -840,14 +840,13 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
   const createSpecies = () => {
     const frontendId: string = generateFrontendID();
     const species: Species = {
-      id: frontendId,
-      name: "",
       description: "",
-      attributes: {},
-      isModified: false,
+      familyId: family.id,
+      id: frontendId,
       isDeleted: false,
       isInDatabase: false,
-      familyId: family.id,
+      isModified: false,
+      name: "",
     };
     setSelectedSpecies(species);
     setSpeciesEditorOpen(true);

@@ -22,20 +22,18 @@ export interface APIFamily {
 }
 
 export interface APISpecies {
-  id: UUID;
+  absoluteTolerance?: number;
+  constantConcentration?: number;
+  constantMixingRatio?: number;
   createdDate?: string;
-  updatedDate?: string;
-  name: string;
   description?: string | null;
-  numericalAttributes: Array<{
-    serializationKey: string;
-    value: number;
-  }>;
-  stringAttributes: Array<{
-    serializationKey: string;
-    value: string;
-  }>;
   familyId: UUID;
+  id: UUID;
+  isThirdBody?: boolean;
+  molecularWeight?: number;
+  otherProperties?: Record<string, unknown>;
+  name: string;
+  updatedDate?: string;
 }
 
 export interface APIReaction {

@@ -19,13 +19,11 @@ import {
 } from "@mui/material";
 import React, { useLayoutEffect, useRef, useState } from "react";
 import {
-  speciesAttributeOptions,
   Family,
   Mechanism,
   Reaction,
   ReactionTypeName,
   Species,
-  SpeciesAttribute,
   ReactionAttribute,
   reactionAttributeOptions,
   ReactionConfiguration,
