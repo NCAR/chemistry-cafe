@@ -57,8 +57,8 @@ import {
   ImportFamilyModal,
   MechanismCreationModal,
   ReactionEditorModal,
-  SpeciesEditorModal,
 } from "../components/FamilyEditorModals";
+import { SpeciesEditorModal } from "../components/modals/SpeciesEditorModal";
 import { reactionToString, reactionTypeToString } from "../helpers/stringify";
 import { UUID } from "crypto";
 import { getFamily } from "../API/API_GetMethods";
@@ -832,10 +832,45 @@ export const GeneralInfoView = ({
   );
 };
 
+export const applySpeciesRowUpdate = (
+  family: Family,
+  updatedSpecies: Species,
+): Family => {
+  const speciesList = [...family.species];
+  const existingIndex = speciesList.findIndex(
+    (element) => element.id === updatedSpecies.id,
+  );
+
+  if (existingIndex >= 0) {
+    speciesList[existingIndex] = {
+      ...speciesList[existingIndex],
+      ...updatedSpecies,
+      isDeleted: false,
+      isModified: true,
+    };
+  } else {
+    speciesList.unshift({
+      ...updatedSpecies,
+      isDeleted: false,
+      isModified: true,
+    });
+  }
+
+  return {
+    ...family,
+    species: speciesList,
+  };
+};
+
 export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
   const { theme } = useCustomTheme();
   const [speciesEditorOpen, setSpeciesEditorOpen] = useState<boolean>(false);
   const [selectedSpecies, setSelectedSpecies] = useState<Species>();
+
+  const handleSpeciesRowUpdate = (updatedSpecies: Species) => {
+    updateFamily(applySpeciesRowUpdate(family, updatedSpecies));
+    return updatedSpecies;
+  };
 
   const createSpecies = () => {
     const frontendId: string = generateFrontendID();
@@ -925,6 +960,7 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
     {
       field: "name",
       headerName: "Name",
+      editable: true,
       type: "string",
       flex: 1,
       renderCell: (params: GridRenderCellParams<Family>) => (
@@ -943,6 +979,7 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
     {
       field: "description",
       headerName: "Description",
+      editable: true,
       type: "string",
       flex: 1,
       renderCell: (params: GridRenderCellParams<Family>) => (
@@ -958,6 +995,82 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
         </Typography>
       ),
     },
+    {
+      field: "absoluteTolerance",
+      headerName: "Absolute Tolerance [mol m-3]",
+      editable: true,
+      type: "number",
+      flex: 1,
+      renderCell: (params: GridRenderCellParams<Family>) => (
+        <Typography
+          variant="body1"
+          sx={{
+            color: params.value
+              ? theme.palette.text.primary
+              : theme.palette.text.disabled,
+          }}
+        >
+          {params.value ?? "<Empty>"}
+        </Typography>
+      ),
+    },
+    {
+      field: "constantConcentration",
+      headerName: "Constant Concentration [mol m-3]",
+      editable: true,
+      type: "number",
+      flex: 1,
+      renderCell: (params: GridRenderCellParams<Family>) => (
+        <Typography
+          variant="body1"
+          sx={{
+            color: params.value
+              ? theme.palette.text.primary
+              : theme.palette.text.disabled,
+          }}
+        >
+          {params.value ?? "<Empty>"}
+        </Typography>
+      ),
+    },
+    {
+      field: "constantMixingRatio",
+      headerName: "Constant Mixing Ratio [mol mol-1]",
+      editable: true,
+      type: "number",
+      flex: 1,
+      renderCell: (params: GridRenderCellParams<Family>) => (
+        <Typography
+          variant="body1"
+          sx={{
+            color: params.value
+              ? theme.palette.text.primary
+              : theme.palette.text.disabled,
+          }}
+        >
+          {params.value ?? "<Empty>"}
+        </Typography>
+      ),
+    },
+    {
+      field: "molecularWeight",
+      headerName: "Molecular Weight [kg mol-1]",
+      editable: true,
+      type: "number",
+      flex: 1,
+      renderCell: (params: GridRenderCellParams<Family>) => (
+        <Typography
+          variant="body1"
+          sx={{
+            color: params.value
+              ? theme.palette.text.primary
+              : theme.palette.text.disabled,
+          }}
+        >
+          {params.value ?? "<Empty>"}
+        </Typography>
+      ),
+    }
   ];
 
   return (
@@ -987,10 +1100,15 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
         {family.name}
       </Typography>
       <DataGrid
+        getRowId={(row) => row.id}
+        editMode="row"
+        processRowUpdate={handleSpeciesRowUpdate}
+        onProcessRowUpdateError={(error) => console.error(error)}
         initialState={{ density: "compact" }}
         rows={family.species.filter((element) => !element.isDeleted)}
         columns={speciesColumns}
         pageSizeOptions={[5, 10, 20, 100]}
+        disableRowSelectionOnClick
         disableVirtualization // Enables DataGrid to be rendered in testing
         sx={{
           flex: 1,

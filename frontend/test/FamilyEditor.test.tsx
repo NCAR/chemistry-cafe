@@ -12,6 +12,7 @@ import userEvent from "@testing-library/user-event";
 import axios, { AxiosHeaders, AxiosResponse } from "axios";
 import { APIFamily } from "../src/API/API_Interfaces";
 import FamilyEditor, {
+  applySpeciesRowUpdate,
   GeneralInfoView,
   MechanismsView,
   PhaseView,
@@ -55,7 +56,7 @@ describe("Family Editor Page", () => {
   beforeEach(() => {
     window.location = {
       ...originalLocation,
-      assign: vi.fn((_: string | URL) => {}),
+      assign: vi.fn((_: string | URL) => { }),
     } as any;
     localStorage.setItem("uploadedFamilyIds", JSON.stringify([testFamily.id]));
     vi.spyOn(axios, "get").mockResolvedValue(createMockData());
@@ -415,6 +416,43 @@ describe("SpeciesView", () => {
 
   it("renders", () => {
     expect(screen.getByText("Chemical Species")).toBeTruthy();
+  });
+
+  it("retains inline species edits in the family model", () => {
+    const family = {
+      id: "111-111-111-111-111",
+      name: "Test Family",
+      description: "",
+      mechanisms: [],
+      owner: null,
+      species: [
+        {
+          id: "111-111-111-111-333",
+          name: "Test Species",
+          description: "Cool species",
+          familyId: "111-111-111-111-111",
+          isDeleted: false,
+          isInDatabase: true,
+          isModified: false,
+          absoluteTolerance: 0.1,
+          constantConcentration: 2.5,
+          constantMixingRatio: 0.25,
+        },
+      ],
+      phases: [],
+      reactions: [],
+    };
+
+    const updatedFamily = applySpeciesRowUpdate(family, {
+      ...family.species[0],
+      name: "Updated Species",
+      constantConcentration: 6.7,
+      constantMixingRatio: 0.42,
+    });
+
+    expect(updatedFamily.species[0].name).toBe("Updated Species");
+    expect(updatedFamily.species[0].constantConcentration).toBe(6.7);
+    expect(updatedFamily.species[0].constantMixingRatio).toBe(0.42);
   });
 
   it("Can create species", async () => {
