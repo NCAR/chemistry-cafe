@@ -33,22 +33,33 @@ public class Program {
         builder.Services.AddScoped<PhaseService>();
         builder.Services.AddScoped<MechanismService>();
 
-        string googleClientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID") ?? throw new InvalidOperationException("GOOGLE_CLIENT_ID environment variable is missing.");
-        string googleClientSecret = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET") ?? throw new InvalidOperationException("GOOGLE_CLIENT_SECRET environment variable is missing.");
+        string? googleClientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID");
+        string? googleClientSecret = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET");
 
-        builder.Services.AddAuthentication((options) =>
+        var authenticationBuilder = builder.Services.AddAuthentication((options) =>
             {
                 options.DefaultScheme = "Application";
                 options.DefaultSignInScheme = "External";
             })
             .AddCookie("Application")
-            .AddCookie("External")
-            .AddGoogle((options) =>
+            .AddCookie("External");
+
+        // Google sign-in is optional. When the client credentials are absent the
+        // app still starts, so it can be used as a guest with read-only access.
+        if (!string.IsNullOrWhiteSpace(googleClientId) && !string.IsNullOrWhiteSpace(googleClientSecret))
+        {
+            authenticationBuilder.AddGoogle((options) =>
             {
                 options.ClientId = googleClientId;
                 options.ClientSecret = googleClientSecret;
                 options.AccessDeniedPath = "/auth/google/login";
             });
+        }
+        else
+        {
+            Console.WriteLine(
+                "WARNING: GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET are not set. Google sign-in is disabled; the app runs in guest (read-only) mode.");
+        }
 
         //builder.Services.AddScoped<TimeService>();
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

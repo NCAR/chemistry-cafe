@@ -83,12 +83,13 @@ namespace ChemistryCafeAPI.Tests
         }
         
         [TestMethod]
-        public async Task LoginNonnull()
+        public Task LoginNonnull()
         {
             var userService = new UserService(ctx);
             var googleService = new GoogleOAuthService(userService);
             var googleController = new MockedGoogleOAuthController(googleService, userService);
             Assert.IsNotNull(googleController.LoginRedirect());
+            return Task.CompletedTask;
         }
     }
 }

@@ -18,6 +18,11 @@ import FamilyEditor, {
   ReactionsView,
   SpeciesView,
 } from "../src/pages/FamilyEditor";
+import {
+  applySpeciesRowUpdate,
+  speciesExclusiveConflict,
+} from "../src/helpers/editorHelpers";
+import { Species } from "../src/types/chemistryModels";
 import { CustomThemeProvider } from "../src/components/CustomThemeContext";
 import { MechanismEditor } from "../src/components/MechanismEditor";
 
@@ -55,7 +60,7 @@ describe("Family Editor Page", () => {
   beforeEach(() => {
     window.location = {
       ...originalLocation,
-      assign: vi.fn((_: string | URL) => {}),
+      assign: vi.fn((_: string | URL) => { }),
     } as any;
     localStorage.setItem("uploadedFamilyIds", JSON.stringify([testFamily.id]));
     vi.spyOn(axios, "get").mockResolvedValue(createMockData());
@@ -355,6 +360,44 @@ describe("PhaseView", () => {
   });
 });
 
+describe("speciesExclusiveConflict", () => {
+  const base: Species = {
+    id: "s1",
+    name: "S",
+    description: null,
+    familyId: "f1",
+  };
+
+  it("is false when zero or one exclusive option is set", () => {
+    expect(speciesExclusiveConflict(base)).toBe(false);
+    expect(speciesExclusiveConflict({ ...base, constantConcentration: 1 })).toBe(false);
+    expect(speciesExclusiveConflict({ ...base, constantMixingRatio: 0.5 })).toBe(false);
+    expect(speciesExclusiveConflict({ ...base, isThirdBody: true })).toBe(false);
+  });
+
+  it("is true when two or more exclusive options are set", () => {
+    expect(
+      speciesExclusiveConflict({ ...base, constantConcentration: 1, constantMixingRatio: 0.5 }),
+    ).toBe(true);
+    expect(
+      speciesExclusiveConflict({ ...base, constantMixingRatio: 0.5, isThirdBody: true }),
+    ).toBe(true);
+  });
+
+  it("treats empty string and NaN as unset", () => {
+    expect(
+      speciesExclusiveConflict({
+        ...base,
+        constantConcentration: "" as unknown as number,
+        constantMixingRatio: 0.5,
+      }),
+    ).toBe(false);
+    expect(
+      speciesExclusiveConflict({ ...base, constantConcentration: NaN, isThirdBody: true }),
+    ).toBe(false);
+  });
+});
+
 describe("SpeciesView", () => {
   let updateFamily = vi.fn();
 
@@ -417,6 +460,43 @@ describe("SpeciesView", () => {
     expect(screen.getByText("Chemical Species")).toBeTruthy();
   });
 
+  it("retains inline species edits in the family model", () => {
+    const family = {
+      id: "111-111-111-111-111",
+      name: "Test Family",
+      description: "",
+      mechanisms: [],
+      owner: null,
+      species: [
+        {
+          id: "111-111-111-111-333",
+          name: "Test Species",
+          description: "Cool species",
+          familyId: "111-111-111-111-111",
+          isDeleted: false,
+          isInDatabase: true,
+          isModified: false,
+          absoluteTolerance: 0.1,
+          constantConcentration: 2.5,
+          constantMixingRatio: 0.25,
+        },
+      ],
+      phases: [],
+      reactions: [],
+    };
+
+    const updatedFamily = applySpeciesRowUpdate(family, {
+      ...family.species[0],
+      name: "Updated Species",
+      constantConcentration: 6.7,
+      constantMixingRatio: 0.42,
+    });
+
+    expect(updatedFamily.species[0].name).toBe("Updated Species");
+    expect(updatedFamily.species[0].constantConcentration).toBe(6.7);
+    expect(updatedFamily.species[0].constantMixingRatio).toBe(0.42);
+  });
+
   it("Can create species", async () => {
     const user = userEvent.setup();
 
@@ -434,7 +514,7 @@ describe("SpeciesView", () => {
     expect(descriptionBox.value).toBeFalsy();
 
     const molecularWeightBox = screen.getByLabelText(
-      "Molecular Weight",
+      "Molecular weight",
     ) as HTMLInputElement;
     expect(molecularWeightBox).toBeTruthy();
 
@@ -470,6 +550,20 @@ describe("SpeciesView", () => {
     await user.type(nameBox, "Test Species");
     expect(nameBox.value).toEqual("Test Species");
     fireEvent.click(saveButton);
+  });
+
+  it("Blocks saving mutually exclusive species options", async () => {
+    const user = userEvent.setup();
+    fireEvent.click(screen.getByTestId("add-species-button"));
+
+    await user.type(screen.getByLabelText("Name *"), "Test Species");
+    await user.type(screen.getByLabelText("Constant concentration"), "1.5");
+    fireEvent.click(screen.getByLabelText("Third body (M)"));
+
+    fireEvent.click(screen.getByTestId("save-species-changes"));
+
+    expect(updateFamily).not.toHaveBeenCalled();
+    expect(screen.getByText(/only one of/i)).toBeTruthy();
   });
 
   it("Can remove species", async () => {

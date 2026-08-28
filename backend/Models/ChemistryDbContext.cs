@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Pomelo.EntityFrameworkCore.MySql.Scaffolding.Internal;
 
@@ -28,15 +29,15 @@ public partial class ChemistryDbContext : DbContext
 
         // Configure Species Relations
         modelBuilder.Entity<Species>()
+            .Property(s => s.OtherProperties)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(v, (JsonSerializerOptions?)null) ?? new Dictionary<string, JsonElement>());
+
+        modelBuilder.Entity<Species>()
             .HasOne(s => s.Family)
             .WithMany(f => f.Species)
             .HasForeignKey(s => s.FamilyId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        modelBuilder.Entity<SpeciesNumericalAttribute>()
-            .HasOne(s => s.Species)
-            .WithMany(s => s.NumericalAttributes)
-            .HasForeignKey(na => na.SpeciesId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // Configure Reaction Relations
@@ -146,12 +147,6 @@ public partial class ChemistryDbContext : DbContext
             .OnDelete(DeleteBehavior.Cascade);
 
         // Configure composite keys
-        modelBuilder.Entity<SpeciesNumericalAttribute>()
-            .HasKey(s => new { s.SpeciesId, s.SerializationKey });
-
-        modelBuilder.Entity<SpeciesStringAttribute>()
-            .HasKey(s => new { s.SpeciesId, s.SerializationKey });
-
         modelBuilder.Entity<ReactionNumericalAttribute>()
             .HasKey(r => new { r.ReactionId, r.SerializationKey });
 

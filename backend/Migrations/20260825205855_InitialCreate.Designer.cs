@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChemistryCafeAPI.Migrations
 {
     [DbContext(typeof(ChemistryDbContext))]
-    [Migration("20250415192726_ReaddMechanismAndReaction")]
-    partial class ReaddMechanismAndReaction
+    [Migration("20260825205855_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -80,6 +80,21 @@ namespace ChemistryCafeAPI.Migrations
                     b.ToTable("Mechanisms");
                 });
 
+            modelBuilder.Entity("ChemistryCafeAPI.Models.MechanismPhase", b =>
+                {
+                    b.Property<Guid>("MechanismId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("PhaseId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("MechanismId", "PhaseId");
+
+                    b.HasIndex("PhaseId");
+
+                    b.ToTable("MechanismPhase");
+                });
+
             modelBuilder.Entity("ChemistryCafeAPI.Models.MechanismReaction", b =>
                 {
                     b.Property<Guid>("MechanismId")
@@ -92,7 +107,7 @@ namespace ChemistryCafeAPI.Migrations
 
                     b.HasIndex("ReactionId");
 
-                    b.ToTable("MechanismReactions");
+                    b.ToTable("MechanismReaction");
                 });
 
             modelBuilder.Entity("ChemistryCafeAPI.Models.MechanismSpecies", b =>
@@ -122,7 +137,7 @@ namespace ChemistryCafeAPI.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("longtext");
 
-                    b.Property<Guid>("MechanismId")
+                    b.Property<Guid>("FamilyId")
                         .HasColumnType("char(36)");
 
                     b.Property<string>("Name")
@@ -134,32 +149,26 @@ namespace ChemistryCafeAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MechanismId");
+                    b.HasIndex("FamilyId");
 
                     b.ToTable("Phases");
                 });
 
             modelBuilder.Entity("ChemistryCafeAPI.Models.Product", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<string>("Branch")
-                        .HasColumnType("longtext");
-
-                    b.Property<double?>("Coefficient")
-                        .HasColumnType("double");
-
                     b.Property<Guid>("ReactionId")
                         .HasColumnType("char(36)");
 
                     b.Property<Guid>("SpeciesId")
                         .HasColumnType("char(36)");
 
-                    b.HasKey("Id");
+                    b.Property<string>("Branch")
+                        .HasColumnType("longtext");
 
-                    b.HasIndex("ReactionId");
+                    b.Property<double>("Coefficient")
+                        .HasColumnType("double");
+
+                    b.HasKey("ReactionId", "SpeciesId");
 
                     b.HasIndex("SpeciesId");
 
@@ -168,22 +177,16 @@ namespace ChemistryCafeAPI.Migrations
 
             modelBuilder.Entity("ChemistryCafeAPI.Models.Reactant", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<double?>("Coefficient")
-                        .HasColumnType("double");
-
                     b.Property<Guid>("ReactionId")
                         .HasColumnType("char(36)");
 
                     b.Property<Guid>("SpeciesId")
                         .HasColumnType("char(36)");
 
-                    b.HasKey("Id");
+                    b.Property<double>("Coefficient")
+                        .HasColumnType("double");
 
-                    b.HasIndex("ReactionId");
+                    b.HasKey("ReactionId", "SpeciesId");
 
                     b.HasIndex("SpeciesId");
 
@@ -196,6 +199,15 @@ namespace ChemistryCafeAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
+                    b.Property<Guid?>("AerosolPhaseId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid?>("AerosolPhaseSpeciesId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid?>("AerosolPhaseWaterId")
+                        .HasColumnType("char(36)");
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime(6)");
 
@@ -205,7 +217,17 @@ namespace ChemistryCafeAPI.Migrations
                     b.Property<Guid>("FamilyId")
                         .HasColumnType("char(36)");
 
+                    b.Property<Guid?>("GasPhaseId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid?>("GasPhaseSpeciesId")
+                        .HasColumnType("char(36)");
+
                     b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ReactionType")
                         .IsRequired()
                         .HasColumnType("longtext");
 
@@ -214,9 +236,52 @@ namespace ChemistryCafeAPI.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AerosolPhaseId");
+
+                    b.HasIndex("AerosolPhaseSpeciesId");
+
+                    b.HasIndex("AerosolPhaseWaterId");
+
                     b.HasIndex("FamilyId");
 
+                    b.HasIndex("GasPhaseId");
+
+                    b.HasIndex("GasPhaseSpeciesId");
+
                     b.ToTable("Reactions");
+                });
+
+            modelBuilder.Entity("ChemistryCafeAPI.Models.ReactionNumericalAttribute", b =>
+                {
+                    b.Property<Guid>("ReactionId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("SerializationKey")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<double>("Value")
+                        .HasColumnType("double");
+
+                    b.HasKey("ReactionId", "SerializationKey");
+
+                    b.ToTable("ReactionNumericalAttributes");
+                });
+
+            modelBuilder.Entity("ChemistryCafeAPI.Models.ReactionStringAttribute", b =>
+                {
+                    b.Property<Guid>("ReactionId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("SerializationKey")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("ReactionId", "SerializationKey");
+
+                    b.ToTable("ReactionStringAttributes");
                 });
 
             modelBuilder.Entity("ChemistryCafeAPI.Models.Species", b =>
@@ -225,8 +290,14 @@ namespace ChemistryCafeAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
-                    b.Property<string>("Attributes")
-                        .HasColumnType("longtext");
+                    b.Property<double?>("AbsoluteTolerance")
+                        .HasColumnType("double");
+
+                    b.Property<double?>("ConstantConcentration")
+                        .HasColumnType("double");
+
+                    b.Property<double?>("ConstantMixingRatio")
+                        .HasColumnType("double");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime(6)");
@@ -237,12 +308,18 @@ namespace ChemistryCafeAPI.Migrations
                     b.Property<Guid>("FamilyId")
                         .HasColumnType("char(36)");
 
+                    b.Property<bool?>("IsThirdBody")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<double?>("MolecularWeight")
+                        .HasColumnType("double");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<Guid?>("PhaseId")
-                        .HasColumnType("char(36)");
+                    b.Property<string>("OtherProperties")
+                        .HasColumnType("json");
 
                     b.Property<DateTime>("UpdatedDate")
                         .HasColumnType("datetime(6)");
@@ -250,8 +327,6 @@ namespace ChemistryCafeAPI.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("FamilyId");
-
-                    b.HasIndex("PhaseId");
 
                     b.ToTable("Species");
                 });
@@ -287,6 +362,21 @@ namespace ChemistryCafeAPI.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("PhaseSpecies", b =>
+                {
+                    b.Property<Guid>("PhasesId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("SpeciesId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("PhasesId", "SpeciesId");
+
+                    b.HasIndex("SpeciesId");
+
+                    b.ToTable("PhaseSpecies");
+                });
+
             modelBuilder.Entity("ChemistryCafeAPI.Models.Family", b =>
                 {
                     b.HasOne("ChemistryCafeAPI.Models.User", "Owner")
@@ -309,53 +399,60 @@ namespace ChemistryCafeAPI.Migrations
                     b.Navigation("Family");
                 });
 
-            modelBuilder.Entity("ChemistryCafeAPI.Models.MechanismReaction", b =>
+            modelBuilder.Entity("ChemistryCafeAPI.Models.MechanismPhase", b =>
                 {
-                    b.HasOne("ChemistryCafeAPI.Models.Mechanism", "Mechanism")
-                        .WithMany("MechanismReactions")
+                    b.HasOne("ChemistryCafeAPI.Models.Mechanism", null)
+                        .WithMany()
                         .HasForeignKey("MechanismId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ChemistryCafeAPI.Models.Reaction", "Reaction")
-                        .WithMany("MechanismReactions")
-                        .HasForeignKey("ReactionId")
+                    b.HasOne("ChemistryCafeAPI.Models.Phase", null)
+                        .WithMany()
+                        .HasForeignKey("PhaseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ChemistryCafeAPI.Models.MechanismReaction", b =>
+                {
+                    b.HasOne("ChemistryCafeAPI.Models.Mechanism", null)
+                        .WithMany()
+                        .HasForeignKey("MechanismId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Mechanism");
-
-                    b.Navigation("Reaction");
+                    b.HasOne("ChemistryCafeAPI.Models.Reaction", null)
+                        .WithMany()
+                        .HasForeignKey("ReactionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ChemistryCafeAPI.Models.MechanismSpecies", b =>
                 {
-                    b.HasOne("ChemistryCafeAPI.Models.Mechanism", "Mechanism")
-                        .WithMany("MechanismSpecies")
+                    b.HasOne("ChemistryCafeAPI.Models.Mechanism", null)
+                        .WithMany()
                         .HasForeignKey("MechanismId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ChemistryCafeAPI.Models.Species", "Species")
-                        .WithMany("MechanismSpecies")
+                    b.HasOne("ChemistryCafeAPI.Models.Species", null)
+                        .WithMany()
                         .HasForeignKey("SpeciesId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Mechanism");
-
-                    b.Navigation("Species");
                 });
 
             modelBuilder.Entity("ChemistryCafeAPI.Models.Phase", b =>
                 {
-                    b.HasOne("ChemistryCafeAPI.Models.Mechanism", "Mechanism")
+                    b.HasOne("ChemistryCafeAPI.Models.Family", "Family")
                         .WithMany("Phases")
-                        .HasForeignKey("MechanismId")
+                        .HasForeignKey("FamilyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Mechanism");
+                    b.Navigation("Family");
                 });
 
             modelBuilder.Entity("ChemistryCafeAPI.Models.Product", b =>
@@ -398,13 +495,70 @@ namespace ChemistryCafeAPI.Migrations
 
             modelBuilder.Entity("ChemistryCafeAPI.Models.Reaction", b =>
                 {
+                    b.HasOne("ChemistryCafeAPI.Models.Phase", "AerosolPhase")
+                        .WithMany("AsAerosolPhase")
+                        .HasForeignKey("AerosolPhaseId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ChemistryCafeAPI.Models.Species", "AerosolPhaseSpecies")
+                        .WithMany("AsAerosolPhaseSpecies")
+                        .HasForeignKey("AerosolPhaseSpeciesId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ChemistryCafeAPI.Models.Species", "AerosolPhaseWater")
+                        .WithMany("AsAerosolPhaseWater")
+                        .HasForeignKey("AerosolPhaseWaterId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("ChemistryCafeAPI.Models.Family", "Family")
                         .WithMany("Reactions")
                         .HasForeignKey("FamilyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ChemistryCafeAPI.Models.Phase", "GasPhase")
+                        .WithMany("AsGasPhase")
+                        .HasForeignKey("GasPhaseId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ChemistryCafeAPI.Models.Species", "GasPhaseSpecies")
+                        .WithMany("AsGasPhaseSpecies")
+                        .HasForeignKey("GasPhaseSpeciesId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("AerosolPhase");
+
+                    b.Navigation("AerosolPhaseSpecies");
+
+                    b.Navigation("AerosolPhaseWater");
+
                     b.Navigation("Family");
+
+                    b.Navigation("GasPhase");
+
+                    b.Navigation("GasPhaseSpecies");
+                });
+
+            modelBuilder.Entity("ChemistryCafeAPI.Models.ReactionNumericalAttribute", b =>
+                {
+                    b.HasOne("ChemistryCafeAPI.Models.Reaction", "Reaction")
+                        .WithMany("NumericalAttributes")
+                        .HasForeignKey("ReactionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Reaction");
+                });
+
+            modelBuilder.Entity("ChemistryCafeAPI.Models.ReactionStringAttribute", b =>
+                {
+                    b.HasOne("ChemistryCafeAPI.Models.Reaction", "Reaction")
+                        .WithMany("StringAttributes")
+                        .HasForeignKey("ReactionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Reaction");
                 });
 
             modelBuilder.Entity("ChemistryCafeAPI.Models.Species", b =>
@@ -415,55 +569,64 @@ namespace ChemistryCafeAPI.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ChemistryCafeAPI.Models.Phase", "Phase")
-                        .WithMany("Species")
-                        .HasForeignKey("PhaseId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.Navigation("Family");
+                });
 
-                    b.Navigation("Phase");
+            modelBuilder.Entity("PhaseSpecies", b =>
+                {
+                    b.HasOne("ChemistryCafeAPI.Models.Phase", null)
+                        .WithMany()
+                        .HasForeignKey("PhasesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ChemistryCafeAPI.Models.Species", null)
+                        .WithMany()
+                        .HasForeignKey("SpeciesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ChemistryCafeAPI.Models.Family", b =>
                 {
                     b.Navigation("Mechanisms");
 
+                    b.Navigation("Phases");
+
                     b.Navigation("Reactions");
 
                     b.Navigation("Species");
                 });
 
-            modelBuilder.Entity("ChemistryCafeAPI.Models.Mechanism", b =>
-                {
-                    b.Navigation("MechanismReactions");
-
-                    b.Navigation("MechanismSpecies");
-
-                    b.Navigation("Phases");
-                });
-
             modelBuilder.Entity("ChemistryCafeAPI.Models.Phase", b =>
                 {
-                    b.Navigation("Species");
+                    b.Navigation("AsAerosolPhase");
+
+                    b.Navigation("AsGasPhase");
                 });
 
             modelBuilder.Entity("ChemistryCafeAPI.Models.Reaction", b =>
                 {
-                    b.Navigation("MechanismReactions");
+                    b.Navigation("NumericalAttributes");
 
                     b.Navigation("Products");
 
                     b.Navigation("Reactants");
+
+                    b.Navigation("StringAttributes");
                 });
 
             modelBuilder.Entity("ChemistryCafeAPI.Models.Species", b =>
                 {
+                    b.Navigation("AsAerosolPhaseSpecies");
+
+                    b.Navigation("AsAerosolPhaseWater");
+
+                    b.Navigation("AsGasPhaseSpecies");
+
                     b.Navigation("AsProduct");
 
                     b.Navigation("AsReactant");
-
-                    b.Navigation("MechanismSpecies");
                 });
 #pragma warning restore 612, 618
         }

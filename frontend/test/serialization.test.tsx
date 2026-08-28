@@ -27,13 +27,7 @@ const molecularWeightSpecies: Species = {
   name: "Molecular Weight Species",
   description: null,
   familyId: "",
-  attributes: {
-    "molecular weight [kg mol-1]": {
-      name: "Molecular Weight",
-      serializationKey: "molecular weight [kg mol-1]",
-      value: 1e-2,
-    },
-  },
+  molecularWeight: 1e-2,
 };
 
 const mixingRatioSpecies: Species = {
@@ -41,13 +35,7 @@ const mixingRatioSpecies: Species = {
   name: "Mixing Ratio Species",
   description: null,
   familyId: "",
-  attributes: {
-    "constant mixing ratio [mol mol-1]": {
-      name: "Constant Mixing Ratio",
-      serializationKey: "constant mixing ratio [mol mol-1]",
-      value: 1e-2,
-    },
-  },
+  constantMixingRatio: 1e-2,
 };
 
 const thirdBodySpecies: Species = {
@@ -55,13 +43,7 @@ const thirdBodySpecies: Species = {
   name: "Third Body Species",
   description: null,
   familyId: "",
-  attributes: {
-    "is third body": {
-      name: "Is third body?",
-      serializationKey: "is third body",
-      value: "true",
-    },
-  },
+  isThirdBody: true,
 };
 
 const absoluteToleranceSpecies: Species = {
@@ -69,13 +51,15 @@ const absoluteToleranceSpecies: Species = {
   name: "Absolute Tolerance Species",
   description: null,
   familyId: "",
-  attributes: {
-    "absolute tolerance": {
-      name: "Absolute Tolerance",
-      serializationKey: "absolute tolerance",
-      value: 1e-9,
-    },
-  },
+  absoluteTolerance: 1e-9,
+};
+
+const otherPropertiesSpecies: Species = {
+  id: "species-other-properties",
+  name: "Other Properties Species",
+  description: null,
+  familyId: "",
+  otherProperties: { "long name": "ozone" },
 };
 
 const plainSpecies: Species = {
@@ -83,7 +67,6 @@ const plainSpecies: Species = {
   name: "Plain Species",
   description: null,
   familyId: "",
-  attributes: {},
 };
 
 const species = [
@@ -91,6 +74,7 @@ const species = [
   mixingRatioSpecies,
   thirdBodySpecies,
   absoluteToleranceSpecies,
+  otherPropertiesSpecies,
   plainSpecies,
 ];
 
@@ -470,58 +454,45 @@ describe("Gas phase name fidelity (non-'gas')", () => {
 describe("Species serialization", () => {
   beforeAll(initFixtures);
 
-  it("serializes species attributes to their v1 wire keys", () => {
+  it("serializes species to their v1 wire keys", () => {
     const byName = (name: string) =>
       serialized.species.find((s: any) => s.name === name);
-
+    
     expect(
       byName(molecularWeightSpecies.name)["molecular weight [kg mol-1]"],
     ).toBe(0.01);
     expect(
       byName(mixingRatioSpecies.name)["constant mixing ratio [mol mol-1]"],
     ).toBe(0.01);
-    // string "true" is coerced to a boolean
     expect(byName(thirdBodySpecies.name)["is third body"]).toBe(true);
-    // non-first-class properties are emitted with musica's `__` prefix
-    expect(byName(absoluteToleranceSpecies.name)["__absolute tolerance"]).toBe(
+    // absolute tolerance is a first-class field, so no `__` prefix
+    expect(byName(absoluteToleranceSpecies.name)["absolute tolerance"]).toBe(
       1e-9,
     );
-    // a species with no attributes serializes to just its name
+    // arbitrary passthrough keys are emitted with musica's `__` prefix
+    expect(byName(otherPropertiesSpecies.name)["__long name"]).toBe("ozone");
+    // a species with no properties serializes to just its name
     expect(Object.keys(byName(plainSpecies.name))).toEqual(["name"]);
   });
 
-  it("deserializes species attributes back to the model", () => {
+  it("deserializes species back to the model", () => {
     const byName = (name: string) =>
       imported.species.find((s) => s.name === name)!;
-
+    expect(byName(molecularWeightSpecies.name).molecularWeight).toBe(0.01);
+    expect(byName(mixingRatioSpecies.name).constantMixingRatio).toBe(0.01);
+    expect(byName(thirdBodySpecies.name).isThirdBody).toBe(true);
+    expect(byName(absoluteToleranceSpecies.name).absoluteTolerance).toBe(1e-9);
+    // the `__` prefix is stripped back off passthrough properties
     expect(
-      byName(molecularWeightSpecies.name).attributes[
-        "molecular weight [kg mol-1]"
-      ]?.value,
-    ).toBe(0.01);
-    expect(
-      byName(mixingRatioSpecies.name).attributes[
-        "constant mixing ratio [mol mol-1]"
-      ]?.value,
-    ).toBe(0.01);
-    // booleans are normalized back to a string (SpeciesAttribute.value is number | string)
-    expect(
-      byName(thirdBodySpecies.name).attributes["is third body"]?.value,
-    ).toBe("true");
-    // the `__` prefix is stripped so the key matches the chemistry-cafe serializationKey
-    expect(
-      byName(absoluteToleranceSpecies.name).attributes["absolute tolerance"]
-        ?.value,
-    ).toBe(1e-9);
+      byName(otherPropertiesSpecies.name).otherProperties?.["long name"],
+    ).toBe("ozone");
   });
 
   it("omits 'is third body' when the species is not a third body", () => {
     const notThirdBody: Species = {
       ...thirdBodySpecies,
       id: "species-not-third-body",
-      attributes: {
-        "is third body": { serializationKey: "is third body", value: "false" },
-      },
+      isThirdBody: false,
     };
     const parsed = serialize(
       {
@@ -532,7 +503,7 @@ describe("Species serialization", () => {
       },
       { ...family, species: [notThirdBody], reactions: [], phases: [] },
     );
-    expect(parsed.species[0]["is third body"]).toBeUndefined();
+    expect(parsed.species[0]["is third body"]).toEqual(false);
   });
 });
 

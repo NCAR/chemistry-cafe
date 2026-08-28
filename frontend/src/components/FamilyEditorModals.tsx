@@ -4,7 +4,6 @@ import {
   Box,
   Button,
   IconButton,
-  InputAdornment,
   List,
   ListItem,
   MenuItem,
@@ -12,20 +11,15 @@ import {
   Paper,
   Select,
   Snackbar,
-  SxProps,
   TextField,
-  Theme,
   Typography,
 } from "@mui/material";
 import React, { useLayoutEffect, useRef, useState } from "react";
 import {
-  speciesAttributeOptions,
   Family,
   Mechanism,
   Reaction,
   ReactionTypeName,
-  Species,
-  SpeciesAttribute,
   ReactionAttribute,
   reactionAttributeOptions,
   ReactionConfiguration,
@@ -34,30 +28,13 @@ import {
   supportedReactionTypes,
 } from "../types/chemistryModels";
 import DeleteIcon from "@mui/icons-material/Delete";
-import UnitComponent from "./UnitComponent";
 import WarningIcon from "@mui/icons-material/Warning";
 import { SelectSpeciesButton } from "./SelectSpeciesButton";
 import { useAuth } from "./AuthContext";
 import { generateFrontendID } from "../helpers/localFamilies";
 import FileUpload from "./FileUpload";
 import { reactionTypeToString } from "../helpers/stringify";
-
-const modalStyle: SxProps<Theme> = {
-  position: "absolute" as const,
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  minWidth: "50%",
-  maxHeight: "85%",
-  overflowY: "auto",
-  bgcolor: "background.paper",
-  border: "2px solid #000",
-  boxShadow: 24,
-  p: 4,
-  display: "flex",
-  flexDirection: "column",
-  rowGap: "0.7em",
-};
+import { modalStyle } from "./modals/modalStyle";
 
 type FamilyCreationModalProps = {
   open: boolean;
@@ -325,249 +302,6 @@ export const MechanismCreationModal: React.FC<MechanismCreationModalProps> = ({
         </Alert>
       </Snackbar>
     </>
-  );
-};
-
-type SpeciesEditorModalProps = {
-  open: boolean;
-  onClose: () => void;
-  onUpdate: (species: Species) => void;
-  species?: Species;
-};
-
-export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
-  open,
-  onClose,
-  onUpdate,
-  species,
-}) => {
-  const [modifiedSpecies, setModifiedSpecies] = useState<Species | undefined>();
-  const [showAlert, setShowAlert] = useState<boolean>(false);
-  const [alertMessage, setAlertMessage] = useState<string>("None");
-
-  useLayoutEffect(() => {
-    setModifiedSpecies(species);
-  }, [species]);
-
-  const handleUpdateSpecies = () => {
-    if (!modifiedSpecies?.name) {
-      setAlertMessage("Name must not be empty!");
-      setShowAlert(true);
-      return;
-    }
-
-    if (modifiedSpecies) {
-      onUpdate(modifiedSpecies);
-    }
-    onClose();
-  };
-
-  const changeSpeciesProperties = (properties: Partial<Species>) => {
-    setModifiedSpecies({
-      ...modifiedSpecies!,
-      ...properties,
-    });
-  };
-
-  const handleAlertClose = () => setShowAlert(false);
-
-  return (
-    <div>
-      <Modal open={open} onClose={onClose}>
-        <Box sx={modalStyle} role="menu">
-          {species ? (
-            <>
-              <Typography color="textPrimary" variant="h5">
-                Edit Species
-              </Typography>
-              <Typography color="textPrimary" variant="h6">
-                Basic Info
-              </Typography>
-              <TextField
-                sx={{
-                  width: "100%",
-                }}
-                color="primary"
-                required={true}
-                defaultValue={species.name}
-                id="species-name"
-                label="Name"
-                onChange={(event) => {
-                  changeSpeciesProperties({
-                    name: event.target.value,
-                  });
-                }}
-              />
-              <TextField
-                sx={{
-                  width: "100%",
-                }}
-                color="primary"
-                defaultValue={species.description}
-                minRows={2}
-                maxRows={4}
-                id="species-description"
-                label="Description"
-                onChange={(event) => {
-                  changeSpeciesProperties({
-                    description: event.target.value,
-                  });
-                }}
-              />
-              <Typography color="textPrimary" variant="h6">
-                Species Attributes
-              </Typography>
-              <Typography color="textSecondary" variant="subtitle1">
-                Empty values will be ignored
-              </Typography>
-              {speciesAttributeOptions.map((element: SpeciesAttribute) => {
-                const attribute =
-                  modifiedSpecies?.attributes[element.serializationKey] ??
-                  element;
-                if (typeof attribute.value == "number") {
-                  return (
-                    <TextField
-                      color="primary"
-                      key={`${species.id}-${attribute.serializationKey}`}
-                      id={`${species.id}-${attribute.serializationKey}`}
-                      onWheel={(event) =>
-                        event.target instanceof HTMLElement &&
-                        event.target.blur()
-                      }
-                      sx={{
-                        width: "100%",
-                        // Removes up and down arrows for number
-                        "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                          {
-                            display: "none",
-                          },
-                        "& input[type=number]": {
-                          MozAppearance: "textfield",
-                        },
-                      }}
-                      defaultValue={
-                        species?.attributes[
-                          attribute.serializationKey
-                        ]?.value.toString() ?? ""
-                      }
-                      label={attribute.name || attribute.serializationKey}
-                      type="number"
-                      slotProps={{
-                        input: {
-                          endAdornment: (
-                            <InputAdornment position="start">
-                              {attribute.units && (
-                                <UnitComponent units={attribute.units} />
-                              )}
-                            </InputAdornment>
-                          ),
-                        },
-                      }}
-                      onChange={(event) => {
-                        const num = Number.parseFloat(event.target.value);
-                        if (
-                          Number.isFinite(num) ||
-                          event.target.value.length === 0
-                        ) {
-                          let modifiedAttributes: {
-                            [key: string]: SpeciesAttribute;
-                          } = {
-                            ...modifiedSpecies?.attributes,
-                          };
-
-                          if (event.target.value.length === 0) {
-                            delete modifiedAttributes[
-                              attribute.serializationKey
-                            ];
-                          } else {
-                            modifiedAttributes[attribute.serializationKey] = {
-                              ...attribute,
-                              value: num,
-                            };
-                          }
-
-                          changeSpeciesProperties({
-                            attributes: modifiedAttributes,
-                          });
-                        }
-                      }}
-                    />
-                  );
-                } else if (typeof attribute.value == "string") {
-                  return (
-                    <TextField
-                      color="primary"
-                      key={`${species.id}-${attribute.serializationKey}`}
-                      defaultValue={
-                        species?.attributes[
-                          attribute.serializationKey
-                        ]?.value.toString() ?? "Currently Unsupported"
-                      }
-                      label={attribute.name || attribute.serializationKey}
-                      disabled
-                    />
-                  );
-                } else {
-                  return null;
-                }
-              })}
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  columnGap: "1em",
-                }}
-              >
-                <Button
-                  sx={{
-                    flex: 1,
-                  }}
-                  aria-label="Save changes to species."
-                  data-testid="save-species-changes"
-                  color="primary"
-                  variant="contained"
-                  onClick={handleUpdateSpecies}
-                >
-                  Save Changes
-                </Button>
-                <Button
-                  sx={{
-                    flex: 1,
-                  }}
-                  aria-label="Cancel Edit"
-                  variant="outlined"
-                  onClick={onClose}
-                >
-                  Cancel
-                </Button>
-              </Box>
-            </>
-          ) : (
-            <>
-              <Typography variant="h5">Species not found</Typography>
-              <Button variant="contained" color="warning" onClick={onClose}>
-                Exit
-              </Button>
-            </>
-          )}
-        </Box>
-      </Modal>
-      <Snackbar
-        open={showAlert}
-        autoHideDuration={5000}
-        onClose={handleAlertClose}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert
-          onClose={handleAlertClose}
-          severity="warning"
-          variant="filled"
-          sx={{ width: "100%" }}
-        >
-          {alertMessage}
-        </Alert>
-      </Snackbar>
-    </div>
   );
 };
 
@@ -950,9 +684,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                           flex: 1,
                           // Removes up and down arrows for number
                           "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                            {
-                              display: "none",
-                            },
+                          {
+                            display: "none",
+                          },
                           "& input[type=number]": {
                             MozAppearance: "textfield",
                           },
@@ -1141,9 +875,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                           flex: 1,
                           // Removes up and down arrows for number
                           "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                            {
-                              display: "none",
-                            },
+                          {
+                            display: "none",
+                          },
                           "& input[type=number]": {
                             MozAppearance: "textfield",
                           },
@@ -1213,9 +947,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                     width: "100%",
                     // Removes up and down arrows for number
                     "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                      {
-                        display: "none",
-                      },
+                    {
+                      display: "none",
+                    },
                     "& input[type=number]": {
                       MozAppearance: "textfield",
                     },

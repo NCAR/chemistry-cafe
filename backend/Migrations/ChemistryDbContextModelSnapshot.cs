@@ -287,6 +287,15 @@ namespace ChemistryCafeAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
+                    b.Property<double?>("AbsoluteTolerance")
+                        .HasColumnType("double");
+
+                    b.Property<double?>("ConstantConcentration")
+                        .HasColumnType("double");
+
+                    b.Property<double?>("ConstantMixingRatio")
+                        .HasColumnType("double");
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime(6)");
 
@@ -296,9 +305,18 @@ namespace ChemistryCafeAPI.Migrations
                     b.Property<Guid>("FamilyId")
                         .HasColumnType("char(36)");
 
+                    b.Property<bool?>("IsThirdBody")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<double?>("MolecularWeight")
+                        .HasColumnType("double");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<string>("OtherProperties")
+                        .HasColumnType("json");
 
                     b.Property<DateTime>("UpdatedDate")
                         .HasColumnType("datetime(6)");
@@ -308,39 +326,6 @@ namespace ChemistryCafeAPI.Migrations
                     b.HasIndex("FamilyId");
 
                     b.ToTable("Species");
-                });
-
-            modelBuilder.Entity("ChemistryCafeAPI.Models.SpeciesNumericalAttribute", b =>
-                {
-                    b.Property<Guid>("SpeciesId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<string>("SerializationKey")
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<double>("Value")
-                        .HasColumnType("double");
-
-                    b.HasKey("SpeciesId", "SerializationKey");
-
-                    b.ToTable("SpeciesNumericalAttributes");
-                });
-
-            modelBuilder.Entity("ChemistryCafeAPI.Models.SpeciesStringAttribute", b =>
-                {
-                    b.Property<Guid>("SpeciesId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<string>("SerializationKey")
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("SpeciesId", "SerializationKey");
-
-                    b.ToTable("SpeciesStringAttributes");
                 });
 
             modelBuilder.Entity("ChemistryCafeAPI.Models.User", b =>
@@ -584,28 +569,6 @@ namespace ChemistryCafeAPI.Migrations
                     b.Navigation("Family");
                 });
 
-            modelBuilder.Entity("ChemistryCafeAPI.Models.SpeciesNumericalAttribute", b =>
-                {
-                    b.HasOne("ChemistryCafeAPI.Models.Species", "Species")
-                        .WithMany("NumericalAttributes")
-                        .HasForeignKey("SpeciesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Species");
-                });
-
-            modelBuilder.Entity("ChemistryCafeAPI.Models.SpeciesStringAttribute", b =>
-                {
-                    b.HasOne("ChemistryCafeAPI.Models.Species", "Species")
-                        .WithMany("StringAttributes")
-                        .HasForeignKey("SpeciesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Species");
-                });
-
             modelBuilder.Entity("PhaseSpecies", b =>
                 {
                     b.HasOne("ChemistryCafeAPI.Models.Phase", null)
@@ -661,10 +624,6 @@ namespace ChemistryCafeAPI.Migrations
                     b.Navigation("AsProduct");
 
                     b.Navigation("AsReactant");
-
-                    b.Navigation("NumericalAttributes");
-
-                    b.Navigation("StringAttributes");
                 });
 #pragma warning restore 612, 618
         }

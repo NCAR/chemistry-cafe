@@ -20,9 +20,7 @@ public class SpeciesService
     /// <returns>Tuple of result of the transaction and list of species</returns>
     public async Task<(QueryResult, IEnumerable<Species>?)> GetAllSpeciesAsync(Guid? familyId = null)
     {
-        IQueryable<Species> query = _context.Species
-            .Include(s => s.NumericalAttributes)
-            .Include(s => s.StringAttributes);
+        IQueryable<Species> query = _context.Species;
 
         if (familyId != null)
         {
@@ -47,8 +45,6 @@ public class SpeciesService
     public async Task<(QueryResult, Species?)> GetSpeciesAsync(Guid id)
     {
         Species? species = await _context.Species
-            .Include(s => s.NumericalAttributes)
-            .Include(s => s.StringAttributes)
             .SingleOrDefaultAsync(s => s.Id == id);
 
         if (species == null)
@@ -96,25 +92,24 @@ public class SpeciesService
             return (QueryResult.NoAccess, null);
         }
 
-        // Verify there are no duplicate keys in the attributes
-        // This is already a constraint in the database, but this tells the user the issue
-        var serializationKeys = species.NumericalAttributes.Select(e => e.SerializationKey)
-            .Concat(species.StringAttributes.Select(e => e.SerializationKey));
-
-        if (serializationKeys.Count() != serializationKeys.Distinct().Count())
+        if (species.ConstantConcentration != null && species.ConstantMixingRatio != null)
         {
-            return (QueryResult.DuplicateKeyError, null);
+            return (QueryResult.ValidationError, null);
         }
 
         Species speciesInfo = new Species
         {
+            AbsoluteTolerance = species.AbsoluteTolerance,
+            ConstantConcentration = species.ConstantConcentration,
+            ConstantMixingRatio = species.ConstantMixingRatio,
             CreatedDate = DateTime.UtcNow,
-            UpdatedDate = DateTime.UtcNow,
-            Name = species.Name,
             Description = species.Description,
-            NumericalAttributes = species.NumericalAttributes,
-            StringAttributes = species.StringAttributes,
             Family = family,
+            IsThirdBody = species.IsThirdBody,
+            MolecularWeight = species.MolecularWeight,
+            Name = species.Name,
+            OtherProperties = species.OtherProperties,
+            UpdatedDate = DateTime.UtcNow,
         };
 
         var createdSpecies = _context.Species.Add(speciesInfo);
@@ -151,8 +146,6 @@ public class SpeciesService
         var currentSpecies = await _context.Species
             .Include(s => s.Family)
                 .ThenInclude(f => f!.Owner)
-            .Include(s => s.NumericalAttributes)
-            .Include(s => s.StringAttributes)
             .SingleOrDefaultAsync(s => s.Id == id);
         if (currentSpecies == null)
         {
@@ -164,25 +157,20 @@ public class SpeciesService
             return (QueryResult.NoAccess, null);
         }
 
-        // Verify there are no duplicate keys in the attributes
-        // This is already a constraint in the database, but this tells the user the issue
-        var serializationKeys = species.NumericalAttributes.Select(e => e.SerializationKey)
-            .Concat(species.StringAttributes.Select(e => e.SerializationKey));
-
-        if (serializationKeys.Count() != serializationKeys.Distinct().Count())
+        if (species.ConstantConcentration != null && species.ConstantMixingRatio != null)
         {
-            return (QueryResult.DuplicateKeyError, null);
+            return (QueryResult.ValidationError, null);
         }
 
-        currentSpecies.UpdatedDate = DateTime.UtcNow;
-        currentSpecies.Name = species.Name;
+        currentSpecies.AbsoluteTolerance = species.AbsoluteTolerance;
+        currentSpecies.ConstantConcentration = species.ConstantConcentration;
+        currentSpecies.ConstantMixingRatio = species.ConstantMixingRatio;
         currentSpecies.Description = species.Description;
-
-        currentSpecies.NumericalAttributes.Clear();
-        currentSpecies.NumericalAttributes = species.NumericalAttributes;
-
-        currentSpecies.StringAttributes.Clear();
-        currentSpecies.StringAttributes = species.StringAttributes;
+        currentSpecies.IsThirdBody = species.IsThirdBody;
+        currentSpecies.MolecularWeight = species.MolecularWeight;
+        currentSpecies.Name = species.Name;
+        currentSpecies.OtherProperties = species.OtherProperties;
+        currentSpecies.UpdatedDate = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 

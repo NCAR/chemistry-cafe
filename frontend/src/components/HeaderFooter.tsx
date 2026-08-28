@@ -43,7 +43,7 @@ export const Header = () => {
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        padding: "10px",
+        padding: "2px 10px",
       }}
     >
       <Button
@@ -52,7 +52,7 @@ export const Header = () => {
         onClick={toggleDrawer(true)}
       >
         <DensitySmallSharpIcon
-          sx={{ fontSize: "2.3rem" }}
+          sx={{ fontSize: "1.7rem" }}
         ></DensitySmallSharpIcon>
       </Button>
       <Drawer open={openDrawer} onClose={toggleDrawer(false)}>
@@ -102,26 +102,36 @@ export const Footer = () => {
 
   return (
     <Paper component="footer" square={true} variant="outlined">
-      <Container maxWidth="lg" sx={{ display: "flex" }}>
-        <Box
-          component="img"
-          src={NSF_NCAR_Stackseallogo}
-          sx={{ height: "80px", width: "auto", pr: 2 }}
-        />
-        <Box
-          component="img"
-          src={TAMUlogo}
-          sx={{ height: "80px", width: "auto", pr: 6 }}
-        />
-        <Box sx={{ pr: 10 }}>
-          <Button onClick={handleAboutOpen}>About</Button>
+      <Container
+        maxWidth={false}
+        disableGutters
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 2,
+          py: 1,
+          px: 4,
+          "& .MuiButton-root": { fontSize: "0.75rem" },
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+          <Box
+            component="img"
+            src={NSF_NCAR_Stackseallogo}
+            sx={{ height: "48px", width: "auto" }}
+          />
+          <Box
+            component="img"
+            src={TAMUlogo}
+            sx={{ height: "48px", width: "auto" }}
+          />
         </Box>
-        <Box sx={{ pr: 10 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Button onClick={handleAboutOpen}>About</Button>
           <Button onClick={handleBugClick} variant="text">
             Report a bug
           </Button>
-        </Box>
-        <Box sx={{ pr: 10 }}>
           <Button onClick={handleAccessibilityClick}>Accessibility</Button>
         </Box>
       </Container>

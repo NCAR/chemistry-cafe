@@ -100,16 +100,10 @@ const reactionToCAMPV0 = (reaction: Reaction, family: Family): Object => {
   return serializedReaction;
 };
 
-const speciesToCAMPV0 = (species: Species): Object => {
-  let serializedSpecies: any = {
+const speciesToCAMPV0 = (_species: Species): Object => {
+  return {
     "initial value [mol m-3]": 1.0e-9,
   };
-
-  for (const key of Object.keys(species.attributes)) {
-    serializedSpecies[key] = species.attributes[key].value;
-  }
-
-  return serializedSpecies;
 };
 
 const createReactionsDataCAMPV0 = (

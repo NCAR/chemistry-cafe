@@ -4,68 +4,17 @@ import { mechanismConfiguration } from "@ncar/musica";
 const { reactionTypes, Mechanism } = mechanismConfiguration;
 
 /**
- * Represents a value a species can have. For example: Molecular Weight
- */
-export type SpeciesAttribute = {
-  /** Human-readable name of the attribute */
-  name?: string;
-
-  /** What the attribute should be serialized as (Defaults to <name> if unspecified). */
-  serializationKey: string;
-
-  /** The unit of the specific attribute. This can be empty if unitless. */
-  units?: string;
-
-  /** Value of the attribute. */
-  value: number | string | boolean;
-
-  /** Used when the value is a string (This is not stored in the database) */
-  options?: Array<string>;
-};
-
-/**
- * Represents attribute options a species can have
- */
-export const speciesAttributeOptions: Array<SpeciesAttribute> = [
-  Object.freeze({
-    name: "Absolute Tolerance",
-    serializationKey: "absolute tolerance",
-    value: 0.0,
-  }),
-  Object.freeze({
-    name: "Molecular Weight",
-    serializationKey: "molecular weight [kg mol-1]",
-    units: "kg mol-1",
-    value: 0.0,
-  }),
-  Object.freeze({
-    name: "Constant concentration",
-    serializationKey: "constant concentration [mol m-3]",
-    units: "mol m-3",
-    value: 0.0,
-  }),
-  Object.freeze({
-    name: "Constant mixing ratio",
-    serializationKey: "constant mixing ratio [mol mol-1]",
-    units: "mol mol-1",
-    value: 0.0,
-  }),
-  Object.freeze({
-    name: "Is third body?",
-    serializationKey: "is third body",
-    value: false,
-  }),
-];
-
-/**
  * Represents a species utilized on the frontend. A species is a substance which can take on any name.
  */
 export type Species = {
-  /** ID stored in the SQL database. If this is not in the database, this is used for frontend purposes */
-  id: UUID | string;
+  /** Absolute tolerance */
+  absoluteTolerance?: number;
 
-  /** Name of the species */
-  name: string;
+  /** Constant concentration [mol m-3] */
+  constantConcentration?: number;
+
+  /** Constant mixing ratio [mol mol-1] */
+  constantMixingRatio?: number;
 
   /** Description of the species */
   description: string | null;
@@ -73,19 +22,29 @@ export type Species = {
   /** Id of the family on the frontend this mechanism is a part of */
   familyId: UUID | string;
 
-  /** Special attributes set by the user */
-  attributes: {
-    [key: string]: SpeciesAttribute;
-  };
-
-  /** Determines whether the species has been modified from its original state */
-  isModified?: boolean;
+  /** ID stored in the SQL database. If this is not in the database, this is used for frontend purposes */
+  id: UUID | string;
 
   /** Determines if the species has been marked for deletion */
   isDeleted?: boolean;
 
   /** Determines if the species is in the database */
   isInDatabase?: boolean;
+
+  /** Determines whether the species has been modified from its original state */
+  isModified?: boolean;
+
+  /** If this is a third body (commonly called M) */
+  isThirdBody?: boolean;
+
+  /** Molecular weight [kg mol-1] */
+  molecularWeight?: number;
+
+  /** Name of the species */
+  name: string;
+
+  /** Optional, additional properties for the species which are not defined in the mechanism configuration schema but can be queried for in musica */
+  otherProperties?: Record<string, unknown>;
 };
 
 /**

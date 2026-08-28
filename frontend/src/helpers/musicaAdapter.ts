@@ -34,19 +34,6 @@ type MusicaReaction = InstanceType<
 const V1_VERSION = "1.0.0";
 const SCALING_FACTOR_KEY = "scaling factor";
 
-// Chemistry-cafe species attribute (serializationKey) -> musica Species param.
-// These are the only species properties musica models as first-class fields;
-// anything else is treated as an "other property" (see speciesToMusica).
-const SPECIES_ATTR_TO_MUSICA: Record<
-  string,
-  keyof mechanismConfiguration.SpeciesParams
-> = {
-  "molecular weight [kg mol-1]": "molecular_weight",
-  "constant concentration [mol m-3]": "constant_concentration",
-  "constant mixing ratio [mol mol-1]": "constant_mixing_ratio",
-  "is third body": "is_third_body",
-};
-
 /** Coerce an attribute value (string | number | empty) to a number with a default. */
 const num = (value: unknown, fallback: number): number =>
   value === undefined || value === null || value === ""
@@ -468,28 +455,16 @@ const REACTION_ADAPTERS: Partial<Record<ReactionTypeName, ReactionAdapter>> = {
 
 // ── species / phase mapping ──────────────────────────────────
 function speciesToMusica(s: Species) {
-  const params: Record<string, unknown> = { name: s.name };
-  for (const attr of Object.values(s.attributes)) {
-    if (attr.value === "") continue; // empty → omit
-    const mapped = SPECIES_ATTR_TO_MUSICA[attr.serializationKey];
-    if (mapped === "is_third_body") {
-      // mech config defaults is_third_body to false, so only write when true.
-      if (attr.value === "true" || attr.value === true) {
-        params.is_third_body = true;
-      }
-    } else if (mapped) {
-      params[mapped] = Number(attr.value);
-    } else {
-      // "other property": musica re-adds the `__` prefix on serialization, so
-      // strip one leading `__` here to avoid doubling it.
-      params[attr.serializationKey.replace(/^__/, "")] = attr.value;
-    }
-  }
-  // musica's Species constructor accepts the four named params plus arbitrary
-  // extras (routed to other_properties); the loose record is the honest input.
-  return new types.Species(
-    params as unknown as mechanismConfiguration.SpeciesParams,
-  );
+  const params: mechanismConfiguration.SpeciesParams = {
+    name: s.name,
+    absolute_tolerance: s.absoluteTolerance,
+    molecular_weight: s.molecularWeight,
+    is_third_body: s.isThirdBody,
+    constant_concentration: s.constantConcentration,
+    constant_mixing_ratio: s.constantMixingRatio,
+    other_properties: s.otherProperties,
+  };
+  return new types.Species(params);
 }
 
 function phaseToMusica(p: Phase, ctx: ExportCtx) {
@@ -620,29 +595,31 @@ function speciesFromJSON(
   id: string,
   familyId: string,
 ): Species {
+  const otherProperties: Record<string, string | number | boolean> = {};
+  for (const [rawKey, value] of Object.entries(s)) {
+    if (!rawKey.startsWith("__")) continue;
+    if (
+      typeof value === "number" ||
+      typeof value === "string" ||
+      typeof value === "boolean"
+    ) {
+      otherProperties[rawKey.replace(/^__/, "")] = value;
+    }
+  }
   const species: Species = {
-    id,
-    name: String(s.name),
+    absoluteTolerance: s["absolute tolerance"] as number | undefined,
+    constantConcentration: s["constant concentration [mol m-3]"] as number | undefined,
+    constantMixingRatio: s["constant mixing ratio [mol mol-1]"] as number | undefined,
     description: null,
     familyId,
-    attributes: {},
+    id,
+    isThirdBody: s["is third body"] as boolean | undefined,
+    molecularWeight: s["molecular weight [kg mol-1]"] as number | undefined,
+    name: String(s.name),
+    otherProperties: Object.keys(otherProperties).length
+      ? otherProperties
+      : undefined,
   };
-  for (const [rawKey, value] of Object.entries(s)) {
-    if (rawKey === "name") continue;
-    if (
-      typeof value !== "number" &&
-      typeof value !== "string" &&
-      typeof value !== "boolean"
-    ) {
-      continue;
-    }
-    // `__` is musica's serialization prefix for non-first-class properties;
-    // strip it so the stored key matches the chemistry-cafe serializationKey.
-    const key = rawKey.replace(/^__/, "");
-    // SpeciesAttribute.value is number | string, so normalize booleans.
-    const storedValue = typeof value === "boolean" ? String(value) : value;
-    species.attributes[key] = { serializationKey: key, value: storedValue };
-  }
   return species;
 }
 

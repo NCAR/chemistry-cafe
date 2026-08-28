@@ -40,7 +40,7 @@ services:
       watch:
         - action: sync
           path: ./frontend
-          target: /app
+          target: /ChemistryCafeFrontend
           ignore:
             - node_modules/
         - action: rebuild

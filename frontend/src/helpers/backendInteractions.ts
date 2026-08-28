@@ -17,7 +17,6 @@ import {
   reactionAttributeOptions,
   ReactionTypeName,
   Species,
-  speciesAttributeOptions,
 } from "../types/chemistryModels";
 import {
   updateFamily,
@@ -56,38 +55,19 @@ const uuidRegex =
  */
 export function apiToFrontendSpecies(apiSpecies: APISpecies): Species {
   const formattedSpecies: Species = {
-    id: apiSpecies.id,
-    name: apiSpecies.name ?? "<Empty>",
+    absoluteTolerance: apiSpecies.absoluteTolerance ?? undefined,
+    constantConcentration: apiSpecies.constantConcentration ?? undefined,
+    constantMixingRatio: apiSpecies.constantMixingRatio ?? undefined,
     description: apiSpecies.description || "",
-    attributes: {},
     familyId: apiSpecies.familyId,
+    id: apiSpecies.id,
+    isDeleted: false,
     isInDatabase: true,
     isModified: false,
-    isDeleted: false,
+    molecularWeight: apiSpecies.molecularWeight ?? undefined,
+    name: apiSpecies.name ?? "<Empty>",
+    otherProperties: apiSpecies.otherProperties ?? undefined,
   };
-
-  for (const attribute of apiSpecies.numericalAttributes) {
-    const defaultAttribute = speciesAttributeOptions.find(
-      (e) => e.serializationKey == attribute.serializationKey,
-    );
-    formattedSpecies.attributes[attribute.serializationKey] = {
-      ...defaultAttribute,
-      serializationKey: attribute.serializationKey,
-      value: attribute.value,
-    };
-  }
-
-  for (const attribute of apiSpecies.stringAttributes) {
-    const defaultAttribute = speciesAttributeOptions.find(
-      (e) => e.serializationKey == attribute.serializationKey,
-    );
-    formattedSpecies.attributes[attribute.serializationKey] = {
-      ...defaultAttribute,
-      serializationKey: attribute.serializationKey,
-      value: attribute.value,
-    };
-  }
-
   return formattedSpecies;
 }
 
@@ -110,28 +90,16 @@ export function frontendToAPISpecies(
     ? (species.id as UUID)
     : "00000000-0000-0000-0000-000000000000";
   const formattedSpecies: APISpecies = {
-    id: id,
-    name: species.name,
+    absoluteTolerance: species.absoluteTolerance,
+    constantConcentration: species.constantConcentration,
+    constantMixingRatio: species.constantMixingRatio,
     description: species.description,
     familyId: family.id as UUID,
-    numericalAttributes: [],
-    stringAttributes: [],
+    id: id,
+    molecularWeight: species.molecularWeight,
+    name: species.name,
+    otherProperties: species.otherProperties,
   };
-
-  for (const attribute of Object.values(species.attributes)) {
-    if (typeof attribute.value === "number") {
-      formattedSpecies.numericalAttributes.push({
-        serializationKey: attribute.serializationKey,
-        value: attribute.value,
-      });
-    } else if (typeof attribute.value === "string") {
-      formattedSpecies.stringAttributes.push({
-        serializationKey: attribute.serializationKey,
-        value: attribute.value,
-      });
-    }
-  }
-
   return formattedSpecies;
 }
 
@@ -168,9 +136,9 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
   }
 
   for (const attribute of apiReaction.stringAttributes) {
-    const defaultAttribute = speciesAttributeOptions.find(
-      (e) => e.serializationKey == attribute.serializationKey,
-    );
+    const defaultAttribute = reactionAttributeOptions[
+      apiReaction.reactionType as ReactionTypeName
+    ]?.find((e) => e.serializationKey == attribute.serializationKey);
     formattedReaction.attributes[attribute.serializationKey] = {
       ...defaultAttribute,
       serializationKey: attribute.serializationKey,
@@ -297,8 +265,6 @@ export function frontendToAPIPhase(phase: Phase, family: Family): APIPhase {
         const species: APISpecies = {
           id: id as UUID,
           name: "",
-          numericalAttributes: [],
-          stringAttributes: [],
           familyId: family.id as UUID,
         };
         return species;
@@ -360,8 +326,6 @@ export function frontendToAPIMechanism(
         const species: APISpecies = {
           id: id as UUID,
           name: "",
-          numericalAttributes: [],
-          stringAttributes: [],
           familyId: family.id as UUID,
         };
         return species;
