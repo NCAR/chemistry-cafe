@@ -60,7 +60,7 @@ describe("Family Editor Page", () => {
   beforeEach(() => {
     window.location = {
       ...originalLocation,
-      assign: vi.fn((_: string | URL) => { }),
+      assign: vi.fn((_: string | URL) => {}),
     } as any;
     localStorage.setItem("uploadedFamilyIds", JSON.stringify([testFamily.id]));
     vi.spyOn(axios, "get").mockResolvedValue(createMockData());
@@ -370,17 +370,31 @@ describe("speciesExclusiveConflict", () => {
 
   it("is false when zero or one exclusive option is set", () => {
     expect(speciesExclusiveConflict(base)).toBe(false);
-    expect(speciesExclusiveConflict({ ...base, constantConcentration: 1 })).toBe(false);
-    expect(speciesExclusiveConflict({ ...base, constantMixingRatio: 0.5 })).toBe(false);
-    expect(speciesExclusiveConflict({ ...base, isThirdBody: true })).toBe(false);
+    expect(
+      speciesExclusiveConflict({ ...base, constantConcentration: 1 }),
+    ).toBe(false);
+    expect(
+      speciesExclusiveConflict({ ...base, constantMixingRatio: 0.5 }),
+    ).toBe(false);
+    expect(speciesExclusiveConflict({ ...base, isThirdBody: true })).toBe(
+      false,
+    );
   });
 
   it("is true when two or more exclusive options are set", () => {
     expect(
-      speciesExclusiveConflict({ ...base, constantConcentration: 1, constantMixingRatio: 0.5 }),
+      speciesExclusiveConflict({
+        ...base,
+        constantConcentration: 1,
+        constantMixingRatio: 0.5,
+      }),
     ).toBe(true);
     expect(
-      speciesExclusiveConflict({ ...base, constantMixingRatio: 0.5, isThirdBody: true }),
+      speciesExclusiveConflict({
+        ...base,
+        constantMixingRatio: 0.5,
+        isThirdBody: true,
+      }),
     ).toBe(true);
   });
 
@@ -393,7 +407,11 @@ describe("speciesExclusiveConflict", () => {
       }),
     ).toBe(false);
     expect(
-      speciesExclusiveConflict({ ...base, constantConcentration: NaN, isThirdBody: true }),
+      speciesExclusiveConflict({
+        ...base,
+        constantConcentration: NaN,
+        isThirdBody: true,
+      }),
     ).toBe(false);
   });
 });

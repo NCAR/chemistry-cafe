@@ -1,7 +1,4 @@
-import {
-  Family,
-  Species,
-} from "../types/chemistryModels";
+import { Family, Species } from "../types/chemistryModels";
 
 export const applySpeciesRowUpdate = (
   family: Family,
@@ -34,13 +31,16 @@ export const applySpeciesRowUpdate = (
 };
 
 const isOptionSet = (value: unknown): boolean => {
-  return value != null && value != "" && !(typeof value === "number" && isNaN(value));
-}
+  return (
+    value != null && value != "" && !(typeof value === "number" && isNaN(value))
+  );
+};
 
 export const speciesExclusiveConflict = (species: Species): boolean => {
   return (
-    (isOptionSet(species.constantConcentration) ? 1 : 0) + 
-    (isOptionSet(species.constantMixingRatio) ? 1 : 0) +
-    (species.isThirdBody ? 1 : 0) > 1
+    (isOptionSet(species.constantConcentration) ? 1 : 0) +
+      (isOptionSet(species.constantMixingRatio) ? 1 : 0) +
+      (species.isThirdBody ? 1 : 0) >
+    1
   );
-}
+};
