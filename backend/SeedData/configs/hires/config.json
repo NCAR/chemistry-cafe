@@ -1,0 +1,110 @@
+{
+  "version": "1.0.0",
+  "name": "hires",
+  "species": [
+    { "name": "Y0" },
+    { "name": "Y1" },
+    { "name": "Y2" },
+    { "name": "Y3" },
+    { "name": "Y4" },
+    { "name": "Y5" },
+    { "name": "Y6" },
+    { "name": "Y7" }
+  ],
+  "phases": [
+    {
+      "name": "gas",
+      "species": [
+        { "name": "Y0" },
+        { "name": "Y1" },
+        { "name": "Y2" },
+        { "name": "Y3" },
+        { "name": "Y4" },
+        { "name": "Y5" },
+        { "name": "Y6" },
+        { "name": "Y7" }
+      ]
+    }
+  ],
+  "reactions": [
+    {
+      "type": "USER_DEFINED",
+      "name": "r1",
+      "gas phase": "gas",
+      "reactants": [{ "name": "Y0" }],
+      "products": [{ "name": "Y1" }]
+    },
+    {
+      "type": "USER_DEFINED",
+      "name": "r2",
+      "gas phase": "gas",
+      "reactants": [{ "name": "Y1" }],
+      "products": [
+        { "name": "Y0", "coefficient": 0.04914285714285714 },
+        { "name": "Y3", "coefficient": 0.9508571428571428 }
+      ]
+    },
+    {
+      "type": "USER_DEFINED",
+      "name": "r3",
+      "gas phase": "gas",
+      "reactants": [{ "name": "Y2" }],
+      "products": [
+        { "name": "Y0", "coefficient": 0.8295114656031904 },
+        { "name": "Y3", "coefficient": 0.17049850448653041 }
+      ]
+    },
+    {
+      "type": "USER_DEFINED",
+      "name": "r4",
+      "gas phase": "gas",
+      "reactants": [],
+      "products": [{ "name": "Y0" }]
+    },
+    {
+      "type": "USER_DEFINED",
+      "name": "r5",
+      "gas phase": "gas",
+      "reactants": [{ "name": "Y3" }],
+      "products": [
+        { "name": "Y2", "coefficient": 0.38392857142857145 },
+        { "name": "Y5", "coefficient": 0.6160714285714286 }
+      ]
+    },
+    {
+      "type": "USER_DEFINED",
+      "name": "r6",
+      "gas phase": "gas",
+      "reactants": [{ "name": "Y4" }],
+      "products": [
+        { "name": "Y2", "coefficient": 0.02005730659025788 },
+        { "name": "Y5", "coefficient": 0.9799426934097421 }
+      ]
+    },
+    {
+      "type": "USER_DEFINED",
+      "name": "r7",
+      "gas phase": "gas",
+      "reactants": [{ "name": "Y5" }],
+      "products": [{ "name": "Y4" }]
+    },
+    {
+      "type": "USER_DEFINED",
+      "name": "r8",
+      "gas phase": "gas",
+      "reactants": [{ "name": "Y6" }],
+      "products": [
+        { "name": "Y4", "coefficient": 0.23756906077348067 },
+        { "name": "Y5", "coefficient": 0.3812154696132597 },
+        { "name": "Y7" }
+      ]
+    },
+    {
+      "type": "USER_DEFINED",
+      "name": "r9",
+      "gas phase": "gas",
+      "reactants": [{ "name": "Y5" }, { "name": "Y7" }],
+      "products": [{ "name": "Y6" }]
+    }
+  ]
+}

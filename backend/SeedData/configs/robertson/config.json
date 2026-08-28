@@ -1,0 +1,42 @@
+{
+  "version": "1.0.0",
+  "name": "robertson",
+  "species": [
+    { "name": "A" },
+    { "name": "B" },
+    { "name": "C" }
+  ],
+  "phases": [
+    {
+      "name": "gas",
+      "species": [
+        { "name": "A" },
+        { "name": "B" },
+        { "name": "C" }
+      ]
+    }
+  ],
+  "reactions": [
+    {
+      "type": "USER_DEFINED",
+      "name": "r1",
+      "gas phase": "gas",
+      "reactants": [{ "name": "A" }],
+      "products": [{ "name": "B" }]
+    },
+    {
+      "type": "USER_DEFINED",
+      "name": "r2",
+      "gas phase": "gas",
+      "reactants": [{ "name": "B", "coefficient": 2 }],
+      "products": [{ "name": "B" }, { "name": "C" }]
+    },
+    {
+      "type": "USER_DEFINED",
+      "name": "r3",
+      "gas phase": "gas",
+      "reactants": [{ "name": "B" }, { "name": "C" }],
+      "products": [{ "name": "A" }, { "name": "C" }]
+    }
+  ]
+}

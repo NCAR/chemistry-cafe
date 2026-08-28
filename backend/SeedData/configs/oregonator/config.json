@@ -1,0 +1,60 @@
+{
+  "version": "1.0.0",
+  "name": "oregonator",
+  "species": [
+    { "name": "X" },
+    { "name": "Y" },
+    { "name": "Z" },
+    { "name": "P" },
+    { "name": "Q" }
+  ],
+  "phases": [
+    {
+      "name": "gas",
+      "species": [
+        { "name": "X" },
+        { "name": "Y" },
+        { "name": "Z" },
+        { "name": "P" },
+        { "name": "Q" }
+      ]
+    }
+  ],
+  "reactions": [
+    {
+      "type": "USER_DEFINED",
+      "name": "r1",
+      "gas phase": "gas",
+      "reactants": [{ "name": "Y" }],
+      "products": [{ "name": "X" }]
+    },
+    {
+      "type": "USER_DEFINED",
+      "name": "r2",
+      "gas phase": "gas",
+      "reactants": [{ "name": "X" }, { "name": "Y" }],
+      "products": [{ "name": "P" }]
+    },
+    {
+      "type": "USER_DEFINED",
+      "name": "r3",
+      "gas phase": "gas",
+      "reactants": [{ "name": "X" }],
+      "products": [{ "name": "Z" }, { "name": "X", "coefficient": 2 }]
+    },
+    {
+      "type": "USER_DEFINED",
+      "name": "r4",
+      "gas phase": "gas",
+      "reactants": [{ "name": "X", "coefficient": 2 }],
+      "products": [{ "name": "Q" }]
+    },
+    {
+      "type": "USER_DEFINED",
+      "name": "r5",
+      "gas phase": "gas",
+      "reactants": [{ "name": "Z" }],
+      "products": [{ "name": "Y" }]
+    }
+  ]
+}
