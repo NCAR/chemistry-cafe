@@ -10,7 +10,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     ALTER DATABASE CHARACTER SET utf8mb4;
 
@@ -24,7 +24,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     CREATE TABLE `Users` (
         `Id` char(36) COLLATE ascii_general_ci NOT NULL,
@@ -46,7 +46,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     CREATE TABLE `Families` (
         `Id` char(36) COLLATE ascii_general_ci NOT NULL,
@@ -68,7 +68,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     CREATE TABLE `Mechanisms` (
         `Id` char(36) COLLATE ascii_general_ci NOT NULL,
@@ -91,7 +91,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     CREATE TABLE `Phases` (
         `Id` char(36) COLLATE ascii_general_ci NOT NULL,
@@ -114,7 +114,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     CREATE TABLE `Species` (
         `Id` char(36) COLLATE ascii_general_ci NOT NULL,
@@ -127,6 +127,7 @@ BEGIN
         `ConstantConcentration` double NULL,
         `ConstantMixingRatio` double NULL,
         `OtherProperties` json NULL,
+        `AbsoluteTolerance` double NULL,
         `FamilyId` char(36) COLLATE ascii_general_ci NOT NULL,
         CONSTRAINT `PK_Species` PRIMARY KEY (`Id`),
         CONSTRAINT `FK_Species_Families_FamilyId` FOREIGN KEY (`FamilyId`) REFERENCES `Families` (`Id`) ON DELETE CASCADE
@@ -142,7 +143,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     CREATE TABLE `MechanismPhase` (
         `MechanismId` char(36) COLLATE ascii_general_ci NOT NULL,
@@ -162,7 +163,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     CREATE TABLE `MechanismSpecies` (
         `MechanismId` char(36) COLLATE ascii_general_ci NOT NULL,
@@ -182,7 +183,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     CREATE TABLE `PhaseSpecies` (
         `PhasesId` char(36) COLLATE ascii_general_ci NOT NULL,
@@ -202,7 +203,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     CREATE TABLE `Reactions` (
         `Id` char(36) COLLATE ascii_general_ci NOT NULL,
@@ -236,7 +237,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     CREATE TABLE `MechanismReaction` (
         `MechanismId` char(36) COLLATE ascii_general_ci NOT NULL,
@@ -256,7 +257,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     CREATE TABLE `Products` (
         `ReactionId` char(36) COLLATE ascii_general_ci NOT NULL,
@@ -278,7 +279,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     CREATE TABLE `Reactants` (
         `ReactionId` char(36) COLLATE ascii_general_ci NOT NULL,
@@ -299,7 +300,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     CREATE TABLE `ReactionNumericalAttributes` (
         `ReactionId` char(36) COLLATE ascii_general_ci NOT NULL,
@@ -319,7 +320,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     CREATE TABLE `ReactionStringAttributes` (
         `ReactionId` char(36) COLLATE ascii_general_ci NOT NULL,
@@ -339,7 +340,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     CREATE INDEX `IX_Families_OwnerId` ON `Families` (`OwnerId`);
 
@@ -353,7 +354,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     CREATE INDEX `IX_MechanismPhase_PhaseId` ON `MechanismPhase` (`PhaseId`);
 
@@ -367,7 +368,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     CREATE INDEX `IX_MechanismReaction_ReactionId` ON `MechanismReaction` (`ReactionId`);
 
@@ -381,7 +382,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     CREATE INDEX `IX_Mechanisms_FamilyId` ON `Mechanisms` (`FamilyId`);
 
@@ -395,7 +396,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     CREATE INDEX `IX_MechanismSpecies_SpeciesId` ON `MechanismSpecies` (`SpeciesId`);
 
@@ -409,7 +410,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     CREATE INDEX `IX_Phases_FamilyId` ON `Phases` (`FamilyId`);
 
@@ -423,7 +424,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     CREATE INDEX `IX_PhaseSpecies_SpeciesId` ON `PhaseSpecies` (`SpeciesId`);
 
@@ -437,7 +438,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     CREATE INDEX `IX_Products_SpeciesId` ON `Products` (`SpeciesId`);
 
@@ -451,7 +452,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     CREATE INDEX `IX_Reactants_SpeciesId` ON `Reactants` (`SpeciesId`);
 
@@ -465,7 +466,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     CREATE INDEX `IX_Reactions_AerosolPhaseId` ON `Reactions` (`AerosolPhaseId`);
 
@@ -479,7 +480,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     CREATE INDEX `IX_Reactions_AerosolPhaseSpeciesId` ON `Reactions` (`AerosolPhaseSpeciesId`);
 
@@ -493,7 +494,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     CREATE INDEX `IX_Reactions_AerosolPhaseWaterId` ON `Reactions` (`AerosolPhaseWaterId`);
 
@@ -507,7 +508,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     CREATE INDEX `IX_Reactions_FamilyId` ON `Reactions` (`FamilyId`);
 
@@ -521,7 +522,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     CREATE INDEX `IX_Reactions_GasPhaseId` ON `Reactions` (`GasPhaseId`);
 
@@ -535,7 +536,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     CREATE INDEX `IX_Reactions_GasPhaseSpeciesId` ON `Reactions` (`GasPhaseSpeciesId`);
 
@@ -549,7 +550,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     CREATE INDEX `IX_Species_FamilyId` ON `Species` (`FamilyId`);
 
@@ -563,7 +564,7 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     CREATE UNIQUE INDEX `idx_users_username` ON `Users` (`Username`);
 
@@ -577,10 +578,10 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825164720_InitialCreate') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260825205855_InitialCreate') THEN
 
     INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
-    VALUES ('20260825164720_InitialCreate', '8.0.10');
+    VALUES ('20260825205855_InitialCreate', '8.0.10');
 
     END IF;
 END //
