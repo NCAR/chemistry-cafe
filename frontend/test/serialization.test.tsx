@@ -457,7 +457,7 @@ describe("Species serialization", () => {
   it("serializes species to their v1 wire keys", () => {
     const byName = (name: string) =>
       serialized.species.find((s: any) => s.name === name);
-    
+
     expect(
       byName(molecularWeightSpecies.name)["molecular weight [kg mol-1]"],
     ).toBe(0.01);

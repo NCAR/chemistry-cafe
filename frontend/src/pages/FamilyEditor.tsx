@@ -41,9 +41,9 @@ import {
   ReactionTypeName,
   Species,
 } from "../types/chemistryModels";
-import { 
-  speciesExclusiveConflict ,
-  applySpeciesRowUpdate
+import {
+  speciesExclusiveConflict,
+  applySpeciesRowUpdate,
 } from "../helpers/editorHelpers";
 import {
   DataGrid,
@@ -843,7 +843,6 @@ export const GeneralInfoView = ({
   );
 };
 
-
 const EXCLUSIVE_OPTION_MESSAGE =
   "Only one of constant concentration, constant mixing ratio, or third body may be set.";
 
@@ -1035,7 +1034,9 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
       editable: true,
       type: "number",
       flex: 1,
-      preProcessEditCellProps: exclusiveOptionPreProcess("constantConcentration"),
+      preProcessEditCellProps: exclusiveOptionPreProcess(
+        "constantConcentration",
+      ),
       renderEditCell: (params) => <ExclusiveNumberEditCell {...params} />,
       renderCell: (params: GridRenderCellParams<Family>) => (
         <Typography

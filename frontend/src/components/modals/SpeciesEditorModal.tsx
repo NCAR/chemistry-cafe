@@ -25,43 +25,43 @@ type SpeciesEditorModalProps = {
 
 const stringDisplayValues = [
   {
-    'name': 'Name',
-    'key': 'name',
-    'id': 'name',
+    name: "Name",
+    key: "name",
+    id: "name",
   },
   {
-    'name': 'Description',
-    'key': 'description',
-    'id': 'description',
-  }
-]
+    name: "Description",
+    key: "description",
+    id: "description",
+  },
+];
 
 const numericDisplayValues = [
   {
-    'name': 'Absolute tolerance',
-    'key': 'absoluteTolerance',
-    'id': 'absolute-tolerance',
-    'units': 'mol m-3',
+    name: "Absolute tolerance",
+    key: "absoluteTolerance",
+    id: "absolute-tolerance",
+    units: "mol m-3",
   },
   {
-    'name': 'Constant concentration',
-    'key': 'constantConcentration',
-    'id': 'constant-concentration',
-    'units': 'mol m-3',
+    name: "Constant concentration",
+    key: "constantConcentration",
+    id: "constant-concentration",
+    units: "mol m-3",
   },
   {
-    'name': 'Constant mixing ratio',
-    'key': 'constantMixingRatio',
-    'id': 'constant-mixing-ratio',
-    'units': 'mol mol-1',
+    name: "Constant mixing ratio",
+    key: "constantMixingRatio",
+    id: "constant-mixing-ratio",
+    units: "mol mol-1",
   },
   {
-    'name': 'Molecular weight',
-    'key': 'molecularWeight',
-    'id': 'molecular-weight',
-    'units': 'kg mol-1',
-  }
-]
+    name: "Molecular weight",
+    key: "molecularWeight",
+    id: "molecular-weight",
+    units: "kg mol-1",
+  },
+];
 
 export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
   open,
@@ -121,69 +121,65 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
               <Typography color="textPrimary" variant="h5">
                 Edit Species Properties
               </Typography>
-              {
-                stringDisplayValues.map((item) => (
-                  <TextField
-                    color="primary"
-                    key={`${species.id}-${item.id}`}
-                    id={`${species.id}-${item.id}`}
-                    required={item.key === "name"}
-                    sx={{
-                      width: "100%",
-                    }}
-                    value={getDisplayValue(item.key as keyof Species)}
-                    label={item.name}
-                    type="text"
-                    onChange={(event) => {
-                      changeSpeciesProperties({
-                        [item.key]: event.target.value,
-                      });
-                    }}
-                  />
-                ))
-              }
-              {
-                numericDisplayValues.map((item) => (
-                  <TextField
-                    color="primary"
-                    key={`${species.id}-${item.id}`}
-                    id={`${species.id}-${item.id}`}
-                    onWheel={(event) =>
-                      event.target instanceof HTMLElement &&
-                      event.target.blur()
-                    }
-                    sx={{
-                      width: "100%",
-                      // Removes up and down arrows for number
-                      "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
+              {stringDisplayValues.map((item) => (
+                <TextField
+                  color="primary"
+                  key={`${species.id}-${item.id}`}
+                  id={`${species.id}-${item.id}`}
+                  required={item.key === "name"}
+                  sx={{
+                    width: "100%",
+                  }}
+                  value={getDisplayValue(item.key as keyof Species)}
+                  label={item.name}
+                  type="text"
+                  onChange={(event) => {
+                    changeSpeciesProperties({
+                      [item.key]: event.target.value,
+                    });
+                  }}
+                />
+              ))}
+              {numericDisplayValues.map((item) => (
+                <TextField
+                  color="primary"
+                  key={`${species.id}-${item.id}`}
+                  id={`${species.id}-${item.id}`}
+                  onWheel={(event) =>
+                    event.target instanceof HTMLElement && event.target.blur()
+                  }
+                  sx={{
+                    width: "100%",
+                    // Removes up and down arrows for number
+                    "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
                       {
                         display: "none",
                       },
-                      "& input[type=number]": {
-                        MozAppearance: "textfield",
-                      },
-                    }}
-                    value={getDisplayValue(item.key as keyof Species)}
-                    label={item.name}
-                    type="number"
-                    slotProps={{
-                      input: {
-                        endAdornment: (
-                          <InputAdornment position="start">
-                            <UnitComponent units={item.units} />
-                          </InputAdornment>
-                        ),
-                      },
-                    }}
-                    onChange={(event) => {
-                      const num = parseFloat(event.target.value);
-                      changeSpeciesProperties({
-                        [item.key]: event.target.value.length === 0 ? undefined : num,
-                      });
-                    }}
-                  />
-                ))
-              }
+                    "& input[type=number]": {
+                      MozAppearance: "textfield",
+                    },
+                  }}
+                  value={getDisplayValue(item.key as keyof Species)}
+                  label={item.name}
+                  type="number"
+                  slotProps={{
+                    input: {
+                      endAdornment: (
+                        <InputAdornment position="start">
+                          <UnitComponent units={item.units} />
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                  onChange={(event) => {
+                    const num = parseFloat(event.target.value);
+                    changeSpeciesProperties({
+                      [item.key]:
+                        event.target.value.length === 0 ? undefined : num,
+                    });
+                  }}
+                />
+              ))}
               <FormControlLabel
                 control={
                   <Checkbox

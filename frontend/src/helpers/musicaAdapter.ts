@@ -608,8 +608,12 @@ function speciesFromJSON(
   }
   const species: Species = {
     absoluteTolerance: s["absolute tolerance"] as number | undefined,
-    constantConcentration: s["constant concentration [mol m-3]"] as number | undefined,
-    constantMixingRatio: s["constant mixing ratio [mol mol-1]"] as number | undefined,
+    constantConcentration: s["constant concentration [mol m-3]"] as
+      | number
+      | undefined,
+    constantMixingRatio: s["constant mixing ratio [mol mol-1]"] as
+      | number
+      | undefined,
     description: null,
     familyId,
     id,
