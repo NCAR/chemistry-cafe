@@ -374,7 +374,7 @@ const FamilyPage = () => {
             square
             variant="outlined"
           >
-            <Typography variant="h4">Families</Typography>
+            <Typography variant="h6">Families</Typography>
             <Box
               sx={{
                 justifyContent: "right",
@@ -400,7 +400,12 @@ const FamilyPage = () => {
           {families?.length === 0 ? (
             <Typography color="">No families to edit</Typography>
           ) : (
-            <SimpleTreeView onItemSelectionToggle={handleTreeItemToggle}>
+            <SimpleTreeView
+              onItemSelectionToggle={handleTreeItemToggle}
+              sx={{
+                [`& .${treeItemClasses.label}`]: { fontSize: "0.85rem" },
+              }}
+            >
               {families &&
                 families.map((family, index) => (
                   <FamilyTreeItem
@@ -427,6 +432,8 @@ const FamilyPage = () => {
                             noWrap
                             sx={{
                               flex: 1,
+                              fontSize: "1rem",
+                              fontWeight: 600,
                             }}
                           >
                             {family.name}
@@ -714,22 +721,18 @@ export const GeneralInfoView = ({
     >
       <Box
         sx={{
-          paddingTop: "0.5em",
           display: "flex",
           alignItems: "center",
           columnGap: "0.5rem",
         }}
       >
-        <Typography color="textPrimary" variant="h4">
+        <Typography color="textPrimary" variant="h6">
           General Info
         </Typography>
         <Tooltip title="Chemical reactions consist of reactants which create products during a certain phase. They can also be tuned with specific parameters given by the reaction type.">
-          <HelpOutlineIcon />
+          <HelpOutlineIcon fontSize="small" />
         </Tooltip>
       </Box>
-      <Typography color="textSecondary" variant="h6">
-        {family.name}
-      </Typography>
       <Box
         sx={{
           display: "flex",
@@ -1104,31 +1107,31 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
         display: "flex",
         flexDirection: "column",
         height: "100%",
+        minHeight: 0,
       }}
     >
       <Box
         sx={{
-          paddingTop: "0.5em",
           display: "flex",
           alignItems: "center",
           columnGap: "0.5rem",
         }}
       >
-        <Typography color="textPrimary" variant="h4">
+        <Typography color="textPrimary" variant="h6">
           Chemical Species
         </Typography>
         <Tooltip title="Chemical species are forms of a specific chemical entity. They can be named anything as long as it is clear what it represents. For example, a chemical species may be represented as either 'O3' or 'Ozone'.">
-          <HelpOutlineIcon />
+          <HelpOutlineIcon fontSize="small" />
         </Tooltip>
       </Box>
-      <Typography color="textSecondary" variant="h6">
-        {family.name}
-      </Typography>
       <DataGrid
         getRowId={(row) => row.id}
         editMode="cell"
         processRowUpdate={handleSpeciesRowUpdate}
-        initialState={{ density: "compact" }}
+        initialState={{
+          density: "compact",
+          pagination: { paginationModel: { pageSize: 20 } },
+        }}
         rows={family.species.filter((element) => !element.isDeleted)}
         columns={speciesColumns}
         pageSizeOptions={[5, 10, 20, 100]}
@@ -1357,24 +1360,23 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
     >
       <Box
         sx={{
-          paddingTop: "0.5em",
           display: "flex",
           alignItems: "center",
           columnGap: "0.5rem",
         }}
       >
-        <Typography color="textPrimary" variant="h4">
+        <Typography color="textPrimary" variant="h6">
           Chemical Reactions
         </Typography>
         <Tooltip title="Chemical reactions consist of reactants which create products during a certain phase. They can also be tuned with specific parameters given by the reaction type.">
-          <HelpOutlineIcon />
+          <HelpOutlineIcon fontSize="small" />
         </Tooltip>
       </Box>
-      <Typography color="textSecondary" variant="h6">
-        {family.name}
-      </Typography>
       <DataGrid
-        initialState={{ density: "compact" }}
+        initialState={{
+          density: "compact",
+          pagination: { paginationModel: { pageSize: 20 } },
+        }}
         rows={family.reactions.filter((element) => !element.isDeleted)}
         columns={reactionsColumns}
         pageSizeOptions={[5, 10, 20, 100]}
@@ -1442,28 +1444,27 @@ export const PhaseView = ({ family }: ViewProps) => {
     >
       <Box
         sx={{
-          paddingTop: "0.5em",
           display: "flex",
           alignItems: "center",
           columnGap: "0.5rem",
         }}
       >
-        <Typography color="textPrimary" variant="h4">
+        <Typography color="textPrimary" variant="h6">
           Phases
         </Typography>
         <Tooltip title="Species can be in multiple different phases in a model.">
-          <HelpOutlineIcon />
+          <HelpOutlineIcon fontSize="small" />
         </Tooltip>
       </Box>
-      <Typography color="textSecondary" variant="h6">
-        {family.name}
-      </Typography>
       <Typography>
         Phases are currently a work in progress. Everything is assumed to be in
         a gas phase.
       </Typography>
       <DataGrid
-        initialState={{ density: "compact" }}
+        initialState={{
+          density: "compact",
+          pagination: { paginationModel: { pageSize: 20 } },
+        }}
         rows={family.phases.filter((element) => !element.isDeleted)}
         columns={phaseColumns}
         pageSizeOptions={[5, 10, 20, 100]}
@@ -1562,22 +1563,18 @@ export const MechanismsView = ({ family, updateFamily }: ViewProps) => {
     <Box>
       <Box
         sx={{
-          paddingTop: "0.5em",
           display: "flex",
           alignItems: "center",
           columnGap: "0.5rem",
         }}
       >
-        <Typography color="textPrimary" variant="h4">
+        <Typography color="textPrimary" variant="h6">
           Mechanisms
         </Typography>
         <Tooltip title="Mechanisms contain a subset of a family's entities. They represent an analytical model in a specific family.">
-          <HelpOutlineIcon />
+          <HelpOutlineIcon fontSize="small" />
         </Tooltip>
       </Box>
-      <Typography color="textSecondary" variant="h6">
-        {family.name}
-      </Typography>
 
       {!selectedMechanism && (
         <Tooltip title="Create a new chemical mechanism">

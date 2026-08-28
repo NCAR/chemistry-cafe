@@ -1,25 +1,32 @@
 .layout-family-editor {
   width: 100vw;
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .content-family-editor {
   flex: 1;
+  min-height: 0;
   display: grid;
   grid-template-areas: "familySelector familyView";
-  grid-template-columns: 25% 75%;
+  grid-template-columns: 18% 82%;
+  grid-template-rows: minmax(0, 1fr);
   padding: 0 2em 0 0;
   column-gap: 1em;
 }
 
 .family-selector {
   grid-area: "familySelector";
+  min-height: 0;
+  overflow: auto;
 }
 
 .family-view {
   grid-area: "familyView";
+  min-height: 0;
+  overflow: hidden;
 }
 
 .modal-visible {
