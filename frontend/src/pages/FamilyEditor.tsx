@@ -1131,6 +1131,7 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
         initialState={{
           density: "compact",
           pagination: { paginationModel: { pageSize: 20 } },
+          sorting: { sortModel: [{ field: "name", sort: "asc" }] },
         }}
         rows={family.species.filter((element) => !element.isDeleted)}
         columns={speciesColumns}
