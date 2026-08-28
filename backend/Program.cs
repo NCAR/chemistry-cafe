@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using ChemistryCafeAPI.Controllers;
 using System.Diagnostics.CodeAnalysis;
 using ChemistryCafeAPI.Models;
+using ChemistryCafeAPI.SeedData;
 using dotenv.net;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -103,6 +104,29 @@ public class Program {
 
         if (app.Environment.IsDevelopment())
         {
+            // docker compose `depends_on` waits only for the MySQL container to
+            // start, not to accept connections. Seeding resolves the DbContext
+            // eagerly (which opens a connection), so wait for MySQL to be ready.
+            for (int attempt = 1; attempt <= 15; attempt++)
+            {
+                try
+                {
+                    using var connection = new MySqlConnection(connectionString);
+                    connection.Open();
+                    break;
+                }
+                catch (MySqlException) when (attempt < 15)
+                {
+                    Thread.Sleep(TimeSpan.FromSeconds(2));
+                }
+            }
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<ChemistryDbContext>();
+                DbInitializer.Seed(context);
+            }
+
             app.UseSwagger();
             app.UseSwaggerUI();
             app.UseCors("DevelopmentCorsPolicy");
