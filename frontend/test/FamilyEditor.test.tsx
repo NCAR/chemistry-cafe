@@ -12,13 +12,17 @@ import userEvent from "@testing-library/user-event";
 import axios, { AxiosHeaders, AxiosResponse } from "axios";
 import { APIFamily } from "../src/API/API_Interfaces";
 import FamilyEditor, {
-  applySpeciesRowUpdate,
   GeneralInfoView,
   MechanismsView,
   PhaseView,
   ReactionsView,
   SpeciesView,
 } from "../src/pages/FamilyEditor";
+import {
+  applySpeciesRowUpdate,
+  speciesExclusiveConflict,
+} from "../src/helpers/editorHelpers";
+import { Species } from "../src/types/chemistryModels";
 import { CustomThemeProvider } from "../src/components/CustomThemeContext";
 import { MechanismEditor } from "../src/components/MechanismEditor";
 
@@ -356,6 +360,44 @@ describe("PhaseView", () => {
   });
 });
 
+describe("speciesExclusiveConflict", () => {
+  const base: Species = {
+    id: "s1",
+    name: "S",
+    description: null,
+    familyId: "f1",
+  };
+
+  it("is false when zero or one exclusive option is set", () => {
+    expect(speciesExclusiveConflict(base)).toBe(false);
+    expect(speciesExclusiveConflict({ ...base, constantConcentration: 1 })).toBe(false);
+    expect(speciesExclusiveConflict({ ...base, constantMixingRatio: 0.5 })).toBe(false);
+    expect(speciesExclusiveConflict({ ...base, isThirdBody: true })).toBe(false);
+  });
+
+  it("is true when two or more exclusive options are set", () => {
+    expect(
+      speciesExclusiveConflict({ ...base, constantConcentration: 1, constantMixingRatio: 0.5 }),
+    ).toBe(true);
+    expect(
+      speciesExclusiveConflict({ ...base, constantMixingRatio: 0.5, isThirdBody: true }),
+    ).toBe(true);
+  });
+
+  it("treats empty string and NaN as unset", () => {
+    expect(
+      speciesExclusiveConflict({
+        ...base,
+        constantConcentration: "" as unknown as number,
+        constantMixingRatio: 0.5,
+      }),
+    ).toBe(false);
+    expect(
+      speciesExclusiveConflict({ ...base, constantConcentration: NaN, isThirdBody: true }),
+    ).toBe(false);
+  });
+});
+
 describe("SpeciesView", () => {
   let updateFamily = vi.fn();
 
@@ -472,7 +514,7 @@ describe("SpeciesView", () => {
     expect(descriptionBox.value).toBeFalsy();
 
     const molecularWeightBox = screen.getByLabelText(
-      "Molecular Weight",
+      "Molecular weight",
     ) as HTMLInputElement;
     expect(molecularWeightBox).toBeTruthy();
 
@@ -508,6 +550,20 @@ describe("SpeciesView", () => {
     await user.type(nameBox, "Test Species");
     expect(nameBox.value).toEqual("Test Species");
     fireEvent.click(saveButton);
+  });
+
+  it("Blocks saving mutually exclusive species options", async () => {
+    const user = userEvent.setup();
+    fireEvent.click(screen.getByTestId("add-species-button"));
+
+    await user.type(screen.getByLabelText("Name *"), "Test Species");
+    await user.type(screen.getByLabelText("Constant concentration"), "1.5");
+    fireEvent.click(screen.getByLabelText("Third body (M)"));
+
+    fireEvent.click(screen.getByTestId("save-species-changes"));
+
+    expect(updateFamily).not.toHaveBeenCalled();
+    expect(screen.getByText(/only one of/i)).toBeTruthy();
   });
 
   it("Can remove species", async () => {

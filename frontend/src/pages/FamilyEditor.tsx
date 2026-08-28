@@ -41,10 +41,18 @@ import {
   ReactionTypeName,
   Species,
 } from "../types/chemistryModels";
+import { 
+  speciesExclusiveConflict ,
+  applySpeciesRowUpdate
+} from "../helpers/editorHelpers";
 import {
   DataGrid,
   GridColDef,
+  GridEditBooleanCell,
+  GridEditInputCell,
+  GridPreProcessEditCellProps,
   GridRenderCellParams,
+  GridRenderEditCellParams,
   GridToolbarColumnsButton,
   GridToolbarContainer,
   GridToolbarDensitySelector,
@@ -832,34 +840,38 @@ export const GeneralInfoView = ({
   );
 };
 
-export const applySpeciesRowUpdate = (
-  family: Family,
-  updatedSpecies: Species,
-): Family => {
-  const speciesList = [...family.species];
-  const existingIndex = speciesList.findIndex(
-    (element) => element.id === updatedSpecies.id,
-  );
 
-  if (existingIndex >= 0) {
-    speciesList[existingIndex] = {
-      ...speciesList[existingIndex],
-      ...updatedSpecies,
-      isDeleted: false,
-      isModified: true,
+const EXCLUSIVE_OPTION_MESSAGE =
+  "Only one of constant concentration, constant mixing ratio, or third body may be set.";
+
+const exclusiveOptionPreProcess =
+  (field: keyof Species) => (params: GridPreProcessEditCellProps) => {
+    const candidate = { ...params.row, [field]: params.props.value };
+    return {
+      ...params.props,
+      error: speciesExclusiveConflict(candidate)
+        ? EXCLUSIVE_OPTION_MESSAGE
+        : undefined,
     };
-  } else {
-    speciesList.unshift({
-      ...updatedSpecies,
-      isDeleted: false,
-      isModified: true,
-    });
-  }
-
-  return {
-    ...family,
-    species: speciesList,
   };
+
+// Edit cells that surface the mutual-exclusion error as a tooltip.
+const ExclusiveNumberEditCell = (props: GridRenderEditCellParams) => {
+  const { error } = props as unknown as { error?: string };
+  return (
+    <Tooltip open={Boolean(error)} title={error ?? ""} arrow placement="top">
+      <GridEditInputCell {...props} />
+    </Tooltip>
+  );
+};
+
+const ExclusiveBooleanEditCell = (props: GridRenderEditCellParams) => {
+  const { error } = props as unknown as { error?: string };
+  return (
+    <Tooltip open={Boolean(error)} title={error ?? ""} arrow placement="top">
+      <GridEditBooleanCell {...props} />
+    </Tooltip>
+  );
 };
 
 export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
@@ -1020,6 +1032,8 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
       editable: true,
       type: "number",
       flex: 1,
+      preProcessEditCellProps: exclusiveOptionPreProcess("constantConcentration"),
+      renderEditCell: (params) => <ExclusiveNumberEditCell {...params} />,
       renderCell: (params: GridRenderCellParams<Family>) => (
         <Typography
           variant="body1"
@@ -1039,6 +1053,8 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
       editable: true,
       type: "number",
       flex: 1,
+      preProcessEditCellProps: exclusiveOptionPreProcess("constantMixingRatio"),
+      renderEditCell: (params) => <ExclusiveNumberEditCell {...params} />,
       renderCell: (params: GridRenderCellParams<Family>) => (
         <Typography
           variant="body1"
@@ -1070,7 +1086,16 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
           {params.value ?? "<Empty>"}
         </Typography>
       ),
-    }
+    },
+    {
+      field: "isThirdBody",
+      headerName: "Third Body (M)",
+      editable: true,
+      type: "boolean",
+      flex: 1,
+      preProcessEditCellProps: exclusiveOptionPreProcess("isThirdBody"),
+      renderEditCell: (params) => <ExclusiveBooleanEditCell {...params} />,
+    },
   ];
 
   return (
@@ -1101,9 +1126,8 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
       </Typography>
       <DataGrid
         getRowId={(row) => row.id}
-        editMode="row"
+        editMode="cell"
         processRowUpdate={handleSpeciesRowUpdate}
-        onProcessRowUpdateError={(error) => console.error(error)}
         initialState={{ density: "compact" }}
         rows={family.species.filter((element) => !element.isDeleted)}
         columns={speciesColumns}

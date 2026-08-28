@@ -2,12 +2,15 @@ import {
   Alert,
   Box,
   Button,
+  Checkbox,
+  FormControlLabel,
   InputAdornment,
   Modal,
   Snackbar,
   TextField,
   Typography,
 } from "@mui/material";
+import { speciesExclusiveConflict } from "../../helpers/editorHelpers";
 import React, { useLayoutEffect, useState } from "react";
 import { Species } from "../../types/chemistryModels";
 import UnitComponent from "../UnitComponent";
@@ -86,6 +89,14 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
       return;
     }
 
+    if (speciesExclusiveConflict(modifiedSpecies)) {
+      setAlertMessage(
+        "A species may set only one of: constant concentration, constant mixing ratio, or third body.",
+      );
+      setShowAlert(true);
+      return;
+    }
+
     if (modifiedSpecies) {
       onUpdate(modifiedSpecies);
     }
@@ -116,6 +127,7 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
                     color="primary"
                     key={`${species.id}-${item.id}`}
                     id={`${species.id}-${item.id}`}
+                    required={item.key === "name"}
                     sx={{
                       width: "100%",
                     }}
@@ -172,98 +184,19 @@ export const SpeciesEditorModal: React.FC<SpeciesEditorModalProps> = ({
                   />
                 ))
               }
-
-              {/* {speciesAttributeOptions.map((element: SpeciesAttribute) => {
-                const attribute =
-                  modifiedSpecies?.attributes[element.serializationKey] ??
-                  element;
-                if (typeof attribute.value == "number") {
-                  return (
-                    <TextField
-                      color="primary"
-                      key={`${species.id}-${attribute.serializationKey}`}
-                      id={`${species.id}-${attribute.serializationKey}`}
-                      onWheel={(event) =>
-                        event.target instanceof HTMLElement &&
-                        event.target.blur()
-                      }
-                      sx={{
-                        width: "100%",
-                        // Removes up and down arrows for number
-                        "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                          {
-                            display: "none",
-                          },
-                        "& input[type=number]": {
-                          MozAppearance: "textfield",
-                        },
-                      }}
-                      defaultValue={
-                        species?.attributes[
-                          attribute.serializationKey
-                        ]?.value.toString() ?? ""
-                      }
-                      label={attribute.name || attribute.serializationKey}
-                      type="number"
-                      slotProps={{
-                        input: {
-                          endAdornment: (
-                            <InputAdornment position="start">
-                              {attribute.units && (
-                                <UnitComponent units={attribute.units} />
-                              )}
-                            </InputAdornment>
-                          ),
-                        },
-                      }}
-                      onChange={(event) => {
-                        const num = Number.parseFloat(event.target.value);
-                        if (
-                          Number.isFinite(num) ||
-                          event.target.value.length === 0
-                        ) {
-                          let modifiedAttributes: {
-                            [key: string]: SpeciesAttribute;
-                          } = {
-                            ...modifiedSpecies?.attributes,
-                          };
-
-                          if (event.target.value.length === 0) {
-                            delete modifiedAttributes[
-                              attribute.serializationKey
-                            ];
-                          } else {
-                            modifiedAttributes[attribute.serializationKey] = {
-                              ...attribute,
-                              value: num,
-                            };
-                          }
-
-                          changeSpeciesProperties({
-                            attributes: modifiedAttributes,
-                          });
-                        }
-                      }}
-                    />
-                  );
-                } else if (typeof attribute.value == "string") {
-                  return (
-                    <TextField
-                      color="primary"
-                      key={`${species.id}-${attribute.serializationKey}`}
-                      defaultValue={
-                        species?.attributes[
-                          attribute.serializationKey
-                        ]?.value.toString() ?? "Currently Unsupported"
-                      }
-                      label={attribute.name || attribute.serializationKey}
-                      disabled
-                    />
-                  );
-                } else {
-                  return null;
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={modifiedSpecies?.isThirdBody ?? false}
+                    onChange={(event) =>
+                      changeSpeciesProperties({
+                        isThirdBody: event.target.checked,
+                      })
+                    }
+                  />
                 }
-              })} */}
+                label="Third body (M)"
+              />
               <Box
                 sx={{
                   display: "flex",
