@@ -26,3 +26,11 @@ body {
     url("https://website-widgets.pages.dev/fonts/OpenDyslexic3-Regular.ttf")
       format("truetype");
 }
+
+/*
+ * Lift the Sienna accessibility widget's toggle button above the footer so it
+ * does not cover the footer logos. Its default is bottom: 30px (bottom-left).
+ */
+.asw-menu-btn {
+  bottom: 80px !important;
+}

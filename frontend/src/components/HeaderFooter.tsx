@@ -103,32 +103,35 @@ export const Footer = () => {
   return (
     <Paper component="footer" square={true} variant="outlined">
       <Container
-        maxWidth="lg"
+        maxWidth={false}
+        disableGutters
         sx={{
           display: "flex",
           alignItems: "center",
+          justifyContent: "space-between",
+          gap: 2,
+          py: 1,
+          px: 4,
           "& .MuiButton-root": { fontSize: "0.75rem" },
         }}
       >
-        <Box
-          component="img"
-          src={NSF_NCAR_Stackseallogo}
-          sx={{ height: "56px", width: "auto", pr: 2 }}
-        />
-        <Box
-          component="img"
-          src={TAMUlogo}
-          sx={{ height: "56px", width: "auto", pr: 6 }}
-        />
-        <Box sx={{ pr: 10 }}>
-          <Button onClick={handleAboutOpen}>About</Button>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+          <Box
+            component="img"
+            src={NSF_NCAR_Stackseallogo}
+            sx={{ height: "48px", width: "auto" }}
+          />
+          <Box
+            component="img"
+            src={TAMUlogo}
+            sx={{ height: "48px", width: "auto" }}
+          />
         </Box>
-        <Box sx={{ pr: 10 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Button onClick={handleAboutOpen}>About</Button>
           <Button onClick={handleBugClick} variant="text">
             Report a bug
           </Button>
-        </Box>
-        <Box sx={{ pr: 10 }}>
           <Button onClick={handleAccessibilityClick}>Accessibility</Button>
         </Box>
       </Container>

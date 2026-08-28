@@ -1139,6 +1139,10 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
         disableVirtualization // Enables DataGrid to be rendered in testing
         sx={{
           flex: 1,
+          "& .MuiDataGrid-cell": {
+            display: "flex",
+            alignItems: "center",
+          },
           ".MuiDataGrid-columnHeaderTitle": {
             fontFamily: theme.typography.fontFamily,
           },
@@ -1383,6 +1387,10 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
         disableVirtualization
         sx={{
           flex: 1,
+          "& .MuiDataGrid-cell": {
+            display: "flex",
+            alignItems: "center",
+          },
           ".MuiDataGrid-columnHeaderTitle": {
             fontFamily: theme.typography.fontFamily,
           },
@@ -1471,6 +1479,10 @@ export const PhaseView = ({ family }: ViewProps) => {
         disableVirtualization
         sx={{
           flex: 1,
+          "& .MuiDataGrid-cell": {
+            display: "flex",
+            alignItems: "center",
+          },
           ".MuiDataGrid-columnHeaderTitle": {
             fontFamily: theme.typography.fontFamily,
           },
