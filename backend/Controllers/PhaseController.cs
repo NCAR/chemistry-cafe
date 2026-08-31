@@ -67,6 +67,8 @@ namespace ChemistryCafeAPI.Controllers
                     QueryResult.ParentRelationNotFound => NotFound($"Family with id '{familyId}' not found in database"),
                     QueryResult.ChildRelationNotFound => NotFound("One or more species were either not found or are not in this family"),
                     QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
+                    QueryResult.ValidationError => BadRequest("The specified ID must be a valid, non-empty UUID."),
+                    QueryResult.DuplicateIdError => BadRequest("The specified ID is already in use by another object."),
                     _ => StatusCode(StatusCodes.Status500InternalServerError),
                 };
             }

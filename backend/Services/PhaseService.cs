@@ -109,8 +109,19 @@ public class PhaseService
             phaseSpecies.Add(databaseSpecies);
         }
 
+        if (phase.Id == Guid.Empty)
+        {
+            return (QueryResult.ValidationError, null);
+        }
+
+        if (await _context.Phases.AnyAsync(p => p.Id == phase.Id))
+        {
+            return (QueryResult.DuplicateIdError, null);
+        }
+
         Phase phaseInfo = new Phase
         {
+            Id = phase.Id,
             CreatedDate = DateTime.UtcNow,
             UpdatedDate = DateTime.UtcNow,
             Name = phase.Name,

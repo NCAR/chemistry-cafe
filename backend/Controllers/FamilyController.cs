@@ -70,7 +70,13 @@ namespace ChemistryCafeAPI.Controllers
             var (code, createdFamily) = await _familyService.CreateFamilyAsync(family, userId);
             if (createdFamily == null)
             {
-                return Unauthorized("User does not exist");
+                return code switch
+                {
+                    QueryResult.OwnerNotFound => Unauthorized("User does not exist"),
+                    QueryResult.ValidationError => BadRequest("The specified ID must be a valid, non-empty UUID."),
+                    QueryResult.DuplicateIdError => BadRequest("The specified ID is already in use by another object."),
+                    _ => StatusCode(500),
+                };
             }
 
             return CreatedAtAction(

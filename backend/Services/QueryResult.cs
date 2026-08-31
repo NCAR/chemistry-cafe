@@ -24,7 +24,7 @@ public enum QueryResult
     /// <summary>There are multiple objects in a collection with the same primary key.</summary>
     DuplicateKeyError,
     /// <summary>An input violated a validation constraint. ex: two mutually exclusive fields are both set.</summary>
-    ValidationError
+    ValidationError,
     /// <summary>The specified ID is already in use by another object.</summary>
     DuplicateIdError,
 }
