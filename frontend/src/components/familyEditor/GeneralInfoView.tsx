@@ -11,7 +11,7 @@ import {
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import { ConfirmActionModal } from "../FamilyEditorModals";
+import { ConfirmActionModal } from "../modals/ConfirmActionModal";
 import { ViewProps } from "./ViewProps";
 
 type ExtraGeneralInfoViewProps = {

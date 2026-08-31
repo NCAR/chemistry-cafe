@@ -3,7 +3,7 @@ import { Box, Button, Tooltip, Typography } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import { Mechanism } from "../../types/chemistryModels";
-import { MechanismCreationModal } from "../FamilyEditorModals";
+import { MechanismCreationModal } from "../modals/MechanismCreationModal";
 import { MechanismEditor } from "../MechanismEditor";
 import { MechanismBrowser } from "../MechanismBrowser";
 import { ViewProps } from "./ViewProps";
