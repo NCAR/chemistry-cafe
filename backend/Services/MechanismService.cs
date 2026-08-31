@@ -116,8 +116,14 @@ public class MechanismService
             return (QueryResult.NoAccess, null);
         }
 
+        if (mechanism.Id != Guid.Empty && await _context.Mechanisms.AnyAsync(m => m.Id == mechanism.Id))
+        {
+            return (QueryResult.DuplicateIdError, null);
+        }
+
         Mechanism mechanismInfo = new Mechanism
         {
+            Id = mechanism.Id == Guid.Empty ? Guid.NewGuid() : mechanism.Id,
             CreatedDate = DateTime.UtcNow,
             UpdatedDate = DateTime.UtcNow,
             Name = mechanism.Name,

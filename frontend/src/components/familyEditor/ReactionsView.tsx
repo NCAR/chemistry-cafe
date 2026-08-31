@@ -12,7 +12,7 @@ import { useCustomTheme } from "../CustomThemeContext";
 import { ReactionEditorModal } from "../FamilyEditorModals";
 import { RowActionsButton } from "../RowActionsButton";
 import { UUID } from "crypto";
-import { generateFrontendID } from "../../helpers/localFamilies";
+import { generateID } from "../../helpers/localFamilies";
 import { ViewProps } from "./ViewProps";
 import { DataViewToolbar } from "./DataViewToolbar";
 
@@ -23,7 +23,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
   const [selectedReaction, setSelectedReaction] = useState<Reaction>();
 
   const createReaction = () => {
-    const frontendId: string = generateFrontendID();
+    const frontendId: UUID = generateID();
     const reaction: Reaction = {
       id: frontendId,
       name: "",
@@ -40,7 +40,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
     setReactionsEditorOpen(true);
   };
 
-  const removeReaction = (id: UUID | string) => {
+  const removeReaction = (id: UUID) => {
     const originalReaction: Reaction | undefined = family.reactions.find(
       (value) => value.id === id,
     );
@@ -92,9 +92,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
         return [
           <RowActionsButton
             handleDeleteButtonClick={() => {
-              if (typeof id === "string") {
-                removeReaction(id);
-              }
+              removeReaction(id as UUID);
             }}
             handleEditButtonClick={() => {
               setSelectedReaction(

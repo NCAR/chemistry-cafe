@@ -25,6 +25,7 @@ import {
   frontendToAPIPhase,
   frontendToAPIReaction,
   frontendToAPISpecies,
+  saveFamilyChanges,
   uploadFamily,
 } from "../src/helpers/backendInteractions";
 import { UUID } from "crypto";
@@ -292,5 +293,49 @@ describe("Uploading a family", () => {
     expect(result.reactions.at(0)?.id).equals(apiReaction.id);
     expect(result.phases.at(0)?.id).equals(apiPhase.id);
     expect(result.mechanisms.at(0)?.id).equals(apiMechanism.id);
+  });
+});
+
+describe("saveFamilyChanges reference integrity", () => {
+  test("sends a reaction referencing the species by the same client id (no remap)", async () => {
+    const speciesId = "11111111-1111-1111-1111-111111111111" as UUID;
+    const family: Family = {
+      ...frontendFamily,
+      owner: user,
+      isInDatabase: true,
+      isModified: true,
+      species: [
+        { ...frontendSpecies, id: speciesId, isInDatabase: false, isDeleted: false },
+      ],
+      reactions: [
+        {
+          ...frontendReaction,
+          id: "22222222-2222-2222-2222-222222222222" as UUID,
+          isInDatabase: false,
+          isDeleted: false,
+          reactants: [{ speciesId, coefficient: 1 }],
+          products: [],
+        },
+      ],
+      phases: [],
+      mechanisms: [],
+    };
+
+    const postSpy = vi
+      .spyOn(axios, "post")
+      .mockResolvedValue(createMockData(apiSpecies));
+    vi.spyOn(axios, "patch").mockResolvedValue(createMockData(apiFamily));
+    vi.spyOn(axios, "get").mockResolvedValue(createMockData(apiFamily));
+
+    await saveFamilyChanges(family);
+
+    // The reaction must be sent referencing the species by the id we created it
+    // with — the backend now honors client ids, so no remapping is needed.
+    const reactionCall = postSpy.mock.calls.find(([url]) =>
+      String(url).includes("reactions"),
+    );
+    expect(reactionCall).toBeDefined();
+    const sentReaction = reactionCall![1] as APIReaction;
+    expect(sentReaction.reactants[0].speciesId).toBe(speciesId);
   });
 });

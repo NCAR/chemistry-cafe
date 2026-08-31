@@ -20,7 +20,7 @@ import { useCustomTheme } from "../CustomThemeContext";
 import { SpeciesEditorModal } from "../modals/SpeciesEditorModal";
 import { RowActionsButton } from "../RowActionsButton";
 import { UUID } from "crypto";
-import { generateFrontendID } from "../../helpers/localFamilies";
+import { generateID } from "../../helpers/localFamilies";
 import { ViewProps } from "./ViewProps";
 import { DataViewToolbar } from "./DataViewToolbar";
 
@@ -68,7 +68,7 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
   };
 
   const createSpecies = () => {
-    const frontendId: string = generateFrontendID();
+    const frontendId: UUID = generateID();
     const species: Species = {
       description: "",
       familyId: family.id,
@@ -82,7 +82,7 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
     setSpeciesEditorOpen(true);
   };
 
-  const removeSpecies = (id: UUID | string) => {
+  const removeSpecies = (id: UUID) => {
     const originalSpecies: Species | undefined = family.species.find(
       (value) => value.id === id,
     );
@@ -138,9 +138,7 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
         return [
           <RowActionsButton
             handleDeleteButtonClick={() => {
-              if (typeof id === "string") {
-                removeSpecies(id as string);
-              }
+              removeSpecies(id as UUID);
             }}
             handleEditButtonClick={() => {
               setSelectedSpecies(

@@ -262,6 +262,45 @@ namespace ChemistryCafeAPI.Tests
         }
 
         [TestMethod]
+        public async Task CreateSpeciesHonorsProvidedId()
+        {
+            _nameIdentifier = _user!.Id.ToString();
+            var providedId = Guid.NewGuid();
+            var species = new SpeciesDto
+            {
+                Id = providedId,
+                Name = "HonorIdSpecies",
+                Description = "id honoring",
+            };
+
+            var result = await _speciesController.CreateSpecies(species, _family!.Id);
+            var created = (result.Result as CreatedAtActionResult)?.Value as SpeciesDto;
+            Assert.IsNotNull(created);
+            Assert.AreEqual(providedId, created!.Id);
+
+            _context.ChangeTracker.Clear();
+            var fetched = ((await _speciesController.GetSpecies(providedId)).Result
+                as OkObjectResult)?.Value as SpeciesDto;
+            Assert.IsNotNull(fetched);
+            Assert.AreEqual(providedId, fetched!.Id);
+        }
+
+        [TestMethod]
+        public async Task CreateSpeciesRejectsDuplicateId()
+        {
+            _nameIdentifier = _user!.Id.ToString();
+            var id = Guid.NewGuid();
+
+            var first = new SpeciesDto { Id = id, Name = "DupFirst" };
+            var firstResult = await _speciesController.CreateSpecies(first, _family!.Id);
+            Assert.IsInstanceOfType(firstResult.Result, typeof(CreatedAtActionResult));
+
+            var second = new SpeciesDto { Id = id, Name = "DupSecond" };
+            var secondResult = await _speciesController.CreateSpecies(second, _family!.Id);
+            Assert.IsInstanceOfType(secondResult.Result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
         public async Task CreateSpeciesRejectsBothConcentrations()
         {
             _nameIdentifier = _user!.Id.ToString();

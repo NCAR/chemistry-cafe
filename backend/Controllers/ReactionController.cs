@@ -68,6 +68,8 @@ namespace ChemistryCafeAPI.Controllers
                     QueryResult.DuplicateKeyError => BadRequest("One or more attributes have duplicate json keys"),
                     QueryResult.ChildRelationNotFound => NotFound("One or more reactant/product species were either not found or are not in this family"),
                     QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
+                    QueryResult.ValidationError => BadRequest("The specified ID must be a valid, non-empty UUID."),
+                    QueryResult.DuplicateIdError => BadRequest("The specified ID is already in use by another object."),
                     _ => StatusCode(StatusCodes.Status500InternalServerError),
                 };
             }

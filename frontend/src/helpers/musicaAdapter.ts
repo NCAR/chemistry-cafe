@@ -9,7 +9,8 @@ import {
   ReactionTypeName,
   Species,
 } from "../types/chemistryModels";
-import { generateFrontendID } from "./localFamilies";
+import { generateID } from "./localFamilies";
+import { UUID } from "crypto";
 
 /* Wrap @ncar/musica types for use in chemistry cafe.
  *
@@ -77,7 +78,8 @@ function componentsFromJSON(
   branch?: string,
 ): Product[] {
   return arr.map((c) => ({
-    speciesId: c.name ?? "",
+    // Temporarily stash the species name; linkComponentIds rewrites it to the id.
+    speciesId: (c.name ?? "") as UUID,
     coefficient: c.coefficient ?? 1,
     ...(branch ? { branch } : {}),
   }));
@@ -109,7 +111,7 @@ const ARRHENIUS: ReactionAdapter = {
   },
 
   fromMusica: (json) => ({
-    id: generateFrontendID(),
+    id: generateID(),
     name: json.name ?? "",
     description: null,
     type: reactionTypes.Arrhenius.type,
@@ -147,7 +149,7 @@ const BRANCHED_NO_RO2: ReactionAdapter = {
     }),
 
   fromMusica: (json) => ({
-    id: generateFrontendID(),
+    id: generateID(),
     name: json.name ?? "",
     description: null,
     type: reactionTypes.Branched.type,
@@ -176,7 +178,7 @@ const EMISSION: ReactionAdapter = {
     }),
 
   fromMusica: (json) => ({
-    id: generateFrontendID(),
+    id: generateID(),
     name: json.name ?? "",
     description: null,
     type: reactionTypes.Emission.type,
@@ -199,7 +201,7 @@ const FIRST_ORDER_LOSS: ReactionAdapter = {
     }),
 
   fromMusica: (json) => ({
-    id: generateFrontendID(),
+    id: generateID(),
     name: json.name ?? "",
     description: null,
     type: reactionTypes.FirstOrderLoss.type,
@@ -225,7 +227,7 @@ const PHOTOLYSIS: ReactionAdapter = {
 
   fromMusica: (json) => {
     let obj = {
-      id: generateFrontendID(),
+      id: generateID(),
       name: json.name ?? "",
       description: null,
       gasPhaseId: json["gas phase"] ?? undefined,
@@ -258,7 +260,7 @@ const SURFACE: ReactionAdapter = {
 
   fromMusica: (json) => {
     return {
-      id: generateFrontendID(),
+      id: generateID(),
       name: json.name ?? "",
       description: null,
       type: reactionTypes.Surface.type,
@@ -293,7 +295,7 @@ const TAYLOR_SERIES: ReactionAdapter = {
   },
 
   fromMusica: (json) => ({
-    id: generateFrontendID(),
+    id: generateID(),
     name: json.name ?? "",
     description: null,
     type: reactionTypes.TaylorSeries.type,
@@ -329,7 +331,7 @@ const TERNARY_CHEMICAL_ACTIVATION: ReactionAdapter = {
     }),
 
   fromMusica: (json) => ({
-    id: generateFrontendID(),
+    id: generateID(),
     name: json.name ?? "",
     description: null,
     type: reactionTypes.TernaryChemicalActivation.type,
@@ -367,7 +369,7 @@ const TROE: ReactionAdapter = {
     }),
 
   fromMusica: (json) => ({
-    id: generateFrontendID(),
+    id: generateID(),
     name: json.name ?? "",
     description: null,
     type: reactionTypes.Troe.type,
@@ -400,7 +402,7 @@ const TUNNELING: ReactionAdapter = {
     }),
 
   fromMusica: (json) => ({
-    id: generateFrontendID(),
+    id: generateID(),
     name: json.name ?? "",
     description: null,
     type: reactionTypes.Tunneling.type,
@@ -424,7 +426,7 @@ const USER_DEFINED: ReactionAdapter = {
 
   fromMusica: (json) => {
     let obj = {
-      id: generateFrontendID(),
+      id: generateID(),
       name: json.name ?? "",
       description: null,
       gasPhaseId: json["gas phase"] ?? undefined,
@@ -535,7 +537,7 @@ export function deserializeMechanism(parsed: Record<string, any>): Family {
     );
   }
 
-  const familyId = generateFrontendID();
+  const familyId = generateID();
   const family: Family = {
     id: familyId,
     name: parsed.name ?? "New Family",
@@ -548,17 +550,17 @@ export function deserializeMechanism(parsed: Record<string, any>): Family {
   };
 
   // 1. species — build, and remember name -> frontend id.
-  const nameToId = new Map<string, string>();
+  const nameToId = new Map<string, UUID>();
   for (const s of parsed.species) {
-    const id = generateFrontendID();
+    const id = generateID();
     nameToId.set(s.name, id);
     family.species.push(speciesFromJSON(s, id, familyId));
   }
 
   // 2. phases — resolve member species names back to ids.
-  const phaseToId = new Map<string, string>();
+  const phaseToId = new Map<string, UUID>();
   for (const p of parsed.phases) {
-    const id = generateFrontendID();
+    const id = generateID();
     phaseToId.set(p.name, id);
     family.phases.push({
       id,
@@ -592,8 +594,8 @@ export function deserializeMechanism(parsed: Record<string, any>): Family {
 
 function speciesFromJSON(
   s: Record<string, unknown>,
-  id: string,
-  familyId: string,
+  id: UUID,
+  familyId: UUID,
 ): Species {
   const otherProperties: Record<string, string | number | boolean> = {};
   for (const [rawKey, value] of Object.entries(s)) {
@@ -630,7 +632,7 @@ function speciesFromJSON(
 /** fromMusica stores species *names* in component.speciesId; rewrite to ids. */
 function linkComponentIds(
   r: Reaction,
-  nameToId: Map<string, string>,
+  nameToId: Map<string, UUID>,
 ): Reaction {
   const toId = (speciesId: Reactant["speciesId"]) =>
     nameToId.get(String(speciesId)) ?? speciesId;
@@ -656,7 +658,7 @@ function linkComponentIds(
   }
 }
 
-function linkPhaseIds(r: Reaction, nameToId: Map<string, string>) {
+function linkPhaseIds(r: Reaction, nameToId: Map<string, UUID>) {
   return {
     ...r,
     gasPhaseId: r.gasPhaseId
