@@ -98,19 +98,19 @@ export type Reaction = {
   type: ReactionTypeName;
 
   /** Optional id for the gas phase. Required in all reactions */
-  gasPhaseId?: UUID | string | null;
+  gasPhaseId?: UUID;
 
   /** Optional id for the gas phase species. Required in certain reactions */
-  gasPhaseSpeciesId?: UUID | string | null;
+  gasPhaseSpeciesId?: UUID;
 
   /** Optional id for the aerosol phase. Required in certain reactions */
-  aerosolPhaseId?: UUID | string | null;
+  aerosolPhaseId?: UUID;
 
   /** Optional id for the aerosol phase species. Required in certain reactions */
-  aerosolPhaseSpeciesId?: UUID | string | null;
+  aerosolPhaseSpeciesId?: UUID;
 
   /** Optional id for the aerosol phase water. Required in certain reactions */
-  aerosolPhaseWaterId?: UUID | string | null;
+  aerosolPhaseWaterId?: UUID;
 
   /** Determines whether the Reaction has been modified from its original state */
   isModified?: boolean;
@@ -193,10 +193,10 @@ export type Mechanism = {
   speciesIds: Array<UUID>;
 
   /** Reaction ids associated with the mechanism */
-  reactionIds: Array<UUID | string>;
+  reactionIds: Array<UUID>;
 
   /** Phase ids associated with the mechanism */
-  phaseIds: Array<UUID | string>;
+  phaseIds: Array<UUID>;
 
   /** Determines whether the mechanism has been modified from its original state */
   isModified?: boolean;

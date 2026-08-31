@@ -35,6 +35,7 @@ import { generateID } from "../helpers/localFamilies";
 import FileUpload from "./FileUpload";
 import { reactionTypeToString } from "../helpers/stringify";
 import { modalStyle } from "./modals/modalStyle";
+import { UUID } from "crypto";
 
 type FamilyCreationModalProps = {
   open: boolean;
@@ -59,7 +60,7 @@ export const FamilyCreationModal: React.FC<FamilyCreationModalProps> = ({
       setNameError(true);
       return;
     }
-    const frontendId: string = generateID();
+    const frontendId: UUID = generateID();
     const family: Family = {
       id: frontendId,
       name: familyName.current,
@@ -178,12 +179,14 @@ export const FamilyCreationModal: React.FC<FamilyCreationModalProps> = ({
 
 type MechanismCreationModalProps = {
   open: boolean;
+  familyId: UUID;
   onClose: () => void;
   onSubmit: (mechanism: Mechanism) => void;
 };
 
 export const MechanismCreationModal: React.FC<MechanismCreationModalProps> = ({
   open,
+  familyId,
   onClose,
   onSubmit,
 }) => {
@@ -199,12 +202,12 @@ export const MechanismCreationModal: React.FC<MechanismCreationModalProps> = ({
       return;
     }
 
-    const frontendId: string = generateID();
+    const frontendId: UUID = generateID();
     const mechanism: Mechanism = {
       id: frontendId,
       name: mechanismName.current,
       description: mechanismDescription.current,
-      familyId: "",
+      familyId: familyId,
       speciesIds: [],
       reactionIds: [],
       phaseIds: [],
@@ -571,7 +574,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                       changeReactionProperties({
                         reactants: [
                           {
-                            speciesId: speciesId,
+                            speciesId: speciesId as UUID,
                             coefficient: 1.0,
                           },
                         ],
@@ -757,7 +760,6 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                 defaultValue={reaction?.products.at(0)?.speciesId ?? "None"}
                 onChange={(event) => {
                   const speciesId = event.target.value;
-                  console.log(speciesId);
                   if (speciesId == "None") {
                     changeReactionProperties({
                       products: [],
@@ -766,7 +768,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                     changeReactionProperties({
                       products: [
                         {
-                          speciesId: speciesId,
+                          speciesId: speciesId as UUID,
                           coefficient: 1.0,
                         },
                       ],

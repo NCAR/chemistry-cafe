@@ -114,6 +114,7 @@ export const MechanismsView = ({ family, updateFamily }: ViewProps) => {
       {menuComponent}
       <MechanismCreationModal
         open={mechanismCreationModalOpen}
+        familyId={family.id}
         onClose={() => setMechanismCreationModalOpen(false)}
         onSubmit={createMechanism}
       />
