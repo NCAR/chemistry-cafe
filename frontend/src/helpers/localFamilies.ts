@@ -5,8 +5,8 @@ import { Family, Product, Reactant } from "../types/chemistryModels";
  * Creates a temporary frontend id for a given object.
  * This is used for relating things together that aren't in the database yet.
  */
-export const generateFrontendID = (): string => {
-  return `${Date.now()}-${Math.floor(Math.random() * 10000000000)}`;
+export const generateID = (): UUID => {
+  return crypto.randomUUID();
 };
 
 /**
@@ -23,13 +23,13 @@ export const cloneFamily = (family: Family): Family => {
     mechanisms: [],
     isInDatabase: false,
   };
-  const idMappings: Map<any, string> = new Map();
+  const idMappings: Map<UUID, UUID> = new Map();
 
-  clonedFamily.id = generateFrontendID();
+  clonedFamily.id = generateID();
   idMappings.set(family.id, clonedFamily.id);
 
   for (const species of family.species) {
-    const frontendId = generateFrontendID();
+    const frontendId = generateID();
     idMappings.set(species.id, frontendId);
     clonedFamily.species.push({
       ...species,
@@ -39,12 +39,12 @@ export const cloneFamily = (family: Family): Family => {
   }
 
   for (const phase of family.phases) {
-    const frontendId = generateFrontendID();
+    const frontendId = generateID();
     idMappings.set(phase.id, frontendId);
     clonedFamily.phases.push({
       ...phase,
       id: frontendId,
-      speciesIds: phase.speciesIds.reduce((accumulator: string[], id) => {
+      speciesIds: phase.speciesIds.reduce((accumulator: UUID[], id) => {
         const mappedId = idMappings.get(id);
         if (mappedId) {
           accumulator.push(mappedId);
@@ -56,7 +56,7 @@ export const cloneFamily = (family: Family): Family => {
   }
 
   for (const reaction of family.reactions) {
-    const frontendId = generateFrontendID();
+    const frontendId = generateID();
     idMappings.set(reaction.id, frontendId);
     clonedFamily.reactions.push({
       ...reaction,
@@ -94,26 +94,26 @@ export const cloneFamily = (family: Family): Family => {
   }
 
   for (const mechanism of family.mechanisms) {
-    const frontendId = generateFrontendID();
+    const frontendId = generateID();
     idMappings.set(mechanism.id, frontendId);
     clonedFamily.mechanisms.push({
       ...mechanism,
       id: frontendId,
-      speciesIds: mechanism.speciesIds.reduce((accumulator: string[], id) => {
+      speciesIds: mechanism.speciesIds.reduce((accumulator: UUID[], id) => {
         const mappedId = idMappings.get(id);
         if (mappedId) {
           accumulator.push(mappedId);
         }
         return accumulator;
       }, []),
-      phaseIds: mechanism.phaseIds.reduce((accumulator: string[], id) => {
+      phaseIds: mechanism.phaseIds.reduce((accumulator: UUID[], id) => {
         const mappedId = idMappings.get(id);
         if (mappedId) {
           accumulator.push(mappedId);
         }
         return accumulator;
       }, []),
-      reactionIds: mechanism.reactionIds.reduce((accumulator: string[], id) => {
+      reactionIds: mechanism.reactionIds.reduce((accumulator: UUID[], id) => {
         const mappedId = idMappings.get(id);
         if (mappedId) {
           accumulator.push(mappedId);

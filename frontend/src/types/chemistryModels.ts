@@ -20,10 +20,10 @@ export type Species = {
   description: string | null;
 
   /** Id of the family on the frontend this mechanism is a part of */
-  familyId: UUID | string;
+  familyId: UUID;
 
   /** ID stored in the SQL database. If this is not in the database, this is used for frontend purposes */
-  id: UUID | string;
+  id: UUID;
 
   /** Determines if the species has been marked for deletion */
   isDeleted?: boolean;
@@ -86,7 +86,7 @@ export type ReactionTypeName =
  */
 export type Reaction = {
   /** ID stored in the SQL database. If this is not in the database, this is used for frontend purposes */
-  id: UUID | string;
+  id: UUID;
 
   /** Name of the reaction that the user sees*/
   name: string;
@@ -134,12 +134,12 @@ export type Reaction = {
 };
 
 export type Reactant = {
-  speciesId: UUID | string;
+  speciesId: UUID;
   coefficient: number;
 };
 
 export type Product = {
-  speciesId: UUID | string;
+  speciesId: UUID;
   coefficient: number;
   branch?: string;
 };
@@ -150,7 +150,7 @@ export type Product = {
  */
 export type Phase = {
   /** ID stored in the SQL database */
-  id: UUID | string;
+  id: UUID;
 
   /** Name of the phase */
   name: string;
@@ -159,7 +159,7 @@ export type Phase = {
   description: string | null;
 
   /** Species involved in the phase */
-  speciesIds: Array<UUID | string>;
+  speciesIds: Array<UUID>;
 
   /** Determines whether the phase has been modified from its original state */
   isModified?: boolean;
@@ -178,7 +178,7 @@ export type Phase = {
  */
 export type Mechanism = {
   /** ID stored in the SQL database. If this is not in the database, this is used for frontend purposes */
-  id: UUID | string;
+  id: UUID;
 
   /** Name of the mechanism */
   name: string;
@@ -187,10 +187,10 @@ export type Mechanism = {
   description: string | null;
 
   /** Id of the family on the frontend this mechanism is a part of */
-  familyId: UUID | string;
+  familyId: UUID;
 
   /** Species ids associated with the mechanism */
-  speciesIds: Array<UUID | string>;
+  speciesIds: Array<UUID>;
 
   /** Reaction ids associated with the mechanism */
   reactionIds: Array<UUID | string>;
@@ -215,7 +215,7 @@ export type Mechanism = {
  */
 export type Family = {
   /** ID stored in the SQL database. If this object is not stored in the database, this is used for frontend purposes */
-  id: UUID | string;
+  id: UUID;
 
   /** Name of the family */
   name: string;

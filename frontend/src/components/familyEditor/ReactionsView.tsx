@@ -12,7 +12,7 @@ import { useCustomTheme } from "../CustomThemeContext";
 import { ReactionEditorModal } from "../FamilyEditorModals";
 import { RowActionsButton } from "../RowActionsButton";
 import { UUID } from "crypto";
-import { generateFrontendID } from "../../helpers/localFamilies";
+import { generateID } from "../../helpers/localFamilies";
 import { ViewProps } from "./ViewProps";
 import { DataViewToolbar } from "./DataViewToolbar";
 
@@ -23,7 +23,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
   const [selectedReaction, setSelectedReaction] = useState<Reaction>();
 
   const createReaction = () => {
-    const frontendId: string = generateFrontendID();
+    const frontendId: string = generateID();
     const reaction: Reaction = {
       id: frontendId,
       name: "",

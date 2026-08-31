@@ -79,6 +79,7 @@ namespace ChemistryCafeAPI.Controllers
                     QueryResult.DuplicateKeyError => BadRequest("One or more attributes have duplicate serialization keys"),
                     QueryResult.ValidationError => BadRequest("Constant concentration and constant mixing ratio are mutually exclusive"),
                     QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
+                    QueryResult.DuplicateIdError => BadRequest("The specified ID is already in use by another object."),
                     _ => StatusCode(StatusCodes.Status500InternalServerError),
                 };
             }

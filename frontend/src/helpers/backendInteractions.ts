@@ -41,12 +41,6 @@ import {
 } from "../API/API_DeleteMethods";
 
 /**
- * Used to determine if a uuid is valid
- */
-const uuidRegex =
-  /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/;
-
-/**
  * Converts a species as defined by the backend to a species as defined by the frontend.
  * This is intended to be called right after a backend request.
  *
@@ -86,16 +80,13 @@ export function frontendToAPISpecies(
   species: Species,
   family: Family,
 ): APISpecies {
-  const id: UUID = uuidRegex.test(species.id)
-    ? (species.id as UUID)
-    : "00000000-0000-0000-0000-000000000000";
   const formattedSpecies: APISpecies = {
     absoluteTolerance: species.absoluteTolerance,
     constantConcentration: species.constantConcentration,
     constantMixingRatio: species.constantMixingRatio,
     description: species.description,
     familyId: family.id as UUID,
-    id: id,
+    id: species.id,
     molecularWeight: species.molecularWeight,
     name: species.name,
     otherProperties: species.otherProperties,
@@ -164,33 +155,16 @@ export function frontendToAPIReaction(
   reaction: Reaction,
   family: Family,
 ): APIReaction {
-  for (const reactant of reaction.reactants) {
-    if (!uuidRegex.test(reactant.speciesId)) {
-      throw new Error(`Reactant id is not a uuid: ${reactant.speciesId}`);
-    }
-  }
-  for (const product of reaction.products) {
-    if (!uuidRegex.test(product.speciesId)) {
-      throw new Error(`Product id is not a uuid: ${product.speciesId}`);
-    }
-  }
 
-  const id: UUID = uuidRegex.test(reaction.id)
-    ? (reaction.id as UUID)
-    : "00000000-0000-0000-0000-000000000000";
   const formattedReaction: APIReaction = {
-    id: id,
+    id: reaction.id,
     familyId: family.id as UUID,
     name: reaction.name,
     description: reaction.description ?? "",
     numericalAttributes: [],
     stringAttributes: [],
-    reactants: reaction.reactants.filter((e) =>
-      uuidRegex.test(e.speciesId),
-    ) as Array<APIReactant>,
-    products: reaction.products.filter((e) =>
-      uuidRegex.test(e.speciesId),
-    ) as Array<APIProduct>,
+    reactants: reaction.reactants as Array<APIReactant>,
+    products: reaction.products as Array<APIProduct>,
     gasPhaseId: reaction.gasPhaseId as UUID,
     gasPhaseSpeciesId: reaction.gasPhaseSpeciesId as UUID,
     aerosolPhaseId: reaction.aerosolPhaseId as UUID,
@@ -250,15 +224,11 @@ export function apiToFrontendPhase(phase: APIPhase): Phase {
  * @param family Family this phase belongs to
  */
 export function frontendToAPIPhase(phase: Phase, family: Family): APIPhase {
-  const phaseId: UUID = uuidRegex.test(phase.id)
-    ? (phase.id as UUID)
-    : "00000000-0000-0000-0000-000000000000";
   const formattedPhase: APIPhase = {
-    id: phaseId,
+    id: phase.id,
     name: phase.name,
     familyId: family.id as UUID,
     species: phase.speciesIds
-      .filter((id) => uuidRegex.test(id))
       .map((id) => {
         // Creates temporary object which is used for setting up relations.
         // This relies on the fact that the backend does not update nested objects.
@@ -314,14 +284,10 @@ export function frontendToAPIMechanism(
   mechanism: Mechanism,
   family: Family,
 ): APIMechanism {
-  const mechanismId: UUID = uuidRegex.test(mechanism.id)
-    ? (mechanism.id as UUID)
-    : "00000000-0000-0000-0000-000000000000";
   const formattedMechanism: APIMechanism = {
-    id: mechanismId,
+    id: mechanism.id,
     name: mechanism.name,
     species: mechanism.speciesIds
-      .filter((id) => uuidRegex.test(id))
       .map((id) => {
         const species: APISpecies = {
           id: id as UUID,
@@ -331,7 +297,6 @@ export function frontendToAPIMechanism(
         return species;
       }),
     phases: mechanism.phaseIds
-      .filter((id) => uuidRegex.test(id))
       .map((id) => {
         const phase: APIPhase = {
           id: id as UUID,
@@ -342,7 +307,6 @@ export function frontendToAPIMechanism(
         return phase;
       }),
     reactions: mechanism.reactionIds
-      .filter((id) => uuidRegex.test(id))
       .map((id) => {
         const reaction: APIReaction = {
           id: id as UUID,
@@ -378,16 +342,12 @@ export function apiToFrontendFamily(apiFamily: APIFamily): Family {
     description: apiFamily.description ?? "",
     owner: apiFamily.owner,
     mechanisms: apiFamily.mechanisms
-      .filter((e) => uuidRegex.test(e.id))
       .map((e) => apiToFrontendMechanism(e)),
     species: apiFamily.species
-      .filter((e) => uuidRegex.test(e.id))
       .map((e) => apiToFrontendSpecies(e)),
     reactions: apiFamily.reactions
-      .filter((e) => uuidRegex.test(e.id))
       .map((e) => apiToFrontendReaction(e)),
     phases: apiFamily.phases
-      .filter((e) => uuidRegex.test(e.id))
       .map((e) => apiToFrontendPhase(e)),
     isInDatabase: true,
     isModified: false,
@@ -412,11 +372,8 @@ export function frontendToAPIFamily(
     throw new Error("family owner is null");
   }
 
-  const familyId: UUID = uuidRegex.test(family.id)
-    ? (family.id as UUID)
-    : "00000000-0000-0000-0000-000000000000";
   const formattedFamily: APIFamily = {
-    id: familyId,
+    id: family.id,
     name: family.name,
     description: family.description,
     owner: family.owner,
@@ -475,20 +432,25 @@ export async function saveFamilyChanges(family: Family): Promise<Family> {
     return family;
   }
 
-  if (!uuidRegex.test(family.id)) {
-    throw new Error("Family ID is not a valid UUID");
-  }
-
   if (!family.isInDatabase) {
     throw new Error(
       "Cannot save family not currently in database (did you mean 'uploadFamily()'?)",
     );
   }
 
-  // Used to map frontend ids to real ids
-  const speciesIdMappings: Map<string, UUID> = new Map();
-  const phaseIdMappings: Map<string, UUID> = new Map();
-  const reactionIdMappings: Map<string, UUID> = new Map();
+  const liveSpeciesIds = new Set<string>(
+    family.species
+      .filter((species) => !species.isDeleted)
+      .map((species) => species.id),
+  );
+  const livePhaseIds = new Set<string>(
+    family.phases.filter((phase) => !phase.isDeleted).map((phase) => phase.id),
+  );
+  const liveReactionIds = new Set<string>(
+    family.reactions
+      .filter((reaction) => !reaction.isDeleted)
+      .map((reaction) => reaction.id),
+  );
 
   for (const species of family.species) {
     const apiSpecies = frontendToAPISpecies(species, family);
@@ -497,107 +459,93 @@ export async function saveFamilyChanges(family: Family): Promise<Family> {
         await deleteSpecies(apiSpecies.id);
       } else if (species.isModified) {
         await updateSpecies(apiSpecies);
-        speciesIdMappings.set(species.id, apiSpecies.id as UUID);
-      } else {
-        speciesIdMappings.set(species.id, apiSpecies.id as UUID);
       }
-    } else {
-      if (!species.isDeleted) {
-        const resultSpecies: APISpecies = await createSpecies(apiSpecies);
-        speciesIdMappings.set(species.id, resultSpecies.id);
-      }
+    } else if (!species.isDeleted) {
+      await createSpecies(apiSpecies);
     }
   }
 
   for (const phase of family.phases) {
-    const phaseWithMappings: Phase = {
+    const phaseWithLiveReferences: Phase = {
       ...phase,
-      speciesIds: phase.speciesIds
-        .filter((id) => speciesIdMappings.get(id) != undefined)
-        .map((id) => speciesIdMappings.get(id) as UUID),
+      speciesIds: phase.speciesIds.filter((id) => liveSpeciesIds.has(id)),
     };
 
-    const apiPhase = frontendToAPIPhase(phaseWithMappings, family);
+    const apiPhase = frontendToAPIPhase(phaseWithLiveReferences, family);
     if (phase.isInDatabase) {
       if (phase.isDeleted) {
         deletePhase(phase.id).catch((e) => console.error(e));
       } else if (phase.isModified) {
         await updatePhase(apiPhase);
-        phaseIdMappings.set(phase.id, apiPhase.id);
-      } else {
-        phaseIdMappings.set(phase.id, apiPhase.id);
       }
-    } else {
-      if (!phase.isDeleted) {
-        const resultPhase = await createPhase(apiPhase);
-        phaseIdMappings.set(phase.id, resultPhase.id);
-      }
+    } else if (!phase.isDeleted) {
+      await createPhase(apiPhase);
     }
   }
 
   for (const reaction of family.reactions) {
-    const reactionWithMappings: Reaction = {
+    const reactionWithLiveReferences: Reaction = {
       ...reaction,
-      reactants: reaction.reactants
-        .filter((e) => speciesIdMappings.get(e.speciesId) != undefined)
-        .map((e) => {
-          return {
-            ...e,
-            speciesId: speciesIdMappings.get(e.speciesId) as UUID,
-          };
-        }),
-      products: reaction.products
-        .filter((e) => speciesIdMappings.get(e.speciesId) != undefined)
-        .map((e) => {
-          return {
-            ...e,
-            speciesId: speciesIdMappings.get(e.speciesId) as UUID,
-          };
-        }),
-      gasPhaseId: phaseIdMappings.get(reaction.gasPhaseId ?? ""),
-      gasPhaseSpeciesId: speciesIdMappings.get(
-        reaction.gasPhaseSpeciesId ?? "",
+      reactants: reaction.reactants.filter((reactant) =>
+        liveSpeciesIds.has(reactant.speciesId),
       ),
-      aerosolPhaseId: phaseIdMappings.get(reaction.aerosolPhaseId ?? ""),
-      aerosolPhaseSpeciesId: speciesIdMappings.get(
-        reaction.aerosolPhaseSpeciesId ?? "",
+      products: reaction.products.filter((product) =>
+        liveSpeciesIds.has(product.speciesId),
       ),
-      aerosolPhaseWaterId: speciesIdMappings.get(
-        reaction.aerosolPhaseWaterId ?? "",
-      ),
+      gasPhaseId:
+        reaction.gasPhaseId && livePhaseIds.has(reaction.gasPhaseId)
+          ? reaction.gasPhaseId
+          : undefined,
+      gasPhaseSpeciesId:
+        reaction.gasPhaseSpeciesId &&
+        liveSpeciesIds.has(reaction.gasPhaseSpeciesId)
+          ? reaction.gasPhaseSpeciesId
+          : undefined,
+      aerosolPhaseId:
+        reaction.aerosolPhaseId && livePhaseIds.has(reaction.aerosolPhaseId)
+          ? reaction.aerosolPhaseId
+          : undefined,
+      aerosolPhaseSpeciesId:
+        reaction.aerosolPhaseSpeciesId &&
+        liveSpeciesIds.has(reaction.aerosolPhaseSpeciesId)
+          ? reaction.aerosolPhaseSpeciesId
+          : undefined,
+      aerosolPhaseWaterId:
+        reaction.aerosolPhaseWaterId &&
+        liveSpeciesIds.has(reaction.aerosolPhaseWaterId)
+          ? reaction.aerosolPhaseWaterId
+          : undefined,
     };
 
-    const apiReaction = frontendToAPIReaction(reactionWithMappings, family);
+    const apiReaction = frontendToAPIReaction(
+      reactionWithLiveReferences,
+      family,
+    );
     if (reaction.isInDatabase) {
       if (reaction.isDeleted) {
         deleteReaction(reaction.id).catch((e) => console.error(e));
       } else if (reaction.isModified) {
         await updateReaction(apiReaction);
-        reactionIdMappings.set(reaction.id, apiReaction.id);
-      } else {
-        reactionIdMappings.set(reaction.id, apiReaction.id);
       }
     } else {
-      const resultReaction = await createReaction(apiReaction);
-      reactionIdMappings.set(reaction.id, resultReaction.id);
+      await createReaction(apiReaction);
     }
   }
 
   for (const mechanism of family.mechanisms) {
-    const mechanismWithMappings: Mechanism = {
+    const mechanismWithLiveReferences: Mechanism = {
       ...mechanism,
-      speciesIds: mechanism.speciesIds
-        .filter((id) => speciesIdMappings.get(id) != undefined)
-        .map((id) => speciesIdMappings.get(id) as UUID),
-      reactionIds: mechanism.reactionIds
-        .filter((id) => reactionIdMappings.get(id) != undefined)
-        .map((id) => reactionIdMappings.get(id) as UUID),
-      phaseIds: mechanism.phaseIds
-        .filter((id) => phaseIdMappings.get(id) != undefined)
-        .map((id) => phaseIdMappings.get(id) as UUID),
+      speciesIds: mechanism.speciesIds.filter((id) => liveSpeciesIds.has(id)),
+      reactionIds: mechanism.reactionIds.filter((id) =>
+        liveReactionIds.has(id),
+      ),
+      phaseIds: mechanism.phaseIds.filter((id) => livePhaseIds.has(id)),
     };
 
-    const apiMechanism = frontendToAPIMechanism(mechanismWithMappings, family);
+    const apiMechanism = frontendToAPIMechanism(
+      mechanismWithLiveReferences,
+      family,
+    );
     if (mechanism.isInDatabase) {
       if (mechanism.isDeleted) {
         deleteMechanism(mechanism.id).catch((e) => console.error(e));

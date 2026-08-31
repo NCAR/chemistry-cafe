@@ -31,7 +31,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import WarningIcon from "@mui/icons-material/Warning";
 import { SelectSpeciesButton } from "./SelectSpeciesButton";
 import { useAuth } from "./AuthContext";
-import { generateFrontendID } from "../helpers/localFamilies";
+import { generateID } from "../helpers/localFamilies";
 import FileUpload from "./FileUpload";
 import { reactionTypeToString } from "../helpers/stringify";
 import { modalStyle } from "./modals/modalStyle";
@@ -59,7 +59,7 @@ export const FamilyCreationModal: React.FC<FamilyCreationModalProps> = ({
       setNameError(true);
       return;
     }
-    const frontendId: string = generateFrontendID();
+    const frontendId: string = generateID();
     const family: Family = {
       id: frontendId,
       name: familyName.current,
@@ -69,7 +69,7 @@ export const FamilyCreationModal: React.FC<FamilyCreationModalProps> = ({
       reactions: [],
       phases: [
         {
-          id: generateFrontendID(),
+          id: generateID(),
           name: "gas",
           description: null,
           speciesIds: [],
@@ -199,7 +199,7 @@ export const MechanismCreationModal: React.FC<MechanismCreationModalProps> = ({
       return;
     }
 
-    const frontendId: string = generateFrontendID();
+    const frontendId: string = generateID();
     const mechanism: Mechanism = {
       id: frontendId,
       name: mechanismName.current,
@@ -684,9 +684,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                           flex: 1,
                           // Removes up and down arrows for number
                           "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                            {
-                              display: "none",
-                            },
+                          {
+                            display: "none",
+                          },
                           "& input[type=number]": {
                             MozAppearance: "textfield",
                           },
@@ -875,9 +875,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                           flex: 1,
                           // Removes up and down arrows for number
                           "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                            {
-                              display: "none",
-                            },
+                          {
+                            display: "none",
+                          },
                           "& input[type=number]": {
                             MozAppearance: "textfield",
                           },
@@ -947,9 +947,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                     width: "100%",
                     // Removes up and down arrows for number
                     "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                      {
-                        display: "none",
-                      },
+                    {
+                      display: "none",
+                    },
                     "& input[type=number]": {
                       MozAppearance: "textfield",
                     },

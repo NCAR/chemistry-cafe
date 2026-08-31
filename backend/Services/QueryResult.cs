@@ -25,4 +25,6 @@ public enum QueryResult
     DuplicateKeyError,
     /// <summary>An input violated a validation constraint. ex: two mutually exclusive fields are both set.</summary>
     ValidationError
+    /// <summary>The specified ID is already in use by another object.</summary>
+    DuplicateIdError,
 }
