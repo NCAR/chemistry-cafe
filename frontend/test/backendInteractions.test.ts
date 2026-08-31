@@ -305,7 +305,12 @@ describe("saveFamilyChanges reference integrity", () => {
       isInDatabase: true,
       isModified: true,
       species: [
-        { ...frontendSpecies, id: speciesId, isInDatabase: false, isDeleted: false },
+        {
+          ...frontendSpecies,
+          id: speciesId,
+          isInDatabase: false,
+          isDeleted: false,
+        },
       ],
       reactions: [
         {

@@ -84,11 +84,21 @@ export const cloneFamily = (family: Family): Family => {
         }
         return accumulator;
       }, []),
-      gasPhaseId: reaction.gasPhaseId ? idMappings.get(reaction.gasPhaseId) : undefined,
-      gasPhaseSpeciesId: reaction.gasPhaseSpeciesId ? idMappings.get(reaction.gasPhaseSpeciesId) : undefined,
-      aerosolPhaseId: reaction.aerosolPhaseId ? idMappings.get(reaction.aerosolPhaseId) : undefined,
-      aerosolPhaseSpeciesId: reaction.aerosolPhaseSpeciesId ? idMappings.get(reaction.aerosolPhaseSpeciesId) : undefined,
-      aerosolPhaseWaterId: reaction.aerosolPhaseWaterId ? idMappings.get(reaction.aerosolPhaseWaterId) : undefined,
+      gasPhaseId: reaction.gasPhaseId
+        ? idMappings.get(reaction.gasPhaseId)
+        : undefined,
+      gasPhaseSpeciesId: reaction.gasPhaseSpeciesId
+        ? idMappings.get(reaction.gasPhaseSpeciesId)
+        : undefined,
+      aerosolPhaseId: reaction.aerosolPhaseId
+        ? idMappings.get(reaction.aerosolPhaseId)
+        : undefined,
+      aerosolPhaseSpeciesId: reaction.aerosolPhaseSpeciesId
+        ? idMappings.get(reaction.aerosolPhaseSpeciesId)
+        : undefined,
+      aerosolPhaseWaterId: reaction.aerosolPhaseWaterId
+        ? idMappings.get(reaction.aerosolPhaseWaterId)
+        : undefined,
       isInDatabase: false,
     });
   }

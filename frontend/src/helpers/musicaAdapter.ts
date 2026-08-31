@@ -630,10 +630,7 @@ function speciesFromJSON(
 }
 
 /** fromMusica stores species *names* in component.speciesId; rewrite to ids. */
-function linkComponentIds(
-  r: Reaction,
-  nameToId: Map<string, UUID>,
-): Reaction {
+function linkComponentIds(r: Reaction, nameToId: Map<string, UUID>): Reaction {
   const toId = (speciesId: Reactant["speciesId"]) =>
     nameToId.get(String(speciesId)) ?? speciesId;
   if (r.type === reactionTypes.Surface.type) {
