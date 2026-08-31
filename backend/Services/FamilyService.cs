@@ -110,12 +110,7 @@ public class FamilyService
             return (QueryResult.OwnerNotFound, null);
         }
 
-        if (family.Id == Guid.Empty)
-        {
-            return (QueryResult.ValidationError, null);
-        }
-
-        if (await _context.Families.AnyAsync(f => f.Id == family.Id))
+        if (family.Id != Guid.Empty && await _context.Families.AnyAsync(f => f.Id == family.Id))
         {
             return (QueryResult.DuplicateIdError, null);
         }
@@ -123,7 +118,7 @@ public class FamilyService
         // Set defaults
         Family familyInfo = new Family
         {
-            Id = family.Id,
+            Id = family.Id == Guid.Empty ? Guid.NewGuid() : family.Id,
             CreatedDate = DateTime.UtcNow,
             Name = family.Name,
             Description = family.Description,

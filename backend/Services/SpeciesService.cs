@@ -97,12 +97,7 @@ public class SpeciesService
             return (QueryResult.ValidationError, null);
         }
 
-        if (species.Id == Guid.Empty)
-        {
-            return (QueryResult.ValidationError, null);
-        }
-
-        if (await _context.Species.AnyAsync(s => s.Id == species.Id))
+        if (species.Id != Guid.Empty && await _context.Species.AnyAsync(s => s.Id == species.Id))
         {
             return (QueryResult.DuplicateIdError, null);
         }
@@ -115,7 +110,7 @@ public class SpeciesService
             CreatedDate = DateTime.UtcNow,
             Description = species.Description,
             Family = family,
-            Id = species.Id,
+            Id = species.Id == Guid.Empty ? Guid.NewGuid() : species.Id,
             IsThirdBody = species.IsThirdBody,
             MolecularWeight = species.MolecularWeight,
             Name = species.Name,

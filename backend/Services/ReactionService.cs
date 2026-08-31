@@ -151,19 +151,14 @@ public class ReactionService
             product.Species = species;
         }
 
-        if (reaction.Id == Guid.Empty)
-        {
-            return (QueryResult.ValidationError, null);
-        }
-
-        if (await _context.Reactions.AnyAsync(r => r.Id == reaction.Id))
+        if (reaction.Id != Guid.Empty && await _context.Reactions.AnyAsync(r => r.Id == reaction.Id))
         {
             return (QueryResult.DuplicateIdError, null);
         }
 
         Reaction reactionInfo = new Reaction
         {
-            Id = reaction.Id,
+            Id = reaction.Id == Guid.Empty ? Guid.NewGuid() : reaction.Id,
             CreatedDate = DateTime.UtcNow,
             UpdatedDate = DateTime.UtcNow,
             Name = reaction.Name,

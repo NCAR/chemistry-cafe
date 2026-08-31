@@ -136,6 +136,41 @@ namespace ChemistryCafeAPI.Tests
         }
 
         [TestMethod]
+        public async Task CreateReactionResolvesSpeciesReferenceByClientId()
+        {
+            _nameIdentifier = _user!.Id.ToString();
+
+            // Create a species with a client-provided id; the id must be honored.
+            var speciesId = Guid.NewGuid();
+            var species = new Species
+            {
+                Id = speciesId,
+                Name = "RefSpecies",
+                Description = "reference target",
+            };
+            var (speciesResult, createdSpecies) =
+                await _speciesService.CreateSpeciesAsync(species, _family.Id, _nameIdentifier!);
+            Assert.AreEqual(QueryResult.Success, speciesResult);
+            Assert.AreEqual(speciesId, createdSpecies!.Id);
+
+            // A reaction that references the species by that same client id must
+            // resolve, rather than 404 with "species not found".
+            var reaction = new Reaction
+            {
+                Id = Guid.NewGuid(),
+                Name = "RefReaction",
+                Description = "references species by client id",
+                ReactionType = "TestReactionType",
+                Reactants = new List<Reactant>
+                {
+                    new Reactant { SpeciesId = speciesId, Coefficient = 1 },
+                },
+            };
+            var actionResult = await _reactionController.CreateReaction(reaction, _family.Id);
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+        }
+
+        [TestMethod]
         public async Task CreateReactionWithInvalidFamily()
         {
             var actionResult = await _reactionController.CreateReaction(_reaction, Guid.NewGuid());
