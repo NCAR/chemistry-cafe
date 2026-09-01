@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using ChemistryCafeAPI.Models;
+using ChemistryCafeAPI.Models.Dto;
+using ChemistryCafeAPI.Models.Mappers;
 
 namespace ChemistryCafeAPI.Services;
 
@@ -102,7 +104,7 @@ public class FamilyService
     /// <param name="family">Family information to create</param>
     /// <param name="userId">ID of the owner of the family</param>
     /// <returns>Result of the transaction and the entity entry</returns>
-    public async Task<(QueryResult, EntityEntry<Family>?)> CreateFamilyAsync(Family family, Guid userId)
+    public async Task<(QueryResult, EntityEntry<Family>?)> CreateFamilyAsync(FamilyDto family, Guid userId)
     {
         User? currentUser = await _userService.GetUserByIdAsync(userId);
         if (currentUser == null)
@@ -115,24 +117,49 @@ public class FamilyService
             return (QueryResult.DuplicateIdError, null);
         }
 
-        // Set defaults
+        Guid familyId = family.Id == Guid.Empty ? Guid.NewGuid() : family.Id;
+
         Family familyInfo = new Family
         {
-            Id = family.Id == Guid.Empty ? Guid.NewGuid() : family.Id,
+            Id = familyId,
             CreatedDate = DateTime.UtcNow,
             Name = family.Name,
             Description = family.Description,
             Owner = currentUser,
-            Species = new List<Species>(),
-            Reactions = new List<Reaction>(),
-            Phases = new List<Phase>(),
-            Mechanisms = new List<Mechanism>(),
+            Species = family.Species.Select(s => s.ToEntity()).ToList(),
+            Reactions = family.Reactions.Select(r => r.ToEntity()).ToList(),
         };
+
+        // now we need to create the child objects and link them to the family
+        Dictionary<Guid, Species> speciesById = familyInfo.Species.ToDictionary(s => s.Id);
+        Dictionary<Guid, Reaction> reactionsById = familyInfo.Reactions.ToDictionary(r => r.Id);
+
+        familyInfo.Phases = family.Phases
+            .Select(p =>
+            {
+                Phase phase = p.ToEntity();
+                phase.Species = p.SpeciesIds.Select(id => speciesById[id]).ToList();
+                return phase;
+            })
+            .ToList();
+        
+        Dictionary<Guid, Phase> phasesById = familyInfo.Phases.ToDictionary(p => p.Id);
+
+        familyInfo.Mechanisms = family.Mechanisms
+            .Select(m =>
+            {
+                Mechanism mechanism = m.ToEntity();
+                mechanism.Species = m.SpeciesIds.Select(id => speciesById[id]).ToList();
+                mechanism.Reactions = m.ReactionIds.Select(id => reactionsById[id]).ToList();
+                mechanism.Phases = m.PhaseIds.Select(id => phasesById[id]).ToList();
+                return mechanism;
+            })
+            .ToList();
+
 
         var createdFamily = _context.Families.Add(familyInfo);
         await _context.SaveChangesAsync();
 
-        // Return the created family with all relationships loaded
         return (QueryResult.Success, createdFamily);
     }
 
@@ -143,7 +170,7 @@ public class FamilyService
     /// <param name="family">family information</param>
     /// <param name="nameIdentifier">ID of he user updating the family</param>
     /// <returns>Result of the transaction</returns>
-    public async Task<QueryResult> UpdateFamilyAsync(Guid id, Family family, string nameIdentifier)
+    public async Task<QueryResult> UpdateFamilyAsync(Guid id, FamilyDto family, string nameIdentifier)
     {
         var existingFamily = await _context.Families
             .Include(f => f.Owner)
@@ -191,5 +218,10 @@ public class FamilyService
 
         await _context.Families.Where(f => f.Id == id).ExecuteDeleteAsync();
         return QueryResult.Success;
+    }
+
+    private async Task<Family> TrackChangesToFamily(FamilyDto incoming, Family existing)
+    {
+        return existing;
     }
 }

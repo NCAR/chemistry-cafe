@@ -1,6 +1,7 @@
 using ChemistryCafeAPI.Controllers;
 using ChemistryCafeAPI.Services;
 using ChemistryCafeAPI.Models;
+using ChemistryCafeAPI.Models.Mappers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
@@ -55,7 +56,7 @@ namespace ChemistryCafeAPI.Tests
                 Description = "From MechanismControllerTests.cs",
                 CreatedDate = DateTime.UtcNow 
             };
-            var (result, family) = await _familyService.CreateFamilyAsync(_family, _user.Id);
+            var (result, family) = await _familyService.CreateFamilyAsync(_family!.ToDto(), _user.Id);
             _family = family!.Entity;
             _nameIdentifier = _user.Id.ToString();
         }
@@ -170,7 +171,7 @@ namespace ChemistryCafeAPI.Tests
         [TestMethod]
         public async Task DeleteMechanism()
         {
-            await _familyService.UpdateFamilyAsync(_family!.Id, _family, _nameIdentifier!);
+            await _familyService.UpdateFamilyAsync(_family!.Id, _family!.ToDto(), _nameIdentifier!);
             _family!.Mechanisms.Clear();
             await _mechanismController.DeleteMechanism(_mechanism!.Id);
             var actionResult = await _mechanismController.GetMechanism(_mechanism.Id);

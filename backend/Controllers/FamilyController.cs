@@ -3,6 +3,8 @@ using System.Security.Claims;
 using System.Diagnostics.CodeAnalysis;
 using ChemistryCafeAPI.Services;
 using ChemistryCafeAPI.Models;
+using ChemistryCafeAPI.Models.Dto;
+using ChemistryCafeAPI.Models.Mappers;
 
 namespace ChemistryCafeAPI.Controllers
 {
@@ -25,19 +27,19 @@ namespace ChemistryCafeAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Family>>>
+        public async Task<ActionResult<IEnumerable<FamilyDto>>>
             GetFamilies([FromQuery] bool? expand = false, [FromQuery] Guid? userId = null)
         {
             var bExpand = expand ?? false;
             var families = await _familyService.GetFamiliesAsync(bExpand, userId);
-            return Ok(families);
+            return Ok(families.Select(f => f.ToDto()));
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Family>> GetFamily(Guid id)
+        public async Task<ActionResult<FamilyDto>> GetFamily(Guid id)
         {
             var family = await _familyService.GetFamilyAsync(id);
-            return family == null ? NotFound() : Ok(family);
+            return family == null ? NotFound() : Ok(family.ToDto());
         }
 
         /// <summary>
@@ -52,7 +54,7 @@ namespace ChemistryCafeAPI.Controllers
         /// <param name="family">Information that should be saved to the database</param>
         /// <returns>HTTP result</returns>
         [HttpPost]
-        public async Task<ActionResult<Family>> CreateFamily(Family family)
+        public async Task<ActionResult<FamilyDto>> CreateFamily(FamilyDto family)
         {
             string? nameIdentifier = GetNameIdentifier();
             if (nameIdentifier == null)
@@ -82,7 +84,7 @@ namespace ChemistryCafeAPI.Controllers
             return CreatedAtAction(
                 nameof(GetFamily),
                 new { id = createdFamily.Entity.Id },
-                createdFamily.Entity
+                createdFamily.Entity.ToDto()
             );
         }
 
@@ -99,7 +101,7 @@ namespace ChemistryCafeAPI.Controllers
         /// <param name="family">Information about the family to update</param>
         /// <returns>HTTP result</returns>
         [HttpPatch("{id}")]
-        public async Task<IActionResult> UpdateFamily(Guid id, Family family)
+        public async Task<IActionResult> UpdateFamily(Guid id, FamilyDto family)
         {
             if (family.Id != id)
             {

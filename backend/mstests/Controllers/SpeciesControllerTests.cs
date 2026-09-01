@@ -2,6 +2,7 @@ using ChemistryCafeAPI.Controllers;
 using ChemistryCafeAPI.Services;
 using ChemistryCafeAPI.Models;
 using ChemistryCafeAPI.Models.Dto;
+using ChemistryCafeAPI.Models.Mappers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
@@ -57,7 +58,7 @@ namespace ChemistryCafeAPI.Tests
                 Description = "From SpeciesControllerTests.cs",
                 CreatedDate = DateTime.UtcNow
             };
-            var (result, family) = await _familyService.CreateFamilyAsync(_family, _user.Id);
+            var (result, family) = await _familyService.CreateFamilyAsync(_family!.ToDto(), _user.Id);
             _family = family!.Entity;
             _nameIdentifier = _user.Id.ToString();
         }
@@ -238,7 +239,7 @@ namespace ChemistryCafeAPI.Tests
         [TestMethod]
         public async Task DeleteSpecies()
         {
-            await _familyService.UpdateFamilyAsync(_family!.Id, _family, _nameIdentifier!);
+            await _familyService.UpdateFamilyAsync(_family!.Id, _family!.ToDto(), _nameIdentifier!);
             _family.Species.Clear();
             await _speciesController.DeleteSpecies(_species.Id);
             var actionResult = await _speciesController.GetSpecies(_species.Id);
