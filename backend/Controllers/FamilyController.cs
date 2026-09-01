@@ -75,7 +75,7 @@ namespace ChemistryCafeAPI.Controllers
                 return code switch
                 {
                     QueryResult.OwnerNotFound => Unauthorized("User does not exist"),
-                    QueryResult.ValidationError => BadRequest("The specified ID must be a valid, non-empty UUID."),
+                    QueryResult.ValidationError => BadRequest("The family references an id that is not part of the family."),
                     QueryResult.DuplicateIdError => BadRequest("The specified ID is already in use by another object."),
                     _ => StatusCode(500),
                 };
@@ -117,6 +117,7 @@ namespace ChemistryCafeAPI.Controllers
             {
                 QueryResult.NotFound => NotFound("Family not found"),
                 QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
+                QueryResult.ValidationError => BadRequest("The family references an id that is not part of the family."),
                 _ => NoContent(),
             };
 

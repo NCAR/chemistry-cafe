@@ -117,6 +117,11 @@ public class FamilyService
             return (QueryResult.DuplicateIdError, null);
         }
 
+        if (FindUnresolvedReferences(family).Count > 0)
+        {
+            return (QueryResult.ValidationError, null);
+        }
+
         Guid familyId = family.Id == Guid.Empty ? Guid.NewGuid() : family.Id;
 
         Family familyInfo = new Family
@@ -186,6 +191,11 @@ public class FamilyService
             return QueryResult.NoAccess;
         }
 
+        if (FindUnresolvedReferences(family).Count > 0)
+        {
+            return QueryResult.ValidationError;
+        }
+
         // Update allowed fields
         existingFamily.Name = family.Name;
         existingFamily.Description = family.Description;
@@ -218,6 +228,67 @@ public class FamilyService
 
         await _context.Families.Where(f => f.Id == id).ExecuteDeleteAsync();
         return QueryResult.Success;
+    }
+
+    /// <summary>
+    /// Finds every id that a family references but does not define. A phase or a
+    /// mechanism may only reference a species, a reaction, or a phase that the
+    /// same family contains. A reaction may only reference a species or a phase
+    /// that the same family contains. The method returns the ids that do not
+    /// resolve, so the caller can reject the graph before it saves.
+    /// </summary>
+    private static List<Guid> FindUnresolvedReferences(FamilyDto family)
+    {
+        HashSet<Guid> speciesIds = family.Species.Select(s => s.Id).ToHashSet();
+        HashSet<Guid> reactionIds = family.Reactions.Select(r => r.Id).ToHashSet();
+        HashSet<Guid> phaseIds = family.Phases.Select(p => p.Id).ToHashSet();
+
+        List<Guid> missing = new();
+
+        // Phase species membership.
+        foreach (PhaseDto phase in family.Phases)
+        {
+            missing.AddRange(phase.SpeciesIds.Where(id => !speciesIds.Contains(id)));
+        }
+
+        // Mechanism memberships.
+        foreach (MechanismDto mechanism in family.Mechanisms)
+        {
+            missing.AddRange(mechanism.SpeciesIds.Where(id => !speciesIds.Contains(id)));
+            missing.AddRange(mechanism.ReactionIds.Where(id => !reactionIds.Contains(id)));
+            missing.AddRange(mechanism.PhaseIds.Where(id => !phaseIds.Contains(id)));
+        }
+
+        // Reaction references. Reactants and products point at species, and the
+        // gas/aerosol fields point at species or phases.
+        foreach (ReactionDto reaction in family.Reactions)
+        {
+            missing.AddRange(reaction.Reactants.Select(r => r.SpeciesId).Where(id => !speciesIds.Contains(id)));
+            missing.AddRange(reaction.Products.Select(p => p.SpeciesId).Where(id => !speciesIds.Contains(id)));
+
+            if (reaction.GasPhaseSpeciesId is Guid gasSpecies && !speciesIds.Contains(gasSpecies))
+            {
+                missing.Add(gasSpecies);
+            }
+            if (reaction.AerosolPhaseSpeciesId is Guid aerosolSpecies && !speciesIds.Contains(aerosolSpecies))
+            {
+                missing.Add(aerosolSpecies);
+            }
+            if (reaction.AerosolPhaseWaterId is Guid aerosolWater && !speciesIds.Contains(aerosolWater))
+            {
+                missing.Add(aerosolWater);
+            }
+            if (reaction.GasPhaseId is Guid gasPhase && !phaseIds.Contains(gasPhase))
+            {
+                missing.Add(gasPhase);
+            }
+            if (reaction.AerosolPhaseId is Guid aerosolPhase && !phaseIds.Contains(aerosolPhase))
+            {
+                missing.Add(aerosolPhase);
+            }
+        }
+
+        return missing;
     }
 
     private async Task<Family> TrackChangesToFamily(FamilyDto incoming, Family existing)
