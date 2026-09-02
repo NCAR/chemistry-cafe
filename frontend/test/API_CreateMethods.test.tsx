@@ -1,19 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
 import axios, { AxiosHeaders, AxiosResponse } from "axios";
-import {
-  createFamily,
-  createSpecies,
-  createReaction,
-  createMechanism,
-} from "../src/API/API_CreateMethods";
-import {
-  APIFamily,
-  APIMechanism,
-  APIReaction,
-  APISpecies,
-  APIUser,
-} from "../src/API/API_Interfaces";
+import { createFamily } from "../src/API/API_CreateMethods";
+import { APIFamily, APIUser } from "../src/API/API_Interfaces";
 
 // Mock axios using vitest's built-in mock function
 vi.mock("axios");
@@ -36,52 +25,9 @@ const mockAPIFamily: APIFamily = {
   mechanisms: [],
 };
 
-const mockAPISpecies: APISpecies = {
-  createdDate: "",
-  updatedDate: "",
-  name: "",
-  description: null,
-  familyId: mockAPIFamily.id,
-  id: "1-1-1-1-1",
-  numericalAttributes: [],
-  stringAttributes: [],
-};
-
-const mockAPIMechanism: APIMechanism = {
-  familyId: mockAPIFamily.id,
-  name: "",
-  description: "",
-  id: "1-1-1-1-1",
-  species: [],
-  phases: [],
-  reactions: [],
-};
-
-const mockAPIReaction: APIReaction = {
-  name: "",
-  description: "",
-  id: "1-1-1-1-1",
-  reactionType: "",
-  numericalAttributes: [],
-  stringAttributes: [],
-  reactants: [],
-  products: [],
-  familyId: mockAPIFamily.id,
-};
-
-describe.each([
-  ["createFamily", createFamily, mockAPIFamily, "families"],
-  ["createSpecies", createSpecies, mockAPISpecies, "species"],
-  ["createReaction", createReaction, mockAPIReaction, "reactions"],
-  ["createMechanism", createMechanism, mockAPIMechanism, "mechanisms"],
-])(
+describe.each([["createFamily", createFamily, mockAPIFamily, "families"]])(
   "%s function",
-  (
-    _,
-    createFunction: (object: any) => any,
-    responseData: any,
-    endpoint: string,
-  ) => {
+  (_, createFunction: (object: any) => any, responseData: any) => {
     function createMockResponse(): AxiosResponse {
       return {
         data: responseData,

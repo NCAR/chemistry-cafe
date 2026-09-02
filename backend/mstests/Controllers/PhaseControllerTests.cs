@@ -1,6 +1,7 @@
 using ChemistryCafeAPI.Controllers;
 using ChemistryCafeAPI.Services;
 using ChemistryCafeAPI.Models;
+using ChemistryCafeAPI.Models.Dto;
 using ChemistryCafeAPI.Models.Mappers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -11,7 +12,7 @@ using System;
 namespace ChemistryCafeAPI.Tests
 {
     [TestClass]
-    public class PhaseControllerTests 
+    public class PhaseControllerTests
     {
         private static ChemistryDbContext _context = DBConnection.Context;
         private static User? _user;
@@ -19,18 +20,18 @@ namespace ChemistryCafeAPI.Tests
         private static Phase _phase = null!;
         private static string? _nameIdentifier;
 
-        private PhaseService _phaseService; 
-        private PhaseController _phaseController; 
-        private UserService _userService; 
-        private FamilyService _familyService; 
+        private PhaseService _phaseService;
+        private PhaseController _phaseController;
+        private UserService _userService;
+        private FamilyService _familyService;
 
         private class MockedPhaseController : PhaseController
         {
-            public MockedPhaseController(PhaseService service) : base(service) 
+            public MockedPhaseController(PhaseService service) : base(service)
             {
             }
 
-            protected override string? GetNameIdentifier() 
+            protected override string? GetNameIdentifier()
             {
                 return _nameIdentifier;
             }
@@ -50,22 +51,41 @@ namespace ChemistryCafeAPI.Tests
             var googleId = "phase-sample-google-id";
             var email = "phase-test@fake-website.com";
             _user = await _userService.SignIn(googleId, email);
-            _family = new Family
+            _nameIdentifier = _user.Id.ToString();
+
+            var familyDto = new Family
             {
                 Name = "TestFamily",
                 Description = "From PhaseControllerTests.cs",
-                CreatedDate = DateTime.UtcNow 
-            };
-            var (result, family) = await _familyService.CreateFamilyAsync(_family!.ToDto(), _user.Id);
+                CreatedDate = DateTime.UtcNow
+            }.ToDto();
+            var (result, family) = await _familyService.CreateFamilyAsync(familyDto, _user.Id);
             _family = family!.Entity;
-            _nameIdentifier = _user.Id.ToString();
+
+            // Seed a phase through the whole-family save so the read tests have data.
+            _phase = new Phase
+            {
+                Id = Guid.NewGuid(),
+                Name = "TestPhase",
+                Description = "From PhaseControllerTests.cs",
+                FamilyId = _family.Id,
+            };
+            var dto = _family.ToDto();
+            dto.Phases.Add(new PhaseDto
+            {
+                Id = _phase.Id,
+                FamilyId = _family.Id,
+                Name = _phase.Name,
+                Description = _phase.Description,
+            });
+            await _familyService.UpdateFamilyAsync(_family.Id, dto, _nameIdentifier!);
         }
 
         [ClassInitialize]
         public static void ClassInit(TestContext context)
         {
-            var tests = new PhaseControllerTests(); 
-            tests.AsyncInit().Wait(); 
+            var tests = new PhaseControllerTests();
+            tests.AsyncInit().Wait();
         }
 
         [TestMethod]
@@ -75,27 +95,6 @@ namespace ChemistryCafeAPI.Tests
             Assert.IsNotNull(actionResult);
             var okResult = actionResult.Result as OkObjectResult;
             Assert.IsNotNull(okResult);
-        }
-
-        [TestMethod]
-        public async Task CreatePhase()
-        {
-            _phase = new Phase 
-            {
-                Name = "TestPhase",
-                Description = "From PhaseControllerTests.cs",
-                CreatedDate = DateTime.UtcNow 
-            };
-            var actionResult = await _phaseController.CreatePhase(_phase, _family!.Id);
-            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
-            var createdAtActionResult = actionResult.Result as CreatedAtActionResult;
-            Assert.IsNotNull(createdAtActionResult);
-            var returnedPhase = createdAtActionResult.Value as Phase;
-            Assert.IsNotNull(returnedPhase);
-            Assert.AreEqual(_phase.Name, returnedPhase.Name);
-            Assert.AreEqual(_phase.Description, returnedPhase.Description);
-            Assert.AreEqual(_family.Id, returnedPhase.FamilyId); 
-            _phase = returnedPhase;
         }
 
         [TestMethod]
@@ -133,77 +132,6 @@ namespace ChemistryCafeAPI.Tests
             Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundObjectResult));
         }
 
-        [TestMethod]
-        public async Task CreatePhaseWithInvalidFamily()
-        {
-            var actionResult = await _phaseController.CreatePhase(_phase, Guid.NewGuid());
-            Assert.IsNotNull(actionResult);
-            Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundObjectResult));
-        }
-
-        [TestMethod]
-        public async Task DeleteInvalidPhase()
-        {
-            var actionResult = await _phaseController.DeletePhase(Guid.NewGuid());
-            Assert.IsNotNull(actionResult);
-            Assert.IsInstanceOfType(actionResult, typeof(NotFoundObjectResult));
-        }
-
-        [TestMethod]
-        public async Task UpdatePhase()
-        {
-            _phase.Name = "UPDATEDTest";
-            _phase.Description = "UPDATEDDesc";
-            var actionResult = await _phaseController.UpdatePhase(_phase.Id, _phase);
-            Assert.IsNotNull(actionResult);
-            Assert.IsInstanceOfType(actionResult.Result, typeof(OkObjectResult));
-            var createdAtActionResult = actionResult.Result as OkObjectResult;
-            Assert.IsNotNull(createdAtActionResult);
-            var returnedPhase = createdAtActionResult.Value as Phase;
-            Assert.IsNotNull(returnedPhase);
-            Assert.AreEqual(_phase.Id, returnedPhase.Id);
-            Assert.AreEqual(_phase.Name, returnedPhase.Name);
-            Assert.AreEqual(_phase.Description, returnedPhase.Description);
-            Assert.AreEqual(_phase.FamilyId, returnedPhase.FamilyId); 
-        }
-
-        [TestMethod]
-        public async Task DeletePhase()
-        {
-            await _familyService.UpdateFamilyAsync(_family!.Id, _family!.ToDto(), _nameIdentifier!);
-            _family.Phases.Clear();
-            await _phaseController.DeletePhase(_phase.Id);
-            var actionResult = await _phaseController.GetPhase(_phase.Id);
-            Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundObjectResult));
-        }
-
-        [TestMethod]
-        public async Task CreatePhaseNullNameIdentifer()
-        {
-            _nameIdentifier = null;
-            var result = await _phaseController.CreatePhase(_phase, _family!.Id);
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(UnauthorizedObjectResult));
-        }
-
-        [TestMethod]
-        public async Task UpdatePhaseNullNameIdentifer()
-        {
-            _nameIdentifier = null;
-            var result = await _phaseController.UpdatePhase(_phase.Id, _phase); 
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(UnauthorizedObjectResult));
-        }
-
-        [TestMethod]
-        public async Task DeletePhaseNullNameIdentifer()
-        {
-            _nameIdentifier = null;
-            var result = await _phaseController.DeletePhase(_phase.Id); 
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result, typeof(UnauthorizedObjectResult));
-        }
-
         private async Task AsyncCleanup()
         {
             if (_family != null)
@@ -219,8 +147,8 @@ namespace ChemistryCafeAPI.Tests
         [ClassCleanup]
         public static void ClassCleanup()
         {
-            var tests = new PhaseControllerTests(); 
-            tests.AsyncCleanup().Wait(); 
+            var tests = new PhaseControllerTests();
+            tests.AsyncCleanup().Wait();
         }
     }
 }

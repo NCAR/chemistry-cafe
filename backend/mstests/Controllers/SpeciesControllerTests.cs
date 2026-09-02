@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Text.Json;
 
 namespace ChemistryCafeAPI.Tests
 {
@@ -52,15 +51,28 @@ namespace ChemistryCafeAPI.Tests
             var googleId = "species-sample-google-id";
             var email = "species-test@fake-website.com";
             _user = await _userService.SignIn(googleId, email);
-            _family = new Family
+            _nameIdentifier = _user.Id.ToString();
+
+            var familyDto = new Family
             {
                 Name = "TestFamily",
                 Description = "From SpeciesControllerTests.cs",
                 CreatedDate = DateTime.UtcNow
-            };
-            var (result, family) = await _familyService.CreateFamilyAsync(_family!.ToDto(), _user.Id);
+            }.ToDto();
+            var (result, family) = await _familyService.CreateFamilyAsync(familyDto, _user.Id);
             _family = family!.Entity;
-            _nameIdentifier = _user.Id.ToString();
+
+            // Seed a species through the whole-family save so the read tests have data.
+            _species = new SpeciesDto
+            {
+                Id = Guid.NewGuid(),
+                Name = "TestSpecies",
+                Description = "From SpeciesControllerTests.cs",
+                FamilyId = _family.Id,
+            };
+            var dto = _family.ToDto();
+            dto.Species.Add(_species);
+            await _familyService.UpdateFamilyAsync(_family.Id, dto, _nameIdentifier!);
         }
 
         [ClassInitialize]
@@ -77,26 +89,6 @@ namespace ChemistryCafeAPI.Tests
             Assert.IsNotNull(actionResult);
             var okResult = actionResult.Result as OkObjectResult;
             Assert.IsNotNull(okResult);
-        }
-
-        [TestMethod]
-        public async Task CreateSpecies()
-        {
-            _species = new SpeciesDto
-            {
-                Name = "TestSpecies",
-                Description = "From SpeciesControllerTests.cs",
-            };
-            var actionResult = await _speciesController.CreateSpecies(_species, _family!.Id);
-            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
-            var createdAtActionResult = actionResult.Result as CreatedAtActionResult;
-            Assert.IsNotNull(createdAtActionResult);
-            var returnedSpecies = createdAtActionResult.Value as SpeciesDto;
-            Assert.IsNotNull(returnedSpecies);
-            Assert.AreEqual(_species.Name, returnedSpecies.Name);
-            Assert.AreEqual(_species.Description, returnedSpecies.Description);
-            Assert.AreEqual(_family.Id, returnedSpecies.FamilyId);
-            _species = returnedSpecies;
         }
 
         [TestMethod]
@@ -127,227 +119,11 @@ namespace ChemistryCafeAPI.Tests
         }
 
         [TestMethod]
-        public async Task UpdateSpecies()
-        {
-            _species.Name = "UPDATEDTest";
-            _species.Description = "UPDATEDDesc";
-            var actionResult = await _speciesController.UpdateSpecies(_species.Id, _species);
-            Assert.IsNotNull(actionResult);
-            Assert.IsInstanceOfType(actionResult.Result, typeof(OkObjectResult));
-            var createdAtActionResult = actionResult.Result as OkObjectResult;
-            Assert.IsNotNull(createdAtActionResult);
-            var returnedSpecies = createdAtActionResult.Value as SpeciesDto;
-            Assert.IsNotNull(returnedSpecies);
-            Assert.AreEqual(_species.Id, returnedSpecies.Id);
-            Assert.AreEqual(_species.Name, returnedSpecies.Name);
-            Assert.AreEqual(_species.Description, returnedSpecies.Description);
-            Assert.AreEqual(_species.FamilyId, returnedSpecies.FamilyId);
-        }
-
-        [TestMethod]
-        public async Task CreateSpeciesPersistsFirstClassProperties()
-        {
-            _nameIdentifier = _user!.Id.ToString();
-            var species = new SpeciesDto
-            {
-                Name = "PropsSpecies",
-                Description = "first-class properties",
-                IsThirdBody = true,
-                MolecularWeight = 0.048,
-                ConstantConcentration = 1.2e-3,
-                AbsoluteTolerance = 1e-9,
-                OtherProperties = new Dictionary<string, JsonElement>
-                {
-                    ["__long name"] = JsonSerializer.SerializeToElement("ozone"),
-                    ["custom number"] = JsonSerializer.SerializeToElement(42.0),
-                },
-            };
-
-            var createResult = await _speciesController.CreateSpecies(species, _family!.Id);
-            var created = (createResult.Result as CreatedAtActionResult)?.Value as SpeciesDto;
-            Assert.IsNotNull(created);
-
-            _context.ChangeTracker.Clear();
-            var getResult = await _speciesController.GetSpecies(created!.Id);
-            var fetched = (getResult.Result as OkObjectResult)?.Value as SpeciesDto;
-            Assert.IsNotNull(fetched);
-            Assert.AreEqual(true, fetched!.IsThirdBody);
-            Assert.AreEqual(0.048, fetched.MolecularWeight);
-            Assert.AreEqual(1.2e-3, fetched.ConstantConcentration);
-            Assert.AreEqual(1e-9, fetched.AbsoluteTolerance);
-            Assert.IsNull(fetched.ConstantMixingRatio);
-            Assert.IsNotNull(fetched.OtherProperties);
-            Assert.AreEqual("ozone", fetched.OtherProperties!["__long name"].GetString());
-            Assert.AreEqual(42.0, fetched.OtherProperties["custom number"].GetDouble());
-        }
-
-        [TestMethod]
-        public async Task CreateSpeciesPersistsConstantMixingRatio()
-        {
-            _nameIdentifier = _user!.Id.ToString();
-            var species = new SpeciesDto
-            {
-                Name = "MixingRatioSpecies",
-                Description = "mixing ratio",
-                ConstantMixingRatio = 3.4e-2,
-            };
-
-            var createResult = await _speciesController.CreateSpecies(species, _family!.Id);
-            var created = (createResult.Result as CreatedAtActionResult)?.Value as SpeciesDto;
-            Assert.IsNotNull(created);
-
-            _context.ChangeTracker.Clear();
-            var getResult = await _speciesController.GetSpecies(created!.Id);
-            var fetched = (getResult.Result as OkObjectResult)?.Value as SpeciesDto;
-            Assert.IsNotNull(fetched);
-            Assert.AreEqual(3.4e-2, fetched!.ConstantMixingRatio);
-            Assert.IsNull(fetched.ConstantConcentration);
-        }
-
-        [TestMethod]
-        public async Task UpdateSpeciesPersistsFirstClassProperties()
-        {
-            _nameIdentifier = _user!.Id.ToString();
-            var species = new SpeciesDto
-            {
-                Name = "UpdatePropsSpecies",
-                Description = "before",
-                IsThirdBody = false,
-                MolecularWeight = 0.018,
-            };
-            var createResult = await _speciesController.CreateSpecies(species, _family!.Id);
-            var created = (createResult.Result as CreatedAtActionResult)?.Value as SpeciesDto;
-            Assert.IsNotNull(created);
-
-            created!.IsThirdBody = true;
-            created.MolecularWeight = 0.032;
-            created.ConstantConcentration = 5.0e-4;
-            created.AbsoluteTolerance = 1e-10;
-            var updateResult = await _speciesController.UpdateSpecies(created.Id, created);
-            Assert.IsInstanceOfType(updateResult.Result, typeof(OkObjectResult));
-
-            _context.ChangeTracker.Clear();
-            var getResult = await _speciesController.GetSpecies(created.Id);
-            var fetched = (getResult.Result as OkObjectResult)?.Value as SpeciesDto;
-            Assert.IsNotNull(fetched);
-            Assert.AreEqual(true, fetched!.IsThirdBody);
-            Assert.AreEqual(0.032, fetched.MolecularWeight);
-            Assert.AreEqual(5.0e-4, fetched.ConstantConcentration);
-            Assert.AreEqual(1e-10, fetched.AbsoluteTolerance);
-        }
-
-        [TestMethod]
-        public async Task DeleteSpecies()
-        {
-            await _familyService.UpdateFamilyAsync(_family!.Id, _family!.ToDto(), _nameIdentifier!);
-            _family.Species.Clear();
-            await _speciesController.DeleteSpecies(_species.Id);
-            var actionResult = await _speciesController.GetSpecies(_species.Id);
-            Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundObjectResult));
-        }
-
-        [TestMethod]
         public async Task GetSpeciesFromInvalidFamily()
         {
             var actionResult = await _speciesController.GetSpecies(Guid.NewGuid());
             Assert.IsNotNull(actionResult);
             Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundObjectResult));
-        }
-
-        [TestMethod]
-        public async Task CreateSpeciesWithInvalidFamily()
-        {
-            var actionResult = await _speciesController.CreateSpecies(_species, Guid.NewGuid());
-            Assert.IsNotNull(actionResult);
-            Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundObjectResult));
-        }
-
-        [TestMethod]
-        public async Task CreateSpeciesHonorsProvidedId()
-        {
-            _nameIdentifier = _user!.Id.ToString();
-            var providedId = Guid.NewGuid();
-            var species = new SpeciesDto
-            {
-                Id = providedId,
-                Name = "HonorIdSpecies",
-                Description = "id honoring",
-            };
-
-            var result = await _speciesController.CreateSpecies(species, _family!.Id);
-            var created = (result.Result as CreatedAtActionResult)?.Value as SpeciesDto;
-            Assert.IsNotNull(created);
-            Assert.AreEqual(providedId, created!.Id);
-
-            _context.ChangeTracker.Clear();
-            var fetched = ((await _speciesController.GetSpecies(providedId)).Result
-                as OkObjectResult)?.Value as SpeciesDto;
-            Assert.IsNotNull(fetched);
-            Assert.AreEqual(providedId, fetched!.Id);
-        }
-
-        [TestMethod]
-        public async Task CreateSpeciesRejectsDuplicateId()
-        {
-            _nameIdentifier = _user!.Id.ToString();
-            var id = Guid.NewGuid();
-
-            var first = new SpeciesDto { Id = id, Name = "DupFirst" };
-            var firstResult = await _speciesController.CreateSpecies(first, _family!.Id);
-            Assert.IsInstanceOfType(firstResult.Result, typeof(CreatedAtActionResult));
-
-            var second = new SpeciesDto { Id = id, Name = "DupSecond" };
-            var secondResult = await _speciesController.CreateSpecies(second, _family!.Id);
-            Assert.IsInstanceOfType(secondResult.Result, typeof(BadRequestObjectResult));
-        }
-
-        [TestMethod]
-        public async Task CreateSpeciesRejectsBothConcentrations()
-        {
-            _nameIdentifier = _user!.Id.ToString();
-            var species = new SpeciesDto
-            {
-                Name = "BothConcentrations",
-                ConstantConcentration = 1e-3,
-                ConstantMixingRatio = 2e-3,
-            };
-            var result = await _speciesController.CreateSpecies(species, _family!.Id);
-            Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
-        }
-
-        [TestMethod]
-        public async Task DeleteInvalidSpecies()
-        {
-            var actionResult = await _speciesController.DeleteSpecies(Guid.NewGuid());
-            Assert.IsNotNull(actionResult);
-            Assert.IsInstanceOfType(actionResult, typeof(NotFoundObjectResult));
-        }
-
-        [TestMethod]
-        public async Task CreateSpeciesNullNameIdentifer()
-        {
-            _nameIdentifier = null;
-            var result = await _speciesController.CreateSpecies(_species, _family!.Id);
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(UnauthorizedObjectResult));
-        }
-
-        [TestMethod]
-        public async Task UpdateSpeciesNullNameIdentifer()
-        {
-            _nameIdentifier = null;
-            var result = await _speciesController.UpdateSpecies(_species.Id, _species);
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(UnauthorizedObjectResult));
-        }
-
-        [TestMethod]
-        public async Task DeleteSpeciesNullNameIdentifer()
-        {
-            _nameIdentifier = null;
-            var result = await _speciesController.DeleteSpecies(_species.Id);
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result, typeof(UnauthorizedObjectResult));
         }
 
         private async Task AsyncCleanup()
