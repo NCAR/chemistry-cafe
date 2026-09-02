@@ -35,7 +35,6 @@ public class FamilyService
             query = query
                 .Include(f => f.Owner)
                 .Include(f => f.Species)
-                .Include(f => f.Species)
                 .Include(f => f.Reactions)
                     .ThenInclude(r => r.Reactants)
                 .Include(f => f.Reactions)
