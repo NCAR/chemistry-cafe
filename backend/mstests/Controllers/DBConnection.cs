@@ -18,5 +18,12 @@ namespace ChemistryCafeAPI.Tests
             .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
             .Options;
         public static ChemistryDbContext Context = new ChemistryDbContext(options);
+
+        /// <summary>
+        /// Builds a fresh, independent context against the same database. Use this
+        /// when a test must not share change-tracking state with the static
+        /// Context, so a failure or a tracker reset cannot poison other tests.
+        /// </summary>
+        public static ChemistryDbContext NewContext() => new ChemistryDbContext(options);
     }
 }

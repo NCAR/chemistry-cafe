@@ -346,7 +346,12 @@ public class FamilyService
         HashSet<Guid> newSpeciesIds = incomingSpeciesIds.Except(existingSpeciesIds).ToHashSet();
         HashSet<Guid> maybeUpdatedSpeciesIds = existingSpeciesIds.Intersect(incomingSpeciesIds).ToHashSet();
         deletedSpeciesIds.ToList().ForEach(id => _context.Species.Remove(existing.Species.Single(s => s.Id == id)));
-        newSpeciesIds.ToList().ForEach(id => existing.Species.Add(incoming.Species.Single(s => s.Id == id).ToEntity()));
+        newSpeciesIds.ToList().ForEach(id => {
+            Species added = incoming.Species.Single(s => s.Id == id).ToEntity();
+            added.FamilyId = existing.Id;
+            _context.Species.Add(added);
+            existing.Species.Add(added);
+        });
         maybeUpdatedSpeciesIds.ToList().ForEach(id =>
         {
             SpeciesDto incomingSpecies = incoming.Species.Single(s => s.Id == id);
@@ -366,7 +371,12 @@ public class FamilyService
         HashSet<Guid> newReactionIds = incomingReactionIds.Except(existingReactionIds).ToHashSet();
         HashSet<Guid> maybeUpdatedReactionIds = existingReactionIds.Intersect(incomingReactionIds).ToHashSet();
         deletedReactionIds.ToList().ForEach(id => _context.Reactions.Remove(existing.Reactions.Single(r => r.Id == id)));
-        newReactionIds.ToList().ForEach(id => existing.Reactions.Add(incoming.Reactions.Single(r => r.Id == id).ToEntity()));
+        newReactionIds.ToList().ForEach(id => {
+            Reaction added = incoming.Reactions.Single(r => r.Id == id).ToEntity();
+            added.FamilyId = existing.Id;
+            _context.Reactions.Add(added);
+            existing.Reactions.Add(added);
+        });
         maybeUpdatedReactionIds.ToList().ForEach(id =>
         {
             ReactionDto incomingReaction = incoming.Reactions.Single(r => r.Id == id);
@@ -389,12 +399,13 @@ public class FamilyService
         HashSet<Guid> newPhaseIds = incomingPhaseIds.Except(existingPhaseIds).ToHashSet();
         HashSet<Guid> maybeUpdatedPhaseIds = existingPhaseIds.Intersect(incomingPhaseIds).ToHashSet();
         deletedPhaseIds.ToList().ForEach(id => _context.Phases.Remove(existing.Phases.Single(p => p.Id == id)));
-        newPhaseIds.ToList().ForEach(id => existing.Phases.Add(incoming.Phases.Single(p => p.Id == id).ToEntity()));
-        newPhaseIds.ToList().ForEach(id =>
-        {
+        newPhaseIds.ToList().ForEach(id => {
             PhaseDto incomingPhase = incoming.Phases.Single(p => p.Id == id);
-            Phase existingPhase = existing.Phases.Single(p => p.Id == id);
-            existingPhase.Species = incomingPhase.SpeciesIds.Select(sid => existing.Species.Single(s => s.Id == sid)).ToList();
+            Phase added = incoming.Phases.Single(p => p.Id == id).ToEntity();
+            added.FamilyId = existing.Id;
+            added.Species = incomingPhase.SpeciesIds.Select(sid => existing.Species.Single(s => s.Id == sid)).ToList();
+            _context.Phases.Add(added);
+            existing.Phases.Add(added);
         });
         maybeUpdatedPhaseIds.ToList().ForEach(id =>
         {
@@ -410,7 +421,14 @@ public class FamilyService
         HashSet<Guid> newMechanismIds = incomingMechanismIds.Except(existingMechanismIds).ToHashSet();
         HashSet<Guid> maybeUpdatedMechanismIds = existingMechanismIds.Intersect(incomingMechanismIds).ToHashSet();
         deletedMechanismIds.ToList().ForEach(id => _context.Mechanisms.Remove(existing.Mechanisms.Single(m => m.Id == id)));
-        newMechanismIds.ToList().ForEach(id => existing.Mechanisms.Add(incoming.Mechanisms.Single(m => m.Id == id).ToEntity()));
+        newMechanismIds.ToList().ForEach(id => {
+            Mechanism added = incoming.Mechanisms.Single(m => m.Id == id).ToEntity();
+            added.FamilyId = existing.Id;
+            added.Species = incoming.Mechanisms.Single(m => m.Id == id).SpeciesIds.Select(sid => existing.Species.Single(s => s.Id == sid)).ToList();
+            added.Reactions = incoming.Mechanisms.Single(m => m.Id == id).ReactionIds.Select(rid => existing.Reactions.Single(r => r.Id == rid)).ToList();
+            added.Phases = incoming.Mechanisms.Single(m => m.Id == id).PhaseIds.Select(pid => existing.Phases.Single(p => p.Id == pid)).ToList();
+            _context.Mechanisms.Add(added);
+        });
         maybeUpdatedMechanismIds.ToList().ForEach(id =>
         {
             MechanismDto incomingMechanism = incoming.Mechanisms.Single(m => m.Id == id);
