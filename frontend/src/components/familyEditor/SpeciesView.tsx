@@ -89,16 +89,32 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
 
     updateFamily({
       ...family,
-      species: family.species.map((element) => {
-        if (element.id !== id) {
-          return element;
-        }
-        return {
-          ...element,
-          isDeleted: true,
-          isModified: true,
-        };
-      }),
+      species: family.species.filter((element) => element.id !== id),
+      // Strip every reference to the removed species so the graph stays valid.
+      phases: family.phases.map((phase) => ({
+        ...phase,
+        speciesIds: phase.speciesIds.filter((sid) => sid !== id),
+      })),
+      mechanisms: family.mechanisms.map((mechanism) => ({
+        ...mechanism,
+        speciesIds: mechanism.speciesIds.filter((sid) => sid !== id),
+      })),
+      reactions: family.reactions.map((reaction) => ({
+        ...reaction,
+        reactants: reaction.reactants.filter((r) => r.speciesId !== id),
+        products: reaction.products.filter((p) => p.speciesId !== id),
+        gasPhaseSpeciesId:
+          reaction.gasPhaseSpeciesId === id ? undefined : reaction.gasPhaseSpeciesId,
+        aerosolPhaseSpeciesId:
+          reaction.aerosolPhaseSpeciesId === id
+            ? undefined
+            : reaction.aerosolPhaseSpeciesId,
+        aerosolPhaseWaterId:
+          reaction.aerosolPhaseWaterId === id
+            ? undefined
+            : reaction.aerosolPhaseWaterId,
+      })),
+      isModified: true,
     });
   };
 

@@ -47,17 +47,13 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
 
     updateFamily({
       ...family,
-      reactions: family.reactions.map((element) => {
-        if (element.id !== id) {
-          return element;
-        } else {
-          return {
-            ...element,
-            isDeleted: true,
-            isModified: true,
-          };
-        }
-      }),
+      reactions: family.reactions.filter((element) => element.id !== id),
+      // Strip the removed reaction from any mechanism that referenced it.
+      mechanisms: family.mechanisms.map((mechanism) => ({
+        ...mechanism,
+        reactionIds: mechanism.reactionIds.filter((rid) => rid !== id),
+      })),
+      isModified: true,
     });
   };
 
