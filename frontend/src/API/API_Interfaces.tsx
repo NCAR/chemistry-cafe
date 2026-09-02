@@ -79,7 +79,7 @@ export interface APIPhase {
   name: string;
   description?: string;
   familyId: UUID;
-  species: Array<APISpecies>;
+  speciesIds: Array<UUID>;
 }
 
 export interface APIMechanism {
@@ -88,8 +88,8 @@ export interface APIMechanism {
   updatedDate?: string;
   name: string;
   description?: string;
-  species: Array<APISpecies>;
-  phases: Array<APIPhase>;
-  reactions: Array<APIReaction>;
+  speciesIds: Array<UUID>;
+  reactionIds: Array<UUID>;
+  phaseIds: Array<UUID>;
   familyId: UUID;
 }

@@ -71,7 +71,6 @@ export const MechanismsView = ({ family, updateFamily }: ViewProps) => {
   };
 
   useLayoutEffect(() => {
-    console.log(selectedMechanism);
     const component = getMenuComponent(selectedMechanism);
     setMenuComponent(component);
   }, [selectedMechanism, family]);

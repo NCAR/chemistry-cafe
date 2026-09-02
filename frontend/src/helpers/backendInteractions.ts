@@ -180,7 +180,7 @@ export function apiToFrontendPhase(phase: APIPhase): Phase {
     id: phase.id,
     name: phase.name,
     description: phase.description ?? "",
-    speciesIds: phase.species.map((e) => e.id),
+    speciesIds: phase.speciesIds,
   };
   return formattedPhase;
 }
@@ -204,16 +204,7 @@ export function frontendToAPIPhase(phase: Phase, family: Family): APIPhase {
     id: phase.id,
     name: phase.name,
     familyId: family.id as UUID,
-    species: phase.speciesIds.map((id) => {
-      // Creates temporary object which is used for setting up relations.
-      // This relies on the fact that the backend does not update nested objects.
-      const species: APISpecies = {
-        id: id as UUID,
-        name: "",
-        familyId: family.id as UUID,
-      };
-      return species;
-    }),
+    speciesIds: phase.speciesIds as UUID[],
   };
   return formattedPhase;
 }
@@ -231,9 +222,9 @@ export function apiToFrontendMechanism(apiMechanism: APIMechanism): Mechanism {
     name: apiMechanism.name,
     description: apiMechanism.description ?? "",
     familyId: apiMechanism.familyId,
-    speciesIds: apiMechanism.species.map((e) => e.id),
-    reactionIds: apiMechanism.reactions.map((e) => e.id),
-    phaseIds: apiMechanism.phases.map((e) => e.id),
+    speciesIds: apiMechanism.speciesIds,
+    reactionIds: apiMechanism.reactionIds,
+    phaseIds: apiMechanism.phaseIds,
   };
 
   return formattedMechanism;
@@ -259,36 +250,9 @@ export function frontendToAPIMechanism(
   const formattedMechanism: APIMechanism = {
     id: mechanism.id,
     name: mechanism.name,
-    species: mechanism.speciesIds.map((id) => {
-      const species: APISpecies = {
-        id: id as UUID,
-        name: "",
-        familyId: family.id as UUID,
-      };
-      return species;
-    }),
-    phases: mechanism.phaseIds.map((id) => {
-      const phase: APIPhase = {
-        id: id as UUID,
-        name: "",
-        familyId: family.id as UUID,
-        species: [],
-      };
-      return phase;
-    }),
-    reactions: mechanism.reactionIds.map((id) => {
-      const reaction: APIReaction = {
-        id: id as UUID,
-        name: "",
-        reactionType: "",
-        numericalAttributes: [],
-        stringAttributes: [],
-        reactants: [],
-        products: [],
-        familyId: family.id as UUID,
-      };
-      return reaction;
-    }),
+    speciesIds: mechanism.speciesIds as UUID[],
+    reactionIds: mechanism.reactionIds as UUID[],
+    phaseIds: mechanism.phaseIds as UUID[],
     familyId: family.id as UUID,
   };
 
