@@ -11,6 +11,12 @@ public static class FamilyMapper
         {
             Id = family.Id,
             OwnerId = family.Owner?.Id ?? Guid.Empty,
+            Owner = family.Owner == null ? null : new OwnerDto
+            {
+                Id = family.Owner.Id,
+                Username = family.Owner.Username,
+                Role = family.Owner.Role,
+            },
             Name = family.Name,
             Description = family.Description,
             Species = family.Species.Select(s => s.ToDto()).ToList(),
