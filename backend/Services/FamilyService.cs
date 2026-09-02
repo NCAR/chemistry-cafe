@@ -117,6 +117,11 @@ public class FamilyService
             return (QueryResult.DuplicateIdError, null);
         }
 
+        if (HasDuplicateChildIds(family))
+        {
+            return (QueryResult.ValidationError, null);
+        }
+
         if (FindUnresolvedReferences(family).Count > 0)
         {
             return (QueryResult.ValidationError, null);
@@ -178,8 +183,18 @@ public class FamilyService
     public async Task<QueryResult> UpdateFamilyAsync(Guid id, FamilyDto family, string nameIdentifier)
     {
         var existingFamily = await _context.Families
+            .AsSplitQuery()
             .Include(f => f.Owner)
-            .FirstOrDefaultAsync(f => f.Id == id);
+            .Include(f => f.Species)
+            .Include(f => f.Reactions).ThenInclude(r => r.Reactants)
+            .Include(f => f.Reactions).ThenInclude(r => r.Products)
+            .Include(f => f.Reactions).ThenInclude(r => r.NumericalAttributes)
+            .Include(f => f.Reactions).ThenInclude(r => r.StringAttributes)
+            .Include(f => f.Phases).ThenInclude(p => p.Species)
+            .Include(f => f.Mechanisms).ThenInclude(m => m.Species)
+            .Include(f => f.Mechanisms).ThenInclude(m => m.Reactions)
+            .Include(f => f.Mechanisms).ThenInclude(m => m.Phases)
+            .SingleOrDefaultAsync(f => f.Id == id);
 
         if (existingFamily == null)
         {
@@ -191,14 +206,22 @@ public class FamilyService
             return QueryResult.NoAccess;
         }
 
+        if (HasDuplicateChildIds(family))
+        {
+            return QueryResult.ValidationError;
+        }
+
         if (FindUnresolvedReferences(family).Count > 0)
         {
             return QueryResult.ValidationError;
         }
 
-        // Update allowed fields
+        // Update the easy fields
         existingFamily.Name = family.Name;
         existingFamily.Description = family.Description;
+
+        // reconcile all of the changes in all child objects
+        TrackChangesToFamily(family, existingFamily);
 
         await _context.SaveChangesAsync();
         return QueryResult.Success;
@@ -291,8 +314,112 @@ public class FamilyService
         return missing;
     }
 
-    private async Task<Family> TrackChangesToFamily(FamilyDto incoming, Family existing)
+    /// <summary>
+    /// Returns true if any child collection has duplicates ids
+    /// </summary>
+    private static bool HasDuplicateChildIds(FamilyDto family)
     {
-        return existing;
+        return family.Species.Count != family.Species.Select(s => s.Id).Distinct().Count()
+            || family.Reactions.Count != family.Reactions.Select(r => r.Id).Distinct().Count()
+            || family.Phases.Count != family.Phases.Select(p => p.Id).Distinct().Count()
+            || family.Mechanisms.Count != family.Mechanisms.Select(m => m.Id).Distinct().Count();
+    }
+
+    /// <summary>
+    /// Find the difference between the incoming and existing family graphs
+    /// Do this for each child object and make any deletionts, additions, or updates to the existing family graph
+    /// </summary>
+    private void TrackChangesToFamily(FamilyDto incoming, Family existing)
+    {
+        HashSet<Guid> incomingSpeciesIds = incoming.Species.Select(s => s.Id).ToHashSet();
+        HashSet<Guid> incomingReactionIds = incoming.Reactions.Select(r => r.Id).ToHashSet();
+        HashSet<Guid> incomingPhaseIds = incoming.Phases.Select(p => p.Id).ToHashSet();
+        HashSet<Guid> incomingMechanismIds = incoming.Mechanisms.Select(m => m.Id).ToHashSet();
+
+        HashSet<Guid> existingSpeciesIds = existing.Species.Select(s => s.Id).ToHashSet();
+        HashSet<Guid> existingReactionIds = existing.Reactions.Select(r => r.Id).ToHashSet();
+        HashSet<Guid> existingPhaseIds = existing.Phases.Select(p => p.Id).ToHashSet();
+        HashSet<Guid> existingMechanismIds = existing.Mechanisms.Select(m => m.Id).ToHashSet();
+
+        // Species changes
+        HashSet<Guid> deletedSpeciesIds = existingSpeciesIds.Except(incomingSpeciesIds).ToHashSet();
+        HashSet<Guid> newSpeciesIds = incomingSpeciesIds.Except(existingSpeciesIds).ToHashSet();
+        HashSet<Guid> maybeUpdatedSpeciesIds = existingSpeciesIds.Intersect(incomingSpeciesIds).ToHashSet();
+        deletedSpeciesIds.ToList().ForEach(id => _context.Species.Remove(existing.Species.Single(s => s.Id == id)));
+        newSpeciesIds.ToList().ForEach(id => existing.Species.Add(incoming.Species.Single(s => s.Id == id).ToEntity()));
+        maybeUpdatedSpeciesIds.ToList().ForEach(id =>
+        {
+            SpeciesDto incomingSpecies = incoming.Species.Single(s => s.Id == id);
+            Species existingSpecies = existing.Species.Single(s => s.Id == id);
+            existingSpecies.Name = incomingSpecies.Name;
+            existingSpecies.Description = incomingSpecies.Description;
+            existingSpecies.MolecularWeight = incomingSpecies.MolecularWeight;
+            existingSpecies.IsThirdBody = incomingSpecies.IsThirdBody;
+            existingSpecies.ConstantConcentration = incomingSpecies.ConstantConcentration;
+            existingSpecies.ConstantMixingRatio = incomingSpecies.ConstantMixingRatio;
+            existingSpecies.AbsoluteTolerance = incomingSpecies.AbsoluteTolerance;
+            existingSpecies.OtherProperties = incomingSpecies.OtherProperties;
+        });
+
+        // Reaction changes
+        HashSet<Guid> deletedReactionIds = existingReactionIds.Except(incomingReactionIds).ToHashSet();
+        HashSet<Guid> newReactionIds = incomingReactionIds.Except(existingReactionIds).ToHashSet();
+        HashSet<Guid> maybeUpdatedReactionIds = existingReactionIds.Intersect(incomingReactionIds).ToHashSet();
+        deletedReactionIds.ToList().ForEach(id => _context.Reactions.Remove(existing.Reactions.Single(r => r.Id == id)));
+        newReactionIds.ToList().ForEach(id => existing.Reactions.Add(incoming.Reactions.Single(r => r.Id == id).ToEntity()));
+        maybeUpdatedReactionIds.ToList().ForEach(id =>
+        {
+            ReactionDto incomingReaction = incoming.Reactions.Single(r => r.Id == id);
+            Reaction existingReaction = existing.Reactions.Single(r => r.Id == id);
+            existingReaction.Name = incomingReaction.Name;
+            existingReaction.Description = incomingReaction.Description;
+            existingReaction.GasPhaseSpeciesId = incomingReaction.GasPhaseSpeciesId;
+            existingReaction.AerosolPhaseSpeciesId = incomingReaction.AerosolPhaseSpeciesId;
+            existingReaction.AerosolPhaseWaterId = incomingReaction.AerosolPhaseWaterId;
+            existingReaction.GasPhaseId = incomingReaction.GasPhaseId;
+            existingReaction.AerosolPhaseId = incomingReaction.AerosolPhaseId;
+            existingReaction.Reactants = incomingReaction.Reactants.Select(r => r.ToEntity()).ToList();
+            existingReaction.Products = incomingReaction.Products.Select(p => p.ToEntity()).ToList();
+            existingReaction.NumericalAttributes = incomingReaction.NumericalAttributes.Select(n => n.ToEntity()).ToList();
+            existingReaction.StringAttributes = incomingReaction.StringAttributes.Select(s => s.ToEntity()).ToList();
+        });
+
+        // Phase changes
+        HashSet<Guid> deletedPhaseIds = existingPhaseIds.Except(incomingPhaseIds).ToHashSet();
+        HashSet<Guid> newPhaseIds = incomingPhaseIds.Except(existingPhaseIds).ToHashSet();
+        HashSet<Guid> maybeUpdatedPhaseIds = existingPhaseIds.Intersect(incomingPhaseIds).ToHashSet();
+        deletedPhaseIds.ToList().ForEach(id => _context.Phases.Remove(existing.Phases.Single(p => p.Id == id)));
+        newPhaseIds.ToList().ForEach(id => existing.Phases.Add(incoming.Phases.Single(p => p.Id == id).ToEntity()));
+        newPhaseIds.ToList().ForEach(id =>
+        {
+            PhaseDto incomingPhase = incoming.Phases.Single(p => p.Id == id);
+            Phase existingPhase = existing.Phases.Single(p => p.Id == id);
+            existingPhase.Species = incomingPhase.SpeciesIds.Select(sid => existing.Species.Single(s => s.Id == sid)).ToList();
+        });
+        maybeUpdatedPhaseIds.ToList().ForEach(id =>
+        {
+            PhaseDto incomingPhase = incoming.Phases.Single(p => p.Id == id);
+            Phase existingPhase = existing.Phases.Single(p => p.Id == id);
+            existingPhase.Name = incomingPhase.Name;
+            existingPhase.Description = incomingPhase.Description;
+            existingPhase.Species = incomingPhase.SpeciesIds.Select(sid => existing.Species.Single(s => s.Id == sid)).ToList();
+        });
+
+        // Mechanism changes
+        HashSet<Guid> deletedMechanismIds = existingMechanismIds.Except(incomingMechanismIds).ToHashSet();
+        HashSet<Guid> newMechanismIds = incomingMechanismIds.Except(existingMechanismIds).ToHashSet();
+        HashSet<Guid> maybeUpdatedMechanismIds = existingMechanismIds.Intersect(incomingMechanismIds).ToHashSet();
+        deletedMechanismIds.ToList().ForEach(id => _context.Mechanisms.Remove(existing.Mechanisms.Single(m => m.Id == id)));
+        newMechanismIds.ToList().ForEach(id => existing.Mechanisms.Add(incoming.Mechanisms.Single(m => m.Id == id).ToEntity()));
+        maybeUpdatedMechanismIds.ToList().ForEach(id =>
+        {
+            MechanismDto incomingMechanism = incoming.Mechanisms.Single(m => m.Id == id);
+            Mechanism existingMechanism = existing.Mechanisms.Single(m => m.Id == id);
+            existingMechanism.Name = incomingMechanism.Name;
+            existingMechanism.Description = incomingMechanism.Description;
+            existingMechanism.Species = incomingMechanism.SpeciesIds.Select(sid => existing.Species.Single(s => s.Id == sid)).ToList();
+            existingMechanism.Reactions = incomingMechanism.ReactionIds.Select(rid => existing.Reactions.Single(r => r.Id == rid)).ToList();
+            existingMechanism.Phases = incomingMechanism.PhaseIds.Select(pid => existing.Phases.Single(p => p.Id == pid)).ToList();
+        });
     }
 }

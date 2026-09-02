@@ -48,18 +48,10 @@ public static class ReactionMapper
             Name = reactionDto.Name,
             ReactionType = reactionDto.ReactionType,
             Description = reactionDto.Description,
-            Reactants = reactionDto.Reactants
-                .Select(r => new Reactant { SpeciesId = r.SpeciesId, Coefficient = r.Coefficient })
-                .ToList(),
-            Products = reactionDto.Products
-                .Select(p => new Product { SpeciesId = p.SpeciesId, Coefficient = p.Coefficient, Branch = p.Branch })
-                .ToList(),
-            NumericalAttributes = reactionDto.NumericalAttributes
-                .Select(a => new ReactionNumericalAttribute { SerializationKey = a.SerializationKey, Value = a.Value })
-                .ToList(),
-            StringAttributes = reactionDto.StringAttributes
-                .Select(a => new ReactionStringAttribute { SerializationKey = a.SerializationKey, Value = a.Value })
-                .ToList(),
+            Reactants = reactionDto.Reactants.Select(r => r.ToEntity()).ToList(),
+            Products = reactionDto.Products.Select(p => p.ToEntity()).ToList(),
+            NumericalAttributes = reactionDto.NumericalAttributes.Select(a => a.ToEntity()).ToList(),
+            StringAttributes = reactionDto.StringAttributes.Select(a => a.ToEntity()).ToList(),
             GasPhaseId = reactionDto.GasPhaseId,
             GasPhaseSpeciesId = reactionDto.GasPhaseSpeciesId,
             AerosolPhaseId = reactionDto.AerosolPhaseId,
@@ -67,4 +59,16 @@ public static class ReactionMapper
             AerosolPhaseWaterId = reactionDto.AerosolPhaseWaterId,
         };
     }
+
+    public static Reactant ToEntity(this ReactantDto dto) =>
+        new Reactant { SpeciesId = dto.SpeciesId, Coefficient = dto.Coefficient };
+
+    public static Product ToEntity(this ProductDto dto) =>
+        new Product { SpeciesId = dto.SpeciesId, Coefficient = dto.Coefficient, Branch = dto.Branch };
+
+    public static ReactionNumericalAttribute ToEntity(this ReactionNumericalAttributeDto dto) =>
+        new ReactionNumericalAttribute { SerializationKey = dto.SerializationKey, Value = dto.Value };
+
+    public static ReactionStringAttribute ToEntity(this ReactionStringAttributeDto dto) =>
+        new ReactionStringAttribute { SerializationKey = dto.SerializationKey, Value = dto.Value };
 }
