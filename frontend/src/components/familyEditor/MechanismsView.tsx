@@ -40,7 +40,6 @@ export const MechanismsView = ({ family, updateFamily }: ViewProps) => {
         if (element.id == mechanism.id) {
           return {
             ...mechanism,
-            isModified: true,
           };
         }
         return element;
@@ -72,7 +71,6 @@ export const MechanismsView = ({ family, updateFamily }: ViewProps) => {
   };
 
   useLayoutEffect(() => {
-    console.log(selectedMechanism);
     const component = getMenuComponent(selectedMechanism);
     setMenuComponent(component);
   }, [selectedMechanism, family]);

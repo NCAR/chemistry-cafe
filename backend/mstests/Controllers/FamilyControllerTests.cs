@@ -1,5 +1,6 @@
 using ChemistryCafeAPI.Controllers;
 using ChemistryCafeAPI.Models;
+using ChemistryCafeAPI.Models.Dto;
 using ChemistryCafeAPI.Services;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
@@ -79,7 +80,7 @@ namespace ChemistryCafeAPI.Tests
             var okResult = actionResult.Result as OkObjectResult;
             Assert.IsNotNull(okResult);
 
-            var familyList = okResult.Value as IEnumerable<Family>;
+            var familyList = okResult.Value as IEnumerable<FamilyDto>;
             Assert.IsNotNull(familyList);
 
         }
@@ -98,7 +99,7 @@ namespace ChemistryCafeAPI.Tests
             var okResult = actionResult.Result as OkObjectResult;
             Assert.IsNotNull(okResult);
 
-            var familyList = okResult.Value as IEnumerable<Family>;
+            var familyList = okResult.Value as IEnumerable<FamilyDto>;
             Assert.IsNotNull(familyList);
 
         }
@@ -109,11 +110,10 @@ namespace ChemistryCafeAPI.Tests
             // Arrange
             var controller = await CreateSignedInController();
 
-            var testFamily = new Family
+            var testFamily = new FamilyDto
             {
                 Name = _Name,
-                Description = _Description,
-                CreatedDate = _CreatedDate
+                Description = _Description
             };
 
             // Act
@@ -126,7 +126,7 @@ namespace ChemistryCafeAPI.Tests
             var createdAtActionResult = actionResult.Result as CreatedAtActionResult;
             Assert.IsNotNull(createdAtActionResult);
 
-            var returnedFamily = createdAtActionResult.Value as Family;
+            var returnedFamily = createdAtActionResult.Value as FamilyDto;
             Assert.IsNotNull(returnedFamily);
 
             _Id = returnedFamily.Id;
@@ -134,7 +134,7 @@ namespace ChemistryCafeAPI.Tests
 
             Assert.AreEqual(_Name, returnedFamily.Name);
             Assert.AreEqual(_Description, returnedFamily.Description);
-            Assert.AreEqual(_Owner, returnedFamily.Owner);
+            Assert.AreEqual(_Owner!.Id, returnedFamily.OwnerId);
         }
 
         [TestMethod]
@@ -143,11 +143,10 @@ namespace ChemistryCafeAPI.Tests
             // Arrange
             var controller = await CreateControllerWithName("parse-failure");
 
-            var testFamily = new Family
+            var testFamily = new FamilyDto
             {
                 Name = _Name,
-                Description = _Description,
-                CreatedDate = _CreatedDate
+                Description = _Description
             };
 
             // Act
@@ -164,11 +163,10 @@ namespace ChemistryCafeAPI.Tests
             // Arrange
             var controller = await CreateControllerWithName(Guid.NewGuid().ToString());
 
-            var testFamily = new Family
+            var testFamily = new FamilyDto
             {
                 Name = _Name,
-                Description = _Description,
-                CreatedDate = _CreatedDate
+                Description = _Description
             };
 
             // Act
@@ -185,11 +183,10 @@ namespace ChemistryCafeAPI.Tests
             // Arrange
             var controller = await CreateSignedOutController();
 
-            var testFamily = new Family
+            var testFamily = new FamilyDto
             {
                 Name = _Name,
-                Description = _Description,
-                CreatedDate = _CreatedDate
+                Description = _Description
             };
 
             // Act
@@ -206,12 +203,11 @@ namespace ChemistryCafeAPI.Tests
             // Arrange
             var controller = await CreateSignedOutController();
 
-            var testFamily = new Family
+            var testFamily = new FamilyDto
             {
                 Id = _Id,
                 Name = _Name,
-                Description = _Description,
-                CreatedDate = _CreatedDate
+                Description = _Description
             };
 
             // Act
@@ -228,11 +224,10 @@ namespace ChemistryCafeAPI.Tests
             // Arrange
             var controller = await CreateSignedOutController();
 
-            var testFamily = new Family
+            var testFamily = new FamilyDto
             {
                 Name = _Name,
-                Description = _Description,
-                CreatedDate = _CreatedDate
+                Description = _Description
             };
 
             // Act
@@ -257,13 +252,13 @@ namespace ChemistryCafeAPI.Tests
             var okResult = actionResult.Result as OkObjectResult;
             Assert.IsNotNull(okResult);
 
-            var returnedFamily = okResult.Value as Family;
+            var returnedFamily = okResult.Value as FamilyDto;
             Assert.IsNotNull(returnedFamily);
 
             Assert.AreEqual(_Id, returnedFamily.Id);
             Assert.AreEqual(_Name, returnedFamily.Name);
             Assert.AreEqual(_Description, returnedFamily.Description);
-            Assert.AreEqual(_Owner, returnedFamily.Owner);
+            Assert.AreEqual(_Owner!.Id, returnedFamily.OwnerId);
         }
 
         [TestMethod]
@@ -277,13 +272,12 @@ namespace ChemistryCafeAPI.Tests
 
             Console.Out.WriteLine(_Id);
             Assert.IsNotNull(_Owner);
-            var updatedFamily = new Family
+            var updatedFamily = new FamilyDto
             {
                 Id = _Id,
                 Name = newName,
                 Description = newDescription,
-                Owner = _Owner,
-                CreatedDate = _CreatedDate
+                OwnerId = _Owner.Id
             };
 
             // Act
@@ -295,13 +289,13 @@ namespace ChemistryCafeAPI.Tests
             var okResult = actionResult.Result as OkObjectResult;
             Assert.IsNotNull(okResult);
 
-            var returnedFamily = okResult.Value as Family;
+            var returnedFamily = okResult.Value as FamilyDto;
             Assert.IsNotNull(returnedFamily);
 
             Assert.AreEqual(_Id, returnedFamily.Id);
             Assert.AreEqual(newName, returnedFamily.Name);
             Assert.AreEqual(newDescription, returnedFamily.Description);
-            Assert.AreEqual(_Owner, returnedFamily.Owner);
+            Assert.AreEqual(_Owner!.Id, returnedFamily.OwnerId);
         }
 
         [TestMethod]
@@ -314,13 +308,12 @@ namespace ChemistryCafeAPI.Tests
             string newDescription = "An updated test family.";
 
             Assert.IsNotNull(_Owner);
-            var updatedFamily = new Family
+            var updatedFamily = new FamilyDto
             {
                 Id = new Guid("cccccccc-dddd-eeee-ffff-111111111111"),
                 Name = newName,
                 Description = newDescription,
-                Owner = _Owner,
-                CreatedDate = _CreatedDate
+                OwnerId = _Owner.Id
             };
 
             // Act
@@ -335,12 +328,11 @@ namespace ChemistryCafeAPI.Tests
         public async Task Update_Family_Unauthorized()
         {
             var controller = await CreateControllerWithName(Guid.NewGuid().ToString());
-            var testFamily = new Family
+            var testFamily = new FamilyDto
             {
                 Id = _Id,
                 Name = _Name,
-                Description = _Description,
-                CreatedDate = _CreatedDate
+                Description = _Description
             };
             var findResult = await controller.UpdateFamily(_Id, testFamily);
             Assert.IsInstanceOfType(findResult, typeof(StatusCodeResult));
@@ -350,12 +342,11 @@ namespace ChemistryCafeAPI.Tests
         public async Task Update_Family_NotExist()
         {
             var controller = await CreateSignedInController();
-            var testFamily = new Family
+            var testFamily = new FamilyDto
             {
                 Id = Guid.NewGuid(),
                 Name = _Name,
-                Description = _Description,
-                CreatedDate = _CreatedDate
+                Description = _Description
             };
             var findResult = await controller.UpdateFamily(testFamily.Id, testFamily);
             Assert.IsInstanceOfType(findResult, typeof(NotFoundObjectResult));

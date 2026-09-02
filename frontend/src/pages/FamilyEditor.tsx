@@ -420,19 +420,19 @@ const FamilyPage = () => {
                     />
                     <TreeItem
                       itemId={`${family.id};${DataViewSelection.Species}`}
-                      label={`Species (${family.species.filter((element) => !element.isDeleted).length})`}
+                      label={`Species (${family.species.length})`}
                       aria-label="Open Species Editor"
                       data-testid={`${family.id}-species-tree-button`}
                     />
                     <TreeItem
                       itemId={`${family.id};${DataViewSelection.Reactions}`}
-                      label={`Reactions (${family.reactions.filter((element) => !element.isDeleted).length})`}
+                      label={`Reactions (${family.reactions.length})`}
                       aria-label="Open Reactions Editor"
                       data-testid={`${family.id}-reactions-tree-button`}
                     />
                     <TreeItem
                       itemId={`${family.id};${DataViewSelection.Phases}`}
-                      label={`Phases (${family.phases.filter((element) => !element.isDeleted).length})`}
+                      label={`Phases (${family.phases.length})`}
                       aria-label="Open Phase Editor"
                       data-testid={`${family.id}-phases-tree-button`}
                     />

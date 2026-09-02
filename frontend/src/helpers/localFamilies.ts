@@ -34,7 +34,6 @@ export const cloneFamily = (family: Family): Family => {
     clonedFamily.species.push({
       ...species,
       id: frontendId,
-      isInDatabase: false,
     });
   }
 
@@ -51,7 +50,6 @@ export const cloneFamily = (family: Family): Family => {
         }
         return accumulator;
       }, []),
-      isInDatabase: false,
     });
   }
 
@@ -99,7 +97,6 @@ export const cloneFamily = (family: Family): Family => {
       aerosolPhaseWaterId: reaction.aerosolPhaseWaterId
         ? idMappings.get(reaction.aerosolPhaseWaterId)
         : undefined,
-      isInDatabase: false,
     });
   }
 
@@ -130,7 +127,6 @@ export const cloneFamily = (family: Family): Family => {
         }
         return accumulator;
       }, []),
-      isInDatabase: false,
     });
   }
 

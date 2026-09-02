@@ -13,14 +13,10 @@ export const applySpeciesRowUpdate = (
     speciesList[existingIndex] = {
       ...speciesList[existingIndex],
       ...updatedSpecies,
-      isDeleted: false,
-      isModified: true,
     };
   } else {
     speciesList.unshift({
       ...updatedSpecies,
-      isDeleted: false,
-      isModified: true,
     });
   }
 

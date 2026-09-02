@@ -46,7 +46,7 @@ export const PhaseView = ({ family }: ViewProps) => {
           density: "compact",
           pagination: { paginationModel: { pageSize: 20 } },
         }}
-        rows={family.phases.filter((element) => !element.isDeleted)}
+        rows={family.phases}
         columns={phaseColumns}
         pageSizeOptions={[5, 10, 20, 100]}
         disableVirtualization

@@ -32,9 +32,6 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       reactants: [],
       products: [],
       attributes: {},
-      isModified: false,
-      isDeleted: false,
-      isInDatabase: false,
     };
     setSelectedReaction(reaction);
     setReactionsEditorOpen(true);
@@ -50,17 +47,13 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
 
     updateFamily({
       ...family,
-      reactions: family.reactions.map((element) => {
-        if (element.id !== id) {
-          return element;
-        } else {
-          return {
-            ...element,
-            isDeleted: true,
-            isModified: true,
-          };
-        }
-      }),
+      reactions: family.reactions.filter((element) => element.id !== id),
+      // Strip the removed reaction from any mechanism that referenced it.
+      mechanisms: family.mechanisms.map((mechanism) => ({
+        ...mechanism,
+        reactionIds: mechanism.reactionIds.filter((rid) => rid !== id),
+      })),
+      isModified: true,
     });
   };
 
@@ -71,9 +64,9 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
     );
 
     if (existingIndex >= 0) {
-      reactionList[existingIndex] = { ...reaction, isModified: true };
+      reactionList[existingIndex] = { ...reaction};
     } else {
-      reactionList.unshift({ ...reaction, isModified: true });
+      reactionList.unshift({ ...reaction });
     }
 
     updateFamily({
@@ -212,7 +205,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
           density: "compact",
           pagination: { paginationModel: { pageSize: 20 } },
         }}
-        rows={family.reactions.filter((element) => !element.isDeleted)}
+        rows={family.reactions}
         columns={reactionsColumns}
         pageSizeOptions={[5, 10, 20, 100]}
         disableVirtualization
