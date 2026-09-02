@@ -9,7 +9,7 @@ import {
   reactionTypeToString,
 } from "../../helpers/stringify";
 import { useCustomTheme } from "../CustomThemeContext";
-import { ReactionEditorModal } from "../FamilyEditorModals";
+import { ReactionEditorModal } from "../modals/ReactionEditorModal";
 import { RowActionsButton } from "../RowActionsButton";
 import { UUID } from "crypto";
 import { generateID } from "../../helpers/localFamilies";

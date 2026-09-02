@@ -23,10 +23,8 @@ import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
 import { TreeItem, treeItemClasses } from "@mui/x-tree-view/TreeItem";
 import { Family } from "../types/chemistryModels";
 import { useCustomTheme } from "../components/CustomThemeContext";
-import {
-  FamilyCreationModal,
-  ImportFamilyModal,
-} from "../components/FamilyEditorModals";
+import { FamilyCreationModal } from "../components/modals/FamilyCreationModal";
+import { ImportFamilyModal } from "../components/modals/ImportFamilyModal";
 import { UUID } from "crypto";
 import { getFamily } from "../API/API_GetMethods";
 import {
