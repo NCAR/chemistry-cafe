@@ -64,7 +64,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
     );
 
     if (existingIndex >= 0) {
-      reactionList[existingIndex] = { ...reaction};
+      reactionList[existingIndex] = { ...reaction };
     } else {
       reactionList.unshift({ ...reaction });
     }

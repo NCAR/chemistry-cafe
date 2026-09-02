@@ -104,7 +104,9 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
         reactants: reaction.reactants.filter((r) => r.speciesId !== id),
         products: reaction.products.filter((p) => p.speciesId !== id),
         gasPhaseSpeciesId:
-          reaction.gasPhaseSpeciesId === id ? undefined : reaction.gasPhaseSpeciesId,
+          reaction.gasPhaseSpeciesId === id
+            ? undefined
+            : reaction.gasPhaseSpeciesId,
         aerosolPhaseSpeciesId:
           reaction.aerosolPhaseSpeciesId === id
             ? undefined
@@ -129,7 +131,7 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
     );
 
     if (existingIndex >= 0) {
-      speciesList[existingIndex] = { ...species};
+      speciesList[existingIndex] = { ...species };
     } else {
       speciesList.unshift({ ...species });
     }
