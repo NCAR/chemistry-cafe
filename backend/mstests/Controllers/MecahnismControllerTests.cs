@@ -1,6 +1,7 @@
 using ChemistryCafeAPI.Controllers;
 using ChemistryCafeAPI.Services;
 using ChemistryCafeAPI.Models;
+using ChemistryCafeAPI.Models.Dto;
 using ChemistryCafeAPI.Models.Mappers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -11,7 +12,7 @@ using System;
 namespace ChemistryCafeAPI.Tests
 {
     [TestClass]
-    public class MechanismControllerTests 
+    public class MechanismControllerTests
     {
         private static ChemistryDbContext _context = DBConnection.Context;
         private static User? _user;
@@ -19,18 +20,18 @@ namespace ChemistryCafeAPI.Tests
         private static Mechanism? _mechanism;
         private static string? _nameIdentifier;
 
-        private MechanismService _mechanismService; 
-        private MechanismController _mechanismController; 
-        private UserService _userService; 
-        private FamilyService _familyService; 
+        private MechanismService _mechanismService;
+        private MechanismController _mechanismController;
+        private UserService _userService;
+        private FamilyService _familyService;
 
         private class MockedMechanismController : MechanismController
         {
-            public MockedMechanismController(MechanismService service) : base(_context, service) 
+            public MockedMechanismController(MechanismService service) : base(_context, service)
             {
             }
 
-            protected override string? GetNameIdentifier() 
+            protected override string? GetNameIdentifier()
             {
                 return _nameIdentifier;
             }
@@ -50,22 +51,41 @@ namespace ChemistryCafeAPI.Tests
             var googleId = "mechanism-sample-google-id";
             var email = "mechanism-test@fake-website.com";
             _user = await _userService.SignIn(googleId, email);
-            _family = new Family
+            _nameIdentifier = _user.Id.ToString();
+
+            var familyDto = new Family
             {
                 Name = "TestFamily",
                 Description = "From MechanismControllerTests.cs",
-                CreatedDate = DateTime.UtcNow 
-            };
-            var (result, family) = await _familyService.CreateFamilyAsync(_family!.ToDto(), _user.Id);
+                CreatedDate = DateTime.UtcNow
+            }.ToDto();
+            var (result, family) = await _familyService.CreateFamilyAsync(familyDto, _user.Id);
             _family = family!.Entity;
-            _nameIdentifier = _user.Id.ToString();
+
+            // Seed a mechanism through the whole-family save so the read tests have data.
+            _mechanism = new Mechanism
+            {
+                Id = Guid.NewGuid(),
+                Name = "TestMechanism",
+                Description = "From MechanismControllerTests.cs",
+                FamilyId = _family.Id,
+            };
+            var dto = _family.ToDto();
+            dto.Mechanisms.Add(new MechanismDto
+            {
+                Id = _mechanism.Id,
+                FamilyId = _family.Id,
+                Name = _mechanism.Name,
+                Description = _mechanism.Description,
+            });
+            await _familyService.UpdateFamilyAsync(_family.Id, dto, _nameIdentifier!);
         }
 
         [ClassInitialize]
         public static void ClassInit(TestContext context)
         {
-            var tests = new MechanismControllerTests(); 
-            tests.AsyncInit().Wait(); 
+            var tests = new MechanismControllerTests();
+            tests.AsyncInit().Wait();
         }
 
         [TestMethod]
@@ -75,27 +95,6 @@ namespace ChemistryCafeAPI.Tests
             Assert.IsNotNull(actionResult);
             var okResult = actionResult.Result as OkObjectResult;
             Assert.IsNotNull(okResult);
-        }
-
-        [TestMethod]
-        public async Task CreateMechanism()
-        {
-            _mechanism = new Mechanism 
-            {
-                Name = "TestMechanism",
-                Description = "From MechanismControllerTests.cs",
-                CreatedDate = DateTime.UtcNow 
-            };
-            var actionResult = await _mechanismController.CreateMechanism(_mechanism, _family!.Id);
-            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
-            var createdAtActionResult = actionResult.Result as CreatedAtActionResult;
-            Assert.IsNotNull(createdAtActionResult);
-            var returnedMechanism = createdAtActionResult.Value as Mechanism;
-            Assert.IsNotNull(returnedMechanism);
-            Assert.AreEqual(_mechanism.Name, returnedMechanism.Name);
-            Assert.AreEqual(_mechanism.Description, returnedMechanism.Description);
-            Assert.AreEqual(_family.Id, returnedMechanism.FamilyId); 
-            _mechanism = returnedMechanism;
         }
 
         [TestMethod]
@@ -133,78 +132,6 @@ namespace ChemistryCafeAPI.Tests
             Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundObjectResult));
         }
 
-        [TestMethod]
-        public async Task CreateMechanismWithInvalidFamily()
-        {
-            var actionResult = await _mechanismController.CreateMechanism(_mechanism!,
-                                                                          Guid.NewGuid());
-            Assert.IsNotNull(actionResult);
-            Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundObjectResult));
-        }
-
-        [TestMethod]
-        public async Task DeleteInvalidMechanism()
-        {
-            var actionResult = await _mechanismController.DeleteMechanism(Guid.NewGuid());
-            Assert.IsNotNull(actionResult);
-            Assert.IsInstanceOfType(actionResult, typeof(NotFoundObjectResult));
-        }
-
-        [TestMethod]
-        public async Task UpdateMechanism()
-        {
-            _mechanism!.Name = "UPDATEDTest";
-            _mechanism.Description = "UPDATEDDesc";
-            var actionResult = await _mechanismController.UpdateMechanism(_mechanism.Id, _mechanism);
-            Assert.IsNotNull(actionResult);
-            Assert.IsInstanceOfType(actionResult.Result, typeof(OkObjectResult));
-            var createdAtActionResult = actionResult.Result as OkObjectResult;
-            Assert.IsNotNull(createdAtActionResult);
-            var returnedMechanism = createdAtActionResult.Value as Mechanism;
-            Assert.IsNotNull(returnedMechanism);
-            Assert.AreEqual(_mechanism.Id, returnedMechanism.Id);
-            Assert.AreEqual(_mechanism.Name, returnedMechanism.Name);
-            Assert.AreEqual(_mechanism.Description, returnedMechanism.Description);
-            Assert.AreEqual(_mechanism.FamilyId, returnedMechanism.FamilyId); 
-        }
-
-        [TestMethod]
-        public async Task DeleteMechanism()
-        {
-            await _familyService.UpdateFamilyAsync(_family!.Id, _family!.ToDto(), _nameIdentifier!);
-            _family!.Mechanisms.Clear();
-            await _mechanismController.DeleteMechanism(_mechanism!.Id);
-            var actionResult = await _mechanismController.GetMechanism(_mechanism.Id);
-            Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundObjectResult));
-        }
-
-        [TestMethod]
-        public async Task CreateMechanismNullNameIdentifer()
-        {
-            _nameIdentifier = null;
-            var result = await _mechanismController.CreateMechanism(_mechanism!, _family!.Id);
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(UnauthorizedObjectResult));
-        }
-
-        [TestMethod]
-        public async Task UpdateMechanismNullNameIdentifer()
-        {
-            _nameIdentifier = null;
-            var result = await _mechanismController.UpdateMechanism(_mechanism!.Id, _mechanism);
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(UnauthorizedObjectResult));
-        }
-
-        [TestMethod]
-        public async Task DeleteMechanismNullNameIdentifer()
-        {
-            _nameIdentifier = null;
-            var result = await _mechanismController.DeleteMechanism(_mechanism!.Id);
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result, typeof(UnauthorizedObjectResult));
-        }
-
         private async Task AsyncCleanup()
         {
             if (_family != null)
@@ -220,8 +147,8 @@ namespace ChemistryCafeAPI.Tests
         [ClassCleanup]
         public static void ClassCleanup()
         {
-            var tests = new MechanismControllerTests(); 
-            tests.AsyncCleanup().Wait(); 
+            var tests = new MechanismControllerTests();
+            tests.AsyncCleanup().Wait();
         }
     }
 }
