@@ -18,13 +18,9 @@ import {
   ReactionTypeName,
   Species,
 } from "../types/chemistryModels";
-import {
-  updateFamily,
-} from "../API/API_UpdateMethods";
+import { updateFamily } from "../API/API_UpdateMethods";
 import { getFamily } from "../API/API_GetMethods";
-import {
-  createFamily,
-} from "../API/API_CreateMethods";
+import { createFamily } from "../API/API_CreateMethods";
 
 /**
  * Converts a species as defined by the backend to a species as defined by the frontend.
@@ -328,8 +324,13 @@ export function frontendToAPIFamily(
  * @param family
  * @returns Family with updated UUIDs of each object
  */
-export async function uploadFamily(family: Family, owner: APIUser): Promise<Family> {
-  const created = await createFamily(frontendToAPIFamily({ ...family, owner }, true));
+export async function uploadFamily(
+  family: Family,
+  owner: APIUser,
+): Promise<Family> {
+  const created = await createFamily(
+    frontendToAPIFamily({ ...family, owner }, true),
+  );
   return apiToFrontendFamily(await getFamily(created.id as UUID));
 }
 

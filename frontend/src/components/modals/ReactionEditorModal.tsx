@@ -359,7 +359,11 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                     if (!modifiedReaction) {
                       return true;
                     }
-                    if (modifiedReaction.reactants.find((e) => e.speciesId == species.id)) {
+                    if (
+                      modifiedReaction.reactants.find(
+                        (e) => e.speciesId == species.id,
+                      )
+                    ) {
                       return false;
                     }
                     return true;
@@ -402,9 +406,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                           flex: 1,
                           // Removes up and down arrows for number
                           "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                          {
-                            display: "none",
-                          },
+                            {
+                              display: "none",
+                            },
                           "& input[type=number]": {
                             MozAppearance: "textfield",
                           },
@@ -542,7 +546,11 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                     if (!modifiedReaction) {
                       return true;
                     }
-                    if (modifiedReaction.products.find((e) => e.speciesId == species.id)) {
+                    if (
+                      modifiedReaction.products.find(
+                        (e) => e.speciesId == species.id,
+                      )
+                    ) {
                       return false;
                     }
                     return true;
@@ -585,9 +593,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                           flex: 1,
                           // Removes up and down arrows for number
                           "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                          {
-                            display: "none",
-                          },
+                            {
+                              display: "none",
+                            },
                           "& input[type=number]": {
                             MozAppearance: "textfield",
                           },
@@ -657,9 +665,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                     width: "100%",
                     // Removes up and down arrows for number
                     "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                    {
-                      display: "none",
-                    },
+                      {
+                        display: "none",
+                      },
                     "& input[type=number]": {
                       MozAppearance: "textfield",
                     },
