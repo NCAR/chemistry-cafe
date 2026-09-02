@@ -53,7 +53,6 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
     setModifiedMechanism({
       ...modifiedMechanism,
       ...properties,
-      isModified: true,
     });
     setChangesSaved(false);
   };
@@ -62,7 +61,6 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
     updateMechanism(modifiedMechanism);
     setModifiedMechanism({
       ...modifiedMechanism,
-      isModified: false,
     });
   };
 

@@ -73,9 +73,6 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
       description: "",
       familyId: family.id,
       id: frontendId,
-      isDeleted: false,
-      isInDatabase: false,
-      isModified: false,
       name: "",
     };
     setSelectedSpecies(species);
@@ -116,9 +113,9 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
     );
 
     if (existingIndex >= 0) {
-      speciesList[existingIndex] = { ...species, isModified: true };
+      speciesList[existingIndex] = { ...species};
     } else {
-      speciesList.unshift({ ...species, isModified: true });
+      speciesList.unshift({ ...species });
     }
 
     updateFamily({
@@ -313,7 +310,7 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
           pagination: { paginationModel: { pageSize: 20 } },
           sorting: { sortModel: [{ field: "name", sort: "asc" }] },
         }}
-        rows={family.species.filter((element) => !element.isDeleted)}
+        rows={family.species}
         columns={speciesColumns}
         pageSizeOptions={[5, 10, 20, 100]}
         disableRowSelectionOnClick

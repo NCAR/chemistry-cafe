@@ -25,15 +25,6 @@ export type Species = {
   /** ID stored in the SQL database. If this is not in the database, this is used for frontend purposes */
   id: UUID;
 
-  /** Determines if the species has been marked for deletion */
-  isDeleted?: boolean;
-
-  /** Determines if the species is in the database */
-  isInDatabase?: boolean;
-
-  /** Determines whether the species has been modified from its original state */
-  isModified?: boolean;
-
   /** If this is a third body (commonly called M) */
   isThirdBody?: boolean;
 
@@ -112,15 +103,6 @@ export type Reaction = {
   /** Optional id for the aerosol phase water. Required in certain reactions */
   aerosolPhaseWaterId?: UUID;
 
-  /** Determines whether the Reaction has been modified from its original state */
-  isModified?: boolean;
-
-  /** Determines if the Reaction has been marked for deletion */
-  isDeleted?: boolean;
-
-  /** Determines if the reaction is in the database */
-  isInDatabase?: boolean;
-
   /** List of reactants in the reaction */
   reactants: Array<Reactant>;
 
@@ -160,15 +142,6 @@ export type Phase = {
 
   /** Species involved in the phase */
   speciesIds: Array<UUID>;
-
-  /** Determines whether the phase has been modified from its original state */
-  isModified?: boolean;
-
-  /** Determines if the phase has been marked for deletion */
-  isDeleted?: boolean;
-
-  /** Determines if the phase is in the database */
-  isInDatabase?: boolean;
 };
 
 /**
@@ -197,15 +170,6 @@ export type Mechanism = {
 
   /** Phase ids associated with the mechanism */
   phaseIds: Array<UUID>;
-
-  /** Determines whether the mechanism has been modified from its original state */
-  isModified?: boolean;
-
-  /** Determines if the mechanism has been marked for deletion */
-  isDeleted?: boolean;
-
-  /** Determines if the family is in the database */
-  isInDatabase?: boolean;
 };
 
 /**

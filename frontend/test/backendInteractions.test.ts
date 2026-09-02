@@ -308,16 +308,12 @@ describe("saveFamilyChanges reference integrity", () => {
         {
           ...frontendSpecies,
           id: speciesId,
-          isInDatabase: false,
-          isDeleted: false,
         },
       ],
       reactions: [
         {
           ...frontendReaction,
           id: "22222222-2222-2222-2222-222222222222" as UUID,
-          isInDatabase: false,
-          isDeleted: false,
           reactants: [{ speciesId, coefficient: 1 }],
           products: [],
         },
@@ -326,21 +322,22 @@ describe("saveFamilyChanges reference integrity", () => {
       mechanisms: [],
     };
 
-    const postSpy = vi
-      .spyOn(axios, "post")
-      .mockResolvedValue(createMockData(apiSpecies));
-    vi.spyOn(axios, "patch").mockResolvedValue(createMockData(apiFamily));
+    const patchSpy = vi
+      .spyOn(axios, "patch")
+      .mockResolvedValue(createMockData(apiFamily));
     vi.spyOn(axios, "get").mockResolvedValue(createMockData(apiFamily));
 
     await saveFamilyChanges(family);
 
-    // The reaction must be sent referencing the species by the id we created it
-    // with — the backend now honors client ids, so no remapping is needed.
-    const reactionCall = postSpy.mock.calls.find(([url]) =>
-      String(url).includes("reactions"),
+    // The whole family is now saved in a single request to the families
+    // endpoint. The reaction inside that payload must still reference the
+    // species by the id we created it with — the backend honors client ids,
+    // so no remapping is needed.
+    const familyCall = patchSpy.mock.calls.find(([url]) =>
+      String(url).includes("families"),
     );
-    expect(reactionCall).toBeDefined();
-    const sentReaction = reactionCall![1] as APIReaction;
-    expect(sentReaction.reactants[0].speciesId).toBe(speciesId);
+    expect(familyCall).toBeDefined();
+    const sentFamily = familyCall![1] as APIFamily;
+    expect(sentFamily.reactions[0].reactants[0].speciesId).toBe(speciesId);
   });
 });

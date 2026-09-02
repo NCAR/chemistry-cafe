@@ -20,25 +20,11 @@ import {
 } from "../types/chemistryModels";
 import {
   updateFamily,
-  updateMechanism,
-  updatePhase,
-  updateReaction,
-  updateSpecies,
 } from "../API/API_UpdateMethods";
 import { getFamily } from "../API/API_GetMethods";
 import {
   createFamily,
-  createMechanism,
-  createPhase,
-  createReaction,
-  createSpecies,
 } from "../API/API_CreateMethods";
-import {
-  deleteMechanism,
-  deletePhase,
-  deleteReaction,
-  deleteSpecies,
-} from "../API/API_DeleteMethods";
 
 /**
  * Converts a species as defined by the backend to a species as defined by the frontend.
@@ -55,9 +41,6 @@ export function apiToFrontendSpecies(apiSpecies: APISpecies): Species {
     description: apiSpecies.description || "",
     familyId: apiSpecies.familyId,
     id: apiSpecies.id,
-    isDeleted: false,
-    isInDatabase: true,
-    isModified: false,
     molecularWeight: apiSpecies.molecularWeight ?? undefined,
     name: apiSpecies.name ?? "<Empty>",
     otherProperties: apiSpecies.otherProperties ?? undefined,
@@ -110,9 +93,6 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
     reactants: apiReaction.reactants,
     products: apiReaction.products,
     attributes: {},
-    isInDatabase: true,
-    isModified: false,
-    isDeleted: false,
   };
 
   for (const attribute of apiReaction.numericalAttributes) {
@@ -201,9 +181,6 @@ export function apiToFrontendPhase(phase: APIPhase): Phase {
     name: phase.name,
     description: phase.description ?? "",
     speciesIds: phase.species.map((e) => e.id),
-    isInDatabase: true,
-    isModified: false,
-    isDeleted: false,
   };
   return formattedPhase;
 }
@@ -257,9 +234,6 @@ export function apiToFrontendMechanism(apiMechanism: APIMechanism): Mechanism {
     speciesIds: apiMechanism.species.map((e) => e.id),
     reactionIds: apiMechanism.reactions.map((e) => e.id),
     phaseIds: apiMechanism.phases.map((e) => e.id),
-    isInDatabase: true,
-    isModified: false,
-    isDeleted: false,
   };
 
   return formattedMechanism;
@@ -390,25 +364,9 @@ export function frontendToAPIFamily(
  * @param family
  * @returns Family with updated UUIDs of each object
  */
-export async function uploadFamily(
-  family: Family,
-  owner: APIUser,
-): Promise<Family> {
-  const familyToUpload: Family = {
-    ...family,
-    owner: owner,
-  };
-
-  const resultFamily = await createFamily(
-    frontendToAPIFamily(familyToUpload, false),
-  );
-
-  return saveFamilyChanges({
-    ...familyToUpload,
-    id: resultFamily.id,
-    isInDatabase: true,
-    isModified: true,
-  });
+export async function uploadFamily(family: Family, owner: APIUser): Promise<Family> {
+  const created = await createFamily(frontendToAPIFamily({ ...family, owner }, true));
+  return apiToFrontendFamily(await getFamily(created.id as UUID));
 }
 
 /**
@@ -429,125 +387,6 @@ export async function saveFamilyChanges(family: Family): Promise<Family> {
     );
   }
 
-  const liveSpeciesIds = new Set<string>(
-    family.species
-      .filter((species) => !species.isDeleted)
-      .map((species) => species.id),
-  );
-  const livePhaseIds = new Set<string>(
-    family.phases.filter((phase) => !phase.isDeleted).map((phase) => phase.id),
-  );
-  const liveReactionIds = new Set<string>(
-    family.reactions
-      .filter((reaction) => !reaction.isDeleted)
-      .map((reaction) => reaction.id),
-  );
-
-  for (const species of family.species) {
-    const apiSpecies = frontendToAPISpecies(species, family);
-    if (species.isInDatabase) {
-      if (species.isDeleted) {
-        await deleteSpecies(apiSpecies.id);
-      } else if (species.isModified) {
-        await updateSpecies(apiSpecies);
-      }
-    } else if (!species.isDeleted) {
-      await createSpecies(apiSpecies);
-    }
-  }
-
-  for (const phase of family.phases) {
-    const phaseWithLiveReferences: Phase = {
-      ...phase,
-      speciesIds: phase.speciesIds.filter((id) => liveSpeciesIds.has(id)),
-    };
-
-    const apiPhase = frontendToAPIPhase(phaseWithLiveReferences, family);
-    if (phase.isInDatabase) {
-      if (phase.isDeleted) {
-        deletePhase(phase.id).catch((e) => console.error(e));
-      } else if (phase.isModified) {
-        await updatePhase(apiPhase);
-      }
-    } else if (!phase.isDeleted) {
-      await createPhase(apiPhase);
-    }
-  }
-
-  for (const reaction of family.reactions) {
-    const reactionWithLiveReferences: Reaction = {
-      ...reaction,
-      reactants: reaction.reactants.filter((reactant) =>
-        liveSpeciesIds.has(reactant.speciesId),
-      ),
-      products: reaction.products.filter((product) =>
-        liveSpeciesIds.has(product.speciesId),
-      ),
-      gasPhaseId:
-        reaction.gasPhaseId && livePhaseIds.has(reaction.gasPhaseId)
-          ? reaction.gasPhaseId
-          : undefined,
-      gasPhaseSpeciesId:
-        reaction.gasPhaseSpeciesId &&
-        liveSpeciesIds.has(reaction.gasPhaseSpeciesId)
-          ? reaction.gasPhaseSpeciesId
-          : undefined,
-      aerosolPhaseId:
-        reaction.aerosolPhaseId && livePhaseIds.has(reaction.aerosolPhaseId)
-          ? reaction.aerosolPhaseId
-          : undefined,
-      aerosolPhaseSpeciesId:
-        reaction.aerosolPhaseSpeciesId &&
-        liveSpeciesIds.has(reaction.aerosolPhaseSpeciesId)
-          ? reaction.aerosolPhaseSpeciesId
-          : undefined,
-      aerosolPhaseWaterId:
-        reaction.aerosolPhaseWaterId &&
-        liveSpeciesIds.has(reaction.aerosolPhaseWaterId)
-          ? reaction.aerosolPhaseWaterId
-          : undefined,
-    };
-
-    const apiReaction = frontendToAPIReaction(
-      reactionWithLiveReferences,
-      family,
-    );
-    if (reaction.isInDatabase) {
-      if (reaction.isDeleted) {
-        deleteReaction(reaction.id).catch((e) => console.error(e));
-      } else if (reaction.isModified) {
-        await updateReaction(apiReaction);
-      }
-    } else {
-      await createReaction(apiReaction);
-    }
-  }
-
-  for (const mechanism of family.mechanisms) {
-    const mechanismWithLiveReferences: Mechanism = {
-      ...mechanism,
-      speciesIds: mechanism.speciesIds.filter((id) => liveSpeciesIds.has(id)),
-      reactionIds: mechanism.reactionIds.filter((id) =>
-        liveReactionIds.has(id),
-      ),
-      phaseIds: mechanism.phaseIds.filter((id) => livePhaseIds.has(id)),
-    };
-
-    const apiMechanism = frontendToAPIMechanism(
-      mechanismWithLiveReferences,
-      family,
-    );
-    if (mechanism.isInDatabase) {
-      if (mechanism.isDeleted) {
-        deleteMechanism(mechanism.id).catch((e) => console.error(e));
-      } else if (mechanism.isModified) {
-        await updateMechanism(apiMechanism);
-      }
-    } else {
-      await createMechanism(apiMechanism);
-    }
-  }
-
-  await updateFamily(frontendToAPIFamily(family, false));
+  await updateFamily(frontendToAPIFamily(family, true));
   return apiToFrontendFamily(await getFamily(family.id as UUID));
 }

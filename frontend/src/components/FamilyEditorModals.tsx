@@ -585,16 +585,14 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                   <MenuItem value="None">None</MenuItem>
                   {family.species.reduce(
                     (accumulator: React.JSX.Element[], species) => {
-                      if (!species.isDeleted) {
-                        accumulator.push(
-                          <MenuItem
-                            key={`${species.id}-input-species-menuitem`}
-                            value={species.id}
-                          >
-                            {species.name || "<No Name>"}
-                          </MenuItem>,
-                        );
-                      }
+                      accumulator.push(
+                        <MenuItem
+                          key={`${species.id}-input-species-menuitem`}
+                          value={species.id}
+                        >
+                          {species.name || "<No Name>"}
+                        </MenuItem>,
+                      );
                       return accumulator;
                     },
                     [],
@@ -639,12 +637,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                     if (!modifiedReaction) {
                       return true;
                     }
-                    if (
-                      species.isDeleted ||
-                      modifiedReaction.reactants.find(
-                        (e) => e.speciesId == species.id,
-                      )
-                    ) {
+                    if (modifiedReaction.reactants.find((e) => e.speciesId == species.id)) {
                       return false;
                     }
                     return true;
@@ -687,9 +680,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                           flex: 1,
                           // Removes up and down arrows for number
                           "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                            {
-                              display: "none",
-                            },
+                          {
+                            display: "none",
+                          },
                           "& input[type=number]": {
                             MozAppearance: "textfield",
                           },
@@ -779,16 +772,14 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                 <MenuItem value="None">None</MenuItem>
                 {family.species.reduce(
                   (accumulator: React.JSX.Element[], species) => {
-                    if (!species.isDeleted) {
-                      accumulator.push(
-                        <MenuItem
-                          key={`${species.id}-output-species-menuitem`}
-                          value={species.id}
-                        >
-                          {species.name || "<No Name>"}
-                        </MenuItem>,
-                      );
-                    }
+                    accumulator.push(
+                      <MenuItem
+                        key={`${species.id}-output-species-menuitem`}
+                        value={species.id}
+                      >
+                        {species.name || "<No Name>"}
+                      </MenuItem>,
+                    );
                     return accumulator;
                   },
                   [],
@@ -829,12 +820,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                     if (!modifiedReaction) {
                       return true;
                     }
-                    if (
-                      species.isDeleted ||
-                      modifiedReaction.products.find(
-                        (e) => e.speciesId == species.id,
-                      )
-                    ) {
+                    if (modifiedReaction.products.find((e) => e.speciesId == species.id)) {
                       return false;
                     }
                     return true;
@@ -877,9 +863,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                           flex: 1,
                           // Removes up and down arrows for number
                           "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                            {
-                              display: "none",
-                            },
+                          {
+                            display: "none",
+                          },
                           "& input[type=number]": {
                             MozAppearance: "textfield",
                           },
@@ -949,9 +935,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                     width: "100%",
                     // Removes up and down arrows for number
                     "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                      {
-                        display: "none",
-                      },
+                    {
+                      display: "none",
+                    },
                     "& input[type=number]": {
                       MozAppearance: "textfield",
                     },
