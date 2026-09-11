@@ -677,7 +677,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                       attribute.serializationKey
                     ]?.value.toString() ?? ""
                   }
-                  label={attribute.name || attribute.serializationKey}
+                  label={`${attribute.name || attribute.serializationKey}${
+                    attribute.units ? ` [${attribute.units}]` : ""
+                  }`}
                   type="number"
                   onChange={(event) => {
                     const num = Number.parseFloat(event.target.value);
