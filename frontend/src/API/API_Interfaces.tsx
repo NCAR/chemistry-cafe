@@ -51,6 +51,15 @@ export interface APIReaction {
     serializationKey: string;
     value: string;
   }>;
+  // Dedicated Arrhenius parameters. Present only for ARRHENIUS reactions.
+  arrhenius?: {
+    a?: number | null;
+    b?: number | null;
+    c?: number | null;
+    ea?: number | null;
+    d?: number | null;
+    e?: number | null;
+  } | null;
   reactants: Array<APIReactant>;
   products: Array<APIProduct>;
   gasPhaseId?: UUID | null;
