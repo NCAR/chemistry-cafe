@@ -59,6 +59,13 @@ public partial class ChemistryDbContext : DbContext
             .HasForeignKey(sa => sa.ReactionId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // Arrhenius parameters share the reaction primary key (one-to-one).
+        modelBuilder.Entity<Reaction>()
+            .HasOne(r => r.Arrhenius)
+            .WithOne(a => a.Reaction)
+            .HasForeignKey<ArrheniusParameters>(a => a.ReactionId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         modelBuilder.Entity<Reactant>()
             .HasOne(r => r.Species)
             .WithMany(s => s.AsReactant)
