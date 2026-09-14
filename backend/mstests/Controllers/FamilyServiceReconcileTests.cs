@@ -267,5 +267,58 @@ namespace ChemistryCafeAPI.Tests
 
             Assert.AreEqual(QueryResult.NoAccess, await UpdateAsync(dto, Guid.NewGuid().ToString()));
         }
+
+        [TestMethod]
+        public async Task Create_PersistsArrheniusParameters()
+        {
+            FamilyDto dto = BuildBaseFamily();
+            dto.Reactions.Single().Arrhenius = new ArrheniusParametersDto
+            {
+                A = 1.2e-11,
+                B = 0.0,
+                Ea = 100.0,
+                D = 300.0,
+                E = 0.0,
+            };
+            await CreateBaseFamilyAsync(dto);
+
+            Family reloaded = await ReloadAsync(dto.Id);
+            ArrheniusParameters? arrhenius = reloaded.Reactions.Single().Arrhenius;
+            Assert.IsNotNull(arrhenius);
+            Assert.AreEqual(1.2e-11, arrhenius!.A);
+            Assert.AreEqual(100.0, arrhenius.Ea);
+            Assert.AreEqual(300.0, arrhenius.D);
+        }
+
+        [TestMethod]
+        public async Task Update_ChangesArrheniusParameters()
+        {
+            FamilyDto dto = BuildBaseFamily();
+            dto.Reactions.Single().Arrhenius = new ArrheniusParametersDto
+            {
+                A = 1.0,
+                Ea = 0.0,
+                D = 300.0,
+            };
+            await CreateBaseFamilyAsync(dto);
+
+            dto.Reactions.Single().Arrhenius = new ArrheniusParametersDto
+            {
+                A = 5.0,
+                B = 2.0,
+                Ea = 250.0,
+                D = 300.0,
+                E = 1.0,
+            };
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            Family reloaded = await ReloadAsync(dto.Id);
+            ArrheniusParameters? arrhenius = reloaded.Reactions.Single().Arrhenius;
+            Assert.IsNotNull(arrhenius);
+            Assert.AreEqual(5.0, arrhenius!.A);
+            Assert.AreEqual(2.0, arrhenius.B);
+            Assert.AreEqual(250.0, arrhenius.Ea);
+            Assert.AreEqual(1.0, arrhenius.E);
+        }
     }
 }

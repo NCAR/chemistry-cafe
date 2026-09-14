@@ -113,6 +113,32 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
     };
   }
 
+  // Arrhenius reactions store their parameters in a dedicated table. Read them
+  // back into the attribute bag, keyed by the serialization key the editor uses.
+  if (apiReaction.reactionType === "ARRHENIUS" && apiReaction.arrhenius) {
+    const arrheniusValues: Record<string, number | null | undefined> = {
+      A: apiReaction.arrhenius.a,
+      B: apiReaction.arrhenius.b,
+      C: apiReaction.arrhenius.c,
+      Ea: apiReaction.arrhenius.ea,
+      D: apiReaction.arrhenius.d,
+      E: apiReaction.arrhenius.e,
+    };
+    for (const [serializationKey, value] of Object.entries(arrheniusValues)) {
+      if (value === null || value === undefined) {
+        continue;
+      }
+      const defaultAttribute = reactionAttributeOptions.ARRHENIUS?.find(
+        (e) => e.serializationKey === serializationKey,
+      );
+      formattedReaction.attributes[serializationKey] = {
+        ...defaultAttribute,
+        serializationKey,
+        value,
+      };
+    }
+  }
+
   return formattedReaction;
 }
 
@@ -148,17 +174,31 @@ export function frontendToAPIReaction(
     reactionType: reaction.type,
   };
 
-  for (const attribute of Object.values(reaction.attributes)) {
-    if (typeof attribute.value === "number") {
-      formattedReaction.numericalAttributes.push({
-        serializationKey: attribute.serializationKey,
-        value: attribute.value,
-      });
-    } else if (typeof attribute.value === "string") {
-      formattedReaction.stringAttributes.push({
-        serializationKey: attribute.serializationKey,
-        value: attribute.value,
-      });
+  if (reaction.type === "ARRHENIUS") {
+    // Arrhenius parameters go to the dedicated table, not the attribute lists.
+    const numOrNull = (value: number | number[] | string | undefined) =>
+      typeof value === "number" ? value : null;
+    formattedReaction.arrhenius = {
+      a: numOrNull(reaction.attributes["A"]?.value),
+      b: numOrNull(reaction.attributes["B"]?.value),
+      c: numOrNull(reaction.attributes["C"]?.value),
+      ea: numOrNull(reaction.attributes["Ea"]?.value),
+      d: numOrNull(reaction.attributes["D"]?.value),
+      e: numOrNull(reaction.attributes["E"]?.value),
+    };
+  } else {
+    for (const attribute of Object.values(reaction.attributes)) {
+      if (typeof attribute.value === "number") {
+        formattedReaction.numericalAttributes.push({
+          serializationKey: attribute.serializationKey,
+          value: attribute.value,
+        });
+      } else if (typeof attribute.value === "string") {
+        formattedReaction.stringAttributes.push({
+          serializationKey: attribute.serializationKey,
+          value: attribute.value,
+        });
+      }
     }
   }
 

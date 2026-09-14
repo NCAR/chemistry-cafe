@@ -20,6 +20,9 @@ public class Reaction
     public ICollection<ReactionNumericalAttribute> NumericalAttributes { get; set; } = new List<ReactionNumericalAttribute>();
     public ICollection<ReactionStringAttribute> StringAttributes { get; set; } = new List<ReactionStringAttribute>();
 
+    // Dedicated parameter table for Arrhenius reactions. Null for other types.
+    public ArrheniusParameters? Arrhenius { get; set; }
+
 
     // Collections of reactants and products (must be species from the same family)
     public ICollection<Reactant> Reactants { get; set; } = new List<Reactant>();
@@ -99,6 +102,29 @@ public class Product
 
     public double Coefficient { get; set; }
     public string? Branch { get; set; }
+}
+
+/// <summary>
+/// Dedicated parameters for an Arrhenius reaction. Has a one-to-one relationship
+/// with a reaction: ReactionId is both the primary key and the foreign key.
+/// C and Ea are mutually exclusive; the frontend edits Ea, while C may arrive on
+/// import (C = -Ea / kb). All columns are nullable so an unset value stays unset.
+/// </summary>
+[Table("ArrheniusParameters")]
+public class ArrheniusParameters
+{
+    [Key]
+    public Guid ReactionId { get; set; }
+
+    [JsonIgnore]
+    public Reaction? Reaction { get; set; }
+
+    public double? A { get; set; }
+    public double? B { get; set; }
+    public double? C { get; set; }
+    public double? Ea { get; set; }
+    public double? D { get; set; }
+    public double? E { get; set; }
 }
 
 /// <summary>

@@ -43,6 +43,8 @@ public class FamilyService
                     .ThenInclude(r => r.NumericalAttributes)
                 .Include(f => f.Reactions)
                     .ThenInclude(r => r.StringAttributes)
+                .Include(f => f.Reactions)
+                    .ThenInclude(r => r.Arrhenius)
                 .Include(f => f.Phases)
                     .ThenInclude(r => r.Species)
                 .Include(f => f.Mechanisms)
@@ -83,6 +85,8 @@ public class FamilyService
                 .ThenInclude(r => r.NumericalAttributes)
             .Include(f => f.Reactions)
                 .ThenInclude(r => r.StringAttributes)
+            .Include(f => f.Reactions)
+                .ThenInclude(r => r.Arrhenius)
             .Include(f => f.Phases)
                 .ThenInclude(r => r.Species)
             .Include(f => f.Mechanisms)
@@ -189,6 +193,7 @@ public class FamilyService
             .Include(f => f.Reactions).ThenInclude(r => r.Products)
             .Include(f => f.Reactions).ThenInclude(r => r.NumericalAttributes)
             .Include(f => f.Reactions).ThenInclude(r => r.StringAttributes)
+            .Include(f => f.Reactions).ThenInclude(r => r.Arrhenius)
             .Include(f => f.Phases).ThenInclude(p => p.Species)
             .Include(f => f.Mechanisms).ThenInclude(m => m.Species)
             .Include(f => f.Mechanisms).ThenInclude(m => m.Reactions)
@@ -391,6 +396,29 @@ public class FamilyService
             existingReaction.Products = incomingReaction.Products.Select(p => p.ToEntity()).ToList();
             existingReaction.NumericalAttributes = incomingReaction.NumericalAttributes.Select(n => n.ToEntity()).ToList();
             existingReaction.StringAttributes = incomingReaction.StringAttributes.Select(s => s.ToEntity()).ToList();
+
+            // Arrhenius parameters are a one-to-one row. Update in place when both
+            // sides have it, add it when new, and drop it when the incoming
+            // reaction no longer carries it (EF cascade deletes the orphan).
+            if (incomingReaction.Arrhenius == null)
+            {
+                existingReaction.Arrhenius = null;
+            }
+            else if (existingReaction.Arrhenius == null)
+            {
+                existingReaction.Arrhenius = incomingReaction.Arrhenius.ToEntity();
+            }
+            else
+            {
+                ArrheniusParameters existingArrhenius = existingReaction.Arrhenius;
+                ArrheniusParametersDto incomingArrhenius = incomingReaction.Arrhenius;
+                existingArrhenius.A = incomingArrhenius.A;
+                existingArrhenius.B = incomingArrhenius.B;
+                existingArrhenius.C = incomingArrhenius.C;
+                existingArrhenius.Ea = incomingArrhenius.Ea;
+                existingArrhenius.D = incomingArrhenius.D;
+                existingArrhenius.E = incomingArrhenius.E;
+            }
         });
 
         // Phase changes

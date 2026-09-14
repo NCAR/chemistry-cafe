@@ -207,6 +207,58 @@ describe("Reaction Conversion", () => {
   });
 });
 
+describe("Arrhenius parameter translation", () => {
+  const arrheniusReaction: Reaction = {
+    id: "00000000-0000-0000-0000-000000000000",
+    name: "arr",
+    description: "",
+    type: "ARRHENIUS",
+    reactants: [],
+    products: [],
+    attributes: {
+      A: { serializationKey: "A", value: 1.2e-11 },
+      B: { serializationKey: "B", value: 0 },
+      Ea: { serializationKey: "Ea", value: 100 },
+      D: { serializationKey: "D", value: 300 },
+      E: { serializationKey: "E", value: 0 },
+    },
+  };
+
+  test("frontendToAPIReaction writes params to the arrhenius field, not the attribute lists", () => {
+    const result = frontendToAPIReaction(arrheniusReaction, frontendFamily);
+    expect(result.arrhenius).toEqual({
+      a: 1.2e-11,
+      b: 0,
+      c: null,
+      ea: 100,
+      d: 300,
+      e: 0,
+    });
+    expect(result.numericalAttributes).toHaveLength(0);
+    expect(result.stringAttributes).toHaveLength(0);
+  });
+
+  test("apiToFrontendReaction reads the arrhenius field into the attribute bag", () => {
+    const apiArrhenius: APIReaction = {
+      id: "00000000-0000-0000-0000-000000000000",
+      name: "arr",
+      reactionType: "ARRHENIUS",
+      numericalAttributes: [],
+      stringAttributes: [],
+      arrhenius: { a: 1.2e-11, b: 0, ea: 100, d: 300, e: 0 },
+      reactants: [],
+      products: [],
+      familyId: "00000000-0000-0000-0000-000000000000",
+    };
+    const result = apiToFrontendReaction(apiArrhenius);
+    expect(result.attributes["A"].value).toBe(1.2e-11);
+    expect(result.attributes["Ea"].value).toBe(100);
+    expect(result.attributes["D"].value).toBe(300);
+    // C was not provided, so it must not appear in the bag.
+    expect(result.attributes["C"]).toBeUndefined();
+  });
+});
+
 describe("Phase Conversion", () => {
   test("Conversion from frontend to backend definition", () => {
     const result = frontendToAPIPhase(frontendPhase, frontendFamily);

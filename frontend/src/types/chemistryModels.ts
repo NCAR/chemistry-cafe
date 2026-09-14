@@ -244,6 +244,7 @@ export const reactionAttributeOptions: {
   ARRHENIUS: [
     {
       serializationKey: "A",
+      units: "(mol m-3)^-(n-1) s-1",
       value: 0.0,
     },
     {
@@ -252,14 +253,17 @@ export const reactionAttributeOptions: {
     },
     {
       serializationKey: "Ea",
+      units: "J",
       value: 0.0,
     },
     {
       serializationKey: "D",
+      units: "K",
       value: 0.0,
     },
     {
       serializationKey: "E",
+      units: "Pa-1",
       value: 0.0,
     },
   ],
@@ -270,6 +274,7 @@ export const reactionAttributeOptions: {
     },
     {
       serializationKey: "Y",
+      units: "K",
       value: 0.0,
     },
     {
@@ -312,6 +317,7 @@ export const reactionAttributeOptions: {
   TAYLOR_SERIES: [
     {
       serializationKey: "A",
+      units: "(mol m-3)^-(n-1) s-1",
       value: 0.0,
     },
     {
@@ -320,14 +326,17 @@ export const reactionAttributeOptions: {
     },
     {
       serializationKey: "Ea",
+      units: "J",
       value: 0.0,
     },
     {
       serializationKey: "D",
+      units: "K",
       value: 0.0,
     },
     {
       serializationKey: "E",
+      units: "Pa-1",
       value: 0.0,
     },
     {
@@ -339,6 +348,7 @@ export const reactionAttributeOptions: {
     {
       name: "k0 A",
       serializationKey: "k0_A",
+      units: "(mol m-3)^-(n-1) s-1",
       value: 0.0,
     },
     {
@@ -349,11 +359,13 @@ export const reactionAttributeOptions: {
     {
       name: "k0 C",
       serializationKey: "k0_C",
+      units: "K",
       value: 0.0,
     },
     {
       name: "kinf A",
       serializationKey: "kinf_A",
+      units: "(mol m-3)^-(n-1) s-1",
       value: 0.0,
     },
     {
@@ -364,6 +376,7 @@ export const reactionAttributeOptions: {
     {
       name: "kinf C",
       serializationKey: "kinf_C",
+      units: "K",
       value: 0.0,
     },
     {
@@ -379,6 +392,7 @@ export const reactionAttributeOptions: {
     {
       name: "k0 A",
       serializationKey: "k0_A",
+      units: "(mol m-3)^-(n-1) s-1",
       value: 0.0,
     },
     {
@@ -389,11 +403,13 @@ export const reactionAttributeOptions: {
     {
       name: "k0 C",
       serializationKey: "k0_C",
+      units: "K",
       value: 0.0,
     },
     {
       name: "kinf A",
       serializationKey: "kinf_A",
+      units: "(mol m-3)^-(n-1) s-1",
       value: 0.0,
     },
     {
@@ -404,6 +420,7 @@ export const reactionAttributeOptions: {
     {
       name: "kinf C",
       serializationKey: "kinf_C",
+      units: "K",
       value: 0.0,
     },
     {
@@ -418,14 +435,17 @@ export const reactionAttributeOptions: {
   TUNNELING: [
     {
       serializationKey: "A",
+      units: "(mol m-3)^-(n-1) s-1",
       value: 0.0,
     },
     {
       serializationKey: "B",
+      units: "K",
       value: 0.0,
     },
     {
       serializationKey: "C",
+      units: "K^3",
       value: 0.0,
     },
   ],

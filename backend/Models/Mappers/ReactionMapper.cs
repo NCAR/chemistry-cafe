@@ -26,6 +26,7 @@ public static class ReactionMapper
             StringAttributes = reaction.StringAttributes
                 .Select(a => new ReactionStringAttributeDto { SerializationKey = a.SerializationKey, Value = a.Value })
                 .ToList(),
+            Arrhenius = reaction.Arrhenius?.ToDto(),
             GasPhaseId = reaction.GasPhaseId,
             GasPhaseSpeciesId = reaction.GasPhaseSpeciesId,
             AerosolPhaseId = reaction.AerosolPhaseId,
@@ -52,6 +53,7 @@ public static class ReactionMapper
             Products = reactionDto.Products.Select(p => p.ToEntity()).ToList(),
             NumericalAttributes = reactionDto.NumericalAttributes.Select(a => a.ToEntity()).ToList(),
             StringAttributes = reactionDto.StringAttributes.Select(a => a.ToEntity()).ToList(),
+            Arrhenius = reactionDto.Arrhenius?.ToEntity(),
             GasPhaseId = reactionDto.GasPhaseId,
             GasPhaseSpeciesId = reactionDto.GasPhaseSpeciesId,
             AerosolPhaseId = reactionDto.AerosolPhaseId,
@@ -71,4 +73,26 @@ public static class ReactionMapper
 
     public static ReactionStringAttribute ToEntity(this ReactionStringAttributeDto dto) =>
         new ReactionStringAttribute { SerializationKey = dto.SerializationKey, Value = dto.Value };
+
+    public static ArrheniusParametersDto ToDto(this ArrheniusParameters parameters) =>
+        new ArrheniusParametersDto
+        {
+            A = parameters.A,
+            B = parameters.B,
+            C = parameters.C,
+            Ea = parameters.Ea,
+            D = parameters.D,
+            E = parameters.E,
+        };
+
+    public static ArrheniusParameters ToEntity(this ArrheniusParametersDto dto) =>
+        new ArrheniusParameters
+        {
+            A = dto.A,
+            B = dto.B,
+            C = dto.C,
+            Ea = dto.Ea,
+            D = dto.D,
+            E = dto.E,
+        };
 }
