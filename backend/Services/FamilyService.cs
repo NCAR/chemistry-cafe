@@ -49,6 +49,8 @@ public class FamilyService
                     .ThenInclude(r => r.Tunneling)
                 .Include(f => f.Reactions)
                     .ThenInclude(r => r.Troe)
+                .Include(f => f.Reactions)
+                    .ThenInclude(r => r.TernaryChemicalActivation)
                 .Include(f => f.Phases)
                     .ThenInclude(r => r.Species)
                 .Include(f => f.Mechanisms)
@@ -95,6 +97,8 @@ public class FamilyService
                 .ThenInclude(r => r.Tunneling)
             .Include(f => f.Reactions)
                 .ThenInclude(r => r.Troe)
+            .Include(f => f.Reactions)
+                .ThenInclude(r => r.TernaryChemicalActivation)
             .Include(f => f.Phases)
                 .ThenInclude(r => r.Species)
             .Include(f => f.Mechanisms)
@@ -204,6 +208,7 @@ public class FamilyService
             .Include(f => f.Reactions).ThenInclude(r => r.Arrhenius)
             .Include(f => f.Reactions).ThenInclude(r => r.Tunneling)
             .Include(f => f.Reactions).ThenInclude(r => r.Troe)
+            .Include(f => f.Reactions).ThenInclude(r => r.TernaryChemicalActivation)
             .Include(f => f.Phases).ThenInclude(p => p.Species)
             .Include(f => f.Mechanisms).ThenInclude(m => m.Species)
             .Include(f => f.Mechanisms).ThenInclude(m => m.Reactions)
@@ -473,6 +478,32 @@ public class FamilyService
                 existingTroe.KinfC = incomingTroe.KinfC;
                 existingTroe.Fc = incomingTroe.Fc;
                 existingTroe.N = incomingTroe.N;
+            }
+
+            // Ternary Chemical Activation parameters are a one-to-one row.
+            // Update in place when both sides have it, add it when new, and
+            // drop it when the incoming reaction no longer carries it (EF
+            // cascade deletes the orphan).
+            if (incomingReaction.TernaryChemicalActivation == null)
+            {
+                existingReaction.TernaryChemicalActivation = null;
+            }
+            else if (existingReaction.TernaryChemicalActivation == null)
+            {
+                existingReaction.TernaryChemicalActivation = incomingReaction.TernaryChemicalActivation.ToEntity();
+            }
+            else
+            {
+                TernaryChemicalActivationParameters existingTca = existingReaction.TernaryChemicalActivation;
+                TernaryChemicalActivationParametersDto incomingTca = incomingReaction.TernaryChemicalActivation;
+                existingTca.K0A = incomingTca.K0A;
+                existingTca.K0B = incomingTca.K0B;
+                existingTca.K0C = incomingTca.K0C;
+                existingTca.KinfA = incomingTca.KinfA;
+                existingTca.KinfB = incomingTca.KinfB;
+                existingTca.KinfC = incomingTca.KinfC;
+                existingTca.Fc = incomingTca.Fc;
+                existingTca.N = incomingTca.N;
             }
         });
 

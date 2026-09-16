@@ -436,5 +436,73 @@ namespace ChemistryCafeAPI.Tests
             Assert.AreEqual(0.4, troe.Fc);
             Assert.AreEqual(2.0, troe.N);
         }
+
+        [TestMethod]
+        public async Task Create_PersistsTernaryChemicalActivationParameters()
+        {
+            FamilyDto dto = BuildBaseFamily();
+            dto.Reactions.Single().TernaryChemicalActivation = new TernaryChemicalActivationParametersDto
+            {
+                K0A = 1.2e-11,
+                K0B = 0.0,
+                K0C = 300.0,
+                KinfA = 1.0,
+                KinfB = 0.0,
+                KinfC = 0.0,
+                Fc = 0.6,
+                N = 1.0,
+            };
+            await CreateBaseFamilyAsync(dto);
+
+            Family reloaded = await ReloadAsync(dto.Id);
+            TernaryChemicalActivationParameters? tca = reloaded.Reactions.Single().TernaryChemicalActivation;
+            Assert.IsNotNull(tca);
+            Assert.AreEqual(1.2e-11, tca!.K0A);
+            Assert.AreEqual(300.0, tca.K0C);
+            Assert.AreEqual(1.0, tca.KinfA);
+            Assert.AreEqual(0.6, tca.Fc);
+            Assert.AreEqual(1.0, tca.N);
+        }
+
+        [TestMethod]
+        public async Task Update_ChangesTernaryChemicalActivationParameters()
+        {
+            FamilyDto dto = BuildBaseFamily();
+            dto.Reactions.Single().TernaryChemicalActivation = new TernaryChemicalActivationParametersDto
+            {
+                K0A = 1.0,
+                K0B = 0.0,
+                K0C = 0.0,
+                KinfA = 1.0,
+                KinfB = 0.0,
+                KinfC = 0.0,
+                Fc = 0.6,
+                N = 1.0,
+            };
+            await CreateBaseFamilyAsync(dto);
+
+            dto.Reactions.Single().TernaryChemicalActivation = new TernaryChemicalActivationParametersDto
+            {
+                K0A = 5.0,
+                K0B = 2.0,
+                K0C = 150.0,
+                KinfA = 3.0,
+                KinfB = 1.0,
+                KinfC = 50.0,
+                Fc = 0.4,
+                N = 2.0,
+            };
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            Family reloaded = await ReloadAsync(dto.Id);
+            TernaryChemicalActivationParameters? tca = reloaded.Reactions.Single().TernaryChemicalActivation;
+            Assert.IsNotNull(tca);
+            Assert.AreEqual(5.0, tca!.K0A);
+            Assert.AreEqual(2.0, tca.K0B);
+            Assert.AreEqual(150.0, tca.K0C);
+            Assert.AreEqual(3.0, tca.KinfA);
+            Assert.AreEqual(0.4, tca.Fc);
+            Assert.AreEqual(2.0, tca.N);
+        }
     }
 }
