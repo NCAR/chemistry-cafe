@@ -21,6 +21,10 @@ public class ReactionDto
     // still carry their parameters in the attribute lists above.
     public ArrheniusParametersDto? Arrhenius { get; set; }
 
+    // Dedicated parameters for Tunneling reactions. Null for other types, which
+    // still carry their parameters in the attribute lists above.
+    public TunnelingParametersDto? Tunneling { get; set; }
+
     public Guid? GasPhaseId { get; set; }
     public Guid? GasPhaseSpeciesId { get; set; }
     public Guid? AerosolPhaseId { get; set; }
@@ -49,6 +53,13 @@ public class ArrheniusParametersDto
     public double? Ea { get; set; }
     public double? D { get; set; }
     public double? E { get; set; }
+}
+
+public class TunnelingParametersDto
+{
+    public double? A { get; set; }
+    public double? B { get; set; }
+    public double? C { get; set; }
 }
 
 public class ReactionNumericalAttributeDto

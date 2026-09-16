@@ -23,6 +23,9 @@ public class Reaction
     // Dedicated parameter table for Arrhenius reactions. Null for other types.
     public ArrheniusParameters? Arrhenius { get; set; }
 
+    // Dedicated parameter table for Tunneling reactions. Null for other types.
+    public TunnelingParameters? Tunneling { get; set; }
+
 
     // Collections of reactants and products (must be species from the same family)
     public ICollection<Reactant> Reactants { get; set; } = new List<Reactant>();
@@ -125,6 +128,25 @@ public class ArrheniusParameters
     public double? Ea { get; set; }
     public double? D { get; set; }
     public double? E { get; set; }
+}
+
+/// <summary>
+/// Dedicated parameters for a Tunneling reaction. Has a one-to-one relationship
+/// with a reaction: ReactionId is both the primary key and the foreign key.
+/// All columns are nullable so an unset value stays unset.
+/// </summary>
+[Table("TunnelingParameters")]
+public class TunnelingParameters
+{
+    [Key]
+    public Guid ReactionId { get; set; }
+
+    [JsonIgnore]
+    public Reaction? Reaction { get; set; }
+
+    public double? A { get; set; }
+    public double? B { get; set; }
+    public double? C { get; set; }
 }
 
 /// <summary>

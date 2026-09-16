@@ -320,5 +320,53 @@ namespace ChemistryCafeAPI.Tests
             Assert.AreEqual(250.0, arrhenius.Ea);
             Assert.AreEqual(1.0, arrhenius.E);
         }
+
+        [TestMethod]
+        public async Task Create_PersistsTunnelingParameters()
+        {
+            FamilyDto dto = BuildBaseFamily();
+            dto.Reactions.Single().Tunneling = new TunnelingParametersDto
+            {
+                A = 1.2e-11,
+                B = 0.0,
+                C = 300.0,
+            };
+            await CreateBaseFamilyAsync(dto);
+
+            Family reloaded = await ReloadAsync(dto.Id);
+            TunnelingParameters? tunneling = reloaded.Reactions.Single().Tunneling;
+            Assert.IsNotNull(tunneling);
+            Assert.AreEqual(1.2e-11, tunneling!.A);
+            Assert.AreEqual(0.0, tunneling.B);
+            Assert.AreEqual(300.0, tunneling.C);
+        }
+
+        [TestMethod]
+        public async Task Update_ChangesTunnelingParameters()
+        {
+            FamilyDto dto = BuildBaseFamily();
+            dto.Reactions.Single().Tunneling = new TunnelingParametersDto
+            {
+                A = 1.0,
+                B = 0.0,
+                C = 300.0,
+            };
+            await CreateBaseFamilyAsync(dto);
+
+            dto.Reactions.Single().Tunneling = new TunnelingParametersDto
+            {
+                A = 5.0,
+                B = 2.0,
+                C = 150.0,
+            };
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            Family reloaded = await ReloadAsync(dto.Id);
+            TunnelingParameters? tunneling = reloaded.Reactions.Single().Tunneling;
+            Assert.IsNotNull(tunneling);
+            Assert.AreEqual(5.0, tunneling!.A);
+            Assert.AreEqual(2.0, tunneling.B);
+            Assert.AreEqual(150.0, tunneling.C);
+        }
     }
 }
