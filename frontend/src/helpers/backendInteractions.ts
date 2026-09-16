@@ -139,6 +139,31 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
     }
   }
 
+  // Tunneling reactions store their parameters in a dedicated table. Read them
+  // back into the attribute bag, keyed by the serialization key the editor uses.
+  if (apiReaction.reactionType === "TUNNELING" && apiReaction.tunneling) {
+    const tunnelingValues: Record<string, number | null | undefined> = {
+      A: apiReaction.tunneling.a,
+      B: apiReaction.tunneling.b,
+      C: apiReaction.tunneling.c,
+    };
+    for (const [serializationKey, value] of Object.entries(
+      tunnelingValues,
+    )) {
+      if (value === null || value === undefined) {
+        continue;
+      }
+      const defaultAttribute = reactionAttributeOptions.TUNNELING?.find(
+        (e) => e.serializationKey === serializationKey,
+      );
+      formattedReaction.attributes[serializationKey] = {
+        ...defaultAttribute,
+        serializationKey,
+        value,
+      };
+    }
+  }
+
   return formattedReaction;
 }
 
@@ -174,10 +199,12 @@ export function frontendToAPIReaction(
     reactionType: reaction.type,
   };
 
+  // Reaction types with a dedicated parameter table write to that table's
+  // field instead of the attribute lists.
+  const numOrNull = (value: number | number[] | string | undefined) =>
+    typeof value === "number" ? value : null;
+
   if (reaction.type === "ARRHENIUS") {
-    // Arrhenius parameters go to the dedicated table, not the attribute lists.
-    const numOrNull = (value: number | number[] | string | undefined) =>
-      typeof value === "number" ? value : null;
     formattedReaction.arrhenius = {
       a: numOrNull(reaction.attributes["A"]?.value),
       b: numOrNull(reaction.attributes["B"]?.value),
@@ -185,6 +212,12 @@ export function frontendToAPIReaction(
       ea: numOrNull(reaction.attributes["Ea"]?.value),
       d: numOrNull(reaction.attributes["D"]?.value),
       e: numOrNull(reaction.attributes["E"]?.value),
+    };
+  } else if (reaction.type === "TUNNELING") {
+    formattedReaction.tunneling = {
+      a: numOrNull(reaction.attributes["A"]?.value),
+      b: numOrNull(reaction.attributes["B"]?.value),
+      c: numOrNull(reaction.attributes["C"]?.value),
     };
   } else {
     for (const attribute of Object.values(reaction.attributes)) {

@@ -226,6 +226,7 @@ export const supportedReactionTypes: Array<ReactionTypeName> = [
   reactionTypes.Photolysis.type,
   reactionTypes.TernaryChemicalActivation.type,
   reactionTypes.Troe.type,
+  reactionTypes.Tunneling.type,
   reactionTypes.UserDefined.type,
 ];
 

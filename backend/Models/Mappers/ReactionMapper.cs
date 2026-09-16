@@ -27,6 +27,7 @@ public static class ReactionMapper
                 .Select(a => new ReactionStringAttributeDto { SerializationKey = a.SerializationKey, Value = a.Value })
                 .ToList(),
             Arrhenius = reaction.Arrhenius?.ToDto(),
+            Tunneling = reaction.Tunneling?.ToDto(),
             GasPhaseId = reaction.GasPhaseId,
             GasPhaseSpeciesId = reaction.GasPhaseSpeciesId,
             AerosolPhaseId = reaction.AerosolPhaseId,
@@ -54,6 +55,7 @@ public static class ReactionMapper
             NumericalAttributes = reactionDto.NumericalAttributes.Select(a => a.ToEntity()).ToList(),
             StringAttributes = reactionDto.StringAttributes.Select(a => a.ToEntity()).ToList(),
             Arrhenius = reactionDto.Arrhenius?.ToEntity(),
+            Tunneling = reactionDto.Tunneling?.ToEntity(),
             GasPhaseId = reactionDto.GasPhaseId,
             GasPhaseSpeciesId = reactionDto.GasPhaseSpeciesId,
             AerosolPhaseId = reactionDto.AerosolPhaseId,
@@ -94,5 +96,21 @@ public static class ReactionMapper
             Ea = dto.Ea,
             D = dto.D,
             E = dto.E,
+        };
+
+    public static TunnelingParametersDto ToDto(this TunnelingParameters parameters) =>
+        new TunnelingParametersDto
+        {
+            A = parameters.A,
+            B = parameters.B,
+            C = parameters.C,
+        };
+
+    public static TunnelingParameters ToEntity(this TunnelingParametersDto dto) =>
+        new TunnelingParameters
+        {
+            A = dto.A,
+            B = dto.B,
+            C = dto.C,
         };
 }

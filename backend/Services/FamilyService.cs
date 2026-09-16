@@ -45,6 +45,8 @@ public class FamilyService
                     .ThenInclude(r => r.StringAttributes)
                 .Include(f => f.Reactions)
                     .ThenInclude(r => r.Arrhenius)
+                .Include(f => f.Reactions)
+                    .ThenInclude(r => r.Tunneling)
                 .Include(f => f.Phases)
                     .ThenInclude(r => r.Species)
                 .Include(f => f.Mechanisms)
@@ -87,6 +89,8 @@ public class FamilyService
                 .ThenInclude(r => r.StringAttributes)
             .Include(f => f.Reactions)
                 .ThenInclude(r => r.Arrhenius)
+            .Include(f => f.Reactions)
+                .ThenInclude(r => r.Tunneling)
             .Include(f => f.Phases)
                 .ThenInclude(r => r.Species)
             .Include(f => f.Mechanisms)
@@ -194,6 +198,7 @@ public class FamilyService
             .Include(f => f.Reactions).ThenInclude(r => r.NumericalAttributes)
             .Include(f => f.Reactions).ThenInclude(r => r.StringAttributes)
             .Include(f => f.Reactions).ThenInclude(r => r.Arrhenius)
+            .Include(f => f.Reactions).ThenInclude(r => r.Tunneling)
             .Include(f => f.Phases).ThenInclude(p => p.Species)
             .Include(f => f.Mechanisms).ThenInclude(m => m.Species)
             .Include(f => f.Mechanisms).ThenInclude(m => m.Reactions)
@@ -418,6 +423,26 @@ public class FamilyService
                 existingArrhenius.Ea = incomingArrhenius.Ea;
                 existingArrhenius.D = incomingArrhenius.D;
                 existingArrhenius.E = incomingArrhenius.E;
+            }
+
+            // Tunneling parameters are a one-to-one row. Update in place when both
+            // sides have it, add it when new, and drop it when the incoming
+            // reaction no longer carries it (EF cascade deletes the orphan).
+            if (incomingReaction.Tunneling == null)
+            {
+                existingReaction.Tunneling = null;
+            }
+            else if (existingReaction.Tunneling == null)
+            {
+                existingReaction.Tunneling = incomingReaction.Tunneling.ToEntity();
+            }
+            else
+            {
+                TunnelingParameters existingTunneling = existingReaction.Tunneling;
+                TunnelingParametersDto incomingTunneling = incomingReaction.Tunneling;
+                existingTunneling.A = incomingTunneling.A;
+                existingTunneling.B = incomingTunneling.B;
+                existingTunneling.C = incomingTunneling.C;
             }
         });
 
