@@ -66,6 +66,17 @@ export interface APIReaction {
     b?: number | null;
     c?: number | null;
   } | null;
+  // Dedicated Troe parameters. Present only for TROE reactions.
+  troe?: {
+    k0A?: number | null;
+    k0B?: number | null;
+    k0C?: number | null;
+    kinfA?: number | null;
+    kinfB?: number | null;
+    kinfC?: number | null;
+    fc?: number | null;
+    n?: number | null;
+  } | null;
   reactants: Array<APIReactant>;
   products: Array<APIProduct>;
   gasPhaseId?: UUID | null;

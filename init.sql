@@ -674,3 +674,48 @@ DROP PROCEDURE MigrationsScript;
 
 COMMIT;
 
+START TRANSACTION;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260916163801_AddTroeParameters') THEN
+
+    CREATE TABLE `TroeParameters` (
+        `ReactionId` char(36) COLLATE ascii_general_ci NOT NULL,
+        `K0A` double NULL,
+        `K0B` double NULL,
+        `K0C` double NULL,
+        `KinfA` double NULL,
+        `KinfB` double NULL,
+        `KinfC` double NULL,
+        `Fc` double NULL,
+        `N` double NULL,
+        CONSTRAINT `PK_TroeParameters` PRIMARY KEY (`ReactionId`),
+        CONSTRAINT `FK_TroeParameters_Reactions_ReactionId` FOREIGN KEY (`ReactionId`) REFERENCES `Reactions` (`Id`) ON DELETE CASCADE
+    ) CHARACTER SET=utf8mb4;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260916163801_AddTroeParameters') THEN
+
+    INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+    VALUES ('20260916163801_AddTroeParameters', '8.0.10');
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+COMMIT;
+

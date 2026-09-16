@@ -28,6 +28,7 @@ public static class ReactionMapper
                 .ToList(),
             Arrhenius = reaction.Arrhenius?.ToDto(),
             Tunneling = reaction.Tunneling?.ToDto(),
+            Troe = reaction.Troe?.ToDto(),
             GasPhaseId = reaction.GasPhaseId,
             GasPhaseSpeciesId = reaction.GasPhaseSpeciesId,
             AerosolPhaseId = reaction.AerosolPhaseId,
@@ -56,6 +57,7 @@ public static class ReactionMapper
             StringAttributes = reactionDto.StringAttributes.Select(a => a.ToEntity()).ToList(),
             Arrhenius = reactionDto.Arrhenius?.ToEntity(),
             Tunneling = reactionDto.Tunneling?.ToEntity(),
+            Troe = reactionDto.Troe?.ToEntity(),
             GasPhaseId = reactionDto.GasPhaseId,
             GasPhaseSpeciesId = reactionDto.GasPhaseSpeciesId,
             AerosolPhaseId = reactionDto.AerosolPhaseId,
@@ -112,5 +114,31 @@ public static class ReactionMapper
             A = dto.A,
             B = dto.B,
             C = dto.C,
+        };
+
+    public static TroeParametersDto ToDto(this TroeParameters parameters) =>
+        new TroeParametersDto
+        {
+            K0A = parameters.K0A,
+            K0B = parameters.K0B,
+            K0C = parameters.K0C,
+            KinfA = parameters.KinfA,
+            KinfB = parameters.KinfB,
+            KinfC = parameters.KinfC,
+            Fc = parameters.Fc,
+            N = parameters.N,
+        };
+
+    public static TroeParameters ToEntity(this TroeParametersDto dto) =>
+        new TroeParameters
+        {
+            K0A = dto.K0A,
+            K0B = dto.K0B,
+            K0C = dto.K0C,
+            KinfA = dto.KinfA,
+            KinfB = dto.KinfB,
+            KinfC = dto.KinfC,
+            Fc = dto.Fc,
+            N = dto.N,
         };
 }

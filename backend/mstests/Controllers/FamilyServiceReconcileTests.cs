@@ -368,5 +368,73 @@ namespace ChemistryCafeAPI.Tests
             Assert.AreEqual(2.0, tunneling.B);
             Assert.AreEqual(150.0, tunneling.C);
         }
+
+        [TestMethod]
+        public async Task Create_PersistsTroeParameters()
+        {
+            FamilyDto dto = BuildBaseFamily();
+            dto.Reactions.Single().Troe = new TroeParametersDto
+            {
+                K0A = 1.2e-11,
+                K0B = 0.0,
+                K0C = 300.0,
+                KinfA = 1.0,
+                KinfB = 0.0,
+                KinfC = 0.0,
+                Fc = 0.6,
+                N = 1.0,
+            };
+            await CreateBaseFamilyAsync(dto);
+
+            Family reloaded = await ReloadAsync(dto.Id);
+            TroeParameters? troe = reloaded.Reactions.Single().Troe;
+            Assert.IsNotNull(troe);
+            Assert.AreEqual(1.2e-11, troe!.K0A);
+            Assert.AreEqual(300.0, troe.K0C);
+            Assert.AreEqual(1.0, troe.KinfA);
+            Assert.AreEqual(0.6, troe.Fc);
+            Assert.AreEqual(1.0, troe.N);
+        }
+
+        [TestMethod]
+        public async Task Update_ChangesTroeParameters()
+        {
+            FamilyDto dto = BuildBaseFamily();
+            dto.Reactions.Single().Troe = new TroeParametersDto
+            {
+                K0A = 1.0,
+                K0B = 0.0,
+                K0C = 0.0,
+                KinfA = 1.0,
+                KinfB = 0.0,
+                KinfC = 0.0,
+                Fc = 0.6,
+                N = 1.0,
+            };
+            await CreateBaseFamilyAsync(dto);
+
+            dto.Reactions.Single().Troe = new TroeParametersDto
+            {
+                K0A = 5.0,
+                K0B = 2.0,
+                K0C = 150.0,
+                KinfA = 3.0,
+                KinfB = 1.0,
+                KinfC = 50.0,
+                Fc = 0.4,
+                N = 2.0,
+            };
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            Family reloaded = await ReloadAsync(dto.Id);
+            TroeParameters? troe = reloaded.Reactions.Single().Troe;
+            Assert.IsNotNull(troe);
+            Assert.AreEqual(5.0, troe!.K0A);
+            Assert.AreEqual(2.0, troe.K0B);
+            Assert.AreEqual(150.0, troe.K0C);
+            Assert.AreEqual(3.0, troe.KinfA);
+            Assert.AreEqual(0.4, troe.Fc);
+            Assert.AreEqual(2.0, troe.N);
+        }
     }
 }
