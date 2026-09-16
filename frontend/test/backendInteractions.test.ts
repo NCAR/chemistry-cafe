@@ -259,6 +259,51 @@ describe("Arrhenius parameter translation", () => {
   });
 });
 
+describe("Tunneling parameter translation", () => {
+  const tunnelingReaction: Reaction = {
+    id: "00000000-0000-0000-0000-000000000000",
+    name: "tun",
+    description: "",
+    type: "TUNNELING",
+    reactants: [],
+    products: [],
+    attributes: {
+      A: { serializationKey: "A", value: 1.2e-11 },
+      B: { serializationKey: "B", value: 0 },
+      C: { serializationKey: "C", value: 300 },
+    },
+  };
+
+  test("frontendToAPIReaction writes params to the tunneling field, not the attribute lists", () => {
+    const result = frontendToAPIReaction(tunnelingReaction, frontendFamily);
+    expect(result.tunneling).toEqual({
+      a: 1.2e-11,
+      b: 0,
+      c: 300,
+    });
+    expect(result.numericalAttributes).toHaveLength(0);
+    expect(result.stringAttributes).toHaveLength(0);
+  });
+
+  test("apiToFrontendReaction reads the tunneling field into the attribute bag", () => {
+    const apiTunneling: APIReaction = {
+      id: "00000000-0000-0000-0000-000000000000",
+      name: "tun",
+      reactionType: "TUNNELING",
+      numericalAttributes: [],
+      stringAttributes: [],
+      tunneling: { a: 1.2e-11, b: 0, c: 300 },
+      reactants: [],
+      products: [],
+      familyId: "00000000-0000-0000-0000-000000000000",
+    };
+    const result = apiToFrontendReaction(apiTunneling);
+    expect(result.attributes["A"].value).toBe(1.2e-11);
+    expect(result.attributes["B"].value).toBe(0);
+    expect(result.attributes["C"].value).toBe(300);
+  });
+});
+
 describe("Phase Conversion", () => {
   test("Conversion from frontend to backend definition", () => {
     const result = frontendToAPIPhase(frontendPhase, frontendFamily);

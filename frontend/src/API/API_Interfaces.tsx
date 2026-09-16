@@ -60,6 +60,12 @@ export interface APIReaction {
     d?: number | null;
     e?: number | null;
   } | null;
+  // Dedicated Tunneling parameters. Present only for TUNNELING reactions.
+  tunneling?: {
+    a?: number | null;
+    b?: number | null;
+    c?: number | null;
+  } | null;
   reactants: Array<APIReactant>;
   products: Array<APIProduct>;
   gasPhaseId?: UUID | null;
