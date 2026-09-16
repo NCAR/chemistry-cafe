@@ -190,6 +190,39 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
     }
   }
 
+  // Ternary Chemical Activation reactions store their parameters in a
+  // dedicated table. Read them back into the attribute bag, keyed by the
+  // serialization key the editor uses.
+  if (
+    apiReaction.reactionType === "TERNARY_CHEMICAL_ACTIVATION" &&
+    apiReaction.ternaryChemicalActivation
+  ) {
+    const tcaValues: Record<string, number | null | undefined> = {
+      k0_A: apiReaction.ternaryChemicalActivation.k0A,
+      k0_B: apiReaction.ternaryChemicalActivation.k0B,
+      k0_C: apiReaction.ternaryChemicalActivation.k0C,
+      kinf_A: apiReaction.ternaryChemicalActivation.kinfA,
+      kinf_B: apiReaction.ternaryChemicalActivation.kinfB,
+      kinf_C: apiReaction.ternaryChemicalActivation.kinfC,
+      Fc: apiReaction.ternaryChemicalActivation.fc,
+      N: apiReaction.ternaryChemicalActivation.n,
+    };
+    for (const [serializationKey, value] of Object.entries(tcaValues)) {
+      if (value === null || value === undefined) {
+        continue;
+      }
+      const defaultAttribute =
+        reactionAttributeOptions.TERNARY_CHEMICAL_ACTIVATION?.find(
+          (e) => e.serializationKey === serializationKey,
+        );
+      formattedReaction.attributes[serializationKey] = {
+        ...defaultAttribute,
+        serializationKey,
+        value,
+      };
+    }
+  }
+
   return formattedReaction;
 }
 
@@ -247,6 +280,17 @@ export function frontendToAPIReaction(
     };
   } else if (reaction.type === "TROE") {
     formattedReaction.troe = {
+      k0A: numOrNull(reaction.attributes["k0_A"]?.value),
+      k0B: numOrNull(reaction.attributes["k0_B"]?.value),
+      k0C: numOrNull(reaction.attributes["k0_C"]?.value),
+      kinfA: numOrNull(reaction.attributes["kinf_A"]?.value),
+      kinfB: numOrNull(reaction.attributes["kinf_B"]?.value),
+      kinfC: numOrNull(reaction.attributes["kinf_C"]?.value),
+      fc: numOrNull(reaction.attributes["Fc"]?.value),
+      n: numOrNull(reaction.attributes["N"]?.value),
+    };
+  } else if (reaction.type === "TERNARY_CHEMICAL_ACTIVATION") {
+    formattedReaction.ternaryChemicalActivation = {
       k0A: numOrNull(reaction.attributes["k0_A"]?.value),
       k0B: numOrNull(reaction.attributes["k0_B"]?.value),
       k0C: numOrNull(reaction.attributes["k0_C"]?.value),

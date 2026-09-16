@@ -77,6 +77,18 @@ export interface APIReaction {
     fc?: number | null;
     n?: number | null;
   } | null;
+  // Dedicated Ternary Chemical Activation parameters. Present only for
+  // TERNARY_CHEMICAL_ACTIVATION reactions.
+  ternaryChemicalActivation?: {
+    k0A?: number | null;
+    k0B?: number | null;
+    k0C?: number | null;
+    kinfA?: number | null;
+    kinfB?: number | null;
+    kinfC?: number | null;
+    fc?: number | null;
+    n?: number | null;
+  } | null;
   reactants: Array<APIReactant>;
   products: Array<APIProduct>;
   gasPhaseId?: UUID | null;
