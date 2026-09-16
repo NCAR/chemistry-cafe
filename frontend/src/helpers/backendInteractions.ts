@@ -147,9 +147,7 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
       B: apiReaction.tunneling.b,
       C: apiReaction.tunneling.c,
     };
-    for (const [serializationKey, value] of Object.entries(
-      tunnelingValues,
-    )) {
+    for (const [serializationKey, value] of Object.entries(tunnelingValues)) {
       if (value === null || value === undefined) {
         continue;
       }
