@@ -47,6 +47,8 @@ public class FamilyService
                     .ThenInclude(r => r.Arrhenius)
                 .Include(f => f.Reactions)
                     .ThenInclude(r => r.Tunneling)
+                .Include(f => f.Reactions)
+                    .ThenInclude(r => r.Troe)
                 .Include(f => f.Phases)
                     .ThenInclude(r => r.Species)
                 .Include(f => f.Mechanisms)
@@ -91,6 +93,8 @@ public class FamilyService
                 .ThenInclude(r => r.Arrhenius)
             .Include(f => f.Reactions)
                 .ThenInclude(r => r.Tunneling)
+            .Include(f => f.Reactions)
+                .ThenInclude(r => r.Troe)
             .Include(f => f.Phases)
                 .ThenInclude(r => r.Species)
             .Include(f => f.Mechanisms)
@@ -199,6 +203,7 @@ public class FamilyService
             .Include(f => f.Reactions).ThenInclude(r => r.StringAttributes)
             .Include(f => f.Reactions).ThenInclude(r => r.Arrhenius)
             .Include(f => f.Reactions).ThenInclude(r => r.Tunneling)
+            .Include(f => f.Reactions).ThenInclude(r => r.Troe)
             .Include(f => f.Phases).ThenInclude(p => p.Species)
             .Include(f => f.Mechanisms).ThenInclude(m => m.Species)
             .Include(f => f.Mechanisms).ThenInclude(m => m.Reactions)
@@ -443,6 +448,31 @@ public class FamilyService
                 existingTunneling.A = incomingTunneling.A;
                 existingTunneling.B = incomingTunneling.B;
                 existingTunneling.C = incomingTunneling.C;
+            }
+
+            // Troe parameters are a one-to-one row. Update in place when both
+            // sides have it, add it when new, and drop it when the incoming
+            // reaction no longer carries it (EF cascade deletes the orphan).
+            if (incomingReaction.Troe == null)
+            {
+                existingReaction.Troe = null;
+            }
+            else if (existingReaction.Troe == null)
+            {
+                existingReaction.Troe = incomingReaction.Troe.ToEntity();
+            }
+            else
+            {
+                TroeParameters existingTroe = existingReaction.Troe;
+                TroeParametersDto incomingTroe = incomingReaction.Troe;
+                existingTroe.K0A = incomingTroe.K0A;
+                existingTroe.K0B = incomingTroe.K0B;
+                existingTroe.K0C = incomingTroe.K0C;
+                existingTroe.KinfA = incomingTroe.KinfA;
+                existingTroe.KinfB = incomingTroe.KinfB;
+                existingTroe.KinfC = incomingTroe.KinfC;
+                existingTroe.Fc = incomingTroe.Fc;
+                existingTroe.N = incomingTroe.N;
             }
         });
 

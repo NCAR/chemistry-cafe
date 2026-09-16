@@ -73,6 +73,13 @@ public partial class ChemistryDbContext : DbContext
             .HasForeignKey<TunnelingParameters>(t => t.ReactionId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // Troe parameters share the reaction primary key (one-to-one).
+        modelBuilder.Entity<Reaction>()
+            .HasOne(r => r.Troe)
+            .WithOne(t => t.Reaction)
+            .HasForeignKey<TroeParameters>(t => t.ReactionId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         modelBuilder.Entity<Reactant>()
             .HasOne(r => r.Species)
             .WithMany(s => s.AsReactant)

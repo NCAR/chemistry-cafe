@@ -26,6 +26,9 @@ public class Reaction
     // Dedicated parameter table for Tunneling reactions. Null for other types.
     public TunnelingParameters? Tunneling { get; set; }
 
+    // Dedicated parameter table for Troe reactions. Null for other types.
+    public TroeParameters? Troe { get; set; }
+
 
     // Collections of reactants and products (must be species from the same family)
     public ICollection<Reactant> Reactants { get; set; } = new List<Reactant>();
@@ -147,6 +150,30 @@ public class TunnelingParameters
     public double? A { get; set; }
     public double? B { get; set; }
     public double? C { get; set; }
+}
+
+/// <summary>
+/// Dedicated parameters for a Troe (fall-off) reaction. Has a one-to-one
+/// relationship with a reaction: ReactionId is both the primary key and the
+/// foreign key. All columns are nullable so an unset value stays unset.
+/// </summary>
+[Table("TroeParameters")]
+public class TroeParameters
+{
+    [Key]
+    public Guid ReactionId { get; set; }
+
+    [JsonIgnore]
+    public Reaction? Reaction { get; set; }
+
+    public double? K0A { get; set; }
+    public double? K0B { get; set; }
+    public double? K0C { get; set; }
+    public double? KinfA { get; set; }
+    public double? KinfB { get; set; }
+    public double? KinfC { get; set; }
+    public double? Fc { get; set; }
+    public double? N { get; set; }
 }
 
 /// <summary>
