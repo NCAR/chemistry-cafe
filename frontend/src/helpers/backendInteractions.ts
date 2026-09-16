@@ -164,6 +164,34 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
     }
   }
 
+  // Troe reactions store their parameters in a dedicated table. Read them
+  // back into the attribute bag, keyed by the serialization key the editor uses.
+  if (apiReaction.reactionType === "TROE" && apiReaction.troe) {
+    const troeValues: Record<string, number | null | undefined> = {
+      k0_A: apiReaction.troe.k0A,
+      k0_B: apiReaction.troe.k0B,
+      k0_C: apiReaction.troe.k0C,
+      kinf_A: apiReaction.troe.kinfA,
+      kinf_B: apiReaction.troe.kinfB,
+      kinf_C: apiReaction.troe.kinfC,
+      Fc: apiReaction.troe.fc,
+      N: apiReaction.troe.n,
+    };
+    for (const [serializationKey, value] of Object.entries(troeValues)) {
+      if (value === null || value === undefined) {
+        continue;
+      }
+      const defaultAttribute = reactionAttributeOptions.TROE?.find(
+        (e) => e.serializationKey === serializationKey,
+      );
+      formattedReaction.attributes[serializationKey] = {
+        ...defaultAttribute,
+        serializationKey,
+        value,
+      };
+    }
+  }
+
   return formattedReaction;
 }
 
@@ -218,6 +246,17 @@ export function frontendToAPIReaction(
       a: numOrNull(reaction.attributes["A"]?.value),
       b: numOrNull(reaction.attributes["B"]?.value),
       c: numOrNull(reaction.attributes["C"]?.value),
+    };
+  } else if (reaction.type === "TROE") {
+    formattedReaction.troe = {
+      k0A: numOrNull(reaction.attributes["k0_A"]?.value),
+      k0B: numOrNull(reaction.attributes["k0_B"]?.value),
+      k0C: numOrNull(reaction.attributes["k0_C"]?.value),
+      kinfA: numOrNull(reaction.attributes["kinf_A"]?.value),
+      kinfB: numOrNull(reaction.attributes["kinf_B"]?.value),
+      kinfC: numOrNull(reaction.attributes["kinf_C"]?.value),
+      fc: numOrNull(reaction.attributes["Fc"]?.value),
+      n: numOrNull(reaction.attributes["N"]?.value),
     };
   } else {
     for (const attribute of Object.values(reaction.attributes)) {
