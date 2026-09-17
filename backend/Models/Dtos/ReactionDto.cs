@@ -29,6 +29,10 @@ public class ReactionDto
     // still carry their parameters in the attribute lists above.
     public TroeParametersDto? Troe { get; set; }
 
+    // Dedicated parameters for Ternary Chemical Activation reactions. Null for
+    // other types, which still carry their parameters in the attribute lists above.
+    public TernaryChemicalActivationParametersDto? TernaryChemicalActivation { get; set; }
+
     public Guid? GasPhaseId { get; set; }
     public Guid? GasPhaseSpeciesId { get; set; }
     public Guid? AerosolPhaseId { get; set; }
@@ -67,6 +71,18 @@ public class TunnelingParametersDto
 }
 
 public class TroeParametersDto
+{
+    public double? K0A { get; set; }
+    public double? K0B { get; set; }
+    public double? K0C { get; set; }
+    public double? KinfA { get; set; }
+    public double? KinfB { get; set; }
+    public double? KinfC { get; set; }
+    public double? Fc { get; set; }
+    public double? N { get; set; }
+}
+
+public class TernaryChemicalActivationParametersDto
 {
     public double? K0A { get; set; }
     public double? K0B { get; set; }

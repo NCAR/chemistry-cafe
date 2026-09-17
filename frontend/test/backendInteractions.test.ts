@@ -370,6 +370,72 @@ describe("Troe parameter translation", () => {
   });
 });
 
+describe("Ternary Chemical Activation parameter translation", () => {
+  const tcaReaction: Reaction = {
+    id: "00000000-0000-0000-0000-000000000000",
+    name: "tca",
+    description: "",
+    type: "TERNARY_CHEMICAL_ACTIVATION",
+    reactants: [],
+    products: [],
+    attributes: {
+      k0_A: { serializationKey: "k0_A", value: 1.2e-11 },
+      k0_B: { serializationKey: "k0_B", value: 0 },
+      k0_C: { serializationKey: "k0_C", value: 300 },
+      kinf_A: { serializationKey: "kinf_A", value: 1.0 },
+      kinf_B: { serializationKey: "kinf_B", value: 0 },
+      kinf_C: { serializationKey: "kinf_C", value: 0 },
+      Fc: { serializationKey: "Fc", value: 0.6 },
+      N: { serializationKey: "N", value: 1.0 },
+    },
+  };
+
+  test("frontendToAPIReaction writes params to the ternaryChemicalActivation field, not the attribute lists", () => {
+    const result = frontendToAPIReaction(tcaReaction, frontendFamily);
+    expect(result.ternaryChemicalActivation).toEqual({
+      k0A: 1.2e-11,
+      k0B: 0,
+      k0C: 300,
+      kinfA: 1.0,
+      kinfB: 0,
+      kinfC: 0,
+      fc: 0.6,
+      n: 1.0,
+    });
+    expect(result.numericalAttributes).toHaveLength(0);
+    expect(result.stringAttributes).toHaveLength(0);
+  });
+
+  test("apiToFrontendReaction reads the ternaryChemicalActivation field into the attribute bag", () => {
+    const apiTca: APIReaction = {
+      id: "00000000-0000-0000-0000-000000000000",
+      name: "tca",
+      reactionType: "TERNARY_CHEMICAL_ACTIVATION",
+      numericalAttributes: [],
+      stringAttributes: [],
+      ternaryChemicalActivation: {
+        k0A: 1.2e-11,
+        k0B: 0,
+        k0C: 300,
+        kinfA: 1.0,
+        kinfB: 0,
+        kinfC: 0,
+        fc: 0.6,
+        n: 1.0,
+      },
+      reactants: [],
+      products: [],
+      familyId: "00000000-0000-0000-0000-000000000000",
+    };
+    const result = apiToFrontendReaction(apiTca);
+    expect(result.attributes["k0_A"].value).toBe(1.2e-11);
+    expect(result.attributes["k0_C"].value).toBe(300);
+    expect(result.attributes["kinf_A"].value).toBe(1.0);
+    expect(result.attributes["Fc"].value).toBe(0.6);
+    expect(result.attributes["N"].value).toBe(1.0);
+  });
+});
+
 describe("Phase Conversion", () => {
   test("Conversion from frontend to backend definition", () => {
     const result = frontendToAPIPhase(frontendPhase, frontendFamily);

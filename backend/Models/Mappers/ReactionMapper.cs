@@ -29,6 +29,7 @@ public static class ReactionMapper
             Arrhenius = reaction.Arrhenius?.ToDto(),
             Tunneling = reaction.Tunneling?.ToDto(),
             Troe = reaction.Troe?.ToDto(),
+            TernaryChemicalActivation = reaction.TernaryChemicalActivation?.ToDto(),
             GasPhaseId = reaction.GasPhaseId,
             GasPhaseSpeciesId = reaction.GasPhaseSpeciesId,
             AerosolPhaseId = reaction.AerosolPhaseId,
@@ -58,6 +59,7 @@ public static class ReactionMapper
             Arrhenius = reactionDto.Arrhenius?.ToEntity(),
             Tunneling = reactionDto.Tunneling?.ToEntity(),
             Troe = reactionDto.Troe?.ToEntity(),
+            TernaryChemicalActivation = reactionDto.TernaryChemicalActivation?.ToEntity(),
             GasPhaseId = reactionDto.GasPhaseId,
             GasPhaseSpeciesId = reactionDto.GasPhaseSpeciesId,
             AerosolPhaseId = reactionDto.AerosolPhaseId,
@@ -131,6 +133,32 @@ public static class ReactionMapper
 
     public static TroeParameters ToEntity(this TroeParametersDto dto) =>
         new TroeParameters
+        {
+            K0A = dto.K0A,
+            K0B = dto.K0B,
+            K0C = dto.K0C,
+            KinfA = dto.KinfA,
+            KinfB = dto.KinfB,
+            KinfC = dto.KinfC,
+            Fc = dto.Fc,
+            N = dto.N,
+        };
+
+    public static TernaryChemicalActivationParametersDto ToDto(this TernaryChemicalActivationParameters parameters) =>
+        new TernaryChemicalActivationParametersDto
+        {
+            K0A = parameters.K0A,
+            K0B = parameters.K0B,
+            K0C = parameters.K0C,
+            KinfA = parameters.KinfA,
+            KinfB = parameters.KinfB,
+            KinfC = parameters.KinfC,
+            Fc = parameters.Fc,
+            N = parameters.N,
+        };
+
+    public static TernaryChemicalActivationParameters ToEntity(this TernaryChemicalActivationParametersDto dto) =>
+        new TernaryChemicalActivationParameters
         {
             K0A = dto.K0A,
             K0B = dto.K0B,

@@ -80,6 +80,13 @@ public partial class ChemistryDbContext : DbContext
             .HasForeignKey<TroeParameters>(t => t.ReactionId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // Ternary Chemical Activation parameters share the reaction primary key (one-to-one).
+        modelBuilder.Entity<Reaction>()
+            .HasOne(r => r.TernaryChemicalActivation)
+            .WithOne(t => t.Reaction)
+            .HasForeignKey<TernaryChemicalActivationParameters>(t => t.ReactionId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         modelBuilder.Entity<Reactant>()
             .HasOne(r => r.Species)
             .WithMany(s => s.AsReactant)
