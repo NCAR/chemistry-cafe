@@ -18,16 +18,19 @@ import {
 // Style Guide. These are fixed brand values, not user-configurable.
 const ncarBlue = "#0057C2";
 const darkBlue = "#00357A";
-const space = "#011837";
 const lightBlue = "#42C0FF";
 const orange = "#FAA119";
 const ink = "#1F2937";
 const muted = "#5F6368";
-// Dark-mode card/panel surfaces. The brand's own "Dark Blue" swatch is too
-// vivid to use as a UI surface at this scale (it is meant for large hero
-// blocks, not every card), so dark-mode panels use a desaturated, slightly
-// lighter navy instead, keeping Light Blue as the only vivid accent.
-const darkSurface = "#152A45";
+// Dark-mode surfaces. The brand's own "Dark Blue" and "Space" swatches are
+// meant for large hero blocks, not for every card and panel in a dense UI,
+// and tinting every surface toward navy read as "very blue" rather than
+// dark. Dark mode instead uses neutral near-black grays, the same values
+// Material Design's own dark theme uses, so Light Blue and Orange stay the
+// only colors in the interface.
+const nearBlack = "#121212";
+const darkSurface = "#1E1E1E";
+const lightGrey = "#B3B3B3";
 
 export type ColorModePreference = "system" | "light" | "dark";
 
@@ -109,12 +112,12 @@ const getThemeOptions = (settings: AppearanceSettings): ThemeOptionsType => {
         contrastText: darkBlue,
       },
       background: {
-        default: isDark ? space : "#FFFFFF",
+        default: isDark ? nearBlack : "#FFFFFF",
         paper: isDark ? darkSurface : "#FFFFFF",
       },
       text: {
         primary: isDark ? "#FFFFFF" : ink,
-        secondary: isDark ? "#B9C4D3" : muted,
+        secondary: isDark ? lightGrey : muted,
       },
       divider: isDark ? "rgba(255, 255, 255, 0.16)" : "#D8D6D2",
     },
