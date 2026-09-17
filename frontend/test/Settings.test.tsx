@@ -70,19 +70,16 @@ describe("Settings Page", () => {
     fireEvent.click(userSettingsButton);
   });
 
-  it("Can toggle different button color palettes", () => {
-    const darkThemeButton = screen.getByTestId("toggle-dark-theme");
-    const lowSaturationButton = screen.getByTestId(
-      "toggle-low-saturation-theme",
-    );
-    const highSaturationButton = screen.getByTestId(
-      "toggle-high-saturation-theme",
-    );
-    const monochromeButton = screen.getByTestId("toggle-monochrome-theme");
+  it("Can switch between system, light, and dark theme", () => {
+    const appearanceButton = screen.getByText("Appearance");
+    fireEvent.click(appearanceButton);
 
-    fireEvent.click(darkThemeButton);
-    fireEvent.click(lowSaturationButton);
-    fireEvent.click(highSaturationButton);
-    fireEvent.click(monochromeButton);
+    const lightButton = screen.getByLabelText("use light theme");
+    const darkButton = screen.getByLabelText("use dark theme");
+    const systemButton = screen.getByLabelText("use system theme");
+
+    fireEvent.click(darkButton);
+    fireEvent.click(lightButton);
+    fireEvent.click(systemButton);
   });
 });

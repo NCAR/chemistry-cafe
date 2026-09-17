@@ -62,7 +62,7 @@ const FamilyPage = () => {
   const [openImportMenu, setOpenImportMenu] = useState<boolean>(false); // Used when user attempts to import families
   const { user } = useAuth();
   const currentMenuName = useRef<string>(DataViewSelection.Default);
-  const { appearanceSettings } = useCustomTheme();
+  const { theme } = useCustomTheme();
 
   const updateFamily = (family: Family): void => {
     setFamilies((families) => {
@@ -324,8 +324,7 @@ const FamilyPage = () => {
               justifyContent: "space-between",
               alignItems: "center",
               padding: "10px",
-              backgroundColor:
-                appearanceSettings.mode === "dark" ? "#1a1a1a" : "#f0f0f0",
+              backgroundColor: theme.palette.action.hover,
             }}
             square
             variant="outlined"

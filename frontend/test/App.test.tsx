@@ -7,8 +7,8 @@ import App from "../src/pages/App";
 // Define the routes and expected texts
 describe("App Component", () => {
   const routes = [
-    ["/", "Chemistry Cafe"],
-    ["/dashboard", "Settings"],
+    ["/", "Chemical Mechanism Management Software"],
+    ["/dashboard", "Browse Families & Mechanisms"],
     ["/familyeditor", "Families"],
     ["/settings", "Appearance"],
   ];

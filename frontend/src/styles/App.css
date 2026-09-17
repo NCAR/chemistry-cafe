@@ -20,7 +20,7 @@
 
 /* Style for the banner */
 .banner {
-  background-color: #00797c;
+  background-color: #00357a; /* NCAR brand Dark Blue */
   color: #fff;
   font-size: 14px;
   text-align: center;
@@ -44,7 +44,7 @@
 }
 
 .banner a:hover {
-  color: #003366; /* Color on hover */
+  color: #42c0ff; /* NCAR brand Light Blue */
   text-decoration: none;
 }
 

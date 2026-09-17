@@ -4,6 +4,7 @@ import Settings from "./Settings.tsx";
 import Dashboard from "./Dashboard.tsx";
 import FamilyEditor from "./FamilyEditor.tsx";
 import Home from "./Home.tsx";
+import About from "./About.tsx";
 import UserManagement from "./UserManagement.tsx";
 import NoAccess from "./Unauthorized.tsx";
 import { AuthProvider } from "../components/AuthContext";
@@ -25,6 +26,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/familyeditor" element={<FamilyEditor />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/about" element={<About />} />
             <Route path="/unauthorized" element={<NoAccess />} />
             {/* Protected route for the Roles page */}
             <Route

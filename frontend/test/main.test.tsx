@@ -7,7 +7,7 @@ import "@testing-library/jest-dom";
 
 describe("Root Component Rendering", () => {
   it("renders the App component without crashing", () => {
-    const { getByText } = render(
+    const { getAllByText } = render(
       <BrowserRouter>
         <React.StrictMode>
           <App />
@@ -17,6 +17,7 @@ describe("Root Component Rendering", () => {
 
     // Adjust according to what you expect to be rendered by App initially
     // Replace 'Home' with any text or element present on the initial render
-    expect(getByText(/Chemistry Cafe/i)).toBeInTheDocument();
+    // "Chemistry Cafe" appears both in the header brand link and the page heading.
+    expect(getAllByText(/Chemistry Cafe/i).length).toBeGreaterThan(0);
   });
 });

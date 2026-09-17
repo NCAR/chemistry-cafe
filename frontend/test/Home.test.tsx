@@ -3,7 +3,6 @@ import {
   render,
   screen,
   fireEvent,
-  waitFor,
   cleanup,
   act,
 } from "@testing-library/react";
@@ -11,6 +10,7 @@ import React from "react";
 import Home from "../src/pages/Home";
 import { MemoryRouter } from "react-router-dom";
 import { AuthProvider } from "../src/components/AuthContext";
+import { CustomThemeProvider } from "../src/components/CustomThemeContext";
 import { APIUser } from "../src/API/API_Interfaces";
 import axios, { AxiosHeaders, AxiosResponse } from "axios";
 
@@ -47,11 +47,13 @@ describe("Unauthenticated Home Component", () => {
     vi.spyOn(axios, "post").mockResolvedValue(createMockUserData());
 
     render(
-      <AuthProvider>
-        <MemoryRouter initialEntries={["/", "/loggedIn"]}>
-          <Home />
-        </MemoryRouter>
-      </AuthProvider>,
+      <CustomThemeProvider>
+        <AuthProvider>
+          <MemoryRouter initialEntries={["/", "/loggedIn"]}>
+            <Home />
+          </MemoryRouter>
+        </AuthProvider>
+      </CustomThemeProvider>,
     );
   });
 
@@ -61,25 +63,17 @@ describe("Unauthenticated Home Component", () => {
     cleanup();
   });
 
-  it("should render the login button and the guest button", () => {
-    expect(screen.getByText("Sign in")).toBeTruthy(); // Check presence of the login button
-    expect(screen.getByText("Continue as Guest")).toBeTruthy(); // Check presence of the guest button
+  it("should render the sign-in button in the header and the family navigation buttons", () => {
+    expect(screen.getByText("Sign in")).toBeTruthy(); // Header sign-in button
+    expect(
+      screen.getByRole("button", { name: "Browse Mechanisms" }),
+    ).toBeTruthy();
+    expect(screen.getByRole("button", { name: "My Families" })).toBeTruthy();
   });
 
-  it("should open and close the About modal", async () => {
-    const aboutButton = screen.getAllByRole("button", { name: "About" })[0];
-    fireEvent.click(aboutButton);
-
-    // Assert that modal is open
-    expect(screen.getByText("Credits")).toBeTruthy();
-
-    // Simulate a click outside the modal to close it
-    fireEvent.click(document.body);
-
-    // Wait for the modal to be closed
-    await waitFor(() => {
-      expect(screen.queryByText("Kyle Shores")).toBeFalsy();
-    });
+  it("links to the About page", () => {
+    const aboutLink = screen.getAllByRole("link", { name: /About/i })[0];
+    expect(aboutLink).toHaveAttribute("href", "/about");
   });
 
   it("navigates to the backend when signing in", () => {
@@ -89,10 +83,9 @@ describe("Unauthenticated Home Component", () => {
     expect(window.location.assign).toHaveBeenCalledOnce(); // Redirect to backend auth/google/login endpoint
   });
 
-  it("navigates when continuing as a guest", () => {
-    const loginButton = screen.getByText("Continue as Guest");
-    expect(loginButton).toBeTruthy();
-    fireEvent.click(loginButton);
+  it("navigates when browsing families or opening the family editor", () => {
+    fireEvent.click(screen.getByRole("button", { name: "Browse Mechanisms" }));
+    fireEvent.click(screen.getByRole("button", { name: "My Families" }));
   });
 });
 
@@ -131,11 +124,13 @@ describe.each([
     } as any;
     localStorage.setItem("user", JSON.stringify(cachedUserInfo));
     render(
-      <AuthProvider>
-        <MemoryRouter initialEntries={["/", "/loggedIn"]}>
-          <Home />
-        </MemoryRouter>
-      </AuthProvider>,
+      <CustomThemeProvider>
+        <AuthProvider>
+          <MemoryRouter initialEntries={["/", "/loggedIn"]}>
+            <Home />
+          </MemoryRouter>
+        </AuthProvider>
+      </CustomThemeProvider>,
     );
 
     await act(() => axios.get); // Allows the initial useLayoutEffect to fire
@@ -147,39 +142,18 @@ describe.each([
     localStorage.clear();
   });
 
-  it("shows different buttons when logged in", () => {
+  it("shows the logout control and the family navigation buttons", () => {
+    expect(screen.getByText("Logout")).toBeTruthy();
     expect(
-      screen.getByText(`Continue as ${mockUserInfo.username}`),
+      screen.getByRole("button", { name: "Browse Mechanisms" }),
     ).toBeTruthy();
-    expect(screen.getByText("Switch Account")).toBeTruthy();
-    expect(screen.getByText("Continue as Guest")).toBeTruthy();
-  });
-
-  it("navigates to the backend when switching accounts", () => {
-    const loginButton = screen.getByText("Switch Account");
-    expect(loginButton).toBeTruthy();
-    fireEvent.click(loginButton);
-    expect(window.location.assign).toHaveBeenCalledOnce(); // Redirect to backend auth/google/login endpoint
-  });
-
-  it("navigates to the backend when continuing as a guest", () => {
-    const guestButton = screen.getByText("Continue as Guest");
-    expect(guestButton).toBeTruthy();
-    fireEvent.click(guestButton);
-    expect(window.location.assign).toHaveBeenCalledOnce();
+    expect(screen.getByRole("button", { name: "My Families" })).toBeTruthy();
   });
 
   it("removes user from local storage when logging out", () => {
-    expect(document.getElementById("side-nav-button")).toBeTruthy();
     expect(localStorage.getItem("user")).toBeTruthy();
 
-    // Open side nav
-    const hamburgerMenu: HTMLElement =
-      document.getElementById("side-nav-button")!;
-    fireEvent.click(hamburgerMenu);
-
-    // Click logout button
-    const logoutButton = screen.getByText("Log Out");
+    const logoutButton = screen.getByText("Logout");
     fireEvent.click(logoutButton);
 
     expect(window.location.assign).toHaveBeenCalledOnce(); // Redirect to backend auth/google/logout endpoint
