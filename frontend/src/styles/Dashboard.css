@@ -7,21 +7,5 @@
 
 .content-dashboard {
   flex: 1;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-}
-
-.dashboard-navigation-buttons {
-  grid-column: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  row-gap: 1rem;
-  padding-top: 2rem;
-}
-
-.dashboard-family-explorer {
-  grid-column-start: 2;
-  grid-column-end: 4;
-  padding-right: 4vw;
+  padding: 2rem 4vw;
 }

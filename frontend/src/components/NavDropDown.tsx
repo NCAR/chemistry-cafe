@@ -7,10 +7,10 @@ import ListItemButton from "@mui/material/ListItemButton";
 import { useAuth } from "./AuthContext.tsx"; // Import useAuth to get the user data
 import { AUTH_URL } from "../API/API_config";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
-import ScienceIcon from "@mui/icons-material/Science";
 import HomeIcon from "@mui/icons-material/Home";
 import LogoutIcon from "@mui/icons-material/Logout";
-import DashboardIcon from "@mui/icons-material/Dashboard";
+import TravelExploreIcon from "@mui/icons-material/TravelExplore";
+import FolderSpecialIcon from "@mui/icons-material/FolderSpecial";
 import SettingsIcon from "@mui/icons-material/Settings";
 import { ListItemIcon } from "@mui/material";
 import { clearFamiliesLocally } from "../helpers/localFamilies.ts";
@@ -39,20 +39,20 @@ const NavDropDown = () => {
         </ListItem>
 
         <ListItem disablePadding>
-          <ListItemButton component={Link} to="/familyeditor">
+          <ListItemButton component={Link} to="/dashboard">
             <ListItemIcon>
-              <ScienceIcon />
+              <TravelExploreIcon />
             </ListItemIcon>
-            <ListItemText primary={"Family Editor"} />
+            <ListItemText primary={"Browse"} />
           </ListItemButton>
         </ListItem>
 
         <ListItem disablePadding>
-          <ListItemButton component={Link} to="/dashboard">
+          <ListItemButton component={Link} to="/familyeditor">
             <ListItemIcon>
-              <DashboardIcon />
+              <FolderSpecialIcon />
             </ListItemIcon>
-            <ListItemText primary={"Dashboard"} />
+            <ListItemText primary={"My Families"} />
           </ListItemButton>
         </ListItem>
 

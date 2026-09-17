@@ -23,18 +23,6 @@ const mockUserInfo: APIUser = {
   id: "0000-0000-0000-0000-0000",
 };
 
-function familiesResponse(): AxiosResponse {
-  return {
-    data: [],
-    status: 200,
-    statusText: "OK",
-    headers: {},
-    config: {
-      headers: new AxiosHeaders({ "Content-Type": "text/plain" }),
-    },
-  } as AxiosResponse;
-}
-
 describe("Unauthenticated Home Component", () => {
   const originalLocation = window.location;
 
@@ -55,11 +43,7 @@ describe("Unauthenticated Home Component", () => {
       ...originalLocation,
       assign: vi.fn((_: string | URL) => {}),
     } as any;
-    vi.spyOn(axios, "get").mockImplementation((url: string) =>
-      Promise.resolve(
-        url.includes("/families") ? familiesResponse() : createMockUserData(),
-      ),
-    );
+    vi.spyOn(axios, "get").mockResolvedValue(createMockUserData());
     vi.spyOn(axios, "post").mockResolvedValue(createMockUserData());
 
     render(
@@ -81,8 +65,8 @@ describe("Unauthenticated Home Component", () => {
 
   it("should render the sign-in button in the header and the family navigation buttons", () => {
     expect(screen.getByText("Sign in")).toBeTruthy(); // Header sign-in button
-    expect(screen.getByText("Browse Families")).toBeTruthy();
-    expect(screen.getByText("Family Editor")).toBeTruthy();
+    expect(screen.getByText("Browse Mechanisms")).toBeTruthy();
+    expect(screen.getByText("My Families")).toBeTruthy();
   });
 
   it("links to the About page", () => {
@@ -98,8 +82,8 @@ describe("Unauthenticated Home Component", () => {
   });
 
   it("navigates when browsing families or opening the family editor", () => {
-    fireEvent.click(screen.getByText("Browse Families"));
-    fireEvent.click(screen.getByText("Family Editor"));
+    fireEvent.click(screen.getByText("Browse Mechanisms"));
+    fireEvent.click(screen.getByText("My Families"));
   });
 });
 
@@ -130,11 +114,7 @@ describe.each([
   }
 
   beforeEach(async () => {
-    vi.spyOn(axios, "get").mockImplementation((url: string) =>
-      Promise.resolve(
-        url.includes("/families") ? familiesResponse() : createMockUserData(),
-      ),
-    );
+    vi.spyOn(axios, "get").mockResolvedValue(createMockUserData());
     vi.spyOn(axios, "post").mockResolvedValue(createMockUserData());
     window.location = {
       ...originalLocation,
@@ -162,8 +142,8 @@ describe.each([
 
   it("shows the switch-account control and the family navigation buttons", () => {
     expect(screen.getByText("Switch Account")).toBeTruthy();
-    expect(screen.getByText("Browse Families")).toBeTruthy();
-    expect(screen.getByText("Family Editor")).toBeTruthy();
+    expect(screen.getByText("Browse Mechanisms")).toBeTruthy();
+    expect(screen.getByText("My Families")).toBeTruthy();
   });
 
   it("navigates to the backend when switching accounts", () => {

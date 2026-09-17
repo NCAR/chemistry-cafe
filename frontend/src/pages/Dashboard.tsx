@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import Button from "@mui/material/Button";
 import { Header, Footer } from "../components/HeaderFooter";
 import "../styles/Dashboard.css";
 import { CircularProgress, Paper, Typography } from "@mui/material";
@@ -16,20 +15,14 @@ import { apiToFrontendFamily } from "../helpers/backendInteractions";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const handleClickFamily = () => navigate("/familyeditor");
-  const handleClickSettings = () => navigate("/settings");
   const [families, setFamilies] = useState<Array<APIFamily>>();
   const [loadingFamilies, setLoadingFamilies] = useState<boolean>(true);
-  const buttonStyle = {
-    height: "5rem",
-    width: "90%",
-  };
 
   useEffect(() => {
     const abortController = new AbortController();
     const fetchFamilyData = async () => {
       try {
-        const allFamilies = await getAllFamilies();
+        const allFamilies = await getAllFamilies("?expand=true");
         setFamilies(allFamilies);
       } catch (err) {
         if (!abortController.signal.aborted) {
@@ -52,45 +45,31 @@ const Dashboard = () => {
         <Header />
       </header>
       <Paper square component="section" className="content-dashboard">
-        <div className="dashboard-navigation-buttons">
-          <Button
-            variant="contained"
-            sx={buttonStyle}
-            onClick={handleClickFamily}
-          >
-            Family Editor
-          </Button>
-          <Button
-            variant="contained"
-            sx={buttonStyle}
-            onClick={handleClickSettings}
-          >
-            Settings
-          </Button>
-        </div>
-        <div className="dashboard-family-explorer">
-          <Typography variant="h5">Other Families of Mechanisms</Typography>
-          {loadingFamilies && <CircularProgress />}
-          <FamilyBrowser
-            families={families}
-            handleEditButtonClick={(familyId) => {
-              addUploadedFamilyIdLocally(familyId);
-              navigate("/familyeditor");
-            }}
-            handleCloneButtonClick={(id) => {
-              getFamily(id)
-                .then((family) => {
-                  const clonedFamily = cloneFamily(apiToFrontendFamily(family));
-                  addFamilyLocally(clonedFamily);
-                  navigate("/familyeditor");
-                })
-                .catch((err) => {
-                  console.error("An issue occurred cloning the family:", err);
-                  alert("An issue occurred cloning the family");
-                });
-            }}
-          />
-        </div>
+        <Typography variant="h5">Browse Families &amp; Mechanisms</Typography>
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+          Every published family from the community. Clone one to start your own
+          copy, or edit directly if you are the owner.
+        </Typography>
+        {loadingFamilies && <CircularProgress />}
+        <FamilyBrowser
+          families={families}
+          handleEditButtonClick={(familyId) => {
+            addUploadedFamilyIdLocally(familyId);
+            navigate("/familyeditor");
+          }}
+          handleCloneButtonClick={(id) => {
+            getFamily(id)
+              .then((family) => {
+                const clonedFamily = cloneFamily(apiToFrontendFamily(family));
+                addFamilyLocally(clonedFamily);
+                navigate("/familyeditor");
+              })
+              .catch((err) => {
+                console.error("An issue occurred cloning the family:", err);
+                alert("An issue occurred cloning the family");
+              });
+          }}
+        />
       </Paper>
       <footer>
         <Footer />

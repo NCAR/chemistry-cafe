@@ -8,7 +8,7 @@ import App from "../src/pages/App";
 describe("App Component", () => {
   const routes = [
     ["/", "Chemical Mechanism Management Software"],
-    ["/dashboard", "Settings"],
+    ["/dashboard", "Browse Families & Mechanisms"],
     ["/familyeditor", "Families"],
     ["/settings", "Appearance"],
   ];
