@@ -23,6 +23,11 @@ const lightBlue = "#42C0FF";
 const orange = "#FAA119";
 const ink = "#1F2937";
 const muted = "#5F6368";
+// Dark-mode card/panel surfaces. The brand's own "Dark Blue" swatch is too
+// vivid to use as a UI surface at this scale (it is meant for large hero
+// blocks, not every card), so dark-mode panels use a desaturated, slightly
+// lighter navy instead, keeping Light Blue as the only vivid accent.
+const darkSurface = "#152A45";
 
 export type ColorModePreference = "system" | "light" | "dark";
 
@@ -105,7 +110,7 @@ const getThemeOptions = (settings: AppearanceSettings): ThemeOptionsType => {
       },
       background: {
         default: isDark ? space : "#FFFFFF",
-        paper: isDark ? darkBlue : "#FFFFFF",
+        paper: isDark ? darkSurface : "#FFFFFF",
       },
       text: {
         primary: isDark ? "#FFFFFF" : ink,
