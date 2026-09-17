@@ -87,6 +87,13 @@ public partial class ChemistryDbContext : DbContext
             .HasForeignKey<TernaryChemicalActivationParameters>(t => t.ReactionId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // Branched (no RO2) parameters share the reaction primary key (one-to-one).
+        modelBuilder.Entity<Reaction>()
+            .HasOne(r => r.Branched)
+            .WithOne(b => b.Reaction)
+            .HasForeignKey<BranchedParameters>(b => b.ReactionId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         modelBuilder.Entity<Reactant>()
             .HasOne(r => r.Species)
             .WithMany(s => s.AsReactant)

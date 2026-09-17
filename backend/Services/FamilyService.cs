@@ -51,6 +51,8 @@ public class FamilyService
                     .ThenInclude(r => r.Troe)
                 .Include(f => f.Reactions)
                     .ThenInclude(r => r.TernaryChemicalActivation)
+                .Include(f => f.Reactions)
+                    .ThenInclude(r => r.Branched)
                 .Include(f => f.Phases)
                     .ThenInclude(r => r.Species)
                 .Include(f => f.Mechanisms)
@@ -99,6 +101,8 @@ public class FamilyService
                 .ThenInclude(r => r.Troe)
             .Include(f => f.Reactions)
                 .ThenInclude(r => r.TernaryChemicalActivation)
+            .Include(f => f.Reactions)
+                .ThenInclude(r => r.Branched)
             .Include(f => f.Phases)
                 .ThenInclude(r => r.Species)
             .Include(f => f.Mechanisms)
@@ -209,6 +213,7 @@ public class FamilyService
             .Include(f => f.Reactions).ThenInclude(r => r.Tunneling)
             .Include(f => f.Reactions).ThenInclude(r => r.Troe)
             .Include(f => f.Reactions).ThenInclude(r => r.TernaryChemicalActivation)
+            .Include(f => f.Reactions).ThenInclude(r => r.Branched)
             .Include(f => f.Phases).ThenInclude(p => p.Species)
             .Include(f => f.Mechanisms).ThenInclude(m => m.Species)
             .Include(f => f.Mechanisms).ThenInclude(m => m.Reactions)
@@ -504,6 +509,28 @@ public class FamilyService
                 existingTca.KinfC = incomingTca.KinfC;
                 existingTca.Fc = incomingTca.Fc;
                 existingTca.N = incomingTca.N;
+            }
+
+            // Branched (no RO2) parameters are a one-to-one row. Update in
+            // place when both sides have it, add it when new, and drop it
+            // when the incoming reaction no longer carries it (EF cascade
+            // deletes the orphan).
+            if (incomingReaction.Branched == null)
+            {
+                existingReaction.Branched = null;
+            }
+            else if (existingReaction.Branched == null)
+            {
+                existingReaction.Branched = incomingReaction.Branched.ToEntity();
+            }
+            else
+            {
+                BranchedParameters existingBranched = existingReaction.Branched;
+                BranchedParametersDto incomingBranched = incomingReaction.Branched;
+                existingBranched.X = incomingBranched.X;
+                existingBranched.Y = incomingBranched.Y;
+                existingBranched.A0 = incomingBranched.A0;
+                existingBranched.N = incomingBranched.N;
             }
         });
 

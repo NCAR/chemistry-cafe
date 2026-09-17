@@ -30,6 +30,7 @@ public static class ReactionMapper
             Tunneling = reaction.Tunneling?.ToDto(),
             Troe = reaction.Troe?.ToDto(),
             TernaryChemicalActivation = reaction.TernaryChemicalActivation?.ToDto(),
+            Branched = reaction.Branched?.ToDto(),
             GasPhaseId = reaction.GasPhaseId,
             GasPhaseSpeciesId = reaction.GasPhaseSpeciesId,
             AerosolPhaseId = reaction.AerosolPhaseId,
@@ -60,6 +61,7 @@ public static class ReactionMapper
             Tunneling = reactionDto.Tunneling?.ToEntity(),
             Troe = reactionDto.Troe?.ToEntity(),
             TernaryChemicalActivation = reactionDto.TernaryChemicalActivation?.ToEntity(),
+            Branched = reactionDto.Branched?.ToEntity(),
             GasPhaseId = reactionDto.GasPhaseId,
             GasPhaseSpeciesId = reactionDto.GasPhaseSpeciesId,
             AerosolPhaseId = reactionDto.AerosolPhaseId,
@@ -167,6 +169,24 @@ public static class ReactionMapper
             KinfB = dto.KinfB,
             KinfC = dto.KinfC,
             Fc = dto.Fc,
+            N = dto.N,
+        };
+
+    public static BranchedParametersDto ToDto(this BranchedParameters parameters) =>
+        new BranchedParametersDto
+        {
+            X = parameters.X,
+            Y = parameters.Y,
+            A0 = parameters.A0,
+            N = parameters.N,
+        };
+
+    public static BranchedParameters ToEntity(this BranchedParametersDto dto) =>
+        new BranchedParameters
+        {
+            X = dto.X,
+            Y = dto.Y,
+            A0 = dto.A0,
             N = dto.N,
         };
 }

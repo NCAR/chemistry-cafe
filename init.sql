@@ -764,3 +764,44 @@ DROP PROCEDURE MigrationsScript;
 
 COMMIT;
 
+START TRANSACTION;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260917151649_AddBranchedParameters') THEN
+
+    CREATE TABLE `BranchedParameters` (
+        `ReactionId` char(36) COLLATE ascii_general_ci NOT NULL,
+        `X` double NULL,
+        `Y` double NULL,
+        `A0` double NULL,
+        `N` double NULL,
+        CONSTRAINT `PK_BranchedParameters` PRIMARY KEY (`ReactionId`),
+        CONSTRAINT `FK_BranchedParameters_Reactions_ReactionId` FOREIGN KEY (`ReactionId`) REFERENCES `Reactions` (`Id`) ON DELETE CASCADE
+    ) CHARACTER SET=utf8mb4;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260917151649_AddBranchedParameters') THEN
+
+    INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+    VALUES ('20260917151649_AddBranchedParameters', '8.0.10');
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+COMMIT;
+

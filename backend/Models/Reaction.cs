@@ -32,6 +32,9 @@ public class Reaction
     // Dedicated parameter table for Ternary Chemical Activation reactions. Null for other types.
     public TernaryChemicalActivationParameters? TernaryChemicalActivation { get; set; }
 
+    // Dedicated parameter table for Branched (no RO2) reactions. Null for other types.
+    public BranchedParameters? Branched { get; set; }
+
 
     // Collections of reactants and products (must be species from the same family)
     public ICollection<Reactant> Reactants { get; set; } = new List<Reactant>();
@@ -200,6 +203,26 @@ public class TernaryChemicalActivationParameters
     public double? KinfB { get; set; }
     public double? KinfC { get; set; }
     public double? Fc { get; set; }
+    public double? N { get; set; }
+}
+
+/// <summary>
+/// Dedicated parameters for a Branched (no RO2) reaction. Has a one-to-one
+/// relationship with a reaction: ReactionId is both the primary key and the
+/// foreign key. All columns are nullable so an unset value stays unset.
+/// </summary>
+[Table("BranchedParameters")]
+public class BranchedParameters
+{
+    [Key]
+    public Guid ReactionId { get; set; }
+
+    [JsonIgnore]
+    public Reaction? Reaction { get; set; }
+
+    public double? X { get; set; }
+    public double? Y { get; set; }
+    public double? A0 { get; set; }
     public double? N { get; set; }
 }
 
