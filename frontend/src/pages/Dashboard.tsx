@@ -73,7 +73,6 @@ const Dashboard = () => {
           {loadingFamilies && <CircularProgress />}
           <FamilyBrowser
             families={families}
-            handleInfoButtonClick={() => alert("This is not implemented yet")}
             handleEditButtonClick={(familyId) => {
               addUploadedFamilyIdLocally(familyId);
               navigate("/familyeditor");

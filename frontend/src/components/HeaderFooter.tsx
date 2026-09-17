@@ -1,17 +1,26 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import NavDropDown from "./NavDropDown";
-import { Drawer } from "@mui/material";
+import { Divider, Drawer } from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Container from "@mui/material/Container";
 import DensitySmallSharpIcon from "@mui/icons-material/DensitySmallSharp";
+import HubIcon from "@mui/icons-material/Hub";
+import InfoIcon from "@mui/icons-material/Info";
+import BugReportIcon from "@mui/icons-material/BugReport";
+import ForumIcon from "@mui/icons-material/Forum";
+import PersonIcon from "@mui/icons-material/Person";
+import GoogleIcon from "@mui/icons-material/Google";
 import { useAuth } from "../components/AuthContext";
-import Modal from "@mui/material/Modal";
+import { useCustomTheme } from "../components/CustomThemeContext";
 import Typography from "@mui/material/Typography";
-import TAMUlogo from "../assets/TAMULogo.png";
-import NSF_NCARlogo from "../assets/NSF-NCAR_Lockup-UCAR-Dark.png";
-import NSF_NCAR_Stackseallogo from "../assets/nsf-stackseal-logo-lockup-dark.png";
+import NSF_NCARlogo_color from "../assets/branding/nsf-ncar-lockup-color.png";
+import NSF_NCARlogo_white from "../assets/branding/nsf-ncar-lockup-white.png";
+import { AUTH_URL } from "../API/API_config";
+
+const CHEMISTRY_CAFE_REPO = "https://github.com/NCAR/chemistry-cafe";
 
 export const Header = () => {
   const [openDrawer, setOpenDrawer] = useState(false);
@@ -35,6 +44,11 @@ export const Header = () => {
     setOpenDrawer(newOpenDrawer);
   };
 
+  const login = () => {
+    localStorage.removeItem("user");
+    window.location.assign(`${AUTH_URL}/google/login`);
+  };
+
   return (
     <Paper
       square={true}
@@ -46,40 +60,81 @@ export const Header = () => {
         padding: "2px 10px",
       }}
     >
-      <Button
-        aria-label="Open Side-Navigation Menu"
-        id="side-nav-button"
-        onClick={toggleDrawer(true)}
-      >
-        <DensitySmallSharpIcon
-          sx={{ fontSize: "1.7rem" }}
-        ></DensitySmallSharpIcon>
-      </Button>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Button
+          aria-label="Open Side-Navigation Menu"
+          id="side-nav-button"
+          onClick={toggleDrawer(true)}
+        >
+          <DensitySmallSharpIcon
+            sx={{ fontSize: "1.7rem" }}
+          ></DensitySmallSharpIcon>
+        </Button>
+        <Button
+          component={Link}
+          to="/"
+          aria-label="Chemistry Cafe home"
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 0.75,
+            color: "primary.main",
+          }}
+        >
+          <HubIcon />
+          <Typography
+            sx={{ fontWeight: 700, fontSize: "1.1rem", color: "inherit" }}
+          >
+            Chemistry Cafe
+          </Typography>
+        </Button>
+      </Box>
       <Drawer open={openDrawer} onClose={toggleDrawer(false)}>
         <NavDropDown />
       </Drawer>
 
-      {/* Display login information and role */}
+      {/* Display login information and sign-in controls */}
       {loggedInUser ? (
-        <Box sx={{ display: "flex", alignItems: "center" }}>
-          <Box sx={{ paddingRight: "10px" }}>
-            {/* Display user's name or email */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+            paddingRight: "10px",
+          }}
+        >
+          <Box>
             <Typography sx={{ fontSize: "medium" }}>
               {loggedInUser.email}
             </Typography>
-          </Box>
-          <Box sx={{ paddingRight: "20px" }}>
-            {/* Display user's role */}
-            <Typography sx={{ fontSize: "medium" }}>
+            <Typography sx={{ fontSize: "small" }} color="text.secondary">
               ({displayRole()})
             </Typography>
           </Box>
+          <Button
+            size="small"
+            onClick={login}
+            startIcon={<GoogleIcon color="inherit" />}
+          >
+            Switch Account
+          </Button>
         </Box>
       ) : (
         <Box
-          sx={{ display: "flex", alignItems: "center", paddingRight: "20px" }}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+            paddingRight: "20px",
+          }}
         >
-          <Typography sx={{ fontSize: "medium" }}>Using as guest</Typography>
+          <Typography sx={{ fontSize: "medium" }} color="text.secondary">
+            Using as guest
+          </Typography>
+          <Divider orientation="vertical" flexItem />
+          <Button size="small" onClick={login} startIcon={<GoogleIcon />}>
+            Sign in
+          </Button>
         </Box>
       )}
     </Paper>
@@ -87,18 +142,13 @@ export const Header = () => {
 };
 
 export const Footer = () => {
-  const handleBugClick = () => {
-    window.open("https://github.com/NCAR/chemistrycafe/issues", "_blank");
-  };
+  const { appearanceSettings } = useCustomTheme();
+  const isDark = appearanceSettings.mode === "dark";
+  const NSF_NCARlogo = isDark ? NSF_NCARlogo_white : NSF_NCARlogo_color;
 
   const handleAccessibilityClick = () => {
     window.open("https://www.ucar.edu/accessibility", "_blank");
   };
-
-  const [aboutOpen, setAboutOpen] = useState(false);
-
-  const handleAboutOpen = () => setAboutOpen(true);
-  const handleAboutClose = () => setAboutOpen(false);
 
   return (
     <Paper component="footer" square={true} variant="outlined">
@@ -115,90 +165,55 @@ export const Footer = () => {
           "& .MuiButton-root": { fontSize: "0.75rem" },
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-          <Box
-            component="img"
-            src={NSF_NCAR_Stackseallogo}
-            sx={{ height: "48px", width: "auto" }}
-          />
-          <Box
-            component="img"
-            src={TAMUlogo}
-            sx={{ height: "48px", width: "auto" }}
-          />
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Button onClick={handleAboutOpen}>About</Button>
-          <Button onClick={handleBugClick} variant="text">
-            Report a bug
-          </Button>
-          <Button onClick={handleAccessibilityClick}>Accessibility</Button>
-        </Box>
-      </Container>
-
-      {/* Modal for About */}
-      <Modal open={aboutOpen} onClose={handleAboutClose}>
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            bgcolor: "background.paper",
-            boxShadow: 24,
-            p: 4,
-            borderRadius: 2,
-            textAlign: "center",
-          }}
-        >
-          <Typography color="textPrimary" variant="h4">
-            About
-          </Typography>
+        {/* ACOM lab attribution, per the NSF NCAR Labs logo pairing guidance:
+            the NSF NCAR mark locked up with the lab name in Poppins Bold. */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
           <Box
             component="img"
             src={NSF_NCARlogo}
-            alt={"NSF-NCAR Logo"}
-            sx={{ height: "100px", width: "auto" }}
+            alt="NSF NCAR"
+            sx={{ height: "32px", width: "auto" }}
           />
-          <Box
-            component="img"
-            src={TAMUlogo}
-            alt={"Texas A&M Logo"}
-            sx={{ height: "100px", width: "auto" }}
-          />
-          <Typography color="textPrimary" variant="body1">
-            The Chemistry Cafe tool was made possible by the collaboration
-            between NSF NCAR and Texas A&M through the CSCE Capstone program.
-          </Typography>
-          <br />
-          <Typography color="textPrimary" variant="h6">
-            Credits
-          </Typography>
-          <Typography color="textPrimary" variant="body1" component="span">
-            <Typography color="textPrimary" variant="inherit">
-              Paul Cyr, Brandon Longuet, Brian Nguyen <br />
-              Spring 2024 Capstone Team
-            </Typography>
+          <Typography
+            sx={{
+              fontWeight: 700,
+              fontSize: "0.75rem",
+              lineHeight: 1.2,
+              color: isDark ? "#FFFFFF" : "#00357A",
+            }}
+          >
+            Atmospheric Chemistry
             <br />
-            <Typography color="textPrimary" variant="inherit">
-              Britt Schiller, Ore Ogunleye, Nishka Mittal, Josh Hare, Sydney
-              Ferris <br />
-              Fall 2024 Capstone Team
-            </Typography>
-            <br />
-            <Typography color="textPrimary" variant="inherit">
-              Jackson Stewart, Kaili Fogle, Robbie Cook, Donato Curvino, James
-              Fontenot <br />
-              Spring 2025 Capstone Team
-            </Typography>
-            <br />
-            <Typography color="textPrimary" variant="inherit">
-              Kyle Shores <br />
-              Capstone Sponsor Representative
-            </Typography>
+            Observations &amp; Modeling
           </Typography>
         </Box>
-      </Modal>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Button component={Link} to="/about" startIcon={<InfoIcon />}>
+            About
+          </Button>
+          <Button
+            component="a"
+            href={`${CHEMISTRY_CAFE_REPO}/discussions`}
+            target="_blank"
+            rel="noopener noreferrer"
+            startIcon={<ForumIcon />}
+          >
+            Start a Discussion
+          </Button>
+          <Button
+            component="a"
+            href={`${CHEMISTRY_CAFE_REPO}/issues/new`}
+            target="_blank"
+            rel="noopener noreferrer"
+            startIcon={<BugReportIcon />}
+          >
+            Report a Bug
+          </Button>
+          <Button onClick={handleAccessibilityClick} startIcon={<PersonIcon />}>
+            Accessibility
+          </Button>
+        </Box>
+      </Container>
     </Paper>
   );
 };

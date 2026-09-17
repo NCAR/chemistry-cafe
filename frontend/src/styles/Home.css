@@ -7,26 +7,28 @@
 
 .content-home {
   flex: 1;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  background-color: #1a658f;
-  background-image: url("/src/assets/NCAR-Waves.png");
-  background-position: center center;
-  background-size: 135%;
-  background-repeat: no-repeat;
-  background-blend-mode: overlay;
-}
-
-.information-home {
-  grid-column: 2;
-  grid-row: 1;
   display: flex;
   flex-direction: column;
-  margin-top: 15vh;
+  align-items: center;
+  padding: 3rem 1.5rem;
 }
 
-.sign-in-controls {
+.home-hero {
+  width: 100%;
+  max-width: 700px;
+  text-align: center;
+}
+
+.home-actions {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  justify-content: center;
+  gap: 1rem;
   margin-top: 1.5rem;
+}
+
+.home-family-browser {
+  width: 100%;
+  max-width: 900px;
+  margin-top: 3rem;
 }

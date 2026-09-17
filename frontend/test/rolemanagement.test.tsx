@@ -8,6 +8,8 @@ import { updateUser } from "../src/API/API_UpdateMethods";
 import { deleteUser } from "../src/API/API_DeleteMethods";
 import "@testing-library/jest-dom";
 import userEvent from "@testing-library/user-event";
+import { CustomThemeProvider } from "../src/components/CustomThemeContext";
+import { MemoryRouter } from "react-router-dom";
 
 // Mocking necessary modules
 vi.mock("../src/components/AuthContext", () => ({
@@ -54,7 +56,13 @@ describe("RoleManagement Component", () => {
   });
 
   it("renders loading state initially", async () => {
-    render(<UserManagement />);
+    render(
+      <MemoryRouter>
+        <CustomThemeProvider>
+          <UserManagement />
+        </CustomThemeProvider>
+      </MemoryRouter>,
+    );
     expect(screen.getByText(/Loading users.../i)).toBeInTheDocument();
     await waitFor(() => expect(getAllUsers).toHaveBeenCalledTimes(1));
   });
@@ -63,7 +71,13 @@ describe("RoleManagement Component", () => {
     (getAllUsers as unknown as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
       new Error("Fetch error"),
     );
-    render(<UserManagement />);
+    render(
+      <MemoryRouter>
+        <CustomThemeProvider>
+          <UserManagement />
+        </CustomThemeProvider>
+      </MemoryRouter>,
+    );
 
     await waitFor(() => {
       expect(screen.getByText(/Failed to fetch users/i)).toBeInTheDocument();
@@ -71,7 +85,13 @@ describe("RoleManagement Component", () => {
   });
 
   it("renders user data in DataGrid when fetching succeeds", async () => {
-    render(<UserManagement />);
+    render(
+      <MemoryRouter>
+        <CustomThemeProvider>
+          <UserManagement />
+        </CustomThemeProvider>
+      </MemoryRouter>,
+    );
 
     await waitFor(() => {
       const users = screen.getAllByText(/Doe/i);
@@ -80,7 +100,13 @@ describe("RoleManagement Component", () => {
   });
 
   it("handles edit mode toggling for a user row", async () => {
-    render(<UserManagement />);
+    render(
+      <MemoryRouter>
+        <CustomThemeProvider>
+          <UserManagement />
+        </CustomThemeProvider>
+      </MemoryRouter>,
+    );
 
     await waitFor(() => {
       const johnDoeInstances = screen.getAllByText(/JohnDoe/i);
@@ -98,7 +124,13 @@ describe("RoleManagement Component", () => {
   });
 
   it("handles deleting a user", async () => {
-    render(<UserManagement />);
+    render(
+      <MemoryRouter>
+        <CustomThemeProvider>
+          <UserManagement />
+        </CustomThemeProvider>
+      </MemoryRouter>,
+    );
 
     await waitFor(() => {
       const janeDoeInstances = screen.getAllByText(/JaneDoe/i);
@@ -113,7 +145,13 @@ describe("RoleManagement Component", () => {
   });
 
   it("displays the toolbar and allows quick filter usage", async () => {
-    render(<UserManagement />);
+    render(
+      <MemoryRouter>
+        <CustomThemeProvider>
+          <UserManagement />
+        </CustomThemeProvider>
+      </MemoryRouter>,
+    );
 
     await waitFor(() => {
       const johnDoeInstances = screen.getAllByText(/JohnDoe/i);

@@ -3,7 +3,6 @@ import {
   render,
   screen,
   fireEvent,
-  waitFor,
   cleanup,
   act,
 } from "@testing-library/react";
@@ -11,6 +10,7 @@ import React from "react";
 import Home from "../src/pages/Home";
 import { MemoryRouter } from "react-router-dom";
 import { AuthProvider } from "../src/components/AuthContext";
+import { CustomThemeProvider } from "../src/components/CustomThemeContext";
 import { APIUser } from "../src/API/API_Interfaces";
 import axios, { AxiosHeaders, AxiosResponse } from "axios";
 
@@ -22,6 +22,18 @@ const mockUserInfo: APIUser = {
   username: "Test Account",
   id: "0000-0000-0000-0000-0000",
 };
+
+function familiesResponse(): AxiosResponse {
+  return {
+    data: [],
+    status: 200,
+    statusText: "OK",
+    headers: {},
+    config: {
+      headers: new AxiosHeaders({ "Content-Type": "text/plain" }),
+    },
+  } as AxiosResponse;
+}
 
 describe("Unauthenticated Home Component", () => {
   const originalLocation = window.location;
@@ -43,15 +55,21 @@ describe("Unauthenticated Home Component", () => {
       ...originalLocation,
       assign: vi.fn((_: string | URL) => {}),
     } as any;
-    vi.spyOn(axios, "get").mockResolvedValue(createMockUserData());
+    vi.spyOn(axios, "get").mockImplementation((url: string) =>
+      Promise.resolve(
+        url.includes("/families") ? familiesResponse() : createMockUserData(),
+      ),
+    );
     vi.spyOn(axios, "post").mockResolvedValue(createMockUserData());
 
     render(
-      <AuthProvider>
-        <MemoryRouter initialEntries={["/", "/loggedIn"]}>
-          <Home />
-        </MemoryRouter>
-      </AuthProvider>,
+      <CustomThemeProvider>
+        <AuthProvider>
+          <MemoryRouter initialEntries={["/", "/loggedIn"]}>
+            <Home />
+          </MemoryRouter>
+        </AuthProvider>
+      </CustomThemeProvider>,
     );
   });
 
@@ -61,25 +79,15 @@ describe("Unauthenticated Home Component", () => {
     cleanup();
   });
 
-  it("should render the login button and the guest button", () => {
-    expect(screen.getByText("Sign in")).toBeTruthy(); // Check presence of the login button
-    expect(screen.getByText("Continue as Guest")).toBeTruthy(); // Check presence of the guest button
+  it("should render the sign-in button in the header and the family navigation buttons", () => {
+    expect(screen.getByText("Sign in")).toBeTruthy(); // Header sign-in button
+    expect(screen.getByText("Browse Families")).toBeTruthy();
+    expect(screen.getByText("Family Editor")).toBeTruthy();
   });
 
-  it("should open and close the About modal", async () => {
-    const aboutButton = screen.getAllByRole("button", { name: "About" })[0];
-    fireEvent.click(aboutButton);
-
-    // Assert that modal is open
-    expect(screen.getByText("Credits")).toBeTruthy();
-
-    // Simulate a click outside the modal to close it
-    fireEvent.click(document.body);
-
-    // Wait for the modal to be closed
-    await waitFor(() => {
-      expect(screen.queryByText("Kyle Shores")).toBeFalsy();
-    });
+  it("links to the About page", () => {
+    const aboutLink = screen.getAllByRole("link", { name: /About/i })[0];
+    expect(aboutLink).toHaveAttribute("href", "/about");
   });
 
   it("navigates to the backend when signing in", () => {
@@ -89,10 +97,9 @@ describe("Unauthenticated Home Component", () => {
     expect(window.location.assign).toHaveBeenCalledOnce(); // Redirect to backend auth/google/login endpoint
   });
 
-  it("navigates when continuing as a guest", () => {
-    const loginButton = screen.getByText("Continue as Guest");
-    expect(loginButton).toBeTruthy();
-    fireEvent.click(loginButton);
+  it("navigates when browsing families or opening the family editor", () => {
+    fireEvent.click(screen.getByText("Browse Families"));
+    fireEvent.click(screen.getByText("Family Editor"));
   });
 });
 
@@ -123,7 +130,11 @@ describe.each([
   }
 
   beforeEach(async () => {
-    vi.spyOn(axios, "get").mockResolvedValue(createMockUserData());
+    vi.spyOn(axios, "get").mockImplementation((url: string) =>
+      Promise.resolve(
+        url.includes("/families") ? familiesResponse() : createMockUserData(),
+      ),
+    );
     vi.spyOn(axios, "post").mockResolvedValue(createMockUserData());
     window.location = {
       ...originalLocation,
@@ -131,11 +142,13 @@ describe.each([
     } as any;
     localStorage.setItem("user", JSON.stringify(cachedUserInfo));
     render(
-      <AuthProvider>
-        <MemoryRouter initialEntries={["/", "/loggedIn"]}>
-          <Home />
-        </MemoryRouter>
-      </AuthProvider>,
+      <CustomThemeProvider>
+        <AuthProvider>
+          <MemoryRouter initialEntries={["/", "/loggedIn"]}>
+            <Home />
+          </MemoryRouter>
+        </AuthProvider>
+      </CustomThemeProvider>,
     );
 
     await act(() => axios.get); // Allows the initial useLayoutEffect to fire
@@ -147,12 +160,10 @@ describe.each([
     localStorage.clear();
   });
 
-  it("shows different buttons when logged in", () => {
-    expect(
-      screen.getByText(`Continue as ${mockUserInfo.username}`),
-    ).toBeTruthy();
+  it("shows the switch-account control and the family navigation buttons", () => {
     expect(screen.getByText("Switch Account")).toBeTruthy();
-    expect(screen.getByText("Continue as Guest")).toBeTruthy();
+    expect(screen.getByText("Browse Families")).toBeTruthy();
+    expect(screen.getByText("Family Editor")).toBeTruthy();
   });
 
   it("navigates to the backend when switching accounts", () => {
@@ -160,13 +171,6 @@ describe.each([
     expect(loginButton).toBeTruthy();
     fireEvent.click(loginButton);
     expect(window.location.assign).toHaveBeenCalledOnce(); // Redirect to backend auth/google/login endpoint
-  });
-
-  it("navigates to the backend when continuing as a guest", () => {
-    const guestButton = screen.getByText("Continue as Guest");
-    expect(guestButton).toBeTruthy();
-    fireEvent.click(guestButton);
-    expect(window.location.assign).toHaveBeenCalledOnce();
   });
 
   it("removes user from local storage when logging out", () => {
