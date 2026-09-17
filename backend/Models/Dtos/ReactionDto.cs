@@ -33,6 +33,10 @@ public class ReactionDto
     // other types, which still carry their parameters in the attribute lists above.
     public TernaryChemicalActivationParametersDto? TernaryChemicalActivation { get; set; }
 
+    // Dedicated parameters for Branched (no RO2) reactions. Null for other
+    // types, which still carry their parameters in the attribute lists above.
+    public BranchedParametersDto? Branched { get; set; }
+
     public Guid? GasPhaseId { get; set; }
     public Guid? GasPhaseSpeciesId { get; set; }
     public Guid? AerosolPhaseId { get; set; }
@@ -91,6 +95,14 @@ public class TernaryChemicalActivationParametersDto
     public double? KinfB { get; set; }
     public double? KinfC { get; set; }
     public double? Fc { get; set; }
+    public double? N { get; set; }
+}
+
+public class BranchedParametersDto
+{
+    public double? X { get; set; }
+    public double? Y { get; set; }
+    public double? A0 { get; set; }
     public double? N { get; set; }
 }
 

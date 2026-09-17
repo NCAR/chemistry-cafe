@@ -531,6 +531,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                     const productEntry = {
                       speciesId: species.id,
                       coefficient: 1,
+                      branch: currentConfiguration.branches?.[0],
                     };
                     if (!modifiedReaction?.reactants) {
                       changeReactionProperties({
@@ -583,6 +584,39 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                       <Typography color="textPrimary">
                         {species?.name}
                       </Typography>
+                      {currentConfiguration.branches &&
+                        currentConfiguration.branches.length > 0 && (
+                          <Select
+                            aria-label={`Branch for ${species?.name || "product"}`}
+                            value={
+                              product.branch ?? currentConfiguration.branches[0]
+                            }
+                            onChange={(event) => {
+                              if (!modifiedReaction) {
+                                return;
+                              }
+                              const branch = event.target.value;
+                              changeReactionProperties({
+                                products: modifiedReaction.products.map(
+                                  (element) => {
+                                    if (
+                                      element.speciesId === product.speciesId
+                                    ) {
+                                      return { ...product, branch };
+                                    }
+                                    return element;
+                                  },
+                                ),
+                              });
+                            }}
+                          >
+                            {currentConfiguration.branches.map((branch) => (
+                              <MenuItem key={branch} value={branch}>
+                                {branch}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        )}
                       <TextField
                         color="primary"
                         label="Quantity"

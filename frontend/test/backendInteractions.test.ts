@@ -436,6 +436,54 @@ describe("Ternary Chemical Activation parameter translation", () => {
   });
 });
 
+describe("Branched (no RO2) parameter translation", () => {
+  const branchedReaction: Reaction = {
+    id: "00000000-0000-0000-0000-000000000000",
+    name: "branched",
+    description: "",
+    type: "BRANCHED_NO_RO2",
+    reactants: [],
+    products: [],
+    attributes: {
+      X: { serializationKey: "X", value: 1.2e-11 },
+      Y: { serializationKey: "Y", value: 300 },
+      a0: { serializationKey: "a0", value: 0.5 },
+      n: { serializationKey: "n", value: 6 },
+    },
+  };
+
+  test("frontendToAPIReaction writes params to the branched field, not the attribute lists", () => {
+    const result = frontendToAPIReaction(branchedReaction, frontendFamily);
+    expect(result.branched).toEqual({
+      x: 1.2e-11,
+      y: 300,
+      a0: 0.5,
+      n: 6,
+    });
+    expect(result.numericalAttributes).toHaveLength(0);
+    expect(result.stringAttributes).toHaveLength(0);
+  });
+
+  test("apiToFrontendReaction reads the branched field into the attribute bag", () => {
+    const apiBranched: APIReaction = {
+      id: "00000000-0000-0000-0000-000000000000",
+      name: "branched",
+      reactionType: "BRANCHED_NO_RO2",
+      numericalAttributes: [],
+      stringAttributes: [],
+      branched: { x: 1.2e-11, y: 300, a0: 0.5, n: 6 },
+      reactants: [],
+      products: [],
+      familyId: "00000000-0000-0000-0000-000000000000",
+    };
+    const result = apiToFrontendReaction(apiBranched);
+    expect(result.attributes["X"].value).toBe(1.2e-11);
+    expect(result.attributes["Y"].value).toBe(300);
+    expect(result.attributes["a0"].value).toBe(0.5);
+    expect(result.attributes["n"].value).toBe(6);
+  });
+});
+
 describe("Phase Conversion", () => {
   test("Conversion from frontend to backend definition", () => {
     const result = frontendToAPIPhase(frontendPhase, frontendFamily);

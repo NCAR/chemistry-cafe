@@ -504,5 +504,58 @@ namespace ChemistryCafeAPI.Tests
             Assert.AreEqual(0.4, tca.Fc);
             Assert.AreEqual(2.0, tca.N);
         }
+
+        [TestMethod]
+        public async Task Create_PersistsBranchedParameters()
+        {
+            FamilyDto dto = BuildBaseFamily();
+            dto.Reactions.Single().Branched = new BranchedParametersDto
+            {
+                X = 1.2e-11,
+                Y = 300.0,
+                A0 = 0.5,
+                N = 1.0,
+            };
+            await CreateBaseFamilyAsync(dto);
+
+            Family reloaded = await ReloadAsync(dto.Id);
+            BranchedParameters? branched = reloaded.Reactions.Single().Branched;
+            Assert.IsNotNull(branched);
+            Assert.AreEqual(1.2e-11, branched!.X);
+            Assert.AreEqual(300.0, branched.Y);
+            Assert.AreEqual(0.5, branched.A0);
+            Assert.AreEqual(1.0, branched.N);
+        }
+
+        [TestMethod]
+        public async Task Update_ChangesBranchedParameters()
+        {
+            FamilyDto dto = BuildBaseFamily();
+            dto.Reactions.Single().Branched = new BranchedParametersDto
+            {
+                X = 1.0,
+                Y = 0.0,
+                A0 = 0.0,
+                N = 1.0,
+            };
+            await CreateBaseFamilyAsync(dto);
+
+            dto.Reactions.Single().Branched = new BranchedParametersDto
+            {
+                X = 5.0,
+                Y = 2.0,
+                A0 = 0.8,
+                N = 2.0,
+            };
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            Family reloaded = await ReloadAsync(dto.Id);
+            BranchedParameters? branched = reloaded.Reactions.Single().Branched;
+            Assert.IsNotNull(branched);
+            Assert.AreEqual(5.0, branched!.X);
+            Assert.AreEqual(2.0, branched.Y);
+            Assert.AreEqual(0.8, branched.A0);
+            Assert.AreEqual(2.0, branched.N);
+        }
     }
 }

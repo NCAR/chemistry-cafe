@@ -221,6 +221,7 @@ export type Family = {
  */
 export const supportedReactionTypes: Array<ReactionTypeName> = [
   reactionTypes.Arrhenius.type,
+  reactionTypes.Branched.type,
   reactionTypes.Emission.type,
   reactionTypes.FirstOrderLoss.type,
   reactionTypes.Photolysis.type,
