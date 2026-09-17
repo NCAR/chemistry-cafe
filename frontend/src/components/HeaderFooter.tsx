@@ -1,52 +1,42 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import NavDropDown from "./NavDropDown";
-import { Divider, Drawer } from "@mui/material";
+import IconButton from "@mui/material/IconButton";
+import { Divider } from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Container from "@mui/material/Container";
-import DensitySmallSharpIcon from "@mui/icons-material/DensitySmallSharp";
 import HubIcon from "@mui/icons-material/Hub";
 import InfoIcon from "@mui/icons-material/Info";
 import BugReportIcon from "@mui/icons-material/BugReport";
 import ForumIcon from "@mui/icons-material/Forum";
 import PersonIcon from "@mui/icons-material/Person";
 import GoogleIcon from "@mui/icons-material/Google";
+import LogoutIcon from "@mui/icons-material/Logout";
+import SettingsIcon from "@mui/icons-material/Settings";
+import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import { useAuth } from "../components/AuthContext";
 import { useCustomTheme } from "../components/CustomThemeContext";
 import Typography from "@mui/material/Typography";
 import NSF_NCARlogo_color from "../assets/branding/nsf-ncar-lockup-color.png";
 import NSF_NCARlogo_white from "../assets/branding/nsf-ncar-lockup-white.png";
 import { AUTH_URL } from "../API/API_config";
+import { clearFamiliesLocally } from "../helpers/localFamilies";
 
 const CHEMISTRY_CAFE_REPO = "https://github.com/NCAR/chemistry-cafe";
 
 export const Header = () => {
-  const [openDrawer, setOpenDrawer] = useState(false);
-  const { user: loggedInUser } = useAuth(); // Get logged in user info from AuthContext
-
-  const displayRole = () => {
-    if (!loggedInUser) return ""; // If no user is logged in, return an empty string
-    switch (loggedInUser.role) {
-      case "admin":
-        return "Admin";
-      case "verified":
-        return "Verified Scientist";
-      case "unverified":
-        return "Unverified";
-      default:
-        return "Unknown Role"; // Fallback for any unexpected values
-    }
-  };
-
-  const toggleDrawer = (newOpenDrawer: boolean) => () => {
-    setOpenDrawer(newOpenDrawer);
-  };
+  const { user: loggedInUser, setUser } = useAuth(); // Get logged in user info from AuthContext
 
   const login = () => {
     localStorage.removeItem("user");
     window.location.assign(`${AUTH_URL}/google/login`);
+  };
+
+  const goLogOut = () => {
+    clearFamiliesLocally();
+    setUser(null);
+    localStorage.removeItem("user");
+    window.location.assign(`${AUTH_URL}/google/logout`);
   };
 
   return (
@@ -61,15 +51,6 @@ export const Header = () => {
       }}
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <Button
-          aria-label="Open Side-Navigation Menu"
-          id="side-nav-button"
-          onClick={toggleDrawer(true)}
-        >
-          <DensitySmallSharpIcon
-            sx={{ fontSize: "1.7rem" }}
-          ></DensitySmallSharpIcon>
-        </Button>
         <Button
           component={Link}
           to="/"
@@ -88,10 +69,13 @@ export const Header = () => {
             Chemistry Cafe
           </Typography>
         </Button>
+        <Button component={Link} to="/dashboard">
+          Browse
+        </Button>
+        <Button component={Link} to="/familyeditor">
+          My Families
+        </Button>
       </Box>
-      <Drawer open={openDrawer} onClose={toggleDrawer(false)}>
-        <NavDropDown />
-      </Drawer>
 
       {/* Display login information and sign-in controls */}
       {loggedInUser ? (
@@ -99,24 +83,38 @@ export const Header = () => {
           sx={{
             display: "flex",
             alignItems: "center",
-            gap: 1.5,
+            gap: 1,
             paddingRight: "10px",
           }}
         >
-          <Box>
-            <Typography sx={{ fontSize: "medium" }}>
-              {loggedInUser.email}
-            </Typography>
-            <Typography sx={{ fontSize: "small" }} color="text.secondary">
-              ({displayRole()})
-            </Typography>
-          </Box>
+          <Typography sx={{ fontSize: "medium" }}>
+            {loggedInUser.email}
+          </Typography>
+          {loggedInUser.role === "admin" && (
+            <IconButton
+              component={Link}
+              to="/usermanagement"
+              aria-label="User management"
+              size="small"
+            >
+              <ManageAccountsIcon />
+            </IconButton>
+          )}
+          <IconButton
+            component={Link}
+            to="/settings"
+            aria-label="Settings"
+            size="small"
+          >
+            <SettingsIcon />
+          </IconButton>
           <Button
             size="small"
-            onClick={login}
-            startIcon={<GoogleIcon color="inherit" />}
+            color="error"
+            onClick={goLogOut}
+            startIcon={<LogoutIcon color="inherit" />}
           >
-            Switch Account
+            Logout
           </Button>
         </Box>
       ) : (
@@ -128,6 +126,14 @@ export const Header = () => {
             paddingRight: "20px",
           }}
         >
+          <IconButton
+            component={Link}
+            to="/settings"
+            aria-label="Settings"
+            size="small"
+          >
+            <SettingsIcon />
+          </IconButton>
           <Typography sx={{ fontSize: "medium" }} color="text.secondary">
             Using as guest
           </Typography>

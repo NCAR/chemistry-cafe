@@ -65,8 +65,10 @@ describe("Unauthenticated Home Component", () => {
 
   it("should render the sign-in button in the header and the family navigation buttons", () => {
     expect(screen.getByText("Sign in")).toBeTruthy(); // Header sign-in button
-    expect(screen.getByText("Browse Mechanisms")).toBeTruthy();
-    expect(screen.getByText("My Families")).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "Browse Mechanisms" }),
+    ).toBeTruthy();
+    expect(screen.getByRole("button", { name: "My Families" })).toBeTruthy();
   });
 
   it("links to the About page", () => {
@@ -82,8 +84,8 @@ describe("Unauthenticated Home Component", () => {
   });
 
   it("navigates when browsing families or opening the family editor", () => {
-    fireEvent.click(screen.getByText("Browse Mechanisms"));
-    fireEvent.click(screen.getByText("My Families"));
+    fireEvent.click(screen.getByRole("button", { name: "Browse Mechanisms" }));
+    fireEvent.click(screen.getByRole("button", { name: "My Families" }));
   });
 });
 
@@ -140,30 +142,18 @@ describe.each([
     localStorage.clear();
   });
 
-  it("shows the switch-account control and the family navigation buttons", () => {
-    expect(screen.getByText("Switch Account")).toBeTruthy();
-    expect(screen.getByText("Browse Mechanisms")).toBeTruthy();
-    expect(screen.getByText("My Families")).toBeTruthy();
-  });
-
-  it("navigates to the backend when switching accounts", () => {
-    const loginButton = screen.getByText("Switch Account");
-    expect(loginButton).toBeTruthy();
-    fireEvent.click(loginButton);
-    expect(window.location.assign).toHaveBeenCalledOnce(); // Redirect to backend auth/google/login endpoint
+  it("shows the logout control and the family navigation buttons", () => {
+    expect(screen.getByText("Logout")).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "Browse Mechanisms" }),
+    ).toBeTruthy();
+    expect(screen.getByRole("button", { name: "My Families" })).toBeTruthy();
   });
 
   it("removes user from local storage when logging out", () => {
-    expect(document.getElementById("side-nav-button")).toBeTruthy();
     expect(localStorage.getItem("user")).toBeTruthy();
 
-    // Open side nav
-    const hamburgerMenu: HTMLElement =
-      document.getElementById("side-nav-button")!;
-    fireEvent.click(hamburgerMenu);
-
-    // Click logout button
-    const logoutButton = screen.getByText("Log Out");
+    const logoutButton = screen.getByText("Logout");
     fireEvent.click(logoutButton);
 
     expect(window.location.assign).toHaveBeenCalledOnce(); // Redirect to backend auth/google/logout endpoint
