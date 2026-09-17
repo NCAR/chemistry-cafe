@@ -223,6 +223,31 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
     }
   }
 
+  // Branched (no RO2) reactions store their parameters in a dedicated table.
+  // Read them back into the attribute bag, keyed by the serialization key
+  // the editor uses.
+  if (apiReaction.reactionType === "BRANCHED_NO_RO2" && apiReaction.branched) {
+    const branchedValues: Record<string, number | null | undefined> = {
+      X: apiReaction.branched.x,
+      Y: apiReaction.branched.y,
+      a0: apiReaction.branched.a0,
+      n: apiReaction.branched.n,
+    };
+    for (const [serializationKey, value] of Object.entries(branchedValues)) {
+      if (value === null || value === undefined) {
+        continue;
+      }
+      const defaultAttribute = reactionAttributeOptions.BRANCHED_NO_RO2?.find(
+        (e) => e.serializationKey === serializationKey,
+      );
+      formattedReaction.attributes[serializationKey] = {
+        ...defaultAttribute,
+        serializationKey,
+        value,
+      };
+    }
+  }
+
   return formattedReaction;
 }
 
@@ -299,6 +324,13 @@ export function frontendToAPIReaction(
       kinfC: numOrNull(reaction.attributes["kinf_C"]?.value),
       fc: numOrNull(reaction.attributes["Fc"]?.value),
       n: numOrNull(reaction.attributes["N"]?.value),
+    };
+  } else if (reaction.type === "BRANCHED_NO_RO2") {
+    formattedReaction.branched = {
+      x: numOrNull(reaction.attributes["X"]?.value),
+      y: numOrNull(reaction.attributes["Y"]?.value),
+      a0: numOrNull(reaction.attributes["a0"]?.value),
+      n: numOrNull(reaction.attributes["n"]?.value),
     };
   } else {
     for (const attribute of Object.values(reaction.attributes)) {

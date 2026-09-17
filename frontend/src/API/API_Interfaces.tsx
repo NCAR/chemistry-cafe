@@ -89,6 +89,14 @@ export interface APIReaction {
     fc?: number | null;
     n?: number | null;
   } | null;
+  // Dedicated Branched (no RO2) parameters. Present only for
+  // BRANCHED_NO_RO2 reactions.
+  branched?: {
+    x?: number | null;
+    y?: number | null;
+    a0?: number | null;
+    n?: number | null;
+  } | null;
   reactants: Array<APIReactant>;
   products: Array<APIProduct>;
   gasPhaseId?: UUID | null;
