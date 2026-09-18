@@ -697,5 +697,43 @@ namespace ChemistryCafeAPI.Tests
             Assert.IsNotNull(emission);
             Assert.AreEqual(2.5, emission!.ScalingFactor);
         }
+
+        [TestMethod]
+        public async Task Create_PersistsFirstOrderLossParameters()
+        {
+            FamilyDto dto = BuildBaseFamily();
+            dto.Reactions.Single().FirstOrderLoss = new FirstOrderLossParametersDto
+            {
+                ScalingFactor = 1.0,
+            };
+            await CreateBaseFamilyAsync(dto);
+
+            Family reloaded = await ReloadAsync(dto.Id);
+            FirstOrderLossParameters? firstOrderLoss = reloaded.Reactions.Single().FirstOrderLoss;
+            Assert.IsNotNull(firstOrderLoss);
+            Assert.AreEqual(1.0, firstOrderLoss!.ScalingFactor);
+        }
+
+        [TestMethod]
+        public async Task Update_ChangesFirstOrderLossParameters()
+        {
+            FamilyDto dto = BuildBaseFamily();
+            dto.Reactions.Single().FirstOrderLoss = new FirstOrderLossParametersDto
+            {
+                ScalingFactor = 1.0,
+            };
+            await CreateBaseFamilyAsync(dto);
+
+            dto.Reactions.Single().FirstOrderLoss = new FirstOrderLossParametersDto
+            {
+                ScalingFactor = 3.0,
+            };
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            Family reloaded = await ReloadAsync(dto.Id);
+            FirstOrderLossParameters? firstOrderLoss = reloaded.Reactions.Single().FirstOrderLoss;
+            Assert.IsNotNull(firstOrderLoss);
+            Assert.AreEqual(3.0, firstOrderLoss!.ScalingFactor);
+        }
     }
 }

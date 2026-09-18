@@ -121,6 +121,13 @@ public partial class ChemistryDbContext : DbContext
             .HasForeignKey<EmissionParameters>(e => e.ReactionId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // First Order Loss parameters share the reaction primary key (one-to-one).
+        modelBuilder.Entity<Reaction>()
+            .HasOne(r => r.FirstOrderLoss)
+            .WithOne(f => f.Reaction)
+            .HasForeignKey<FirstOrderLossParameters>(f => f.ReactionId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         modelBuilder.Entity<Reactant>()
             .HasOne(r => r.Species)
             .WithMany(s => s.AsReactant)

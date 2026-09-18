@@ -116,6 +116,11 @@ export interface APIReaction {
   emission?: {
     scalingFactor?: number | null;
   } | null;
+  // Dedicated First Order Loss parameters. Present only for
+  // FIRST_ORDER_LOSS reactions.
+  firstOrderLoss?: {
+    scalingFactor?: number | null;
+  } | null;
   reactants: Array<APIReactant>;
   products: Array<APIProduct>;
   gasPhaseId?: UUID | null;

@@ -49,6 +49,10 @@ public class ReactionDto
     // which still carry their parameters in the attribute lists above.
     public EmissionParametersDto? Emission { get; set; }
 
+    // Dedicated parameters for First Order Loss reactions. Null for other
+    // types, which still carry their parameters in the attribute lists above.
+    public FirstOrderLossParametersDto? FirstOrderLoss { get; set; }
+
     public Guid? GasPhaseId { get; set; }
     public Guid? GasPhaseSpeciesId { get; set; }
     public Guid? AerosolPhaseId { get; set; }
@@ -135,6 +139,11 @@ public class SurfaceParametersDto
 }
 
 public class EmissionParametersDto
+{
+    public double? ScalingFactor { get; set; }
+}
+
+public class FirstOrderLossParametersDto
 {
     public double? ScalingFactor { get; set; }
 }

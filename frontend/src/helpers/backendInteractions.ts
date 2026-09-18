@@ -338,6 +338,33 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
     }
   }
 
+  // First Order Loss reactions store their parameters in a dedicated table.
+  // Read them back into the attribute bag, keyed by the serialization key
+  // the editor uses.
+  if (
+    apiReaction.reactionType === "FIRST_ORDER_LOSS" &&
+    apiReaction.firstOrderLoss
+  ) {
+    const firstOrderLossValues: Record<string, number | null | undefined> = {
+      "scaling factor": apiReaction.firstOrderLoss.scalingFactor,
+    };
+    for (const [serializationKey, value] of Object.entries(
+      firstOrderLossValues,
+    )) {
+      if (value === null || value === undefined) {
+        continue;
+      }
+      const defaultAttribute = reactionAttributeOptions.FIRST_ORDER_LOSS?.find(
+        (e) => e.serializationKey === serializationKey,
+      );
+      formattedReaction.attributes[serializationKey] = {
+        ...defaultAttribute,
+        serializationKey,
+        value,
+      };
+    }
+  }
+
   return formattedReaction;
 }
 
@@ -444,6 +471,10 @@ export function frontendToAPIReaction(
     };
   } else if (reaction.type === "EMISSION") {
     formattedReaction.emission = {
+      scalingFactor: numOrNull(reaction.attributes["scaling factor"]?.value),
+    };
+  } else if (reaction.type === "FIRST_ORDER_LOSS") {
+    formattedReaction.firstOrderLoss = {
       scalingFactor: numOrNull(reaction.attributes["scaling factor"]?.value),
     };
   } else {
