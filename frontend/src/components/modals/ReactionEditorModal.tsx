@@ -696,9 +696,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                       .value as Array<number>)
                   : [];
 
-                const updateCoefficients = (
-                  newCoefficients: Array<number>,
-                ) => {
+                const updateCoefficients = (newCoefficients: Array<number>) => {
                   if (!modifiedReaction) {
                     return;
                   }
@@ -761,9 +759,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                               event.target.blur()
                             }
                             onChange={(event) => {
-                              const num = Number.parseFloat(
-                                event.target.value,
-                              );
+                              const num = Number.parseFloat(event.target.value);
                               if (Number.isFinite(num)) {
                                 const updated = [...coefficients];
                                 updated[index] = num;

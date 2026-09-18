@@ -370,7 +370,8 @@ export function frontendToAPIReaction(
       n: numOrNull(reaction.attributes["n"]?.value),
     };
   } else if (reaction.type === "TAYLOR_SERIES") {
-    const taylorCoefficients = reaction.attributes["taylor coefficients"]?.value;
+    const taylorCoefficients =
+      reaction.attributes["taylor coefficients"]?.value;
     formattedReaction.taylorSeries = {
       a: numOrNull(reaction.attributes["A"]?.value),
       b: numOrNull(reaction.attributes["B"]?.value),
