@@ -42,16 +42,6 @@ const frontendSpecies: Species = {
   name: "Test Species",
   description: "Test Description",
   familyId: "00000000-0000-0000-0000-000000000000",
-  attributes: {
-    weight: {
-      serializationKey: "weight",
-      value: 0.0,
-    },
-    "another key [K]": {
-      serializationKey: "another key [K]",
-      value: "val",
-    },
-  },
 };
 
 const apiSpecies: APISpecies = {
@@ -59,19 +49,6 @@ const apiSpecies: APISpecies = {
   name: frontendSpecies.name,
   description: frontendSpecies.description,
   familyId: frontendSpecies.id as UUID,
-  numericalAttributes: [
-    {
-      serializationKey: frontendSpecies.attributes["weight"].serializationKey,
-      value: frontendSpecies.attributes["weight"].value as number,
-    },
-  ],
-  stringAttributes: [
-    {
-      serializationKey:
-        frontendSpecies.attributes["another key [K]"].serializationKey,
-      value: frontendSpecies.attributes["another key [K]"].value as string,
-    },
-  ],
 };
 
 const frontendPhase: Phase = {
@@ -95,16 +72,7 @@ const frontendReaction: Reaction = {
   type: "ARRHENIUS",
   reactants: [],
   products: [],
-  attributes: {
-    weight: {
-      serializationKey: "weight",
-      value: 0.0,
-    },
-    "another key [K]": {
-      serializationKey: "another key [K]",
-      value: "val",
-    },
-  },
+  attributes: {},
 };
 
 const apiReaction: APIReaction = {
@@ -113,19 +81,6 @@ const apiReaction: APIReaction = {
   description: frontendReaction.description!,
   createdDate: "",
   updatedDate: "",
-  numericalAttributes: [
-    {
-      serializationKey: frontendReaction.attributes["weight"].serializationKey,
-      value: frontendReaction.attributes["weight"].value as number,
-    },
-  ],
-  stringAttributes: [
-    {
-      serializationKey:
-        frontendReaction.attributes["another key [K]"].serializationKey,
-      value: frontendReaction.attributes["another key [K]"].value as string,
-    },
-  ],
   reactants: [],
   reactionType: frontendReaction.type,
   products: [],
@@ -290,8 +245,6 @@ describe("Arrhenius parameter translation", () => {
       d: 300,
       e: 0,
     });
-    expect(result.numericalAttributes).toHaveLength(0);
-    expect(result.stringAttributes).toHaveLength(0);
   });
 
   test("apiToFrontendReaction reads the arrhenius field into the attribute bag", () => {
@@ -299,8 +252,6 @@ describe("Arrhenius parameter translation", () => {
       id: "00000000-0000-0000-0000-000000000000",
       name: "arr",
       reactionType: "ARRHENIUS",
-      numericalAttributes: [],
-      stringAttributes: [],
       arrhenius: { a: 1.2e-11, b: 0, ea: 100, d: 300, e: 0 },
       reactants: [],
       products: [],
@@ -337,8 +288,6 @@ describe("Tunneling parameter translation", () => {
       b: 0,
       c: 300,
     });
-    expect(result.numericalAttributes).toHaveLength(0);
-    expect(result.stringAttributes).toHaveLength(0);
   });
 
   test("apiToFrontendReaction reads the tunneling field into the attribute bag", () => {
@@ -346,8 +295,6 @@ describe("Tunneling parameter translation", () => {
       id: "00000000-0000-0000-0000-000000000000",
       name: "tun",
       reactionType: "TUNNELING",
-      numericalAttributes: [],
-      stringAttributes: [],
       tunneling: { a: 1.2e-11, b: 0, c: 300 },
       reactants: [],
       products: [],
@@ -392,8 +339,6 @@ describe("Troe parameter translation", () => {
       fc: 0.6,
       n: 1.0,
     });
-    expect(result.numericalAttributes).toHaveLength(0);
-    expect(result.stringAttributes).toHaveLength(0);
   });
 
   test("apiToFrontendReaction reads the troe field into the attribute bag", () => {
@@ -401,8 +346,6 @@ describe("Troe parameter translation", () => {
       id: "00000000-0000-0000-0000-000000000000",
       name: "troe",
       reactionType: "TROE",
-      numericalAttributes: [],
-      stringAttributes: [],
       troe: {
         k0A: 1.2e-11,
         k0B: 0,
@@ -458,8 +401,6 @@ describe("Ternary Chemical Activation parameter translation", () => {
       fc: 0.6,
       n: 1.0,
     });
-    expect(result.numericalAttributes).toHaveLength(0);
-    expect(result.stringAttributes).toHaveLength(0);
   });
 
   test("apiToFrontendReaction reads the ternaryChemicalActivation field into the attribute bag", () => {
@@ -467,8 +408,6 @@ describe("Ternary Chemical Activation parameter translation", () => {
       id: "00000000-0000-0000-0000-000000000000",
       name: "tca",
       reactionType: "TERNARY_CHEMICAL_ACTIVATION",
-      numericalAttributes: [],
-      stringAttributes: [],
       ternaryChemicalActivation: {
         k0A: 1.2e-11,
         k0B: 0,
@@ -516,8 +455,6 @@ describe("Branched (no RO2) parameter translation", () => {
       a0: 0.5,
       n: 6,
     });
-    expect(result.numericalAttributes).toHaveLength(0);
-    expect(result.stringAttributes).toHaveLength(0);
   });
 
   test("apiToFrontendReaction reads the branched field into the attribute bag", () => {
@@ -525,8 +462,6 @@ describe("Branched (no RO2) parameter translation", () => {
       id: "00000000-0000-0000-0000-000000000000",
       name: "branched",
       reactionType: "BRANCHED_NO_RO2",
-      numericalAttributes: [],
-      stringAttributes: [],
       branched: { x: 1.2e-11, y: 300, a0: 0.5, n: 6 },
       reactants: [],
       products: [],
@@ -572,8 +507,6 @@ describe("Taylor Series parameter translation", () => {
       e: 0.0,
       taylorCoefficients: [1, 2, 3],
     });
-    expect(result.numericalAttributes).toHaveLength(0);
-    expect(result.stringAttributes).toHaveLength(0);
   });
 
   test("apiToFrontendReaction reads the taylorSeries field into the attribute bag", () => {
@@ -581,8 +514,6 @@ describe("Taylor Series parameter translation", () => {
       id: "00000000-0000-0000-0000-000000000000",
       name: "taylor series",
       reactionType: "TAYLOR_SERIES",
-      numericalAttributes: [],
-      stringAttributes: [],
       taylorSeries: {
         a: 1.0,
         b: 0.0,
@@ -626,8 +557,6 @@ describe("Surface parameter translation", () => {
     expect(result.surface).toEqual({
       reactionProbability: 1.0,
     });
-    expect(result.numericalAttributes).toHaveLength(0);
-    expect(result.stringAttributes).toHaveLength(0);
   });
 
   test("apiToFrontendReaction reads the surface field into the attribute bag", () => {
@@ -635,8 +564,6 @@ describe("Surface parameter translation", () => {
       id: "00000000-0000-0000-0000-000000000000",
       name: "surface",
       reactionType: "SURFACE",
-      numericalAttributes: [],
-      stringAttributes: [],
       surface: { reactionProbability: 1.0 },
       reactants: [],
       products: [],
@@ -665,8 +592,6 @@ describe("Emission parameter translation", () => {
     expect(result.emission).toEqual({
       scalingFactor: 1.5,
     });
-    expect(result.numericalAttributes).toHaveLength(0);
-    expect(result.stringAttributes).toHaveLength(0);
   });
 
   test("apiToFrontendReaction reads the emission field into the attribute bag", () => {
@@ -674,8 +599,6 @@ describe("Emission parameter translation", () => {
       id: "00000000-0000-0000-0000-000000000000",
       name: "emission",
       reactionType: "EMISSION",
-      numericalAttributes: [],
-      stringAttributes: [],
       emission: { scalingFactor: 1.5 },
       reactants: [],
       products: [],
@@ -704,8 +627,6 @@ describe("First Order Loss parameter translation", () => {
     expect(result.firstOrderLoss).toEqual({
       scalingFactor: 2.0,
     });
-    expect(result.numericalAttributes).toHaveLength(0);
-    expect(result.stringAttributes).toHaveLength(0);
   });
 
   test("apiToFrontendReaction reads the firstOrderLoss field into the attribute bag", () => {
@@ -713,8 +634,6 @@ describe("First Order Loss parameter translation", () => {
       id: "00000000-0000-0000-0000-000000000000",
       name: "first order loss",
       reactionType: "FIRST_ORDER_LOSS",
-      numericalAttributes: [],
-      stringAttributes: [],
       firstOrderLoss: { scalingFactor: 2.0 },
       reactants: [],
       products: [],
@@ -743,8 +662,6 @@ describe("Photolysis parameter translation", () => {
     expect(result.photolysis).toEqual({
       scalingFactor: 0.8,
     });
-    expect(result.numericalAttributes).toHaveLength(0);
-    expect(result.stringAttributes).toHaveLength(0);
   });
 
   test("apiToFrontendReaction reads the photolysis field into the attribute bag", () => {
@@ -752,8 +669,6 @@ describe("Photolysis parameter translation", () => {
       id: "00000000-0000-0000-0000-000000000000",
       name: "photolysis",
       reactionType: "PHOTOLYSIS",
-      numericalAttributes: [],
-      stringAttributes: [],
       photolysis: { scalingFactor: 0.8 },
       reactants: [],
       products: [],
@@ -782,8 +697,6 @@ describe("User Defined parameter translation", () => {
     expect(result.userDefined).toEqual({
       scalingFactor: 3.2,
     });
-    expect(result.numericalAttributes).toHaveLength(0);
-    expect(result.stringAttributes).toHaveLength(0);
   });
 
   test("apiToFrontendReaction reads the userDefined field into the attribute bag", () => {
@@ -791,8 +704,6 @@ describe("User Defined parameter translation", () => {
       id: "00000000-0000-0000-0000-000000000000",
       name: "user defined",
       reactionType: "USER_DEFINED",
-      numericalAttributes: [],
-      stringAttributes: [],
       userDefined: { scalingFactor: 3.2 },
       reactants: [],
       products: [],

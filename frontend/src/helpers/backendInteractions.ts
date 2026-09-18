@@ -100,30 +100,9 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
     attributes: {},
   };
 
-  for (const attribute of apiReaction.numericalAttributes) {
-    const defaultAttribute = reactionAttributeOptions[
-      apiReaction.reactionType as ReactionTypeName
-    ]?.find((e) => e.serializationKey == attribute.serializationKey);
-    formattedReaction.attributes[attribute.serializationKey] = {
-      ...defaultAttribute,
-      serializationKey: attribute.serializationKey,
-      value: attribute.value,
-    };
-  }
-
-  for (const attribute of apiReaction.stringAttributes) {
-    const defaultAttribute = reactionAttributeOptions[
-      apiReaction.reactionType as ReactionTypeName
-    ]?.find((e) => e.serializationKey == attribute.serializationKey);
-    formattedReaction.attributes[attribute.serializationKey] = {
-      ...defaultAttribute,
-      serializationKey: attribute.serializationKey,
-      value: attribute.value,
-    };
-  }
-
-  // Arrhenius reactions store their parameters in a dedicated table. Read them
-  // back into the attribute bag, keyed by the serialization key the editor uses.
+  // Every reaction type has a dedicated parameter table (#268). Read the
+  // matching one back into the attribute bag, keyed by the serialization
+  // key the editor uses.
   if (apiReaction.reactionType === "ARRHENIUS" && apiReaction.arrhenius) {
     const arrheniusValues: Record<string, number | null | undefined> = {
       A: apiReaction.arrhenius.a,
@@ -436,8 +415,6 @@ export function frontendToAPIReaction(
     familyId: family.id as UUID,
     name: reaction.name,
     description: reaction.description ?? "",
-    numericalAttributes: [],
-    stringAttributes: [],
     reactants: reaction.reactants as Array<APIReactant>,
     products: reaction.products as Array<APIProduct>,
     gasPhaseId: reaction.gasPhaseId as UUID,
@@ -448,8 +425,8 @@ export function frontendToAPIReaction(
     reactionType: reaction.type,
   };
 
-  // Reaction types with a dedicated parameter table write to that table's
-  // field instead of the attribute lists.
+  // Every reaction type has a dedicated parameter table (#268); write to
+  // that table's field, keyed by the serialization key the editor uses.
   const numOrNull = (value: number | number[] | string | undefined) =>
     typeof value === "number" ? value : null;
 
@@ -533,20 +510,6 @@ export function frontendToAPIReaction(
     formattedReaction.userDefined = {
       scalingFactor: numOrNull(reaction.attributes["scaling factor"]?.value),
     };
-  } else {
-    for (const attribute of Object.values(reaction.attributes)) {
-      if (typeof attribute.value === "number") {
-        formattedReaction.numericalAttributes.push({
-          serializationKey: attribute.serializationKey,
-          value: attribute.value,
-        });
-      } else if (typeof attribute.value === "string") {
-        formattedReaction.stringAttributes.push({
-          serializationKey: attribute.serializationKey,
-          value: attribute.value,
-        });
-      }
-    }
   }
 
   return formattedReaction;

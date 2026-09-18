@@ -43,14 +43,6 @@ export interface APIReaction {
   name: string;
   reactionType: string;
   description?: string;
-  numericalAttributes: Array<{
-    serializationKey: string;
-    value: number;
-  }>;
-  stringAttributes: Array<{
-    serializationKey: string;
-    value: string;
-  }>;
   // Dedicated Arrhenius parameters. Present only for ARRHENIUS reactions.
   arrhenius?: {
     a?: number | null;

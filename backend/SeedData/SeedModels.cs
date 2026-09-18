@@ -1,4 +1,5 @@
 using System.Text.Json;
+using ChemistryCafeAPI.Models.Dto;
 
 namespace ChemistryCafeAPI.SeedData;
 
@@ -49,10 +50,21 @@ public class SeedReaction
     public string Type { get; set; } = null!;
     public List<SeedComponent> Reactants { get; set; } = new();
     public List<SeedComponent> Products { get; set; } = new();
-    public Dictionary<string, double> NumericalAttributes { get; set; } = new();
-    public Dictionary<string, string> StringAttributes { get; set; } = new();
     public string? GasPhase { get; set; }
     public string? GasPhaseSpecies { get; set; }
+
+    // Exactly one of these is populated, matching Type.
+    public ArrheniusParametersDto? Arrhenius { get; set; }
+    public TunnelingParametersDto? Tunneling { get; set; }
+    public TroeParametersDto? Troe { get; set; }
+    public TernaryChemicalActivationParametersDto? TernaryChemicalActivation { get; set; }
+    public BranchedParametersDto? Branched { get; set; }
+    public TaylorSeriesParametersDto? TaylorSeries { get; set; }
+    public SurfaceParametersDto? Surface { get; set; }
+    public EmissionParametersDto? Emission { get; set; }
+    public FirstOrderLossParametersDto? FirstOrderLoss { get; set; }
+    public PhotolysisParametersDto? Photolysis { get; set; }
+    public UserDefinedParametersDto? UserDefined { get; set; }
 }
 
 public class SeedComponent

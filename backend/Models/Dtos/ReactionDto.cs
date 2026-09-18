@@ -1,8 +1,8 @@
 namespace ChemistryCafeAPI.Models.Dto;
 
 /// <summary>
-/// Data transfer object for the Reaction model. Reactants, products, and
-/// attributes are carried inline; phase/species references are ids.
+/// Data transfer object for the Reaction model. Reactants and products are
+/// carried inline; phase/species references are ids.
 /// </summary>
 public class ReactionDto
 {
@@ -14,51 +14,19 @@ public class ReactionDto
 
     public List<ReactantDto> Reactants { get; set; } = new();
     public List<ProductDto> Products { get; set; } = new();
-    public List<ReactionNumericalAttributeDto> NumericalAttributes { get; set; } = new();
-    public List<ReactionStringAttributeDto> StringAttributes { get; set; } = new();
 
-    // Dedicated parameters for Arrhenius reactions. Null for other types, which
-    // still carry their parameters in the attribute lists above.
+    // Exactly one of these is populated, matching ReactionType. Every
+    // reaction type has a dedicated parameter table (#268).
     public ArrheniusParametersDto? Arrhenius { get; set; }
-
-    // Dedicated parameters for Tunneling reactions. Null for other types, which
-    // still carry their parameters in the attribute lists above.
     public TunnelingParametersDto? Tunneling { get; set; }
-
-    // Dedicated parameters for Troe reactions. Null for other types, which
-    // still carry their parameters in the attribute lists above.
     public TroeParametersDto? Troe { get; set; }
-
-    // Dedicated parameters for Ternary Chemical Activation reactions. Null for
-    // other types, which still carry their parameters in the attribute lists above.
     public TernaryChemicalActivationParametersDto? TernaryChemicalActivation { get; set; }
-
-    // Dedicated parameters for Branched (no RO2) reactions. Null for other
-    // types, which still carry their parameters in the attribute lists above.
     public BranchedParametersDto? Branched { get; set; }
-
-    // Dedicated parameters for Taylor Series reactions. Null for other types,
-    // which still carry their parameters in the attribute lists above.
     public TaylorSeriesParametersDto? TaylorSeries { get; set; }
-
-    // Dedicated parameters for Surface reactions. Null for other types, which
-    // still carry their parameters in the attribute lists above.
     public SurfaceParametersDto? Surface { get; set; }
-
-    // Dedicated parameters for Emission reactions. Null for other types,
-    // which still carry their parameters in the attribute lists above.
     public EmissionParametersDto? Emission { get; set; }
-
-    // Dedicated parameters for First Order Loss reactions. Null for other
-    // types, which still carry their parameters in the attribute lists above.
     public FirstOrderLossParametersDto? FirstOrderLoss { get; set; }
-
-    // Dedicated parameters for Photolysis reactions. Null for other types,
-    // which still carry their parameters in the attribute lists above.
     public PhotolysisParametersDto? Photolysis { get; set; }
-
-    // Dedicated parameters for User Defined reactions. Null for other types,
-    // which still carry their parameters in the attribute lists above.
     public UserDefinedParametersDto? UserDefined { get; set; }
 
     public Guid? GasPhaseId { get; set; }
@@ -164,16 +132,4 @@ public class PhotolysisParametersDto
 public class UserDefinedParametersDto
 {
     public double? ScalingFactor { get; set; }
-}
-
-public class ReactionNumericalAttributeDto
-{
-    public string SerializationKey { get; set; } = null!;
-    public double Value { get; set; }
-}
-
-public class ReactionStringAttributeDto
-{
-    public string SerializationKey { get; set; } = null!;
-    public string Value { get; set; } = null!;
 }

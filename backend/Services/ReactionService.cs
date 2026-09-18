@@ -21,8 +21,6 @@ public class ReactionService
     public async Task<(QueryResult, IEnumerable<Reaction>?)> GetAllReactionsAsync(Guid? familyId = null)
     {
         IQueryable<Reaction> query = _context.Reactions
-            .Include(r => r.NumericalAttributes)
-            .Include(r => r.StringAttributes)
             .Include(r => r.GasPhase)
             .Include(r => r.GasPhaseSpecies)
             .Include(r => r.AerosolPhase)
@@ -56,8 +54,6 @@ public class ReactionService
     public async Task<(QueryResult, Reaction?)> GetReactionAsync(Guid id)
     {
         Reaction? reaction = await _context.Reactions
-            .Include(r => r.NumericalAttributes)
-            .Include(r => r.StringAttributes)
             .Include(r => r.GasPhase)
             .Include(r => r.GasPhaseSpecies)
             .Include(r => r.AerosolPhase)

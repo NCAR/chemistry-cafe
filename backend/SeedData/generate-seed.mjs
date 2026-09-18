@@ -24,7 +24,7 @@ const SPECIES_FIELDS = {
   "is third body": "isThirdBody",
 };
 
-// reaction keys that are structural (not free attributes)
+// reaction keys that are structural (not dedicated-table parameters)
 const REACTION_STRUCTURAL = new Set([
   "type",
   "name",
@@ -39,6 +39,82 @@ const REACTION_STRUCTURAL = new Set([
   "nitrate products",
   "alkoxy products",
 ]);
+
+// reaction type -> { seed field on SeedReaction, wire key -> DTO field }.
+// Every reaction type has its own dedicated parameter table (#268); this
+// mirrors the backend's ReactionMapper/backendInteractions.ts translation.
+const REACTION_PARAM_FIELDS = {
+  ARRHENIUS: {
+    seedField: "arrhenius",
+    fields: { A: "a", B: "b", C: "c", Ea: "ea", D: "d", E: "e" },
+  },
+  TUNNELING: {
+    seedField: "tunneling",
+    fields: { A: "a", B: "b", C: "c" },
+  },
+  TROE: {
+    seedField: "troe",
+    fields: {
+      k0_A: "k0A",
+      k0_B: "k0B",
+      k0_C: "k0C",
+      kinf_A: "kinfA",
+      kinf_B: "kinfB",
+      kinf_C: "kinfC",
+      Fc: "fc",
+      N: "n",
+    },
+  },
+  TERNARY_CHEMICAL_ACTIVATION: {
+    seedField: "ternaryChemicalActivation",
+    fields: {
+      k0_A: "k0A",
+      k0_B: "k0B",
+      k0_C: "k0C",
+      kinf_A: "kinfA",
+      kinf_B: "kinfB",
+      kinf_C: "kinfC",
+      Fc: "fc",
+      N: "n",
+    },
+  },
+  BRANCHED_NO_RO2: {
+    seedField: "branched",
+    fields: { X: "x", Y: "y", a0: "a0", n: "n" },
+  },
+  TAYLOR_SERIES: {
+    seedField: "taylorSeries",
+    fields: {
+      A: "a",
+      B: "b",
+      C: "c",
+      Ea: "ea",
+      D: "d",
+      E: "e",
+      "taylor coefficients": "taylorCoefficients",
+    },
+  },
+  SURFACE: {
+    seedField: "surface",
+    fields: { "reaction probability": "reactionProbability" },
+  },
+  EMISSION: {
+    seedField: "emission",
+    fields: { "scaling factor": "scalingFactor" },
+  },
+  FIRST_ORDER_LOSS: {
+    seedField: "firstOrderLoss",
+    fields: { "scaling factor": "scalingFactor" },
+  },
+  PHOTOLYSIS: {
+    seedField: "photolysis",
+    fields: { "scaling factor": "scalingFactor" },
+  },
+  USER_DEFINED: {
+    seedField: "userDefined",
+    fields: { "scaling factor": "scalingFactor" },
+  },
+};
 
 function speciesToSeed(s) {
   const seed = { name: s.name };
@@ -72,13 +148,19 @@ function reactionToSeed(r, index) {
     products.push({ name: componentName(c), coefficient: c.coefficient ?? 1, branch: "gas-phase" });
   }
 
-  const numericalAttributes = {};
-  const stringAttributes = {};
+  const paramConfig = REACTION_PARAM_FIELDS[r.type];
+  if (!paramConfig) {
+    throw new Error(`Unknown reaction type "${r.type}" - no dedicated parameter mapping`);
+  }
+
+  const params = {};
   for (const [key, value] of Object.entries(r)) {
     if (REACTION_STRUCTURAL.has(key)) continue;
-    if (typeof value === "number") numericalAttributes[key] = value;
-    else if (typeof value === "string") stringAttributes[key] = value;
-    else throw new Error(`Unhandled reaction attribute type for "${key}" (${typeof value})`);
+    const dtoField = paramConfig.fields[key];
+    if (!dtoField) {
+      throw new Error(`Unhandled reaction attribute "${key}" for type "${r.type}"`);
+    }
+    params[dtoField] = value;
   }
 
   const seed = {
@@ -86,11 +168,10 @@ function reactionToSeed(r, index) {
     type: r.type,
     reactants,
     products,
-    numericalAttributes,
-    stringAttributes,
   };
   if (r["gas phase"]) seed.gasPhase = r["gas phase"];
   if (r["gas-phase species"]) seed.gasPhaseSpecies = componentName(r["gas-phase species"]);
+  if (Object.keys(params).length > 0) seed[paramConfig.seedField] = params;
   return seed;
 }
 
