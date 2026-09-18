@@ -557,5 +557,69 @@ namespace ChemistryCafeAPI.Tests
             Assert.AreEqual(0.8, branched.A0);
             Assert.AreEqual(2.0, branched.N);
         }
+
+        [TestMethod]
+        public async Task Create_PersistsTaylorSeriesParameters()
+        {
+            FamilyDto dto = BuildBaseFamily();
+            dto.Reactions.Single().TaylorSeries = new TaylorSeriesParametersDto
+            {
+                A = 1.0,
+                B = 0.0,
+                Ea = 0.0,
+                D = 300.0,
+                E = 0.0,
+                TaylorCoefficients = new List<double> { 1.0, 2.0, 3.0 },
+            };
+            await CreateBaseFamilyAsync(dto);
+
+            Family reloaded = await ReloadAsync(dto.Id);
+            TaylorSeriesParameters? taylorSeries = reloaded.Reactions.Single().TaylorSeries;
+            Assert.IsNotNull(taylorSeries);
+            Assert.AreEqual(1.0, taylorSeries!.A);
+            Assert.AreEqual(0.0, taylorSeries.B);
+            Assert.AreEqual(0.0, taylorSeries.Ea);
+            Assert.AreEqual(300.0, taylorSeries.D);
+            Assert.AreEqual(0.0, taylorSeries.E);
+            CollectionAssert.AreEqual(new List<double> { 1.0, 2.0, 3.0 }, taylorSeries.TaylorCoefficients);
+        }
+
+        [TestMethod]
+        public async Task Update_ChangesTaylorSeriesParameters()
+        {
+            FamilyDto dto = BuildBaseFamily();
+            dto.Reactions.Single().TaylorSeries = new TaylorSeriesParametersDto
+            {
+                A = 1.0,
+                B = 0.0,
+                Ea = 0.0,
+                D = 300.0,
+                E = 0.0,
+                TaylorCoefficients = new List<double> { 1.0 },
+            };
+            await CreateBaseFamilyAsync(dto);
+
+            dto.Reactions.Single().TaylorSeries = new TaylorSeriesParametersDto
+            {
+                A = 5.0,
+                B = 2.0,
+                C = 150.0,
+                D = 250.0,
+                E = 1.5,
+                TaylorCoefficients = new List<double> { 4.0, 5.0, 6.0, 7.0 },
+            };
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            Family reloaded = await ReloadAsync(dto.Id);
+            TaylorSeriesParameters? taylorSeries = reloaded.Reactions.Single().TaylorSeries;
+            Assert.IsNotNull(taylorSeries);
+            Assert.AreEqual(5.0, taylorSeries!.A);
+            Assert.AreEqual(2.0, taylorSeries.B);
+            Assert.AreEqual(150.0, taylorSeries.C);
+            Assert.IsNull(taylorSeries.Ea);
+            Assert.AreEqual(250.0, taylorSeries.D);
+            Assert.AreEqual(1.5, taylorSeries.E);
+            CollectionAssert.AreEqual(new List<double> { 4.0, 5.0, 6.0, 7.0 }, taylorSeries.TaylorCoefficients);
+        }
     }
 }

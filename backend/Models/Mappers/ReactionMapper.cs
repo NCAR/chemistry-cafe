@@ -31,6 +31,7 @@ public static class ReactionMapper
             Troe = reaction.Troe?.ToDto(),
             TernaryChemicalActivation = reaction.TernaryChemicalActivation?.ToDto(),
             Branched = reaction.Branched?.ToDto(),
+            TaylorSeries = reaction.TaylorSeries?.ToDto(),
             GasPhaseId = reaction.GasPhaseId,
             GasPhaseSpeciesId = reaction.GasPhaseSpeciesId,
             AerosolPhaseId = reaction.AerosolPhaseId,
@@ -62,6 +63,7 @@ public static class ReactionMapper
             Troe = reactionDto.Troe?.ToEntity(),
             TernaryChemicalActivation = reactionDto.TernaryChemicalActivation?.ToEntity(),
             Branched = reactionDto.Branched?.ToEntity(),
+            TaylorSeries = reactionDto.TaylorSeries?.ToEntity(),
             GasPhaseId = reactionDto.GasPhaseId,
             GasPhaseSpeciesId = reactionDto.GasPhaseSpeciesId,
             AerosolPhaseId = reactionDto.AerosolPhaseId,
@@ -188,5 +190,29 @@ public static class ReactionMapper
             Y = dto.Y,
             A0 = dto.A0,
             N = dto.N,
+        };
+
+    public static TaylorSeriesParametersDto ToDto(this TaylorSeriesParameters parameters) =>
+        new TaylorSeriesParametersDto
+        {
+            A = parameters.A,
+            B = parameters.B,
+            C = parameters.C,
+            Ea = parameters.Ea,
+            D = parameters.D,
+            E = parameters.E,
+            TaylorCoefficients = parameters.TaylorCoefficients,
+        };
+
+    public static TaylorSeriesParameters ToEntity(this TaylorSeriesParametersDto dto) =>
+        new TaylorSeriesParameters
+        {
+            A = dto.A,
+            B = dto.B,
+            C = dto.C,
+            Ea = dto.Ea,
+            D = dto.D,
+            E = dto.E,
+            TaylorCoefficients = dto.TaylorCoefficients,
         };
 }

@@ -484,6 +484,71 @@ describe("Branched (no RO2) parameter translation", () => {
   });
 });
 
+describe("Taylor Series parameter translation", () => {
+  const taylorSeriesReaction: Reaction = {
+    id: "00000000-0000-0000-0000-000000000000",
+    name: "taylor series",
+    description: "",
+    type: "TAYLOR_SERIES",
+    reactants: [],
+    products: [],
+    attributes: {
+      A: { serializationKey: "A", value: 1.0 },
+      B: { serializationKey: "B", value: 0.0 },
+      Ea: { serializationKey: "Ea", value: 0.0 },
+      D: { serializationKey: "D", value: 300.0 },
+      E: { serializationKey: "E", value: 0.0 },
+      "taylor coefficients": {
+        serializationKey: "taylor coefficients",
+        value: [1, 2, 3],
+      },
+    },
+  };
+
+  test("frontendToAPIReaction writes params to the taylorSeries field, not the attribute lists", () => {
+    const result = frontendToAPIReaction(taylorSeriesReaction, frontendFamily);
+    expect(result.taylorSeries).toEqual({
+      a: 1.0,
+      b: 0.0,
+      c: null,
+      ea: 0.0,
+      d: 300.0,
+      e: 0.0,
+      taylorCoefficients: [1, 2, 3],
+    });
+    expect(result.numericalAttributes).toHaveLength(0);
+    expect(result.stringAttributes).toHaveLength(0);
+  });
+
+  test("apiToFrontendReaction reads the taylorSeries field into the attribute bag", () => {
+    const apiTaylorSeries: APIReaction = {
+      id: "00000000-0000-0000-0000-000000000000",
+      name: "taylor series",
+      reactionType: "TAYLOR_SERIES",
+      numericalAttributes: [],
+      stringAttributes: [],
+      taylorSeries: {
+        a: 1.0,
+        b: 0.0,
+        ea: 0.0,
+        d: 300.0,
+        e: 0.0,
+        taylorCoefficients: [1, 2, 3],
+      },
+      reactants: [],
+      products: [],
+      familyId: "00000000-0000-0000-0000-000000000000",
+    };
+    const result = apiToFrontendReaction(apiTaylorSeries);
+    expect(result.attributes["A"].value).toBe(1.0);
+    expect(result.attributes["B"].value).toBe(0.0);
+    expect(result.attributes["Ea"].value).toBe(0.0);
+    expect(result.attributes["D"].value).toBe(300.0);
+    expect(result.attributes["E"].value).toBe(0.0);
+    expect(result.attributes["taylor coefficients"].value).toEqual([1, 2, 3]);
+  });
+});
+
 describe("Phase Conversion", () => {
   test("Conversion from frontend to backend definition", () => {
     const result = frontendToAPIPhase(frontendPhase, frontendFamily);

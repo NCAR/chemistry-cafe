@@ -94,6 +94,19 @@ public partial class ChemistryDbContext : DbContext
             .HasForeignKey<BranchedParameters>(b => b.ReactionId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // Taylor Series parameters share the reaction primary key (one-to-one).
+        modelBuilder.Entity<Reaction>()
+            .HasOne(r => r.TaylorSeries)
+            .WithOne(t => t.Reaction)
+            .HasForeignKey<TaylorSeriesParameters>(t => t.ReactionId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<TaylorSeriesParameters>()
+            .Property(t => t.TaylorCoefficients)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => JsonSerializer.Deserialize<List<double>>(v, (JsonSerializerOptions?)null));
+
         modelBuilder.Entity<Reactant>()
             .HasOne(r => r.Species)
             .WithMany(s => s.AsReactant)

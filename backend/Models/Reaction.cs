@@ -35,6 +35,9 @@ public class Reaction
     // Dedicated parameter table for Branched (no RO2) reactions. Null for other types.
     public BranchedParameters? Branched { get; set; }
 
+    // Dedicated parameter table for Taylor Series reactions. Null for other types.
+    public TaylorSeriesParameters? TaylorSeries { get; set; }
+
 
     // Collections of reactants and products (must be species from the same family)
     public ICollection<Reactant> Reactants { get; set; } = new List<Reactant>();
@@ -224,6 +227,31 @@ public class BranchedParameters
     public double? Y { get; set; }
     public double? A0 { get; set; }
     public double? N { get; set; }
+}
+
+/// <summary>
+/// Dedicated parameters for a Taylor Series reaction. Has a one-to-one
+/// relationship with a reaction: ReactionId is both the primary key and the
+/// foreign key. C and Ea are mutually exclusive, as with Arrhenius. All
+/// scalar columns are nullable so an unset value stays unset; TaylorCoefficients
+/// is stored as JSON since it is a variable-length list.
+/// </summary>
+[Table("TaylorSeriesParameters")]
+public class TaylorSeriesParameters
+{
+    [Key]
+    public Guid ReactionId { get; set; }
+
+    [JsonIgnore]
+    public Reaction? Reaction { get; set; }
+
+    public double? A { get; set; }
+    public double? B { get; set; }
+    public double? C { get; set; }
+    public double? Ea { get; set; }
+    public double? D { get; set; }
+    public double? E { get; set; }
+    public List<double>? TaylorCoefficients { get; set; }
 }
 
 /// <summary>
