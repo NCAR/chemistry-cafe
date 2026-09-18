@@ -16,8 +16,7 @@ import { UUID } from "crypto";
  *
  * import/export is done by the musica library. On export we build musica
  * objects from the chemistry-cafe Family/Mechanism model and let musica
- * serialize; on import we read the parsed wire object back into the model,
- * assigning fresh frontend ids.
+ * serialize; on import, we translate musica types to chemsitry cafe data models
  */
 
 const {
@@ -26,33 +25,28 @@ const {
   Mechanism: MusicaMechanism,
 } = mechanismConfiguration;
 
-// A musica reaction is any of the concrete reaction-rate class instances.
-// Derived from the runtime registry so it stays in lockstep with reactionTypes.
 type MusicaReaction = InstanceType<
   (typeof reactionTypes)[keyof typeof reactionTypes]
 >;
 
 const V1_VERSION = "1.0.0";
-const SCALING_FACTOR_KEY = "scaling factor";
+const SCALING_FACTOR_KEY = "scalingFactor";
+const WIRE_SCALING_FACTOR_KEY = "scaling factor";
 
-/** Coerce an attribute value (string | number | empty) to a number with a default. */
+/** Convert a value to a number. */
 const num = (value: unknown, fallback: number): number =>
   value === undefined || value === null || value === ""
     ? fallback
     : Number(value);
 
-/** Read a reaction parameter value out of the reaction's attribute bag. */
-const paramVal = (r: Reaction, key: string): unknown =>
-  r.attributes[key]?.value;
-
-/** Build a reaction attribute bag from a params record, dropping undefined. */
+/** Build a reaction.attributes object from a params record, dropping undefined. */
 const attrsFromParams = (
   params: Record<string, number | number[] | string | undefined>,
 ): Reaction["attributes"] => {
   const attributes: Reaction["attributes"] = {};
   for (const [key, value] of Object.entries(params)) {
     if (value === undefined) continue;
-    attributes[key] = { serializationKey: key, value };
+    attributes[key] = { key, value };
   }
   return attributes;
 };
@@ -93,17 +87,17 @@ type ReactionAdapter = {
 
 const ARRHENIUS: ReactionAdapter = {
   toMusica: (r, ctx) => {
-    const ea = paramVal(r, "Ea");
+    const ea = r.attributes["Ea"]?.value;
     return new reactionTypes.Arrhenius({
       name: r.name,
-      A: num(paramVal(r, "A"), 1.0),
-      B: num(paramVal(r, "B"), 0.0),
+      A: num(r.attributes["A"]?.value, 1.0),
+      B: num(r.attributes["B"]?.value, 0.0),
       // C and Ea are mutually exclusive (see chemistry-cafe PR #166).
       ...(ea !== undefined && ea !== ""
         ? { Ea: num(ea, 0) }
-        : { C: num(paramVal(r, "C"), 0) }),
-      D: num(paramVal(r, "D"), 300.0),
-      E: num(paramVal(r, "E"), 0.0),
+        : { C: num(r.attributes["C"]?.value, 0) }),
+      D: num(r.attributes["D"]?.value, 300.0),
+      E: num(r.attributes["E"]?.value, 0.0),
       gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
       reactants: componentsToMusica(r.reactants, ctx),
       products: componentsToMusica(r.products, ctx),
@@ -132,10 +126,10 @@ const BRANCHED_NO_RO2: ReactionAdapter = {
   toMusica: (r, ctx) =>
     new reactionTypes.Branched({
       name: r.name,
-      X: num(paramVal(r, "X"), 0),
-      Y: num(paramVal(r, "Y"), 0),
-      a0: num(paramVal(r, "a0"), 0),
-      n: num(paramVal(r, "n"), 0),
+      X: num(r.attributes["X"]?.value, 0),
+      Y: num(r.attributes["Y"]?.value, 0),
+      a0: num(r.attributes["a0"]?.value, 0),
+      n: num(r.attributes["n"]?.value, 0),
       gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
       reactants: componentsToMusica(r.reactants, ctx),
       nitrate_products: componentsToMusica(
@@ -172,7 +166,7 @@ const EMISSION: ReactionAdapter = {
   toMusica: (r, ctx) =>
     new reactionTypes.Emission({
       name: r.name,
-      scaling_factor: num(paramVal(r, SCALING_FACTOR_KEY), 1.0),
+      scaling_factor: num(r.attributes[SCALING_FACTOR_KEY]?.value, 1.0),
       gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
       products: componentsToMusica(r.products, ctx),
     }),
@@ -184,7 +178,7 @@ const EMISSION: ReactionAdapter = {
     type: reactionTypes.Emission.type,
     gasPhaseId: json["gas phase"] ?? undefined,
     attributes: attrsFromParams({
-      [SCALING_FACTOR_KEY]: json[SCALING_FACTOR_KEY],
+      [SCALING_FACTOR_KEY]: json[WIRE_SCALING_FACTOR_KEY],
     }),
     reactants: [],
     products: componentsFromJSON(json.products),
@@ -195,7 +189,7 @@ const FIRST_ORDER_LOSS: ReactionAdapter = {
   toMusica: (r, ctx) =>
     new reactionTypes.FirstOrderLoss({
       name: r.name,
-      scaling_factor: num(paramVal(r, SCALING_FACTOR_KEY), 1.0),
+      scaling_factor: num(r.attributes[SCALING_FACTOR_KEY]?.value, 1.0),
       gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
       reactants: componentsToMusica(r.reactants, ctx),
     }),
@@ -207,7 +201,7 @@ const FIRST_ORDER_LOSS: ReactionAdapter = {
     type: reactionTypes.FirstOrderLoss.type,
     gasPhaseId: json["gas phase"] ?? undefined,
     attributes: attrsFromParams({
-      [SCALING_FACTOR_KEY]: json[SCALING_FACTOR_KEY],
+      [SCALING_FACTOR_KEY]: json[WIRE_SCALING_FACTOR_KEY],
     }),
     reactants: componentsFromJSON(json.reactants),
     products: [],
@@ -218,7 +212,7 @@ const PHOTOLYSIS: ReactionAdapter = {
   toMusica: (r, ctx) => {
     return new reactionTypes.Photolysis({
       name: r.name,
-      scaling_factor: num(paramVal(r, SCALING_FACTOR_KEY), 1.0),
+      scaling_factor: num(r.attributes[SCALING_FACTOR_KEY]?.value, 1.0),
       gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
       reactants: componentsToMusica(r.reactants, ctx),
       products: componentsToMusica(r.products, ctx),
@@ -233,7 +227,7 @@ const PHOTOLYSIS: ReactionAdapter = {
       gasPhaseId: json["gas phase"] ?? undefined,
       type: reactionTypes.Photolysis.type,
       attributes: attrsFromParams({
-        [SCALING_FACTOR_KEY]: json[SCALING_FACTOR_KEY],
+        [SCALING_FACTOR_KEY]: json[WIRE_SCALING_FACTOR_KEY],
       }),
       reactants: componentsFromJSON(json.reactants),
       products: componentsFromJSON(json.products),
@@ -246,7 +240,7 @@ const SURFACE: ReactionAdapter = {
   toMusica: (r, ctx) => {
     return new reactionTypes.Surface({
       name: r.name,
-      reaction_probability: num(paramVal(r, "reaction probability"), 1.0),
+      reaction_probability: num(r.attributes["reactionProbability"]?.value, 1.0),
       gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
       gas_phase_species: new types.ReactionComponent({
         name: ctx.speciesName(String(r.gasPhaseSpeciesId)),
@@ -266,7 +260,7 @@ const SURFACE: ReactionAdapter = {
       type: reactionTypes.Surface.type,
       gasPhaseId: json["gas phase"] ?? undefined,
       attributes: attrsFromParams({
-        "reaction probability": json["reaction probability"],
+        reactionProbability: json["reaction probability"],
       }),
       reactants: [],
       products: componentsFromJSON(json["gas-phase products"], "gas-phase"),
@@ -277,17 +271,17 @@ const SURFACE: ReactionAdapter = {
 
 const TAYLOR_SERIES: ReactionAdapter = {
   toMusica: (r, ctx) => {
-    const ea = paramVal(r, "Ea");
+    const ea = r.attributes["Ea"]?.value;
     return new reactionTypes.TaylorSeries({
       name: r.name,
-      A: num(paramVal(r, "A"), 1.0),
-      B: num(paramVal(r, "B"), 0.0),
+      A: num(r.attributes["A"]?.value, 1.0),
+      B: num(r.attributes["B"]?.value, 0.0),
       ...(ea !== undefined && ea !== ""
         ? { Ea: num(ea, 0) }
-        : { C: num(paramVal(r, "C"), 0) }),
-      D: num(paramVal(r, "D"), 300.0),
-      E: num(paramVal(r, "E"), 0.0),
-      taylor_coefficients: paramVal(r, "taylor_coefficients") as number[],
+        : { C: num(r.attributes["C"]?.value, 0) }),
+      D: num(r.attributes["D"]?.value, 300.0),
+      E: num(r.attributes["E"]?.value, 0.0),
+      taylor_coefficients: r.attributes["taylorCoefficients"]?.value as number[],
       gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
       reactants: componentsToMusica(r.reactants, ctx),
       products: componentsToMusica(r.products, ctx),
@@ -305,7 +299,7 @@ const TAYLOR_SERIES: ReactionAdapter = {
       ...(json.Ea !== undefined ? { Ea: json.Ea } : { C: json.C }),
       D: json.D,
       E: json.E,
-      taylor_coefficients: json["taylor coefficients"] as number[],
+      taylorCoefficients: json["taylor coefficients"] as number[],
     }),
     gasPhaseId: json["gas phase"] ?? undefined,
     reactants: componentsFromJSON(json.reactants),
@@ -317,14 +311,14 @@ const TERNARY_CHEMICAL_ACTIVATION: ReactionAdapter = {
   toMusica: (r, ctx) =>
     new reactionTypes.TernaryChemicalActivation({
       name: r.name,
-      k0_A: num(paramVal(r, "k0_A"), 1.0),
-      k0_B: num(paramVal(r, "k0_B"), 0.0),
-      k0_C: num(paramVal(r, "k0_C"), 0.0),
-      kinf_A: num(paramVal(r, "kinf_A"), 1.0),
-      kinf_B: num(paramVal(r, "kinf_B"), 0.0),
-      kinf_C: num(paramVal(r, "kinf_C"), 0.0),
-      Fc: num(paramVal(r, "Fc"), 0.6),
-      N: num(paramVal(r, "N"), 1.0),
+      k0_A: num(r.attributes["k0A"]?.value, 1.0),
+      k0_B: num(r.attributes["k0B"]?.value, 0.0),
+      k0_C: num(r.attributes["k0C"]?.value, 0.0),
+      kinf_A: num(r.attributes["kinfA"]?.value, 1.0),
+      kinf_B: num(r.attributes["kinfB"]?.value, 0.0),
+      kinf_C: num(r.attributes["kinfC"]?.value, 0.0),
+      Fc: num(r.attributes["Fc"]?.value, 0.6),
+      N: num(r.attributes["N"]?.value, 1.0),
       gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
       reactants: componentsToMusica(r.reactants, ctx),
       products: componentsToMusica(r.products, ctx),
@@ -337,12 +331,12 @@ const TERNARY_CHEMICAL_ACTIVATION: ReactionAdapter = {
     type: reactionTypes.TernaryChemicalActivation.type,
     gasPhaseId: json["gas phase"] ?? undefined,
     attributes: attrsFromParams({
-      k0_A: json.k0_A,
-      k0_B: json.k0_B,
-      k0_C: json.k0_C,
-      kinf_A: json.kinf_A,
-      kinf_B: json.kinf_B,
-      kinf_C: json.kinf_C,
+      k0A: json.k0_A,
+      k0B: json.k0_B,
+      k0C: json.k0_C,
+      kinfA: json.kinf_A,
+      kinfB: json.kinf_B,
+      kinfC: json.kinf_C,
       Fc: json.Fc,
       N: json.N,
     }),
@@ -355,14 +349,14 @@ const TROE: ReactionAdapter = {
   toMusica: (r, ctx) =>
     new reactionTypes.Troe({
       name: r.name,
-      k0_A: num(paramVal(r, "k0_A"), 1.0),
-      k0_B: num(paramVal(r, "k0_B"), 0.0),
-      k0_C: num(paramVal(r, "k0_C"), 0.0),
-      kinf_A: num(paramVal(r, "kinf_A"), 1.0),
-      kinf_B: num(paramVal(r, "kinf_B"), 0.0),
-      kinf_C: num(paramVal(r, "kinf_C"), 0.0),
-      Fc: num(paramVal(r, "Fc"), 0.6),
-      N: num(paramVal(r, "N"), 1.0),
+      k0_A: num(r.attributes["k0A"]?.value, 1.0),
+      k0_B: num(r.attributes["k0B"]?.value, 0.0),
+      k0_C: num(r.attributes["k0C"]?.value, 0.0),
+      kinf_A: num(r.attributes["kinfA"]?.value, 1.0),
+      kinf_B: num(r.attributes["kinfB"]?.value, 0.0),
+      kinf_C: num(r.attributes["kinfC"]?.value, 0.0),
+      Fc: num(r.attributes["Fc"]?.value, 0.6),
+      N: num(r.attributes["N"]?.value, 1.0),
       gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
       reactants: componentsToMusica(r.reactants, ctx),
       products: componentsToMusica(r.products, ctx),
@@ -375,12 +369,12 @@ const TROE: ReactionAdapter = {
     type: reactionTypes.Troe.type,
     gasPhaseId: json["gas phase"] ?? undefined,
     attributes: attrsFromParams({
-      k0_A: json.k0_A,
-      k0_B: json.k0_B,
-      k0_C: json.k0_C,
-      kinf_A: json.kinf_A,
-      kinf_B: json.kinf_B,
-      kinf_C: json.kinf_C,
+      k0A: json.k0_A,
+      k0B: json.k0_B,
+      k0C: json.k0_C,
+      kinfA: json.kinf_A,
+      kinfB: json.kinf_B,
+      kinfC: json.kinf_C,
       Fc: json.Fc,
       N: json.N,
     }),
@@ -393,9 +387,9 @@ const TUNNELING: ReactionAdapter = {
   toMusica: (r, ctx) =>
     new reactionTypes.Tunneling({
       name: r.name,
-      A: num(paramVal(r, "A"), 1.0),
-      B: num(paramVal(r, "B"), 0.0),
-      C: num(paramVal(r, "C"), 0.0),
+      A: num(r.attributes["A"]?.value, 1.0),
+      B: num(r.attributes["B"]?.value, 0.0),
+      C: num(r.attributes["C"]?.value, 0.0),
       gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
       reactants: componentsToMusica(r.reactants, ctx),
       products: componentsToMusica(r.products, ctx),
@@ -417,7 +411,7 @@ const USER_DEFINED: ReactionAdapter = {
   toMusica: (r, ctx) => {
     return new reactionTypes.UserDefined({
       name: r.name,
-      scaling_factor: num(paramVal(r, SCALING_FACTOR_KEY), 1.0),
+      scaling_factor: num(r.attributes[SCALING_FACTOR_KEY]?.value, 1.0),
       gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
       reactants: componentsToMusica(r.reactants, ctx),
       products: componentsToMusica(r.products, ctx),
@@ -432,7 +426,7 @@ const USER_DEFINED: ReactionAdapter = {
       gasPhaseId: json["gas phase"] ?? undefined,
       type: reactionTypes.UserDefined.type,
       attributes: attrsFromParams({
-        [SCALING_FACTOR_KEY]: json[SCALING_FACTOR_KEY],
+        [SCALING_FACTOR_KEY]: json[WIRE_SCALING_FACTOR_KEY],
       }),
       reactants: componentsFromJSON(json.reactants),
       products: componentsFromJSON(json.products),

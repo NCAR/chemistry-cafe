@@ -14,12 +14,12 @@ import {
 } from "../src/helpers/serialization";
 import * as YAML from "yaml";
 
-/** Build a reaction/attribute bag ({ [key]: { serializationKey, value } }). */
+/** Build a reaction.attributes object ({ [key]: { key, value } }). */
 const attrs = (
   obj: Record<string, number | number[] | string>,
 ): Reaction["attributes"] =>
   Object.fromEntries(
-    Object.entries(obj).map(([k, v]) => [k, { serializationKey: k, value: v }]),
+    Object.entries(obj).map(([k, v]) => [k, { key: k, value: v }]),
   );
 
 const molecularWeightSpecies: Species = {
@@ -137,7 +137,7 @@ const emissionReaction: Reaction = {
   description: null,
   type: "EMISSION",
   gasPhaseId: gasPhase.id,
-  attributes: attrs({ "scaling factor": 2.5 }),
+  attributes: attrs({ scalingFactor: 2.5 }),
   reactants: [],
   products: [{ speciesId: product.id, coefficient: 1 }],
 };
@@ -148,7 +148,7 @@ const firstOrderLossReaction: Reaction = {
   description: null,
   type: "FIRST_ORDER_LOSS",
   gasPhaseId: gasPhase.id,
-  attributes: attrs({ "scaling factor": 1.5 }),
+  attributes: attrs({ scalingFactor: 1.5 }),
   reactants: [{ speciesId: reactant.id, coefficient: 1 }],
   products: [],
 };
@@ -159,7 +159,7 @@ const photolysisReaction: Reaction = {
   description: null,
   type: "PHOTOLYSIS",
   gasPhaseId: gasPhase.id,
-  attributes: attrs({ "scaling factor": 3 }),
+  attributes: attrs({ scalingFactor: 3 }),
   reactants: [{ speciesId: reactant.id, coefficient: 1 }],
   products: [{ speciesId: product.id, coefficient: 1 }],
 };
@@ -170,7 +170,7 @@ const surfaceReaction: Reaction = {
   description: null,
   type: "SURFACE",
   gasPhaseId: gasPhase.id,
-  attributes: attrs({ "reaction probability": 0.5 }),
+  attributes: attrs({ reactionProbability: 0.5 }),
   gasPhaseSpeciesId: reactant.id,
   reactants: [],
   products: [{ speciesId: product.id, coefficient: 2, branch: "gas-phase" }],
@@ -188,7 +188,7 @@ const taylorSeriesReaction: Reaction = {
     C: 3,
     D: 4,
     E: 5,
-    taylor_coefficients: [1, 2, 3],
+    taylorCoefficients: [1, 2, 3],
   }),
   reactants: [{ speciesId: reactant.id, coefficient: 1 }],
   products: [{ speciesId: product.id, coefficient: 1 }],
@@ -201,12 +201,12 @@ const ternaryChemicalActivationReaction: Reaction = {
   type: "TERNARY_CHEMICAL_ACTIVATION",
   gasPhaseId: gasPhase.id,
   attributes: attrs({
-    k0_A: 1,
-    k0_B: 2,
-    k0_C: 3,
-    kinf_A: 4,
-    kinf_B: 5,
-    kinf_C: 6,
+    k0A: 1,
+    k0B: 2,
+    k0C: 3,
+    kinfA: 4,
+    kinfB: 5,
+    kinfC: 6,
     Fc: 0.5,
     N: 1,
   }),
@@ -221,12 +221,12 @@ const troeReaction: Reaction = {
   type: "TROE",
   gasPhaseId: gasPhase.id,
   attributes: attrs({
-    k0_A: 1,
-    k0_B: 2,
-    k0_C: 3,
-    kinf_A: 4,
-    kinf_B: 5,
-    kinf_C: 6,
+    k0A: 1,
+    k0B: 2,
+    k0C: 3,
+    kinfA: 4,
+    kinfB: 5,
+    kinfC: 6,
     Fc: 0.5,
     N: 1,
   }),
@@ -251,7 +251,7 @@ const userDefinedReaction: Reaction = {
   description: null,
   type: "USER_DEFINED",
   gasPhaseId: gasPhase.id,
-  attributes: attrs({ "scaling factor": 4 }),
+  attributes: attrs({ scalingFactor: 4 }),
   reactants: [
     { speciesId: reactant.id, coefficient: 1 },
     { speciesId: product.id, coefficient: 1 },
@@ -591,7 +591,7 @@ describe("Reaction type serialization and deserialization", () => {
 
     it("deserializes", () => {
       const back = importedReactionOfType("EMISSION");
-      expect(back.attributes["scaling factor"]?.value).toBe(2.5);
+      expect(back.attributes["scalingFactor"]?.value).toBe(2.5);
       expect(importedName(String(back.products[0].speciesId))).toBe(
         product.name,
       );
@@ -610,7 +610,7 @@ describe("Reaction type serialization and deserialization", () => {
 
     it("deserializes", () => {
       const back = importedReactionOfType("FIRST_ORDER_LOSS");
-      expect(back.attributes["scaling factor"]?.value).toBe(1.5);
+      expect(back.attributes["scalingFactor"]?.value).toBe(1.5);
       expect(importedName(String(back.reactants[0].speciesId))).toBe(
         reactant.name,
       );
@@ -630,7 +630,7 @@ describe("Reaction type serialization and deserialization", () => {
 
     it("deserializes", () => {
       const back = importedReactionOfType("PHOTOLYSIS");
-      expect(back.attributes["scaling factor"]?.value).toBe(3);
+      expect(back.attributes["scalingFactor"]?.value).toBe(3);
       expect(importedName(String(back.reactants[0].speciesId))).toBe(
         reactant.name,
       );
@@ -656,7 +656,7 @@ describe("Reaction type serialization and deserialization", () => {
 
     it("deserializes", () => {
       const back = importedReactionOfType("SURFACE");
-      expect(back.attributes["reaction probability"]?.value).toBe(0.5);
+      expect(back.attributes["reactionProbability"]?.value).toBe(0.5);
       const gasPhaseProducts = back.products.filter(
         (p) => p.branch === "gas-phase",
       );
@@ -684,7 +684,7 @@ describe("Reaction type serialization and deserialization", () => {
       const back = importedReactionOfType("TAYLOR_SERIES");
       expect(back.attributes["A"]?.value).toBe(1);
       expect(back.attributes["C"]?.value).toBe(3);
-      expect(back.attributes["taylor_coefficients"]?.value).toEqual([1, 2, 3]);
+      expect(back.attributes["taylorCoefficients"]?.value).toEqual([1, 2, 3]);
       expect(importedName(String(back.reactants[0].speciesId))).toBe(
         reactant.name,
       );
@@ -708,7 +708,7 @@ describe("Reaction type serialization and deserialization", () => {
 
     it("deserializes", () => {
       const back = importedReactionOfType("TERNARY_CHEMICAL_ACTIVATION");
-      expect(back.attributes["k0_A"]?.value).toBe(1);
+      expect(back.attributes["k0A"]?.value).toBe(1);
       expect(back.attributes["Fc"]?.value).toBe(0.5);
       expect(back.attributes["N"]?.value).toBe(1);
       expect(importedName(String(back.reactants[0].speciesId))).toBe(
@@ -731,7 +731,7 @@ describe("Reaction type serialization and deserialization", () => {
 
     it("deserializes", () => {
       const back = importedReactionOfType("TROE");
-      expect(back.attributes["k0_A"]?.value).toBe(1);
+      expect(back.attributes["k0A"]?.value).toBe(1);
       expect(back.attributes["Fc"]?.value).toBe(0.5);
       expect(back.attributes["N"]?.value).toBe(1);
       expect(importedName(String(back.reactants[0].speciesId))).toBe(
@@ -774,7 +774,7 @@ describe("Reaction type serialization and deserialization", () => {
 
     it("deserializes", () => {
       const back = importedReactionOfType("USER_DEFINED");
-      expect(back.attributes["scaling factor"]?.value).toBe(4);
+      expect(back.attributes["scalingFactor"]?.value).toBe(4);
       expect(importedName(String(back.reactants[0].speciesId))).toBe(
         reactant.name,
       );

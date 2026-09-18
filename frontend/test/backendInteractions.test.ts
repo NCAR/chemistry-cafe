@@ -227,11 +227,11 @@ describe("Arrhenius parameter translation", () => {
     reactants: [],
     products: [],
     attributes: {
-      A: { serializationKey: "A", value: 1.2e-11 },
-      B: { serializationKey: "B", value: 0 },
-      Ea: { serializationKey: "Ea", value: 100 },
-      D: { serializationKey: "D", value: 300 },
-      E: { serializationKey: "E", value: 0 },
+      A: { key: "A", value: 1.2e-11 },
+      B: { key: "B", value: 0 },
+      Ea: { key: "Ea", value: 100 },
+      D: { key: "D", value: 300 },
+      E: { key: "E", value: 0 },
     },
   };
 
@@ -247,7 +247,7 @@ describe("Arrhenius parameter translation", () => {
     });
   });
 
-  test("apiToFrontendReaction reads the arrhenius field into the attribute bag", () => {
+  test("apiToFrontendReaction reads the arrhenius field into reaction.attributes", () => {
     const apiArrhenius: APIReaction = {
       id: "00000000-0000-0000-0000-000000000000",
       name: "arr",
@@ -275,9 +275,9 @@ describe("Tunneling parameter translation", () => {
     reactants: [],
     products: [],
     attributes: {
-      A: { serializationKey: "A", value: 1.2e-11 },
-      B: { serializationKey: "B", value: 0 },
-      C: { serializationKey: "C", value: 300 },
+      A: { key: "A", value: 1.2e-11 },
+      B: { key: "B", value: 0 },
+      C: { key: "C", value: 300 },
     },
   };
 
@@ -290,7 +290,7 @@ describe("Tunneling parameter translation", () => {
     });
   });
 
-  test("apiToFrontendReaction reads the tunneling field into the attribute bag", () => {
+  test("apiToFrontendReaction reads the tunneling field into reaction.attributes", () => {
     const apiTunneling: APIReaction = {
       id: "00000000-0000-0000-0000-000000000000",
       name: "tun",
@@ -316,14 +316,14 @@ describe("Troe parameter translation", () => {
     reactants: [],
     products: [],
     attributes: {
-      k0_A: { serializationKey: "k0_A", value: 1.2e-11 },
-      k0_B: { serializationKey: "k0_B", value: 0 },
-      k0_C: { serializationKey: "k0_C", value: 300 },
-      kinf_A: { serializationKey: "kinf_A", value: 1.0 },
-      kinf_B: { serializationKey: "kinf_B", value: 0 },
-      kinf_C: { serializationKey: "kinf_C", value: 0 },
-      Fc: { serializationKey: "Fc", value: 0.6 },
-      N: { serializationKey: "N", value: 1.0 },
+      k0A: { key: "k0A", value: 1.2e-11 },
+      k0B: { key: "k0B", value: 0 },
+      k0C: { key: "k0C", value: 300 },
+      kinfA: { key: "kinfA", value: 1.0 },
+      kinfB: { key: "kinfB", value: 0 },
+      kinfC: { key: "kinfC", value: 0 },
+      Fc: { key: "Fc", value: 0.6 },
+      N: { key: "N", value: 1.0 },
     },
   };
 
@@ -341,7 +341,7 @@ describe("Troe parameter translation", () => {
     });
   });
 
-  test("apiToFrontendReaction reads the troe field into the attribute bag", () => {
+  test("apiToFrontendReaction reads the troe field into reaction.attributes", () => {
     const apiTroe: APIReaction = {
       id: "00000000-0000-0000-0000-000000000000",
       name: "troe",
@@ -361,9 +361,9 @@ describe("Troe parameter translation", () => {
       familyId: "00000000-0000-0000-0000-000000000000",
     };
     const result = apiToFrontendReaction(apiTroe);
-    expect(result.attributes["k0_A"].value).toBe(1.2e-11);
-    expect(result.attributes["k0_C"].value).toBe(300);
-    expect(result.attributes["kinf_A"].value).toBe(1.0);
+    expect(result.attributes["k0A"].value).toBe(1.2e-11);
+    expect(result.attributes["k0C"].value).toBe(300);
+    expect(result.attributes["kinfA"].value).toBe(1.0);
     expect(result.attributes["Fc"].value).toBe(0.6);
     expect(result.attributes["N"].value).toBe(1.0);
   });
@@ -378,14 +378,14 @@ describe("Ternary Chemical Activation parameter translation", () => {
     reactants: [],
     products: [],
     attributes: {
-      k0_A: { serializationKey: "k0_A", value: 1.2e-11 },
-      k0_B: { serializationKey: "k0_B", value: 0 },
-      k0_C: { serializationKey: "k0_C", value: 300 },
-      kinf_A: { serializationKey: "kinf_A", value: 1.0 },
-      kinf_B: { serializationKey: "kinf_B", value: 0 },
-      kinf_C: { serializationKey: "kinf_C", value: 0 },
-      Fc: { serializationKey: "Fc", value: 0.6 },
-      N: { serializationKey: "N", value: 1.0 },
+      k0A: { key: "k0A", value: 1.2e-11 },
+      k0B: { key: "k0B", value: 0 },
+      k0C: { key: "k0C", value: 300 },
+      kinfA: { key: "kinfA", value: 1.0 },
+      kinfB: { key: "kinfB", value: 0 },
+      kinfC: { key: "kinfC", value: 0 },
+      Fc: { key: "Fc", value: 0.6 },
+      N: { key: "N", value: 1.0 },
     },
   };
 
@@ -403,7 +403,7 @@ describe("Ternary Chemical Activation parameter translation", () => {
     });
   });
 
-  test("apiToFrontendReaction reads the ternaryChemicalActivation field into the attribute bag", () => {
+  test("apiToFrontendReaction reads the ternaryChemicalActivation field into reaction.attributes", () => {
     const apiTca: APIReaction = {
       id: "00000000-0000-0000-0000-000000000000",
       name: "tca",
@@ -423,9 +423,9 @@ describe("Ternary Chemical Activation parameter translation", () => {
       familyId: "00000000-0000-0000-0000-000000000000",
     };
     const result = apiToFrontendReaction(apiTca);
-    expect(result.attributes["k0_A"].value).toBe(1.2e-11);
-    expect(result.attributes["k0_C"].value).toBe(300);
-    expect(result.attributes["kinf_A"].value).toBe(1.0);
+    expect(result.attributes["k0A"].value).toBe(1.2e-11);
+    expect(result.attributes["k0C"].value).toBe(300);
+    expect(result.attributes["kinfA"].value).toBe(1.0);
     expect(result.attributes["Fc"].value).toBe(0.6);
     expect(result.attributes["N"].value).toBe(1.0);
   });
@@ -440,10 +440,10 @@ describe("Branched (no RO2) parameter translation", () => {
     reactants: [],
     products: [],
     attributes: {
-      X: { serializationKey: "X", value: 1.2e-11 },
-      Y: { serializationKey: "Y", value: 300 },
-      a0: { serializationKey: "a0", value: 0.5 },
-      n: { serializationKey: "n", value: 6 },
+      X: { key: "X", value: 1.2e-11 },
+      Y: { key: "Y", value: 300 },
+      a0: { key: "a0", value: 0.5 },
+      n: { key: "n", value: 6 },
     },
   };
 
@@ -457,7 +457,7 @@ describe("Branched (no RO2) parameter translation", () => {
     });
   });
 
-  test("apiToFrontendReaction reads the branched field into the attribute bag", () => {
+  test("apiToFrontendReaction reads the branched field into reaction.attributes", () => {
     const apiBranched: APIReaction = {
       id: "00000000-0000-0000-0000-000000000000",
       name: "branched",
@@ -484,13 +484,13 @@ describe("Taylor Series parameter translation", () => {
     reactants: [],
     products: [],
     attributes: {
-      A: { serializationKey: "A", value: 1.0 },
-      B: { serializationKey: "B", value: 0.0 },
-      Ea: { serializationKey: "Ea", value: 0.0 },
-      D: { serializationKey: "D", value: 300.0 },
-      E: { serializationKey: "E", value: 0.0 },
-      "taylor coefficients": {
-        serializationKey: "taylor coefficients",
+      A: { key: "A", value: 1.0 },
+      B: { key: "B", value: 0.0 },
+      Ea: { key: "Ea", value: 0.0 },
+      D: { key: "D", value: 300.0 },
+      E: { key: "E", value: 0.0 },
+      taylorCoefficients: {
+        key: "taylorCoefficients",
         value: [1, 2, 3],
       },
     },
@@ -509,7 +509,7 @@ describe("Taylor Series parameter translation", () => {
     });
   });
 
-  test("apiToFrontendReaction reads the taylorSeries field into the attribute bag", () => {
+  test("apiToFrontendReaction reads the taylorSeries field into reaction.attributes", () => {
     const apiTaylorSeries: APIReaction = {
       id: "00000000-0000-0000-0000-000000000000",
       name: "taylor series",
@@ -532,7 +532,7 @@ describe("Taylor Series parameter translation", () => {
     expect(result.attributes["Ea"].value).toBe(0.0);
     expect(result.attributes["D"].value).toBe(300.0);
     expect(result.attributes["E"].value).toBe(0.0);
-    expect(result.attributes["taylor coefficients"].value).toEqual([1, 2, 3]);
+    expect(result.attributes["taylorCoefficients"].value).toEqual([1, 2, 3]);
   });
 });
 
@@ -545,8 +545,8 @@ describe("Surface parameter translation", () => {
     reactants: [],
     products: [],
     attributes: {
-      "reaction probability": {
-        serializationKey: "reaction probability",
+      reactionProbability: {
+        key: "reactionProbability",
         value: 1.0,
       },
     },
@@ -559,7 +559,7 @@ describe("Surface parameter translation", () => {
     });
   });
 
-  test("apiToFrontendReaction reads the surface field into the attribute bag", () => {
+  test("apiToFrontendReaction reads the surface field into reaction.attributes", () => {
     const apiSurface: APIReaction = {
       id: "00000000-0000-0000-0000-000000000000",
       name: "surface",
@@ -570,7 +570,7 @@ describe("Surface parameter translation", () => {
       familyId: "00000000-0000-0000-0000-000000000000",
     };
     const result = apiToFrontendReaction(apiSurface);
-    expect(result.attributes["reaction probability"].value).toBe(1.0);
+    expect(result.attributes["reactionProbability"].value).toBe(1.0);
   });
 });
 
@@ -583,7 +583,7 @@ describe("Emission parameter translation", () => {
     reactants: [],
     products: [],
     attributes: {
-      "scaling factor": { serializationKey: "scaling factor", value: 1.5 },
+      scalingFactor: { key: "scalingFactor", value: 1.5 },
     },
   };
 
@@ -594,7 +594,7 @@ describe("Emission parameter translation", () => {
     });
   });
 
-  test("apiToFrontendReaction reads the emission field into the attribute bag", () => {
+  test("apiToFrontendReaction reads the emission field into reaction.attributes", () => {
     const apiEmission: APIReaction = {
       id: "00000000-0000-0000-0000-000000000000",
       name: "emission",
@@ -605,7 +605,7 @@ describe("Emission parameter translation", () => {
       familyId: "00000000-0000-0000-0000-000000000000",
     };
     const result = apiToFrontendReaction(apiEmission);
-    expect(result.attributes["scaling factor"].value).toBe(1.5);
+    expect(result.attributes["scalingFactor"].value).toBe(1.5);
   });
 });
 
@@ -618,7 +618,7 @@ describe("First Order Loss parameter translation", () => {
     reactants: [],
     products: [],
     attributes: {
-      "scaling factor": { serializationKey: "scaling factor", value: 2.0 },
+      scalingFactor: { key: "scalingFactor", value: 2.0 },
     },
   };
 
@@ -629,7 +629,7 @@ describe("First Order Loss parameter translation", () => {
     });
   });
 
-  test("apiToFrontendReaction reads the firstOrderLoss field into the attribute bag", () => {
+  test("apiToFrontendReaction reads the firstOrderLoss field into reaction.attributes", () => {
     const apiFirstOrderLoss: APIReaction = {
       id: "00000000-0000-0000-0000-000000000000",
       name: "first order loss",
@@ -640,7 +640,7 @@ describe("First Order Loss parameter translation", () => {
       familyId: "00000000-0000-0000-0000-000000000000",
     };
     const result = apiToFrontendReaction(apiFirstOrderLoss);
-    expect(result.attributes["scaling factor"].value).toBe(2.0);
+    expect(result.attributes["scalingFactor"].value).toBe(2.0);
   });
 });
 
@@ -653,7 +653,7 @@ describe("Photolysis parameter translation", () => {
     reactants: [],
     products: [],
     attributes: {
-      "scaling factor": { serializationKey: "scaling factor", value: 0.8 },
+      scalingFactor: { key: "scalingFactor", value: 0.8 },
     },
   };
 
@@ -664,7 +664,7 @@ describe("Photolysis parameter translation", () => {
     });
   });
 
-  test("apiToFrontendReaction reads the photolysis field into the attribute bag", () => {
+  test("apiToFrontendReaction reads the photolysis field into reaction.attributes", () => {
     const apiPhotolysis: APIReaction = {
       id: "00000000-0000-0000-0000-000000000000",
       name: "photolysis",
@@ -675,7 +675,7 @@ describe("Photolysis parameter translation", () => {
       familyId: "00000000-0000-0000-0000-000000000000",
     };
     const result = apiToFrontendReaction(apiPhotolysis);
-    expect(result.attributes["scaling factor"].value).toBe(0.8);
+    expect(result.attributes["scalingFactor"].value).toBe(0.8);
   });
 });
 
@@ -688,7 +688,7 @@ describe("User Defined parameter translation", () => {
     reactants: [],
     products: [],
     attributes: {
-      "scaling factor": { serializationKey: "scaling factor", value: 3.2 },
+      scalingFactor: { key: "scalingFactor", value: 3.2 },
     },
   };
 
@@ -699,7 +699,7 @@ describe("User Defined parameter translation", () => {
     });
   });
 
-  test("apiToFrontendReaction reads the userDefined field into the attribute bag", () => {
+  test("apiToFrontendReaction reads the userDefined field into reaction.attributes", () => {
     const apiUserDefined: APIReaction = {
       id: "00000000-0000-0000-0000-000000000000",
       name: "user defined",
@@ -710,7 +710,7 @@ describe("User Defined parameter translation", () => {
       familyId: "00000000-0000-0000-0000-000000000000",
     };
     const result = apiToFrontendReaction(apiUserDefined);
-    expect(result.attributes["scaling factor"].value).toBe(3.2);
+    expect(result.attributes["scalingFactor"].value).toBe(3.2);
   });
 });
 

@@ -45,8 +45,12 @@ export type ReactionAttribute = {
   /** Human-readable name of the property */
   name?: string;
 
-  /** What the property should be serialized as (Usually in the form "<name> [<unit>]"). */
-  serializationKey: string;
+  /**
+   * Our own key for this attribute. Not the same as the v1 wire spelling
+   * (e.g. "k0_A", "scaling factor") - musicaAdapter.ts converts between
+   * the two on import/export.
+   */
+  key: string;
 
   /** The unit of the specific attribute. This can be empty if unitless. */
   units?: string;
@@ -247,208 +251,209 @@ export const reactionAttributeOptions: {
    */
   ARRHENIUS: [
     {
-      serializationKey: "A",
+      key: "A",
       units: "(mol m-3)^-(n-1) s-1",
       value: 0.0,
     },
     {
-      serializationKey: "B",
+      key: "B",
       value: 0.0,
     },
     {
-      serializationKey: "Ea",
+      key: "Ea",
       units: "J",
       value: 0.0,
     },
     {
-      serializationKey: "D",
+      key: "D",
       units: "K",
       value: 0.0,
     },
     {
-      serializationKey: "E",
+      key: "E",
       units: "Pa-1",
       value: 0.0,
     },
   ],
   BRANCHED_NO_RO2: [
     {
-      serializationKey: "X",
+      key: "X",
       value: 0.0,
     },
     {
-      serializationKey: "Y",
+      key: "Y",
       units: "K",
       value: 0.0,
     },
     {
-      serializationKey: "a0",
+      key: "a0",
       value: 0.0,
     },
     {
-      serializationKey: "n",
+      key: "n",
       value: 0.0,
     },
   ],
   EMISSION: [
     {
       name: "Scaling Factor",
-      serializationKey: "scaling factor",
+      key: "scalingFactor",
       value: 0.0,
     },
   ],
   FIRST_ORDER_LOSS: [
     {
       name: "Scaling Factor",
-      serializationKey: "scaling factor",
+      key: "scalingFactor",
       value: 0.0,
     },
   ],
   PHOTOLYSIS: [
     {
       name: "Scaling Factor",
-      serializationKey: "scaling factor",
+      key: "scalingFactor",
       value: 0.0,
     },
   ],
   SURFACE: [
     {
       name: "Reaction Probability",
-      serializationKey: "reaction probability",
+      key: "reactionProbability",
       value: 0.0,
     },
   ],
   TAYLOR_SERIES: [
     {
-      serializationKey: "A",
+      key: "A",
       units: "(mol m-3)^-(n-1) s-1",
       value: 0.0,
     },
     {
-      serializationKey: "B",
+      key: "B",
       value: 0.0,
     },
     {
-      serializationKey: "Ea",
+      key: "Ea",
       units: "J",
       value: 0.0,
     },
     {
-      serializationKey: "D",
+      key: "D",
       units: "K",
       value: 0.0,
     },
     {
-      serializationKey: "E",
+      key: "E",
       units: "Pa-1",
       value: 0.0,
     },
     {
-      serializationKey: "taylor coefficients",
+      name: "Taylor Coefficients",
+      key: "taylorCoefficients",
       value: [],
     },
   ],
   TERNARY_CHEMICAL_ACTIVATION: [
     {
       name: "k0 A",
-      serializationKey: "k0_A",
+      key: "k0A",
       units: "(mol m-3)^-(n-1) s-1",
       value: 0.0,
     },
     {
       name: "k0 B",
-      serializationKey: "k0_B",
+      key: "k0B",
       value: 0.0,
     },
     {
       name: "k0 C",
-      serializationKey: "k0_C",
+      key: "k0C",
       units: "K",
       value: 0.0,
     },
     {
       name: "kinf A",
-      serializationKey: "kinf_A",
+      key: "kinfA",
       units: "(mol m-3)^-(n-1) s-1",
       value: 0.0,
     },
     {
       name: "kinf B",
-      serializationKey: "kinf_B",
+      key: "kinfB",
       value: 0.0,
     },
     {
       name: "kinf C",
-      serializationKey: "kinf_C",
+      key: "kinfC",
       units: "K",
       value: 0.0,
     },
     {
-      serializationKey: "Fc",
+      key: "Fc",
       value: 0.0,
     },
     {
-      serializationKey: "N",
+      key: "N",
       value: 0.0,
     },
   ],
   TROE: [
     {
       name: "k0 A",
-      serializationKey: "k0_A",
+      key: "k0A",
       units: "(mol m-3)^-(n-1) s-1",
       value: 0.0,
     },
     {
       name: "k0 B",
-      serializationKey: "k0_B",
+      key: "k0B",
       value: 0.0,
     },
     {
       name: "k0 C",
-      serializationKey: "k0_C",
+      key: "k0C",
       units: "K",
       value: 0.0,
     },
     {
       name: "kinf A",
-      serializationKey: "kinf_A",
+      key: "kinfA",
       units: "(mol m-3)^-(n-1) s-1",
       value: 0.0,
     },
     {
       name: "kinf B",
-      serializationKey: "kinf_B",
+      key: "kinfB",
       value: 0.0,
     },
     {
       name: "kinf C",
-      serializationKey: "kinf_C",
+      key: "kinfC",
       units: "K",
       value: 0.0,
     },
     {
-      serializationKey: "Fc",
+      key: "Fc",
       value: 0.0,
     },
     {
-      serializationKey: "N",
+      key: "N",
       value: 0.0,
     },
   ],
   TUNNELING: [
     {
-      serializationKey: "A",
+      key: "A",
       units: "(mol m-3)^-(n-1) s-1",
       value: 0.0,
     },
     {
-      serializationKey: "B",
+      key: "B",
       units: "K",
       value: 0.0,
     },
     {
-      serializationKey: "C",
+      key: "C",
       units: "K^3",
       value: 0.0,
     },
@@ -456,7 +461,7 @@ export const reactionAttributeOptions: {
   USER_DEFINED: [
     {
       name: "Scaling Factor",
-      serializationKey: "scaling factor",
+      key: "scalingFactor",
       value: 0.0,
     },
   ],

@@ -21,12 +21,12 @@ const species: Species = {
   attributes: {
     weight: {
       name: "weight",
-      serializationKey: "weight",
+      key: "weight",
       value: 1e-2,
     },
     "density [kg m3]": {
       name: "Density",
-      serializationKey: "density [kg m3]",
+      key: "density [kg m3]",
       value: 1e-2,
     },
   },
@@ -53,11 +53,11 @@ const reaction: Reaction = {
     "attribute [mol]": {
       name: "Attribute",
       value: 1.0,
-      serializationKey: "attribute [mol]",
+      key: "attribute [mol]",
     },
     "another attribute": {
       name: "another attribute",
-      serializationKey: "another attribute",
+      key: "another attribute",
       value: 1.0,
     },
   },

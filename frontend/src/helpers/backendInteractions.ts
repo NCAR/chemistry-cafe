@@ -100,9 +100,8 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
     attributes: {},
   };
 
-  // Every reaction type has a dedicated parameter table (#268). Read the
-  // matching one back into the attribute bag, keyed by the serialization
-  // key the editor uses.
+  // Every reaction type has its own dedicated parameter table (#268).
+  // Read the matching one back into reaction.attributes.
   if (apiReaction.reactionType === "ARRHENIUS" && apiReaction.arrhenius) {
     const arrheniusValues: Record<string, number | null | undefined> = {
       A: apiReaction.arrhenius.a,
@@ -112,108 +111,98 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
       D: apiReaction.arrhenius.d,
       E: apiReaction.arrhenius.e,
     };
-    for (const [serializationKey, value] of Object.entries(arrheniusValues)) {
+    for (const [key, value] of Object.entries(arrheniusValues)) {
       if (value === null || value === undefined) {
         continue;
       }
       const defaultAttribute = reactionAttributeOptions.ARRHENIUS?.find(
-        (e) => e.serializationKey === serializationKey,
+        (e) => e.key === key,
       );
-      formattedReaction.attributes[serializationKey] = {
+      formattedReaction.attributes[key] = {
         ...defaultAttribute,
-        serializationKey,
+        key,
         value,
       };
     }
   }
 
-  // Tunneling reactions store their parameters in a dedicated table. Read them
-  // back into the attribute bag, keyed by the serialization key the editor uses.
   if (apiReaction.reactionType === "TUNNELING" && apiReaction.tunneling) {
     const tunnelingValues: Record<string, number | null | undefined> = {
       A: apiReaction.tunneling.a,
       B: apiReaction.tunneling.b,
       C: apiReaction.tunneling.c,
     };
-    for (const [serializationKey, value] of Object.entries(tunnelingValues)) {
+    for (const [key, value] of Object.entries(tunnelingValues)) {
       if (value === null || value === undefined) {
         continue;
       }
       const defaultAttribute = reactionAttributeOptions.TUNNELING?.find(
-        (e) => e.serializationKey === serializationKey,
+        (e) => e.key === key,
       );
-      formattedReaction.attributes[serializationKey] = {
+      formattedReaction.attributes[key] = {
         ...defaultAttribute,
-        serializationKey,
+        key,
         value,
       };
     }
   }
 
-  // Troe reactions store their parameters in a dedicated table. Read them
-  // back into the attribute bag, keyed by the serialization key the editor uses.
   if (apiReaction.reactionType === "TROE" && apiReaction.troe) {
     const troeValues: Record<string, number | null | undefined> = {
-      k0_A: apiReaction.troe.k0A,
-      k0_B: apiReaction.troe.k0B,
-      k0_C: apiReaction.troe.k0C,
-      kinf_A: apiReaction.troe.kinfA,
-      kinf_B: apiReaction.troe.kinfB,
-      kinf_C: apiReaction.troe.kinfC,
+      k0A: apiReaction.troe.k0A,
+      k0B: apiReaction.troe.k0B,
+      k0C: apiReaction.troe.k0C,
+      kinfA: apiReaction.troe.kinfA,
+      kinfB: apiReaction.troe.kinfB,
+      kinfC: apiReaction.troe.kinfC,
       Fc: apiReaction.troe.fc,
       N: apiReaction.troe.n,
     };
-    for (const [serializationKey, value] of Object.entries(troeValues)) {
+    for (const [key, value] of Object.entries(troeValues)) {
       if (value === null || value === undefined) {
         continue;
       }
       const defaultAttribute = reactionAttributeOptions.TROE?.find(
-        (e) => e.serializationKey === serializationKey,
+        (e) => e.key === key,
       );
-      formattedReaction.attributes[serializationKey] = {
+      formattedReaction.attributes[key] = {
         ...defaultAttribute,
-        serializationKey,
+        key,
         value,
       };
     }
   }
 
-  // Ternary Chemical Activation reactions store their parameters in a
-  // dedicated table. Read them back into the attribute bag, keyed by the
-  // serialization key the editor uses.
   if (
     apiReaction.reactionType === "TERNARY_CHEMICAL_ACTIVATION" &&
     apiReaction.ternaryChemicalActivation
   ) {
     const tcaValues: Record<string, number | null | undefined> = {
-      k0_A: apiReaction.ternaryChemicalActivation.k0A,
-      k0_B: apiReaction.ternaryChemicalActivation.k0B,
-      k0_C: apiReaction.ternaryChemicalActivation.k0C,
-      kinf_A: apiReaction.ternaryChemicalActivation.kinfA,
-      kinf_B: apiReaction.ternaryChemicalActivation.kinfB,
-      kinf_C: apiReaction.ternaryChemicalActivation.kinfC,
+      k0A: apiReaction.ternaryChemicalActivation.k0A,
+      k0B: apiReaction.ternaryChemicalActivation.k0B,
+      k0C: apiReaction.ternaryChemicalActivation.k0C,
+      kinfA: apiReaction.ternaryChemicalActivation.kinfA,
+      kinfB: apiReaction.ternaryChemicalActivation.kinfB,
+      kinfC: apiReaction.ternaryChemicalActivation.kinfC,
       Fc: apiReaction.ternaryChemicalActivation.fc,
       N: apiReaction.ternaryChemicalActivation.n,
     };
-    for (const [serializationKey, value] of Object.entries(tcaValues)) {
+    for (const [key, value] of Object.entries(tcaValues)) {
       if (value === null || value === undefined) {
         continue;
       }
       const defaultAttribute =
         reactionAttributeOptions.TERNARY_CHEMICAL_ACTIVATION?.find(
-          (e) => e.serializationKey === serializationKey,
+          (e) => e.key === key,
         );
-      formattedReaction.attributes[serializationKey] = {
+      formattedReaction.attributes[key] = {
         ...defaultAttribute,
-        serializationKey,
+        key,
         value,
       };
     }
   }
 
-  // Branched (no RO2) reactions store their parameters in a dedicated table.
-  // Read them back into the attribute bag, keyed by the serialization key
-  // the editor uses.
   if (apiReaction.reactionType === "BRANCHED_NO_RO2" && apiReaction.branched) {
     const branchedValues: Record<string, number | null | undefined> = {
       X: apiReaction.branched.x,
@@ -221,25 +210,21 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
       a0: apiReaction.branched.a0,
       n: apiReaction.branched.n,
     };
-    for (const [serializationKey, value] of Object.entries(branchedValues)) {
+    for (const [key, value] of Object.entries(branchedValues)) {
       if (value === null || value === undefined) {
         continue;
       }
       const defaultAttribute = reactionAttributeOptions.BRANCHED_NO_RO2?.find(
-        (e) => e.serializationKey === serializationKey,
+        (e) => e.key === key,
       );
-      formattedReaction.attributes[serializationKey] = {
+      formattedReaction.attributes[key] = {
         ...defaultAttribute,
-        serializationKey,
+        key,
         value,
       };
     }
   }
 
-  // Taylor Series reactions store their parameters in a dedicated table.
-  // Read them back into the attribute bag, keyed by the serialization key
-  // the editor uses. taylorCoefficients is the one variable-length value,
-  // stored inline as a number array rather than a scalar.
   if (
     apiReaction.reactionType === "TAYLOR_SERIES" &&
     apiReaction.taylorSeries
@@ -254,139 +239,124 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
       Ea: apiReaction.taylorSeries.ea,
       D: apiReaction.taylorSeries.d,
       E: apiReaction.taylorSeries.e,
-      "taylor coefficients": apiReaction.taylorSeries.taylorCoefficients,
+      taylorCoefficients: apiReaction.taylorSeries.taylorCoefficients,
     };
-    for (const [serializationKey, value] of Object.entries(
+    for (const [key, value] of Object.entries(
       taylorSeriesValues,
     )) {
       if (value === null || value === undefined) {
         continue;
       }
       const defaultAttribute = reactionAttributeOptions.TAYLOR_SERIES?.find(
-        (e) => e.serializationKey === serializationKey,
+        (e) => e.key === key,
       );
-      formattedReaction.attributes[serializationKey] = {
+      formattedReaction.attributes[key] = {
         ...defaultAttribute,
-        serializationKey,
+        key,
         value,
       };
     }
   }
 
-  // Surface reactions store their parameters in a dedicated table. Read
-  // them back into the attribute bag, keyed by the serialization key the
-  // editor uses.
   if (apiReaction.reactionType === "SURFACE" && apiReaction.surface) {
     const surfaceValues: Record<string, number | null | undefined> = {
-      "reaction probability": apiReaction.surface.reactionProbability,
+      reactionProbability: apiReaction.surface.reactionProbability,
     };
-    for (const [serializationKey, value] of Object.entries(surfaceValues)) {
+    for (const [key, value] of Object.entries(surfaceValues)) {
       if (value === null || value === undefined) {
         continue;
       }
       const defaultAttribute = reactionAttributeOptions.SURFACE?.find(
-        (e) => e.serializationKey === serializationKey,
+        (e) => e.key === key,
       );
-      formattedReaction.attributes[serializationKey] = {
+      formattedReaction.attributes[key] = {
         ...defaultAttribute,
-        serializationKey,
+        key,
         value,
       };
     }
   }
 
-  // Emission reactions store their parameters in a dedicated table. Read
-  // them back into the attribute bag, keyed by the serialization key the
-  // editor uses.
   if (apiReaction.reactionType === "EMISSION" && apiReaction.emission) {
     const emissionValues: Record<string, number | null | undefined> = {
-      "scaling factor": apiReaction.emission.scalingFactor,
+      scalingFactor: apiReaction.emission.scalingFactor,
     };
-    for (const [serializationKey, value] of Object.entries(emissionValues)) {
+    for (const [key, value] of Object.entries(emissionValues)) {
       if (value === null || value === undefined) {
         continue;
       }
       const defaultAttribute = reactionAttributeOptions.EMISSION?.find(
-        (e) => e.serializationKey === serializationKey,
+        (e) => e.key === key,
       );
-      formattedReaction.attributes[serializationKey] = {
+      formattedReaction.attributes[key] = {
         ...defaultAttribute,
-        serializationKey,
+        key,
         value,
       };
     }
   }
 
-  // First Order Loss reactions store their parameters in a dedicated table.
-  // Read them back into the attribute bag, keyed by the serialization key
-  // the editor uses.
   if (
     apiReaction.reactionType === "FIRST_ORDER_LOSS" &&
     apiReaction.firstOrderLoss
   ) {
     const firstOrderLossValues: Record<string, number | null | undefined> = {
-      "scaling factor": apiReaction.firstOrderLoss.scalingFactor,
+      scalingFactor: apiReaction.firstOrderLoss.scalingFactor,
     };
-    for (const [serializationKey, value] of Object.entries(
+    for (const [key, value] of Object.entries(
       firstOrderLossValues,
     )) {
       if (value === null || value === undefined) {
         continue;
       }
       const defaultAttribute = reactionAttributeOptions.FIRST_ORDER_LOSS?.find(
-        (e) => e.serializationKey === serializationKey,
+        (e) => e.key === key,
       );
-      formattedReaction.attributes[serializationKey] = {
+      formattedReaction.attributes[key] = {
         ...defaultAttribute,
-        serializationKey,
+        key,
         value,
       };
     }
   }
 
-  // Photolysis reactions store their parameters in a dedicated table. Read
-  // them back into the attribute bag, keyed by the serialization key the
-  // editor uses.
   if (apiReaction.reactionType === "PHOTOLYSIS" && apiReaction.photolysis) {
     const photolysisValues: Record<string, number | null | undefined> = {
-      "scaling factor": apiReaction.photolysis.scalingFactor,
+      scalingFactor: apiReaction.photolysis.scalingFactor,
     };
-    for (const [serializationKey, value] of Object.entries(
+    for (const [key, value] of Object.entries(
       photolysisValues,
     )) {
       if (value === null || value === undefined) {
         continue;
       }
       const defaultAttribute = reactionAttributeOptions.PHOTOLYSIS?.find(
-        (e) => e.serializationKey === serializationKey,
+        (e) => e.key === key,
       );
-      formattedReaction.attributes[serializationKey] = {
+      formattedReaction.attributes[key] = {
         ...defaultAttribute,
-        serializationKey,
+        key,
         value,
       };
     }
   }
 
-  // User Defined reactions store their parameters in a dedicated table.
-  // Read them back into the attribute bag, keyed by the serialization key
-  // the editor uses.
   if (apiReaction.reactionType === "USER_DEFINED" && apiReaction.userDefined) {
     const userDefinedValues: Record<string, number | null | undefined> = {
-      "scaling factor": apiReaction.userDefined.scalingFactor,
+      scalingFactor: apiReaction.userDefined.scalingFactor,
     };
-    for (const [serializationKey, value] of Object.entries(
+    for (const [key, value] of Object.entries(
       userDefinedValues,
     )) {
       if (value === null || value === undefined) {
         continue;
       }
       const defaultAttribute = reactionAttributeOptions.USER_DEFINED?.find(
-        (e) => e.serializationKey === serializationKey,
+        (e) => e.key === key,
       );
-      formattedReaction.attributes[serializationKey] = {
+      formattedReaction.attributes[key] = {
         ...defaultAttribute,
-        serializationKey,
+        key,
         value,
       };
     }
@@ -425,8 +395,8 @@ export function frontendToAPIReaction(
     reactionType: reaction.type,
   };
 
-  // Every reaction type has a dedicated parameter table (#268); write to
-  // that table's field, keyed by the serialization key the editor uses.
+  // Every reaction type has its own dedicated parameter table (#268);
+  // write to that table's field instead of reaction.attributes.
   const numOrNull = (value: number | number[] | string | undefined) =>
     typeof value === "number" ? value : null;
 
@@ -447,23 +417,23 @@ export function frontendToAPIReaction(
     };
   } else if (reaction.type === "TROE") {
     formattedReaction.troe = {
-      k0A: numOrNull(reaction.attributes["k0_A"]?.value),
-      k0B: numOrNull(reaction.attributes["k0_B"]?.value),
-      k0C: numOrNull(reaction.attributes["k0_C"]?.value),
-      kinfA: numOrNull(reaction.attributes["kinf_A"]?.value),
-      kinfB: numOrNull(reaction.attributes["kinf_B"]?.value),
-      kinfC: numOrNull(reaction.attributes["kinf_C"]?.value),
+      k0A: numOrNull(reaction.attributes["k0A"]?.value),
+      k0B: numOrNull(reaction.attributes["k0B"]?.value),
+      k0C: numOrNull(reaction.attributes["k0C"]?.value),
+      kinfA: numOrNull(reaction.attributes["kinfA"]?.value),
+      kinfB: numOrNull(reaction.attributes["kinfB"]?.value),
+      kinfC: numOrNull(reaction.attributes["kinfC"]?.value),
       fc: numOrNull(reaction.attributes["Fc"]?.value),
       n: numOrNull(reaction.attributes["N"]?.value),
     };
   } else if (reaction.type === "TERNARY_CHEMICAL_ACTIVATION") {
     formattedReaction.ternaryChemicalActivation = {
-      k0A: numOrNull(reaction.attributes["k0_A"]?.value),
-      k0B: numOrNull(reaction.attributes["k0_B"]?.value),
-      k0C: numOrNull(reaction.attributes["k0_C"]?.value),
-      kinfA: numOrNull(reaction.attributes["kinf_A"]?.value),
-      kinfB: numOrNull(reaction.attributes["kinf_B"]?.value),
-      kinfC: numOrNull(reaction.attributes["kinf_C"]?.value),
+      k0A: numOrNull(reaction.attributes["k0A"]?.value),
+      k0B: numOrNull(reaction.attributes["k0B"]?.value),
+      k0C: numOrNull(reaction.attributes["k0C"]?.value),
+      kinfA: numOrNull(reaction.attributes["kinfA"]?.value),
+      kinfB: numOrNull(reaction.attributes["kinfB"]?.value),
+      kinfC: numOrNull(reaction.attributes["kinfC"]?.value),
       fc: numOrNull(reaction.attributes["Fc"]?.value),
       n: numOrNull(reaction.attributes["N"]?.value),
     };
@@ -476,7 +446,7 @@ export function frontendToAPIReaction(
     };
   } else if (reaction.type === "TAYLOR_SERIES") {
     const taylorCoefficients =
-      reaction.attributes["taylor coefficients"]?.value;
+      reaction.attributes["taylorCoefficients"]?.value;
     formattedReaction.taylorSeries = {
       a: numOrNull(reaction.attributes["A"]?.value),
       b: numOrNull(reaction.attributes["B"]?.value),
@@ -491,24 +461,24 @@ export function frontendToAPIReaction(
   } else if (reaction.type === "SURFACE") {
     formattedReaction.surface = {
       reactionProbability: numOrNull(
-        reaction.attributes["reaction probability"]?.value,
+        reaction.attributes["reactionProbability"]?.value,
       ),
     };
   } else if (reaction.type === "EMISSION") {
     formattedReaction.emission = {
-      scalingFactor: numOrNull(reaction.attributes["scaling factor"]?.value),
+      scalingFactor: numOrNull(reaction.attributes["scalingFactor"]?.value),
     };
   } else if (reaction.type === "FIRST_ORDER_LOSS") {
     formattedReaction.firstOrderLoss = {
-      scalingFactor: numOrNull(reaction.attributes["scaling factor"]?.value),
+      scalingFactor: numOrNull(reaction.attributes["scalingFactor"]?.value),
     };
   } else if (reaction.type === "PHOTOLYSIS") {
     formattedReaction.photolysis = {
-      scalingFactor: numOrNull(reaction.attributes["scaling factor"]?.value),
+      scalingFactor: numOrNull(reaction.attributes["scalingFactor"]?.value),
     };
   } else if (reaction.type === "USER_DEFINED") {
     formattedReaction.userDefined = {
-      scalingFactor: numOrNull(reaction.attributes["scaling factor"]?.value),
+      scalingFactor: numOrNull(reaction.attributes["scalingFactor"]?.value),
     };
   }
 
