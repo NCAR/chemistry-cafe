@@ -248,6 +248,43 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
     }
   }
 
+  // Taylor Series reactions store their parameters in a dedicated table.
+  // Read them back into the attribute bag, keyed by the serialization key
+  // the editor uses. taylorCoefficients is the one variable-length value,
+  // stored inline as a number array rather than a scalar.
+  if (
+    apiReaction.reactionType === "TAYLOR_SERIES" &&
+    apiReaction.taylorSeries
+  ) {
+    const taylorSeriesValues: Record<
+      string,
+      number | Array<number> | null | undefined
+    > = {
+      A: apiReaction.taylorSeries.a,
+      B: apiReaction.taylorSeries.b,
+      C: apiReaction.taylorSeries.c,
+      Ea: apiReaction.taylorSeries.ea,
+      D: apiReaction.taylorSeries.d,
+      E: apiReaction.taylorSeries.e,
+      "taylor coefficients": apiReaction.taylorSeries.taylorCoefficients,
+    };
+    for (const [serializationKey, value] of Object.entries(
+      taylorSeriesValues,
+    )) {
+      if (value === null || value === undefined) {
+        continue;
+      }
+      const defaultAttribute = reactionAttributeOptions.TAYLOR_SERIES?.find(
+        (e) => e.serializationKey === serializationKey,
+      );
+      formattedReaction.attributes[serializationKey] = {
+        ...defaultAttribute,
+        serializationKey,
+        value,
+      };
+    }
+  }
+
   return formattedReaction;
 }
 
@@ -331,6 +368,19 @@ export function frontendToAPIReaction(
       y: numOrNull(reaction.attributes["Y"]?.value),
       a0: numOrNull(reaction.attributes["a0"]?.value),
       n: numOrNull(reaction.attributes["n"]?.value),
+    };
+  } else if (reaction.type === "TAYLOR_SERIES") {
+    const taylorCoefficients = reaction.attributes["taylor coefficients"]?.value;
+    formattedReaction.taylorSeries = {
+      a: numOrNull(reaction.attributes["A"]?.value),
+      b: numOrNull(reaction.attributes["B"]?.value),
+      c: numOrNull(reaction.attributes["C"]?.value),
+      ea: numOrNull(reaction.attributes["Ea"]?.value),
+      d: numOrNull(reaction.attributes["D"]?.value),
+      e: numOrNull(reaction.attributes["E"]?.value),
+      taylorCoefficients: Array.isArray(taylorCoefficients)
+        ? taylorCoefficients
+        : null,
     };
   } else {
     for (const attribute of Object.values(reaction.attributes)) {

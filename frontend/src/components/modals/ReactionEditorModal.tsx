@@ -687,6 +687,114 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
             </Typography>
           ) : (
             defaultAttributes.map((attribute) => {
+              if (attribute.serializationKey === "taylor coefficients") {
+                const coefficients = Array.isArray(
+                  modifiedReaction?.attributes[attribute.serializationKey]
+                    ?.value,
+                )
+                  ? (modifiedReaction!.attributes[attribute.serializationKey]
+                      .value as Array<number>)
+                  : [];
+
+                const updateCoefficients = (
+                  newCoefficients: Array<number>,
+                ) => {
+                  if (!modifiedReaction) {
+                    return;
+                  }
+                  changeReactionProperties({
+                    attributes: {
+                      ...modifiedReaction.attributes,
+                      [attribute.serializationKey]: {
+                        ...attribute,
+                        value: newCoefficients,
+                      },
+                    },
+                  });
+                };
+
+                return (
+                  <Box
+                    key={`${reaction?.id}-${attribute.serializationKey}`}
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      rowGap: "0.5em",
+                    }}
+                  >
+                    <Typography color="textPrimary" variant="subtitle1">
+                      Taylor Coefficients
+                    </Typography>
+                    {coefficients.length === 0 ? (
+                      <Typography color="textSecondary" variant="body2">
+                        None
+                      </Typography>
+                    ) : (
+                      coefficients.map((coefficient, index) => (
+                        <Box
+                          key={`${reaction?.id}-taylor-coefficient-${index}`}
+                          sx={{
+                            display: "flex",
+                            flexDirection: "row",
+                            alignItems: "center",
+                            columnGap: "1em",
+                          }}
+                        >
+                          <TextField
+                            color="primary"
+                            label={`Coefficient ${index + 1}`}
+                            type="number"
+                            sx={{
+                              flex: 1,
+                              // Removes up and down arrows for number
+                              "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
+                                {
+                                  display: "none",
+                                },
+                              "& input[type=number]": {
+                                MozAppearance: "textfield",
+                              },
+                            }}
+                            value={coefficient}
+                            onWheel={(event) =>
+                              event.target instanceof HTMLElement &&
+                              event.target.blur()
+                            }
+                            onChange={(event) => {
+                              const num = Number.parseFloat(
+                                event.target.value,
+                              );
+                              if (Number.isFinite(num)) {
+                                const updated = [...coefficients];
+                                updated[index] = num;
+                                updateCoefficients(updated);
+                              }
+                            }}
+                          />
+                          <IconButton
+                            aria-label={`Remove Taylor Coefficient ${index + 1}`}
+                            color="error"
+                            onClick={() =>
+                              updateCoefficients(
+                                coefficients.filter((_, i) => i !== index),
+                              )
+                            }
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Box>
+                      ))
+                    )}
+                    <Button
+                      variant="outlined"
+                      onClick={() => updateCoefficients([...coefficients, 0])}
+                    >
+                      Add Coefficient
+                    </Button>
+                  </Box>
+                );
+              }
+
               return (
                 <TextField
                   color="primary"

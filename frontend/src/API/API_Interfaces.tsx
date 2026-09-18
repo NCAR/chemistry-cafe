@@ -97,6 +97,17 @@ export interface APIReaction {
     a0?: number | null;
     n?: number | null;
   } | null;
+  // Dedicated Taylor Series parameters. Present only for TAYLOR_SERIES
+  // reactions.
+  taylorSeries?: {
+    a?: number | null;
+    b?: number | null;
+    c?: number | null;
+    ea?: number | null;
+    d?: number | null;
+    e?: number | null;
+    taylorCoefficients?: Array<number> | null;
+  } | null;
   reactants: Array<APIReactant>;
   products: Array<APIProduct>;
   gasPhaseId?: UUID | null;
