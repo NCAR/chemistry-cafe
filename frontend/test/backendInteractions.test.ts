@@ -189,6 +189,20 @@ describe("Species Conversion", () => {
     expect(result.description).toEqual(frontendSpecies.description);
     expect(result.familyId).toEqual(frontendSpecies.familyId);
   });
+
+  test("isThirdBody round-trips in both directions", () => {
+    const thirdBodySpecies: Species = {
+      ...frontendSpecies,
+      name: "M",
+      isThirdBody: true,
+    };
+    const toApi = frontendToAPISpecies(thirdBodySpecies, frontendFamily);
+    expect(toApi.isThirdBody).toBe(true);
+
+    const apiThirdBodySpecies: APISpecies = { ...apiSpecies, isThirdBody: true };
+    const toFrontend = apiToFrontendSpecies(apiThirdBodySpecies);
+    expect(toFrontend.isThirdBody).toBe(true);
+  });
 });
 
 describe("Reaction Conversion", () => {
@@ -204,6 +218,48 @@ describe("Reaction Conversion", () => {
     expect(result.id).toEqual(frontendReaction.id);
     expect(result.name).toEqual(frontendReaction.name);
     expect(result.description).toEqual(frontendReaction.description);
+  });
+
+  test("gas phase and aerosol phase references round-trip in both directions", () => {
+    const phaseReaction: Reaction = {
+      ...frontendReaction,
+      gasPhaseId: "11111111-1111-1111-1111-111111111111",
+      gasPhaseSpeciesId: "22222222-2222-2222-2222-222222222222",
+      aerosolPhaseId: "33333333-3333-3333-3333-333333333333",
+      aerosolPhaseSpeciesId: "44444444-4444-4444-4444-444444444444",
+      aerosolPhaseWaterId: "55555555-5555-5555-5555-555555555555",
+    };
+    const toApi = frontendToAPIReaction(phaseReaction, frontendFamily);
+    expect(toApi.gasPhaseId).toEqual(phaseReaction.gasPhaseId);
+    expect(toApi.gasPhaseSpeciesId).toEqual(phaseReaction.gasPhaseSpeciesId);
+    expect(toApi.aerosolPhaseId).toEqual(phaseReaction.aerosolPhaseId);
+    expect(toApi.aerosolPhaseSpeciesId).toEqual(
+      phaseReaction.aerosolPhaseSpeciesId,
+    );
+    expect(toApi.aerosolPhaseWaterId).toEqual(
+      phaseReaction.aerosolPhaseWaterId,
+    );
+
+    const apiPhaseReaction: APIReaction = {
+      ...apiReaction,
+      gasPhaseId: phaseReaction.gasPhaseId,
+      gasPhaseSpeciesId: phaseReaction.gasPhaseSpeciesId,
+      aerosolPhaseId: phaseReaction.aerosolPhaseId,
+      aerosolPhaseSpeciesId: phaseReaction.aerosolPhaseSpeciesId,
+      aerosolPhaseWaterId: phaseReaction.aerosolPhaseWaterId,
+    };
+    const toFrontend = apiToFrontendReaction(apiPhaseReaction);
+    expect(toFrontend.gasPhaseId).toEqual(phaseReaction.gasPhaseId);
+    expect(toFrontend.gasPhaseSpeciesId).toEqual(
+      phaseReaction.gasPhaseSpeciesId,
+    );
+    expect(toFrontend.aerosolPhaseId).toEqual(phaseReaction.aerosolPhaseId);
+    expect(toFrontend.aerosolPhaseSpeciesId).toEqual(
+      phaseReaction.aerosolPhaseSpeciesId,
+    );
+    expect(toFrontend.aerosolPhaseWaterId).toEqual(
+      phaseReaction.aerosolPhaseWaterId,
+    );
   });
 });
 
@@ -549,6 +605,48 @@ describe("Taylor Series parameter translation", () => {
   });
 });
 
+describe("Surface parameter translation", () => {
+  const surfaceReaction: Reaction = {
+    id: "00000000-0000-0000-0000-000000000000",
+    name: "surface",
+    description: "",
+    type: "SURFACE",
+    reactants: [],
+    products: [],
+    attributes: {
+      "reaction probability": {
+        serializationKey: "reaction probability",
+        value: 1.0,
+      },
+    },
+  };
+
+  test("frontendToAPIReaction writes params to the surface field, not the attribute lists", () => {
+    const result = frontendToAPIReaction(surfaceReaction, frontendFamily);
+    expect(result.surface).toEqual({
+      reactionProbability: 1.0,
+    });
+    expect(result.numericalAttributes).toHaveLength(0);
+    expect(result.stringAttributes).toHaveLength(0);
+  });
+
+  test("apiToFrontendReaction reads the surface field into the attribute bag", () => {
+    const apiSurface: APIReaction = {
+      id: "00000000-0000-0000-0000-000000000000",
+      name: "surface",
+      reactionType: "SURFACE",
+      numericalAttributes: [],
+      stringAttributes: [],
+      surface: { reactionProbability: 1.0 },
+      reactants: [],
+      products: [],
+      familyId: "00000000-0000-0000-0000-000000000000",
+    };
+    const result = apiToFrontendReaction(apiSurface);
+    expect(result.attributes["reaction probability"].value).toBe(1.0);
+  });
+});
+
 describe("Phase Conversion", () => {
   test("Conversion from frontend to backend definition", () => {
     const result = frontendToAPIPhase(frontendPhase, frontendFamily);
@@ -560,6 +658,12 @@ describe("Phase Conversion", () => {
     const result = apiToFrontendPhase(apiPhase);
     expect(result.id).toEqual(frontendPhase.id);
     expect(result.name).toEqual(frontendPhase.name);
+  });
+
+  test("description round-trips to the backend", () => {
+    const describedPhase: Phase = { ...frontendPhase, description: "gas phase" };
+    const result = frontendToAPIPhase(describedPhase, frontendFamily);
+    expect(result.description).toEqual("gas phase");
   });
 });
 
@@ -574,6 +678,15 @@ describe("Mechanism Conversion", () => {
     const result = apiToFrontendMechanism(apiMechanism);
     expect(result.id).toEqual(frontendMechanism.id);
     expect(result.name).toEqual(frontendMechanism.name);
+  });
+
+  test("description round-trips to the backend", () => {
+    const describedMechanism: Mechanism = {
+      ...frontendMechanism,
+      description: "test mechanism description",
+    };
+    const result = frontendToAPIMechanism(describedMechanism, frontendFamily);
+    expect(result.description).toEqual("test mechanism description");
   });
 });
 

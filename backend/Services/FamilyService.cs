@@ -55,6 +55,8 @@ public class FamilyService
                     .ThenInclude(r => r.Branched)
                 .Include(f => f.Reactions)
                     .ThenInclude(r => r.TaylorSeries)
+                .Include(f => f.Reactions)
+                    .ThenInclude(r => r.Surface)
                 .Include(f => f.Phases)
                     .ThenInclude(r => r.Species)
                 .Include(f => f.Mechanisms)
@@ -107,6 +109,8 @@ public class FamilyService
                 .ThenInclude(r => r.Branched)
             .Include(f => f.Reactions)
                 .ThenInclude(r => r.TaylorSeries)
+            .Include(f => f.Reactions)
+                .ThenInclude(r => r.Surface)
             .Include(f => f.Phases)
                 .ThenInclude(r => r.Species)
             .Include(f => f.Mechanisms)
@@ -219,6 +223,7 @@ public class FamilyService
             .Include(f => f.Reactions).ThenInclude(r => r.TernaryChemicalActivation)
             .Include(f => f.Reactions).ThenInclude(r => r.Branched)
             .Include(f => f.Reactions).ThenInclude(r => r.TaylorSeries)
+            .Include(f => f.Reactions).ThenInclude(r => r.Surface)
             .Include(f => f.Phases).ThenInclude(p => p.Species)
             .Include(f => f.Mechanisms).ThenInclude(m => m.Species)
             .Include(f => f.Mechanisms).ThenInclude(m => m.Reactions)
@@ -561,6 +566,25 @@ public class FamilyService
                 existingTaylorSeries.D = incomingTaylorSeries.D;
                 existingTaylorSeries.E = incomingTaylorSeries.E;
                 existingTaylorSeries.TaylorCoefficients = incomingTaylorSeries.TaylorCoefficients;
+            }
+
+            // Surface parameters are a one-to-one row. Update in place when
+            // both sides have it, add it when new, and drop it when the
+            // incoming reaction no longer carries it (EF cascade deletes the
+            // orphan).
+            if (incomingReaction.Surface == null)
+            {
+                existingReaction.Surface = null;
+            }
+            else if (existingReaction.Surface == null)
+            {
+                existingReaction.Surface = incomingReaction.Surface.ToEntity();
+            }
+            else
+            {
+                SurfaceParameters existingSurface = existingReaction.Surface;
+                SurfaceParametersDto incomingSurface = incomingReaction.Surface;
+                existingSurface.ReactionProbability = incomingSurface.ReactionProbability;
             }
         });
 

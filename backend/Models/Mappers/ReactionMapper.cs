@@ -32,6 +32,7 @@ public static class ReactionMapper
             TernaryChemicalActivation = reaction.TernaryChemicalActivation?.ToDto(),
             Branched = reaction.Branched?.ToDto(),
             TaylorSeries = reaction.TaylorSeries?.ToDto(),
+            Surface = reaction.Surface?.ToDto(),
             GasPhaseId = reaction.GasPhaseId,
             GasPhaseSpeciesId = reaction.GasPhaseSpeciesId,
             AerosolPhaseId = reaction.AerosolPhaseId,
@@ -64,6 +65,7 @@ public static class ReactionMapper
             TernaryChemicalActivation = reactionDto.TernaryChemicalActivation?.ToEntity(),
             Branched = reactionDto.Branched?.ToEntity(),
             TaylorSeries = reactionDto.TaylorSeries?.ToEntity(),
+            Surface = reactionDto.Surface?.ToEntity(),
             GasPhaseId = reactionDto.GasPhaseId,
             GasPhaseSpeciesId = reactionDto.GasPhaseSpeciesId,
             AerosolPhaseId = reactionDto.AerosolPhaseId,
@@ -214,5 +216,17 @@ public static class ReactionMapper
             D = dto.D,
             E = dto.E,
             TaylorCoefficients = dto.TaylorCoefficients,
+        };
+
+    public static SurfaceParametersDto ToDto(this SurfaceParameters parameters) =>
+        new SurfaceParametersDto
+        {
+            ReactionProbability = parameters.ReactionProbability,
+        };
+
+    public static SurfaceParameters ToEntity(this SurfaceParametersDto dto) =>
+        new SurfaceParameters
+        {
+            ReactionProbability = dto.ReactionProbability,
         };
 }
