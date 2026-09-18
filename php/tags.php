@@ -2198,14 +2198,15 @@ function get_reaction_object_troe($con, $reaction, $indent) {
     // r1 = k0_A
     // r2 = - k0_B
     // r3 = kinf_A
-    // r4 = N
+    // r4 = kinf_B
     // r5 = Fc
     //
     // in k = k0 [M] / ( 1 + k0 [M] / kinf ) * Fc^( 1 + ( 1/N ( log10( k0 [M] / kinf ) )^2 )^-1 )
     //
-    // where k0 = k0_A * ( T / 300 K )^( k0_B ), kinf = kinf_A,  and T is temperature [K].
+    // where k0 = k0_A * ( T / 300 K )^( k0_B ), kinf = kinf_A * ( T / 300 K )^( kinf_B ),
+    // and T is temperature [K]. N is fixed at 1 for this five-parameter form.
     //
-    $params_query = "SELECT r1 AS k0_a, r2 AS k0_b, r3 AS kinf_a, r4 AS n, r5 AS fc
+    $params_query = "SELECT r1 AS k0_a, r2 AS k0_b, r3 AS kinf_a, r4 AS kinf_b, r5 AS fc
                      FROM reactions
                      WHERE id = ".$reaction['id'];
     $params = pg_fetch_assoc(pg_query($con, $params_query));
@@ -2241,8 +2242,8 @@ function get_reaction_object_troe($con, $reaction, $indent) {
                ->k0_A(  is_null($params['k0_a'])   ? 1   :  $params['k0_a'])
                ->k0_B(  is_null($params['k0_b'])   ? 0   : -$params['k0_b'])
                ->kinf_A(is_null($params['kinf_a']) ? 1   :  $params['kinf_a'])
+               ->kinf_B(is_null($params['kinf_b']) ? 0   :  $params['kinf_b'])
                ->Fc(    is_null($params['fc'])     ? 0.6 :  $params['fc'])
-               ->N(     is_null($params['n'])      ? 1   :  $params['n'])
                ->build( );
 
     return $rxn->getCampConfiguration( $indent );
