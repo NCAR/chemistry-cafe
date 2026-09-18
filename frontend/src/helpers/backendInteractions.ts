@@ -115,12 +115,9 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
       if (value === null || value === undefined) {
         continue;
       }
-      const defaultAttribute = reactionAttributeOptions.ARRHENIUS?.find(
-        (e) => e.key === key,
-      );
+      const defaultAttribute = reactionAttributeOptions.ARRHENIUS?.[key];
       formattedReaction.attributes[key] = {
         ...defaultAttribute,
-        key,
         value,
       };
     }
@@ -136,12 +133,9 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
       if (value === null || value === undefined) {
         continue;
       }
-      const defaultAttribute = reactionAttributeOptions.TUNNELING?.find(
-        (e) => e.key === key,
-      );
+      const defaultAttribute = reactionAttributeOptions.TUNNELING?.[key];
       formattedReaction.attributes[key] = {
         ...defaultAttribute,
-        key,
         value,
       };
     }
@@ -162,12 +156,9 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
       if (value === null || value === undefined) {
         continue;
       }
-      const defaultAttribute = reactionAttributeOptions.TROE?.find(
-        (e) => e.key === key,
-      );
+      const defaultAttribute = reactionAttributeOptions.TROE?.[key];
       formattedReaction.attributes[key] = {
         ...defaultAttribute,
-        key,
         value,
       };
     }
@@ -191,13 +182,9 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
       if (value === null || value === undefined) {
         continue;
       }
-      const defaultAttribute =
-        reactionAttributeOptions.TERNARY_CHEMICAL_ACTIVATION?.find(
-          (e) => e.key === key,
-        );
+      const defaultAttribute = reactionAttributeOptions.TERNARY_CHEMICAL_ACTIVATION?.[key];
       formattedReaction.attributes[key] = {
         ...defaultAttribute,
-        key,
         value,
       };
     }
@@ -214,12 +201,9 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
       if (value === null || value === undefined) {
         continue;
       }
-      const defaultAttribute = reactionAttributeOptions.BRANCHED_NO_RO2?.find(
-        (e) => e.key === key,
-      );
+      const defaultAttribute = reactionAttributeOptions.BRANCHED_NO_RO2?.[key];
       formattedReaction.attributes[key] = {
         ...defaultAttribute,
-        key,
         value,
       };
     }
@@ -247,12 +231,9 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
       if (value === null || value === undefined) {
         continue;
       }
-      const defaultAttribute = reactionAttributeOptions.TAYLOR_SERIES?.find(
-        (e) => e.key === key,
-      );
+      const defaultAttribute = reactionAttributeOptions.TAYLOR_SERIES?.[key];
       formattedReaction.attributes[key] = {
         ...defaultAttribute,
-        key,
         value,
       };
     }
@@ -266,12 +247,9 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
       if (value === null || value === undefined) {
         continue;
       }
-      const defaultAttribute = reactionAttributeOptions.SURFACE?.find(
-        (e) => e.key === key,
-      );
+      const defaultAttribute = reactionAttributeOptions.SURFACE?.[key];
       formattedReaction.attributes[key] = {
         ...defaultAttribute,
-        key,
         value,
       };
     }
@@ -285,12 +263,9 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
       if (value === null || value === undefined) {
         continue;
       }
-      const defaultAttribute = reactionAttributeOptions.EMISSION?.find(
-        (e) => e.key === key,
-      );
+      const defaultAttribute = reactionAttributeOptions.EMISSION?.[key];
       formattedReaction.attributes[key] = {
         ...defaultAttribute,
-        key,
         value,
       };
     }
@@ -309,12 +284,9 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
       if (value === null || value === undefined) {
         continue;
       }
-      const defaultAttribute = reactionAttributeOptions.FIRST_ORDER_LOSS?.find(
-        (e) => e.key === key,
-      );
+      const defaultAttribute = reactionAttributeOptions.FIRST_ORDER_LOSS?.[key];
       formattedReaction.attributes[key] = {
         ...defaultAttribute,
-        key,
         value,
       };
     }
@@ -330,12 +302,9 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
       if (value === null || value === undefined) {
         continue;
       }
-      const defaultAttribute = reactionAttributeOptions.PHOTOLYSIS?.find(
-        (e) => e.key === key,
-      );
+      const defaultAttribute = reactionAttributeOptions.PHOTOLYSIS?.[key];
       formattedReaction.attributes[key] = {
         ...defaultAttribute,
-        key,
         value,
       };
     }
@@ -351,12 +320,9 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
       if (value === null || value === undefined) {
         continue;
       }
-      const defaultAttribute = reactionAttributeOptions.USER_DEFINED?.find(
-        (e) => e.key === key,
-      );
+      const defaultAttribute = reactionAttributeOptions.USER_DEFINED?.[key];
       formattedReaction.attributes[key] = {
         ...defaultAttribute,
-        key,
         value,
       };
     }

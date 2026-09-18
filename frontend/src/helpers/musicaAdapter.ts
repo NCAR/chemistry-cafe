@@ -30,8 +30,6 @@ type MusicaReaction = InstanceType<
 >;
 
 const V1_VERSION = "1.0.0";
-const SCALING_FACTOR_KEY = "scalingFactor";
-const WIRE_SCALING_FACTOR_KEY = "scaling factor";
 
 /** Convert a value to a number. */
 const num = (value: unknown, fallback: number): number =>
@@ -46,7 +44,7 @@ const attrsFromParams = (
   const attributes: Reaction["attributes"] = {};
   for (const [key, value] of Object.entries(params)) {
     if (value === undefined) continue;
-    attributes[key] = { key, value };
+    attributes[key] = { value };
   }
   return attributes;
 };
@@ -166,7 +164,7 @@ const EMISSION: ReactionAdapter = {
   toMusica: (r, ctx) =>
     new reactionTypes.Emission({
       name: r.name,
-      scaling_factor: num(r.attributes[SCALING_FACTOR_KEY]?.value, 1.0),
+      scaling_factor: num(r.attributes["scalingFactor"]?.value, 1.0),
       gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
       products: componentsToMusica(r.products, ctx),
     }),
@@ -178,7 +176,7 @@ const EMISSION: ReactionAdapter = {
     type: reactionTypes.Emission.type,
     gasPhaseId: json["gas phase"] ?? undefined,
     attributes: attrsFromParams({
-      [SCALING_FACTOR_KEY]: json[WIRE_SCALING_FACTOR_KEY],
+      scalingFactor: json["scaling factor"],
     }),
     reactants: [],
     products: componentsFromJSON(json.products),
@@ -189,7 +187,7 @@ const FIRST_ORDER_LOSS: ReactionAdapter = {
   toMusica: (r, ctx) =>
     new reactionTypes.FirstOrderLoss({
       name: r.name,
-      scaling_factor: num(r.attributes[SCALING_FACTOR_KEY]?.value, 1.0),
+      scaling_factor: num(r.attributes["scalingFactor"]?.value, 1.0),
       gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
       reactants: componentsToMusica(r.reactants, ctx),
     }),
@@ -201,7 +199,7 @@ const FIRST_ORDER_LOSS: ReactionAdapter = {
     type: reactionTypes.FirstOrderLoss.type,
     gasPhaseId: json["gas phase"] ?? undefined,
     attributes: attrsFromParams({
-      [SCALING_FACTOR_KEY]: json[WIRE_SCALING_FACTOR_KEY],
+      scalingFactor: json["scaling factor"],
     }),
     reactants: componentsFromJSON(json.reactants),
     products: [],
@@ -212,7 +210,7 @@ const PHOTOLYSIS: ReactionAdapter = {
   toMusica: (r, ctx) => {
     return new reactionTypes.Photolysis({
       name: r.name,
-      scaling_factor: num(r.attributes[SCALING_FACTOR_KEY]?.value, 1.0),
+      scaling_factor: num(r.attributes["scalingFactor"]?.value, 1.0),
       gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
       reactants: componentsToMusica(r.reactants, ctx),
       products: componentsToMusica(r.products, ctx),
@@ -227,7 +225,7 @@ const PHOTOLYSIS: ReactionAdapter = {
       gasPhaseId: json["gas phase"] ?? undefined,
       type: reactionTypes.Photolysis.type,
       attributes: attrsFromParams({
-        [SCALING_FACTOR_KEY]: json[WIRE_SCALING_FACTOR_KEY],
+        scalingFactor: json["scaling factor"],
       }),
       reactants: componentsFromJSON(json.reactants),
       products: componentsFromJSON(json.products),
@@ -411,7 +409,7 @@ const USER_DEFINED: ReactionAdapter = {
   toMusica: (r, ctx) => {
     return new reactionTypes.UserDefined({
       name: r.name,
-      scaling_factor: num(r.attributes[SCALING_FACTOR_KEY]?.value, 1.0),
+      scaling_factor: num(r.attributes["scalingFactor"]?.value, 1.0),
       gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
       reactants: componentsToMusica(r.reactants, ctx),
       products: componentsToMusica(r.products, ctx),
@@ -426,7 +424,7 @@ const USER_DEFINED: ReactionAdapter = {
       gasPhaseId: json["gas phase"] ?? undefined,
       type: reactionTypes.UserDefined.type,
       attributes: attrsFromParams({
-        [SCALING_FACTOR_KEY]: json[WIRE_SCALING_FACTOR_KEY],
+        scalingFactor: json["scaling factor"],
       }),
       reactants: componentsFromJSON(json.reactants),
       products: componentsFromJSON(json.products),
