@@ -764,6 +764,45 @@ describe("Photolysis parameter translation", () => {
   });
 });
 
+describe("User Defined parameter translation", () => {
+  const userDefinedReaction: Reaction = {
+    id: "00000000-0000-0000-0000-000000000000",
+    name: "user defined",
+    description: "",
+    type: "USER_DEFINED",
+    reactants: [],
+    products: [],
+    attributes: {
+      "scaling factor": { serializationKey: "scaling factor", value: 3.2 },
+    },
+  };
+
+  test("frontendToAPIReaction writes params to the userDefined field, not the attribute lists", () => {
+    const result = frontendToAPIReaction(userDefinedReaction, frontendFamily);
+    expect(result.userDefined).toEqual({
+      scalingFactor: 3.2,
+    });
+    expect(result.numericalAttributes).toHaveLength(0);
+    expect(result.stringAttributes).toHaveLength(0);
+  });
+
+  test("apiToFrontendReaction reads the userDefined field into the attribute bag", () => {
+    const apiUserDefined: APIReaction = {
+      id: "00000000-0000-0000-0000-000000000000",
+      name: "user defined",
+      reactionType: "USER_DEFINED",
+      numericalAttributes: [],
+      stringAttributes: [],
+      userDefined: { scalingFactor: 3.2 },
+      reactants: [],
+      products: [],
+      familyId: "00000000-0000-0000-0000-000000000000",
+    };
+    const result = apiToFrontendReaction(apiUserDefined);
+    expect(result.attributes["scaling factor"].value).toBe(3.2);
+  });
+});
+
 describe("Phase Conversion", () => {
   test("Conversion from frontend to backend definition", () => {
     const result = frontendToAPIPhase(frontendPhase, frontendFamily);
