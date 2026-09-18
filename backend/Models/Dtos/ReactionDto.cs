@@ -37,6 +37,10 @@ public class ReactionDto
     // types, which still carry their parameters in the attribute lists above.
     public BranchedParametersDto? Branched { get; set; }
 
+    // Dedicated parameters for Taylor Series reactions. Null for other types,
+    // which still carry their parameters in the attribute lists above.
+    public TaylorSeriesParametersDto? TaylorSeries { get; set; }
+
     public Guid? GasPhaseId { get; set; }
     public Guid? GasPhaseSpeciesId { get; set; }
     public Guid? AerosolPhaseId { get; set; }
@@ -104,6 +108,17 @@ public class BranchedParametersDto
     public double? Y { get; set; }
     public double? A0 { get; set; }
     public double? N { get; set; }
+}
+
+public class TaylorSeriesParametersDto
+{
+    public double? A { get; set; }
+    public double? B { get; set; }
+    public double? C { get; set; }
+    public double? Ea { get; set; }
+    public double? D { get; set; }
+    public double? E { get; set; }
+    public List<double>? TaylorCoefficients { get; set; }
 }
 
 public class ReactionNumericalAttributeDto

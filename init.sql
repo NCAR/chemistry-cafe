@@ -805,3 +805,47 @@ DROP PROCEDURE MigrationsScript;
 
 COMMIT;
 
+START TRANSACTION;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260918003206_AddTaylorSeriesParameters') THEN
+
+    CREATE TABLE `TaylorSeriesParameters` (
+        `ReactionId` char(36) COLLATE ascii_general_ci NOT NULL,
+        `A` double NULL,
+        `B` double NULL,
+        `C` double NULL,
+        `Ea` double NULL,
+        `D` double NULL,
+        `E` double NULL,
+        `TaylorCoefficients` longtext CHARACTER SET utf8mb4 NULL,
+        CONSTRAINT `PK_TaylorSeriesParameters` PRIMARY KEY (`ReactionId`),
+        CONSTRAINT `FK_TaylorSeriesParameters_Reactions_ReactionId` FOREIGN KEY (`ReactionId`) REFERENCES `Reactions` (`Id`) ON DELETE CASCADE
+    ) CHARACTER SET=utf8mb4;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260918003206_AddTaylorSeriesParameters') THEN
+
+    INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+    VALUES ('20260918003206_AddTaylorSeriesParameters', '8.0.10');
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+COMMIT;
+
