@@ -47,6 +47,9 @@ public class Reaction
     // Dedicated parameter table for First Order Loss reactions. Null for other types.
     public FirstOrderLossParameters? FirstOrderLoss { get; set; }
 
+    // Dedicated parameter table for Photolysis reactions. Null for other types.
+    public PhotolysisParameters? Photolysis { get; set; }
+
 
     // Collections of reactants and products (must be species from the same family)
     public ICollection<Reactant> Reactants { get; set; } = new List<Reactant>();
@@ -304,6 +307,23 @@ public class EmissionParameters
 /// </summary>
 [Table("FirstOrderLossParameters")]
 public class FirstOrderLossParameters
+{
+    [Key]
+    public Guid ReactionId { get; set; }
+
+    [JsonIgnore]
+    public Reaction? Reaction { get; set; }
+
+    public double? ScalingFactor { get; set; }
+}
+
+/// <summary>
+/// Dedicated parameters for a Photolysis reaction. Has a one-to-one
+/// relationship with a reaction: ReactionId is both the primary key and the
+/// foreign key. Nullable so an unset value stays unset.
+/// </summary>
+[Table("PhotolysisParameters")]
+public class PhotolysisParameters
 {
     [Key]
     public Guid ReactionId { get; set; }

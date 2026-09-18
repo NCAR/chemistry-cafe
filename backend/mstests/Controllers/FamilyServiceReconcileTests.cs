@@ -735,5 +735,43 @@ namespace ChemistryCafeAPI.Tests
             Assert.IsNotNull(firstOrderLoss);
             Assert.AreEqual(3.0, firstOrderLoss!.ScalingFactor);
         }
+
+        [TestMethod]
+        public async Task Create_PersistsPhotolysisParameters()
+        {
+            FamilyDto dto = BuildBaseFamily();
+            dto.Reactions.Single().Photolysis = new PhotolysisParametersDto
+            {
+                ScalingFactor = 1.0,
+            };
+            await CreateBaseFamilyAsync(dto);
+
+            Family reloaded = await ReloadAsync(dto.Id);
+            PhotolysisParameters? photolysis = reloaded.Reactions.Single().Photolysis;
+            Assert.IsNotNull(photolysis);
+            Assert.AreEqual(1.0, photolysis!.ScalingFactor);
+        }
+
+        [TestMethod]
+        public async Task Update_ChangesPhotolysisParameters()
+        {
+            FamilyDto dto = BuildBaseFamily();
+            dto.Reactions.Single().Photolysis = new PhotolysisParametersDto
+            {
+                ScalingFactor = 1.0,
+            };
+            await CreateBaseFamilyAsync(dto);
+
+            dto.Reactions.Single().Photolysis = new PhotolysisParametersDto
+            {
+                ScalingFactor = 4.0,
+            };
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            Family reloaded = await ReloadAsync(dto.Id);
+            PhotolysisParameters? photolysis = reloaded.Reactions.Single().Photolysis;
+            Assert.IsNotNull(photolysis);
+            Assert.AreEqual(4.0, photolysis!.ScalingFactor);
+        }
     }
 }
