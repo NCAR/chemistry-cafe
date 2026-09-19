@@ -34,6 +34,7 @@ public static class ReactionMapper
             TaylorSeries = reaction.TaylorSeries?.ToDto(),
             Surface = reaction.Surface?.ToDto(),
             Emission = reaction.Emission?.ToDto(),
+            FirstOrderLoss = reaction.FirstOrderLoss?.ToDto(),
             GasPhaseId = reaction.GasPhaseId,
             GasPhaseSpeciesId = reaction.GasPhaseSpeciesId,
             AerosolPhaseId = reaction.AerosolPhaseId,
@@ -68,6 +69,7 @@ public static class ReactionMapper
             TaylorSeries = reactionDto.TaylorSeries?.ToEntity(),
             Surface = reactionDto.Surface?.ToEntity(),
             Emission = reactionDto.Emission?.ToEntity(),
+            FirstOrderLoss = reactionDto.FirstOrderLoss?.ToEntity(),
             GasPhaseId = reactionDto.GasPhaseId,
             GasPhaseSpeciesId = reactionDto.GasPhaseSpeciesId,
             AerosolPhaseId = reactionDto.AerosolPhaseId,
@@ -240,6 +242,18 @@ public static class ReactionMapper
 
     public static EmissionParameters ToEntity(this EmissionParametersDto dto) =>
         new EmissionParameters
+        {
+            ScalingFactor = dto.ScalingFactor,
+        };
+
+    public static FirstOrderLossParametersDto ToDto(this FirstOrderLossParameters parameters) =>
+        new FirstOrderLossParametersDto
+        {
+            ScalingFactor = parameters.ScalingFactor,
+        };
+
+    public static FirstOrderLossParameters ToEntity(this FirstOrderLossParametersDto dto) =>
+        new FirstOrderLossParameters
         {
             ScalingFactor = dto.ScalingFactor,
         };

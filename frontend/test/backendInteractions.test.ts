@@ -686,6 +686,45 @@ describe("Emission parameter translation", () => {
   });
 });
 
+describe("First Order Loss parameter translation", () => {
+  const firstOrderLossReaction: Reaction = {
+    id: "00000000-0000-0000-0000-000000000000",
+    name: "first order loss",
+    description: "",
+    type: "FIRST_ORDER_LOSS",
+    reactants: [],
+    products: [],
+    attributes: {
+      "scaling factor": { serializationKey: "scaling factor", value: 2.0 },
+    },
+  };
+
+  test("frontendToAPIReaction writes params to the firstOrderLoss field, not the attribute lists", () => {
+    const result = frontendToAPIReaction(firstOrderLossReaction, frontendFamily);
+    expect(result.firstOrderLoss).toEqual({
+      scalingFactor: 2.0,
+    });
+    expect(result.numericalAttributes).toHaveLength(0);
+    expect(result.stringAttributes).toHaveLength(0);
+  });
+
+  test("apiToFrontendReaction reads the firstOrderLoss field into the attribute bag", () => {
+    const apiFirstOrderLoss: APIReaction = {
+      id: "00000000-0000-0000-0000-000000000000",
+      name: "first order loss",
+      reactionType: "FIRST_ORDER_LOSS",
+      numericalAttributes: [],
+      stringAttributes: [],
+      firstOrderLoss: { scalingFactor: 2.0 },
+      reactants: [],
+      products: [],
+      familyId: "00000000-0000-0000-0000-000000000000",
+    };
+    const result = apiToFrontendReaction(apiFirstOrderLoss);
+    expect(result.attributes["scaling factor"].value).toBe(2.0);
+  });
+});
+
 describe("Phase Conversion", () => {
   test("Conversion from frontend to backend definition", () => {
     const result = frontendToAPIPhase(frontendPhase, frontendFamily);
