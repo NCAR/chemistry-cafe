@@ -351,9 +351,7 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
     const photolysisValues: Record<string, number | null | undefined> = {
       "scaling factor": apiReaction.photolysis.scalingFactor,
     };
-    for (const [serializationKey, value] of Object.entries(
-      photolysisValues,
-    )) {
+    for (const [serializationKey, value] of Object.entries(photolysisValues)) {
       if (value === null || value === undefined) {
         continue;
       }
@@ -375,9 +373,7 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
     const userDefinedValues: Record<string, number | null | undefined> = {
       "scaling factor": apiReaction.userDefined.scalingFactor,
     };
-    for (const [serializationKey, value] of Object.entries(
-      userDefinedValues,
-    )) {
+    for (const [serializationKey, value] of Object.entries(userDefinedValues)) {
       if (value === null || value === undefined) {
         continue;
       }

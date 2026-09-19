@@ -186,7 +186,10 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
       }
     }
 
-    if (currentConfiguration.hasGasPhaseSpecies && !modifiedReaction.gasPhaseSpeciesId) {
+    if (
+      currentConfiguration.hasGasPhaseSpecies &&
+      !modifiedReaction.gasPhaseSpeciesId
+    ) {
       setErrorMessage("This reaction type requires a gas phase species");
       setShowAlert(true);
       return;
@@ -358,7 +361,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                       const speciesId = event.target.value;
                       changeReactionProperties({
                         gasPhaseSpeciesId:
-                          speciesId === "None" ? undefined : (speciesId as UUID),
+                          speciesId === "None"
+                            ? undefined
+                            : (speciesId as UUID),
                       });
                     }}
                   >
@@ -805,169 +810,173 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                 rowGap: "0.5em",
               }}
             >
-            {defaultAttributes.map((attribute) => {
-              if (attribute.serializationKey === "taylor coefficients") {
-                const coefficients = Array.isArray(
-                  modifiedReaction?.attributes[attribute.serializationKey]
-                    ?.value,
-                )
-                  ? (modifiedReaction!.attributes[attribute.serializationKey]
-                      .value as Array<number>)
-                  : [];
+              {defaultAttributes.map((attribute) => {
+                if (attribute.serializationKey === "taylor coefficients") {
+                  const coefficients = Array.isArray(
+                    modifiedReaction?.attributes[attribute.serializationKey]
+                      ?.value,
+                  )
+                    ? (modifiedReaction!.attributes[attribute.serializationKey]
+                        .value as Array<number>)
+                    : [];
 
-                const updateCoefficients = (newCoefficients: Array<number>) => {
-                  if (!modifiedReaction) {
-                    return;
-                  }
-                  changeReactionProperties({
-                    attributes: {
-                      ...modifiedReaction.attributes,
-                      [attribute.serializationKey]: {
-                        ...attribute,
-                        value: newCoefficients,
+                  const updateCoefficients = (
+                    newCoefficients: Array<number>,
+                  ) => {
+                    if (!modifiedReaction) {
+                      return;
+                    }
+                    changeReactionProperties({
+                      attributes: {
+                        ...modifiedReaction.attributes,
+                        [attribute.serializationKey]: {
+                          ...attribute,
+                          value: newCoefficients,
+                        },
                       },
-                    },
-                  });
-                };
+                    });
+                  };
+
+                  return (
+                    <Box
+                      key={`${reaction?.id}-${attribute.serializationKey}`}
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        rowGap: "0.5em",
+                        gridColumn: "1 / -1",
+                      }}
+                    >
+                      <Typography color="textPrimary" variant="body2">
+                        Taylor Coefficients
+                      </Typography>
+                      {coefficients.length === 0 ? (
+                        <Typography color="textSecondary" variant="body2">
+                          None
+                        </Typography>
+                      ) : (
+                        coefficients.map((coefficient, index) => (
+                          <Box
+                            key={`${reaction?.id}-taylor-coefficient-${index}`}
+                            sx={{
+                              display: "flex",
+                              flexDirection: "row",
+                              alignItems: "center",
+                              columnGap: "1em",
+                            }}
+                          >
+                            <TextField
+                              color="primary"
+                              label={`Coefficient ${index + 1}`}
+                              type="number"
+                              sx={{
+                                flex: 1,
+                                // Removes up and down arrows for number
+                                "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
+                                  {
+                                    display: "none",
+                                  },
+                                "& input[type=number]": {
+                                  MozAppearance: "textfield",
+                                },
+                              }}
+                              value={coefficient}
+                              onWheel={(event) =>
+                                event.target instanceof HTMLElement &&
+                                event.target.blur()
+                              }
+                              onChange={(event) => {
+                                const num = Number.parseFloat(
+                                  event.target.value,
+                                );
+                                if (Number.isFinite(num)) {
+                                  const updated = [...coefficients];
+                                  updated[index] = num;
+                                  updateCoefficients(updated);
+                                }
+                              }}
+                            />
+                            <IconButton
+                              aria-label={`Remove Taylor Coefficient ${index + 1}`}
+                              color="error"
+                              onClick={() =>
+                                updateCoefficients(
+                                  coefficients.filter((_, i) => i !== index),
+                                )
+                              }
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Box>
+                        ))
+                      )}
+                      <Button
+                        variant="outlined"
+                        onClick={() => updateCoefficients([...coefficients, 0])}
+                      >
+                        Add Coefficient
+                      </Button>
+                    </Box>
+                  );
+                }
 
                 return (
-                  <Box
+                  <TextField
+                    color="primary"
                     key={`${reaction?.id}-${attribute.serializationKey}`}
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      rowGap: "0.5em",
-                      gridColumn: "1 / -1",
-                    }}
-                  >
-                    <Typography color="textPrimary" variant="body2">
-                      Taylor Coefficients
-                    </Typography>
-                    {coefficients.length === 0 ? (
-                      <Typography color="textSecondary" variant="body2">
-                        None
-                      </Typography>
-                    ) : (
-                      coefficients.map((coefficient, index) => (
-                        <Box
-                          key={`${reaction?.id}-taylor-coefficient-${index}`}
-                          sx={{
-                            display: "flex",
-                            flexDirection: "row",
-                            alignItems: "center",
-                            columnGap: "1em",
-                          }}
-                        >
-                          <TextField
-                            color="primary"
-                            label={`Coefficient ${index + 1}`}
-                            type="number"
-                            sx={{
-                              flex: 1,
-                              // Removes up and down arrows for number
-                              "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                                {
-                                  display: "none",
-                                },
-                              "& input[type=number]": {
-                                MozAppearance: "textfield",
-                              },
-                            }}
-                            value={coefficient}
-                            onWheel={(event) =>
-                              event.target instanceof HTMLElement &&
-                              event.target.blur()
-                            }
-                            onChange={(event) => {
-                              const num = Number.parseFloat(event.target.value);
-                              if (Number.isFinite(num)) {
-                                const updated = [...coefficients];
-                                updated[index] = num;
-                                updateCoefficients(updated);
-                              }
-                            }}
-                          />
-                          <IconButton
-                            aria-label={`Remove Taylor Coefficient ${index + 1}`}
-                            color="error"
-                            onClick={() =>
-                              updateCoefficients(
-                                coefficients.filter((_, i) => i !== index),
-                              )
-                            }
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Box>
-                      ))
-                    )}
-                    <Button
-                      variant="outlined"
-                      onClick={() => updateCoefficients([...coefficients, 0])}
-                    >
-                      Add Coefficient
-                    </Button>
-                  </Box>
-                );
-              }
-
-              return (
-                <TextField
-                  color="primary"
-                  key={`${reaction?.id}-${attribute.serializationKey}`}
-                  id={`${reaction?.id}-${attribute.serializationKey}`}
-                  onWheel={(event) =>
-                    event.target instanceof HTMLElement && event.target.blur()
-                  }
-                  sx={{
-                    width: "100%",
-                    // Removes up and down arrows for number
-                    "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                      {
-                        display: "none",
-                      },
-                    "& input[type=number]": {
-                      MozAppearance: "textfield",
-                    },
-                  }}
-                  defaultValue={
-                    reaction?.attributes[
-                      attribute.serializationKey
-                    ]?.value.toString() ?? ""
-                  }
-                  label={`${attribute.name || attribute.serializationKey}${
-                    attribute.units ? ` [${attribute.units}]` : ""
-                  }`}
-                  type="number"
-                  onChange={(event) => {
-                    const num = Number.parseFloat(event.target.value);
-                    if (
-                      Number.isFinite(num) ||
-                      event.target.value.length === 0
-                    ) {
-                      let modifiedAttributes: {
-                        [key: string]: ReactionAttribute;
-                      } = {
-                        ...modifiedReaction?.attributes,
-                      };
-
-                      if (event.target.value.length === 0) {
-                        delete modifiedAttributes[attribute.serializationKey];
-                      } else {
-                        modifiedAttributes[attribute.serializationKey] = {
-                          ...attribute,
-                          value: num,
-                        };
-                      }
-
-                      changeReactionProperties({
-                        attributes: modifiedAttributes,
-                      });
+                    id={`${reaction?.id}-${attribute.serializationKey}`}
+                    onWheel={(event) =>
+                      event.target instanceof HTMLElement && event.target.blur()
                     }
-                  }}
-                />
-              );
-            })}
+                    sx={{
+                      width: "100%",
+                      // Removes up and down arrows for number
+                      "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
+                        {
+                          display: "none",
+                        },
+                      "& input[type=number]": {
+                        MozAppearance: "textfield",
+                      },
+                    }}
+                    defaultValue={
+                      reaction?.attributes[
+                        attribute.serializationKey
+                      ]?.value.toString() ?? ""
+                    }
+                    label={`${attribute.name || attribute.serializationKey}${
+                      attribute.units ? ` [${attribute.units}]` : ""
+                    }`}
+                    type="number"
+                    onChange={(event) => {
+                      const num = Number.parseFloat(event.target.value);
+                      if (
+                        Number.isFinite(num) ||
+                        event.target.value.length === 0
+                      ) {
+                        let modifiedAttributes: {
+                          [key: string]: ReactionAttribute;
+                        } = {
+                          ...modifiedReaction?.attributes,
+                        };
+
+                        if (event.target.value.length === 0) {
+                          delete modifiedAttributes[attribute.serializationKey];
+                        } else {
+                          modifiedAttributes[attribute.serializationKey] = {
+                            ...attribute,
+                            value: num,
+                          };
+                        }
+
+                        changeReactionProperties({
+                          attributes: modifiedAttributes,
+                        });
+                      }
+                    }}
+                  />
+                );
+              })}
             </Box>
           )}
           <Box
