@@ -182,7 +182,8 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
       if (value === null || value === undefined) {
         continue;
       }
-      const defaultAttribute = reactionAttributeOptions.TERNARY_CHEMICAL_ACTIVATION?.[key];
+      const defaultAttribute =
+        reactionAttributeOptions.TERNARY_CHEMICAL_ACTIVATION?.[key];
       formattedReaction.attributes[key] = {
         ...defaultAttribute,
         value,
@@ -225,9 +226,7 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
       E: apiReaction.taylorSeries.e,
       taylorCoefficients: apiReaction.taylorSeries.taylorCoefficients,
     };
-    for (const [key, value] of Object.entries(
-      taylorSeriesValues,
-    )) {
+    for (const [key, value] of Object.entries(taylorSeriesValues)) {
       if (value === null || value === undefined) {
         continue;
       }
@@ -278,9 +277,7 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
     const firstOrderLossValues: Record<string, number | null | undefined> = {
       scalingFactor: apiReaction.firstOrderLoss.scalingFactor,
     };
-    for (const [key, value] of Object.entries(
-      firstOrderLossValues,
-    )) {
+    for (const [key, value] of Object.entries(firstOrderLossValues)) {
       if (value === null || value === undefined) {
         continue;
       }
@@ -296,9 +293,7 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
     const photolysisValues: Record<string, number | null | undefined> = {
       scalingFactor: apiReaction.photolysis.scalingFactor,
     };
-    for (const [key, value] of Object.entries(
-      photolysisValues,
-    )) {
+    for (const [key, value] of Object.entries(photolysisValues)) {
       if (value === null || value === undefined) {
         continue;
       }
@@ -314,9 +309,7 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
     const userDefinedValues: Record<string, number | null | undefined> = {
       scalingFactor: apiReaction.userDefined.scalingFactor,
     };
-    for (const [key, value] of Object.entries(
-      userDefinedValues,
-    )) {
+    for (const [key, value] of Object.entries(userDefinedValues)) {
       if (value === null || value === undefined) {
         continue;
       }
@@ -411,8 +404,7 @@ export function frontendToAPIReaction(
       n: numOrNull(reaction.attributes["n"]?.value),
     };
   } else if (reaction.type === "TAYLOR_SERIES") {
-    const taylorCoefficients =
-      reaction.attributes["taylorCoefficients"]?.value;
+    const taylorCoefficients = reaction.attributes["taylorCoefficients"]?.value;
     formattedReaction.taylorSeries = {
       a: numOrNull(reaction.attributes["A"]?.value),
       b: numOrNull(reaction.attributes["B"]?.value),
