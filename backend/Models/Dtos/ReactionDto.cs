@@ -53,6 +53,10 @@ public class ReactionDto
     // types, which still carry their parameters in the attribute lists above.
     public FirstOrderLossParametersDto? FirstOrderLoss { get; set; }
 
+    // Dedicated parameters for Photolysis reactions. Null for other types,
+    // which still carry their parameters in the attribute lists above.
+    public PhotolysisParametersDto? Photolysis { get; set; }
+
     public Guid? GasPhaseId { get; set; }
     public Guid? GasPhaseSpeciesId { get; set; }
     public Guid? AerosolPhaseId { get; set; }
@@ -144,6 +148,11 @@ public class EmissionParametersDto
 }
 
 public class FirstOrderLossParametersDto
+{
+    public double? ScalingFactor { get; set; }
+}
+
+public class PhotolysisParametersDto
 {
     public double? ScalingFactor { get; set; }
 }

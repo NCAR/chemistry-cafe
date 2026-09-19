@@ -121,6 +121,10 @@ export interface APIReaction {
   firstOrderLoss?: {
     scalingFactor?: number | null;
   } | null;
+  // Dedicated Photolysis parameters. Present only for PHOTOLYSIS reactions.
+  photolysis?: {
+    scalingFactor?: number | null;
+  } | null;
   reactants: Array<APIReactant>;
   products: Array<APIProduct>;
   gasPhaseId?: UUID | null;

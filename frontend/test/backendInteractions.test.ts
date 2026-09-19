@@ -725,6 +725,45 @@ describe("First Order Loss parameter translation", () => {
   });
 });
 
+describe("Photolysis parameter translation", () => {
+  const photolysisReaction: Reaction = {
+    id: "00000000-0000-0000-0000-000000000000",
+    name: "photolysis",
+    description: "",
+    type: "PHOTOLYSIS",
+    reactants: [],
+    products: [],
+    attributes: {
+      "scaling factor": { serializationKey: "scaling factor", value: 0.8 },
+    },
+  };
+
+  test("frontendToAPIReaction writes params to the photolysis field, not the attribute lists", () => {
+    const result = frontendToAPIReaction(photolysisReaction, frontendFamily);
+    expect(result.photolysis).toEqual({
+      scalingFactor: 0.8,
+    });
+    expect(result.numericalAttributes).toHaveLength(0);
+    expect(result.stringAttributes).toHaveLength(0);
+  });
+
+  test("apiToFrontendReaction reads the photolysis field into the attribute bag", () => {
+    const apiPhotolysis: APIReaction = {
+      id: "00000000-0000-0000-0000-000000000000",
+      name: "photolysis",
+      reactionType: "PHOTOLYSIS",
+      numericalAttributes: [],
+      stringAttributes: [],
+      photolysis: { scalingFactor: 0.8 },
+      reactants: [],
+      products: [],
+      familyId: "00000000-0000-0000-0000-000000000000",
+    };
+    const result = apiToFrontendReaction(apiPhotolysis);
+    expect(result.attributes["scaling factor"].value).toBe(0.8);
+  });
+});
+
 describe("Phase Conversion", () => {
   test("Conversion from frontend to backend definition", () => {
     const result = frontendToAPIPhase(frontendPhase, frontendFamily);
