@@ -154,7 +154,10 @@ describe("Species Conversion", () => {
     const toApi = frontendToAPISpecies(thirdBodySpecies, frontendFamily);
     expect(toApi.isThirdBody).toBe(true);
 
-    const apiThirdBodySpecies: APISpecies = { ...apiSpecies, isThirdBody: true };
+    const apiThirdBodySpecies: APISpecies = {
+      ...apiSpecies,
+      isThirdBody: true,
+    };
     const toFrontend = apiToFrontendSpecies(apiThirdBodySpecies);
     expect(toFrontend.isThirdBody).toBe(true);
   });
@@ -623,7 +626,10 @@ describe("First Order Loss parameter translation", () => {
   };
 
   test("frontendToAPIReaction writes params to the firstOrderLoss field, not the attribute lists", () => {
-    const result = frontendToAPIReaction(firstOrderLossReaction, frontendFamily);
+    const result = frontendToAPIReaction(
+      firstOrderLossReaction,
+      frontendFamily,
+    );
     expect(result.firstOrderLoss).toEqual({
       scalingFactor: 2.0,
     });
@@ -728,7 +734,10 @@ describe("Phase Conversion", () => {
   });
 
   test("description round-trips to the backend", () => {
-    const describedPhase: Phase = { ...frontendPhase, description: "gas phase" };
+    const describedPhase: Phase = {
+      ...frontendPhase,
+      description: "gas phase",
+    };
     const result = frontendToAPIPhase(describedPhase, frontendFamily);
     expect(result.description).toEqual("gas phase");
   });

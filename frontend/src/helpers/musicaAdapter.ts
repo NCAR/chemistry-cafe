@@ -238,7 +238,10 @@ const SURFACE: ReactionAdapter = {
   toMusica: (r, ctx) => {
     return new reactionTypes.Surface({
       name: r.name,
-      reaction_probability: num(r.attributes["reactionProbability"]?.value, 1.0),
+      reaction_probability: num(
+        r.attributes["reactionProbability"]?.value,
+        1.0,
+      ),
       gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
       gas_phase_species: new types.ReactionComponent({
         name: ctx.speciesName(String(r.gasPhaseSpeciesId)),
@@ -279,7 +282,8 @@ const TAYLOR_SERIES: ReactionAdapter = {
         : { C: num(r.attributes["C"]?.value, 0) }),
       D: num(r.attributes["D"]?.value, 300.0),
       E: num(r.attributes["E"]?.value, 0.0),
-      taylor_coefficients: r.attributes["taylorCoefficients"]?.value as number[],
+      taylor_coefficients: r.attributes["taylorCoefficients"]
+        ?.value as number[],
       gas_phase: r.gasPhaseId ? ctx.phaseName(String(r.gasPhaseId)) : undefined,
       reactants: componentsToMusica(r.reactants, ctx),
       products: componentsToMusica(r.products, ctx),
