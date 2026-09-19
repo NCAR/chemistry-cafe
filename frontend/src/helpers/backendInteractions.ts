@@ -389,6 +389,30 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
     }
   }
 
+  // User Defined reactions store their parameters in a dedicated table.
+  // Read them back into the attribute bag, keyed by the serialization key
+  // the editor uses.
+  if (apiReaction.reactionType === "USER_DEFINED" && apiReaction.userDefined) {
+    const userDefinedValues: Record<string, number | null | undefined> = {
+      "scaling factor": apiReaction.userDefined.scalingFactor,
+    };
+    for (const [serializationKey, value] of Object.entries(
+      userDefinedValues,
+    )) {
+      if (value === null || value === undefined) {
+        continue;
+      }
+      const defaultAttribute = reactionAttributeOptions.USER_DEFINED?.find(
+        (e) => e.serializationKey === serializationKey,
+      );
+      formattedReaction.attributes[serializationKey] = {
+        ...defaultAttribute,
+        serializationKey,
+        value,
+      };
+    }
+  }
+
   return formattedReaction;
 }
 
@@ -503,6 +527,10 @@ export function frontendToAPIReaction(
     };
   } else if (reaction.type === "PHOTOLYSIS") {
     formattedReaction.photolysis = {
+      scalingFactor: numOrNull(reaction.attributes["scaling factor"]?.value),
+    };
+  } else if (reaction.type === "USER_DEFINED") {
+    formattedReaction.userDefined = {
       scalingFactor: numOrNull(reaction.attributes["scaling factor"]?.value),
     };
   } else {

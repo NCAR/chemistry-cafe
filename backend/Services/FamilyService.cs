@@ -63,6 +63,8 @@ public class FamilyService
                     .ThenInclude(r => r.FirstOrderLoss)
                 .Include(f => f.Reactions)
                     .ThenInclude(r => r.Photolysis)
+                .Include(f => f.Reactions)
+                    .ThenInclude(r => r.UserDefined)
                 .Include(f => f.Phases)
                     .ThenInclude(r => r.Species)
                 .Include(f => f.Mechanisms)
@@ -123,6 +125,8 @@ public class FamilyService
                 .ThenInclude(r => r.FirstOrderLoss)
             .Include(f => f.Reactions)
                 .ThenInclude(r => r.Photolysis)
+            .Include(f => f.Reactions)
+                .ThenInclude(r => r.UserDefined)
             .Include(f => f.Phases)
                 .ThenInclude(r => r.Species)
             .Include(f => f.Mechanisms)
@@ -239,6 +243,7 @@ public class FamilyService
             .Include(f => f.Reactions).ThenInclude(r => r.Emission)
             .Include(f => f.Reactions).ThenInclude(r => r.FirstOrderLoss)
             .Include(f => f.Reactions).ThenInclude(r => r.Photolysis)
+            .Include(f => f.Reactions).ThenInclude(r => r.UserDefined)
             .Include(f => f.Phases).ThenInclude(p => p.Species)
             .Include(f => f.Mechanisms).ThenInclude(m => m.Species)
             .Include(f => f.Mechanisms).ThenInclude(m => m.Reactions)
@@ -657,6 +662,25 @@ public class FamilyService
                 PhotolysisParameters existingPhotolysis = existingReaction.Photolysis;
                 PhotolysisParametersDto incomingPhotolysis = incomingReaction.Photolysis;
                 existingPhotolysis.ScalingFactor = incomingPhotolysis.ScalingFactor;
+            }
+
+            // User Defined parameters are a one-to-one row. Update in place
+            // when both sides have it, add it when new, and drop it when
+            // the incoming reaction no longer carries it (EF cascade
+            // deletes the orphan).
+            if (incomingReaction.UserDefined == null)
+            {
+                existingReaction.UserDefined = null;
+            }
+            else if (existingReaction.UserDefined == null)
+            {
+                existingReaction.UserDefined = incomingReaction.UserDefined.ToEntity();
+            }
+            else
+            {
+                UserDefinedParameters existingUserDefined = existingReaction.UserDefined;
+                UserDefinedParametersDto incomingUserDefined = incomingReaction.UserDefined;
+                existingUserDefined.ScalingFactor = incomingUserDefined.ScalingFactor;
             }
         });
 

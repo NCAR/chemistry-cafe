@@ -125,6 +125,11 @@ export interface APIReaction {
   photolysis?: {
     scalingFactor?: number | null;
   } | null;
+  // Dedicated User Defined parameters. Present only for USER_DEFINED
+  // reactions.
+  userDefined?: {
+    scalingFactor?: number | null;
+  } | null;
   reactants: Array<APIReactant>;
   products: Array<APIProduct>;
   gasPhaseId?: UUID | null;

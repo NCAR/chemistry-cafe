@@ -773,5 +773,43 @@ namespace ChemistryCafeAPI.Tests
             Assert.IsNotNull(photolysis);
             Assert.AreEqual(4.0, photolysis!.ScalingFactor);
         }
+
+        [TestMethod]
+        public async Task Create_PersistsUserDefinedParameters()
+        {
+            FamilyDto dto = BuildBaseFamily();
+            dto.Reactions.Single().UserDefined = new UserDefinedParametersDto
+            {
+                ScalingFactor = 1.0,
+            };
+            await CreateBaseFamilyAsync(dto);
+
+            Family reloaded = await ReloadAsync(dto.Id);
+            UserDefinedParameters? userDefined = reloaded.Reactions.Single().UserDefined;
+            Assert.IsNotNull(userDefined);
+            Assert.AreEqual(1.0, userDefined!.ScalingFactor);
+        }
+
+        [TestMethod]
+        public async Task Update_ChangesUserDefinedParameters()
+        {
+            FamilyDto dto = BuildBaseFamily();
+            dto.Reactions.Single().UserDefined = new UserDefinedParametersDto
+            {
+                ScalingFactor = 1.0,
+            };
+            await CreateBaseFamilyAsync(dto);
+
+            dto.Reactions.Single().UserDefined = new UserDefinedParametersDto
+            {
+                ScalingFactor = 5.0,
+            };
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            Family reloaded = await ReloadAsync(dto.Id);
+            UserDefinedParameters? userDefined = reloaded.Reactions.Single().UserDefined;
+            Assert.IsNotNull(userDefined);
+            Assert.AreEqual(5.0, userDefined!.ScalingFactor);
+        }
     }
 }
