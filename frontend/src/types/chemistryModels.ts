@@ -45,9 +45,6 @@ export type ReactionAttribute = {
   /** Human-readable name of the property */
   name?: string;
 
-  /** What the property should be serialized as (Usually in the form "<name> [<unit>]"). */
-  serializationKey: string;
-
   /** The unit of the specific attribute. This can be empty if unitless. */
   units?: string;
 
@@ -237,229 +234,75 @@ export const supportedReactionTypes: Array<ReactionTypeName> = [
  * Represents all attributes configurable by the user for each reaction type.
  */
 export const reactionAttributeOptions: {
-  [Type in ReactionTypeName | "NONE"]: Array<ReactionAttribute>;
+  [Type in ReactionTypeName | "NONE"]: Record<string, ReactionAttribute>;
 } = {
-  NONE: [],
+  NONE: {},
   /**
    * For Arrhenius reactions, there is another value, C, which we don't
    * represent on the frontend. It is defined as C = -Ea / kb, so it's
    * calculated elsewhere. See https://github.com/NCAR/chemistry-cafe/pull/166
    */
-  ARRHENIUS: [
-    {
-      serializationKey: "A",
-      units: "(mol m-3)^-(n-1) s-1",
-      value: 0.0,
-    },
-    {
-      serializationKey: "B",
-      value: 0.0,
-    },
-    {
-      serializationKey: "Ea",
-      units: "J",
-      value: 0.0,
-    },
-    {
-      serializationKey: "D",
-      units: "K",
-      value: 0.0,
-    },
-    {
-      serializationKey: "E",
-      units: "Pa-1",
-      value: 0.0,
-    },
-  ],
-  BRANCHED_NO_RO2: [
-    {
-      serializationKey: "X",
-      value: 0.0,
-    },
-    {
-      serializationKey: "Y",
-      units: "K",
-      value: 0.0,
-    },
-    {
-      serializationKey: "a0",
-      value: 0.0,
-    },
-    {
-      serializationKey: "n",
-      value: 0.0,
-    },
-  ],
-  EMISSION: [
-    {
-      name: "Scaling Factor",
-      serializationKey: "scaling factor",
-      value: 0.0,
-    },
-  ],
-  FIRST_ORDER_LOSS: [
-    {
-      name: "Scaling Factor",
-      serializationKey: "scaling factor",
-      value: 0.0,
-    },
-  ],
-  PHOTOLYSIS: [
-    {
-      name: "Scaling Factor",
-      serializationKey: "scaling factor",
-      value: 0.0,
-    },
-  ],
-  SURFACE: [
-    {
-      name: "Reaction Probability",
-      serializationKey: "reaction probability",
-      value: 0.0,
-    },
-  ],
-  TAYLOR_SERIES: [
-    {
-      serializationKey: "A",
-      units: "(mol m-3)^-(n-1) s-1",
-      value: 0.0,
-    },
-    {
-      serializationKey: "B",
-      value: 0.0,
-    },
-    {
-      serializationKey: "Ea",
-      units: "J",
-      value: 0.0,
-    },
-    {
-      serializationKey: "D",
-      units: "K",
-      value: 0.0,
-    },
-    {
-      serializationKey: "E",
-      units: "Pa-1",
-      value: 0.0,
-    },
-    {
-      serializationKey: "taylor coefficients",
-      value: [],
-    },
-  ],
-  TERNARY_CHEMICAL_ACTIVATION: [
-    {
-      name: "k0 A",
-      serializationKey: "k0_A",
-      units: "(mol m-3)^-(n-1) s-1",
-      value: 0.0,
-    },
-    {
-      name: "k0 B",
-      serializationKey: "k0_B",
-      value: 0.0,
-    },
-    {
-      name: "k0 C",
-      serializationKey: "k0_C",
-      units: "K",
-      value: 0.0,
-    },
-    {
-      name: "kinf A",
-      serializationKey: "kinf_A",
-      units: "(mol m-3)^-(n-1) s-1",
-      value: 0.0,
-    },
-    {
-      name: "kinf B",
-      serializationKey: "kinf_B",
-      value: 0.0,
-    },
-    {
-      name: "kinf C",
-      serializationKey: "kinf_C",
-      units: "K",
-      value: 0.0,
-    },
-    {
-      serializationKey: "Fc",
-      value: 0.0,
-    },
-    {
-      serializationKey: "N",
-      value: 0.0,
-    },
-  ],
-  TROE: [
-    {
-      name: "k0 A",
-      serializationKey: "k0_A",
-      units: "(mol m-3)^-(n-1) s-1",
-      value: 0.0,
-    },
-    {
-      name: "k0 B",
-      serializationKey: "k0_B",
-      value: 0.0,
-    },
-    {
-      name: "k0 C",
-      serializationKey: "k0_C",
-      units: "K",
-      value: 0.0,
-    },
-    {
-      name: "kinf A",
-      serializationKey: "kinf_A",
-      units: "(mol m-3)^-(n-1) s-1",
-      value: 0.0,
-    },
-    {
-      name: "kinf B",
-      serializationKey: "kinf_B",
-      value: 0.0,
-    },
-    {
-      name: "kinf C",
-      serializationKey: "kinf_C",
-      units: "K",
-      value: 0.0,
-    },
-    {
-      serializationKey: "Fc",
-      value: 0.0,
-    },
-    {
-      serializationKey: "N",
-      value: 0.0,
-    },
-  ],
-  TUNNELING: [
-    {
-      serializationKey: "A",
-      units: "(mol m-3)^-(n-1) s-1",
-      value: 0.0,
-    },
-    {
-      serializationKey: "B",
-      units: "K",
-      value: 0.0,
-    },
-    {
-      serializationKey: "C",
-      units: "K^3",
-      value: 0.0,
-    },
-  ],
-  USER_DEFINED: [
-    {
-      name: "Scaling Factor",
-      serializationKey: "scaling factor",
-      value: 0.0,
-    },
-  ],
+  ARRHENIUS: {
+    A: { units: "(mol m-3)^-(n-1) s-1", value: 0.0 },
+    B: { value: 0.0 },
+    Ea: { units: "J", value: 0.0 },
+    D: { units: "K", value: 0.0 },
+    E: { units: "Pa-1", value: 0.0 },
+  },
+  BRANCHED_NO_RO2: {
+    X: { value: 0.0 },
+    Y: { units: "K", value: 0.0 },
+    a0: { value: 0.0 },
+    n: { value: 0.0 },
+  },
+  EMISSION: {
+    scalingFactor: { name: "Scaling Factor", value: 0.0 },
+  },
+  FIRST_ORDER_LOSS: {
+    scalingFactor: { name: "Scaling Factor", value: 0.0 },
+  },
+  PHOTOLYSIS: {
+    scalingFactor: { name: "Scaling Factor", value: 0.0 },
+  },
+  SURFACE: {
+    reactionProbability: { name: "Reaction Probability", value: 0.0 },
+  },
+  TAYLOR_SERIES: {
+    A: { units: "(mol m-3)^-(n-1) s-1", value: 0.0 },
+    B: { value: 0.0 },
+    Ea: { units: "J", value: 0.0 },
+    D: { units: "K", value: 0.0 },
+    E: { units: "Pa-1", value: 0.0 },
+    taylorCoefficients: { name: "Taylor Coefficients", value: [] },
+  },
+  TERNARY_CHEMICAL_ACTIVATION: {
+    k0A: { name: "k0 A", units: "(mol m-3)^-(n-1) s-1", value: 0.0 },
+    k0B: { name: "k0 B", value: 0.0 },
+    k0C: { name: "k0 C", units: "K", value: 0.0 },
+    kinfA: { name: "kinf A", units: "(mol m-3)^-(n-1) s-1", value: 0.0 },
+    kinfB: { name: "kinf B", value: 0.0 },
+    kinfC: { name: "kinf C", units: "K", value: 0.0 },
+    Fc: { value: 0.0 },
+    N: { value: 0.0 },
+  },
+  TROE: {
+    k0A: { name: "k0 A", units: "(mol m-3)^-(n-1) s-1", value: 0.0 },
+    k0B: { name: "k0 B", value: 0.0 },
+    k0C: { name: "k0 C", units: "K", value: 0.0 },
+    kinfA: { name: "kinf A", units: "(mol m-3)^-(n-1) s-1", value: 0.0 },
+    kinfB: { name: "kinf B", value: 0.0 },
+    kinfC: { name: "kinf C", units: "K", value: 0.0 },
+    Fc: { value: 0.0 },
+    N: { value: 0.0 },
+  },
+  TUNNELING: {
+    A: { units: "(mol m-3)^-(n-1) s-1", value: 0.0 },
+    B: { units: "K", value: 0.0 },
+    C: { units: "K^3", value: 0.0 },
+  },
+  USER_DEFINED: {
+    scalingFactor: { name: "Scaling Factor", value: 0.0 },
+  },
 };
 
 export enum ReactionSpeciesCount {

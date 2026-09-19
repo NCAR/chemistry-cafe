@@ -50,8 +50,8 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
   >(reaction);
 
   const [defaultAttributes, setDefaultAttributes] = useState<
-    Array<ReactionAttribute>
-  >([]);
+    Record<string, ReactionAttribute>
+  >({});
 
   const [currentConfiguration, setCurrentConfiguration] =
     useState<ReactionConfiguration>(reactionConfigurations.NONE);
@@ -68,7 +68,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
 
   const getReactionAttributes = (
     type?: ReactionTypeName,
-  ): Array<ReactionAttribute> => {
+  ): Record<string, ReactionAttribute> => {
     if (!type) {
       return reactionAttributeOptions.NONE;
     }
@@ -263,17 +263,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
               const reactionType = newValue as ReactionTypeName;
               const attributes = getReactionAttributes(reactionType);
 
-              let reactionAttributes: {
-                [key: string]: ReactionAttribute;
-              } = {};
-
-              for (const attribute of attributes) {
-                reactionAttributes[attribute.serializationKey] = attribute;
-              }
-
               changeReactionProperties({
                 type: reactionType as ReactionTypeName,
-                attributes: reactionAttributes,
+                attributes,
               });
 
               setDefaultAttributes(attributes);
@@ -792,7 +784,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
           <Typography color="textPrimary" variant="subtitle1">
             Reaction Attributes
           </Typography>
-          {defaultAttributes.length === 0 ? (
+          {Object.keys(defaultAttributes).length === 0 ? (
             <Typography color="textSecondary" variant="body2">
               None
             </Typography>
@@ -805,13 +797,13 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                 rowGap: "0.5em",
               }}
             >
-            {defaultAttributes.map((attribute) => {
-              if (attribute.serializationKey === "taylor coefficients") {
+            {Object.entries(defaultAttributes).map(([key, attribute]) => {
+              if (key === "taylorCoefficients") {
                 const coefficients = Array.isArray(
-                  modifiedReaction?.attributes[attribute.serializationKey]
+                  modifiedReaction?.attributes[key]
                     ?.value,
                 )
-                  ? (modifiedReaction!.attributes[attribute.serializationKey]
+                  ? (modifiedReaction!.attributes[key]
                       .value as Array<number>)
                   : [];
 
@@ -822,7 +814,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                   changeReactionProperties({
                     attributes: {
                       ...modifiedReaction.attributes,
-                      [attribute.serializationKey]: {
+                      [key]: {
                         ...attribute,
                         value: newCoefficients,
                       },
@@ -832,7 +824,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
 
                 return (
                   <Box
-                    key={`${reaction?.id}-${attribute.serializationKey}`}
+                    key={`${reaction?.id}-${key}`}
                     sx={{
                       display: "flex",
                       flexDirection: "column",
@@ -914,8 +906,8 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
               return (
                 <TextField
                   color="primary"
-                  key={`${reaction?.id}-${attribute.serializationKey}`}
-                  id={`${reaction?.id}-${attribute.serializationKey}`}
+                  key={`${reaction?.id}-${key}`}
+                  id={`${reaction?.id}-${key}`}
                   onWheel={(event) =>
                     event.target instanceof HTMLElement && event.target.blur()
                   }
@@ -932,10 +924,10 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                   }}
                   defaultValue={
                     reaction?.attributes[
-                      attribute.serializationKey
+                      key
                     ]?.value.toString() ?? ""
                   }
-                  label={`${attribute.name || attribute.serializationKey}${
+                  label={`${attribute.name || key}${
                     attribute.units ? ` [${attribute.units}]` : ""
                   }`}
                   type="number"
@@ -952,9 +944,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                       };
 
                       if (event.target.value.length === 0) {
-                        delete modifiedAttributes[attribute.serializationKey];
+                        delete modifiedAttributes[key];
                       } else {
-                        modifiedAttributes[attribute.serializationKey] = {
+                        modifiedAttributes[key] = {
                           ...attribute,
                           value: num,
                         };
