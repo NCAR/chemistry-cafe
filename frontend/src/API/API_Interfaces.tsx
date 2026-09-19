@@ -112,6 +112,10 @@ export interface APIReaction {
   surface?: {
     reactionProbability?: number | null;
   } | null;
+  // Dedicated Emission parameters. Present only for EMISSION reactions.
+  emission?: {
+    scalingFactor?: number | null;
+  } | null;
   reactants: Array<APIReactant>;
   products: Array<APIProduct>;
   gasPhaseId?: UUID | null;

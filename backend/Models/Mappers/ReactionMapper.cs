@@ -33,6 +33,7 @@ public static class ReactionMapper
             Branched = reaction.Branched?.ToDto(),
             TaylorSeries = reaction.TaylorSeries?.ToDto(),
             Surface = reaction.Surface?.ToDto(),
+            Emission = reaction.Emission?.ToDto(),
             GasPhaseId = reaction.GasPhaseId,
             GasPhaseSpeciesId = reaction.GasPhaseSpeciesId,
             AerosolPhaseId = reaction.AerosolPhaseId,
@@ -66,6 +67,7 @@ public static class ReactionMapper
             Branched = reactionDto.Branched?.ToEntity(),
             TaylorSeries = reactionDto.TaylorSeries?.ToEntity(),
             Surface = reactionDto.Surface?.ToEntity(),
+            Emission = reactionDto.Emission?.ToEntity(),
             GasPhaseId = reactionDto.GasPhaseId,
             GasPhaseSpeciesId = reactionDto.GasPhaseSpeciesId,
             AerosolPhaseId = reactionDto.AerosolPhaseId,
@@ -228,5 +230,17 @@ public static class ReactionMapper
         new SurfaceParameters
         {
             ReactionProbability = dto.ReactionProbability,
+        };
+
+    public static EmissionParametersDto ToDto(this EmissionParameters parameters) =>
+        new EmissionParametersDto
+        {
+            ScalingFactor = parameters.ScalingFactor,
+        };
+
+    public static EmissionParameters ToEntity(this EmissionParametersDto dto) =>
+        new EmissionParameters
+        {
+            ScalingFactor = dto.ScalingFactor,
         };
 }

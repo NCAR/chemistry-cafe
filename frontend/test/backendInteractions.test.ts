@@ -647,6 +647,45 @@ describe("Surface parameter translation", () => {
   });
 });
 
+describe("Emission parameter translation", () => {
+  const emissionReaction: Reaction = {
+    id: "00000000-0000-0000-0000-000000000000",
+    name: "emission",
+    description: "",
+    type: "EMISSION",
+    reactants: [],
+    products: [],
+    attributes: {
+      "scaling factor": { serializationKey: "scaling factor", value: 1.5 },
+    },
+  };
+
+  test("frontendToAPIReaction writes params to the emission field, not the attribute lists", () => {
+    const result = frontendToAPIReaction(emissionReaction, frontendFamily);
+    expect(result.emission).toEqual({
+      scalingFactor: 1.5,
+    });
+    expect(result.numericalAttributes).toHaveLength(0);
+    expect(result.stringAttributes).toHaveLength(0);
+  });
+
+  test("apiToFrontendReaction reads the emission field into the attribute bag", () => {
+    const apiEmission: APIReaction = {
+      id: "00000000-0000-0000-0000-000000000000",
+      name: "emission",
+      reactionType: "EMISSION",
+      numericalAttributes: [],
+      stringAttributes: [],
+      emission: { scalingFactor: 1.5 },
+      reactants: [],
+      products: [],
+      familyId: "00000000-0000-0000-0000-000000000000",
+    };
+    const result = apiToFrontendReaction(apiEmission);
+    expect(result.attributes["scaling factor"].value).toBe(1.5);
+  });
+});
+
 describe("Phase Conversion", () => {
   test("Conversion from frontend to backend definition", () => {
     const result = frontendToAPIPhase(frontendPhase, frontendFamily);

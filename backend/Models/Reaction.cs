@@ -41,6 +41,9 @@ public class Reaction
     // Dedicated parameter table for Surface reactions. Null for other types.
     public SurfaceParameters? Surface { get; set; }
 
+    // Dedicated parameter table for Emission reactions. Null for other types.
+    public EmissionParameters? Emission { get; set; }
+
 
     // Collections of reactants and products (must be species from the same family)
     public ICollection<Reactant> Reactants { get; set; } = new List<Reactant>();
@@ -272,6 +275,23 @@ public class SurfaceParameters
     public Reaction? Reaction { get; set; }
 
     public double? ReactionProbability { get; set; }
+}
+
+/// <summary>
+/// Dedicated parameters for an Emission reaction. Has a one-to-one
+/// relationship with a reaction: ReactionId is both the primary key and the
+/// foreign key. Nullable so an unset value stays unset.
+/// </summary>
+[Table("EmissionParameters")]
+public class EmissionParameters
+{
+    [Key]
+    public Guid ReactionId { get; set; }
+
+    [JsonIgnore]
+    public Reaction? Reaction { get; set; }
+
+    public double? ScalingFactor { get; set; }
 }
 
 /// <summary>

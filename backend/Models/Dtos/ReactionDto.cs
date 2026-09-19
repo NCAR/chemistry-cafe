@@ -45,6 +45,10 @@ public class ReactionDto
     // still carry their parameters in the attribute lists above.
     public SurfaceParametersDto? Surface { get; set; }
 
+    // Dedicated parameters for Emission reactions. Null for other types,
+    // which still carry their parameters in the attribute lists above.
+    public EmissionParametersDto? Emission { get; set; }
+
     public Guid? GasPhaseId { get; set; }
     public Guid? GasPhaseSpeciesId { get; set; }
     public Guid? AerosolPhaseId { get; set; }
@@ -128,6 +132,11 @@ public class TaylorSeriesParametersDto
 public class SurfaceParametersDto
 {
     public double? ReactionProbability { get; set; }
+}
+
+public class EmissionParametersDto
+{
+    public double? ScalingFactor { get; set; }
 }
 
 public class ReactionNumericalAttributeDto

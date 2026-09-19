@@ -316,6 +316,28 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
     }
   }
 
+  // Emission reactions store their parameters in a dedicated table. Read
+  // them back into the attribute bag, keyed by the serialization key the
+  // editor uses.
+  if (apiReaction.reactionType === "EMISSION" && apiReaction.emission) {
+    const emissionValues: Record<string, number | null | undefined> = {
+      "scaling factor": apiReaction.emission.scalingFactor,
+    };
+    for (const [serializationKey, value] of Object.entries(emissionValues)) {
+      if (value === null || value === undefined) {
+        continue;
+      }
+      const defaultAttribute = reactionAttributeOptions.EMISSION?.find(
+        (e) => e.serializationKey === serializationKey,
+      );
+      formattedReaction.attributes[serializationKey] = {
+        ...defaultAttribute,
+        serializationKey,
+        value,
+      };
+    }
+  }
+
   return formattedReaction;
 }
 
@@ -419,6 +441,10 @@ export function frontendToAPIReaction(
       reactionProbability: numOrNull(
         reaction.attributes["reaction probability"]?.value,
       ),
+    };
+  } else if (reaction.type === "EMISSION") {
+    formattedReaction.emission = {
+      scalingFactor: numOrNull(reaction.attributes["scaling factor"]?.value),
     };
   } else {
     for (const attribute of Object.values(reaction.attributes)) {

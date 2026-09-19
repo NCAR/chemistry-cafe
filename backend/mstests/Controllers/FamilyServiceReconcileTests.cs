@@ -659,5 +659,43 @@ namespace ChemistryCafeAPI.Tests
             Assert.IsNotNull(surface);
             Assert.AreEqual(0.5, surface!.ReactionProbability);
         }
+
+        [TestMethod]
+        public async Task Create_PersistsEmissionParameters()
+        {
+            FamilyDto dto = BuildBaseFamily();
+            dto.Reactions.Single().Emission = new EmissionParametersDto
+            {
+                ScalingFactor = 1.0,
+            };
+            await CreateBaseFamilyAsync(dto);
+
+            Family reloaded = await ReloadAsync(dto.Id);
+            EmissionParameters? emission = reloaded.Reactions.Single().Emission;
+            Assert.IsNotNull(emission);
+            Assert.AreEqual(1.0, emission!.ScalingFactor);
+        }
+
+        [TestMethod]
+        public async Task Update_ChangesEmissionParameters()
+        {
+            FamilyDto dto = BuildBaseFamily();
+            dto.Reactions.Single().Emission = new EmissionParametersDto
+            {
+                ScalingFactor = 1.0,
+            };
+            await CreateBaseFamilyAsync(dto);
+
+            dto.Reactions.Single().Emission = new EmissionParametersDto
+            {
+                ScalingFactor = 2.5,
+            };
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            Family reloaded = await ReloadAsync(dto.Id);
+            EmissionParameters? emission = reloaded.Reactions.Single().Emission;
+            Assert.IsNotNull(emission);
+            Assert.AreEqual(2.5, emission!.ScalingFactor);
+        }
     }
 }
