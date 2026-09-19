@@ -27,10 +27,6 @@ public class MechanismService
                 .ThenInclude(r => r.Reactants)
             .Include(f => f.Reactions)
                 .ThenInclude(r => r.Products)
-            .Include(f => f.Reactions)
-                .ThenInclude(r => r.NumericalAttributes)
-            .Include(f => f.Reactions)
-                .ThenInclude(r => r.StringAttributes)
             .Include(f => f.Phases)
                 .ThenInclude(p => p.Species);
 
@@ -62,10 +58,6 @@ public class MechanismService
                 .ThenInclude(r => r.Reactants)
             .Include(f => f.Reactions)
                 .ThenInclude(r => r.Products)
-            .Include(f => f.Reactions)
-                .ThenInclude(r => r.NumericalAttributes)
-            .Include(f => f.Reactions)
-                .ThenInclude(r => r.StringAttributes)
             .Include(f => f.Phases)
                 .ThenInclude(p => p.Species)
             .SingleOrDefaultAsync(m => m.Id == id);

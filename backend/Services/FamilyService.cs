@@ -40,10 +40,6 @@ public class FamilyService
                 .Include(f => f.Reactions)
                     .ThenInclude(r => r.Products)
                 .Include(f => f.Reactions)
-                    .ThenInclude(r => r.NumericalAttributes)
-                .Include(f => f.Reactions)
-                    .ThenInclude(r => r.StringAttributes)
-                .Include(f => f.Reactions)
                     .ThenInclude(r => r.Arrhenius)
                 .Include(f => f.Reactions)
                     .ThenInclude(r => r.Tunneling)
@@ -101,10 +97,6 @@ public class FamilyService
                 .ThenInclude(r => r.Reactants)
             .Include(f => f.Reactions)
                 .ThenInclude(r => r.Products)
-            .Include(f => f.Reactions)
-                .ThenInclude(r => r.NumericalAttributes)
-            .Include(f => f.Reactions)
-                .ThenInclude(r => r.StringAttributes)
             .Include(f => f.Reactions)
                 .ThenInclude(r => r.Arrhenius)
             .Include(f => f.Reactions)
@@ -231,8 +223,6 @@ public class FamilyService
             .Include(f => f.Species)
             .Include(f => f.Reactions).ThenInclude(r => r.Reactants)
             .Include(f => f.Reactions).ThenInclude(r => r.Products)
-            .Include(f => f.Reactions).ThenInclude(r => r.NumericalAttributes)
-            .Include(f => f.Reactions).ThenInclude(r => r.StringAttributes)
             .Include(f => f.Reactions).ThenInclude(r => r.Arrhenius)
             .Include(f => f.Reactions).ThenInclude(r => r.Tunneling)
             .Include(f => f.Reactions).ThenInclude(r => r.Troe)
@@ -444,8 +434,6 @@ public class FamilyService
             existingReaction.AerosolPhaseId = incomingReaction.AerosolPhaseId;
             existingReaction.Reactants = incomingReaction.Reactants.Select(r => r.ToEntity()).ToList();
             existingReaction.Products = incomingReaction.Products.Select(p => p.ToEntity()).ToList();
-            existingReaction.NumericalAttributes = incomingReaction.NumericalAttributes.Select(n => n.ToEntity()).ToList();
-            existingReaction.StringAttributes = incomingReaction.StringAttributes.Select(s => s.ToEntity()).ToList();
 
             // Arrhenius parameters are a one-to-one row. Update in place when both
             // sides have it, add it when new, and drop it when the incoming

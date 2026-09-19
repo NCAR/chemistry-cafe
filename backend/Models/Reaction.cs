@@ -16,10 +16,6 @@ public class Reaction
     public string ReactionType { get; set; } = null!;
     public string? Description { get; set; }
 
-    // Attributes depending on the reaction type
-    public ICollection<ReactionNumericalAttribute> NumericalAttributes { get; set; } = new List<ReactionNumericalAttribute>();
-    public ICollection<ReactionStringAttribute> StringAttributes { get; set; } = new List<ReactionStringAttribute>();
-
     // Dedicated parameter table for Arrhenius reactions. Null for other types.
     public ArrheniusParameters? Arrhenius { get; set; }
 
@@ -352,42 +348,4 @@ public class UserDefinedParameters
     public Reaction? Reaction { get; set; }
 
     public double? ScalingFactor { get; set; }
-}
-
-/// <summary>
-/// Represents different numerical attributes depending on the reaction type.
-/// Uses the ReactionId and SerializationKey as the primary key to ensure uniqueness.
-/// </summary>
-[Table("ReactionNumericalAttributes")]
-[PrimaryKey(nameof(ReactionId), nameof(SerializationKey))]
-public class ReactionNumericalAttribute
-{
-    [JsonIgnore]
-    public Guid ReactionId { get; set; }
-
-    [JsonIgnore]
-    public Reaction? Reaction { get; set; } = null;
-
-    // Key which is used in JSON/YAML serialization
-    public string SerializationKey { get; set; } = null!;
-    public double Value { get; set; }
-}
-
-/// <summary>
-/// Represents different string attributes depending on the reaction type.
-/// Uses the ReactionId and SerializationKey as the primary key to ensure uniqueness.
-/// </summary>
-[Table("ReactionStringAttributes")]
-[PrimaryKey(nameof(ReactionId), nameof(SerializationKey))]
-public class ReactionStringAttribute
-{
-    [JsonIgnore]
-    public Guid ReactionId { get; set; }
-
-    [JsonIgnore]
-    public Reaction? Reaction { get; set; } = null;
-
-    // Key which is used in JSON/YAML serialization
-    public string SerializationKey { get; set; } = null!;
-    public string Value { get; set; } = null!;
 }

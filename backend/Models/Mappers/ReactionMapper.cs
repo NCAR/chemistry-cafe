@@ -20,12 +20,6 @@ public static class ReactionMapper
             Products = reaction.Products
                 .Select(p => new ProductDto { SpeciesId = p.SpeciesId, Coefficient = p.Coefficient, Branch = p.Branch })
                 .ToList(),
-            NumericalAttributes = reaction.NumericalAttributes
-                .Select(a => new ReactionNumericalAttributeDto { SerializationKey = a.SerializationKey, Value = a.Value })
-                .ToList(),
-            StringAttributes = reaction.StringAttributes
-                .Select(a => new ReactionStringAttributeDto { SerializationKey = a.SerializationKey, Value = a.Value })
-                .ToList(),
             Arrhenius = reaction.Arrhenius?.ToDto(),
             Tunneling = reaction.Tunneling?.ToDto(),
             Troe = reaction.Troe?.ToDto(),
@@ -46,7 +40,7 @@ public static class ReactionMapper
     }
 
     /// <summary>
-    /// Maps a ReactionDto to a Reaction entity. Reactants/products/attributes are
+    /// Maps a ReactionDto to a Reaction entity. Reactants/products are
     /// self-contained value rows, so they are built here; the many-to-many link
     /// to mechanisms is set from the mechanism side during the family save.
     /// </summary>
@@ -61,8 +55,6 @@ public static class ReactionMapper
             Description = reactionDto.Description,
             Reactants = reactionDto.Reactants.Select(r => r.ToEntity()).ToList(),
             Products = reactionDto.Products.Select(p => p.ToEntity()).ToList(),
-            NumericalAttributes = reactionDto.NumericalAttributes.Select(a => a.ToEntity()).ToList(),
-            StringAttributes = reactionDto.StringAttributes.Select(a => a.ToEntity()).ToList(),
             Arrhenius = reactionDto.Arrhenius?.ToEntity(),
             Tunneling = reactionDto.Tunneling?.ToEntity(),
             Troe = reactionDto.Troe?.ToEntity(),
@@ -87,12 +79,6 @@ public static class ReactionMapper
 
     public static Product ToEntity(this ProductDto dto) =>
         new Product { SpeciesId = dto.SpeciesId, Coefficient = dto.Coefficient, Branch = dto.Branch };
-
-    public static ReactionNumericalAttribute ToEntity(this ReactionNumericalAttributeDto dto) =>
-        new ReactionNumericalAttribute { SerializationKey = dto.SerializationKey, Value = dto.Value };
-
-    public static ReactionStringAttribute ToEntity(this ReactionStringAttributeDto dto) =>
-        new ReactionStringAttribute { SerializationKey = dto.SerializationKey, Value = dto.Value };
 
     public static ArrheniusParametersDto ToDto(this ArrheniusParameters parameters) =>
         new ArrheniusParametersDto

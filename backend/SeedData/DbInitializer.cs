@@ -1,5 +1,6 @@
 using System.Text.Json;
 using ChemistryCafeAPI.Models;
+using ChemistryCafeAPI.Models.Mappers;
 
 namespace ChemistryCafeAPI.SeedData;
 
@@ -121,6 +122,19 @@ public static class DbInitializer
                     GasPhaseSpecies = seedReaction.GasPhaseSpecies is null
                         ? null
                         : speciesByName[seedReaction.GasPhaseSpecies],
+                    // Exactly one of these is set, matching seedReaction.Type
+                    // (see the dedicated-table conversions tracked in #268).
+                    Arrhenius = seedReaction.Arrhenius?.ToEntity(),
+                    Tunneling = seedReaction.Tunneling?.ToEntity(),
+                    Troe = seedReaction.Troe?.ToEntity(),
+                    TernaryChemicalActivation = seedReaction.TernaryChemicalActivation?.ToEntity(),
+                    Branched = seedReaction.Branched?.ToEntity(),
+                    TaylorSeries = seedReaction.TaylorSeries?.ToEntity(),
+                    Surface = seedReaction.Surface?.ToEntity(),
+                    Emission = seedReaction.Emission?.ToEntity(),
+                    FirstOrderLoss = seedReaction.FirstOrderLoss?.ToEntity(),
+                    Photolysis = seedReaction.Photolysis?.ToEntity(),
+                    UserDefined = seedReaction.UserDefined?.ToEntity(),
                 };
 
                 foreach (var reactant in seedReaction.Reactants)
@@ -140,23 +154,6 @@ public static class DbInitializer
                         Branch = product.Branch,
                     });
                 }
-                foreach (var (key, value) in seedReaction.NumericalAttributes)
-                {
-                    reaction.NumericalAttributes.Add(new ReactionNumericalAttribute
-                    {
-                        SerializationKey = key,
-                        Value = value,
-                    });
-                }
-                foreach (var (key, value) in seedReaction.StringAttributes)
-                {
-                    reaction.StringAttributes.Add(new ReactionStringAttribute
-                    {
-                        SerializationKey = key,
-                        Value = value,
-                    });
-                }
-
                 family.Reactions.Add(reaction);
                 mechanism.Reactions.Add(reaction);
             }
