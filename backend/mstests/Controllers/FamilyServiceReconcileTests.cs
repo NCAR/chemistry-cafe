@@ -621,5 +621,43 @@ namespace ChemistryCafeAPI.Tests
             Assert.AreEqual(1.5, taylorSeries.E);
             CollectionAssert.AreEqual(new List<double> { 4.0, 5.0, 6.0, 7.0 }, taylorSeries.TaylorCoefficients);
         }
+
+        [TestMethod]
+        public async Task Create_PersistsSurfaceParameters()
+        {
+            FamilyDto dto = BuildBaseFamily();
+            dto.Reactions.Single().Surface = new SurfaceParametersDto
+            {
+                ReactionProbability = 1.0,
+            };
+            await CreateBaseFamilyAsync(dto);
+
+            Family reloaded = await ReloadAsync(dto.Id);
+            SurfaceParameters? surface = reloaded.Reactions.Single().Surface;
+            Assert.IsNotNull(surface);
+            Assert.AreEqual(1.0, surface!.ReactionProbability);
+        }
+
+        [TestMethod]
+        public async Task Update_ChangesSurfaceParameters()
+        {
+            FamilyDto dto = BuildBaseFamily();
+            dto.Reactions.Single().Surface = new SurfaceParametersDto
+            {
+                ReactionProbability = 1.0,
+            };
+            await CreateBaseFamilyAsync(dto);
+
+            dto.Reactions.Single().Surface = new SurfaceParametersDto
+            {
+                ReactionProbability = 0.5,
+            };
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            Family reloaded = await ReloadAsync(dto.Id);
+            SurfaceParameters? surface = reloaded.Reactions.Single().Surface;
+            Assert.IsNotNull(surface);
+            Assert.AreEqual(0.5, surface!.ReactionProbability);
+        }
     }
 }

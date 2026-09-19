@@ -225,6 +225,7 @@ export const supportedReactionTypes: Array<ReactionTypeName> = [
   reactionTypes.Emission.type,
   reactionTypes.FirstOrderLoss.type,
   reactionTypes.Photolysis.type,
+  reactionTypes.Surface.type,
   reactionTypes.TaylorSeries.type,
   reactionTypes.TernaryChemicalActivation.type,
   reactionTypes.Troe.type,
@@ -547,8 +548,8 @@ export const reactionConfigurations: {
   SURFACE: {
     reactantCount: ReactionSpeciesCount.NONE,
     productCount: ReactionSpeciesCount.MANY,
-    hasGasPhase: false,
-    hasGasPhaseSpecies: false,
+    hasGasPhase: true,
+    hasGasPhaseSpecies: true,
     hasAerosolPhase: false,
     hasAerosolPhaseSpecies: false,
     hasAerosolPhaseWater: false,

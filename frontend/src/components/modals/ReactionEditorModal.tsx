@@ -145,6 +145,17 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
       ];
     }
 
+    // Clears the gas phase / gas phase species selection when the current
+    // reaction type no longer uses it, so a stale reference isn't carried
+    // silently into a type that doesn't support it.
+    updatedReactionProperties.gasPhaseId = currentConfiguration.hasGasPhase
+      ? modifiedReaction?.gasPhaseId
+      : undefined;
+    updatedReactionProperties.gasPhaseSpeciesId =
+      currentConfiguration.hasGasPhaseSpecies
+        ? modifiedReaction?.gasPhaseSpeciesId
+        : undefined;
+
     changeReactionProperties(updatedReactionProperties);
   }, [defaultAttributes, currentConfiguration]);
 
@@ -175,6 +186,12 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
       }
     }
 
+    if (currentConfiguration.hasGasPhaseSpecies && !modifiedReaction.gasPhaseSpeciesId) {
+      setErrorMessage("This reaction type requires a gas phase species");
+      setShowAlert(true);
+      return;
+    }
+
     onUpdate(modifiedReaction);
     onClose();
   };
@@ -185,12 +202,12 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
         <Box
           sx={{
             ...modalStyle,
-            width: "60%",
-            maxHeight: "80%",
+            width: "70%",
+            maxHeight: "90%",
           }}
           role="menu"
         >
-          <Typography color="textPrimary" variant="h4">
+          <Typography color="textPrimary" variant="h5">
             Enter Reaction Details
           </Typography>
           <TextField
@@ -229,7 +246,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
             component="label"
             id="reaction-type-label"
             color="textPrimary"
-            variant="h6"
+            variant="subtitle1"
           >
             Reaction Type
           </Typography>
@@ -265,6 +282,100 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
               setCurrentConfiguration(configuration);
             }}
           />
+          {(currentConfiguration.hasGasPhase ||
+            currentConfiguration.hasGasPhaseSpecies) && (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                flexWrap: "wrap",
+                alignItems: "center",
+                columnGap: "2em",
+                rowGap: "0.5em",
+              }}
+            >
+              {currentConfiguration.hasGasPhase && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    columnGap: "1em",
+                  }}
+                >
+                  <Typography
+                    id="gas-phase-label"
+                    component="label"
+                    color="textPrimary"
+                    variant="subtitle1"
+                  >
+                    Gas Phase:
+                  </Typography>
+                  <Select
+                    aria-labelledby="gas-phase-label"
+                    defaultValue={reaction?.gasPhaseId ?? "None"}
+                    onChange={(event) => {
+                      const phaseId = event.target.value;
+                      changeReactionProperties({
+                        gasPhaseId:
+                          phaseId === "None" ? undefined : (phaseId as UUID),
+                      });
+                    }}
+                  >
+                    <MenuItem value="None">None</MenuItem>
+                    {family.phases.map((phase) => (
+                      <MenuItem
+                        key={`${phase.id}-gas-phase-menuitem`}
+                        value={phase.id}
+                      >
+                        {phase.name || "<No Name>"}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </Box>
+              )}
+              {currentConfiguration.hasGasPhaseSpecies && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    columnGap: "1em",
+                  }}
+                >
+                  <Typography
+                    id="gas-phase-species-label"
+                    component="label"
+                    color="textPrimary"
+                    variant="subtitle1"
+                  >
+                    Gas Phase Species:
+                  </Typography>
+                  <Select
+                    aria-labelledby="gas-phase-species-label"
+                    defaultValue={reaction?.gasPhaseSpeciesId ?? "None"}
+                    onChange={(event) => {
+                      const speciesId = event.target.value;
+                      changeReactionProperties({
+                        gasPhaseSpeciesId:
+                          speciesId === "None" ? undefined : (speciesId as UUID),
+                      });
+                    }}
+                  >
+                    <MenuItem value="None">None</MenuItem>
+                    {family.species.map((species) => (
+                      <MenuItem
+                        key={`${species.id}-gas-phase-species-menuitem`}
+                        value={species.id}
+                      >
+                        {species.name || "<No Name>"}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </Box>
+              )}
+            </Box>
+          )}
           {currentConfiguration.reactantCount == ReactionSpeciesCount.ONE && (
             <Box
               sx={{
@@ -278,7 +389,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                 id="input-species-label"
                 component="label"
                 color="textPrimary"
-                variant="h6"
+                variant="subtitle1"
               >
                 Reaction Input Species:
               </Typography>
@@ -332,7 +443,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                   alignItems: "center",
                 }}
               >
-                <Typography color="textPrimary" variant="h6">
+                <Typography color="textPrimary" variant="subtitle1">
                   Reactants
                 </Typography>
                 <SelectSpeciesButton
@@ -470,7 +581,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
               <Typography
                 id="output-species-label"
                 color="textPrimary"
-                variant="h6"
+                variant="subtitle1"
               >
                 Reaction Output Species:
               </Typography>
@@ -522,7 +633,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                   alignItems: "center",
                 }}
               >
-                <Typography color="textPrimary" variant="h6">
+                <Typography color="textPrimary" variant="subtitle1">
                   Products
                 </Typography>
                 <SelectSpeciesButton
@@ -678,15 +789,23 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
               })}
             </div>
           )}
-          <Typography color="textPrimary" variant="h6">
+          <Typography color="textPrimary" variant="subtitle1">
             Reaction Attributes
           </Typography>
           {defaultAttributes.length === 0 ? (
-            <Typography color="textSecondary" variant="subtitle1">
+            <Typography color="textSecondary" variant="body2">
               None
             </Typography>
           ) : (
-            defaultAttributes.map((attribute) => {
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                columnGap: "1em",
+                rowGap: "0.5em",
+              }}
+            >
+            {defaultAttributes.map((attribute) => {
               if (attribute.serializationKey === "taylor coefficients") {
                 const coefficients = Array.isArray(
                   modifiedReaction?.attributes[attribute.serializationKey]
@@ -718,9 +837,10 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                       display: "flex",
                       flexDirection: "column",
                       rowGap: "0.5em",
+                      gridColumn: "1 / -1",
                     }}
                   >
-                    <Typography color="textPrimary" variant="subtitle1">
+                    <Typography color="textPrimary" variant="body2">
                       Taylor Coefficients
                     </Typography>
                     {coefficients.length === 0 ? (
@@ -847,7 +967,8 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                   }}
                 />
               );
-            })
+            })}
+            </Box>
           )}
           <Box
             sx={{

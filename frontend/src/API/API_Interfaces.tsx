@@ -108,6 +108,10 @@ export interface APIReaction {
     e?: number | null;
     taylorCoefficients?: Array<number> | null;
   } | null;
+  // Dedicated Surface parameters. Present only for SURFACE reactions.
+  surface?: {
+    reactionProbability?: number | null;
+  } | null;
   reactants: Array<APIReactant>;
   products: Array<APIProduct>;
   gasPhaseId?: UUID | null;

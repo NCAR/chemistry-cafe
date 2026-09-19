@@ -849,3 +849,41 @@ DROP PROCEDURE MigrationsScript;
 
 COMMIT;
 
+START TRANSACTION;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260918004909_AddSurfaceParameters') THEN
+
+    CREATE TABLE `SurfaceParameters` (
+        `ReactionId` char(36) COLLATE ascii_general_ci NOT NULL,
+        `ReactionProbability` double NULL,
+        CONSTRAINT `PK_SurfaceParameters` PRIMARY KEY (`ReactionId`),
+        CONSTRAINT `FK_SurfaceParameters_Reactions_ReactionId` FOREIGN KEY (`ReactionId`) REFERENCES `Reactions` (`Id`) ON DELETE CASCADE
+    ) CHARACTER SET=utf8mb4;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260918004909_AddSurfaceParameters') THEN
+
+    INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+    VALUES ('20260918004909_AddSurfaceParameters', '8.0.10');
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+COMMIT;
+

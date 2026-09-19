@@ -107,6 +107,13 @@ public partial class ChemistryDbContext : DbContext
                 v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                 v => JsonSerializer.Deserialize<List<double>>(v, (JsonSerializerOptions?)null));
 
+        // Surface parameters share the reaction primary key (one-to-one).
+        modelBuilder.Entity<Reaction>()
+            .HasOne(r => r.Surface)
+            .WithOne(s => s.Reaction)
+            .HasForeignKey<SurfaceParameters>(s => s.ReactionId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         modelBuilder.Entity<Reactant>()
             .HasOne(r => r.Species)
             .WithMany(s => s.AsReactant)

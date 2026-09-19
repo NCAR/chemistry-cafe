@@ -6,6 +6,9 @@ import {
   ThemeProvider,
 } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
+// Augments MUI's Components type with MuiDataGrid so its styleOverrides can
+// be set below, without pulling in the whole package as a dependency here.
+import type {} from "@mui/x-data-grid/themeAugmentation";
 import {
   createContext,
   useState,
@@ -208,6 +211,29 @@ const getThemeOptions = (settings: AppearanceSettings): ThemeOptionsType => {
         styleOverrides: {
           root: {
             backgroundImage: "none",
+          },
+        },
+      },
+      MuiDataGrid: {
+        styleOverrides: {
+          root: {
+            // A full rectangular outline makes the table read as a boxed
+            // widget dropped onto the page instead of part of it. Drop the
+            // outer border and let the row dividers (still visible, see
+            // below) and the surrounding page layout define the table's
+            // edges instead.
+            borderStyle: "none",
+            // The default row/cell divider color is tuned for subtle
+            // borders like modal outlines, and reads as barely visible on a
+            // dense data table. Use the app's established neutral gray
+            // instead, which is legible against both light and dark
+            // surfaces.
+            "--DataGrid-rowBorderColor": lightGrey,
+            // Matches the column header/pinned-row background to the same
+            // surface the body uses, so there's no seam between them (this
+            // only differs from the default in dark mode; background.paper
+            // and background.default are equal in light mode).
+            "--DataGrid-containerBackground": isDark ? darkSurface : "#FFFFFF",
           },
         },
       },

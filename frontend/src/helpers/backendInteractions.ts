@@ -37,6 +37,7 @@ export function apiToFrontendSpecies(apiSpecies: APISpecies): Species {
     description: apiSpecies.description || "",
     familyId: apiSpecies.familyId,
     id: apiSpecies.id,
+    isThirdBody: apiSpecies.isThirdBody ?? undefined,
     molecularWeight: apiSpecies.molecularWeight ?? undefined,
     name: apiSpecies.name ?? "<Empty>",
     otherProperties: apiSpecies.otherProperties ?? undefined,
@@ -66,6 +67,7 @@ export function frontendToAPISpecies(
     description: species.description,
     familyId: family.id as UUID,
     id: species.id,
+    isThirdBody: species.isThirdBody,
     molecularWeight: species.molecularWeight,
     name: species.name,
     otherProperties: species.otherProperties,
@@ -88,6 +90,13 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
     type: apiReaction.reactionType as ReactionTypeName,
     reactants: apiReaction.reactants,
     products: apiReaction.products,
+    gasPhaseId: apiReaction.gasPhaseId as UUID | undefined,
+    gasPhaseSpeciesId: apiReaction.gasPhaseSpeciesId as UUID | undefined,
+    aerosolPhaseId: apiReaction.aerosolPhaseId as UUID | undefined,
+    aerosolPhaseSpeciesId: apiReaction.aerosolPhaseSpeciesId as
+      | UUID
+      | undefined,
+    aerosolPhaseWaterId: apiReaction.aerosolPhaseWaterId as UUID | undefined,
     attributes: {},
   };
 
@@ -285,6 +294,28 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
     }
   }
 
+  // Surface reactions store their parameters in a dedicated table. Read
+  // them back into the attribute bag, keyed by the serialization key the
+  // editor uses.
+  if (apiReaction.reactionType === "SURFACE" && apiReaction.surface) {
+    const surfaceValues: Record<string, number | null | undefined> = {
+      "reaction probability": apiReaction.surface.reactionProbability,
+    };
+    for (const [serializationKey, value] of Object.entries(surfaceValues)) {
+      if (value === null || value === undefined) {
+        continue;
+      }
+      const defaultAttribute = reactionAttributeOptions.SURFACE?.find(
+        (e) => e.serializationKey === serializationKey,
+      );
+      formattedReaction.attributes[serializationKey] = {
+        ...defaultAttribute,
+        serializationKey,
+        value,
+      };
+    }
+  }
+
   return formattedReaction;
 }
 
@@ -383,6 +414,12 @@ export function frontendToAPIReaction(
         ? taylorCoefficients
         : null,
     };
+  } else if (reaction.type === "SURFACE") {
+    formattedReaction.surface = {
+      reactionProbability: numOrNull(
+        reaction.attributes["reaction probability"]?.value,
+      ),
+    };
   } else {
     for (const attribute of Object.values(reaction.attributes)) {
       if (typeof attribute.value === "number") {
@@ -436,6 +473,7 @@ export function frontendToAPIPhase(phase: Phase, family: Family): APIPhase {
   const formattedPhase: APIPhase = {
     id: phase.id,
     name: phase.name,
+    description: phase.description ?? undefined,
     familyId: family.id as UUID,
     speciesIds: phase.speciesIds as UUID[],
   };
@@ -483,6 +521,7 @@ export function frontendToAPIMechanism(
   const formattedMechanism: APIMechanism = {
     id: mechanism.id,
     name: mechanism.name,
+    description: mechanism.description ?? undefined,
     speciesIds: mechanism.speciesIds as UUID[],
     reactionIds: mechanism.reactionIds as UUID[],
     phaseIds: mechanism.phaseIds as UUID[],
