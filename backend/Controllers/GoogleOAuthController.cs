@@ -20,7 +20,7 @@ namespace ChemistryCafeAPI.Controllers
         private readonly string _baseUri = Environment.GetEnvironmentVariable("BACKEND_BASE_URL") ?? "";
         private readonly string _frontendHost = Environment.GetEnvironmentVariable("FRONTEND_HOST") ?? "";
 
-        
+        [ExcludeFromCodeCoverage]
         protected virtual string? GetNameIdentifier() 
         {
             ClaimsIdentity? claimsIdentity = this.User.Identity as ClaimsIdentity;
