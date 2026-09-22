@@ -183,7 +183,7 @@ export const Header = () => {
                     }}
                 >
                     <ListItemIcon>
-                        <img src={OrcidImage} />
+                        <img aria-label={"ORCID Login"} alt={"ORCID Login"} src={OrcidImage} />
                     </ListItemIcon>
                     Sign in
                 </MenuItem>
@@ -254,7 +254,7 @@ export const Header = () => {
           <Button size="small" onClick={loginGoogle} startIcon={<GoogleIcon />}>
             Sign in
           </Button>
-            <Button size="small" onClick={loginOrcid} startIcon={<img src={OrcidImage} />}>
+            <Button size="small" onClick={loginOrcid} startIcon={<img aria-label={"ORCID Login"} alt={"ORCID Login"} src={OrcidImage} />}>
                 Sign in
             </Button>
         </Box>
