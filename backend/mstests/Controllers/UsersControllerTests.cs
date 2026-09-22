@@ -471,7 +471,7 @@ namespace ChemistryCafeAPI.Tests
         public async Task GetCurrentUserNull()
         {
             var userService = new UserService(ctx);
-            var userController = new NameController(userService,Guid.NewGuid().ToString());
+            var userController = new NameController(userService,null);
             var result = await userController.GetCurrentUser();
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(UnauthorizedResult));
