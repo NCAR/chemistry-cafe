@@ -45,7 +45,7 @@ namespace ChemistryCafeAPI.Services
                 return null;
             }
             ClaimsIdentity claimsIdentity = new ClaimsIdentity("Application");
-            Claim? orcidId = authenticateResult.Principal.FindFirst(ClaimTypes.NameIdentifier); // Name Identifier of the **Google** account
+            Claim? orcidId = authenticateResult.Principal.FindFirst(ClaimTypes.NameIdentifier); // Name Identifier of the **Orcid** account
             Claim? nameClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Name);
 
             if (orcidId == null)
