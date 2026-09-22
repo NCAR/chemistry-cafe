@@ -64,6 +64,7 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       FRONTEND_HOST: ${FRONTEND_HOST:-http://localhost:5173}
       BACKEND_BASE_URL: ${BACKEND_BASE_URL:-/}
+      SEED_DATABASE: ${SEED_DATABASE:-}
     depends_on:
       - mysql
     networks:

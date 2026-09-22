@@ -102,7 +102,24 @@ public class Program {
 
         var app = builder.Build();
 
-        if (app.Environment.IsDevelopment())
+        // SEED_DATABASE turns seeding on or off. When it is unset, seeding
+        // follows the environment: on in Development, off everywhere else.
+        bool seedDatabase = app.Environment.IsDevelopment();
+        string? seedDatabaseSetting = Environment.GetEnvironmentVariable("SEED_DATABASE");
+        if (!string.IsNullOrWhiteSpace(seedDatabaseSetting))
+        {
+            if (bool.TryParse(seedDatabaseSetting, out bool parsedSeedDatabase))
+            {
+                seedDatabase = parsedSeedDatabase;
+            }
+            else
+            {
+                Console.WriteLine(
+                    $"WARNING: SEED_DATABASE='{seedDatabaseSetting}' is not 'true' or 'false'. Seeding {(seedDatabase ? "is on" : "is off")} for this environment.");
+            }
+        }
+
+        if (seedDatabase)
         {
             // docker compose `depends_on` waits only for the MySQL container to
             // start, not to accept connections. Seeding resolves the DbContext
@@ -126,7 +143,10 @@ public class Program {
                 var context = scope.ServiceProvider.GetRequiredService<ChemistryDbContext>();
                 DbInitializer.Seed(context);
             }
+        }
 
+        if (app.Environment.IsDevelopment())
+        {
             app.UseSwagger();
             app.UseSwaggerUI();
             app.UseCors("DevelopmentCorsPolicy");
