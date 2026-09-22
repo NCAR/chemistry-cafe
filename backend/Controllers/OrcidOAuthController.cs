@@ -25,6 +25,21 @@ namespace ChemistryCafeAPI.Controllers
             ClaimsIdentity? claimsIdentity = this.User.Identity as ClaimsIdentity;
             return claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         }
+        
+        /// <summary>
+        /// Gives the user information on themselves
+        /// </summary>
+        [ExcludeFromCodeCoverage]
+        public async Task<ActionResult<User?>> GetCurrentUser()
+        {
+            var nameIdentifier = GetNameIdentifier();
+            if (nameIdentifier == null) {
+                return Unauthorized();
+            }
+            var guid = Guid.Parse(nameIdentifier);
+            var user = await _userService.GetUserByIdAsync(guid);
+            return Ok(user);
+        }
 
         public OrcidOAuthController(OrcidOAuthService orcidOAuthService, UserService userService)
         {

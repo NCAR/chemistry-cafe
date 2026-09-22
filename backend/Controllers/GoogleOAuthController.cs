@@ -20,11 +20,26 @@ namespace ChemistryCafeAPI.Controllers
         private readonly string _baseUri = Environment.GetEnvironmentVariable("BACKEND_BASE_URL") ?? "";
         private readonly string _frontendHost = Environment.GetEnvironmentVariable("FRONTEND_HOST") ?? "";
 
-        [ExcludeFromCodeCoverage]
+        
         protected virtual string? GetNameIdentifier() 
         {
             ClaimsIdentity? claimsIdentity = this.User.Identity as ClaimsIdentity;
             return claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        }
+        
+        /// <summary>
+        /// Gives the user information on themselves
+        /// </summary>
+        [ExcludeFromCodeCoverage]
+        public async Task<ActionResult<User?>> GetCurrentUser()
+        {
+            var nameIdentifier = GetNameIdentifier();
+            if (nameIdentifier == null) {
+                return Unauthorized();
+            }
+            var guid = Guid.Parse(nameIdentifier);
+            var user = await _userService.GetUserByIdAsync(guid);
+            return Ok(user);
         }
 
         public GoogleOAuthController(GoogleOAuthService googleOAuthService, UserService userService)
@@ -69,55 +84,6 @@ namespace ChemistryCafeAPI.Controllers
             string redirectUrl = Path.Combine(_frontendHost, "dashboard").Replace('\\', '/');
             RedirectResult ret = Redirect(redirectUrl);
             return ret;
-        }
-
-        /// <summary>
-        /// Removes all authentication cookies and signs a user out of the backend application
-        /// </summary>
-        [HttpGet("logout")]
-        [ExcludeFromCodeCoverage]
-        [Obsolete("there are multiple OAuths now use the users version of this api")]
-        public async Task<IActionResult> Logout(string? returnUrl)
-        {
-            // Ensure the redirect url is 
-            if (returnUrl == null || returnUrl.Equals(""))
-            {
-                returnUrl = _frontendHost;
-            }
-            else if (!Url.IsLocalUrl(returnUrl) && !returnUrl.StartsWith(_frontendHost))
-            {
-                return BadRequest("Invalid returnUrl argument. Must be within application scope.");
-            }
-
-            await HttpContext.SignOutAsync("Application");
-
-            var request = HttpContext.Request;
-            var cookies = request.Cookies;
-            foreach (var cookie in cookies)
-            {
-                if (cookie.Key.Contains(".AspNetCore.") || cookie.Key.Contains("Microsoft.Authentication"))
-                {
-                    Response.Cookies.Delete(cookie.Key);
-                }
-            }
-
-            return Redirect(returnUrl);
-        }
-
-        /// <summary>
-        /// Gives the user information on themselves
-        /// </summary>
-        [HttpGet("whoami")]
-        [Obsolete("there are multiple OAuths now use the users version of this api")]
-        public async Task<ActionResult<User?>> GetCurrentUser()
-        {
-            var nameIdentifier = GetNameIdentifier();
-            if (nameIdentifier == null) {
-                return Unauthorized();
-            }
-            var guid = Guid.Parse(nameIdentifier);
-            var user = await _userService.GetUserByIdAsync(guid);
-            return Ok(user);
         }
     }
 }

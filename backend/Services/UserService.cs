@@ -99,10 +99,6 @@ namespace ChemistryCafeAPI.Services
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
             }
-            else
-            {
-                user.Username = name;
-            }
             await _context.SaveChangesAsync();
             return user;
         }

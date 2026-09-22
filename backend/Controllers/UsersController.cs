@@ -128,6 +128,20 @@ namespace ChemistryCafeAPI.Controllers
             var user = await _userService.GetUserByIdAsync(guid);
             return Ok(user);
         }
+        
+        /// <summary>
+        /// Checks if Url is same origin as frontend
+        /// </summary>
+        private bool IsSameOriginAsFrontend(string url)
+        {
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var candidate)) return false;
+            if (!Uri.TryCreate(_frontendHost, UriKind.Absolute, out var frontend)) return false;
+
+            return candidate.Scheme == frontend.Scheme
+                   && candidate.Host.Equals(frontend.Host, StringComparison.OrdinalIgnoreCase)
+                   && candidate.Port == frontend.Port;
+        }
+        
         /// <summary>
         /// Removes all authentication cookies and signs a user out of the backend application
         /// </summary>
