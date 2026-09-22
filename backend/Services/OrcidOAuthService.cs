@@ -30,7 +30,7 @@ namespace ChemistryCafeAPI.Services
         /// <summary>
         /// Parses an OAuth challenge result and turns them into a user's claims
         /// </summary>
-        /// <param name="authenticateResult">Result of Google OAuth Challenge</param>
+        /// <param name="authenticateResult">Result of ORCID OAuth Challenge</param>
         /// <returns>ClaimsPrincipal object which holds the user's auth informations</returns>
         [ExcludeFromCodeCoverage]
         public async Task<ClaimsPrincipal?> GetUserClaimsAsync(AuthenticateResult authenticateResult)
