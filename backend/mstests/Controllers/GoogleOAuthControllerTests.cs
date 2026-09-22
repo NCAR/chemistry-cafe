@@ -41,7 +41,7 @@ namespace ChemistryCafeAPI.Tests
             var googleController = new MockedGoogleOAuthController(googleService, userService);
             var googleID = "get-current-user0123456789";
             var email = "get-current-user@test.com";
-            var user = await userService.SignIn(googleID, email);
+            var user = await userService.SignInGoogle(googleID, email);
             googleController.NameIdentifier = user.Id.ToString();
             var result = await googleController.GetCurrentUser();
             

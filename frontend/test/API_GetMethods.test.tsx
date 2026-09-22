@@ -8,7 +8,7 @@ import {
   getUserById,
 } from "../src/API/API_GetMethods";
 import { APIMechanism, APIUser } from "../src/API/API_Interfaces";
-import { AUTH_URL, BASE_URL } from "../src/API/API_config";
+import {  BASE_URL } from "../src/API/API_config";
 
 // Mock axios using vitest's built-in mock function
 vi.mock("axios");
@@ -142,7 +142,7 @@ describe("User get functions", () => {
           .mockResolvedValue(createSuccessMockResponse(user)) as Mock;
         const result = await getCurrentUser();
 
-        expect(mockedGet).toHaveBeenCalledWith(`${AUTH_URL}/google/whoami`, {
+        expect(mockedGet).toHaveBeenCalledWith(`${BASE_URL}/users/whoami`, {
           withCredentials: true,
         });
         expect(result).toEqual(user);

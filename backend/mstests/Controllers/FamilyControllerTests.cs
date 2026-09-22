@@ -46,7 +46,7 @@ namespace ChemistryCafeAPI.Tests
         private async Task<FamilyController> CreateSignedInController()
         {
             var userService = new UserService(ctx);
-            _Owner = await userService.SignIn(_GoogleId, _Email);
+            _Owner = await userService.SignInGoogle(_GoogleId, _Email);
             _NameIdentifier = _Owner.Id.ToString();
             var familyService = new FamilyService(ctx, userService);
             return new MockedFamilyController(familyService, _NameIdentifier);

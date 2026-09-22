@@ -50,7 +50,7 @@ namespace ChemistryCafeAPI.Tests
         {
             var googleId = "mechanism-sample-google-id";
             var email = "mechanism-test@fake-website.com";
-            _user = await _userService.SignIn(googleId, email);
+            _user = await _userService.SignInGoogle(googleId, email);
             _nameIdentifier = _user.Id.ToString();
 
             var familyDto = new Family

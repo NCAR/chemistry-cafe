@@ -14,4 +14,5 @@ public partial class User
     public string? Email { get; set; }
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
     public string? GoogleId { get; set; } 
+    public string? OrcidId { get; set; }
 }

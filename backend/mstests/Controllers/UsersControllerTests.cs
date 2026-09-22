@@ -69,7 +69,7 @@ namespace ChemistryCafeAPI.Tests
             var userService = new UserService(ctx);
 
             //Act
-            var user = await userService.SignIn(_GoogleId, _Email);
+            var user = await userService.SignInGoogle(_GoogleId, _Email);
 
             // Store the UserId for cleanup
             _UserId = user.Id;
@@ -228,7 +228,7 @@ namespace ChemistryCafeAPI.Tests
         public async Task UpdateUserUnauthorized()
         {
             var userService = new UserService(ctx);
-            var user = await userService.SignIn("temp-id", "temp@email.com");
+            var user = await userService.SignInGoogle("temp-id", "temp@email.com");
             var controller = new NameController(userService, user.Id.ToString());
             var updatedUser = new User
             {
@@ -328,7 +328,7 @@ namespace ChemistryCafeAPI.Tests
         public async Task DeleteUserUnauthorized()
         {
             var userService = new UserService(ctx);
-            var user = await userService.SignIn("temp-id", "temp@email.com");
+            var user = await userService.SignInGoogle("temp-id", "temp@email.com");
             var controller = new NameController(userService, user.Id.ToString());
             var result = await controller.DeleteUser(_UserId);
             Assert.IsInstanceOfType(result, typeof(StatusCodeResult));

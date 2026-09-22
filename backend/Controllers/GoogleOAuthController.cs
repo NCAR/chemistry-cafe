@@ -76,6 +76,7 @@ namespace ChemistryCafeAPI.Controllers
         /// </summary>
         [HttpGet("logout")]
         [ExcludeFromCodeCoverage]
+        [Obsolete("there are multiple OAuths now use the users version of this api")]
         public async Task<IActionResult> Logout(string? returnUrl)
         {
             // Ensure the redirect url is 
@@ -107,6 +108,7 @@ namespace ChemistryCafeAPI.Controllers
         /// Gives the user information on themselves
         /// </summary>
         [HttpGet("whoami")]
+        [Obsolete("there are multiple OAuths now use the users version of this api")]
         public async Task<ActionResult<User?>> GetCurrentUser()
         {
             var nameIdentifier = GetNameIdentifier();

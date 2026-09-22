@@ -530,6 +530,9 @@ namespace ChemistryCafeAPI.Migrations
                     b.Property<string>("GoogleId")
                         .HasColumnType("longtext");
 
+                    b.Property<string>("OrcidId")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasColumnType("longtext");
