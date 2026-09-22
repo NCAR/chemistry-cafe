@@ -140,7 +140,7 @@ namespace ChemistryCafeAPI.Controllers
             {
                 returnUrl = _frontendHost;
             }
-            else if (!Url.IsLocalUrl(returnUrl) && !returnUrl.StartsWith(_frontendHost))
+            else if (!Url.IsLocalUrl(returnUrl) && !IsSameOriginAsFrontend(returnUrl))
             {
                 return BadRequest("Invalid returnUrl argument. Must be within application scope.");
             }
