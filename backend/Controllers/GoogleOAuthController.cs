@@ -15,37 +15,12 @@ namespace ChemistryCafeAPI.Controllers
     public class GoogleOAuthController : Controller
     {
         private readonly GoogleOAuthService _googleOAuthService;
-        private readonly UserService _userService;
 
         private readonly string _baseUri = Environment.GetEnvironmentVariable("BACKEND_BASE_URL") ?? "";
         private readonly string _frontendHost = Environment.GetEnvironmentVariable("FRONTEND_HOST") ?? "";
-
-        [ExcludeFromCodeCoverage]
-        protected virtual string? GetNameIdentifier() 
-        {
-            ClaimsIdentity? claimsIdentity = this.User.Identity as ClaimsIdentity;
-            return claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        }
-        
-        /// <summary>
-        /// Gives the user information on themselves
-        /// </summary>
-        [ExcludeFromCodeCoverage]
-        public async Task<ActionResult<User?>> GetCurrentUser()
-        {
-            var nameIdentifier = GetNameIdentifier();
-            if (nameIdentifier == null) {
-                return Unauthorized();
-            }
-            var guid = Guid.Parse(nameIdentifier);
-            var user = await _userService.GetUserByIdAsync(guid);
-            return Ok(user);
-        }
-
-        public GoogleOAuthController(GoogleOAuthService googleOAuthService, UserService userService)
+        public GoogleOAuthController(GoogleOAuthService googleOAuthService)
         {
             _googleOAuthService = googleOAuthService;
-            _userService = userService;
         }
 
         /// <summary>

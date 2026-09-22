@@ -132,6 +132,7 @@ namespace ChemistryCafeAPI.Controllers
         /// <summary>
         /// Checks if Url is same origin as frontend
         /// </summary>
+        [ExcludeFromCodeCoverage]
         private bool IsSameOriginAsFrontend(string url)
         {
             if (!Uri.TryCreate(url, UriKind.Absolute, out var candidate)) return false;

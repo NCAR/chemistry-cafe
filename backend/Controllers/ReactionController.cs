@@ -12,13 +12,6 @@ namespace ChemistryCafeAPI.Controllers
     {
         private readonly ReactionService _reactionService;
 
-        [ExcludeFromCodeCoverage]
-        protected virtual string? GetNameIdentifier()
-        {
-            ClaimsIdentity? claimsIdentity = this.User.Identity as ClaimsIdentity;
-            return claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        }
-
         public ReactionController(ReactionService reactionService)
         {
             _reactionService = reactionService;
