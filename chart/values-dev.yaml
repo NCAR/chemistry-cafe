@@ -1,12 +1,9 @@
 replicaCount: 1
-
 instalnceName: dev
-
-imageRegistry: hub.k8s.ucar.edu
-imageRepository: khrpcek/chemistry-cafe
-imageTag: "latest"
+imageRegistry: ghcr.io
+imageRepository: ncar/chemistry-cafe
+imageTag: latest
 imagePullPolicy: Always
-
 mysql:
   image:
     repository: docker.io/mysql
@@ -15,40 +12,37 @@ mysql:
     enabled: false
   resources:
     requests:
-      memory: "256Mi"
-      cpu: "250m"
+      memory: 256Mi
+      cpu: 250m
     limits:
-      memory: "512Mi"
-      cpu: "500m"
-
+      memory: 512Mi
+      cpu: 500m
 backend:
-  frontendHost: "https://chemcafe-dev.k8s.ucar.edu"
+  frontendHost: https://chemcafe-dev.k8s.ucar.edu
   backendBaseUrl: /api
   resources:
     requests:
-      memory: "256Mi"
-      cpu: "250m"
+      memory: 256Mi
+      cpu: 250m
     limits:
-      memory: "512Mi"
-      cpu: "500m"
-
+      memory: 512Mi
+      cpu: 500m
 frontend:
   env:
-    VITE_BASE_URL: "https://chemcafe-dev.k8s.ucar.edu"
+    VITE_BASE_URL: https://chemcafe-dev.k8s.ucar.edu
   resources:
     requests:
-      memory: "64Mi"
-      cpu: "100m"
+      memory: 64Mi
+      cpu: 100m
     limits:
-      memory: "128Mi"
-      cpu: "200m"
-
+      memory: 128Mi
+      cpu: 200m
 ingress:
   enabled: true
   className: traefik-internal
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.tls: 'true'
     cert-manager.io/cluster-issuer: incommon
   hosts:
     - host: chemcafe-dev.k8s.ucar.edu
@@ -63,17 +57,6 @@ ingress:
     - secretName: chemistry-cafe-dev-tls
       hosts:
         - chemcafe-dev.k8s.ucar.edu
-
-# External secrets configuration
-# Secrets are stored in BAO vault at: kv/kshores@ucar.edu/chemistry-cafe
-#
-# Expected secret structure in BAO (json format):
-# {
-#   "mysql-root-password": "<root password>",
-#   "mysql-password": "<database password>",
-#   "google-client-id": "<google oauth client id>",
-#   "google-client-secret": "<google oauth client secret>"
-# }
 externalSecrets:
   secretStoreName: kshores-ro
   baoUser: kshores@ucar.edu
