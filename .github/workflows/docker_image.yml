@@ -16,6 +16,9 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Set Short SHA
+      run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
 
@@ -27,13 +30,13 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Build and push backend Docker image (latest)
-      if: github.ref == 'refs/heads/main'
+      #if: github.ref == 'refs/heads/main'
       uses: docker/build-push-action@v4
       with:
         context: ./backend
         file: ./backend/Dockerfile
         push: true
-        tags: ghcr.io/ncar/chemistry-cafe:latest
+        tags: ghcr.io/ncar/chemistry-cafe-backend:${{ env.SHORT_SHA }},ghcr.io/ncar/chemistry-cafe-backend:latest
 
     - name: Build and push backend Docker image (tagged)
       if: startsWith(github.ref, 'refs/tags/')
@@ -42,16 +45,16 @@ jobs:
         context: ./backend
         file: ./backend/Dockerfile
         push: true
-        tags: ghcr.io/ncar/chemistry-cafe:${{ github.ref_name }}
+        tags: ghcr.io/ncar/chemistry-cafe-backend:${{ github.ref_name }}
 
     - name: Build and push frontend Docker image (latest)
-      if: github.ref == 'refs/heads/main'
+      #if: github.ref == 'refs/heads/main'
       uses: docker/build-push-action@v4
       with:
         context: ./frontend
         file: ./frontend/Dockerfile
         push: true
-        tags: ghcr.io/ncar/chemistry-cafe-frontend:latest
+        tags: ghcr.io/ncar/chemistry-cafe-frontend:${{ env.SHORT_SHA }},ghcr.io/ncar/chemistry-cafe-frontend:latest
         secrets: |
           VITE_BASE_URL=${{ secrets.DEV_VITE_BASE_URL }}
 
