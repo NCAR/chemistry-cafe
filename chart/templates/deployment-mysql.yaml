@@ -1,0 +1,127 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "chemistry-cafe.mysql.serviceName" . }}
+  labels:
+    {{- include "chemistry-cafe.labels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.mysql.port }}
+      targetPort: {{ .Values.mysql.port }}
+      protocol: TCP
+      name: mysql
+  selector:
+    {{- include "chemistry-cafe.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "chemistry-cafe.fullname" . }}-mysql
+  labels:
+    {{- include "chemistry-cafe.labels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+spec:
+  serviceName: {{ include "chemistry-cafe.mysql.serviceName" . }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "chemistry-cafe.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: database
+  template:
+    metadata:
+      labels:
+        {{- include "chemistry-cafe.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: database
+    spec:
+      serviceAccountName: {{ include "chemistry-cafe.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: mysql
+          image: "{{ .Values.mysql.image.repository }}:{{ .Values.mysql.image.tag }}"
+          imagePullPolicy: {{ .Values.mysql.image.pullPolicy }}
+          args:
+            - --character-set-server=utf8mb4
+            - --collation-server=utf8mb4_unicode_ci
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "chemistry-cafe.mysql.secretName" . }}
+                  key: mysql-root-password
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "chemistry-cafe.mysql.secretName" . }}
+                  key: mysql-password
+            - name: MYSQL_USER
+              value: {{ .Values.mysql.user }}
+            - name: MYSQL_DATABASE
+              value: {{ .Values.mysql.database }}
+          ports:
+            - name: mysql
+              containerPort: {{ .Values.mysql.port }}
+              protocol: TCP
+          volumeMounts:
+            {{- if .Values.mysql.persistence.enabled }}
+            - name: data
+              mountPath: /var/lib/mysql
+            {{- end }}
+            - name: init-sql
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
+          resources:
+            {{- toYaml .Values.mysql.resources | nindent 12 }}
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.mysql.port }}
+            initialDelaySeconds: {{ .Values.mysql.probe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.mysql.probe.periodSeconds }}
+            timeoutSeconds: {{ .Values.mysql.probe.timeoutSeconds }}
+            failureThreshold: {{ .Values.mysql.probe.failureThreshold }}
+            successThreshold: {{ .Values.mysql.probe.successThreshold }}
+          readinessProbe:
+            exec:
+              command:
+                - mysqladmin
+                - ping
+                - -h
+                - localhost
+            initialDelaySeconds: {{ .Values.mysql.probe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.mysql.probe.periodSeconds }}
+            timeoutSeconds: {{ .Values.mysql.probe.timeoutSeconds }}
+            failureThreshold: {{ .Values.mysql.probe.failureThreshold }}
+            successThreshold: {{ .Values.mysql.probe.successThreshold }}
+      volumes:
+        - name: init-sql
+          configMap:
+            name: {{ include "chemistry-cafe.fullname" . }}-init-sql
+      {{- if .Values.mysql.persistence.enabled }}
+      volumeClaimTemplates:
+        - metadata:
+            name: data
+          spec:
+            accessModes:
+              {{- range .Values.mysql.persistence.accessModes }}
+              - {{ . | quote }}
+              {{- end }}
+            {{- if .Values.mysql.persistence.storageClass }}
+            storageClassName: {{ .Values.mysql.persistence.storageClass | quote }}
+            {{- end }}
+            resources:
+              requests:
+                storage: {{ .Values.mysql.persistence.size | quote }}
+      {{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "chemistry-cafe.fullname" . }}-init-sql
+  labels:
+    {{- include "chemistry-cafe.labels" . | nindent 4 }}
+data:
+  init.sql: |
+{{ .Files.Get "init.sql" | indent 4 }}

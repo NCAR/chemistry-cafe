@@ -26,15 +26,7 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Build Docker image
-      uses: docker/build-push-action@v4
-      with:
-        context: ./backend
-        file: ./backend/Dockerfile
-        push: false
-        tags: ghcr.io/ncar/chemistry-cafe:build-temp
-
-    - name: Build and push Docker image (latest)
+    - name: Build and push backend Docker image (latest)
       if: github.ref == 'refs/heads/main'
       uses: docker/build-push-action@v4
       with:
@@ -43,7 +35,7 @@ jobs:
         push: true
         tags: ghcr.io/ncar/chemistry-cafe:latest
 
-    - name: Build and push Docker image (tagged)
+    - name: Build and push backend Docker image (tagged)
       if: startsWith(github.ref, 'refs/tags/')
       uses: docker/build-push-action@v4
       with:
@@ -51,3 +43,25 @@ jobs:
         file: ./backend/Dockerfile
         push: true
         tags: ghcr.io/ncar/chemistry-cafe:${{ github.ref_name }}
+
+    - name: Build and push frontend Docker image (latest)
+      if: github.ref == 'refs/heads/main'
+      uses: docker/build-push-action@v4
+      with:
+        context: ./frontend
+        file: ./frontend/Dockerfile
+        push: true
+        tags: ghcr.io/ncar/chemistry-cafe-frontend:latest
+        secrets: |
+          VITE_BASE_URL=${{ secrets.DEV_VITE_BASE_URL }}
+
+    - name: Build and push frontend Docker image (tagged)
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: docker/build-push-action@v4
+      with:
+        context: ./frontend
+        file: ./frontend/Dockerfile
+        push: true
+        tags: ghcr.io/ncar/chemistry-cafe-frontend:${{ github.ref_name }}
+        secrets: |
+          VITE_BASE_URL=${{ secrets.DEV_VITE_BASE_URL }}

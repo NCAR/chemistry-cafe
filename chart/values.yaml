@@ -1,0 +1,151 @@
+replicaCount: 1
+
+instanceName: dev
+
+imageRegistry: docker.io
+imageRepository: ncar/chemistry-cafe
+imageTag: latest
+imagePullPolicy: IfNotPresent
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+rbac:
+  create: true
+
+mysql:
+  database: chemistry_db
+  user: chemistrycafe
+  port: 3306
+  image:
+    repository: docker.io/mysql
+    tag: 9.7.2
+    pullPolicy: IfNotPresent
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  probe:
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+
+backend:
+  frontendHost: ""
+  backendBaseUrl: /
+  image:
+    repository: ""
+    tag: ""
+    pullPolicy: IfNotPresent
+  env:
+    ASPNETCORE_ENVIRONMENT: Production
+    MYSQL_PORT: "3306"
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  ports:
+    container: 5000
+    service: 5000
+  probes:
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  mysqlWait:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    timeoutSeconds: 3
+    maxRetries: 30
+
+frontend:
+  image:
+    repository: ""
+    tag: ""
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "100m"
+    limits:
+      memory: "128Mi"
+      cpu: "200m"
+  ports:
+    container: 8080
+    service: 80
+  env:
+    VITE_BASE_URL: ""
+  probes:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+
+ingress:
+  enabled: true
+  className: traefik
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+  hosts:
+    - host: example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          backendService: frontend
+        - path: /api
+          pathType: Prefix
+          backendService: backend
+  tls:
+    - secretName: chemistry-cafe-tls
+      hosts:
+        - example.com
+
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+extraLabels: {}
+
+# External secrets configuration
+#
+# Expected secret structure in BAO (json format):
+# {
+#   "MYSQL_ROOT_PASSWORD": "<root password>",
+#   "MYSQL_PASSWORD": "<database password>",
+#   "GOOGLE_CLIENT_ID": "<google oauth client id>",
+#   "GOOGLE_CLIENT_SECRET": "<google oauth client secret>"
+# }
+externalSecrets:
+  secretStoreName: deafult
+  baoUser: default

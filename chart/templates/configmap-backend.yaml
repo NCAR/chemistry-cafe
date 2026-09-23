@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "chemistry-cafe.fullname" . }}-backend
+  labels:
+    {{- include "chemistry-cafe.labels" . | nindent 4 }}
+data:
+  MYSQL_SERVER: {{ include "chemistry-cafe.mysql.serviceName" . }}
+  MYSQL_USER: {{ .Values.mysql.user }}
+  MYSQL_DATABASE: {{ .Values.mysql.database }}
+  MYSQL_PORT: {{ .Values.mysql.port | quote }}
+  ASPNETCORE_ENVIRONMENT: {{ .Values.backend.env.ASPNETCORE_ENVIRONMENT }}
+  FRONTEND_HOST: {{ .Values.backend.frontendHost | quote }}
+  BACKEND_BASE_URL: {{ .Values.backend.backendBaseUrl | quote }}

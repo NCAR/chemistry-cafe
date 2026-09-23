@@ -1,0 +1,105 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "chemistry-cafe.backend.serviceName" . }}
+  labels:
+    {{- include "chemistry-cafe.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.backend.ports.service }}
+      targetPort: {{ .Values.backend.ports.container }}
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "chemistry-cafe.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "chemistry-cafe.fullname" . }}-backend
+  labels:
+    {{- include "chemistry-cafe.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "chemistry-cafe.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: backend
+  template:
+    metadata:
+      labels:
+        {{- include "chemistry-cafe.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: backend
+    spec:
+      serviceAccountName: {{ include "chemistry-cafe.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        {{- if .Values.backend.mysqlWait.enabled }}
+        - name: wait-for-mysql
+          image: {{ .Values.mysql.image.repository }}:{{ .Values.mysql.image.tag }}
+          imagePullPolicy: {{ .Values.mysql.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Waiting for MySQL to be ready..."
+              while ! mysqladmin ping -h {{ include "chemistry-cafe.mysql.serviceName" . }} -P {{ .Values.mysql.port }} --silent; do
+                echo "  MySQL not ready, waiting..."
+                sleep {{ .Values.backend.mysqlWait.periodSeconds }}
+              done
+              echo "MySQL is ready!"
+          resources:
+            requests:
+              memory: "32Mi"
+              cpu: "50m"
+            limits:
+              memory: "64Mi"
+              cpu: "100m"
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+        {{- end }}
+      containers:
+        - name: backend
+          image: "{{ .Values.imageRegistry }}/{{ .Values.imageRepository }}-backend:{{ .Values.imageTag }}"
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.backend.ports.container }}
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ include "chemistry-cafe.fullname" . }}-backend
+            - secretRef:
+                name: {{ include "chemistry-cafe.fullname" . }}-mysql
+            - secretRef:
+                name: {{ include "chemistry-cafe.fullname" . }}-backend
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /api/phases
+              port: http
+            initialDelaySeconds: {{ .Values.backend.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.backend.probes.periodSeconds }}
+            timeoutSeconds: {{ .Values.backend.probes.timeoutSeconds }}
+            failureThreshold: {{ .Values.backend.probes.failureThreshold }}
+            successThreshold: {{ .Values.backend.probes.successThreshold }}
+          readinessProbe:
+            httpGet:
+              path: /api/phases
+              port: http
+            initialDelaySeconds: {{ .Values.backend.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.backend.probes.periodSeconds }}
+            timeoutSeconds: {{ .Values.backend.probes.timeoutSeconds }}
+            failureThreshold: {{ .Values.backend.probes.failureThreshold }}
+            successThreshold: {{ .Values.backend.probes.successThreshold }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+      nodeSelector: {{- toYaml .Values.nodeSelector | nindent 8 }}
+      tolerations: {{- toYaml .Values.tolerations | nindent 8 }}
+      affinity: {{- toYaml .Values.affinity | nindent 8 }}

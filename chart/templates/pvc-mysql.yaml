@@ -1,0 +1,19 @@
+{{- if .Values.mysql.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "chemistry-cafe.fullname" . }}-mysql
+  labels:
+    {{- include "chemistry-cafe.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    {{- range .Values.mysql.persistence.accessModes }}
+    - {{ . | quote }}
+    {{- end }}
+  {{- if .Values.mysql.persistence.storageClass }}
+  storageClassName: {{ .Values.mysql.persistence.storageClass | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.mysql.persistence.size | quote }}
+{{- end }}
