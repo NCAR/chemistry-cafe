@@ -83,7 +83,7 @@ jobs:
 
     - name: Update Helm Image Tag
       run: |
-        yq -i -y '.imageTag = "${{ env.SHORT_SHA }}"' chart/values-dev.yaml
+        yq eval '.imageTag = "${{ env.SHORT_SHA }}"' -i chart/values-dev.yaml
         git config --global user.name "CI Bot"
         git config --global user.email "ci-bot@example.com"
         git add chart/values-dev.yaml
