@@ -32,7 +32,7 @@ services:
       dockerfile: Dockerfile
       target: final
     ports:
-      - "5173:80"
+      - "5173:8080"
     networks:
       - app-network
     depends_on:

@@ -20,6 +20,9 @@ mysql:
 backend:
   frontendHost: https://chemcafe-dev.k8s.ucar.edu
   backendBaseUrl: /api
+  env:
+    ASPNETCORE_ENVIRONMENT: Production
+    SEED_DATABASE: "true"
   resources:
     requests:
       memory: 256Mi
@@ -28,8 +31,6 @@ backend:
       memory: 512Mi
       cpu: 500m
 frontend:
-  env:
-    VITE_BASE_URL: https://chemcafe-dev.k8s.ucar.edu
   resources:
     requests:
       memory: 64Mi
