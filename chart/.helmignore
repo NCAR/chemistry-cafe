@@ -1,0 +1,24 @@
+# Helm chart files
+Chart.lock
+charts/
+*.tgz
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+*_test.go
+test/
+*/test/*
+
+# Documentation
+# *.md
+# docs/

@@ -1,0 +1,22 @@
+apiVersion: v2
+name: chemistry-cafe
+description: A Helm chart for Chemistry Cafe - a web application for chemistry data management
+
+type: application
+
+version: 0.1.0
+appVersion: "2.0.0"
+
+maintainers:
+  - name: NCAR
+    url: https://github.com/NCAR/chemistry-cafe
+
+keywords:
+  - chemistry
+  - react
+  - dotnet
+  - mysql
+
+home: https://github.com/NCAR/chemistry-cafe
+sources:
+  - https://github.com/NCAR/chemistry-cafe

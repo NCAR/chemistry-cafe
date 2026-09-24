@@ -1,0 +1,83 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "chemistry-cafe.frontend.serviceName" . }}
+  labels:
+    {{- include "chemistry-cafe.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.frontend.ports.service }}
+      targetPort: {{ .Values.frontend.ports.container }}
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "chemistry-cafe.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "chemistry-cafe.fullname" . }}-frontend
+  labels:
+    {{- include "chemistry-cafe.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "chemistry-cafe.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: frontend
+  template:
+    metadata:
+      labels:
+        {{- include "chemistry-cafe.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: frontend
+    spec:
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: frontend
+          image: "{{ .Values.imageRegistry }}/{{ .Values.imageRepository }}-frontend:{{ .Values.imageTag }}"
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.frontend.ports.container }}
+              protocol: TCP
+          env:
+            - name: VITE_BASE_URL
+              value: {{  .Values.frontend.env.VITE_BASE_URL }}/api
+            - name: VITE_AUTH_URL
+              value: {{ .Values.frontend.env.VITE_BASE_URL }}/auth
+          resources:
+            {{- toYaml .Values.frontend.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: {{ .Values.frontend.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.frontend.probes.periodSeconds }}
+            timeoutSeconds: {{ .Values.frontend.probes.timeoutSeconds }}
+            failureThreshold: {{ .Values.frontend.probes.failureThreshold }}
+            successThreshold: {{ .Values.frontend.probes.successThreshold }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: {{ .Values.frontend.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.frontend.probes.periodSeconds }}
+            timeoutSeconds: {{ .Values.frontend.probes.timeoutSeconds }}
+            failureThreshold: {{ .Values.frontend.probes.failureThreshold }}
+            successThreshold: {{ .Values.frontend.probes.successThreshold }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      nodeSelector: {{- toYaml .Values.nodeSelector | nindent 8 }}
+      tolerations: {{- toYaml .Values.tolerations | nindent 8 }}
+      affinity: {{- toYaml .Values.affinity | nindent 8 }}

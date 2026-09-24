@@ -1,0 +1,62 @@
+replicaCount: 1
+instalnceName: dev
+imageRegistry: ghcr.io
+imageRepository: ncar/chemistry-cafe
+imageTag: latest
+imagePullPolicy: Always
+mysql:
+  image:
+    repository: docker.io/mysql
+    tag: 9.7.2
+  persistence:
+    enabled: false
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 250m
+    limits:
+      memory: 512Mi
+      cpu: 500m
+backend:
+  frontendHost: https://chemcafe-dev.k8s.ucar.edu
+  backendBaseUrl: /api
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 250m
+    limits:
+      memory: 512Mi
+      cpu: 500m
+frontend:
+  env:
+    VITE_BASE_URL: https://chemcafe-dev.k8s.ucar.edu
+  resources:
+    requests:
+      memory: 64Mi
+      cpu: 100m
+    limits:
+      memory: 128Mi
+      cpu: 200m
+ingress:
+  enabled: true
+  className: traefik-internal
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: 'true'
+    cert-manager.io/cluster-issuer: incommon
+  hosts:
+    - host: chemcafe-dev.k8s.ucar.edu
+      paths:
+        - path: /
+          pathType: Prefix
+          backendService: frontend
+        - path: /api
+          pathType: Prefix
+          backendService: backend
+  tls:
+    - secretName: chemistry-cafe-dev-tls
+      hosts:
+        - chemcafe-dev.k8s.ucar.edu
+externalSecrets:
+  secretStoreName: kshores-ro
+  baoUser: kshores@ucar.edu

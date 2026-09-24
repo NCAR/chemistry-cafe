@@ -12,16 +12,14 @@ EXPOSE 5173
 
 FROM base AS build
 
+ARG VITE_BASE_URL
+ENV VITE_BASE_URL=${VITE_BASE_URL}/api
+ENV VITE_AUTH_URL=${VITE_BASE_URL}/auth
+
 # Create a production build
 RUN npm run build
 
 # Third stage serves static files. This stage is used in the production build
-FROM nginx:latest AS final
+FROM nginxinc/nginx-unprivileged:latest AS final
 
-COPY ./nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /ChemistryCafeFrontend/dist /usr/share/nginx/html
-
-# Expose the production API port
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
