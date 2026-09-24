@@ -51,12 +51,12 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ include "chemistry-cafe.mysql.secretName" . }}
-                  key: mysql-root-password
+                  key: MYSQL_ROOT_PASSWORD
             - name: MYSQL_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ include "chemistry-cafe.mysql.secretName" . }}
-                  key: mysql-password
+                  key: MYSQL_PASSWORD
             - name: MYSQL_USER
               value: {{ .Values.mysql.user }}
             - name: MYSQL_DATABASE
