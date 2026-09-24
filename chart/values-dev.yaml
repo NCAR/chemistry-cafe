@@ -1,5 +1,5 @@
 replicaCount: 1
-instalnceName: dev
+instanceName: dev
 imageRegistry: ghcr.io
 imageRepository: ncar/chemistry-cafe
 imageTag: latest

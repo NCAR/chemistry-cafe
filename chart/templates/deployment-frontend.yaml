@@ -19,7 +19,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "chemistry-cafe.fullname" . }}-frontend
+  name: {{ include "chemistry-cafe.name" . }}-frontend
   labels:
     {{- include "chemistry-cafe.labels" . | nindent 4 }}
     app.kubernetes.io/component: frontend

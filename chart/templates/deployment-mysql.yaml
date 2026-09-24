@@ -19,7 +19,7 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "chemistry-cafe.fullname" . }}-mysql
+  name: {{ include "chemistry-cafe.name" . }}-mysql
   labels:
     {{- include "chemistry-cafe.labels" . | nindent 4 }}
     app.kubernetes.io/component: database
@@ -98,7 +98,7 @@ spec:
       volumes:
         - name: init-sql
           configMap:
-            name: {{ include "chemistry-cafe.fullname" . }}-init-sql
+            name: {{ include "chemistry-cafe.name" . }}-init-sql
       {{- if .Values.mysql.persistence.enabled }}
       volumeClaimTemplates:
         - metadata:
@@ -119,7 +119,7 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "chemistry-cafe.fullname" . }}-init-sql
+  name: {{ include "chemistry-cafe.name" . }}-init-sql
   labels:
     {{- include "chemistry-cafe.labels" . | nindent 4 }}
 data:

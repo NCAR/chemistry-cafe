@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "chemistry-cafe.fullname" . }}-mysql
+  name: {{ include "chemistry-cafe.name" . }}-mysql
   labels:
     {{- include "chemistry-cafe.labels" . | nindent 4 }}
 spec:

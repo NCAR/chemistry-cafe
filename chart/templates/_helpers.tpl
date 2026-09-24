@@ -1,16 +1,17 @@
 {{- define "chemistry-cafe.name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- default "chem-cafe" .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{- define "chemistry-cafe.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
-{{- $name := default .Chart.Name .Values.nameOverride }}
-{{- if contains $name .Release.Name }}
-{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- $name := default "chem-cafe" .Values.nameOverride }}
+{{- $release := .Release.Name | lower }}
+{{- if contains $name $release }}
+{{- $release | trunc 63 | trimSuffix "-" }}
 {{- else }}
-{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
+{{- printf "%s-%s" $release $name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 {{- end }}
 {{- end }}
@@ -35,32 +36,32 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 
 {{- define "chemistry-cafe.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "chemistry-cafe.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "chemistry-cafe.name" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
 
 {{- define "chemistry-cafe.mysql.serviceName" -}}
-{{- printf "%s-mysql" (include "chemistry-cafe.fullname" .) }}
+{{- printf "%s-mysql" (include "chemistry-cafe.name" .) }}
 {{- end }}
 
 {{- define "chemistry-cafe.backend.serviceName" -}}
-{{- printf "%s-backend" (include "chemistry-cafe.fullname" .) }}
+{{- printf "%s-backend" (include "chemistry-cafe.name" .) }}
 {{- end }}
 
 {{- define "chemistry-cafe.frontend.serviceName" -}}
-{{- printf "%s-frontend" (include "chemistry-cafe.fullname" .) }}
+{{- printf "%s-frontend" (include "chemistry-cafe.name" .) }}
 {{- end }}
 
 {{- define "chemistry-cafe.ingress.name" -}}
-{{- printf "%s-ingress" (include "chemistry-cafe.fullname" .) }}
+{{- printf "%s-ingress" (include "chemistry-cafe.name" .) }}
 {{- end }}
 
 {{- define "chemistry-cafe.mysql.secretName" -}}
-{{- printf "%s-mysql" (include "chemistry-cafe.fullname" .) }}
+{{- printf "%s-mysql" (include "chemistry-cafe.name" .) }}
 {{- end }}
 
 {{- define "chemistry-cafe.backend.secretName" -}}
-{{- printf "%s-backend" (include "chemistry-cafe.fullname" .) }}
+{{- printf "%s-backend" (include "chemistry-cafe.name" .) }}
 {{- end }}
