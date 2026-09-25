@@ -147,7 +147,6 @@ extraLabels: {}
 #   "GOOGLE_CLIENT_ID": "<google oauth client id>",
 #   "GOOGLE_CLIENT_SECRET": "<google oauth client secret>"
 # }
-# Set both values for each deployment. The chart fails to render without them.
 externalSecrets:
-  secretStoreName: ""
-  baoUser: ""
+  secretStoreName: deafult
+  baoUser: default
