@@ -14,13 +14,6 @@ namespace ChemistryCafeAPI.Controllers
     {
         private readonly SpeciesService _speciesService;
 
-        [ExcludeFromCodeCoverage]
-        protected virtual string? GetNameIdentifier()
-        {
-            ClaimsIdentity? claimsIdentity = this.User.Identity as ClaimsIdentity;
-            return claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        }
-
         public SpeciesController(SpeciesService speciesService)
         {
             _speciesService = speciesService;

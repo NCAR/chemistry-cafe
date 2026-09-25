@@ -56,7 +56,7 @@ namespace ChemistryCafeAPI.Services
         /// <param name="googleID"></param>
         /// <param name="email"></param>
         /// <returns>Tracked user object</returns>
-        public async Task<User> SignIn(string googleID, string email)
+        public async Task<User> SignInGoogle(string googleID, string email)
         {
             var user = await _context.Users.SingleOrDefaultAsync(u => u.GoogleId == googleID);
             if (user == null)
@@ -74,6 +74,30 @@ namespace ChemistryCafeAPI.Services
             else
             {
                 user.Email = email;
+            }
+            await _context.SaveChangesAsync();
+            return user;
+        }
+        /// <summary>
+        /// Creates a user in the database if they don't exist.
+        /// Otherwise, returns the existing user.
+        /// </summary>
+        /// <param name="orcidID"></param>
+        /// <param name="email"></param>
+        /// <returns>Tracked user object</returns>
+        public async Task<User> SignInOrcid(string orcidID, string name)
+        {
+            var user = await _context.Users.SingleOrDefaultAsync(u => u.OrcidId == orcidID);
+            if (user == null)
+            {
+                user = new User();
+                user.Id = Guid.NewGuid();
+                user.Username = name;
+                user.Role = "unverified";
+                user.CreatedDate = DateTime.UtcNow;
+                user.OrcidId = orcidID;
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
             }
             await _context.SaveChangesAsync();
             return user;

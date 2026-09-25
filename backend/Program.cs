@@ -9,6 +9,7 @@ using dotenv.net;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Http;
+using NuGet.Protocol;
 
 [ExcludeFromCodeCoverage]
 public class Program {
@@ -28,6 +29,7 @@ public class Program {
         builder.Services.AddControllers();
         builder.Services.AddScoped<UserService>();
         builder.Services.AddScoped<GoogleOAuthService>();
+        builder.Services.AddScoped<OrcidOAuthService>();
         builder.Services.AddScoped<FamilyService>();
         builder.Services.AddScoped<SpeciesService>();
         builder.Services.AddScoped<ReactionService>();
@@ -60,6 +62,66 @@ public class Program {
         {
             Console.WriteLine(
                 "WARNING: GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET are not set. Google sign-in is disabled; the app runs in guest (read-only) mode.");
+        }
+        
+        string? orcidClientId = Environment.GetEnvironmentVariable("ORCID_CLIENT_ID");
+        string? orcidClientSecret = Environment.GetEnvironmentVariable("ORCID_CLIENT_SECRET");
+        
+        // Orcid sign-in is optional. When the client credentials are absent the
+        // app still starts, so it can be used as a guest with read-only access.
+        if (!string.IsNullOrWhiteSpace(orcidClientId) && !string.IsNullOrWhiteSpace(orcidClientSecret))
+        {
+            authenticationBuilder.AddOAuth("Orcid", (options) =>
+            {
+                // Use "https://orcid.org" if testing in sandbox
+                options.AuthorizationEndpoint = "https://orcid.org/oauth/authorize"; 
+                options.TokenEndpoint = "https://orcid.org/oauth/token";
+                
+                options.ClientId = orcidClientId;
+                options.ClientSecret = orcidClientSecret;
+                options.AccessDeniedPath = "/auth/orcid/login";
+        
+                // This is the relative callback URL. You must register the absolute version 
+                // (e.g., https://yourdomain.com) in your ORCID developer portal.
+                options.CallbackPath = "/signin-orcid"; 
+
+                // Required scope to get the user's authenticated ORCID iD
+                options.Scope.Add("/authenticate");
+                options.SaveTokens = true;
+                
+                options.Events = new Microsoft.AspNetCore.Authentication.OAuth.OAuthEvents
+                {
+                    OnCreatingTicket = async context =>
+                    {
+                        // ORCID includes the user identity data directly in the token response payload
+                        using var jsonDoc = System.Text.Json.JsonDocument.Parse(context.TokenResponse.Response.RootElement.GetRawText());
+                        var root = jsonDoc.RootElement;
+                        
+                        if (root.TryGetProperty("orcid", out var orcidProperty))
+                        {
+                            context.Identity?.AddClaim(new System.Security.Claims.Claim(
+                                System.Security.Claims.ClaimTypes.NameIdentifier, 
+                                orcidProperty.GetString() ?? ""
+                            ));
+                        }
+
+                        if (root.TryGetProperty("name", out var nameProperty))
+                        {
+                            context.Identity?.AddClaim(new System.Security.Claims.Claim(
+                                System.Security.Claims.ClaimTypes.Name, 
+                                nameProperty.GetString() ?? ""
+                            ));
+                        }
+                
+                        await Task.CompletedTask;
+                    }
+                };
+            });
+        }
+        else
+        {
+            Console.WriteLine(
+                "WARNING: ORCID_CLIENT_ID/ORCID_CLIENT_SECRET are not set. ORCID sign-in is disabled; the app runs in guest (read-only) mode.");
         }
 
         //builder.Services.AddScoped<TimeService>();
@@ -166,7 +228,8 @@ public class Program {
             forwardedHeadersOptions.KnownProxies.Clear();
             app.UseForwardedHeaders(forwardedHeadersOptions);
         }
-
+        
+        
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapControllers();

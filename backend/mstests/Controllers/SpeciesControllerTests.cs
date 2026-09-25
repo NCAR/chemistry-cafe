@@ -25,23 +25,13 @@ namespace ChemistryCafeAPI.Tests
         private UserService _userService;
         private FamilyService _familyService;
 
-        private class MockedSpeciesController : SpeciesController
-        {
-            public MockedSpeciesController(SpeciesService service) : base(service)
-            {
-            }
-
-            protected override string? GetNameIdentifier()
-            {
-                return _nameIdentifier;
-            }
-        }
+        
 
         public SpeciesControllerTests()
         {
             _context = DBConnection.Context;
             _speciesService = new SpeciesService(_context);
-            _speciesController = new MockedSpeciesController(_speciesService);
+            _speciesController = new SpeciesController(_speciesService);
             _userService = new UserService(_context);
             _familyService = new FamilyService(_context, _userService);
         }
@@ -50,7 +40,7 @@ namespace ChemistryCafeAPI.Tests
         {
             var googleId = "species-sample-google-id";
             var email = "species-test@fake-website.com";
-            _user = await _userService.SignIn(googleId, email);
+            _user = await _userService.SignInGoogle(googleId, email);
             _nameIdentifier = _user.Id.ToString();
 
             var familyDto = new Family
