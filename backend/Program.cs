@@ -36,8 +36,10 @@ public class Program {
         builder.Services.AddScoped<PhaseService>();
         builder.Services.AddScoped<MechanismService>();
 
-        string? googleClientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID");
-        string? googleClientSecret = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET");
+        // Trim the OAuth credentials. A value pasted into a secret store can end
+        // with a newline, and the OAuth provider then rejects the client ID.
+        string? googleClientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID")?.Trim();
+        string? googleClientSecret = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET")?.Trim();
 
         var authenticationBuilder = builder.Services.AddAuthentication((options) =>
             {
@@ -64,8 +66,8 @@ public class Program {
                 "WARNING: GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET are not set. Google sign-in is disabled; the app runs in guest (read-only) mode.");
         }
         
-        string? orcidClientId = Environment.GetEnvironmentVariable("ORCID_CLIENT_ID");
-        string? orcidClientSecret = Environment.GetEnvironmentVariable("ORCID_CLIENT_SECRET");
+        string? orcidClientId = Environment.GetEnvironmentVariable("ORCID_CLIENT_ID")?.Trim();
+        string? orcidClientSecret = Environment.GetEnvironmentVariable("ORCID_CLIENT_SECRET")?.Trim();
         
         // Orcid sign-in is optional. When the client credentials are absent the
         // app still starts, so it can be used as a guest with read-only access.
