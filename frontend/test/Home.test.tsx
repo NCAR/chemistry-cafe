@@ -82,7 +82,7 @@ describe("Unauthenticated Home Component", () => {
     for (const loginButton of loginButtons) {
       fireEvent.click(loginButton);
     }
-    expect(window.location.assign).toHaveBeenCalledTimes(loginButtons.length) // Redirect to backend auth/google/login endpoint
+    expect(window.location.assign).toHaveBeenCalledTimes(loginButtons.length); // Redirect to backend auth/google/login endpoint
   });
 
   it("navigates when browsing families or opening the family editor", () => {
