@@ -154,10 +154,17 @@ public class Program {
         else
         {
             app.UseCors("ProductionCorsPolicy");
-            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            var forwardedHeadersOptions = new ForwardedHeadersOptions
             {
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-            });
+            };
+            // By default the backend accepts forwarded headers only from a
+            // loopback proxy. In Kubernetes the proxy (Traefik) is another pod,
+            // so without this the OAuth redirect URI uses http instead of https.
+            // The backend Service is ClusterIP, so only in-cluster clients reach it.
+            forwardedHeadersOptions.KnownNetworks.Clear();
+            forwardedHeadersOptions.KnownProxies.Clear();
+            app.UseForwardedHeaders(forwardedHeadersOptions);
         }
 
         app.UseAuthentication();

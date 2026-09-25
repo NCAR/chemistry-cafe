@@ -19,7 +19,9 @@ mysql:
       cpu: 500m
 backend:
   frontendHost: https://chemcafe-dev.k8s.ucar.edu
-  backendBaseUrl: /api
+  # The ingress keeps the path prefix, and the auth routes are at /auth,
+  # not /api/auth. The backend uses this value only for the OAuth redirect.
+  backendBaseUrl: /
   env:
     ASPNETCORE_ENVIRONMENT: Production
     SEED_DATABASE: "true"
@@ -52,6 +54,13 @@ ingress:
           pathType: Prefix
           backendService: frontend
         - path: /api
+          pathType: Prefix
+          backendService: backend
+        - path: /auth
+          pathType: Prefix
+          backendService: backend
+        # Google sends the user here after sign-in (the ASP.NET default CallbackPath)
+        - path: /signin-google
           pathType: Prefix
           backendService: backend
   tls:
