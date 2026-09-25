@@ -27,8 +27,8 @@ import ACOMlockupHorizontalColor from "../assets/branding/acom-lockup-horizontal
 import ACOMlockupHorizontalWhite from "../assets/branding/acom-lockup-horizontal-white.png";
 import ACOMlockupVerticalColor from "../assets/branding/acom-lockup-vertical-color.png";
 import ACOMlockupVerticalWhite from "../assets/branding/acom-lockup-vertical-white.png";
-import OrcidImage from "../assets/ORCID-iD_icon_vector.svg"
-import {BASE_URL, AUTH_URL } from "../API/API_config";
+import OrcidImage from "../assets/ORCID-iD_icon_vector.svg";
+import { BASE_URL, AUTH_URL } from "../API/API_config";
 import { clearFamiliesLocally } from "../helpers/localFamilies";
 
 const CHEMISTRY_CAFE_REPO = "https://github.com/NCAR/chemistry-cafe";
@@ -47,8 +47,8 @@ export const Header = () => {
     window.location.assign(`${AUTH_URL}/google/login`);
   };
   const loginOrcid = () => {
-      localStorage.removeItem("user");
-      window.location.assign(`${AUTH_URL}/orcid/login`);
+    localStorage.removeItem("user");
+    window.location.assign(`${AUTH_URL}/orcid/login`);
   };
 
   const goLogOut = () => {
@@ -164,30 +164,36 @@ export const Header = () => {
                 </ListItemIcon>
                 Logout
               </MenuItem>
-            ) : (<>
-              <MenuItem
-                onClick={() => {
-                  closeMobileMenu();
-                  loginGoogle();
-                }}
-              >
-                <ListItemIcon>
-                  <GoogleIcon fontSize="small" />
-                </ListItemIcon>
-                Sign in
-              </MenuItem>
+            ) : (
+              <>
                 <MenuItem
-                    onClick={() => {
-                        closeMobileMenu();
-                        loginOrcid();
-                    }}
+                  onClick={() => {
+                    closeMobileMenu();
+                    loginGoogle();
+                  }}
                 >
-                    <ListItemIcon>
-                        <img aria-label={"ORCID Login"} alt={"ORCID Login"} src={OrcidImage} />
-                    </ListItemIcon>
-                    Sign in
+                  <ListItemIcon>
+                    <GoogleIcon fontSize="small" />
+                  </ListItemIcon>
+                  Sign in
                 </MenuItem>
-            </>)}
+                <MenuItem
+                  onClick={() => {
+                    closeMobileMenu();
+                    loginOrcid();
+                  }}
+                >
+                  <ListItemIcon>
+                    <img
+                      aria-label={"ORCID Login"}
+                      alt={"ORCID Login"}
+                      src={OrcidImage}
+                    />
+                  </ListItemIcon>
+                  Sign in
+                </MenuItem>
+              </>
+            )}
           </Menu>
         </Box>
       ) : /* Display login information and sign-in controls */
@@ -254,9 +260,19 @@ export const Header = () => {
           <Button size="small" onClick={loginGoogle} startIcon={<GoogleIcon />}>
             Sign in
           </Button>
-            <Button size="small" onClick={loginOrcid} startIcon={<img aria-label={"ORCID Login"} alt={"ORCID Login"} src={OrcidImage} />}>
-                Sign in
-            </Button>
+          <Button
+            size="small"
+            onClick={loginOrcid}
+            startIcon={
+              <img
+                aria-label={"ORCID Login"}
+                alt={"ORCID Login"}
+                src={OrcidImage}
+              />
+            }
+          >
+            Sign in
+          </Button>
         </Box>
       )}
     </Paper>

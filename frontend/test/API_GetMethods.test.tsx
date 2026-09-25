@@ -8,7 +8,7 @@ import {
   getUserById,
 } from "../src/API/API_GetMethods";
 import { APIMechanism, APIUser } from "../src/API/API_Interfaces";
-import {  BASE_URL } from "../src/API/API_config";
+import { BASE_URL } from "../src/API/API_config";
 
 // Mock axios using vitest's built-in mock function
 vi.mock("axios");
