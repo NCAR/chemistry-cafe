@@ -12,3 +12,4 @@ data:
   ASPNETCORE_ENVIRONMENT: {{ .Values.backend.env.ASPNETCORE_ENVIRONMENT }}
   FRONTEND_HOST: {{ .Values.backend.frontendHost | quote }}
   BACKEND_BASE_URL: {{ .Values.backend.backendBaseUrl | quote }}
+  SEED_DATABASE: {{ .Values.backend.env.SEED_DATABASE | quote }}

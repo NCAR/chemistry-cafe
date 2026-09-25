@@ -45,11 +45,6 @@ spec:
             - name: http
               containerPort: {{ .Values.frontend.ports.container }}
               protocol: TCP
-          env:
-            - name: VITE_BASE_URL
-              value: {{  .Values.frontend.env.VITE_BASE_URL }}/api
-            - name: VITE_AUTH_URL
-              value: {{ .Values.frontend.env.VITE_BASE_URL }}/auth
           resources:
             {{- toYaml .Values.frontend.resources | nindent 12 }}
           livenessProbe:

@@ -6,7 +6,7 @@ namespace ChemistryCafeAPI.SeedData;
 
 // Seeds the database with the default families (Mozart, Test) on a fresh
 // database. Idempotent: it does nothing if any family already exists. The
-// caller gates this to the Development environment.
+// caller gates this with SEED_DATABASE (default: Development only).
 public static class DbInitializer
 {
     private static readonly JsonSerializerOptions JsonOptions = new()

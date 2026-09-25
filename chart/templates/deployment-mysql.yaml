@@ -32,6 +32,11 @@ spec:
       app.kubernetes.io/component: database
   template:
     metadata:
+      annotations:
+        # Restart MySQL when init.sql changes. MySQL runs init.sql only on an
+        # empty data directory, so this applies the new schema only when
+        # persistence is off.
+        checksum/init-sql: {{ .Files.Get "init.sql" | sha256sum }}
       labels:
         {{- include "chemistry-cafe.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: database

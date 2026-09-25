@@ -19,7 +19,12 @@ mysql:
       cpu: 500m
 backend:
   frontendHost: https://chemcafe-dev.k8s.ucar.edu
-  backendBaseUrl: /api
+  # The ingress keeps the path prefix, and the auth routes are at /auth,
+  # not /api/auth. The backend uses this value only for the OAuth redirect.
+  backendBaseUrl: /
+  env:
+    ASPNETCORE_ENVIRONMENT: Production
+    SEED_DATABASE: "true"
   resources:
     requests:
       memory: 256Mi
@@ -28,8 +33,6 @@ backend:
       memory: 512Mi
       cpu: 500m
 frontend:
-  env:
-    VITE_BASE_URL: https://chemcafe-dev.k8s.ucar.edu
   resources:
     requests:
       memory: 64Mi
@@ -51,6 +54,17 @@ ingress:
           pathType: Prefix
           backendService: frontend
         - path: /api
+          pathType: Prefix
+          backendService: backend
+        - path: /auth
+          pathType: Prefix
+          backendService: backend
+        # Google sends the user here after sign-in (the ASP.NET default CallbackPath)
+        - path: /signin-google
+          pathType: Prefix
+          backendService: backend
+        # ORCID sends the user here after sign-in (CallbackPath in Program.cs)
+        - path: /signin-orcid
           pathType: Prefix
           backendService: backend
   tls:

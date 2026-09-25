@@ -57,10 +57,15 @@ redirect URIs".
 | `MYSQL_PORT` | | `3306` | `3306` |
 | `FRONTEND_HOST` | | `http://localhost:5173` | `http://localhost:5173` |
 | `BACKEND_BASE_URL` | | `/` | `/` |
+| `SEED_DATABASE` | | *(empty)* | *(empty)* |
 
 `FRONTEND_HOST` is where the frontend is served (used for backend CORS and OAuth
 redirects); `BACKEND_BASE_URL` is the path prefix the backend is hosted under
 (e.g. `/api/`). Both matter mainly in production.
+
+`SEED_DATABASE` controls the default data (the Mozart and Test families). Set it
+to `true` or `false`. When it is empty, the backend seeds only in Development.
+The seed adds data only to a database that has no families.
 
 ### Running Chemistry Cafe with Docker Compose
 

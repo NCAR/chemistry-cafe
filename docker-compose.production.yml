@@ -32,7 +32,7 @@ services:
       dockerfile: Dockerfile
       target: final
     ports:
-      - "5173:80"
+      - "5173:8080"
     networks:
       - app-network
     depends_on:
@@ -59,6 +59,7 @@ services:
       MYSQL_PORT: ${MYSQL_PORT:-3306}
       FRONTEND_HOST: ${FRONTEND_HOST:?error}
       BACKEND_BASE_URL: ${BACKEND_BASE_URL:?error}
+      SEED_DATABASE: ${SEED_DATABASE:-}
     networks:
       - app-network
     depends_on:
