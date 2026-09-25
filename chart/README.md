@@ -19,6 +19,8 @@ have these keys:
 - `MYSQL_PASSWORD`
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
+- `ORCID_CLIENT_ID`
+- `ORCID_CLIENT_SECRET`
 
 ## Installation
 

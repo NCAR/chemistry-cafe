@@ -63,6 +63,10 @@ ingress:
         - path: /signin-google
           pathType: Prefix
           backendService: backend
+        # ORCID sends the user here after sign-in (CallbackPath in Program.cs)
+        - path: /signin-orcid
+          pathType: Prefix
+          backendService: backend
   tls:
     - secretName: chemistry-cafe-dev-tls
       hosts:
