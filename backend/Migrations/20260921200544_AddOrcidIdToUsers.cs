@@ -1,11 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace ChemistryCafeAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class userupdate : Migration
+    public partial class AddOrcidIdToUsers : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -27,3 +27,4 @@ namespace ChemistryCafeAPI.Migrations
         }
     }
 }
+
