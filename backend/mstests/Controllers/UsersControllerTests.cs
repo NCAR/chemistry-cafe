@@ -69,7 +69,7 @@ namespace ChemistryCafeAPI.Tests
             var userService = new UserService(ctx);
 
             //Act
-            var user = await userService.SignIn(_GoogleId, _Email);
+            var user = await userService.SignInGoogle(_GoogleId, _Email);
 
             // Store the UserId for cleanup
             _UserId = user.Id;
@@ -228,7 +228,7 @@ namespace ChemistryCafeAPI.Tests
         public async Task UpdateUserUnauthorized()
         {
             var userService = new UserService(ctx);
-            var user = await userService.SignIn("temp-id", "temp@email.com");
+            var user = await userService.SignInGoogle("temp-id", "temp@email.com");
             var controller = new NameController(userService, user.Id.ToString());
             var updatedUser = new User
             {
@@ -328,7 +328,7 @@ namespace ChemistryCafeAPI.Tests
         public async Task DeleteUserUnauthorized()
         {
             var userService = new UserService(ctx);
-            var user = await userService.SignIn("temp-id", "temp@email.com");
+            var user = await userService.SignInGoogle("temp-id", "temp@email.com");
             var controller = new NameController(userService, user.Id.ToString());
             var result = await controller.DeleteUser(_UserId);
             Assert.IsInstanceOfType(result, typeof(StatusCodeResult));
@@ -410,6 +410,71 @@ namespace ChemistryCafeAPI.Tests
             // Assert
             var badRequestResult = result as BadRequestResult;
             Assert.IsNotNull(badRequestResult);
+        }
+        
+        [TestMethod]
+        public async Task GetCurrentGoogleUserExists()
+        {
+            var userService = new UserService(ctx);
+            
+            var orcidID = "get-current-user0123456789";
+            var email = "get-current-user@test.com";
+            var user = await userService.SignInGoogle(orcidID, email);
+            var userController = new NameController(userService,user.Id.ToString());
+            var result = await userController.GetCurrentUser();
+            
+            var okResult = result.Result as OkObjectResult;
+            Assert.IsNotNull(okResult);
+
+            var currentUser = okResult.Value as User;
+
+            await userService.DeleteUserAsync(user.Id, user.Id.ToString());
+            Assert.IsNotNull(currentUser);
+            Assert.AreEqual(currentUser.Id, user.Id);
+        }
+        [TestMethod]
+        public async Task GetCurrentOrcidUserExists()
+        {
+            var userService = new UserService(ctx);
+            
+            var orcidID = "get-current-user0123456789";
+            var name = "current-user";
+            var user = await userService.SignInOrcid(orcidID, name);
+            var userController = new NameController(userService,user.Id.ToString());
+            var result = await userController.GetCurrentUser();
+            
+            var okResult = result.Result as OkObjectResult;
+            Assert.IsNotNull(okResult);
+
+            var currentUser = okResult.Value as User;
+
+            await userService.DeleteUserAsync(user.Id, user.Id.ToString());
+            Assert.IsNotNull(currentUser);
+            Assert.AreEqual(currentUser.Id, user.Id);
+        }
+
+        [TestMethod]
+        public async Task GetCurrentUserNotExists()
+        {
+            var userService = new UserService(ctx);
+            var userController = new NameController(userService,Guid.NewGuid().ToString());
+            var result = await userController.GetCurrentUser();
+            
+            var okResult = result.Result as OkObjectResult;
+            Assert.IsNotNull(okResult);
+
+            User? user = okResult.Value as User;
+            Assert.IsNull(user);
+        }
+
+        [TestMethod]
+        public async Task GetCurrentUserNull()
+        {
+            var userService = new UserService(ctx);
+            var userController = new NameController(userService,null);
+            var result = await userController.GetCurrentUser();
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(UnauthorizedResult));
         }
     }
 }

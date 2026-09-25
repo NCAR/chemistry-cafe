@@ -25,24 +25,12 @@ namespace ChemistryCafeAPI.Tests
         private UserService _userService;
         private FamilyService _familyService;
 
-        private class MockedPhaseController : PhaseController
-        {
-            public MockedPhaseController(PhaseService service) : base(service)
-            {
-            }
-
-            protected override string? GetNameIdentifier()
-            {
-                return _nameIdentifier;
-            }
-        }
-
         public PhaseControllerTests()
         {
             _context = DBConnection.Context;
             _userService = new UserService(_context);
             _phaseService = new PhaseService(_context, _userService);
-            _phaseController = new MockedPhaseController(_phaseService);
+            _phaseController = new PhaseController(_phaseService);
             _familyService = new FamilyService(_context, _userService);
         }
 
@@ -50,7 +38,7 @@ namespace ChemistryCafeAPI.Tests
         {
             var googleId = "phase-sample-google-id";
             var email = "phase-test@fake-website.com";
-            _user = await _userService.SignIn(googleId, email);
+            _user = await _userService.SignInGoogle(googleId, email);
             _nameIdentifier = _user.Id.ToString();
 
             var familyDto = new Family

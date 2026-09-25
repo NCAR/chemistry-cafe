@@ -27,7 +27,8 @@ import ACOMlockupHorizontalColor from "../assets/branding/acom-lockup-horizontal
 import ACOMlockupHorizontalWhite from "../assets/branding/acom-lockup-horizontal-white.png";
 import ACOMlockupVerticalColor from "../assets/branding/acom-lockup-vertical-color.png";
 import ACOMlockupVerticalWhite from "../assets/branding/acom-lockup-vertical-white.png";
-import { AUTH_URL } from "../API/API_config";
+import OrcidImage from "../assets/ORCID-iD_icon_vector.svg"
+import {BASE_URL, AUTH_URL } from "../API/API_config";
 import { clearFamiliesLocally } from "../helpers/localFamilies";
 
 const CHEMISTRY_CAFE_REPO = "https://github.com/NCAR/chemistry-cafe";
@@ -41,16 +42,20 @@ export const Header = () => {
   );
   const closeMobileMenu = () => setMobileMenuAnchor(null);
 
-  const login = () => {
+  const loginGoogle = () => {
     localStorage.removeItem("user");
     window.location.assign(`${AUTH_URL}/google/login`);
+  };
+  const loginOrcid = () => {
+      localStorage.removeItem("user");
+      window.location.assign(`${AUTH_URL}/orcid/login`);
   };
 
   const goLogOut = () => {
     clearFamiliesLocally();
     setUser(null);
     localStorage.removeItem("user");
-    window.location.assign(`${AUTH_URL}/google/logout`);
+    window.location.assign(`${BASE_URL}/users/logout`);
   };
 
   return (
@@ -159,11 +164,11 @@ export const Header = () => {
                 </ListItemIcon>
                 Logout
               </MenuItem>
-            ) : (
+            ) : (<>
               <MenuItem
                 onClick={() => {
                   closeMobileMenu();
-                  login();
+                  loginGoogle();
                 }}
               >
                 <ListItemIcon>
@@ -171,7 +176,18 @@ export const Header = () => {
                 </ListItemIcon>
                 Sign in
               </MenuItem>
-            )}
+                <MenuItem
+                    onClick={() => {
+                        closeMobileMenu();
+                        loginOrcid();
+                    }}
+                >
+                    <ListItemIcon>
+                        <img aria-label={"ORCID Login"} alt={"ORCID Login"} src={OrcidImage} />
+                    </ListItemIcon>
+                    Sign in
+                </MenuItem>
+            </>)}
           </Menu>
         </Box>
       ) : /* Display login information and sign-in controls */
@@ -185,7 +201,7 @@ export const Header = () => {
           }}
         >
           <Typography sx={{ fontSize: "medium" }}>
-            {loggedInUser.email}
+            {loggedInUser.username}
           </Typography>
           {loggedInUser.role === "admin" && (
             <IconButton
@@ -235,9 +251,12 @@ export const Header = () => {
             Using as guest
           </Typography>
           <Divider orientation="vertical" flexItem />
-          <Button size="small" onClick={login} startIcon={<GoogleIcon />}>
+          <Button size="small" onClick={loginGoogle} startIcon={<GoogleIcon />}>
             Sign in
           </Button>
+            <Button size="small" onClick={loginOrcid} startIcon={<img aria-label={"ORCID Login"} alt={"ORCID Login"} src={OrcidImage} />}>
+                Sign in
+            </Button>
         </Box>
       )}
     </Paper>

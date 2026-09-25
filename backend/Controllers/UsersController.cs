@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Diagnostics.CodeAnalysis;
 using ChemistryCafeAPI.Models;
 using ChemistryCafeAPI.Services;
+using Microsoft.AspNetCore.Authentication;
 
 namespace ChemistryCafeAPI.Controllers
 {
@@ -11,6 +12,9 @@ namespace ChemistryCafeAPI.Controllers
     public class UsersController : ControllerBase
     {
         private readonly UserService _userService;
+        
+        private readonly string _frontendHost = Environment.GetEnvironmentVariable("FRONTEND_HOST") ?? "";
+
 
         [ExcludeFromCodeCoverage]
         protected virtual string? GetNameIdentifier()
@@ -109,6 +113,66 @@ namespace ChemistryCafeAPI.Controllers
             }
 
             return NoContent();
+        }
+        /// <summary>
+        /// Gives the user information on themselves
+        /// </summary>
+        [HttpGet("whoami")]
+        public async Task<ActionResult<User?>> GetCurrentUser()
+        {
+            var nameIdentifier = GetNameIdentifier();
+            if (nameIdentifier == null) {
+                return Unauthorized();
+            }
+            var guid = Guid.Parse(nameIdentifier);
+            var user = await _userService.GetUserByIdAsync(guid);
+            return Ok(user);
+        }
+        
+        /// <summary>
+        /// Checks if Url is same origin as frontend
+        /// </summary>
+        [ExcludeFromCodeCoverage]
+        private bool IsSameOriginAsFrontend(string url)
+        {
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var candidate)) return false;
+            if (!Uri.TryCreate(_frontendHost, UriKind.Absolute, out var frontend)) return false;
+
+            return candidate.Scheme == frontend.Scheme
+                   && candidate.Host.Equals(frontend.Host, StringComparison.OrdinalIgnoreCase)
+                   && candidate.Port == frontend.Port;
+        }
+        
+        /// <summary>
+        /// Removes all authentication cookies and signs a user out of the backend application
+        /// </summary>
+        [HttpGet("logout")]
+        [ExcludeFromCodeCoverage]
+        public async Task<IActionResult> Logout(string? returnUrl)
+        {
+            // Ensure the redirect url is 
+            if (returnUrl == null || returnUrl.Equals(""))
+            {
+                returnUrl = _frontendHost;
+            }
+            else if (!Url.IsLocalUrl(returnUrl) && !IsSameOriginAsFrontend(returnUrl))
+            {
+                return BadRequest("Invalid returnUrl argument. Must be within application scope.");
+            }
+
+            await HttpContext.SignOutAsync("Application");
+
+            var request = HttpContext.Request;
+            var cookies = request.Cookies;
+            foreach (var cookie in cookies)
+            {
+                if (cookie.Key.Contains(".AspNetCore.") || cookie.Key.Contains("Microsoft.Authentication"))
+                {
+                    Response.Cookies.Delete(cookie.Key);
+                }
+            }
+
+            return Redirect(returnUrl);
         }
     }
 }

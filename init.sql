@@ -1,4 +1,4 @@
-﻿CREATE TABLE IF NOT EXISTS `__EFMigrationsHistory` (
+CREATE TABLE IF NOT EXISTS `__EFMigrationsHistory` (
     `MigrationId` varchar(150) CHARACTER SET utf8mb4 NOT NULL,
     `ProductVersion` varchar(32) CHARACTER SET utf8mb4 NOT NULL,
     CONSTRAINT `PK___EFMigrationsHistory` PRIMARY KEY (`MigrationId`)
@@ -1077,6 +1077,39 @@ BEGIN
 
     INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
     VALUES ('20260918174248_RemoveReactionAttributeTables', '8.0.10');
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+COMMIT;
+
+START TRANSACTION;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260921200544_AddOrcidIdToUsers') THEN
+
+    ALTER TABLE `Users` ADD `OrcidId` longtext CHARACTER SET utf8mb4 NULL;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20260921200544_AddOrcidIdToUsers') THEN
+
+    INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+    VALUES ('20260921200544_AddOrcidIdToUsers', '8.0.10');
 
     END IF;
 END //

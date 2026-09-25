@@ -12,19 +12,10 @@ namespace ChemistryCafeAPI.Controllers
     [Route("api/mechanisms")]
     public class MechanismController : ControllerBase
     {
-        private readonly ChemistryDbContext _context;
         private readonly MechanismService _mechanismService;
 
-        [ExcludeFromCodeCoverage]
-        protected virtual string? GetNameIdentifier()
+        public MechanismController(MechanismService mechanismService)
         {
-            ClaimsIdentity? claimsIdentity = this.User.Identity as ClaimsIdentity;
-            return claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        }
-
-        public MechanismController(ChemistryDbContext context, MechanismService mechanismService)
-        {
-            _context = context;
             _mechanismService = mechanismService;
         }
 

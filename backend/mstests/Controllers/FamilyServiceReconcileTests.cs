@@ -30,7 +30,7 @@ namespace ChemistryCafeAPI.Tests
         {
             using ChemistryDbContext ctx = DBConnection.NewContext();
             var userService = new UserService(ctx);
-            User owner = userService.SignIn("reconcile-google-id", "reconcile-test@fake-website.com").Result;
+            User owner = userService.SignInGoogle("reconcile-google-id", "reconcile-test@fake-website.com").Result;
             _ownerId = owner.Id;
             _nameIdentifier = owner.Id.ToString();
         }

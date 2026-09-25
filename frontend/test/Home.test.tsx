@@ -64,7 +64,7 @@ describe("Unauthenticated Home Component", () => {
   });
 
   it("should render the sign-in button in the header and the family navigation buttons", () => {
-    expect(screen.getByText("Sign in")).toBeTruthy(); // Header sign-in button
+    expect(screen.getAllByText("Sign in").length).toBeTruthy();
     expect(
       screen.getByRole("button", { name: "Browse Mechanisms" }),
     ).toBeTruthy();
@@ -77,10 +77,12 @@ describe("Unauthenticated Home Component", () => {
   });
 
   it("navigates to the backend when signing in", () => {
-    const loginButton = screen.getByText("Sign in");
-    expect(loginButton).toBeTruthy();
-    fireEvent.click(loginButton);
-    expect(window.location.assign).toHaveBeenCalledOnce(); // Redirect to backend auth/google/login endpoint
+    const loginButtons = screen.getAllByText("Sign in");
+    expect(loginButtons.length).toBeTruthy();
+    for (const loginButton of loginButtons) {
+      fireEvent.click(loginButton);
+    }
+    expect(window.location.assign).toHaveBeenCalledTimes(loginButtons.length) // Redirect to backend auth/google/login endpoint
   });
 
   it("navigates when browsing families or opening the family editor", () => {

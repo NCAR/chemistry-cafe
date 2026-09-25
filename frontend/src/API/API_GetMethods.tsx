@@ -3,7 +3,7 @@
 import axios from "axios";
 
 import { APIFamily, APIUser } from "./API_Interfaces";
-import { AUTH_URL, BASE_URL } from "./API_config";
+import { BASE_URL } from "./API_config";
 import { UUID } from "crypto";
 
 // Get all users
@@ -49,7 +49,7 @@ export async function getUserById(id: string): Promise<APIUser | null> {
  */
 export async function getCurrentUser(): Promise<APIUser | null> {
   try {
-    const response = await axios.get<APIUser>(`${AUTH_URL}/google/whoami`, {
+    const response = await axios.get<APIUser>(`${BASE_URL}/users/whoami`, {
       withCredentials: true,
     });
     return response.data;

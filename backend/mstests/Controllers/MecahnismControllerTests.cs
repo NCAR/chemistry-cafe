@@ -24,25 +24,14 @@ namespace ChemistryCafeAPI.Tests
         private MechanismController _mechanismController;
         private UserService _userService;
         private FamilyService _familyService;
-
-        private class MockedMechanismController : MechanismController
-        {
-            public MockedMechanismController(MechanismService service) : base(_context, service)
-            {
-            }
-
-            protected override string? GetNameIdentifier()
-            {
-                return _nameIdentifier;
-            }
-        }
+        
 
         public MechanismControllerTests()
         {
             _context = DBConnection.Context;
             _userService = new UserService(_context);
             _mechanismService = new MechanismService(_context);
-            _mechanismController = new MockedMechanismController(_mechanismService);
+            _mechanismController = new MechanismController(_mechanismService);
             _familyService = new FamilyService(_context, _userService);
         }
 
@@ -50,7 +39,7 @@ namespace ChemistryCafeAPI.Tests
         {
             var googleId = "mechanism-sample-google-id";
             var email = "mechanism-test@fake-website.com";
-            _user = await _userService.SignIn(googleId, email);
+            _user = await _userService.SignInGoogle(googleId, email);
             _nameIdentifier = _user.Id.ToString();
 
             var familyDto = new Family

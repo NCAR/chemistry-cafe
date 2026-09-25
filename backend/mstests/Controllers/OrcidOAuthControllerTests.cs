@@ -13,7 +13,7 @@ using Microsoft.EntityFrameworkCore;
 namespace ChemistryCafeAPI.Tests
 {
     [TestClass]
-    public class GoogleOAuthControllerTests
+    public class OrcidOAuthControllerTests
     {
         readonly ChemistryDbContext ctx = DBConnection.Context;
         
@@ -21,9 +21,9 @@ namespace ChemistryCafeAPI.Tests
         public Task LoginNonnull()
         {
             var userService = new UserService(ctx);
-            var googleService = new GoogleOAuthService(userService);
-            var googleController = new GoogleOAuthController(googleService);
-            Assert.IsNotNull(googleController.LoginRedirect());
+            var orcidService = new OrcidOAuthService(userService);
+            var orcidController = new OrcidOAuthController(orcidService);
+            Assert.IsNotNull(orcidController.LoginRedirect());
             return Task.CompletedTask;
         }
     }
