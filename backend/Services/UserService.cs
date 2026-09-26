@@ -45,6 +45,7 @@ namespace ChemistryCafeAPI.Services
         /// <summary>
         /// Links and existing user to Google account
         /// </summary>
+        /// <param name="user"></param>
         /// <param name="googleID"></param>
         /// <param name="email"></param>
         /// <returns>Tracked user object</returns>
@@ -90,10 +91,11 @@ namespace ChemistryCafeAPI.Services
             return user;
         }
         /// <summary>
-        /// Links and existing user to Google account
+        /// Links and existing user to Orcid account
         /// </summary>
-        /// <param name="googleID"></param>
-        /// <param name="email"></param>
+        /// <param name="user"></param>
+        /// <param name="orcidID"></param>
+        /// <param name="name"></param>
         /// <returns>Tracked user object</returns>
         public async Task<User> LinkOrcid(User user,string orcidID, string name)
         {
@@ -111,7 +113,7 @@ namespace ChemistryCafeAPI.Services
         /// Otherwise, returns the existing user.
         /// </summary>
         /// <param name="orcidID"></param>
-        /// <param name="email"></param>
+        /// <param name="name"></param>
         /// <returns>Tracked user object</returns>
         public async Task<User> SignInOrcid(string orcidID, string name)
         {
