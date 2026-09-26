@@ -20,7 +20,7 @@ import {
   ToggleButtonGroup,
   Input, TextField, Button,
 } from "@mui/material";
-import {useLayoutEffect, useRef, useState} from "react";
+import {useEffect, useLayoutEffect, useState} from "react";
 import AccountBoxIcon from "@mui/icons-material/AccountBox";
 import SettingsAccessibilityIcon from "@mui/icons-material/SettingsAccessibility";
 import TvIcon from "@mui/icons-material/Tv";
@@ -32,6 +32,9 @@ import DarkModeIcon from "@mui/icons-material/DarkMode";
 import {useAuth} from "../components/AuthContext.tsx";
 import {APIUser} from "../API/API_Interfaces.tsx";
 import {updateUser} from "../API/API_UpdateMethods.tsx";
+import {AUTH_URL} from "../API/API_config.tsx";
+import GoogleIcon from "@mui/icons-material/Google";
+import OrcidImage from "../assets/ORCID-iD_icon_vector.svg";
 
 
 const Settings = () => {
@@ -66,6 +69,8 @@ const Settings = () => {
   useLayoutEffect(() => {
     setMenuComponent(getMenuComponent(selectedMenu));
   }, [selectedMenu]);
+  
+  const { user: loggedInUser } = useAuth(); // Get logged in user info from AuthContext
 
   return (
     <div className="layout-settings">
@@ -145,7 +150,7 @@ const Settings = () => {
             </ListItem>
           </List>
 
-          <List
+          {!!loggedInUser &&<List
             sx={{
               color: theme.palette.text.primary,
               fontSize: theme.typography.fontSize + 4,
@@ -173,7 +178,7 @@ const Settings = () => {
                 </ListItemText>
               </ListItemButton>
             </ListItem>
-          </List>
+          </List>}
         </Box>
         <Paper
           sx={{
@@ -197,8 +202,13 @@ const Settings = () => {
 const ProfileMenu = () => {
   const { user: loggedInUser } = useAuth(); // Get logged in user info from AuthContext
   const { theme } = useCustomTheme();
-  const data = useRef(loggedInUser as APIUser);
-  data.current=loggedInUser as APIUser;
+  const userCopy = {...loggedInUser} as APIUser
+  const [user,setUser] = useState(userCopy);
+  useEffect(() => {
+    setUser(userCopy);
+  }, [loggedInUser]);
+  
+  
   return loggedInUser?<List
       sx={{
         color: theme.palette.text.primary,
@@ -215,7 +225,7 @@ const ProfileMenu = () => {
             required
             defaultValue={loggedInUser?.username}
             onChange={(e) => 
-                data.current.username=e.target.value}
+                setUser((p)=>({...p,username:e.target.value}))}
       />
     </ListItem>
     <ListItem>
@@ -227,24 +237,47 @@ const ProfileMenu = () => {
           required
           defaultValue={loggedInUser?.email}
           onChange={(e) =>
-              data.current.email=e.target.value}
+              setUser((p)=>({...p,email:e.target.value}))}
 
       />
     </ListItem>
     <ListItem>
-      <Button
+      <ListItemButton
+          disabled={!!loggedInUser?.googleId}
+          component={"button"}
           color="primary"
-          variant="contained"
-          onClick={() => updateUser(data.current)}
+          onClick={() => window.location.assign(`${AUTH_URL}/google/login`)}
       >
-        Link to Google
-      </Button>
+        <ListItemIcon>
+          <GoogleIcon fontSize="small" />
+        </ListItemIcon>
+        <ListItemText primary="Link to Google" />
+      </ListItemButton>
+    </ListItem>
+    <ListItem>
+      <ListItemButton
+          disabled={!!loggedInUser?.orcidId}
+          component={"button"}
+          color="primary"
+          onClick={() => window.location.assign(`${AUTH_URL}/orcid/login`)}
+      >
+      <ListItemIcon>
+        <img
+            aria-label={"ORCID Login"}
+            alt={"ORCID Login"}
+            src={OrcidImage}
+            style={{ width: 24, height: 24 }}
+        />
+      </ListItemIcon>
+        <ListItemText primary="Link to ORCID" />
+      </ListItemButton>
     </ListItem>
     <ListItem>
       <Button
+          disabled={Object.entries(user).reduce((prev,[key,val])=>prev&&loggedInUser[key as keyof APIUser]===val,true)}
           color="primary"
           variant="contained"
-          onClick={() => updateUser(data.current)}
+          onClick={() =>updateUser(user).then(()=>window.location.reload()).catch(()=>window.alert("error updating profile"))}
       >
         Save Changes
       </Button>

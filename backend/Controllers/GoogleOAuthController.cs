@@ -1,9 +1,11 @@
 using System.Security.Claims;
 using System.Diagnostics.CodeAnalysis;
+using ChemistryCafeAPI.Models;
 using ChemistryCafeAPI.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace ChemistryCafeAPI.Controllers
 {
@@ -39,15 +41,19 @@ namespace ChemistryCafeAPI.Controllers
             {
                 return BadRequest("Google OAuth Http Response did not succeed");
             }
-
-            ClaimsPrincipal? claimsIdentity = await googleOAuthService.GetUserClaimsAsync(result);
+            
+            var userResult = await GetCurrentUser();
+            User? user =  userResult.Result is OkObjectResult objectResult?(User?)objectResult?.Value:null;
+            
+            ClaimsPrincipal? claimsIdentity = await googleOAuthService.GetUserClaimsAsync(result,user);
             if (claimsIdentity == null)
             {
                 return BadRequest("Invalid Credentials Passed");
             }
 
             await HttpContext.SignInAsync("Application", claimsIdentity);
-            string redirectUrl = Path.Combine(FrontendHost, "dashboard").Replace('\\', '/');
+            string basePath = Path.Combine(FrontendHost, user==null?"dashboard":"settings").Replace('\\', '/');;
+            string redirectUrl = user==null?basePath:QueryHelpers.AddQueryString(basePath, "selectedMenu", "profile");
             RedirectResult ret = Redirect(redirectUrl);
             return ret;
         }

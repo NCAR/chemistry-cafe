@@ -25,9 +25,10 @@ namespace ChemistryCafeAPI.Services
         /// Parses an OAuth challenge result and turns them into a user's claims
         /// </summary>
         /// <param name="authenticateResult">Result of ORCID OAuth Challenge</param>
+        /// <param name="prev">current user</param>
         /// <returns>ClaimsPrincipal object which holds the user's auth informations</returns>
         [ExcludeFromCodeCoverage]
-        public async Task<ClaimsPrincipal?> GetUserClaimsAsync(AuthenticateResult authenticateResult)
+        public async Task<ClaimsPrincipal?> GetUserClaimsAsync(AuthenticateResult authenticateResult,User? prev)
         {
             if (authenticateResult.Principal == null)
             {
@@ -48,7 +49,7 @@ namespace ChemistryCafeAPI.Services
             }
             string displayName = nameClaim?.Value ?? "ORCID User";
 
-            User user = await UserService.SignInOrcid(orcidId.Value, displayName);
+            User user = prev!=null?await UserService.LinkOrcid(prev,orcidId.Value,displayName): await UserService.SignInOrcid(orcidId.Value, displayName);
 
             Claim nameIdClaim = new Claim(ClaimTypes.NameIdentifier, user.Id.ToString());
 

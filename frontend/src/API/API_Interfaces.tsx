@@ -7,6 +7,7 @@ export interface APIUser {
   email?: string | null;
   createdDate?: string;
   googleId?: string | null;
+  orcidId?: string | null;
 }
 
 export interface APIFamily {

@@ -41,7 +41,25 @@ namespace ChemistryCafeAPI.Services
         {
             return await context.Users.SingleOrDefaultAsync(u => u.Email == email);
         }
-
+        
+        /// <summary>
+        /// Links and existing user to Google account
+        /// </summary>
+        /// <param name="googleID"></param>
+        /// <param name="email"></param>
+        /// <returns>Tracked user object</returns>
+        public async Task<User> LinkGoogle(User user,string googleID, string email)
+        {
+            var dup = await context.Users.SingleOrDefaultAsync(u => u.GoogleId == googleID);
+            if (dup != null)
+            {
+                return dup;
+            }
+            user.Email = email;
+            user.GoogleId = googleID;
+            await context.SaveChangesAsync();
+            return user;
+        }
         /// <summary>
         /// Creates a user in the database if they don't exist.
         /// Otherwise, returns the existing user.
@@ -68,6 +86,23 @@ namespace ChemistryCafeAPI.Services
             {
                 user.Email = email;
             }
+            await context.SaveChangesAsync();
+            return user;
+        }
+        /// <summary>
+        /// Links and existing user to Google account
+        /// </summary>
+        /// <param name="googleID"></param>
+        /// <param name="email"></param>
+        /// <returns>Tracked user object</returns>
+        public async Task<User> LinkOrcid(User user,string orcidID, string name)
+        {
+            var dup = await context.Users.SingleOrDefaultAsync(u => u.OrcidId == orcidID);
+            if (dup != null)
+            {
+                return dup;
+            }
+            user.OrcidId = orcidID;
             await context.SaveChangesAsync();
             return user;
         }
