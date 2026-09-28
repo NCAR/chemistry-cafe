@@ -7,15 +7,16 @@ using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace ChemistryCafeAPI.Controllers
 {
-    [ApiController]
-    [Route("api/users")]
     public class BaseHelperController(UserService userService) : Controller
     {
-        protected readonly UserService UserService= userService;
+        protected readonly UserService UserService = userService;
         
         protected readonly string FrontendHost = Environment.GetEnvironmentVariable("FRONTEND_HOST") ?? "";
         protected readonly string BaseUri = Environment.GetEnvironmentVariable("BACKEND_BASE_URL") ?? "";
         
+        /// <summary>
+        /// Gives the current sessions UserID or null if they don't have one
+        /// </summary>
         [ExcludeFromCodeCoverage]
         protected virtual string? GetNameIdentifier()
         {
