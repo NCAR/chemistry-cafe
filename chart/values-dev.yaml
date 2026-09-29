@@ -67,7 +67,7 @@ ingress:
         - path: /signin-orcid
           pathType: Prefix
           backendService: backend
-    - host: chemistrycafe-devel.ucar.edu
+    - host: chemistrycafe-devel.acom.ucar.edu
       paths:
         - path: /
           pathType: Prefix
