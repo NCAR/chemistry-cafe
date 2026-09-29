@@ -73,11 +73,11 @@ spec:
               protocol: TCP
           envFrom:
             - configMapRef:
-                name: {{ include "chemistry-cafe.name" . }}-backend
+                name: {{ include "chemistry-cafe.fullname" . }}-backend
             - secretRef:
-                name: {{ include "chemistry-cafe.name" . }}-mysql
+                name: {{ include "chemistry-cafe.fullname" . }}-mysql
             - secretRef:
-                name: {{ include "chemistry-cafe.name" . }}-backend
+                name: {{ include "chemistry-cafe.fullname" . }}-backend
           resources:
             {{- toYaml .Values.backend.resources | nindent 12 }}
           livenessProbe:
