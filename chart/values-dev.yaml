@@ -67,6 +67,25 @@ ingress:
         - path: /signin-orcid
           pathType: Prefix
           backendService: backend
+    - host: chemistrycafe-devel.ucar.edu
+      paths:
+        - path: /
+          pathType: Prefix
+          backendService: frontend
+        - path: /api
+          pathType: Prefix
+          backendService: backend
+        - path: /auth
+          pathType: Prefix
+          backendService: backend
+        # Google sends the user here after sign-in (the ASP.NET default CallbackPath)
+        - path: /signin-google
+          pathType: Prefix
+          backendService: backend
+        # ORCID sends the user here after sign-in (CallbackPath in Program.cs)
+        - path: /signin-orcid
+          pathType: Prefix
+          backendService: backend
   tls:
     - secretName: chemistry-cafe-dev-tls
       hosts:
