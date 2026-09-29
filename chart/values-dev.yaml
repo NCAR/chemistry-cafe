@@ -18,7 +18,7 @@ mysql:
       memory: 512Mi
       cpu: 500m
 backend:
-  frontendHost: https://chemcafe-dev.k8s.ucar.edu
+  frontendHost: https://chemistrycafe-devel.acom.ucar.edu
   # The ingress keeps the path prefix, and the auth routes are at /auth,
   # not /api/auth. The backend uses this value only for the OAuth redirect.
   backendBaseUrl: /
@@ -71,6 +71,7 @@ ingress:
     - secretName: chemistry-cafe-dev-tls
       hosts:
         - chemcafe-dev.k8s.ucar.edu
+        - chemistrycafe-devel.acom.ucar.edu
 externalSecrets:
   secretStoreName: kshores-ro
   baoUser: kshores@ucar.edu

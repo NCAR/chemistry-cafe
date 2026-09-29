@@ -36,32 +36,32 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 
 {{- define "chemistry-cafe.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "chemistry-cafe.name" .) .Values.serviceAccount.name }}
+{{- default (include "chemistry-cafe.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
 
 {{- define "chemistry-cafe.mysql.serviceName" -}}
-{{- printf "%s-mysql" (include "chemistry-cafe.name" .) }}
+{{- printf "%s-mysql" (include "chemistry-cafe.fullname" .) }}
 {{- end }}
 
 {{- define "chemistry-cafe.backend.serviceName" -}}
-{{- printf "%s-backend" (include "chemistry-cafe.name" .) }}
+{{- printf "%s-backend" (include "chemistry-cafe.fullname" .) }}
 {{- end }}
 
 {{- define "chemistry-cafe.frontend.serviceName" -}}
-{{- printf "%s-frontend" (include "chemistry-cafe.name" .) }}
+{{- printf "%s-frontend" (include "chemistry-cafe.fullname" .) }}
 {{- end }}
 
 {{- define "chemistry-cafe.ingress.name" -}}
-{{- printf "%s-ingress" (include "chemistry-cafe.name" .) }}
+{{- printf "%s-ingress" (include "chemistry-cafe.fullname" .) }}
 {{- end }}
 
 {{- define "chemistry-cafe.mysql.secretName" -}}
-{{- printf "%s-mysql" (include "chemistry-cafe.name" .) }}
+{{- printf "%s-mysql" (include "chemistry-cafe.fullname" .) }}
 {{- end }}
 
 {{- define "chemistry-cafe.backend.secretName" -}}
-{{- printf "%s-backend" (include "chemistry-cafe.name" .) }}
+{{- printf "%s-backend" (include "chemistry-cafe.fullname" .) }}
 {{- end }}
