@@ -42,7 +42,7 @@ frontend:
       cpu: 200m
 ingress:
   enabled: true
-  className: traefik-internal
+  className: traefik-external
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: 'true'
