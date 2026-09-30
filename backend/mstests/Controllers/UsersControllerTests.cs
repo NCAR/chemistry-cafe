@@ -417,9 +417,9 @@ namespace ChemistryCafeAPI.Tests
         {
             var userService = new UserService(ctx);
             
-            var orcidID = "get-current-user0123456789";
+            var googleID = "get-current-user0123456789";
             var email = "get-current-user@test.com";
-            var user = await userService.SignInGoogle(orcidID, email);
+            var user = await userService.SignInGoogle(googleID, email);
             var userController = new NameController(userService,user.Id.ToString());
             var result = await userController.GetCurrentUser();
             
@@ -432,6 +432,59 @@ namespace ChemistryCafeAPI.Tests
             Assert.IsNotNull(currentUser);
             Assert.AreEqual(currentUser.Id, user.Id);
         }
+        [TestMethod]
+        public async Task GetCurrentGoogleUserExistsOrcidLink()
+        {
+            var userService = new UserService(ctx);
+            
+            var googleID = "get-current-user0123456789";
+            var orcidID = "get-current-user0123456789-orcid";
+            var email = "get-current-user@test.com";
+            var name = "current-user";
+            var userPrev = await userService.SignInGoogle(googleID, email);
+            var user = await userService.LinkOrcid(userPrev, orcidID,name);
+            var userController = new NameController(userService,user.Id.ToString());
+            var result = await userController.GetCurrentUser();
+            
+            var okResult = result.Result as OkObjectResult;
+            Assert.IsNotNull(okResult);
+
+            var currentUser = okResult.Value as User;
+            
+            await userService.DeleteUserAsync(user.Id, user.Id.ToString());
+            Assert.IsNotNull(currentUser);
+            Assert.AreEqual(currentUser.Id, user.Id);
+            Assert.AreEqual(currentUser.Id, userPrev.Id);
+        }
+        
+        [TestMethod]
+        public async Task DuplicateOrcidLink()
+        {
+            var userService = new UserService(ctx);
+            
+            var googleID = "get-current-user0123456789";
+            var orcidID = "get-current-user0123456789-orcid";
+            var email = "get-current-user@test.com";
+            var name = "current-user";
+            var userPrev = await userService.SignInGoogle(googleID, email);
+            var user = await userService.LinkOrcid(userPrev, orcidID,name);
+            Assert.IsNotNull(user);
+            Assert.AreEqual(userPrev.Id, user.Id);
+
+            
+            var other_googleID = "get-current-user0123456789-2";
+            var other_email = "diff-get-current-user@test.com";
+            var other_userPrev = await userService.SignInGoogle(other_googleID, other_email);
+            var other_user = await userService.LinkOrcid(other_userPrev, orcidID,name);
+            Assert.IsNull(other_user);
+            Assert.IsNotNull(other_userPrev);
+            
+            await userService.DeleteUserAsync(user.Id, user.Id.ToString());
+            await userService.DeleteUserAsync(other_userPrev.Id, other_userPrev.Id.ToString());
+
+           
+        }
+        
         [TestMethod]
         public async Task GetCurrentOrcidUserExists()
         {
@@ -452,6 +505,56 @@ namespace ChemistryCafeAPI.Tests
             Assert.IsNotNull(currentUser);
             Assert.AreEqual(currentUser.Id, user.Id);
         }
+        [TestMethod]
+        public async Task GetCurrentOrcidUserExistsGoogleLink()
+        {
+            var userService = new UserService(ctx);
+            
+            var googleID = "get-current-user0123456789";
+            var orcidID = "get-current-user0123456789-orcid";
+            var email = "get-current-user@test.com";
+            var name = "current-user";
+            var userPrev = await userService.SignInOrcid(orcidID, name);
+            var user = await userService.LinkGoogle(userPrev, googleID,email);
+            var userController = new NameController(userService,user.Id.ToString());
+            var result = await userController.GetCurrentUser();
+            
+            var okResult = result.Result as OkObjectResult;
+            Assert.IsNotNull(okResult);
+
+            var currentUser = okResult.Value as User;
+            
+            await userService.DeleteUserAsync(user.Id, user.Id.ToString());
+            Assert.IsNotNull(currentUser);
+            Assert.AreEqual(currentUser.Id, user.Id);
+            Assert.AreEqual(currentUser.Id, userPrev.Id);
+        }
+        [TestMethod]
+        public async Task DuplicateGoogleLink()
+        {
+            var userService = new UserService(ctx);
+            
+            var googleID = "get-current-user0123456789";
+            var orcidID = "get-current-user0123456789-orcid";
+            var email = "get-current-user@test.com";
+            var name = "current-user";
+            var userPrev = await userService.SignInOrcid(googleID, email);
+            var user = await userService.LinkGoogle(userPrev, googleID,email);
+            Assert.IsNotNull(user);
+            Assert.AreEqual(userPrev.Id, user.Id);
+            
+            var other_orcidID = "get-current-user0123456789-orcid-2";
+            var other_name = "current-user-2";
+            var other_userPrev = await userService.SignInOrcid(other_orcidID, other_name);
+            var other_user = await userService.LinkGoogle(other_userPrev, googleID,email);
+            Assert.IsNull(other_user);
+            Assert.IsNotNull(other_userPrev);
+            
+            await userService.DeleteUserAsync(user.Id, user.Id.ToString());
+            await userService.DeleteUserAsync(other_userPrev.Id, other_userPrev.Id.ToString());
+
+        }
+
 
         [TestMethod]
         public async Task GetCurrentUserNotExists()

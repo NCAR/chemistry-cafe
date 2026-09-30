@@ -3,14 +3,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChemistryCafeAPI.Services;
 
-public class SpeciesService
+public class SpeciesService(ChemistryDbContext context)
 {
-    private readonly ChemistryDbContext _context;
-
-    public SpeciesService(ChemistryDbContext context)
-    {
-        _context = context;
-    }
 
     /// <summary>
     /// Retrieves a list of all species given specified constraints.
@@ -20,11 +14,11 @@ public class SpeciesService
     /// <returns>Tuple of result of the transaction and list of species</returns>
     public async Task<(QueryResult, IEnumerable<Species>?)> GetAllSpeciesAsync(Guid? familyId = null)
     {
-        IQueryable<Species> query = _context.Species;
+        IQueryable<Species> query = context.Species;
 
         if (familyId != null)
         {
-            Family? family = await _context.Families.SingleOrDefaultAsync(f => f.Id == familyId);
+            Family? family = await context.Families.SingleOrDefaultAsync(f => f.Id == familyId);
             if (family == null)
             {
                 return (QueryResult.ParentRelationNotFound, null);
@@ -44,7 +38,7 @@ public class SpeciesService
     /// <returns>Tuple of transaction result and species</returns>
     public async Task<(QueryResult, Species?)> GetSpeciesAsync(Guid id)
     {
-        Species? species = await _context.Species
+        Species? species = await context.Species
             .SingleOrDefaultAsync(s => s.Id == id);
 
         if (species == null)

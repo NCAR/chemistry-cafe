@@ -3,15 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChemistryCafeAPI.Services;
 
-public class ReactionService
+public class ReactionService(ChemistryDbContext context)
 {
-    private readonly ChemistryDbContext _context;
-
-    public ReactionService(ChemistryDbContext context)
-    {
-        _context = context;
-    }
-
+    
     /// <summary>
     /// Retrieves a list of all reactions given specified constraints.
     /// If a constraint is null, it is ignored.
@@ -20,7 +14,7 @@ public class ReactionService
     /// <returns>Tuple of result of the transaction and list of reactions</returns>
     public async Task<(QueryResult, IEnumerable<Reaction>?)> GetAllReactionsAsync(Guid? familyId = null)
     {
-        IQueryable<Reaction> query = _context.Reactions
+        IQueryable<Reaction> query = context.Reactions
             .Include(r => r.GasPhase)
             .Include(r => r.GasPhaseSpecies)
             .Include(r => r.AerosolPhase)
@@ -33,7 +27,7 @@ public class ReactionService
 
         if (familyId != null)
         {
-            Family? family = await _context.Families.SingleOrDefaultAsync(f => f.Id == familyId);
+            Family? family = await context.Families.SingleOrDefaultAsync(f => f.Id == familyId);
             if (family == null)
             {
                 return (QueryResult.ParentRelationNotFound, null);
@@ -53,7 +47,7 @@ public class ReactionService
     /// <returns>Tuple of transaction result and reaction</returns>
     public async Task<(QueryResult, Reaction?)> GetReactionAsync(Guid id)
     {
-        Reaction? reaction = await _context.Reactions
+        Reaction? reaction = await context.Reactions
             .Include(r => r.GasPhase)
             .Include(r => r.GasPhaseSpecies)
             .Include(r => r.AerosolPhase)

@@ -1,26 +1,18 @@
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 using ChemistryCafeAPI.Services;
 using ChemistryCafeAPI.Models;
-using System.Diagnostics.CodeAnalysis;
 
 namespace ChemistryCafeAPI.Controllers
 {
     [ApiController]
     [Route("api/reactions")]
-    public class ReactionController : ControllerBase
+    public class ReactionController(ReactionService reactionService,UserService userService) : BaseHelperController(userService)
     {
-        private readonly ReactionService _reactionService;
-
-        public ReactionController(ReactionService reactionService)
-        {
-            _reactionService = reactionService;
-        }
-
+        
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Reaction>>> GetReactions([FromQuery] Guid? familyId = null)
         {
-            var (result, reactions) = await _reactionService.GetAllReactionsAsync(familyId);
+            var (result, reactions) = await reactionService.GetAllReactionsAsync(familyId);
 
             return result switch
             {
@@ -33,7 +25,7 @@ namespace ChemistryCafeAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Reaction>> GetReaction(Guid id)
         {
-            var (result, reaction) = await _reactionService.GetReactionAsync(id);
+            var (result, reaction) = await reactionService.GetReactionAsync(id);
             return result switch
             {
                 QueryResult.Success => Ok(reaction),

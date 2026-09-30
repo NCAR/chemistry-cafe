@@ -29,9 +29,9 @@ namespace ChemistryCafeAPI.Tests
         {
             _context = DBConnection.Context;
             _userService = new UserService(_context);
-            _phaseService = new PhaseService(_context, _userService);
-            _phaseController = new PhaseController(_phaseService);
-            _familyService = new FamilyService(_context, _userService);
+            _phaseService = new PhaseService(_context);
+            _phaseController = new PhaseController(_phaseService,_userService);
+            _familyService = new FamilyService(_context);
         }
 
         private async Task AsyncInit()
@@ -47,7 +47,7 @@ namespace ChemistryCafeAPI.Tests
                 Description = "From PhaseControllerTests.cs",
                 CreatedDate = DateTime.UtcNow
             }.ToDto();
-            var (result, family) = await _familyService.CreateFamilyAsync(familyDto, _user.Id);
+            var (result, family) = await _familyService.CreateFamilyAsync(familyDto, _user);
             _family = family!.Entity;
 
             // Seed a phase through the whole-family save so the read tests have data.

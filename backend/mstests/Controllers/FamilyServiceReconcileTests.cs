@@ -21,6 +21,7 @@ namespace ChemistryCafeAPI.Tests
     [TestClass]
     public class FamilyServiceReconcileTests
     {
+        private static User _owner;
         private static Guid _ownerId;
         private static string _nameIdentifier = null!;
         private static readonly List<Guid> _createdFamilyIds = new();
@@ -31,6 +32,7 @@ namespace ChemistryCafeAPI.Tests
             using ChemistryDbContext ctx = DBConnection.NewContext();
             var userService = new UserService(ctx);
             User owner = userService.SignInGoogle("reconcile-google-id", "reconcile-test@fake-website.com").Result;
+            _owner = owner;
             _ownerId = owner.Id;
             _nameIdentifier = owner.Id.ToString();
         }
@@ -39,15 +41,14 @@ namespace ChemistryCafeAPI.Tests
         public static void ClassCleanup()
         {
             using ChemistryDbContext ctx = DBConnection.NewContext();
-            var familyService = new FamilyService(ctx, new UserService(ctx));
+            var familyService = new FamilyService(ctx);
             foreach (Guid id in _createdFamilyIds)
             {
                 familyService.DeleteFamilyAsync(id, _nameIdentifier).Wait();
             }
         }
 
-        private static FamilyService NewService(ChemistryDbContext ctx) =>
-            new FamilyService(ctx, new UserService(ctx));
+        private static FamilyService NewService(ChemistryDbContext ctx) => new(ctx);
 
         /// <summary>
         /// Builds a rich family graph with client-provided ids: three species (one
@@ -107,7 +108,8 @@ namespace ChemistryCafeAPI.Tests
         private static async Task<FamilyDto> CreateBaseFamilyAsync(FamilyDto dto)
         {
             using ChemistryDbContext ctx = DBConnection.NewContext();
-            var (result, _) = await NewService(ctx).CreateFamilyAsync(dto, _ownerId);
+            ctx.Attach(_owner);
+            var (result, _) = await NewService(ctx).CreateFamilyAsync(dto, _owner);
             Assert.AreEqual(QueryResult.Success, result);
             _createdFamilyIds.Add(dto.Id);
             return dto;

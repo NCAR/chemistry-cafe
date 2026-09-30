@@ -27,16 +27,8 @@ namespace ChemistryCafeAPI.Tests
         static User? _Owner = null; 
         static DateTime _CreatedDate = DateTime.UtcNow;
 
-        private class MockedFamilyController : FamilyController 
+        private class MockedFamilyController(FamilyService service,UserService userService,string? nameIdentifier) : FamilyController(service, userService)
         {
-            private string? nameIdentifier;
-
-            public MockedFamilyController(FamilyService service, string? identifer)
-                : base(service) 
-            {
-                nameIdentifier = identifer;
-            }
-
             protected override string? GetNameIdentifier() 
             {
                 return nameIdentifier;
@@ -48,22 +40,22 @@ namespace ChemistryCafeAPI.Tests
             var userService = new UserService(ctx);
             _Owner = await userService.SignInGoogle(_GoogleId, _Email);
             _NameIdentifier = _Owner.Id.ToString();
-            var familyService = new FamilyService(ctx, userService);
-            return new MockedFamilyController(familyService, _NameIdentifier);
+            var familyService = new FamilyService(ctx);
+            return new MockedFamilyController(familyService,userService, _NameIdentifier);
         }
 
         private Task<FamilyController> CreateControllerWithName(string nameIdentifier)
         {
             var userService = new UserService(ctx);
-            var familyService = new FamilyService(ctx, userService);
-            return Task.FromResult<FamilyController>(new MockedFamilyController(familyService, nameIdentifier));
+            var familyService = new FamilyService(ctx);
+            return Task.FromResult<FamilyController>(new MockedFamilyController(familyService,userService, nameIdentifier));
         }
 
         private Task<FamilyController> CreateSignedOutController()
         {
             var userService = new UserService(ctx);
-            var familyService = new FamilyService(ctx, userService);
-            return Task.FromResult<FamilyController>(new MockedFamilyController(familyService, null));
+            var familyService = new FamilyService(ctx);
+            return Task.FromResult<FamilyController>(new MockedFamilyController(familyService,userService, null));
         }
 
         [TestMethod]
@@ -194,7 +186,7 @@ namespace ChemistryCafeAPI.Tests
 
             // Assert
             Assert.IsNotNull(actionResult);
-            Assert.IsInstanceOfType(actionResult.Result, typeof(UnauthorizedObjectResult));
+            Assert.IsInstanceOfType(actionResult.Result, typeof(UnauthorizedResult));
         }
 
         [TestMethod]
@@ -395,7 +387,7 @@ namespace ChemistryCafeAPI.Tests
             {
                 var userService = new UserService(ctx);
                 userService.DeleteUserAsync(_Owner.Id, _Owner.Id.ToString()).Wait();
-                var familyService = new FamilyService(ctx, userService);
+                var familyService = new FamilyService(ctx);
                 familyService.DeleteFamilyAsync(_Id, _NameIdentifier).Wait();
             }
         }

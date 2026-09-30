@@ -1,8 +1,6 @@
-using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using System.Diagnostics.CodeAnalysis;
-using ChemistryCafeAPI.Services;
 using ChemistryCafeAPI.Models;
+using Microsoft.AspNetCore.Mvc;
+using ChemistryCafeAPI.Services;
 using ChemistryCafeAPI.Models.Dto;
 using ChemistryCafeAPI.Models.Mappers;
 
@@ -10,35 +8,22 @@ namespace ChemistryCafeAPI.Controllers
 {
     [ApiController]
     [Route("api/families")]
-    public class FamilyController : ControllerBase
+    public class FamilyController(FamilyService familyService,UserService userService) : BaseHelperController(userService)
     {
-        private readonly FamilyService _familyService;
-
-        [ExcludeFromCodeCoverage]
-        protected virtual string? GetNameIdentifier()
-        {
-            ClaimsIdentity? claimsIdentity = this.User.Identity as ClaimsIdentity;
-            return claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        }
-
-        public FamilyController(FamilyService familyService)
-        {
-            _familyService = familyService;
-        }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<FamilyDto>>>
             GetFamilies([FromQuery] bool? expand = false, [FromQuery] Guid? userId = null)
         {
             var bExpand = expand ?? false;
-            var families = await _familyService.GetFamiliesAsync(bExpand, userId);
+            var families = await familyService.GetFamiliesAsync(bExpand, userId);
             return Ok(families.Select(f => f.ToDto()));
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<FamilyDto>> GetFamily(Guid id)
         {
-            var family = await _familyService.GetFamilyAsync(id);
+            var family = await familyService.GetFamilyAsync(id);
             return family == null ? NotFound() : Ok(family.ToDto());
         }
 
@@ -56,20 +41,14 @@ namespace ChemistryCafeAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<FamilyDto>> CreateFamily(FamilyDto family)
         {
-            string? nameIdentifier = GetNameIdentifier();
-            if (nameIdentifier == null)
+            var userResult = await GetCurrentUser();
+            if (userResult.Result is not OkObjectResult)
             {
-                return Unauthorized("User is not authenticated");
+                return userResult.Result ?? Unauthorized();
             }
+            User? user = (User?)(userResult.Result as OkObjectResult)?.Value;
 
-            Guid userId;
-            bool isValidId = Guid.TryParse(nameIdentifier, out userId);
-            if (!isValidId)
-            {
-                return BadRequest("Name identifier is not parsable as a guid");
-            }
-
-            var (code, createdFamily) = await _familyService.CreateFamilyAsync(family, userId);
+            var (code, createdFamily) = await familyService.CreateFamilyAsync(family,user);
             if (createdFamily == null)
             {
                 return code switch
@@ -112,7 +91,7 @@ namespace ChemistryCafeAPI.Controllers
             {
                 return Unauthorized("User is not authenticated");
             }
-            var code = await _familyService.UpdateFamilyAsync(id, family, nameIdentifier);
+            var code = await familyService.UpdateFamilyAsync(id, family, nameIdentifier);
             return code switch
             {
                 QueryResult.NotFound => NotFound("Family not found"),
@@ -136,7 +115,7 @@ namespace ChemistryCafeAPI.Controllers
             {
                 return Unauthorized("User is not authenticated");
             }
-            var code = await _familyService.DeleteFamilyAsync(id, nameIdentifier);
+            var code = await familyService.DeleteFamilyAsync(id, nameIdentifier);
             return code switch
             {
                 QueryResult.NotFound => NotFound("Family not found"),

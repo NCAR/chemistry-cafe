@@ -30,8 +30,8 @@ namespace ChemistryCafeAPI.Tests
             _context = DBConnection.Context;
             _userService = new UserService(_context);
             _reactionService = new ReactionService(_context);
-            _reactionController = new ReactionController(_reactionService);
-            _familyService = new FamilyService(_context, _userService);
+            _reactionController = new ReactionController(_reactionService, _userService);
+            _familyService = new FamilyService(_context);
         }
 
         private async Task AsyncInit()
@@ -47,7 +47,7 @@ namespace ChemistryCafeAPI.Tests
                 Description = "From ReactionControllerTests.cs",
                 CreatedDate = DateTime.UtcNow
             }.ToDto();
-            var (result, family) = await _familyService.CreateFamilyAsync(familyDto, _user.Id);
+            var (result, family) = await _familyService.CreateFamilyAsync(familyDto, _user);
             _family = family!.Entity;
 
             // Seed a reaction through the whole-family save so the read tests have data.

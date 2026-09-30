@@ -34,6 +34,10 @@ with no default. For Google Authentication, create a Google Cloud OAuth 2.0
 client and add `http://localhost:8080/signin-google` to its "Authorized
 redirect URIs".
 
+Then fill in `ORCID_CLIENT_ID` and `ORCID_CLIENT_SECRET` — the only values
+with no default. For ORCID Authentication, create a ORCID OAuth 2.0
+client and add `http://localhost:8080/signin-orcid` to its "Redirect URIs".
+
 **Which file is used when**
 
 | File | Read by | Notes |
@@ -50,6 +54,8 @@ redirect URIs".
 |----------|:--------:|--------|----------------|
 | `GOOGLE_CLIENT_ID` | ✅ | *(fill in)* | *(fill in)* |
 | `GOOGLE_CLIENT_SECRET` | ✅ | *(fill in)* | *(fill in)* |
+| `ORCID_CLIENT_ID` | ✅ | *(fill in)* | *(fill in)* |
+| `ORCID_CLIENT_SECRET` | ✅ | *(fill in)* | *(fill in)* |
 | `MYSQL_USER` | ✅ | `chemistrycafedev` | `chemistrycafedev` |
 | `MYSQL_PASSWORD` | ✅ | `chemistrycafe` | `chemistrycafe` |
 | `MYSQL_DATABASE` | ✅ | `chemistry_db` | `chemistry_db` |
@@ -219,6 +225,8 @@ MYSQL_DATABASE=chemistry_db
 MYSQL_ROOT_PASSWORD=dontsharethiswithanyonebecausethatwouldbebad
 GOOGLE_CLIENT_ID=<client_id>
 GOOGLE_CLIENT_SECRET=<client_secret>
+ORCID_CLIENT_ID=<client_id>
+ORCID_CLIENT_SECRET=<client_secret>
 FRONTEND_HOST=https://<domain>
 BACKEND_BASE_URL=/api # This would be / if testing on localhost:8080
 

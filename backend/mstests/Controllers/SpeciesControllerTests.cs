@@ -31,9 +31,9 @@ namespace ChemistryCafeAPI.Tests
         {
             _context = DBConnection.Context;
             _speciesService = new SpeciesService(_context);
-            _speciesController = new SpeciesController(_speciesService);
             _userService = new UserService(_context);
-            _familyService = new FamilyService(_context, _userService);
+            _speciesController = new SpeciesController(_speciesService,_userService);
+            _familyService = new FamilyService(_context);
         }
 
         private async Task AsyncInit()
@@ -49,7 +49,7 @@ namespace ChemistryCafeAPI.Tests
                 Description = "From SpeciesControllerTests.cs",
                 CreatedDate = DateTime.UtcNow
             }.ToDto();
-            var (result, family) = await _familyService.CreateFamilyAsync(familyDto, _user.Id);
+            var (result, family) = await _familyService.CreateFamilyAsync(familyDto, _user);
             _family = family!.Entity;
 
             // Seed a species through the whole-family save so the read tests have data.

@@ -1,6 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics.CodeAnalysis;
-using System.Security.Claims;
 using ChemistryCafeAPI.Services;
 using ChemistryCafeAPI.Models;
 
@@ -8,19 +6,13 @@ namespace ChemistryCafeAPI.Controllers
 {
     [ApiController]
     [Route("api/phases")]
-    public class PhaseController : ControllerBase
+    public class PhaseController(PhaseService phaseService,UserService userService) : BaseHelperController(userService)
     {
-        private readonly PhaseService _phaseService;
-
-        public PhaseController(PhaseService phaseService)
-        {
-            _phaseService = phaseService;
-        }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Phase>>> GetPhases([FromQuery] Guid? familyId = null)
         {
-            var (result, phases) = await _phaseService.GetAllPhasesAsync(familyId);
+            var (result, phases) = await phaseService.GetAllPhasesAsync(familyId);
 
             return result switch
             {
@@ -33,7 +25,7 @@ namespace ChemistryCafeAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Phase>> GetPhase(Guid id)
         {
-            var (result, phase) = await _phaseService.GetPhaseAsync(id);
+            var (result, phase) = await phaseService.GetPhaseAsync(id);
             return result switch
             {
                 QueryResult.Success => Ok(phase),

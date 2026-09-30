@@ -1,7 +1,6 @@
 
 using System.Security.Claims;
 using ChemistryCafeAPI.Models;
-using ChemistryCafeAPI.Services;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Authentication;
 
@@ -10,15 +9,10 @@ namespace ChemistryCafeAPI.Services
     /// <summary>
     /// Adapted from: https://blog.rashik.com.np/adding-google-authentication-in-net-core-application-without-identity/
     /// </summary>
-    public class OrcidOAuthService
+    public class OrcidOAuthService(UserService userService)
     {
 
-        private readonly UserService _userService;
-
-        public OrcidOAuthService(UserService userService)
-        {
-            _userService = userService;
-        }
+        public readonly UserService UserService=userService;
 
         [ExcludeFromCodeCoverage]
         private static bool IsOrcidIdentity(ClaimsIdentity identity)
@@ -31,9 +25,10 @@ namespace ChemistryCafeAPI.Services
         /// Parses an OAuth challenge result and turns them into a user's claims
         /// </summary>
         /// <param name="authenticateResult">Result of ORCID OAuth Challenge</param>
+        /// <param name="prev">current user</param>
         /// <returns>ClaimsPrincipal object which holds the user's auth informations</returns>
         [ExcludeFromCodeCoverage]
-        public async Task<ClaimsPrincipal?> GetUserClaimsAsync(AuthenticateResult authenticateResult)
+        public async Task<ClaimsPrincipal?> GetUserClaimsAsync(AuthenticateResult authenticateResult,User? prev)
         {
             if (authenticateResult.Principal == null)
             {
@@ -54,12 +49,16 @@ namespace ChemistryCafeAPI.Services
             }
             string displayName = nameClaim?.Value ?? "ORCID User";
 
-            User user = await _userService.SignInOrcid(orcidId.Value, displayName);
-
+            User? user = prev!=null?await UserService.LinkOrcid(prev,orcidId.Value,displayName): await UserService.SignInOrcid(orcidId.Value, displayName);
+            if (user == null)
+            {
+                return null;
+            }
             Claim nameIdClaim = new Claim(ClaimTypes.NameIdentifier, user.Id.ToString());
-
+        
             claimsIdentity.AddClaim(nameIdClaim);
             claimsIdentity.AddClaim(new Claim(ClaimTypes.Name, user.Username ?? displayName));
+            claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, user.Role));
             return new ClaimsPrincipal(claimsIdentity);
         }
     }

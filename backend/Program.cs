@@ -25,7 +25,6 @@ public class Program {
         DotEnv.Load();
 
         // Add services to the container.
-
         builder.Services.AddControllers();
         builder.Services.AddScoped<UserService>();
         builder.Services.AddScoped<GoogleOAuthService>();

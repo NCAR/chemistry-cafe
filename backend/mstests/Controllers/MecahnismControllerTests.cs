@@ -31,8 +31,8 @@ namespace ChemistryCafeAPI.Tests
             _context = DBConnection.Context;
             _userService = new UserService(_context);
             _mechanismService = new MechanismService(_context);
-            _mechanismController = new MechanismController(_mechanismService);
-            _familyService = new FamilyService(_context, _userService);
+            _mechanismController = new MechanismController(_mechanismService,_userService);
+            _familyService = new FamilyService(_context);
         }
 
         private async Task AsyncInit()
@@ -48,7 +48,7 @@ namespace ChemistryCafeAPI.Tests
                 Description = "From MechanismControllerTests.cs",
                 CreatedDate = DateTime.UtcNow
             }.ToDto();
-            var (result, family) = await _familyService.CreateFamilyAsync(familyDto, _user.Id);
+            var (result, family) = await _familyService.CreateFamilyAsync(familyDto, _user);
             _family = family!.Entity;
 
             // Seed a mechanism through the whole-family save so the read tests have data.

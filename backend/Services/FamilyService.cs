@@ -6,16 +6,8 @@ using ChemistryCafeAPI.Models.Mappers;
 
 namespace ChemistryCafeAPI.Services;
 
-public class FamilyService
+public class FamilyService(ChemistryDbContext context)
 {
-    private readonly ChemistryDbContext _context;
-    private readonly UserService _userService;
-
-    public FamilyService(ChemistryDbContext context, UserService userService)
-    {
-        _context = context;
-        _userService = userService;
-    }
 
     /// <summary>
     /// Returns every family in the database with some constraints
@@ -25,7 +17,7 @@ public class FamilyService
     /// <returns>List of families</returns>
     public async Task<IEnumerable<Family>> GetFamiliesAsync(bool expand, Guid? userId = null)
     {
-        IQueryable<Family> query = _context.Families;
+        IQueryable<Family> query = context.Families;
 
         // Always include Owner
         query = query.AsSplitQuery().Include(f => f.Owner);
@@ -89,7 +81,7 @@ public class FamilyService
     /// <returns>Family or null if not found</returns>
     public async Task<Family?> GetFamilyAsync(Guid id)
     {
-        var family = await _context.Families
+        var family = await context.Families
             .AsSplitQuery()
             .Include(f => f.Owner)
             .Include(f => f.Species)
@@ -139,15 +131,14 @@ public class FamilyService
     /// <param name="family">Family information to create</param>
     /// <param name="userId">ID of the owner of the family</param>
     /// <returns>Result of the transaction and the entity entry</returns>
-    public async Task<(QueryResult, EntityEntry<Family>?)> CreateFamilyAsync(FamilyDto family, Guid userId)
+    public async Task<(QueryResult, EntityEntry<Family>?)> CreateFamilyAsync(FamilyDto family, User? currentUser)
     {
-        User? currentUser = await _userService.GetUserByIdAsync(userId);
         if (currentUser == null)
         {
             return (QueryResult.OwnerNotFound, null);
         }
 
-        if (family.Id != Guid.Empty && await _context.Families.AnyAsync(f => f.Id == family.Id))
+        if (family.Id != Guid.Empty && await context.Families.AnyAsync(f => f.Id == family.Id))
         {
             return (QueryResult.DuplicateIdError, null);
         }
@@ -189,7 +180,7 @@ public class FamilyService
             .ToList();
         
         Dictionary<Guid, Phase> phasesById = familyInfo.Phases.ToDictionary(p => p.Id);
-
+        
         familyInfo.Mechanisms = family.Mechanisms
             .Select(m =>
             {
@@ -202,8 +193,8 @@ public class FamilyService
             .ToList();
 
 
-        var createdFamily = _context.Families.Add(familyInfo);
-        await _context.SaveChangesAsync();
+        var createdFamily = context.Families.Add(familyInfo);
+        await context.SaveChangesAsync();
 
         return (QueryResult.Success, createdFamily);
     }
@@ -217,7 +208,7 @@ public class FamilyService
     /// <returns>Result of the transaction</returns>
     public async Task<QueryResult> UpdateFamilyAsync(Guid id, FamilyDto family, string nameIdentifier)
     {
-        var existingFamily = await _context.Families
+        var existingFamily = await context.Families
             .AsSplitQuery()
             .Include(f => f.Owner)
             .Include(f => f.Species)
@@ -267,7 +258,7 @@ public class FamilyService
         // reconcile all of the changes in all child objects
         TrackChangesToFamily(family, existingFamily);
 
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
         return QueryResult.Success;
     }
 
@@ -279,7 +270,7 @@ public class FamilyService
     /// <returns>Result of the transaction</returns>
     public async Task<QueryResult> DeleteFamilyAsync(Guid id, string nameIdentifier)
     {
-        var family = await _context.Families
+        var family = await context.Families
             .Include(f => f.Owner)
             .FirstOrDefaultAsync(f => f.Id == id);
 
@@ -293,7 +284,7 @@ public class FamilyService
             return QueryResult.NoAccess;
         }
 
-        await _context.Families.Where(f => f.Id == id).ExecuteDeleteAsync();
+        await context.Families.Where(f => f.Id == id).ExecuteDeleteAsync();
         return QueryResult.Success;
     }
 
@@ -389,11 +380,11 @@ public class FamilyService
         HashSet<Guid> deletedSpeciesIds = existingSpeciesIds.Except(incomingSpeciesIds).ToHashSet();
         HashSet<Guid> newSpeciesIds = incomingSpeciesIds.Except(existingSpeciesIds).ToHashSet();
         HashSet<Guid> maybeUpdatedSpeciesIds = existingSpeciesIds.Intersect(incomingSpeciesIds).ToHashSet();
-        deletedSpeciesIds.ToList().ForEach(id => _context.Species.Remove(existing.Species.Single(s => s.Id == id)));
+        deletedSpeciesIds.ToList().ForEach(id => context.Species.Remove(existing.Species.Single(s => s.Id == id)));
         newSpeciesIds.ToList().ForEach(id => {
             Species added = incoming.Species.Single(s => s.Id == id).ToEntity();
             added.FamilyId = existing.Id;
-            _context.Species.Add(added);
+            context.Species.Add(added);
             existing.Species.Add(added);
         });
         maybeUpdatedSpeciesIds.ToList().ForEach(id =>
@@ -414,11 +405,11 @@ public class FamilyService
         HashSet<Guid> deletedReactionIds = existingReactionIds.Except(incomingReactionIds).ToHashSet();
         HashSet<Guid> newReactionIds = incomingReactionIds.Except(existingReactionIds).ToHashSet();
         HashSet<Guid> maybeUpdatedReactionIds = existingReactionIds.Intersect(incomingReactionIds).ToHashSet();
-        deletedReactionIds.ToList().ForEach(id => _context.Reactions.Remove(existing.Reactions.Single(r => r.Id == id)));
+        deletedReactionIds.ToList().ForEach(id => context.Reactions.Remove(existing.Reactions.Single(r => r.Id == id)));
         newReactionIds.ToList().ForEach(id => {
             Reaction added = incoming.Reactions.Single(r => r.Id == id).ToEntity();
             added.FamilyId = existing.Id;
-            _context.Reactions.Add(added);
+            context.Reactions.Add(added);
             existing.Reactions.Add(added);
         });
         maybeUpdatedReactionIds.ToList().ForEach(id =>
@@ -676,13 +667,13 @@ public class FamilyService
         HashSet<Guid> deletedPhaseIds = existingPhaseIds.Except(incomingPhaseIds).ToHashSet();
         HashSet<Guid> newPhaseIds = incomingPhaseIds.Except(existingPhaseIds).ToHashSet();
         HashSet<Guid> maybeUpdatedPhaseIds = existingPhaseIds.Intersect(incomingPhaseIds).ToHashSet();
-        deletedPhaseIds.ToList().ForEach(id => _context.Phases.Remove(existing.Phases.Single(p => p.Id == id)));
+        deletedPhaseIds.ToList().ForEach(id => context.Phases.Remove(existing.Phases.Single(p => p.Id == id)));
         newPhaseIds.ToList().ForEach(id => {
             PhaseDto incomingPhase = incoming.Phases.Single(p => p.Id == id);
             Phase added = incoming.Phases.Single(p => p.Id == id).ToEntity();
             added.FamilyId = existing.Id;
             added.Species = incomingPhase.SpeciesIds.Select(sid => existing.Species.Single(s => s.Id == sid)).ToList();
-            _context.Phases.Add(added);
+            context.Phases.Add(added);
             existing.Phases.Add(added);
         });
         maybeUpdatedPhaseIds.ToList().ForEach(id =>
@@ -698,14 +689,14 @@ public class FamilyService
         HashSet<Guid> deletedMechanismIds = existingMechanismIds.Except(incomingMechanismIds).ToHashSet();
         HashSet<Guid> newMechanismIds = incomingMechanismIds.Except(existingMechanismIds).ToHashSet();
         HashSet<Guid> maybeUpdatedMechanismIds = existingMechanismIds.Intersect(incomingMechanismIds).ToHashSet();
-        deletedMechanismIds.ToList().ForEach(id => _context.Mechanisms.Remove(existing.Mechanisms.Single(m => m.Id == id)));
+        deletedMechanismIds.ToList().ForEach(id => context.Mechanisms.Remove(existing.Mechanisms.Single(m => m.Id == id)));
         newMechanismIds.ToList().ForEach(id => {
             Mechanism added = incoming.Mechanisms.Single(m => m.Id == id).ToEntity();
             added.FamilyId = existing.Id;
             added.Species = incoming.Mechanisms.Single(m => m.Id == id).SpeciesIds.Select(sid => existing.Species.Single(s => s.Id == sid)).ToList();
             added.Reactions = incoming.Mechanisms.Single(m => m.Id == id).ReactionIds.Select(rid => existing.Reactions.Single(r => r.Id == rid)).ToList();
             added.Phases = incoming.Mechanisms.Single(m => m.Id == id).PhaseIds.Select(pid => existing.Phases.Single(p => p.Id == pid)).ToList();
-            _context.Mechanisms.Add(added);
+            context.Mechanisms.Add(added);
         });
         maybeUpdatedMechanismIds.ToList().ForEach(id =>
         {

@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 using System.Diagnostics.CodeAnalysis;
 using ChemistryCafeAPI.Models;
 using ChemistryCafeAPI.Services;
@@ -9,37 +8,23 @@ namespace ChemistryCafeAPI.Controllers
 {
     [ApiController]
     [Route("api/users")]
-    public class UsersController : ControllerBase
+    public class UsersController(UserService userService) : BaseHelperController(userService)
     {
-        private readonly UserService _userService;
         
         private readonly string _frontendHost = Environment.GetEnvironmentVariable("FRONTEND_HOST") ?? "";
-
-
-        [ExcludeFromCodeCoverage]
-        protected virtual string? GetNameIdentifier()
-        {
-            ClaimsIdentity? claimsIdentity = this.User.Identity as ClaimsIdentity;
-            return claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        }
-
-        public UsersController(UserService userService)
-        {
-            _userService = userService;
-        }
 
         // GET: api/Users
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
-            var users = await _userService.GetUsersAsync();
+            var users = await UserService.GetUsersAsync();
             return Ok(users);
         }
 
         [HttpGet("id/{id}")]
         public async Task<ActionResult<User>> GetUserById(Guid id)
         {
-            var user = await _userService.GetUserByIdAsync(id);
+            var user = await UserService.GetUserByIdAsync(id);
 
             if (user == null)
             {
@@ -52,7 +37,7 @@ namespace ChemistryCafeAPI.Controllers
         [HttpGet("email/{email}")]
         public async Task<ActionResult<User>> GetUser(string email)
         {
-            var user = await _userService.GetUserByEmailAsync(email);
+            var user = await UserService.GetUserByEmailAsync(email);
 
             if (user == null)
             {
@@ -77,7 +62,7 @@ namespace ChemistryCafeAPI.Controllers
                 return Unauthorized("User is not authenticated");
             }
 
-            var result = await _userService.UpdateUserAsync(user, nameIdentifier);
+            var result = await UserService.UpdateUserAsync(user, nameIdentifier);
             switch (result)
             {
                 case QueryResult.NotFound:
@@ -100,7 +85,7 @@ namespace ChemistryCafeAPI.Controllers
                 return Unauthorized("User is not authenticated");
             }
 
-            var result = await _userService.DeleteUserAsync(id, nameIdentifier);
+            var result = await UserService.DeleteUserAsync(id, nameIdentifier);
 
             switch (result)
             {
@@ -118,15 +103,9 @@ namespace ChemistryCafeAPI.Controllers
         /// Gives the user information on themselves
         /// </summary>
         [HttpGet("whoami")]
-        public async Task<ActionResult<User?>> GetCurrentUser()
+        public new async Task<ActionResult<User?>> GetCurrentUser()
         {
-            var nameIdentifier = GetNameIdentifier();
-            if (nameIdentifier == null) {
-                return Unauthorized();
-            }
-            var guid = Guid.Parse(nameIdentifier);
-            var user = await _userService.GetUserByIdAsync(guid);
-            return Ok(user);
+            return await base.GetCurrentUser();
         }
         
         /// <summary>
