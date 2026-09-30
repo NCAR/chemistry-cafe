@@ -48,7 +48,7 @@ namespace ChemistryCafeAPI.Controllers
             ClaimsPrincipal? claimsIdentity = await orcidOAuthService.GetUserClaimsAsync(result,user);
             if (claimsIdentity == null)
             {
-                return BadRequest("Invalid Credentials Passed Or Credentials are already in use by another User");
+                return BadRequest("The account you are trying to link already exists or the credentials passed were invalid. Contact musica-support@ucar.edu for further help.");
             }
 
             await HttpContext.SignInAsync("Application", claimsIdentity);
