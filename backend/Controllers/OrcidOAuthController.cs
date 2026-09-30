@@ -48,7 +48,7 @@ namespace ChemistryCafeAPI.Controllers
             ClaimsPrincipal? claimsIdentity = await orcidOAuthService.GetUserClaimsAsync(result,user);
             if (claimsIdentity == null)
             {
-                return BadRequest("Invalid Credentials Passed");
+                return BadRequest("Invalid Credentials Passed Or Credentials are already in use by another User");
             }
 
             await HttpContext.SignInAsync("Application", claimsIdentity);

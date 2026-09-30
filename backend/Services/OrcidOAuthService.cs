@@ -49,10 +49,13 @@ namespace ChemistryCafeAPI.Services
             }
             string displayName = nameClaim?.Value ?? "ORCID User";
 
-            User user = prev!=null?await UserService.LinkOrcid(prev,orcidId.Value,displayName): await UserService.SignInOrcid(orcidId.Value, displayName);
-
+            User? user = prev!=null?await UserService.LinkOrcid(prev,orcidId.Value,displayName): await UserService.SignInOrcid(orcidId.Value, displayName);
+            if (user == null)
+            {
+                return null;
+            }
             Claim nameIdClaim = new Claim(ClaimTypes.NameIdentifier, user.Id.ToString());
-
+        
             claimsIdentity.AddClaim(nameIdClaim);
             claimsIdentity.AddClaim(new Claim(ClaimTypes.Name, user.Username ?? displayName));
             claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, user.Role));

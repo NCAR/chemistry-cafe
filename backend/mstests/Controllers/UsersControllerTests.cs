@@ -468,15 +468,21 @@ namespace ChemistryCafeAPI.Tests
             var name = "current-user";
             var userPrev = await userService.SignInGoogle(googleID, email);
             var user = await userService.LinkOrcid(userPrev, orcidID,name);
+            Assert.IsNotNull(user);
+            Assert.AreEqual(userPrev.Id, user.Id);
+
             
             var other_googleID = "get-current-user0123456789-2";
             var other_email = "diff-get-current-user@test.com";
             var other_userPrev = await userService.SignInGoogle(other_googleID, other_email);
             var other_user = await userService.LinkOrcid(other_userPrev, orcidID,name);
+            Assert.IsNull(other_user);
+            Assert.IsNotNull(other_userPrev);
             
-            Assert.AreNotEqual(user.OrcidId, other_userPrev.OrcidId);
-            Assert.AreNotEqual(other_user.Id, other_userPrev.Id);
-            Assert.AreEqual(other_user.Id, user.Id);
+            await userService.DeleteUserAsync(user.Id, user.Id.ToString());
+            await userService.DeleteUserAsync(other_userPrev.Id, other_userPrev.Id.ToString());
+
+           
         }
         
         [TestMethod]
@@ -534,15 +540,19 @@ namespace ChemistryCafeAPI.Tests
             var name = "current-user";
             var userPrev = await userService.SignInOrcid(googleID, email);
             var user = await userService.LinkGoogle(userPrev, googleID,email);
+            Assert.IsNotNull(user);
+            Assert.AreEqual(userPrev.Id, user.Id);
             
             var other_orcidID = "get-current-user0123456789-orcid-2";
             var other_name = "current-user-2";
             var other_userPrev = await userService.SignInOrcid(other_orcidID, other_name);
             var other_user = await userService.LinkGoogle(other_userPrev, googleID,email);
+            Assert.IsNull(other_user);
+            Assert.IsNotNull(other_userPrev);
             
-            Assert.AreNotEqual(user.GoogleId, other_userPrev.GoogleId);
-            Assert.AreNotEqual(other_user.Id, other_userPrev.Id);
-            Assert.AreEqual(other_user.Id, user.Id);
+            await userService.DeleteUserAsync(user.Id, user.Id.ToString());
+            await userService.DeleteUserAsync(other_userPrev.Id, other_userPrev.Id.ToString());
+
         }
 
 

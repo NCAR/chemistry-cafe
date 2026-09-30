@@ -49,12 +49,12 @@ namespace ChemistryCafeAPI.Services
         /// <param name="googleID"></param>
         /// <param name="email"></param>
         /// <returns>Tracked user object</returns>
-        public async Task<User> LinkGoogle(User user,string googleID, string email)
+        public async Task<User?> LinkGoogle(User user,string googleID, string email)
         {
             var dup = await context.Users.SingleOrDefaultAsync(u => u.GoogleId == googleID);
             if (dup != null)
             {
-                return dup;
+                return null;
             }
             user.Email = email;
             user.GoogleId = googleID;
@@ -97,12 +97,12 @@ namespace ChemistryCafeAPI.Services
         /// <param name="orcidID"></param>
         /// <param name="name"></param>
         /// <returns>Tracked user object</returns>
-        public async Task<User> LinkOrcid(User user,string orcidID, string name)
+        public async Task<User?> LinkOrcid(User user,string orcidID, string name)
         {
             var dup = await context.Users.SingleOrDefaultAsync(u => u.OrcidId == orcidID);
             if (dup != null)
             {
-                return dup;
+                return null;
             }
             user.OrcidId = orcidID;
             await context.SaveChangesAsync();

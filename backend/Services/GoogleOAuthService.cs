@@ -48,8 +48,11 @@ namespace ChemistryCafeAPI.Services
                 return null;
             }
             
-            User user = prev!=null?await UserService.LinkGoogle(prev,googleId.Value, emailClaim.Value) :await UserService.SignInGoogle(googleId.Value, emailClaim.Value);
-
+            User? user = prev!=null?await UserService.LinkGoogle(prev,googleId.Value, emailClaim.Value) :await UserService.SignInGoogle(googleId.Value, emailClaim.Value);
+            if (user == null)
+            {
+                return null;
+            }
             Claim nameIdClaim = new Claim(ClaimTypes.NameIdentifier, user.Id.ToString());
 
             claimsIdentity.AddClaim(nameIdClaim);
