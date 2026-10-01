@@ -14,7 +14,7 @@ const mockUserInfo: APIUser = {
   username: "Test Account",
   id: "0000-0000-0000-0000-0000",
   googleId: "0000-0000-0000-0000-0000",
-  orcidId: "0000-0000-0000-0000-0000"
+  orcidId: "0000-0000-0000-0000-0000",
 };
 
 describe("Unauthenticated Settings Page", () => {
@@ -39,7 +39,7 @@ describe("Unauthenticated Settings Page", () => {
     } as any;
     vi.spyOn(axios, "get").mockResolvedValue(createMockUserData());
     vi.spyOn(axios, "post").mockResolvedValue(createMockUserData());
-    
+
     render(
       <AuthProvider>
         <CustomThemeProvider>
@@ -116,13 +116,13 @@ describe("Authenticated Settings Page", () => {
     vi.spyOn(axios, "post").mockResolvedValue(createMockUserData());
     localStorage.setItem("user", JSON.stringify(mockUserInfo));
     render(
-        <AuthProvider>
-          <CustomThemeProvider>
-            <MemoryRouter initialEntries={["/", "/loggedIn"]}>
-              <Settings />
-            </MemoryRouter>
-          </CustomThemeProvider>
-        </AuthProvider>,
+      <AuthProvider>
+        <CustomThemeProvider>
+          <MemoryRouter initialEntries={["/", "/loggedIn"]}>
+            <Settings />
+          </MemoryRouter>
+        </CustomThemeProvider>
+      </AuthProvider>,
     );
   });
 
@@ -159,15 +159,14 @@ describe("Authenticated Settings Page", () => {
     const userVal = localStorage.getItem("user");
     expect(userVal).toBeTruthy();
     const profile = JSON.parse(userVal as string) as APIUser;
-    
-    
+
     const appearanceButton = screen.getByText("My Profile");
     fireEvent.click(appearanceButton);
 
     let submitBox = screen.getByText("Save Changes") as HTMLButtonElement;
-    expect(submitBox ).toBeTruthy();
+    expect(submitBox).toBeTruthy();
     expect(submitBox.disabled).toBeTruthy();
-    
+
     const nameBox = screen.getByLabelText("Username *") as HTMLInputElement;
     expect(nameBox).toBeTruthy();
     expect(nameBox.value).toEqual(profile.username);
@@ -179,29 +178,31 @@ describe("Authenticated Settings Page", () => {
     expect(emailBox).toBeTruthy();
     expect(emailBox.value).toEqual(profile.email);
 
-    await user.type(emailBox, "good_",{initialSelectionStart:0});
+    await user.type(emailBox, "good_", { initialSelectionStart: 0 });
     expect(emailBox.value).toEqual(`good_${profile.email}`);
-    
-    const firstNameBox = screen.getByLabelText("First Name *") as HTMLInputElement;
+
+    const firstNameBox = screen.getByLabelText(
+      "First Name *",
+    ) as HTMLInputElement;
     expect(firstNameBox).toBeTruthy();
-    expect(firstNameBox.value).toEqual(profile.firstName ?? '');
+    expect(firstNameBox.value).toEqual(profile.firstName ?? "");
 
     await user.type(firstNameBox, "bob");
     expect(firstNameBox.value).toEqual("bob");
 
-    const lastNameBox = screen.getByLabelText("Last Name *") as HTMLInputElement;
+    const lastNameBox = screen.getByLabelText(
+      "Last Name *",
+    ) as HTMLInputElement;
     expect(lastNameBox).toBeTruthy();
-    expect(lastNameBox.value).toEqual(profile.lastName ?? '');
+    expect(lastNameBox.value).toEqual(profile.lastName ?? "");
 
     await user.type(lastNameBox, "jones");
     expect(lastNameBox.value).toEqual("jones");
 
     submitBox = screen.getByText("Save Changes") as HTMLButtonElement;
-    expect(submitBox ).toBeTruthy();
+    expect(submitBox).toBeTruthy();
     expect(submitBox.disabled).toBeFalsy();
-    
   });
-  
 
   it("Can switch between system, light, and dark theme", () => {
     const appearanceButton = screen.getByText("Appearance");

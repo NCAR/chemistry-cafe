@@ -18,9 +18,11 @@ import {
   Typography,
   ToggleButton,
   ToggleButtonGroup,
-  Input, TextField, Button,
+  Input,
+  TextField,
+  Button,
 } from "@mui/material";
-import {useEffect, useLayoutEffect, useState} from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import AccountBoxIcon from "@mui/icons-material/AccountBox";
 import SettingsAccessibilityIcon from "@mui/icons-material/SettingsAccessibility";
 import TvIcon from "@mui/icons-material/Tv";
@@ -29,13 +31,12 @@ import SpellcheckIcon from "@mui/icons-material/Spellcheck";
 import SettingsBrightnessIcon from "@mui/icons-material/SettingsBrightness";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
-import {useAuth} from "../components/AuthContext.tsx";
-import {APIUser} from "../API/API_Interfaces.tsx";
-import {updateUser} from "../API/API_UpdateMethods.tsx";
-import {AUTH_URL} from "../API/API_config.tsx";
+import { useAuth } from "../components/AuthContext.tsx";
+import { APIUser } from "../API/API_Interfaces.tsx";
+import { updateUser } from "../API/API_UpdateMethods.tsx";
+import { AUTH_URL } from "../API/API_config.tsx";
 import GoogleIcon from "@mui/icons-material/Google";
 import OrcidImage from "../assets/ORCID-iD_icon_vector.svg";
-
 
 const Settings = () => {
   const { theme } = useCustomTheme();
@@ -69,7 +70,7 @@ const Settings = () => {
   useLayoutEffect(() => {
     setMenuComponent(getMenuComponent(selectedMenu));
   }, [selectedMenu]);
-  
+
   const { user: loggedInUser } = useAuth(); // Get logged in user info from AuthContext
 
   return (
@@ -150,35 +151,37 @@ const Settings = () => {
             </ListItem>
           </List>
 
-          {!!loggedInUser &&<List
-            sx={{
-              color: theme.palette.text.primary,
-              fontSize: theme.typography.fontSize + 4,
-            }}
-            subheader="User Settings"
-          >
-            <ListItem disablePadding>
-              <ListItemButton
-                aria-label="open profile settings"
-                onClick={() => selectMenu("profile")}
-              >
-                <ListItemIcon>
-                  <AccountBoxIcon
-                    color={selectedMenu == "profile" ? "primary" : "inherit"}
-                  />
-                </ListItemIcon>
-                <ListItemText>
-                  <Typography
-                    color={
-                      selectedMenu == "profile" ? "primary" : "textPrimary"
-                    }
-                  >
-                    My Profile
-                  </Typography>
-                </ListItemText>
-              </ListItemButton>
-            </ListItem>
-          </List>}
+          {!!loggedInUser && (
+            <List
+              sx={{
+                color: theme.palette.text.primary,
+                fontSize: theme.typography.fontSize + 4,
+              }}
+              subheader="User Settings"
+            >
+              <ListItem disablePadding>
+                <ListItemButton
+                  aria-label="open profile settings"
+                  onClick={() => selectMenu("profile")}
+                >
+                  <ListItemIcon>
+                    <AccountBoxIcon
+                      color={selectedMenu == "profile" ? "primary" : "inherit"}
+                    />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Typography
+                      color={
+                        selectedMenu == "profile" ? "primary" : "textPrimary"
+                      }
+                    >
+                      My Profile
+                    </Typography>
+                  </ListItemText>
+                </ListItemButton>
+              </ListItem>
+            </List>
+          )}
         </Box>
         <Paper
           sx={{
@@ -202,47 +205,44 @@ const Settings = () => {
 const ProfileMenu = () => {
   const { user: loggedInUser } = useAuth(); // Get logged in user info from AuthContext
   const { theme } = useCustomTheme();
-  const userCopy = {...loggedInUser} as APIUser
-  const [user,setUser] = useState(userCopy);
+  const userCopy = { ...loggedInUser } as APIUser;
+  const [user, setUser] = useState(userCopy);
   useEffect(() => {
     setUser(userCopy);
   }, [loggedInUser]);
-  
-  
-  return loggedInUser?<List
+
+  return loggedInUser ? (
+    <List
       sx={{
         color: theme.palette.text.primary,
         fontSize: theme.typography.fontSize + 4,
       }}
       subheader="Account Info"
-  >
-    <ListItem sx={{paddingTop: theme.spacing(2)}}>
-      <TextField
-            sx={{
-              width: "100%",
-            }}
-            label="Username"
-            required
-            defaultValue={loggedInUser?.username}
-            onChange={(e) => 
-                setUser((p)=>({...p,username:e.target.value}))}
-      />
-    </ListItem>
-    <ListItem>
-      <TextField
+    >
+      <ListItem sx={{ paddingTop: theme.spacing(2) }}>
+        <TextField
+          sx={{
+            width: "100%",
+          }}
+          label="Username"
+          required
+          defaultValue={loggedInUser?.username}
+          onChange={(e) => setUser((p) => ({ ...p, username: e.target.value }))}
+        />
+      </ListItem>
+      <ListItem>
+        <TextField
           sx={{
             width: "100%",
           }}
           label="Email"
           required
           defaultValue={loggedInUser?.email}
-          onChange={(e) =>
-              setUser((p)=>({...p,email:e.target.value}))}
-
-      />
-    </ListItem>
-    <ListItem>
-      <TextField
+          onChange={(e) => setUser((p) => ({ ...p, email: e.target.value }))}
+        />
+      </ListItem>
+      <ListItem>
+        <TextField
           sx={{
             width: "100%",
           }}
@@ -250,65 +250,74 @@ const ProfileMenu = () => {
           required
           defaultValue={loggedInUser?.firstName}
           onChange={(e) =>
-              setUser((p)=>({...p,firstName:e.target.value}))}
-
-      />
-    </ListItem>
-    <ListItem>
-      <TextField
+            setUser((p) => ({ ...p, firstName: e.target.value }))
+          }
+        />
+      </ListItem>
+      <ListItem>
+        <TextField
           sx={{
             width: "100%",
           }}
           label="Last Name"
           required
           defaultValue={loggedInUser?.lastName}
-          onChange={(e) =>
-              setUser((p)=>({...p,lastName:e.target.value}))}
-
-      />
-    </ListItem>
-    <ListItem>
-      <ListItemButton
+          onChange={(e) => setUser((p) => ({ ...p, lastName: e.target.value }))}
+        />
+      </ListItem>
+      <ListItem>
+        <ListItemButton
           disabled={!!loggedInUser?.googleId}
           component={"button"}
           color="primary"
           onClick={() => window.location.assign(`${AUTH_URL}/google/login`)}
-      >
-        <ListItemIcon>
-          <GoogleIcon fontSize="small" />
-        </ListItemIcon>
-        <ListItemText primary="Link to Google" />
-      </ListItemButton>
-    </ListItem>
-    <ListItem>
-      <ListItemButton
+        >
+          <ListItemIcon>
+            <GoogleIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary="Link to Google" />
+        </ListItemButton>
+      </ListItem>
+      <ListItem>
+        <ListItemButton
           disabled={!!loggedInUser?.orcidId}
           component={"button"}
           color="primary"
           onClick={() => window.location.assign(`${AUTH_URL}/orcid/login`)}
-      >
-      <ListItemIcon>
-        <img
-            aria-label={"ORCID Login"}
-            alt={"ORCID Login"}
-            src={OrcidImage}
-            style={{ width: 24, height: 24 }}
-        />
-      </ListItemIcon>
-        <ListItemText primary="Link to ORCID" />
-      </ListItemButton>
-    </ListItem>
-    <ListItem>
-      <Button
-          disabled={Object.entries(user).reduce((prev,[key,val])=>prev&&loggedInUser[key as keyof APIUser]===val,true)}
+        >
+          <ListItemIcon>
+            <img
+              aria-label={"ORCID Login"}
+              alt={"ORCID Login"}
+              src={OrcidImage}
+              style={{ width: 24, height: 24 }}
+            />
+          </ListItemIcon>
+          <ListItemText primary="Link to ORCID" />
+        </ListItemButton>
+      </ListItem>
+      <ListItem>
+        <Button
+          disabled={Object.entries(user).reduce(
+            (prev, [key, val]) =>
+              prev && loggedInUser[key as keyof APIUser] === val,
+            true,
+          )}
           color="primary"
           variant="contained"
-          onClick={() =>updateUser(user).then(()=>window.location.reload()).catch(()=>window.alert("error updating profile"))}
-      >
-        Save Changes
-      </Button>
-    </ListItem>
-  </List>:<Typography>No User Listed</Typography>
+          onClick={() =>
+            updateUser(user)
+              .then(() => window.location.reload())
+              .catch(() => window.alert("error updating profile"))
+          }
+        >
+          Save Changes
+        </Button>
+      </ListItem>
+    </List>
+  ) : (
+    <Typography>No User Listed</Typography>
+  );
 };
 
 const AppearanceMenu = () => {
