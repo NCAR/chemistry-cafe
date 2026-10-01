@@ -242,6 +242,32 @@ const ProfileMenu = () => {
       />
     </ListItem>
     <ListItem>
+      <TextField
+          sx={{
+            width: "100%",
+          }}
+          label="First Name"
+          required
+          defaultValue={loggedInUser?.firstName}
+          onChange={(e) =>
+              setUser((p)=>({...p,firstName:e.target.value}))}
+
+      />
+    </ListItem>
+    <ListItem>
+      <TextField
+          sx={{
+            width: "100%",
+          }}
+          label="Last Name"
+          required
+          defaultValue={loggedInUser?.lastName}
+          onChange={(e) =>
+              setUser((p)=>({...p,lastName:e.target.value}))}
+
+      />
+    </ListItem>
+    <ListItem>
       <ListItemButton
           disabled={!!loggedInUser?.googleId}
           component={"button"}
