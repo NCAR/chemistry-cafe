@@ -181,6 +181,20 @@ describe("Authenticated Settings Page", () => {
 
     await user.type(emailBox, "good_",{initialSelectionStart:0});
     expect(emailBox.value).toEqual(`good_${profile.email}`);
+    
+    const firstNameBox = screen.getByLabelText("First Name *") as HTMLInputElement;
+    expect(firstNameBox).toBeTruthy();
+    expect(firstNameBox.value).toEqual(profile.firstName ?? '');
+
+    await user.type(firstNameBox, "bob");
+    expect(firstNameBox.value).toEqual("bob");
+
+    const lastNameBox = screen.getByLabelText("Last Name *") as HTMLInputElement;
+    expect(lastNameBox).toBeTruthy();
+    expect(lastNameBox.value).toEqual(profile.lastName ?? '');
+
+    await user.type(lastNameBox, "jones");
+    expect(lastNameBox.value).toEqual("jones");
 
     submitBox = screen.getByText("Save Changes") as HTMLButtonElement;
     expect(submitBox ).toBeTruthy();

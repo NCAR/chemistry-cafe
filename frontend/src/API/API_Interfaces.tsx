@@ -3,6 +3,8 @@ import { UUID } from "crypto";
 export interface APIUser {
   id: UUID;
   username: string;
+  firstName?: string;
+  lastName?: string;
   role: string;
   email?: string | null;
   createdDate?: string;

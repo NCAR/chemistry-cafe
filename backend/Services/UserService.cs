@@ -172,6 +172,8 @@ namespace ChemistryCafeAPI.Services
             }
             existingUser.Username = user.Username;
             existingUser.Email = user.Email;
+            existingUser.FirstName = user.FirstName;
+            existingUser.LastName = user.LastName;
             await context.SaveChangesAsync();
             return QueryResult.Success;
         }
