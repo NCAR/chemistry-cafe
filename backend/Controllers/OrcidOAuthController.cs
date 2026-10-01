@@ -5,24 +5,32 @@ using ChemistryCafeAPI.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Options;
+using ChemistryCafeAPI.Options;
 
 namespace ChemistryCafeAPI.Controllers
 {
     /// <summary>
     /// Controls routes related to Orcid OAuth 2.0 authentication
     /// </summary>
+    [AllowAnonymous]
     [Route("/auth/orcid")]
-    public class OrcidOAuthController(OrcidOAuthService orcidOAuthService) : BaseHelperController(orcidOAuthService.UserService)
+    public class OrcidOAuthController(
+        OrcidOAuthService orcidOAuthService, 
+        UserService userService, 
+        IOptions<UrlOptions>? urlOptions = null) 
+        : Controller
     {
-       
-       
+        private readonly UrlOptions _urls = urlOptions?.Value ?? new UrlOptions();
+
         /// <summary>
         /// Route which the user redirects to a orcid authentication page 
         /// </summary>
         [HttpGet("login")]
         public IActionResult LoginRedirect()
         {
-            string redirectUri = Path.Combine(BaseUri, "auth/orcid/authenticate").Replace('\\', '/');
+            string redirectUri = Path.Combine(_urls.BackendBaseUrl, "auth/orcid/authenticate").Replace('\\', '/');
             AuthenticationProperties authProperties = new AuthenticationProperties { RedirectUri = redirectUri };
             authProperties.SetParameter("prompt", "select_account");
             return new ChallengeResult("Orcid", authProperties);
@@ -42,18 +50,17 @@ namespace ChemistryCafeAPI.Controllers
                 return BadRequest("Orcid OAuth Http Response did not succeed");
             }
 
-            var userResult = await GetCurrentUser();
-            User? user =  userResult.Result is OkObjectResult objectResult?(User?)objectResult?.Value:null;
+            var (_, user) = await userService.GetCurrentUserAsync();
             
-            ClaimsPrincipal? claimsIdentity = await orcidOAuthService.GetUserClaimsAsync(result,user);
+            ClaimsPrincipal? claimsIdentity = await orcidOAuthService.GetUserClaimsAsync(result, user);
             if (claimsIdentity == null)
             {
                 return BadRequest("The account you are trying to link already exists or the credentials passed were invalid. Contact musica-support@ucar.edu for further help.");
             }
 
             await HttpContext.SignInAsync("Application", claimsIdentity);
-            string basePath = Path.Combine(FrontendHost, user==null?"dashboard":"settings").Replace('\\', '/');;
-            string redirectUrl = user==null?basePath:QueryHelpers.AddQueryString(basePath, "selectedMenu", "profile");
+            string basePath = Path.Combine(_urls.FrontendHost, user == null ? "dashboard" : "settings").Replace('\\', '/');
+            string redirectUrl = user == null ? basePath : QueryHelpers.AddQueryString(basePath, "selectedMenu", "profile");
             RedirectResult ret = Redirect(redirectUrl);
             return ret;
         }

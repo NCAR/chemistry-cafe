@@ -30,7 +30,7 @@ namespace ChemistryCafeAPI.Tests
             _context = DBConnection.Context;
             _userService = new UserService(_context);
             _reactionService = new ReactionService(_context);
-            _reactionController = new ReactionController(_reactionService, _userService);
+            _reactionController = new ReactionController(_reactionService);
             _familyService = new FamilyService(_context);
         }
 

@@ -3,17 +3,24 @@ using System.Diagnostics.CodeAnalysis;
 using ChemistryCafeAPI.Models;
 using ChemistryCafeAPI.Services;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Options;
+using ChemistryCafeAPI.Options;
 
 namespace ChemistryCafeAPI.Controllers
 {
     [ApiController]
     [Route("api/users")]
-    public class UsersController(UserService userService) : BaseHelperController(userService)
+    public class UsersController(UserService userService, IOptions<UrlOptions>? urlOptions = null) : ControllerBase
     {
-        
-        private readonly string _frontendHost = Environment.GetEnvironmentVariable("FRONTEND_HOST") ?? "";
+        protected readonly UserService UserService = userService;
+        private readonly UrlOptions _urls = urlOptions?.Value ?? new UrlOptions();
+
+        [ExcludeFromCodeCoverage]
+        protected virtual string? GetNameIdentifier() => UserService.GetNameIdentifier();
 
         // GET: api/Users
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
@@ -21,6 +28,8 @@ namespace ChemistryCafeAPI.Controllers
             return Ok(users);
         }
 
+        // GET: api/Users/id/5
+        [AllowAnonymous]
         [HttpGet("id/{id}")]
         public async Task<ActionResult<User>> GetUserById(Guid id)
         {
@@ -33,7 +42,8 @@ namespace ChemistryCafeAPI.Controllers
             return Ok(user);
         }
 
-        // GET: api/Users/5
+        // GET: api/Users/email/user@email.com
+        [AllowAnonymous]
         [HttpGet("email/{email}")]
         public async Task<ActionResult<User>> GetUser(string email)
         {
@@ -48,6 +58,7 @@ namespace ChemistryCafeAPI.Controllers
         }
 
         // PUT: api/Users/5
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(Guid id, User user)
         {
@@ -76,6 +87,7 @@ namespace ChemistryCafeAPI.Controllers
         }
 
         // DELETE: api/Users/5
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(Guid id)
         {
@@ -102,10 +114,17 @@ namespace ChemistryCafeAPI.Controllers
         /// <summary>
         /// Gives the user information on themselves
         /// </summary>
+        [Authorize]
         [HttpGet("whoami")]
-        public new async Task<ActionResult<User?>> GetCurrentUser()
+        public async Task<ActionResult<User?>> GetCurrentUser()
         {
-            return await base.GetCurrentUser();
+            var (result, user) = await UserService.GetCurrentUserAsync(GetNameIdentifier());
+            return result switch
+            {
+                QueryResult.ParseError => BadRequest("Name identifier is not parsable as a guid"),
+                QueryResult.NotFound => Unauthorized(),
+                _ => Ok(user)
+            };
         }
         
         /// <summary>
@@ -115,7 +134,7 @@ namespace ChemistryCafeAPI.Controllers
         private bool IsSameOriginAsFrontend(string url)
         {
             if (!Uri.TryCreate(url, UriKind.Absolute, out var candidate)) return false;
-            if (!Uri.TryCreate(_frontendHost, UriKind.Absolute, out var frontend)) return false;
+            if (!Uri.TryCreate(_urls.FrontendHost, UriKind.Absolute, out var frontend)) return false;
 
             return candidate.Scheme == frontend.Scheme
                    && candidate.Host.Equals(frontend.Host, StringComparison.OrdinalIgnoreCase)
@@ -125,6 +144,7 @@ namespace ChemistryCafeAPI.Controllers
         /// <summary>
         /// Removes all authentication cookies and signs a user out of the backend application
         /// </summary>
+        [AllowAnonymous]
         [HttpGet("logout")]
         [ExcludeFromCodeCoverage]
         public async Task<IActionResult> Logout(string? returnUrl)
@@ -132,7 +152,7 @@ namespace ChemistryCafeAPI.Controllers
             // Ensure the redirect url is 
             if (returnUrl == null || returnUrl.Equals(""))
             {
-                returnUrl = _frontendHost;
+                returnUrl = _urls.FrontendHost;
             }
             else if (!Url.IsLocalUrl(returnUrl) && !IsSameOriginAsFrontend(returnUrl))
             {

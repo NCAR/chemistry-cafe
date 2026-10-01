@@ -31,7 +31,7 @@ namespace ChemistryCafeAPI.Tests
             _context = DBConnection.Context;
             _userService = new UserService(_context);
             _mechanismService = new MechanismService(_context);
-            _mechanismController = new MechanismController(_mechanismService,_userService);
+            _mechanismController = new MechanismController(_mechanismService);
             _familyService = new FamilyService(_context);
         }
 

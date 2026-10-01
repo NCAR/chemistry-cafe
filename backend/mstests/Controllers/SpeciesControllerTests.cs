@@ -32,7 +32,7 @@ namespace ChemistryCafeAPI.Tests
             _context = DBConnection.Context;
             _speciesService = new SpeciesService(_context);
             _userService = new UserService(_context);
-            _speciesController = new SpeciesController(_speciesService,_userService);
+            _speciesController = new SpeciesController(_speciesService);
             _familyService = new FamilyService(_context);
         }
 

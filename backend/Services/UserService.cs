@@ -1,11 +1,40 @@
-﻿using ChemistryCafeAPI.Models;
+using System.Security.Claims;
+using ChemistryCafeAPI.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChemistryCafeAPI.Services
 {
 
-    public class UserService(ChemistryDbContext context)
+    public class UserService(ChemistryDbContext context, IHttpContextAccessor? httpContextAccessor = null)
     {
+        /// <summary>
+        /// Gives the current session's User ID (NameIdentifier claim) or null if not authenticated
+        /// </summary>
+        public virtual string? GetNameIdentifier()
+        {
+            var claimsIdentity = httpContextAccessor?.HttpContext?.User.Identity as ClaimsIdentity;
+            return claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        }
+
+        /// <summary>
+        /// Retrieves the user entity corresponding to the current session or a provided identifier.
+        /// </summary>
+        public virtual async Task<(QueryResult Result, User? User)> GetCurrentUserAsync(string? nameIdentifier = null)
+        {
+            nameIdentifier ??= GetNameIdentifier();
+            if (nameIdentifier == null)
+            {
+                return (QueryResult.NotFound, null);
+            }
+
+            if (!Guid.TryParse(nameIdentifier, out var guid))
+            {
+                return (QueryResult.ParseError, null);
+            }
+
+            var user = await GetUserByIdAsync(guid);
+            return (QueryResult.Success, user);
+        }
 
         public async Task<IReadOnlyList<User>> GetUsersAsync()
         {

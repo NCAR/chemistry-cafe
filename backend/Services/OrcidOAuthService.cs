@@ -11,9 +11,6 @@ namespace ChemistryCafeAPI.Services
     /// </summary>
     public class OrcidOAuthService(UserService userService)
     {
-
-        public readonly UserService UserService=userService;
-
         [ExcludeFromCodeCoverage]
         private static bool IsOrcidIdentity(ClaimsIdentity identity)
         {
@@ -49,7 +46,7 @@ namespace ChemistryCafeAPI.Services
             }
             string displayName = nameClaim?.Value ?? "ORCID User";
 
-            User? user = prev!=null?await UserService.LinkOrcid(prev,orcidId.Value,displayName): await UserService.SignInOrcid(orcidId.Value, displayName);
+            User? user = prev != null ? await userService.LinkOrcid(prev, orcidId.Value, displayName) : await userService.SignInOrcid(orcidId.Value, displayName);
             if (user == null)
             {
                 return null;

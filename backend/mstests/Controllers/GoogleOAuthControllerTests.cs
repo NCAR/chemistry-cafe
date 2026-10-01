@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using ChemistryCafeAPI.Controllers;
@@ -22,7 +22,7 @@ namespace ChemistryCafeAPI.Tests
         {
             var userService = new UserService(ctx);
             var googleService = new GoogleOAuthService(userService);
-            var googleController = new GoogleOAuthController(googleService);
+            var googleController = new GoogleOAuthController(googleService, userService);
             Assert.IsNotNull(googleController.LoginRedirect());
             return Task.CompletedTask;
         }
