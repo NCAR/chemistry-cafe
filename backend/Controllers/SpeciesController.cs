@@ -1,13 +1,15 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using ChemistryCafeAPI.Services;
 using ChemistryCafeAPI.Models.Dto;
 using ChemistryCafeAPI.Models.Mappers;
 
 namespace ChemistryCafeAPI.Controllers
 {
+    [AllowAnonymous]
     [ApiController]
     [Route("api/species")]
-    public class SpeciesController(SpeciesService speciesService,UserService userService) : BaseHelperController(userService)
+    public class SpeciesController(SpeciesService speciesService) : ControllerBase
     {
         
         [HttpGet]

@@ -12,106 +12,112 @@ using System;
 namespace ChemistryCafeAPI.Tests
 {
     [TestClass]
-    public class SpeciesControllerTests
+    public class ReactionControllerTests
     {
         private static ChemistryDbContext _context = DBConnection.Context;
         private static User? _user;
-        private static Family? _family;
-        private static SpeciesDto _species = null!;
+        private static Family _family = null!;
+        private static Reaction _reaction = null!;
         private static string? _nameIdentifier;
 
-        private SpeciesService _speciesService;
-        private SpeciesController _speciesController;
+        private ReactionService _reactionService;
+        private ReactionController _reactionController;
         private UserService _userService;
         private FamilyService _familyService;
 
-        
-
-        public SpeciesControllerTests()
+        public ReactionControllerTests()
         {
             _context = DBConnection.Context;
-            _speciesService = new SpeciesService(_context);
             _userService = new UserService(_context);
-            _speciesController = new SpeciesController(_speciesService,_userService);
+            _reactionService = new ReactionService(_context);
+            _reactionController = new ReactionController(_reactionService);
             _familyService = new FamilyService(_context);
         }
 
         private async Task AsyncInit()
         {
-            var googleId = "species-sample-google-id";
-            var email = "species-test@fake-website.com";
+            var googleId = "reaction-sample-google-id";
+            var email = "reaction-test@fake-website.com";
             _user = await _userService.SignInGoogle(googleId, email);
             _nameIdentifier = _user.Id.ToString();
 
             var familyDto = new Family
             {
                 Name = "TestFamily",
-                Description = "From SpeciesControllerTests.cs",
+                Description = "From ReactionControllerTests.cs",
                 CreatedDate = DateTime.UtcNow
             }.ToDto();
             var (result, family) = await _familyService.CreateFamilyAsync(familyDto, _user);
             _family = family!.Entity;
 
-            // Seed a species through the whole-family save so the read tests have data.
-            _species = new SpeciesDto
+            // Seed a reaction through the whole-family save so the read tests have data.
+            _reaction = new Reaction
             {
                 Id = Guid.NewGuid(),
-                Name = "TestSpecies",
-                Description = "From SpeciesControllerTests.cs",
+                Name = "TestReaction",
+                Description = "From ReactionControllerTests.cs",
+                ReactionType = "TestReactionType",
                 FamilyId = _family.Id,
             };
             var dto = _family.ToDto();
-            dto.Species.Add(_species);
+            dto.Reactions.Add(new ReactionDto
+            {
+                Id = _reaction.Id,
+                FamilyId = _family.Id,
+                Name = _reaction.Name,
+                Description = _reaction.Description,
+                ReactionType = _reaction.ReactionType,
+            });
             await _familyService.UpdateFamilyAsync(_family.Id, dto, _nameIdentifier!);
         }
 
         [ClassInitialize]
         public static void ClassInit(TestContext context)
         {
-            var tests = new SpeciesControllerTests();
+            var tests = new ReactionControllerTests();
             tests.AsyncInit().Wait();
         }
 
         [TestMethod]
-        public async Task GetAllSpecies()
+        public async Task GetReactions()
         {
-            var actionResult = await _speciesController.GetAllSpecies(null);
+            var actionResult = await _reactionController.GetReactions(null);
             Assert.IsNotNull(actionResult);
             var okResult = actionResult.Result as OkObjectResult;
             Assert.IsNotNull(okResult);
         }
 
         [TestMethod]
-        public async Task GetSpecies()
+        public async Task GetReaction()
         {
-            var actionResult = await _speciesController.GetSpecies(_species.Id);
+            var actionResult = await _reactionController.GetReaction(_reaction.Id);
             Assert.IsNotNull(actionResult);
             var okResult = actionResult.Result as OkObjectResult;
             Assert.IsNotNull(okResult);
-            var returnedSpecies = okResult.Value as SpeciesDto;
-            Assert.IsNotNull(returnedSpecies);
-            Assert.AreEqual(_species.Id, returnedSpecies.Id);
-            Assert.AreEqual(_species.Name, returnedSpecies.Name);
-            Assert.AreEqual(_species.Description, returnedSpecies.Description);
-            Assert.AreEqual(_species.FamilyId, returnedSpecies.FamilyId);
+            var returnedReaction = okResult.Value as Reaction;
+            Assert.IsNotNull(returnedReaction);
+            Assert.AreEqual(_reaction.Id, returnedReaction.Id);
+            Assert.AreEqual(_reaction.Name, returnedReaction.Name);
+            Assert.AreEqual(_reaction.Description, returnedReaction.Description);
+            Assert.AreEqual(_reaction.FamilyId, returnedReaction.FamilyId);
         }
 
         [TestMethod]
-        public async Task GetAllSpeciesFromFamily()
+        public async Task GetReactionsFromFamily()
         {
-            var actionResult = await _speciesController.GetAllSpecies(_family!.Id);
+            var actionResult = await _reactionController.GetReactions(_family.Id);
             Assert.IsNotNull(actionResult);
             var okResult = actionResult.Result as OkObjectResult;
             Assert.IsNotNull(okResult);
-            var speciesList = okResult.Value as IEnumerable<SpeciesDto>;
-            Assert.IsNotNull(speciesList);
-            Assert.IsTrue(speciesList.Count() >= 1);
+            var reactionList = okResult.Value as IEnumerable<Reaction>;
+            Assert.IsNotNull(reactionList);
+            Assert.IsTrue(reactionList.Count() >= 1);
         }
 
         [TestMethod]
-        public async Task GetSpeciesFromInvalidFamily()
+        public async Task GetReactionsFromInvalidFamily()
         {
-            var actionResult = await _speciesController.GetSpecies(Guid.NewGuid());
+            var actionResult = await _reactionController.GetReactions(Guid.NewGuid());
             Assert.IsNotNull(actionResult);
             Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundObjectResult));
         }
@@ -120,7 +126,7 @@ namespace ChemistryCafeAPI.Tests
         {
             if (_family != null)
             {
-                await _familyService.DeleteFamilyAsync(_family!.Id, _nameIdentifier!);
+                await _familyService.DeleteFamilyAsync(_family.Id, _nameIdentifier!);
             }
             if (_user != null)
             {
@@ -131,7 +137,7 @@ namespace ChemistryCafeAPI.Tests
         [ClassCleanup]
         public static void ClassCleanup()
         {
-            var tests = new SpeciesControllerTests();
+            var tests = new ReactionControllerTests();
             tests.AsyncCleanup().Wait();
         }
     }

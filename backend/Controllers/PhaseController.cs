@@ -1,12 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using ChemistryCafeAPI.Services;
 using ChemistryCafeAPI.Models;
 
 namespace ChemistryCafeAPI.Controllers
 {
+    [AllowAnonymous]
     [ApiController]
     [Route("api/phases")]
-    public class PhaseController(PhaseService phaseService,UserService userService) : BaseHelperController(userService)
+    public class PhaseController(PhaseService phaseService) : ControllerBase
     {
 
         [HttpGet]

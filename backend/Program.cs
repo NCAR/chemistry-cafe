@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Http;
 using NuGet.Protocol;
+using ChemistryCafeAPI.Options;
 
 [ExcludeFromCodeCoverage]
 public class Program {
@@ -24,8 +25,65 @@ public class Program {
         // Configure Environment
         DotEnv.Load();
 
+        // Configure Options
+        var googleOptions = new GoogleAuthOptions
+        {
+            // Trim the OAuth credentials. A value pasted into a secret store can end
+            // with a newline, and the OAuth provider then rejects the client ID.
+            ClientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID")?.Trim(),
+            ClientSecret = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET")?.Trim()
+        };
+        builder.Services.Configure<GoogleAuthOptions>(options =>
+        {
+            options.ClientId = googleOptions.ClientId;
+            options.ClientSecret = googleOptions.ClientSecret;
+        });
+
+        var orcidOptions = new OrcidAuthOptions
+        {
+            // Trim the OAuth credentials. A value pasted into a secret store can end
+            // with a newline, and the OAuth provider then rejects the client ID.
+            ClientId = Environment.GetEnvironmentVariable("ORCID_CLIENT_ID")?.Trim(),
+            ClientSecret = Environment.GetEnvironmentVariable("ORCID_CLIENT_SECRET")?.Trim()
+        };
+        builder.Services.Configure<OrcidAuthOptions>(options =>
+        {
+            options.ClientId = orcidOptions.ClientId;
+            options.ClientSecret = orcidOptions.ClientSecret;
+        });
+
+        var urlOptions = new UrlOptions
+        {
+            FrontendHost = Environment.GetEnvironmentVariable("FRONTEND_HOST") ?? "http://localhost:5173",
+            BackendBaseUrl = Environment.GetEnvironmentVariable("BACKEND_BASE_URL") ?? "/"
+        };
+        builder.Services.Configure<UrlOptions>(options =>
+        {
+            options.FrontendHost = urlOptions.FrontendHost;
+            options.BackendBaseUrl = urlOptions.BackendBaseUrl;
+        });
+
+        var dbOptions = new DatabaseOptions
+        {
+            Server = Environment.GetEnvironmentVariable("MYSQL_SERVER") ?? "localhost",
+            Port = Environment.GetEnvironmentVariable("MYSQL_PORT") ?? "3306",
+            User = Environment.GetEnvironmentVariable("MYSQL_USER") ?? throw new InvalidOperationException("MYSQL_USER environment variable is missing."),
+            Password = Environment.GetEnvironmentVariable("MYSQL_PASSWORD") ?? throw new InvalidOperationException("MYSQL_PASSWORD environment variable is missing."),
+            Database = Environment.GetEnvironmentVariable("MYSQL_DATABASE") ?? throw new InvalidOperationException("MYSQL_DATABASE environment variable is missing.")
+        };
+        builder.Services.Configure<DatabaseOptions>(options =>
+        {
+            options.Server = dbOptions.Server;
+            options.Port = dbOptions.Port;
+            options.User = dbOptions.User;
+            options.Password = dbOptions.Password;
+            options.Database = dbOptions.Database;
+        });
+
         // Add services to the container.
+        builder.Services.AddHttpContextAccessor();
         builder.Services.AddControllers();
+        builder.Services.AddAuthorization();
         builder.Services.AddScoped<UserService>();
         builder.Services.AddScoped<GoogleOAuthService>();
         builder.Services.AddScoped<OrcidOAuthService>();
@@ -34,11 +92,6 @@ public class Program {
         builder.Services.AddScoped<ReactionService>();
         builder.Services.AddScoped<PhaseService>();
         builder.Services.AddScoped<MechanismService>();
-
-        // Trim the OAuth credentials. A value pasted into a secret store can end
-        // with a newline, and the OAuth provider then rejects the client ID.
-        string? googleClientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID")?.Trim();
-        string? googleClientSecret = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET")?.Trim();
 
         var authenticationBuilder = builder.Services.AddAuthentication((options) =>
             {
@@ -50,12 +103,12 @@ public class Program {
 
         // Google sign-in is optional. When the client credentials are absent the
         // app still starts, so it can be used as a guest with read-only access.
-        if (!string.IsNullOrWhiteSpace(googleClientId) && !string.IsNullOrWhiteSpace(googleClientSecret))
+        if (googleOptions.IsConfigured)
         {
             authenticationBuilder.AddGoogle((options) =>
             {
-                options.ClientId = googleClientId;
-                options.ClientSecret = googleClientSecret;
+                options.ClientId = googleOptions.ClientId!;
+                options.ClientSecret = googleOptions.ClientSecret!;
                 options.AccessDeniedPath = "/auth/google/login";
             });
         }
@@ -65,12 +118,9 @@ public class Program {
                 "WARNING: GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET are not set. Google sign-in is disabled; the app runs in guest (read-only) mode.");
         }
         
-        string? orcidClientId = Environment.GetEnvironmentVariable("ORCID_CLIENT_ID")?.Trim();
-        string? orcidClientSecret = Environment.GetEnvironmentVariable("ORCID_CLIENT_SECRET")?.Trim();
-        
         // Orcid sign-in is optional. When the client credentials are absent the
         // app still starts, so it can be used as a guest with read-only access.
-        if (!string.IsNullOrWhiteSpace(orcidClientId) && !string.IsNullOrWhiteSpace(orcidClientSecret))
+        if (orcidOptions.IsConfigured)
         {
             authenticationBuilder.AddOAuth("Orcid", (options) =>
             {
@@ -78,8 +128,8 @@ public class Program {
                 options.AuthorizationEndpoint = "https://orcid.org/oauth/authorize"; 
                 options.TokenEndpoint = "https://orcid.org/oauth/token";
                 
-                options.ClientId = orcidClientId;
-                options.ClientSecret = orcidClientSecret;
+                options.ClientId = orcidOptions.ClientId!;
+                options.ClientSecret = orcidOptions.ClientSecret!;
                 options.AccessDeniedPath = "/auth/orcid/login";
         
                 // This is the relative callback URL. You must register the absolute version 
@@ -95,23 +145,26 @@ public class Program {
                     OnCreatingTicket = async context =>
                     {
                         // ORCID includes the user identity data directly in the token response payload
-                        using var jsonDoc = System.Text.Json.JsonDocument.Parse(context.TokenResponse.Response.RootElement.GetRawText());
-                        var root = jsonDoc.RootElement;
-                        
-                        if (root.TryGetProperty("orcid", out var orcidProperty))
+                        if (context.TokenResponse.Response != null)
                         {
-                            context.Identity?.AddClaim(new System.Security.Claims.Claim(
-                                System.Security.Claims.ClaimTypes.NameIdentifier, 
-                                orcidProperty.GetString() ?? ""
-                            ));
-                        }
+                            using var jsonDoc = System.Text.Json.JsonDocument.Parse(context.TokenResponse.Response.RootElement.GetRawText());
+                            var root = jsonDoc.RootElement;
+                            
+                            if (root.TryGetProperty("orcid", out var orcidProperty))
+                            {
+                                context.Identity?.AddClaim(new System.Security.Claims.Claim(
+                                    System.Security.Claims.ClaimTypes.NameIdentifier, 
+                                    orcidProperty.GetString() ?? ""
+                                ));
+                            }
 
-                        if (root.TryGetProperty("name", out var nameProperty))
-                        {
-                            context.Identity?.AddClaim(new System.Security.Claims.Claim(
-                                System.Security.Claims.ClaimTypes.Name, 
-                                nameProperty.GetString() ?? ""
-                            ));
+                            if (root.TryGetProperty("name", out var nameProperty))
+                            {
+                                context.Identity?.AddClaim(new System.Security.Claims.Claim(
+                                    System.Security.Claims.ClaimTypes.Name, 
+                                    nameProperty.GetString() ?? ""
+                                ));
+                            }
                         }
                 
                         await Task.CompletedTask;
@@ -130,20 +183,13 @@ public class Program {
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
-        //Adds SQL data source from appsettings.json file
-        var server = Environment.GetEnvironmentVariable("MYSQL_SERVER") ?? "localhost";
-        var user = Environment.GetEnvironmentVariable("MYSQL_USER") ?? throw new InvalidOperationException("MYSQL_USER environment variable is missing.");
-        var password = Environment.GetEnvironmentVariable("MYSQL_PASSWORD") ?? throw new InvalidOperationException("MYSQL_PASSWORD environment variable is missing.");
-        var database = Environment.GetEnvironmentVariable("MYSQL_DATABASE") ?? throw new InvalidOperationException("MYSQL_DATABASE environment variable is missing.");
-        var port = Environment.GetEnvironmentVariable("MYSQL_PORT") ?? "3306";
-
-        var connectionString = $"Server={server};Port={port};Database={database};User={user};Password={password};AllowUserVariables=True;UseAffectedRows=False;";
+        // Adds SQL data source
+        var connectionString = dbOptions.ConnectionString;
         builder.Services.AddDbContext<ChemistryDbContext>(options =>
         {
             options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
         });
 
-        string frontendHost = Environment.GetEnvironmentVariable("FRONTEND_HOST") ?? "http://localhost:5173";
         builder.Services.AddCors(options =>
         {
             options.AddPolicy("DevelopmentCorsPolicy", policy =>
@@ -156,7 +202,7 @@ public class Program {
 
             options.AddPolicy("ProductionCorsPolicy", policy =>
             {
-                policy.WithOrigins(frontendHost)
+                policy.WithOrigins(urlOptions.FrontendHost)
                        .AllowAnyMethod()
                        .AllowAnyHeader()
                        .AllowCredentials();

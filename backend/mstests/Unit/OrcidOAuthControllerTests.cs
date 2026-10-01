@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using ChemistryCafeAPI.Controllers;
@@ -22,7 +22,7 @@ namespace ChemistryCafeAPI.Tests
         {
             var userService = new UserService(ctx);
             var orcidService = new OrcidOAuthService(userService);
-            var orcidController = new OrcidOAuthController(orcidService);
+            var orcidController = new OrcidOAuthController(orcidService, userService);
             Assert.IsNotNull(orcidController.LoginRedirect());
             return Task.CompletedTask;
         }

@@ -11,9 +11,6 @@ namespace ChemistryCafeAPI.Services
     /// </summary>
     public class GoogleOAuthService(UserService userService)
     {
-
-        public readonly UserService UserService = userService;
-
         [ExcludeFromCodeCoverage]
         private static bool IsGoogleIdentity(ClaimsIdentity identity)
         {
@@ -48,7 +45,7 @@ namespace ChemistryCafeAPI.Services
                 return null;
             }
             
-            User? user = prev!=null?await UserService.LinkGoogle(prev,googleId.Value, emailClaim.Value) :await UserService.SignInGoogle(googleId.Value, emailClaim.Value);
+            User? user = prev != null ? await userService.LinkGoogle(prev, googleId.Value, emailClaim.Value) : await userService.SignInGoogle(googleId.Value, emailClaim.Value);
             if (user == null)
             {
                 return null;

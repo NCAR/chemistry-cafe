@@ -12,110 +12,106 @@ using System;
 namespace ChemistryCafeAPI.Tests
 {
     [TestClass]
-    public class PhaseControllerTests
+    public class SpeciesControllerTests
     {
         private static ChemistryDbContext _context = DBConnection.Context;
         private static User? _user;
         private static Family? _family;
-        private static Phase _phase = null!;
+        private static SpeciesDto _species = null!;
         private static string? _nameIdentifier;
 
-        private PhaseService _phaseService;
-        private PhaseController _phaseController;
+        private SpeciesService _speciesService;
+        private SpeciesController _speciesController;
         private UserService _userService;
         private FamilyService _familyService;
 
-        public PhaseControllerTests()
+        
+
+        public SpeciesControllerTests()
         {
             _context = DBConnection.Context;
+            _speciesService = new SpeciesService(_context);
             _userService = new UserService(_context);
-            _phaseService = new PhaseService(_context);
-            _phaseController = new PhaseController(_phaseService,_userService);
+            _speciesController = new SpeciesController(_speciesService);
             _familyService = new FamilyService(_context);
         }
 
         private async Task AsyncInit()
         {
-            var googleId = "phase-sample-google-id";
-            var email = "phase-test@fake-website.com";
+            var googleId = "species-sample-google-id";
+            var email = "species-test@fake-website.com";
             _user = await _userService.SignInGoogle(googleId, email);
             _nameIdentifier = _user.Id.ToString();
 
             var familyDto = new Family
             {
                 Name = "TestFamily",
-                Description = "From PhaseControllerTests.cs",
+                Description = "From SpeciesControllerTests.cs",
                 CreatedDate = DateTime.UtcNow
             }.ToDto();
             var (result, family) = await _familyService.CreateFamilyAsync(familyDto, _user);
             _family = family!.Entity;
 
-            // Seed a phase through the whole-family save so the read tests have data.
-            _phase = new Phase
+            // Seed a species through the whole-family save so the read tests have data.
+            _species = new SpeciesDto
             {
                 Id = Guid.NewGuid(),
-                Name = "TestPhase",
-                Description = "From PhaseControllerTests.cs",
+                Name = "TestSpecies",
+                Description = "From SpeciesControllerTests.cs",
                 FamilyId = _family.Id,
             };
             var dto = _family.ToDto();
-            dto.Phases.Add(new PhaseDto
-            {
-                Id = _phase.Id,
-                FamilyId = _family.Id,
-                Name = _phase.Name,
-                Description = _phase.Description,
-            });
+            dto.Species.Add(_species);
             await _familyService.UpdateFamilyAsync(_family.Id, dto, _nameIdentifier!);
         }
 
         [ClassInitialize]
         public static void ClassInit(TestContext context)
         {
-            var tests = new PhaseControllerTests();
+            var tests = new SpeciesControllerTests();
             tests.AsyncInit().Wait();
         }
 
         [TestMethod]
-        public async Task GetPhases()
+        public async Task GetAllSpecies()
         {
-            var actionResult = await _phaseController.GetPhases(null);
+            var actionResult = await _speciesController.GetAllSpecies(null);
             Assert.IsNotNull(actionResult);
             var okResult = actionResult.Result as OkObjectResult;
             Assert.IsNotNull(okResult);
         }
 
         [TestMethod]
-        public async Task GetPhase()
+        public async Task GetSpecies()
         {
-            var actionResult = await _phaseController.GetPhase(_phase.Id);
+            var actionResult = await _speciesController.GetSpecies(_species.Id);
             Assert.IsNotNull(actionResult);
             var okResult = actionResult.Result as OkObjectResult;
             Assert.IsNotNull(okResult);
-            var returnedPhase = okResult.Value as Phase;
-            Assert.IsNotNull(returnedPhase);
-            Assert.AreEqual(_phase.Id, returnedPhase.Id);
-            Assert.AreEqual(_phase.Name, returnedPhase.Name);
-            Assert.AreEqual(_phase.Description, returnedPhase.Description);
-            Assert.AreEqual(_phase.FamilyId, returnedPhase.FamilyId);
+            var returnedSpecies = okResult.Value as SpeciesDto;
+            Assert.IsNotNull(returnedSpecies);
+            Assert.AreEqual(_species.Id, returnedSpecies.Id);
+            Assert.AreEqual(_species.Name, returnedSpecies.Name);
+            Assert.AreEqual(_species.Description, returnedSpecies.Description);
+            Assert.AreEqual(_species.FamilyId, returnedSpecies.FamilyId);
         }
 
         [TestMethod]
-        public async Task GetPhasesFromFamily()
+        public async Task GetAllSpeciesFromFamily()
         {
-            var actionResult = await _phaseController.GetPhases(_family!.Id);
+            var actionResult = await _speciesController.GetAllSpecies(_family!.Id);
             Assert.IsNotNull(actionResult);
             var okResult = actionResult.Result as OkObjectResult;
             Assert.IsNotNull(okResult);
-            var phaseList = okResult.Value as IEnumerable<Phase>;
-            Assert.IsNotNull(phaseList);
-            Assert.IsTrue(phaseList.Count() >= 1);
+            var speciesList = okResult.Value as IEnumerable<SpeciesDto>;
+            Assert.IsNotNull(speciesList);
+            Assert.IsTrue(speciesList.Count() >= 1);
         }
 
         [TestMethod]
-        public async Task GetPhasesFromInvalidFamily()
+        public async Task GetSpeciesFromInvalidFamily()
         {
-            var actionResult = await _phaseController.GetPhases(Guid.NewGuid());
+            var actionResult = await _speciesController.GetSpecies(Guid.NewGuid());
             Assert.IsNotNull(actionResult);
             Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundObjectResult));
         }
@@ -124,7 +120,7 @@ namespace ChemistryCafeAPI.Tests
         {
             if (_family != null)
             {
-                await _familyService.DeleteFamilyAsync(_family.Id, _nameIdentifier!);
+                await _familyService.DeleteFamilyAsync(_family!.Id, _nameIdentifier!);
             }
             if (_user != null)
             {
@@ -135,7 +131,7 @@ namespace ChemistryCafeAPI.Tests
         [ClassCleanup]
         public static void ClassCleanup()
         {
-            var tests = new PhaseControllerTests();
+            var tests = new SpeciesControllerTests();
             tests.AsyncCleanup().Wait();
         }
     }
