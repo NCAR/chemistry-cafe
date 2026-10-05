@@ -7,6 +7,7 @@ namespace ChemistryCafeAPI.Models;
 
 public partial class User
 {
+    [Key]
     public Guid Id { get; set; }
     public string Username { get; set; } = null!;
     public string Role { get; set; } = null!;
