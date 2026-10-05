@@ -5,9 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChemistryCafeAPI.Models;
 
-[Index("Username", Name = "idx_users_username", IsUnique = true)]
 public partial class User
 {
+    [Key]
     public Guid Id { get; set; }
     public string Username { get; set; } = null!;
     public string Role { get; set; } = null!;
