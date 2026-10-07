@@ -10,9 +10,6 @@ import {
   DialogContent,
   DialogTitle,
   Divider,
-  List,
-  ListItemButton,
-  ListItemText,
   TextField,
   Tooltip,
   Typography,
@@ -101,25 +98,6 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
 
     setPhaseList(nextPhases);
     updateFamily(nextFamily);
-  };
-
-  const addSpeciesToPhase = (phaseId: UUID, speciesId: UUID) => {
-    const phase = phaseList.find((element) => element.id === phaseId);
-
-    if (!phase || phase.speciesIds.includes(speciesId)) {
-      return;
-    }
-
-    applyPhaseChanges(
-      phaseList.map((currentPhase) =>
-        currentPhase.id === phaseId
-          ? {
-              ...currentPhase,
-              speciesIds: [...currentPhase.speciesIds, speciesId],
-            }
-          : currentPhase,
-      ),
-    );
   };
 
   const addSelectedSpeciesToPhase = () => {
