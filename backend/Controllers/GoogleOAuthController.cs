@@ -33,6 +33,10 @@ namespace ChemistryCafeAPI.Controllers
         {
             string redirectUri = Path.Combine(_urls.BackendBaseUrl, "auth/google/authenticate").Replace('\\', '/');
             AuthenticationProperties authProperties = new AuthenticationProperties { RedirectUri = redirectUri };
+            if(HttpContext.Request.Query.TryGetValue("merge", out var merge) && merge=="true")
+            {
+                authProperties.SetString("merge","true");
+            }
             authProperties.SetParameter("prompt", "select_account");
             return new ChallengeResult(GoogleDefaults.AuthenticationScheme, authProperties);
         }
@@ -45,10 +49,17 @@ namespace ChemistryCafeAPI.Controllers
         [ExcludeFromCodeCoverage]
         public async Task<IActionResult> GoogleResponse()
         {
+            
             AuthenticateResult result = await HttpContext.AuthenticateAsync("External");
             if (!result.Succeeded)
             {
                 return BadRequest("Google OAuth Http Response did not succeed");
+            }
+
+            bool merge=false;
+            if (result.Properties.Items.TryGetValue("merge", out var mergeValue))
+            {
+                merge = true;
             }
             
             var (_, user) = await userService.GetCurrentUserAsync();
