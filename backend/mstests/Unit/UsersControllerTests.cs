@@ -25,7 +25,7 @@ namespace ChemistryCafeAPI.Tests
         // Test data constants
         static string _Username = "";
         static string _GoogleId = "";
-        const string _Role = "TestRole";
+        const Role _Role = Role.Verifier;
         const string _Email = "testuser@example.com";
         static DateTime _CreatedDate = DateTime.UtcNow;
 
@@ -195,7 +195,7 @@ namespace ChemistryCafeAPI.Tests
             {
                 Id = Guid.NewGuid(),
                 Username = "AdminTestUser",
-                Role = "admin",
+                Role = Role.Admin,
                 Email = "admin@admin.com",
                 CreatedDate = DateTime.UtcNow,
                 GoogleId = "ADMIN-GOOGLE-ID"
@@ -208,7 +208,7 @@ namespace ChemistryCafeAPI.Tests
             {
                 Id = _UserId,
                 Username = _Username,
-                Role = "NewRole",
+                Role = Role.Verifier,
                 Email = _Email,
                 CreatedDate = _CreatedDate,
                 GoogleId = _GoogleId
@@ -578,6 +578,14 @@ namespace ChemistryCafeAPI.Tests
             var result = await userController.GetCurrentUser();
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(UnauthorizedResult));
+        }
+
+        [TestMethod]
+        public void RoleEnum_Values_Exist()
+        {
+            Assert.AreEqual(Role.None, Enum.Parse<Role>("None"));
+            Assert.AreEqual(Role.Verifier, Enum.Parse<Role>("Verifier"));
+            Assert.AreEqual(Role.Admin, Enum.Parse<Role>("Admin"));
         }
     }
 }

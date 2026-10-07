@@ -174,7 +174,7 @@ const UserManagement: React.FC = () => {
       width: 150,
       editable: true,
       type: "singleSelect",
-      valueOptions: ["unverified", "verified", "admin"],
+      valueOptions: ["None", "Verifier", "Admin"],
     },
     {
       field: "actions",

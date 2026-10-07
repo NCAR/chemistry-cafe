@@ -105,7 +105,7 @@ namespace ChemistryCafeAPI.Services
                 user = new User();
                 user.Id = Guid.NewGuid();
                 user.Username = email;
-                user.Role = "unverified";
+                user.Role = Role.None;
                 user.Email = email;
                 user.CreatedDate = DateTime.UtcNow;
                 user.GoogleId = googleID;
@@ -152,7 +152,7 @@ namespace ChemistryCafeAPI.Services
                 user = new User();
                 user.Id = Guid.NewGuid();
                 user.Username = name;
-                user.Role = "unverified";
+                user.Role = Role.None;
                 user.CreatedDate = DateTime.UtcNow;
                 user.OrcidId = orcidID;
                 context.Users.Add(user);
@@ -190,12 +190,12 @@ namespace ChemistryCafeAPI.Services
                 return QueryResult.NotFound;
             }
 
-            if (loggedInUser.Id != user.Id && loggedInUser.Role != "admin")
+            if (loggedInUser.Id != user.Id && loggedInUser.Role != Role.Admin)
             {
                 return QueryResult.NoAccess;
             }
 
-            if (loggedInUser.Role == "admin")
+            if (loggedInUser.Role == Role.Admin)
             {
                 existingUser.Role = user.Role;
             }
@@ -229,7 +229,7 @@ namespace ChemistryCafeAPI.Services
                 return QueryResult.NotFound;
             }
 
-            if (loggedInUser.Id != id && loggedInUser.Role != "admin")
+            if (loggedInUser.Id != id && loggedInUser.Role != Role.Admin)
             {
                 return QueryResult.NoAccess;
             }

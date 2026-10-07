@@ -119,7 +119,7 @@ namespace ChemistryCafeAPI.Tests.Functional
                     Id = TestUserId,
                     Username = "testuser",
                     Email = "testuser@example.com",
-                    Role = "user",
+                    Role = Role.None,
                     CreatedDate = DateTime.UtcNow
                 };
                 db.Users.Add(testUser);

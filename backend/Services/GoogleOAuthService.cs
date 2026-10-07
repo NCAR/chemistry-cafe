@@ -54,7 +54,7 @@ namespace ChemistryCafeAPI.Services
 
             claimsIdentity.AddClaim(nameIdClaim);
             claimsIdentity.AddClaim(emailClaim);
-            claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, user.Role));
+            claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, user.Role.ToString()));
             return new ClaimsPrincipal(claimsIdentity);
         }
     }

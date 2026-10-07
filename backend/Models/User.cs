@@ -1,16 +1,23 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChemistryCafeAPI.Models;
 
+public enum Role
+{
+    None,
+    Verifier,
+    Admin
+}
+
 public partial class User
 {
     [Key]
     public Guid Id { get; set; }
     public string Username { get; set; } = null!;
-    public string Role { get; set; } = null!;
+    public Role Role { get; set; } = Role.None;
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
     public string? Email { get; set; }
