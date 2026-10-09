@@ -57,14 +57,14 @@ namespace ChemistryCafeAPI.Controllers
             }
 
             bool merge=false;
-            if (result.Properties.Items.TryGetValue("merge", out var mergeValue))
+            if (result.Properties.Items.TryGetValue("merge", out var mergeValue)&&mergeValue=="true")
             {
                 merge = true;
             }
             
             var (_, user) = await userService.GetCurrentUserAsync();
             
-            ClaimsPrincipal? claimsIdentity = await googleOAuthService.GetUserClaimsAsync(result, user);
+            ClaimsPrincipal? claimsIdentity = await googleOAuthService.GetUserClaimsAsync(result,merge, user);
             if (claimsIdentity == null)
             {
                 return BadRequest("The account you are trying to link already exists or the credentials passed were invalid. Contact musica-support@ucar.edu for further help.");

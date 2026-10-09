@@ -70,20 +70,38 @@ namespace ChemistryCafeAPI.Services
         {
             return await context.Users.SingleOrDefaultAsync(u => u.Email == email);
         }
-        
+
+        /// <summary>
+        /// Links and existing user to Google account
+        /// </summary>
+        /// <param name="dest"></param>
+        /// <param name="src"></param>
+        /// <returns>Tracked user object</returns>
+        public async Task<User> MergeUsers(User dest, User src)
+        {
+            var families = await context.Families.Where(f => f.Owner.Id == src.Id).ToListAsync();
+            foreach (var family in families)
+            {
+                family.Owner = dest;
+            }
+            context.Users.Remove(src);
+            await context.SaveChangesAsync();
+            return dest;
+        }
         /// <summary>
         /// Links and existing user to Google account
         /// </summary>
         /// <param name="user"></param>
         /// <param name="googleID"></param>
         /// <param name="email"></param>
+        /// <param name="merge"></param>
         /// <returns>Tracked user object</returns>
-        public async Task<User?> LinkGoogle(User user,string googleID, string email)
+        public async Task<User?> LinkGoogle(User user,string googleID, string email,bool merge)
         {
             var dup = await context.Users.SingleOrDefaultAsync(u => u.GoogleId == googleID);
             if (dup != null)
             {
-                return null;
+                return merge ? await MergeUsers(user, dup) : null;
             }
             user.Email = email;
             user.GoogleId = googleID;
