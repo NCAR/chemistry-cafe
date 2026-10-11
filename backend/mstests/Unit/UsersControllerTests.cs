@@ -8,6 +8,7 @@ using MySqlConnector;
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using ChemistryCafeAPI.Models.Dto;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChemistryCafeAPI.Tests
@@ -553,6 +554,38 @@ namespace ChemistryCafeAPI.Tests
             await userService.DeleteUserAsync(user.Id, user.Id.ToString());
             await userService.DeleteUserAsync(other_userPrev.Id, other_userPrev.Id.ToString());
 
+        }
+        [TestMethod]
+        public async Task MergeGoogleLink()
+        {
+            var userService = new UserService(ctx);
+            var familyService = new FamilyService(ctx);
+            
+            var googleID = "get-current-user0123456789";
+            var orcidID = "get-current-user0123456789-orcid";
+            var email = "get-current-user@test.com";
+            var name = "current-user";
+            var userPrev = await userService.SignInOrcid(googleID, email);
+            var user = await userService.LinkGoogle(userPrev, googleID,email);
+            Assert.IsNotNull(user);
+            Assert.AreEqual(userPrev.Id, user.Id);
+            var testFamily = new FamilyDto
+            {
+                Name = "bobby",
+                Description = "said hello"
+            };
+            await familyService.CreateFamilyAsync(testFamily,user);
+            
+            var other_orcidID = "get-current-user0123456789-orcid-2";
+            var other_name = "current-user-2";
+            var other_userPrev = await userService.SignInOrcid(other_orcidID, other_name);
+            var other_user = await userService.LinkGoogle(other_userPrev, googleID,email,true);
+            Assert.IsNotNull(other_user);
+            Assert.AreEqual(other_user.Id,other_userPrev.Id);
+
+            var exist_user = await userService.GetUserByIdAsync(user.Id);
+            Assert.IsNull(exist_user);
+            await userService.DeleteUserAsync(other_userPrev.Id, other_userPrev.Id.ToString());
         }
 
 

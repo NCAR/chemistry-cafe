@@ -33,7 +33,7 @@ namespace ChemistryCafeAPI.Controllers
         {
             string redirectUri = Path.Combine(_urls.BackendBaseUrl, "auth/google/authenticate").Replace('\\', '/');
             AuthenticationProperties authProperties = new AuthenticationProperties { RedirectUri = redirectUri };
-            if(HttpContext.Request.Query.TryGetValue("merge", out var merge) && merge=="true")
+            if( HttpContext != null && HttpContext.Request.Query.TryGetValue("merge", out var merge) && merge=="true")
             {
                 authProperties.SetString("merge","true");
             }
