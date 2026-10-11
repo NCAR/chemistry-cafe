@@ -64,7 +64,7 @@ namespace ChemistryCafeAPI.Controllers
             
             var (_, user) = await userService.GetCurrentUserAsync();
             
-            ClaimsPrincipal? claimsIdentity = await googleOAuthService.GetUserClaimsAsync(result,merge, user);
+            ClaimsPrincipal? claimsIdentity = await googleOAuthService.GetUserClaimsAsync(result, merge, user);
             if (claimsIdentity == null)
             {
                 return BadRequest("The account you are trying to link already exists or the credentials passed were invalid. Contact musica-support@ucar.edu for further help.");

@@ -84,6 +84,9 @@ namespace ChemistryCafeAPI.Services
             {
                 family.Owner = dest;
             }
+            dest.Email ??= src.Email;
+            dest.OrcidId ??= src.OrcidId;
+            dest.GoogleId ??= src.GoogleId;
             context.Users.Remove(src);
             await context.SaveChangesAsync();
             return dest;
@@ -96,7 +99,7 @@ namespace ChemistryCafeAPI.Services
         /// <param name="email"></param>
         /// <param name="merge"></param>
         /// <returns>Tracked user object</returns>
-        public async Task<User?> LinkGoogle(User user,string googleID, string email,bool merge)
+        public async Task<User?> LinkGoogle(User user,string googleID, string email,bool merge = false)
         {
             var dup = await context.Users.SingleOrDefaultAsync(u => u.GoogleId == googleID);
             if (dup != null)
@@ -144,12 +147,12 @@ namespace ChemistryCafeAPI.Services
         /// <param name="orcidID"></param>
         /// <param name="name"></param>
         /// <returns>Tracked user object</returns>
-        public async Task<User?> LinkOrcid(User user,string orcidID, string name)
+        public async Task<User?> LinkOrcid(User user,string orcidID, string name,bool merge = false)
         {
             var dup = await context.Users.SingleOrDefaultAsync(u => u.OrcidId == orcidID);
             if (dup != null)
             {
-                return null;
+                return merge ? await MergeUsers(user, dup) : null;
             }
             user.OrcidId = orcidID;
             await context.SaveChangesAsync();

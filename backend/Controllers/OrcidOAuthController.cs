@@ -32,6 +32,10 @@ namespace ChemistryCafeAPI.Controllers
         {
             string redirectUri = Path.Combine(_urls.BackendBaseUrl, "auth/orcid/authenticate").Replace('\\', '/');
             AuthenticationProperties authProperties = new AuthenticationProperties { RedirectUri = redirectUri };
+            if(HttpContext.Request.Query.TryGetValue("merge", out var merge) && merge=="true")
+            {
+                authProperties.SetString("merge","true");
+            }
             authProperties.SetParameter("prompt", "select_account");
             return new ChallengeResult("Orcid", authProperties);
         }
@@ -49,10 +53,16 @@ namespace ChemistryCafeAPI.Controllers
             {
                 return BadRequest("Orcid OAuth Http Response did not succeed");
             }
-
+            
+            bool merge=false;
+            if (result.Properties.Items.TryGetValue("merge", out var mergeValue)&&mergeValue=="true")
+            {
+                merge = true;
+            }
+            Console.WriteLine((merge?"merge":"not merge"));
             var (_, user) = await userService.GetCurrentUserAsync();
             
-            ClaimsPrincipal? claimsIdentity = await orcidOAuthService.GetUserClaimsAsync(result, user);
+            ClaimsPrincipal? claimsIdentity = await orcidOAuthService.GetUserClaimsAsync(result, merge, user);
             if (claimsIdentity == null)
             {
                 return BadRequest("The account you are trying to link already exists or the credentials passed were invalid. Contact musica-support@ucar.edu for further help.");

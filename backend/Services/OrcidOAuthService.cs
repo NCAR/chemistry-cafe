@@ -25,7 +25,7 @@ namespace ChemistryCafeAPI.Services
         /// <param name="prev">current user</param>
         /// <returns>ClaimsPrincipal object which holds the user's auth informations</returns>
         [ExcludeFromCodeCoverage]
-        public async Task<ClaimsPrincipal?> GetUserClaimsAsync(AuthenticateResult authenticateResult,User? prev)
+        public async Task<ClaimsPrincipal?> GetUserClaimsAsync(AuthenticateResult authenticateResult,bool merge,User? prev)
         {
             if (authenticateResult.Principal == null)
             {
@@ -46,7 +46,7 @@ namespace ChemistryCafeAPI.Services
             }
             string displayName = nameClaim?.Value ?? "ORCID User";
 
-            User? user = prev != null ? await userService.LinkOrcid(prev, orcidId.Value, displayName) : await userService.SignInOrcid(orcidId.Value, displayName);
+            User? user = prev != null ? await userService.LinkOrcid(prev, orcidId.Value, displayName,merge) : await userService.SignInOrcid(orcidId.Value, displayName);
             if (user == null)
             {
                 return null;
