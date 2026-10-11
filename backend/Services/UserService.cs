@@ -79,6 +79,10 @@ namespace ChemistryCafeAPI.Services
         /// <returns>Tracked user object</returns>
         public async Task<User> MergeUsers(User dest, User src)
         {
+            if (dest.Id == src.Id)
+            {
+                return dest;
+            }
             var families = await context.Families.Where(f => f.Owner.Id == src.Id).ToListAsync();
             foreach (var family in families)
             {

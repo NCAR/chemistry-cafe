@@ -20,7 +20,7 @@ import {
   ToggleButtonGroup,
   Input,
   TextField,
-  Button,
+  Button, IconButton,
 } from "@mui/material";
 import { useEffect, useLayoutEffect, useState } from "react";
 import AccountBoxIcon from "@mui/icons-material/AccountBox";
@@ -280,19 +280,6 @@ const ProfileMenu = () => {
       </ListItem>
       <ListItem>
         <ListItemButton
-            disabled={!!loggedInUser?.googleId}
-            component={"button"}
-            color="primary"
-            onClick={() => window.location.assign(`${AUTH_URL}/google/login?merge=true`)}
-        >
-          <ListItemIcon>
-            <GoogleIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="Merge to Google" />
-        </ListItemButton>
-      </ListItem>
-      <ListItem>
-        <ListItemButton
           disabled={!!loggedInUser?.orcidId}
           component={"button"}
           color="primary"
@@ -310,22 +297,21 @@ const ProfileMenu = () => {
         </ListItemButton>
       </ListItem>
       <ListItem>
-        <ListItemButton
-            disabled={!!loggedInUser?.orcidId}
-            component={"button"}
-            color="primary"
-            onClick={() => window.location.assign(`${AUTH_URL}/orcid/login?merge=true`)}
-        >
-          <ListItemIcon>
+        <Typography >
+          Merge With
+          <IconButton component={"button"} color="primary"  onClick={() => window.location.assign(`${AUTH_URL}/google/login?merge=true`)}>
+            <GoogleIcon fontSize="small" />
+          </IconButton>
+          <IconButton component={"button"} color="primary" onClick={() => window.location.assign(`${AUTH_URL}/orcid/login?merge=true`)}
+          >
             <img
                 aria-label={"ORCID Merge"}
                 alt={"ORCID Merge"}
                 src={OrcidImage}
                 style={{ width: 24, height: 24 }}
             />
-          </ListItemIcon>
-          <ListItemText primary="Merge to ORCID" />
-        </ListItemButton>
+          </IconButton>
+        </Typography>
       </ListItem>
       <ListItem>
         <Button

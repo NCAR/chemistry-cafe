@@ -587,6 +587,20 @@ namespace ChemistryCafeAPI.Tests
             Assert.IsNull(exist_user);
             await userService.DeleteUserAsync(other_userPrev.Id, other_userPrev.Id.ToString());
         }
+        [TestMethod]
+        public async Task MergeGoogleLinkSame()
+        {
+            var userService = new UserService(ctx);
+            
+            var orcidID = "get-current-user0123456789-orcid-2";
+            var name = "current-user-2";
+            var userPrev = await userService.SignInOrcid(orcidID, name);
+            var user = await userService.LinkOrcid(userPrev, orcidID,name,true);
+            Assert.IsNotNull(user);
+            Assert.AreEqual(user.Id,userPrev.Id);
+            
+            await userService.DeleteUserAsync(userPrev.Id, userPrev.Id.ToString());
+        }
 
 
         [TestMethod]
