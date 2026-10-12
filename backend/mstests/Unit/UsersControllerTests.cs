@@ -536,9 +536,7 @@ namespace ChemistryCafeAPI.Tests
             var userService = new UserService(ctx);
             
             var googleID = "get-current-user0123456789";
-            var orcidID = "get-current-user0123456789-orcid";
             var email = "get-current-user@test.com";
-            var name = "current-user";
             var userPrev = await userService.SignInOrcid(googleID, email);
             var user = await userService.LinkGoogle(userPrev, googleID,email);
             Assert.IsNotNull(user);
@@ -562,9 +560,7 @@ namespace ChemistryCafeAPI.Tests
             var familyService = new FamilyService(ctx);
             
             var googleID = "get-current-user0123456789";
-            var orcidID = "get-current-user0123456789-orcid";
             var email = "get-current-user@test.com";
-            var name = "current-user";
             var userPrev = await userService.SignInOrcid(googleID, email);
             var user = await userService.LinkGoogle(userPrev, googleID,email);
             Assert.IsNotNull(user);
@@ -588,7 +584,7 @@ namespace ChemistryCafeAPI.Tests
             await userService.DeleteUserAsync(other_userPrev.Id, other_userPrev.Id.ToString());
         }
         [TestMethod]
-        public async Task MergeGoogleLinkSame()
+        public async Task MergeSameUserGoogle()
         {
             var userService = new UserService(ctx);
             
