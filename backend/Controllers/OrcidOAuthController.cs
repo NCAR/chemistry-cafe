@@ -59,7 +59,7 @@ namespace ChemistryCafeAPI.Controllers
             {
                 merge = true;
             }
-            Console.WriteLine((merge?"merge":"not merge"));
+            
             var (_, user) = await userService.GetCurrentUserAsync();
             
             ClaimsPrincipal? claimsIdentity = await orcidOAuthService.GetUserClaimsAsync(result, merge, user);
