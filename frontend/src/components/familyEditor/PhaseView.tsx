@@ -69,9 +69,7 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
           key={id}
           handleDeleteButtonClick={() => removePhase(id as UUID)}
           handleEditButtonClick={() => {
-            setSelectedPhase(
-              family.phases.find((phase) => phase.id === id),
-            );
+            setSelectedPhase(family.phases.find((phase) => phase.id === id));
             setPhaseCreationModalOpen(true);
           }}
         />,

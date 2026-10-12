@@ -421,7 +421,6 @@ describe("PhaseView", () => {
       }),
     );
   });
-
 });
 
 describe("speciesExclusiveConflict", () => {

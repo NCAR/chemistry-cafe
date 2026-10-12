@@ -61,11 +61,7 @@ export const PhaseCreationModal = ({
       return;
     }
 
-    onSubmit(
-      phaseName,
-      description.trim() || null,
-      selectedSpeciesIds,
-    );
+    onSubmit(phaseName, description.trim() || null, selectedSpeciesIds);
   };
 
   return (
@@ -80,7 +76,7 @@ export const PhaseCreationModal = ({
           error={nameError}
           helperText={nameError ? "Name must not be empty." : undefined}
           id="phase-name"
-          slotProps={{ htmlInput:{"aria-label": "Name"},}}
+          slotProps={{ htmlInput: { "aria-label": "Name" } }}
           label="Name"
           required
           value={name}
@@ -92,7 +88,7 @@ export const PhaseCreationModal = ({
         <TextField
           color="primary"
           id="phase-description"
-          slotProps={{ htmlInput:{"aria-label": "Descrption"},}}
+          slotProps={{ htmlInput: { "aria-label": "Descrption" } }}
           label="Description"
           multiline
           minRows={2}
