@@ -266,43 +266,29 @@ const ProfileMenu = () => {
         />
       </ListItem>
       <ListItem>
-        <ListItemButton
-          disabled={!!loggedInUser?.googleId}
-          component={"button"}
-          color="primary"
-          onClick={() => window.location.assign(`${AUTH_URL}/google/login`)}
-        >
-          <ListItemIcon>
+        <Typography >
+          Link to
+          <IconButton title={"Link to Google"} disabled={!!loggedInUser?.googleId} component={"button"} color="primary"  onClick={() => window.location.assign(`${AUTH_URL}/google/login`)}>
             <GoogleIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="Link to Google" />
-        </ListItemButton>
-      </ListItem>
-      <ListItem>
-        <ListItemButton
-          disabled={!!loggedInUser?.orcidId}
-          component={"button"}
-          color="primary"
-          onClick={() => window.location.assign(`${AUTH_URL}/orcid/login`)}
-        >
-          <ListItemIcon>
+          </IconButton>
+          <IconButton title={"Link to ORCID"} disabled={!!loggedInUser?.orcidId} component={"button"} color="primary" onClick={() => window.location.assign(`${AUTH_URL}/orcid/login`)}
+          >
             <img
-              aria-label={"ORCID Login"}
-              alt={"ORCID Login"}
-              src={OrcidImage}
-              style={{ width: 24, height: 24 }}
+                aria-label={"ORCID Link"}
+                alt={"ORCID Link"}
+                src={OrcidImage}
+                style={{ width: 24, height: 24,filter:!!loggedInUser?.orcidId?"grayscale(100%)":"" }}
             />
-          </ListItemIcon>
-          <ListItemText primary="Link to ORCID" />
-        </ListItemButton>
+          </IconButton>
+        </Typography>
       </ListItem>
       <ListItem>
         <Typography >
-          Merge With
-          <IconButton component={"button"} color="primary"  onClick={() => window.location.assign(`${AUTH_URL}/google/login?merge=true`)}>
+          Merge with
+          <IconButton title={"Merge account with Google login"} component={"button"} color="primary"  onClick={() => window.location.assign(`${AUTH_URL}/google/login?merge=true`)}>
             <GoogleIcon fontSize="small" />
           </IconButton>
-          <IconButton component={"button"} color="primary" onClick={() => window.location.assign(`${AUTH_URL}/orcid/login?merge=true`)}
+          <IconButton title={"Merge account with ORCID login"} component={"button"} color="primary" onClick={() => window.location.assign(`${AUTH_URL}/orcid/login?merge=true`)}
           >
             <img
                 aria-label={"ORCID Merge"}
