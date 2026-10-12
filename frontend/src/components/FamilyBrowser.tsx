@@ -124,7 +124,9 @@ const FamilyInfoCard = memo(function FamilyInfoCard({
         </CardContent>
         <CardActions>
           <ButtonGroup variant="outlined">
-            {handleEditButtonClick && user?.id === family.owner.id && (
+            {handleEditButtonClick &&
+              (user?.id === family.owner.id ||
+                user?.role?.toLowerCase() === "admin") && (
               <Button
                 color="primary"
                 onClick={() => handleEditButtonClick(family.id)}
