@@ -20,7 +20,7 @@ import {
   ToggleButtonGroup,
   Input,
   TextField,
-  Button,
+  Button, IconButton,
 } from "@mui/material";
 import { useEffect, useLayoutEffect, useState } from "react";
 import AccountBoxIcon from "@mui/icons-material/AccountBox";
@@ -266,35 +266,38 @@ const ProfileMenu = () => {
         />
       </ListItem>
       <ListItem>
-        <ListItemButton
-          disabled={!!loggedInUser?.googleId}
-          component={"button"}
-          color="primary"
-          onClick={() => window.location.assign(`${AUTH_URL}/google/login`)}
-        >
-          <ListItemIcon>
+        <Typography >
+          Link to
+          <IconButton title={"Link to Google"} disabled={!!loggedInUser?.googleId} component={"button"} color="primary"  onClick={() => window.location.assign(`${AUTH_URL}/google/login`)}>
             <GoogleIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="Link to Google" />
-        </ListItemButton>
+          </IconButton>
+          <IconButton title={"Link to ORCID"} disabled={!!loggedInUser?.orcidId} component={"button"} color="primary" onClick={() => window.location.assign(`${AUTH_URL}/orcid/login`)}
+          >
+            <img
+                aria-label={"ORCID Link"}
+                alt={"ORCID Link"}
+                src={OrcidImage}
+                style={{ width: 24, height: 24,filter:!!loggedInUser?.orcidId?"grayscale(100%)":"" }}
+            />
+          </IconButton>
+        </Typography>
       </ListItem>
       <ListItem>
-        <ListItemButton
-          disabled={!!loggedInUser?.orcidId}
-          component={"button"}
-          color="primary"
-          onClick={() => window.location.assign(`${AUTH_URL}/orcid/login`)}
-        >
-          <ListItemIcon>
+        <Typography >
+          Merge with
+          <IconButton title={"Merge account with Google login"} component={"button"} color="primary"  onClick={() => window.confirm("Are you sure you want to merge? Merging with google will merge, then DELETE any Chemistry Cafe accounts already linked to this google account.")&&window.location.assign(`${AUTH_URL}/google/login?merge=true`)}>
+            <GoogleIcon fontSize="small" />
+          </IconButton>
+          <IconButton title={"Merge account with ORCID login"} component={"button"} color="primary" onClick={() => window.confirm("Are you sure you want to merge? Merging with ORCID will merge, then DELETE any Chemistry Cafe accounts already linked to this ORCID account.")&&window.location.assign(`${AUTH_URL}/orcid/login?merge=true`)}
+          >
             <img
-              aria-label={"ORCID Login"}
-              alt={"ORCID Login"}
-              src={OrcidImage}
-              style={{ width: 24, height: 24 }}
+                aria-label={"ORCID Merge"}
+                alt={"ORCID Merge"}
+                src={OrcidImage}
+                style={{ width: 24, height: 24 }}
             />
-          </ListItemIcon>
-          <ListItemText primary="Link to ORCID" />
-        </ListItemButton>
+          </IconButton>
+        </Typography>
       </ListItem>
       <ListItem>
         <Button
