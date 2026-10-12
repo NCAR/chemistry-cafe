@@ -246,7 +246,17 @@ describe("GeneralInfoView", () => {
             id: "111-111-111-111-111",
             name: "Test Family",
             description: "Test Description",
-            mechanisms: [],
+            mechanisms: [
+              {
+                id: "mechanism-id",
+                name: "Test Mechanism",
+                description: null,
+                familyId: "111-111-111-111-111",
+                speciesIds: [],
+                reactionIds: [],
+                phaseIds: ["120984"],
+              },
+            ],
             owner: null,
             species: [
               {
@@ -306,7 +316,17 @@ describe("PhaseView", () => {
             id: "111-111-111-111-111",
             name: "Test Family",
             description: "Test Description",
-            mechanisms: [],
+            mechanisms: [
+              {
+                id: "mechanism-id",
+                name: "Test Mechanism",
+                description: null,
+                familyId: "111-111-111-111-111",
+                speciesIds: [],
+                reactionIds: [],
+                phaseIds: ["120984"],
+              },
+            ],
             owner: null,
             species: [
               {
@@ -357,7 +377,51 @@ describe("PhaseView", () => {
 
   it("renders", () => {
     expect(screen.getByText("gas")).toBeTruthy();
+    expect(screen.getByText("<Empty>")).toBeTruthy();
   });
+
+  it("edits a phase name and description", async () => {
+    const user = userEvent.setup();
+    fireEvent.click(screen.getByTestId("row-actions-button"));
+    fireEvent.click(screen.getByTestId("edit-row"));
+    await screen.findByText("Edit Phase");
+
+    await user.clear(screen.getByLabelText("Name"));
+    await user.type(screen.getByLabelText("Name"), "liquid");
+    await user.type(screen.getByLabelText("Description"), "Liquid phase");
+    await user.click(screen.getByTestId("save-phase-button"));
+
+    expect(updateFamily).toHaveBeenCalledWith(
+      expect.objectContaining({
+        phases: [
+          {
+            id: "120984",
+            name: "liquid",
+            description: "Liquid phase",
+            speciesIds: [],
+          },
+        ],
+      }),
+    );
+  });
+
+  it("deletes a phase and removes its mechanism reference", async () => {
+    fireEvent.click(screen.getByTestId("row-actions-button"));
+    fireEvent.click(screen.getByTestId("delete-row"));
+
+    expect(updateFamily).toHaveBeenCalledWith(
+      expect.objectContaining({
+        phases: [],
+        mechanisms: [
+          expect.objectContaining({
+            phaseIds: [],
+          }),
+        ],
+        isModified: true,
+      }),
+    );
+  });
+
 });
 
 describe("speciesExclusiveConflict", () => {
