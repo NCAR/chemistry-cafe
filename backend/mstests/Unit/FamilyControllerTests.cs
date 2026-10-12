@@ -40,21 +40,21 @@ namespace ChemistryCafeAPI.Tests
             var userService = new UserService(ctx);
             _Owner = await userService.SignInGoogle(_GoogleId, _Email);
             _NameIdentifier = _Owner.Id.ToString();
-            var familyService = new FamilyService(ctx);
+            var familyService = new FamilyService(ctx, userService);
             return new MockedFamilyController(familyService,userService, _NameIdentifier);
         }
 
         private Task<FamilyController> CreateControllerWithName(string nameIdentifier)
         {
             var userService = new UserService(ctx);
-            var familyService = new FamilyService(ctx);
+            var familyService = new FamilyService(ctx, userService);
             return Task.FromResult<FamilyController>(new MockedFamilyController(familyService,userService, nameIdentifier));
         }
 
         private Task<FamilyController> CreateSignedOutController()
         {
             var userService = new UserService(ctx);
-            var familyService = new FamilyService(ctx);
+            var familyService = new FamilyService(ctx, userService);
             return Task.FromResult<FamilyController>(new MockedFamilyController(familyService,userService, null));
         }
 
@@ -347,8 +347,17 @@ namespace ChemistryCafeAPI.Tests
         [TestMethod]
         public async Task Delete_Family_Unauthorized()
         {
+            var signedInController = await CreateSignedInController();
+            var testFamily = new FamilyDto
+            {
+                Name = "DeleteUnauthorizedFamily",
+                Description = _Description
+            };
+            var createResult = await signedInController.CreateFamily(testFamily);
+            var createdFamily = ((CreatedAtActionResult)createResult.Result!).Value as FamilyDto;
+
             var controller = await CreateControllerWithName(Guid.NewGuid().ToString());
-            var findResult = await controller.DeleteFamily(_Id);
+            var findResult = await controller.DeleteFamily(createdFamily!.Id);
             Assert.IsInstanceOfType(findResult, typeof(StatusCodeResult));
         }
 
@@ -365,24 +374,33 @@ namespace ChemistryCafeAPI.Tests
         {
             // Arrange
             var controller = await CreateSignedInController();
+            var testFamily = new FamilyDto
+            {
+                Name = "DeleteFamilyTest",
+                Description = _Description
+            };
+            var createResult = await controller.CreateFamily(testFamily);
+            var createdFamily = ((CreatedAtActionResult)createResult.Result!).Value as FamilyDto;
+            var targetId = createdFamily!.Id;
 
             // Act
-            var findResult = await controller.GetFamily(_Id);
+            var findResult = await controller.GetFamily(targetId);
             Assert.IsNotNull(findResult);
             Assert.IsInstanceOfType(findResult.Result, typeof(OkObjectResult));
 
-            await controller.DeleteFamily(_Id);
+            await controller.DeleteFamily(targetId);
 
-            var findDeletedResult = await controller.GetFamily(_Id);
+            var findDeletedResult = await controller.GetFamily(targetId);
 
             // Assert
             Assert.IsInstanceOfType(findDeletedResult.Result, typeof(NotFoundResult));
         }
 
-        [ClassCleanup]
+        [ClassCleanup(ClassCleanupBehavior.EndOfClass)]
         public static void ClassCleanup()
         {
             var ctx = DBConnection.Context;
+            ctx.ChangeTracker.Clear();
             if (_Owner != null) 
             {
                 var userService = new UserService(ctx);

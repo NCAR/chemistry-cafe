@@ -10,7 +10,7 @@ namespace ChemistryCafeAPI.Tests.Functional
         public async Task GetMechanisms_Anonymous_IsAllowed()
         {
             var response = await AnonymousClient.GetAsync("/api/mechanisms");
-            Assert.AreNotEqual(HttpStatusCode.Unauthorized, response.StatusCode);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
         }
 
         [TestMethod]

@@ -108,6 +108,7 @@ namespace ChemistryCafeAPI.Controllers
             {
                 QueryResult.NotFound => NotFound("Family not found"),
                 QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
+                QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier claim"),
                 QueryResult.ValidationError => BadRequest("The family references an id that is not part of the family."),
                 _ => NoContent(),
             };
@@ -133,6 +134,7 @@ namespace ChemistryCafeAPI.Controllers
             {
                 QueryResult.NotFound => NotFound("Family not found"),
                 QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
+                QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier claim"),
                 _ => NoContent(),
             };
         }

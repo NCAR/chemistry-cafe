@@ -234,7 +234,7 @@ namespace ChemistryCafeAPI.Services
                 return QueryResult.NoAccess;
             }
 
-            await context.Users.Where(u => u.Id == id).ExecuteDeleteAsync();
+            await context.ExecuteDeleteAsync(context.Users.Where(u => u.Id == id));
             return QueryResult.Success;
         }
     }

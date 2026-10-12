@@ -20,7 +20,7 @@ namespace ChemistryCafeAPI.Controllers
         protected virtual string? GetNameIdentifier() => UserService.GetNameIdentifier();
 
         // GET: api/Users
-        [AllowAnonymous]
+        [Authorize(Roles = nameof(Role.Admin))]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {

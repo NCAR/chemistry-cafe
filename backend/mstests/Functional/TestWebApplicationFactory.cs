@@ -13,6 +13,7 @@ namespace ChemistryCafeAPI.Tests.Functional
         public const string SchemeName = "TestScheme";
         public const string AuthHeader = "X-Test-Authorized";
         public const string UserIdHeader = "X-Test-UserId";
+        public const string RoleHeader = "X-Test-Role";
 
         public TestAuthHandler(
             IOptionsMonitor<AuthenticationSchemeOptions> options,
@@ -30,11 +31,16 @@ namespace ChemistryCafeAPI.Tests.Functional
                     ? uid.ToString()
                     : TestWebApplicationFactory.TestUserId.ToString();
 
+                var role = Request.Headers.TryGetValue(RoleHeader, out var r)
+                    ? r.ToString()
+                    : Role.Admin.ToString();
+
                 var claims = new[]
                 {
                     new Claim(ClaimTypes.NameIdentifier, userId),
                     new Claim(ClaimTypes.Name, "Test User"),
-                    new Claim(ClaimTypes.Email, "testuser@example.com")
+                    new Claim(ClaimTypes.Email, "testuser@example.com"),
+                    new Claim(ClaimTypes.Role, role)
                 };
                 var identity = new ClaimsIdentity(claims, SchemeName);
                 var principal = new ClaimsPrincipal(identity);
@@ -119,7 +125,7 @@ namespace ChemistryCafeAPI.Tests.Functional
                     Id = TestUserId,
                     Username = "testuser",
                     Email = "testuser@example.com",
-                    Role = Role.None,
+                    Role = Role.Admin,
                     CreatedDate = DateTime.UtcNow
                 };
                 db.Users.Add(testUser);
@@ -139,15 +145,90 @@ namespace ChemistryCafeAPI.Tests.Functional
             return host;
         }
 
-        public HttpClient CreateMockClient(bool isAuthorized)
+        public HttpClient CreateMockClient(bool isAuthorized, Guid? userId = null, Role role = Role.Admin)
         {
             var client = CreateClient();
             if (isAuthorized)
             {
                 client.DefaultRequestHeaders.Add(TestAuthHandler.AuthHeader, "true");
-                client.DefaultRequestHeaders.Add(TestAuthHandler.UserIdHeader, TestUserId.ToString());
+                client.DefaultRequestHeaders.Add(TestAuthHandler.UserIdHeader, (userId ?? TestUserId).ToString());
+                client.DefaultRequestHeaders.Add(TestAuthHandler.RoleHeader, role.ToString());
             }
             return client;
+        }
+
+        public async Task<User> CreateUserAsync(Role role = Role.None, string? username = null, string? email = null, Guid? id = null)
+        {
+            using var scope = Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ChemistryDbContext>();
+            var userId = id ?? Guid.NewGuid();
+            var user = new User
+            {
+                Id = userId,
+                Username = username ?? $"user_{userId:N}",
+                Email = email ?? $"user_{userId:N}@example.com",
+                Role = role,
+                CreatedDate = DateTime.UtcNow
+            };
+            db.Users.Add(user);
+            await db.SaveChangesAsync();
+            return user;
+        }
+
+        public User CreateUser(Role role = Role.None, string? username = null, string? email = null, Guid? id = null)
+        {
+            using var scope = Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ChemistryDbContext>();
+            var userId = id ?? Guid.NewGuid();
+            var user = new User
+            {
+                Id = userId,
+                Username = username ?? $"user_{userId:N}",
+                Email = email ?? $"user_{userId:N}@example.com",
+                Role = role,
+                CreatedDate = DateTime.UtcNow
+            };
+            db.Users.Add(user);
+            db.SaveChanges();
+            return user;
+        }
+
+        public async Task<Family> CreateFamilyAsync(User owner, string? name = null, string? description = null, Guid? id = null)
+        {
+            using var scope = Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ChemistryDbContext>();
+            var trackedOwner = await db.Users.FindAsync(owner.Id);
+            var familyId = id ?? Guid.NewGuid();
+            var family = new Family
+            {
+                Id = familyId,
+                Name = name ?? $"family_{familyId:N}",
+                Description = description ?? "Test Family Description",
+                Owner = trackedOwner ?? owner,
+                CreatedDate = DateTime.UtcNow
+            };
+            db.Families.Add(family);
+            await db.SaveChangesAsync();
+            return family;
+        }
+
+        public Family CreateFamily(User owner, string? name = null, string? description = null, Guid? id = null)
+        {
+            using var scope = Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ChemistryDbContext>();
+            var trackedOwner = db.Users.Find(owner.Id);
+            var familyId = id ?? Guid.NewGuid();
+            var family = new Family
+            {
+                Id = familyId,
+                Name = name ?? $"family_{familyId:N}",
+                Description = description ?? "Test Family Description",
+                Owner = trackedOwner ?? owner,
+                CreatedDate = DateTime.UtcNow
+            };
+            db.Families.Add(family);
+            db.SaveChanges();
+            return family;
         }
     }
 }

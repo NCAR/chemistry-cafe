@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
@@ -223,5 +223,36 @@ public partial class ChemistryDbContext : DbContext
 
         modelBuilder.Entity<Product>()
             .HasKey(r => new { r.ReactionId, r.SpeciesId });
+    }
+
+    /// <summary>
+    /// Executes a bulk delete on relational databases, or falls back to removing tracked entities
+    /// and saving changes when using the EF Core in-memory database provider.
+    /// </summary>
+    public async Task<int> ExecuteDeleteAsync<TEntity>(
+        IQueryable<TEntity> query,
+        CancellationToken cancellationToken = default)
+        where TEntity : class
+    {
+        if (Database.IsInMemory())
+        {
+            var entities = await query.ToListAsync(cancellationToken);
+            RemoveRange(entities);
+            return await SaveChangesAsync(cancellationToken);
+        }
+
+        return await query.ExecuteDeleteAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Executes a bulk delete for entities matching the predicate on relational databases,
+    /// or falls back to removing tracked entities and saving changes for the in-memory provider.
+    /// </summary>
+    public Task<int> ExecuteDeleteAsync<TEntity>(
+        System.Linq.Expressions.Expression<Func<TEntity, bool>> predicate,
+        CancellationToken cancellationToken = default)
+        where TEntity : class
+    {
+        return ExecuteDeleteAsync(Set<TEntity>().Where(predicate), cancellationToken);
     }
 }
