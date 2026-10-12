@@ -9,7 +9,7 @@ import { CustomThemeProvider } from "../src/components/CustomThemeContext";
 import userEvent from "@testing-library/user-event";
 
 const mockUserInfo: APIUser = {
-  role: "admin",
+  role: "Admin",
   email: "test@email.com",
   username: "Test Account",
   id: "0000-0000-0000-0000-0000",

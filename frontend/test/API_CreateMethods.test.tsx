@@ -10,7 +10,7 @@ vi.mock("axios");
 const mockUser: APIUser = {
   id: "1-1-1-1-1",
   username: "Test User",
-  role: "admin",
+  role: "Admin",
 };
 
 const mockAPIFamily: APIFamily = {

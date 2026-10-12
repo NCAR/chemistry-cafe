@@ -24,7 +24,7 @@ describe("Dashboard", () => {
           owner: {
             id: "1-1-1-1-1",
             username: "Test User",
-            role: "admin",
+            role: "Admin",
           },
           species: [],
           reactions: [],

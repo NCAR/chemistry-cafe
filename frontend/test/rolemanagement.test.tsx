@@ -30,7 +30,7 @@ vi.mock("../src/API/API_DeleteMethods", () => ({
 
 // Sample data
 const mockUsers = [
-  { id: "1", username: "JohnDoe", email: "johndoe@example.com", role: "admin" },
+  { id: "1", username: "JohnDoe", email: "johndoe@example.com", role: "Admin" },
   {
     id: "2",
     username: "JaneDoe",
@@ -39,7 +39,7 @@ const mockUsers = [
   },
 ];
 
-const mockLoggedInUser = { id: "123", username: "TestUser", role: "admin" };
+const mockLoggedInUser = { id: "123", username: "TestUser", role: "Admin" };
 
 describe("RoleManagement Component", () => {
   beforeEach(() => {

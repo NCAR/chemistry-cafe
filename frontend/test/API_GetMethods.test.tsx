@@ -18,19 +18,19 @@ const allUsers: Array<APIUser> = [
     id: "1-1-1-1-1",
     email: "test1@email.com",
     username: "Test Admin",
-    role: "admin",
+    role: "Admin",
   },
   {
     id: "2-2-2-2-2",
     email: "test2@example.com",
     username: "Test User",
-    role: "unverified",
+    role: "None",
   },
   {
     id: "3-3-3-3-3",
     email: "test3@test.edu",
     username: "verified test user",
-    role: "verified",
+    role: "Verifier",
   },
 ];
 
@@ -53,7 +53,9 @@ describe("User get functions", () => {
         .mockResolvedValue(createSuccessMockResponse(allUsers)) as Mock;
       const result = await getAllUsers();
 
-      expect(mockedGet).toHaveBeenCalledWith(`${BASE_URL}/users`);
+      expect(mockedGet).toHaveBeenCalledWith(`${BASE_URL}/users`, {
+        withCredentials: true,
+      });
       expect(result).toEqual(allUsers);
     });
 

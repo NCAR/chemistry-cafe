@@ -17,7 +17,7 @@ import axios, { AxiosHeaders, AxiosResponse } from "axios";
 vi.mock("axios");
 
 const mockUserInfo: APIUser = {
-  role: "admin",
+  role: "Admin",
   email: "test@email.com",
   username: "Test Account",
   id: "0000-0000-0000-0000-0000",

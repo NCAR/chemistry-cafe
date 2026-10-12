@@ -139,7 +139,7 @@ export const Header = () => {
               </ListItemIcon>
               Settings
             </MenuItem>
-            {loggedInUser?.role === "admin" && (
+            {loggedInUser?.role === "Admin" && (
               <MenuItem
                 component={Link}
                 to="/usermanagement"
@@ -209,7 +209,7 @@ export const Header = () => {
           <Typography sx={{ fontSize: "medium" }}>
             {loggedInUser.username}
           </Typography>
-          {loggedInUser.role === "admin" && (
+          {loggedInUser.role === "Admin" && (
             <IconButton
               component={Link}
               to="/usermanagement"

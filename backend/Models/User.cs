@@ -1,10 +1,9 @@
-using System;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 namespace ChemistryCafeAPI.Models;
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum Role
 {
     None,

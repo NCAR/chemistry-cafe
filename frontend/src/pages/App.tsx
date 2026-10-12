@@ -32,7 +32,7 @@ function App() {
             <Route
               path="/usermanagement"
               element={
-                <ProtectedRoute requiredRole="admin">
+                <ProtectedRoute requiredRole="Admin">
                   <UserManagement />
                 </ProtectedRoute>
               }
