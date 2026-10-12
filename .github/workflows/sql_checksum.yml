@@ -1,0 +1,25 @@
+name: Verify SQL Migration Checksums
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify-sql-checksum:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Compare checksums of init.sql and chart/init.sql
+        run: |
+          ROOT_HASH=$(sha256sum init.sql | awk '{print $1}')
+          CHART_HASH=$(sha256sum chart/init.sql | awk '{print $1}')
+          echo "init.sql:       $ROOT_HASH"
+          echo "chart/init.sql: $CHART_HASH"
+          if [ "$ROOT_HASH" != "$CHART_HASH" ]; then
+            echo "::error::Checksum mismatch between init.sql and chart/init.sql. Please ensure both files are identical."
+            exit 1
+          fi
+          echo "Checksums match."
+

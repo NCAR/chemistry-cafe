@@ -168,6 +168,8 @@ To generate a new init.sql script:
 $ dotnet ef migrations script --idempotent -o init.sql
 ```
 
+**Note:** After creating `init.sql` in the project root folder, you also need to copy it to `./chart/init.sql` for server deployments to apply all migrations.
+
 ## Testing
 
 Both suites run **outside Docker**, so make sure you've done the local setup
