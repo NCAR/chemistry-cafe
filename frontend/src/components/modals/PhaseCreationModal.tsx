@@ -34,13 +34,22 @@ export const PhaseCreationModal = ({
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [selectedSpeciesIds, setSelectedSpeciesIds] = useState<UUID[]>([]);
+  const [speciesSearch, setSpeciesSearch] = useState("");
   const [nameError, setNameError] = useState(false);
+
+  const filteredSpecies = species.filter((option) =>
+    option.name.toLowerCase().includes(speciesSearch.trim().toLowerCase()),
+  );
+  const allFilteredSpeciesSelected =
+    filteredSpecies.length > 0 &&
+    filteredSpecies.every((option) => selectedSpeciesIds.includes(option.id));
 
   useEffect(() => {
     if (open) {
       setName(phase?.name ?? "");
       setDescription(phase?.description ?? "");
       setSelectedSpeciesIds(phase?.speciesIds ?? []);
+      setSpeciesSearch("");
       setNameError(false);
     }
   }, [open, phase]);
@@ -98,6 +107,31 @@ export const PhaseCreationModal = ({
         >
           Species
         </Typography>
+        <TextField
+          color="primary"
+          id="phase-species-search"
+          label="Search Species..."
+          value={speciesSearch}
+          onChange={(event) => setSpeciesSearch(event.target.value)}
+        />
+        <Button
+          disabled={filteredSpecies.length === 0}
+          onClick={() => {
+            const filteredSpeciesIds = filteredSpecies.map(
+              (option) => option.id,
+            );
+            setSelectedSpeciesIds((current) =>
+              allFilteredSpeciesSelected
+                ? current.filter((id) => !filteredSpeciesIds.includes(id))
+                : [
+                    ...current,
+                    ...filteredSpeciesIds.filter((id) => !current.includes(id)),
+                  ],
+            );
+          }}
+        >
+          {allFilteredSpeciesSelected ? "Deselect All" : "Select All"}
+        </Button>
         <Box
           role="group"
           aria-label="Select species for phase"
@@ -109,8 +143,8 @@ export const PhaseCreationModal = ({
             overflowY: "auto",
           }}
         >
-          {species.length > 0 ? (
-            species.map((option) => {
+          {filteredSpecies.length > 0 ? (
+            filteredSpecies.map((option) => {
               const checked = selectedSpeciesIds.includes(option.id);
 
               return (
@@ -145,7 +179,9 @@ export const PhaseCreationModal = ({
             })
           ) : (
             <Typography color="text.secondary" sx={{ gridColumn: "1 / -1" }}>
-              No species available.
+              {species.length > 0
+                ? "No matching species."
+                : "No species available."}
             </Typography>
           )}
         </Box>
