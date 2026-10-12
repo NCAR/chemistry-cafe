@@ -285,10 +285,10 @@ const ProfileMenu = () => {
       <ListItem>
         <Typography >
           Merge with
-          <IconButton title={"Merge account with Google login"} component={"button"} color="primary"  onClick={() => window.location.assign(`${AUTH_URL}/google/login?merge=true`)}>
+          <IconButton title={"Merge account with Google login"} component={"button"} color="primary"  onClick={() => window.confirm("Are you sure you want to merge? Merging with google will merge, then DELETE any Chemistry Cafe accounts already linked to this google account.")&&window.location.assign(`${AUTH_URL}/google/login?merge=true`)}>
             <GoogleIcon fontSize="small" />
           </IconButton>
-          <IconButton title={"Merge account with ORCID login"} component={"button"} color="primary" onClick={() => window.location.assign(`${AUTH_URL}/orcid/login?merge=true`)}
+          <IconButton title={"Merge account with ORCID login"} component={"button"} color="primary" onClick={() => window.confirm("Are you sure you want to merge? Merging with ORCID will merge, then DELETE any Chemistry Cafe accounts already linked to this ORCID account.")&&window.location.assign(`${AUTH_URL}/orcid/login?merge=true`)}
           >
             <img
                 aria-label={"ORCID Merge"}
