@@ -127,14 +127,14 @@ const FamilyInfoCard = memo(function FamilyInfoCard({
             {handleEditButtonClick &&
               (user?.id === family.owner.id ||
                 user?.role?.toLowerCase() === "admin") && (
-              <Button
-                color="primary"
-                onClick={() => handleEditButtonClick(family.id)}
-                size="small"
-              >
-                Edit Family
-              </Button>
-            )}
+                <Button
+                  color="primary"
+                  onClick={() => handleEditButtonClick(family.id)}
+                  size="small"
+                >
+                  Edit Family
+                </Button>
+              )}
             {handleCloneButtonClick && (
               <Button
                 color="primary"
