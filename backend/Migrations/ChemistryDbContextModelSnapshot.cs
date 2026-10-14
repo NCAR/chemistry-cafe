@@ -539,9 +539,8 @@ namespace ChemistryCafeAPI.Migrations
                     b.Property<string>("OrcidId")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                    b.Property<int>("Role")
+                        .HasColumnType("int");
 
                     b.Property<string>("Username")
                         .IsRequired()

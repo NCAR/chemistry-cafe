@@ -28,5 +28,5 @@ public class OwnerDto
 {
     public Guid Id { get; set; }
     public string Username { get; set; } = null!;
-    public string Role { get; set; } = null!;
+    public Role Role { get; set; } = Role.None;
 }

@@ -9,7 +9,9 @@ import { UUID } from "crypto";
 // Get all users
 export async function getAllUsers(): Promise<APIUser[]> {
   try {
-    const response = await axios.get<APIUser[]>(`${BASE_URL}/users`);
+    const response = await axios.get<APIUser[]>(`${BASE_URL}/users`, {
+      withCredentials: true,
+    });
     return response.data;
   } catch (error: any) {
     console.error(`Error fetching users: ${error.message}`, error);

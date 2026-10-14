@@ -1,4 +1,5 @@
 using System.Net.Http;
+using ChemistryCafeAPI.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace ChemistryCafeAPI.Tests.Functional
@@ -9,42 +10,45 @@ namespace ChemistryCafeAPI.Tests.Functional
         private static readonly TestWebApplicationFactory _factory = new();
 
         /// <summary>
-        /// The active mock HTTP client for the test class or method.
-        /// Can be configured as authorized or anonymous.
-        /// </summary>
-        protected HttpClient Client { get; set; }
-
-        /// <summary>
         /// Mock HTTP client configured without authentication (anonymous).
         /// </summary>
-        protected HttpClient AnonymousClient { get; }
+        protected HttpClient AnonymousClient { get; } = _factory.CreateMockClient(isAuthorized: false);
 
         /// <summary>
         /// Mock HTTP client configured with test authentication headers (authorized).
         /// </summary>
-        protected HttpClient AuthorizedClient { get; }
+        protected HttpClient AuthorizedClient { get; } = _factory.CreateMockClient(isAuthorized: true);
 
-        protected BaseFunctionalTests(bool isAuthorized = false)
+        /// <summary>
+        /// Creates a mock HTTP client for a specific user.
+        /// </summary>
+        protected HttpClient CreateClient(bool isAuthorized, User user, Role? role = null)
         {
-            AnonymousClient = _factory.CreateMockClient(isAuthorized: false);
-            AuthorizedClient = _factory.CreateMockClient(isAuthorized: true);
-            Client = isAuthorized ? AuthorizedClient : AnonymousClient;
+            return _factory.CreateMockClient(isAuthorized, user.Id, role ?? user.Role);
         }
 
         /// <summary>
-        /// Creates a mock HTTP client, either authorized or anonymous.
+        /// Creates a mock HTTP client with a specific role and optional userId.
         /// </summary>
-        protected HttpClient CreateClient(bool isAuthorized)
+        protected HttpClient CreateClientWithRole(Role role, Guid? userId = null)
         {
-            return isAuthorized ? AuthorizedClient : AnonymousClient;
+            return _factory.CreateMockClient(isAuthorized: true, userId: userId, role: role);
         }
 
         /// <summary>
-        /// Switch the current Client between authorized and anonymous mode.
+        /// Creates a new user in the test database.
         /// </summary>
-        protected void SetAuthorized(bool isAuthorized)
+        protected async Task<User> CreateUserAsync(Role role, string? username = null, string? email = null, Guid? id = null)
         {
-            Client = isAuthorized ? AuthorizedClient : AnonymousClient;
+            return await _factory.CreateUserAsync(role, username, email, id);
+        }
+
+        /// <summary>
+        /// Creates a new family in the test database with the specified owner.
+        /// </summary>
+        protected async Task<Family> CreateFamilyAsync(User owner, string? name = null, string? description = null, Guid? id = null)
+        {
+            return await _factory.CreateFamilyAsync(owner, name, description, id);
         }
     }
 }

@@ -24,7 +24,7 @@ describe("Dashboard", () => {
           owner: {
             id: "1-1-1-1-1",
             username: "Test User",
-            role: "admin",
+            role: "Admin",
           },
           species: [],
           reactions: [],
@@ -67,6 +67,40 @@ describe("Dashboard", () => {
   it("Renders and displays families", async () => {
     await waitFor(() => {
       expect(screen.getByText("Test Family")).toBeTruthy();
+    });
+  });
+
+  it("Shows Edit Family button for admin even when not the owner", async () => {
+    cleanup();
+    vi.spyOn(axios, "get").mockImplementation((url: string) => {
+      if (url.includes("/users/whoami")) {
+        return Promise.resolve({
+          data: {
+            id: "admin-user-id",
+            username: "Admin User",
+            role: "Admin",
+          },
+          status: 200,
+          statusText: "OK",
+          headers: {},
+          config: { headers: new AxiosHeaders() },
+        } as AxiosResponse);
+      }
+      return Promise.resolve(createMockFamilyData());
+    });
+
+    render(
+      <AuthProvider>
+        <CustomThemeProvider>
+          <MemoryRouter initialEntries={["/dashboard"]}>
+            <Dashboard />
+          </MemoryRouter>
+        </CustomThemeProvider>
+      </AuthProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Edit Family" })).toBeTruthy();
     });
   });
 });

@@ -34,7 +34,7 @@ public static class DbInitializer
         }
 
         var owner = context.Users.FirstOrDefault(u => u.Username == "seed")
-            ?? new User { Id = Guid.NewGuid(), Username = "seed", Role = "admin" };
+            ?? new User { Id = Guid.NewGuid(), Username = "seed", Role = Role.Admin };
 
         foreach (var seedFamily in root.Families)
         {

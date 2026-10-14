@@ -44,7 +44,7 @@ describe("ProtectedRoute", () => {
   it("Does not go to page if required role isn't met", () => {
     render(
       <MemoryRouter initialEntries={["/"]}>
-        <ProtectedRoute requiredRole="admin">
+        <ProtectedRoute requiredRole="Admin">
           <p>Test Page</p>
         </ProtectedRoute>
       </MemoryRouter>,

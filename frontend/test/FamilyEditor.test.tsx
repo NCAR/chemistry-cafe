@@ -35,7 +35,7 @@ const testFamily: APIFamily = {
   owner: {
     id: "11-22-33-44-55",
     username: "Test User",
-    role: "admin",
+    role: "Admin",
   },
   species: [],
   reactions: [],

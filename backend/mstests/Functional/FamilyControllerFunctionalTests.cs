@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using ChemistryCafeAPI.Models;
 using ChemistryCafeAPI.Models.Dto;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -12,14 +13,14 @@ namespace ChemistryCafeAPI.Tests.Functional
         public async Task GetFamilies_Anonymous_IsAllowed()
         {
             var response = await AnonymousClient.GetAsync("/api/families");
-            Assert.AreNotEqual(HttpStatusCode.Unauthorized, response.StatusCode);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
         }
 
         [TestMethod]
         public async Task GetFamilyById_Anonymous_IsAllowed()
         {
             var response = await AnonymousClient.GetAsync($"/api/families/{TestWebApplicationFactory.TestFamilyId}");
-            Assert.AreNotEqual(HttpStatusCode.Unauthorized, response.StatusCode);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
         }
 
         [TestMethod]
@@ -35,7 +36,7 @@ namespace ChemistryCafeAPI.Tests.Functional
         {
             var newFamily = new FamilyDto { Name = "Auth Family", Description = "Desc" };
             var response = await AuthorizedClient.PostAsJsonAsync("/api/families", newFamily);
-            Assert.AreNotEqual(HttpStatusCode.Unauthorized, response.StatusCode);
+            Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
         }
 
         [TestMethod]
@@ -51,7 +52,35 @@ namespace ChemistryCafeAPI.Tests.Functional
         {
             var updateFamily = new FamilyDto { Id = TestWebApplicationFactory.TestFamilyId, Name = "Updated Family", Description = "Desc" };
             var response = await AuthorizedClient.PatchAsJsonAsync($"/api/families/{TestWebApplicationFactory.TestFamilyId}", updateFamily);
-            Assert.AreNotEqual(HttpStatusCode.Unauthorized, response.StatusCode);
+            Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
+        }
+
+        [TestMethod]
+        public async Task UpdateFamily_NonOwnerNonAdmin_ReturnsForbidden()
+        {
+            var owner = await CreateUserAsync(Role.None);
+            var family = await CreateFamilyAsync(owner);
+
+            var anotherUser = await CreateUserAsync(Role.None);
+            var client = CreateClient(true, anotherUser);
+
+            var updateFamily = new FamilyDto { Id = family.Id, Name = "Updated Family", Description = "Desc" };
+            var response = await client.PatchAsJsonAsync($"/api/families/{family.Id}", updateFamily);
+            Assert.AreEqual(HttpStatusCode.Forbidden, response.StatusCode);
+        }
+
+        [TestMethod]
+        public async Task UpdateFamily_AdminNonOwner_IsAllowed()
+        {
+            var owner = await CreateUserAsync(Role.None);
+            var family = await CreateFamilyAsync(owner);
+
+            var adminUser = await CreateUserAsync(Role.Admin);
+            var client = CreateClient(true, adminUser);
+
+            var updateFamily = new FamilyDto { Id = family.Id, Name = "Updated Family", Description = "Desc" };
+            var response = await client.PatchAsJsonAsync($"/api/families/{family.Id}", updateFamily);
+            Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
         }
 
         [TestMethod]
@@ -64,8 +93,34 @@ namespace ChemistryCafeAPI.Tests.Functional
         [TestMethod]
         public async Task DeleteFamily_Authorized_IsAllowed()
         {
-            var response = await AuthorizedClient.DeleteAsync($"/api/families/{Guid.NewGuid()}");
-            Assert.AreNotEqual(HttpStatusCode.Unauthorized, response.StatusCode);
+            var response = await AuthorizedClient.DeleteAsync($"/api/families/{TestWebApplicationFactory.TestFamilyId}");
+            Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
+        }
+
+        [TestMethod]
+        public async Task DeleteFamily_NonOwnerNonAdmin_ReturnsForbidden()
+        {
+            var owner = await CreateUserAsync(Role.None);
+            var family = await CreateFamilyAsync(owner);
+
+            var anotherUser = await CreateUserAsync(Role.None);
+            var client = CreateClient(true, anotherUser);
+
+            var response = await client.DeleteAsync($"/api/families/{family.Id}");
+            Assert.AreEqual(HttpStatusCode.Forbidden, response.StatusCode);
+        }
+
+        [TestMethod]
+        public async Task DeleteFamily_AdminNonOwner_IsAllowed()
+        {
+            var owner = await CreateUserAsync(Role.None);
+            var family = await CreateFamilyAsync(owner);
+
+            var adminUser = await CreateUserAsync(Role.Admin);
+            var client = CreateClient(true, adminUser);
+
+            var response = await client.DeleteAsync($"/api/families/{family.Id}");
+            Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
         }
     }
 }

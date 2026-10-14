@@ -28,7 +28,7 @@ describe("updateUser function", () => {
       id: "123-123-123-123-123",
       username: "Test User",
       email: "testuser@example.com",
-      role: "admin",
+      role: "Admin",
     };
     const result = await updateUser(user);
     expect(result).toEqual(undefined);
@@ -48,7 +48,7 @@ describe("updateUser function", () => {
       id: "123-123-123-123-123",
       username: "Test User",
       email: "testuser@example.com",
-      role: "admin",
+      role: "Admin",
     };
     const errorMessage = "Request failed with status code 404";
 

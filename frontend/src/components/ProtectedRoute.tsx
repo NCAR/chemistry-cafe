@@ -13,7 +13,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { user: loggedInUser } = useAuth();
 
   // Check if the user is logged in and has the correct role
-  if (!loggedInUser || loggedInUser.role !== requiredRole) {
+  if (!loggedInUser || loggedInUser.role?.toLowerCase() !== requiredRole.toLowerCase()) {
     // Redirect to a different page if the user is not authorized
     return <Navigate to="/unauthorized" replace />;
   }

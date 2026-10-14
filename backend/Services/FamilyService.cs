@@ -6,8 +6,9 @@ using ChemistryCafeAPI.Models.Mappers;
 
 namespace ChemistryCafeAPI.Services;
 
-public class FamilyService(ChemistryDbContext context)
+public class FamilyService(ChemistryDbContext context, UserService? userService = null)
 {
+    private readonly UserService _userService = userService ?? new UserService(context);
 
     /// <summary>
     /// Returns every family in the database with some constraints
@@ -208,6 +209,11 @@ public class FamilyService(ChemistryDbContext context)
     /// <returns>Result of the transaction</returns>
     public async Task<QueryResult> UpdateFamilyAsync(Guid id, FamilyDto family, string nameIdentifier)
     {
+        if (!Guid.TryParse(nameIdentifier, out Guid userId))
+        {
+            return QueryResult.ParseError;
+        }
+
         var existingFamily = await context.Families
             .AsSplitQuery()
             .Include(f => f.Owner)
@@ -236,9 +242,13 @@ public class FamilyService(ChemistryDbContext context)
             return QueryResult.NotFound;
         }
 
-        if (existingFamily.Owner.Id.ToString() != nameIdentifier)
+        if (existingFamily.Owner.Id != userId)
         {
-            return QueryResult.NoAccess;
+            var loggedInUser = await _userService.GetUserByIdAsync(userId);
+            if (loggedInUser == null || loggedInUser.Role != Role.Admin)
+            {
+                return QueryResult.NoAccess;
+            }
         }
 
         if (HasDuplicateChildIds(family))
@@ -270,6 +280,13 @@ public class FamilyService(ChemistryDbContext context)
     /// <returns>Result of the transaction</returns>
     public async Task<QueryResult> DeleteFamilyAsync(Guid id, string nameIdentifier)
     {
+        Guid userId;
+        bool validGuid = Guid.TryParse(nameIdentifier, out userId);
+        if (!validGuid)
+        {
+            return QueryResult.ParseError;
+        }
+
         var family = await context.Families
             .Include(f => f.Owner)
             .FirstOrDefaultAsync(f => f.Id == id);
@@ -279,12 +296,17 @@ public class FamilyService(ChemistryDbContext context)
             return QueryResult.NotFound;
         }
 
-        if (family.Owner.Id.ToString() != nameIdentifier)
+        if (family.Owner.Id != userId)
         {
-            return QueryResult.NoAccess;
+            var loggedInUser = await _userService.GetUserByIdAsync(userId);
+            if (loggedInUser == null || loggedInUser.Role != Role.Admin)
+            {
+                return QueryResult.NoAccess;
+            }
         }
 
-        await context.Families.Where(f => f.Id == id).ExecuteDeleteAsync();
+        await context.ExecuteDeleteAsync(context.Families.Where(f => f.Id == id));
+
         return QueryResult.Success;
     }
 
