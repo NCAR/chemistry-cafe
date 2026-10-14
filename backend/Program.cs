@@ -88,10 +88,6 @@ public class Program {
         builder.Services.AddScoped<GoogleOAuthService>();
         builder.Services.AddScoped<OrcidOAuthService>();
         builder.Services.AddScoped<FamilyService>();
-        builder.Services.AddScoped<SpeciesService>();
-        builder.Services.AddScoped<ReactionService>();
-        builder.Services.AddScoped<PhaseService>();
-        builder.Services.AddScoped<MechanismService>();
 
         var authenticationBuilder = builder.Services.AddAuthentication((options) =>
             {
