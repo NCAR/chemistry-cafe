@@ -82,7 +82,7 @@ spec:
             {{- toYaml .Values.backend.resources | nindent 12 }}
           livenessProbe:
             httpGet:
-              path: /api/phases
+              path: /api/families
               port: http
             initialDelaySeconds: {{ .Values.backend.probes.initialDelaySeconds }}
             periodSeconds: {{ .Values.backend.probes.periodSeconds }}
@@ -91,7 +91,7 @@ spec:
             successThreshold: {{ .Values.backend.probes.successThreshold }}
           readinessProbe:
             httpGet:
-              path: /api/phases
+              path: /api/families
               port: http
             initialDelaySeconds: {{ .Values.backend.probes.initialDelaySeconds }}
             periodSeconds: {{ .Values.backend.probes.periodSeconds }}
