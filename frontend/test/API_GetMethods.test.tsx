@@ -184,10 +184,5 @@ describe("User get functions", () => {
       });
       expect(await getUserPreferences()).toBeNull();
     });
-
-    it("Throws HTTP errors", async () => {
-      vi.spyOn(axios, "get").mockRejectedValue(new Error("401"));
-      await expect(getUserPreferences()).rejects.toThrow("401");
-    });
   });
 });

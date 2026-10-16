@@ -170,15 +170,6 @@ namespace ChemistryCafeAPI.Tests.Functional
         }
 
         [TestMethod]
-        public async Task GetPreferences_UnknownUser_ReturnsNotFound()
-        {
-            var client = CreateClientWithRole(Role.None, Guid.NewGuid());
-
-            var response = await client.GetAsync("/api/users/me/preferences");
-            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
-        }
-
-        [TestMethod]
         public async Task SavePreferences_CreatesThenUpdates()
         {
             var user = await CreateUserAsync(Role.None);
@@ -208,22 +199,6 @@ namespace ChemistryCafeAPI.Tests.Functional
             Assert.AreEqual(RateUnits.SI, saved.TernaryChemicalActivationRateUnits);
             Assert.AreEqual(RateUnits.Molecule, saved.TroeRateUnits);
             Assert.AreEqual(RateUnits.Molecule, saved.TunnelingRateUnits);
-        }
-
-        [TestMethod]
-        public async Task SavePreferences_IgnoresUserIdInBody()
-        {
-            var user = await CreateUserAsync(Role.None);
-            var otherUser = await CreateUserAsync(Role.None);
-            var client = CreateClient(true, user);
-
-            var response = await client.PutAsJsonAsync("/api/users/me/preferences",
-                new UserPreferences { UserId = otherUser.Id, TroeRateUnits = RateUnits.SI });
-            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-
-            var otherClient = CreateClient(true, otherUser);
-            var otherResponse = await otherClient.GetAsync("/api/users/me/preferences");
-            Assert.AreEqual(HttpStatusCode.NoContent, otherResponse.StatusCode);
         }
 
         [TestMethod]

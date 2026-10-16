@@ -101,15 +101,6 @@ describe("ReactionEditorModal rate parameter units", () => {
     expect(onUpdate.mock.calls[0][0].reactants).toEqual(twoReactants);
   });
 
-  it("shows the value in molecule units by default", () => {
-    renderEditor(makeReaction("ARRHENIUS", { A: { value: 1 } }));
-    const input = screen.getByLabelText(
-      `A [${rateUnitLabel("Molecule", 2)}]`,
-    ) as HTMLInputElement;
-    expect(Number(input.value)).toBe(roundDisplayValue(secondOrderFactor));
-    expect(screen.getByText("Stored as 1 m3 mol-1 s-1")).toBeTruthy();
-  });
-
   it("uses the units that the user selects for the reaction type", () => {
     localStorage.setItem(
       "userPreferences",
@@ -130,10 +121,16 @@ describe("ReactionEditorModal rate parameter units", () => {
     ).toBeTruthy();
   });
 
-  it("saves the SI value of a value typed in molecule units", () => {
+  it("shows molecule units by default and saves the SI value", () => {
     const onUpdate = renderEditor(
       makeReaction("TROE", { k0A: { value: 1 }, kinfA: { value: 1 } }),
     );
+    const kinf = screen.getByLabelText(
+      `kinf A [${rateUnitLabel("Molecule", 2)}]`,
+    ) as HTMLInputElement;
+    expect(Number(kinf.value)).toBe(roundDisplayValue(secondOrderFactor));
+    expect(screen.getByText("Stored as 1 m3 mol-1 s-1")).toBeTruthy();
+
     const k0 = screen.getByLabelText(
       `k0 A [${rateUnitLabel("Molecule", 3)}]`,
     ) as HTMLInputElement;

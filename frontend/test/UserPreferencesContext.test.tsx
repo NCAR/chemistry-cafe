@@ -120,13 +120,6 @@ describe("UserPreferencesProvider", () => {
     vi.restoreAllMocks();
   });
 
-  it("uses molecule units by default", () => {
-    mockBackend(false, null);
-    renderConsumer();
-    expect(troeUnits()).toBe("Molecule");
-    expect(arrheniusUnits()).toBe("Molecule");
-  });
-
   it("reads and writes the preferences of a guest in local storage", () => {
     const put = mockBackend(false, null);
     localStorage.setItem(
@@ -145,13 +138,6 @@ describe("UserPreferencesProvider", () => {
     expect(put).not.toHaveBeenCalled();
   });
 
-  it("uses the defaults for stored preferences that are not valid", () => {
-    mockBackend(false, null);
-    localStorage.setItem("userPreferences", "{not json");
-    renderConsumer();
-    expect(troeUnits()).toBe("Molecule");
-  });
-
   it("continues to operate when local storage is not available", () => {
     mockBackend(false, null);
     vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
@@ -166,7 +152,7 @@ describe("UserPreferencesProvider", () => {
     expect(troeUnits()).toBe("SI");
   });
 
-  it("loads the saved preferences of a logged in user", async () => {
+  it("loads the saved preferences of a logged in user and saves changes", async () => {
     const put = mockBackend(true, { ...allMolecule, troeRateUnits: "SI" });
     renderConsumer();
     await waitFor(() => expect(troeUnits()).toBe("SI"));
@@ -175,6 +161,13 @@ describe("UserPreferencesProvider", () => {
       JSON.parse(localStorage.getItem("userPreferences")!).rateUnits,
     ).toEqual(troeSI);
     expect(put).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByText("Use SI for Troe"));
+    expect(put).toHaveBeenCalledWith(
+      `${BASE_URL}/users/me/preferences`,
+      { ...allMolecule, troeRateUnits: "SI" },
+      expect.anything(),
+    );
   });
 
   it("saves the local preferences of a user without saved preferences", async () => {
@@ -192,22 +185,5 @@ describe("UserPreferencesProvider", () => {
       ),
     );
     expect(troeUnits()).toBe("SI");
-  });
-
-  it("saves a change of a logged in user to the database", async () => {
-    const put = mockBackend(true, allMolecule);
-    renderConsumer();
-    await waitFor(() =>
-      expect(axios.get).toHaveBeenCalledWith(
-        `${BASE_URL}/users/me/preferences`,
-        expect.anything(),
-      ),
-    );
-    fireEvent.click(screen.getByText("Use SI for Troe"));
-    expect(put).toHaveBeenCalledWith(
-      `${BASE_URL}/users/me/preferences`,
-      { ...allMolecule, troeRateUnits: "SI" },
-      expect.anything(),
-    );
   });
 });

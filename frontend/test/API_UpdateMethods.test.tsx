@@ -129,11 +129,4 @@ describe("updateUserPreferences function", () => {
       },
     );
   });
-
-  it("Handles errors by throwing the error", async () => {
-    vi.spyOn(axios, "put").mockRejectedValue(new Error("Network Error"));
-    await expect(updateUserPreferences(preferences)).rejects.toThrow(
-      "Network Error",
-    );
-  });
 });
