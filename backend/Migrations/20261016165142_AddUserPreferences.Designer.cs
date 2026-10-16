@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChemistryCafeAPI.Migrations
 {
     [DbContext(typeof(ChemistryDbContext))]
-    [Migration("20261016163017_AddUserPreferences")]
+    [Migration("20261016165142_AddUserPreferences")]
     partial class AddUserPreferences
     {
         /// <inheritdoc />
@@ -572,35 +572,23 @@ namespace ChemistryCafeAPI.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("char(36)");
 
-                    b.Property<string>("ArrheniusRateUnits")
-                        .IsRequired()
-                        .HasMaxLength(16)
-                        .HasColumnType("varchar(16)");
+                    b.Property<int>("ArrheniusRateUnits")
+                        .HasColumnType("int");
 
-                    b.Property<string>("BranchedRateUnits")
-                        .IsRequired()
-                        .HasMaxLength(16)
-                        .HasColumnType("varchar(16)");
+                    b.Property<int>("BranchedRateUnits")
+                        .HasColumnType("int");
 
-                    b.Property<string>("TaylorSeriesRateUnits")
-                        .IsRequired()
-                        .HasMaxLength(16)
-                        .HasColumnType("varchar(16)");
+                    b.Property<int>("TaylorSeriesRateUnits")
+                        .HasColumnType("int");
 
-                    b.Property<string>("TernaryChemicalActivationRateUnits")
-                        .IsRequired()
-                        .HasMaxLength(16)
-                        .HasColumnType("varchar(16)");
+                    b.Property<int>("TernaryChemicalActivationRateUnits")
+                        .HasColumnType("int");
 
-                    b.Property<string>("TroeRateUnits")
-                        .IsRequired()
-                        .HasMaxLength(16)
-                        .HasColumnType("varchar(16)");
+                    b.Property<int>("TroeRateUnits")
+                        .HasColumnType("int");
 
-                    b.Property<string>("TunnelingRateUnits")
-                        .IsRequired()
-                        .HasMaxLength(16)
-                        .HasColumnType("varchar(16)");
+                    b.Property<int>("TunnelingRateUnits")
+                        .HasColumnType("int");
 
                     b.HasKey("UserId");
 

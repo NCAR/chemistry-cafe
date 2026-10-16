@@ -16,18 +16,12 @@ namespace ChemistryCafeAPI.Migrations
                 columns: table => new
                 {
                     UserId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    ArrheniusRateUnits = table.Column<string>(type: "varchar(16)", maxLength: 16, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    BranchedRateUnits = table.Column<string>(type: "varchar(16)", maxLength: 16, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    TaylorSeriesRateUnits = table.Column<string>(type: "varchar(16)", maxLength: 16, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    TernaryChemicalActivationRateUnits = table.Column<string>(type: "varchar(16)", maxLength: 16, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    TroeRateUnits = table.Column<string>(type: "varchar(16)", maxLength: 16, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    TunnelingRateUnits = table.Column<string>(type: "varchar(16)", maxLength: 16, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                    ArrheniusRateUnits = table.Column<int>(type: "int", nullable: false),
+                    BranchedRateUnits = table.Column<int>(type: "int", nullable: false),
+                    TaylorSeriesRateUnits = table.Column<int>(type: "int", nullable: false),
+                    TernaryChemicalActivationRateUnits = table.Column<int>(type: "int", nullable: false),
+                    TroeRateUnits = table.Column<int>(type: "int", nullable: false),
+                    TunnelingRateUnits = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {

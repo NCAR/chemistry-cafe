@@ -6,12 +6,13 @@ namespace ChemistryCafeAPI.Models;
 /// <summary>
 /// The unit system that the frontend uses to show rate parameters with a concentration unit.
 /// The database always stores SI values.
+/// The database stores the number of each value, so do not change the numbers.
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum RateUnits
 {
-    Molecule,
-    SI
+    Molecule = 0,
+    SI = 1
 }
 
 /// <summary>

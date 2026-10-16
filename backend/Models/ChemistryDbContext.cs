@@ -35,16 +35,6 @@ public partial class ChemistryDbContext : DbContext
             .HasForeignKey<UserPreferences>(p => p.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Store each rate unit preference as a readable string.
-        foreach (var property in typeof(UserPreferences).GetProperties()
-                     .Where(p => p.PropertyType == typeof(RateUnits)))
-        {
-            modelBuilder.Entity<UserPreferences>()
-                .Property(property.Name)
-                .HasConversion<string>()
-                .HasMaxLength(16);
-        }
-
         // Configure Species Relations
         modelBuilder.Entity<Species>()
             .Property(s => s.OtherProperties)

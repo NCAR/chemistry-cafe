@@ -3,12 +3,15 @@ using System.Text.Json.Serialization;
 
 namespace ChemistryCafeAPI.Models;
 
+/// <summary>
+/// The role of a user. The database stores the number of each value, so do not change the numbers.
+/// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum Role
 {
-    None,
-    Verifier,
-    Admin
+    None = 0,
+    Verifier = 1,
+    Admin = 2
 }
 
 public partial class User
