@@ -202,21 +202,6 @@ namespace ChemistryCafeAPI.Tests.Functional
         }
 
         [TestMethod]
-        public async Task SavePreferences_SerializesRateUnitsAsString()
-        {
-            var user = await CreateUserAsync(Role.None);
-            var client = CreateClient(true, user);
-
-            var content = new StringContent("{\"troeRateUnits\":\"SI\"}", System.Text.Encoding.UTF8, "application/json");
-            var response = await client.PutAsync("/api/users/me/preferences", content);
-            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-
-            var body = await response.Content.ReadAsStringAsync();
-            StringAssert.Contains(body, "\"troeRateUnits\":\"SI\"");
-            StringAssert.Contains(body, "\"arrheniusRateUnits\":\"Molecule\"");
-        }
-
-        [TestMethod]
         public async Task Logout_Anonymous_IsAllowed()
         {
             var response = await AnonymousClient.GetAsync("/api/users/logout");

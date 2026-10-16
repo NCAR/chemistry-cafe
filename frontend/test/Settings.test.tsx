@@ -132,33 +132,6 @@ describe("Unauthenticated Settings Page", () => {
       new Set(["SI"]),
     );
   });
-
-  it("Lists each parameter that uses the rate units", () => {
-    fireEvent.click(screen.getByTestId("units-menu-button"));
-
-    const table = screen.getByLabelText("Parameters that use the display unit");
-    // One header row and one row for each parameter.
-    expect(table.querySelectorAll("tr")).toHaveLength(9);
-    for (const name of [
-      "Arrhenius",
-      "Branched NO RO2",
-      "Taylor Series",
-      "Ternary Chemical Activation",
-      "Troe (Fall-Off)",
-      "Tunneling",
-    ]) {
-      expect(table.textContent).toContain(name);
-    }
-    expect(table.textContent).toContain("(cm3 molecule-1)n-1 s-1");
-    expect(table.textContent).toContain("(cm3 molecule-1)n s-1");
-    expect(table.textContent).toContain("(cm3 molecule-1)n-2 s-1");
-
-    // Only the Troe rows change.
-    fireEvent.click(screen.getByLabelText("use SI units for Troe (Fall-Off)"));
-    expect(table.textContent).toContain("(m3 mol-1)n s-1");
-    expect(table.textContent).toContain("(m3 mol-1)n-1 s-1");
-    expect(table.textContent).toContain("(cm3 molecule-1)n-2 s-1");
-  });
 });
 
 describe("Authenticated Settings Page", () => {

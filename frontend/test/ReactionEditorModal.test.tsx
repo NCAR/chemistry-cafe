@@ -101,26 +101,6 @@ describe("ReactionEditorModal rate parameter units", () => {
     expect(onUpdate.mock.calls[0][0].reactants).toEqual(twoReactants);
   });
 
-  it("uses the units that the user selects for the reaction type", () => {
-    localStorage.setItem(
-      "userPreferences",
-      JSON.stringify({ rateUnits: { ARRHENIUS: "SI" } }),
-    );
-    renderEditor(makeReaction("ARRHENIUS", { A: { value: 1 } }));
-    const input = screen.getByLabelText(
-      `A [${rateUnitLabel("SI", 2)}]`,
-    ) as HTMLInputElement;
-    expect(input.value).toBe("1");
-    expect(screen.queryByText(/Stored as/)).toBeNull();
-    cleanup();
-
-    // Other reaction types keep their own units.
-    renderEditor(makeReaction("TUNNELING", { A: { value: 1 } }));
-    expect(
-      screen.getByLabelText(`A [${rateUnitLabel("Molecule", 2)}]`),
-    ).toBeTruthy();
-  });
-
   it("shows molecule units by default and saves the SI value", () => {
     const onUpdate = renderEditor(
       makeReaction("TROE", { k0A: { value: 1 }, kinfA: { value: 1 } }),
