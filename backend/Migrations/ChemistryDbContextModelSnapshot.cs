@@ -564,6 +564,46 @@ namespace ChemistryCafeAPI.Migrations
                     b.ToTable("UserDefinedParameters");
                 });
 
+            modelBuilder.Entity("ChemistryCafeAPI.Models.UserPreferences", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("ArrheniusRateUnits")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<string>("BranchedRateUnits")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<string>("TaylorSeriesRateUnits")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<string>("TernaryChemicalActivationRateUnits")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<string>("TroeRateUnits")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<string>("TunnelingRateUnits")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("UserPreferences");
+                });
+
             modelBuilder.Entity("PhaseSpecies", b =>
                 {
                     b.Property<Guid>("PhasesId")
@@ -871,6 +911,17 @@ namespace ChemistryCafeAPI.Migrations
                         .IsRequired();
 
                     b.Navigation("Reaction");
+                });
+
+            modelBuilder.Entity("ChemistryCafeAPI.Models.UserPreferences", b =>
+                {
+                    b.HasOne("ChemistryCafeAPI.Models.User", "User")
+                        .WithOne()
+                        .HasForeignKey("ChemistryCafeAPI.Models.UserPreferences", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("PhaseSpecies", b =>

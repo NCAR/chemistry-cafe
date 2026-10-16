@@ -128,6 +128,51 @@ namespace ChemistryCafeAPI.Controllers
         }
         
         /// <summary>
+        /// Gives the display preferences of the current user.
+        /// Returns 204 No Content when the user has not saved any preferences.
+        /// </summary>
+        [Authorize]
+        [HttpGet("me/preferences")]
+        public async Task<ActionResult<UserPreferences>> GetPreferences()
+        {
+            string? nameIdentifier = GetNameIdentifier();
+            if (nameIdentifier == null)
+            {
+                return Unauthorized("User is not authenticated");
+            }
+
+            var (result, preferences) = await UserService.GetPreferencesAsync(nameIdentifier);
+            return result switch
+            {
+                QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier claim"),
+                QueryResult.NotFound => NotFound("The principal user was not found"),
+                _ => preferences == null ? NoContent() : Ok(preferences)
+            };
+        }
+
+        /// <summary>
+        /// Creates or updates the display preferences of the current user.
+        /// </summary>
+        [Authorize]
+        [HttpPut("me/preferences")]
+        public async Task<ActionResult<UserPreferences>> SavePreferences(UserPreferences preferences)
+        {
+            string? nameIdentifier = GetNameIdentifier();
+            if (nameIdentifier == null)
+            {
+                return Unauthorized("User is not authenticated");
+            }
+
+            var (result, saved) = await UserService.SavePreferencesAsync(preferences, nameIdentifier);
+            return result switch
+            {
+                QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier claim"),
+                QueryResult.NotFound => NotFound("The principal user was not found"),
+                _ => Ok(saved)
+            };
+        }
+
+        /// <summary>
         /// Checks if Url is same origin as frontend
         /// </summary>
         [ExcludeFromCodeCoverage]

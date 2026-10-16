@@ -630,5 +630,80 @@ namespace ChemistryCafeAPI.Tests
             Assert.AreEqual(Role.Verifier, Enum.Parse<Role>("Verifier"));
             Assert.AreEqual(Role.Admin, Enum.Parse<Role>("Admin"));
         }
+
+        private static async Task<User> CreatePreferencesUserAsync(ChemistryDbContext context)
+        {
+            var user = new User
+            {
+                Id = Guid.NewGuid(),
+                Username = "PreferencesUser_" + Guid.NewGuid().ToString(),
+                CreatedDate = DateTime.UtcNow
+            };
+            context.Users.Add(user);
+            await context.SaveChangesAsync();
+            return user;
+        }
+
+        [TestMethod]
+        public async Task Preferences_ParseError()
+        {
+            using var context = DBConnection.NewContext();
+            var controller = new NameController(new UserService(context), "invalid-uuid");
+
+            var getResult = await controller.GetPreferences();
+            Assert.IsInstanceOfType(getResult.Result, typeof(BadRequestObjectResult));
+
+            var saveResult = await controller.SavePreferences(new UserPreferences());
+            Assert.IsInstanceOfType(saveResult.Result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Preferences_NullNameIdentifier()
+        {
+            using var context = DBConnection.NewContext();
+            var controller = new NameController(new UserService(context), null);
+
+            var getResult = await controller.GetPreferences();
+            Assert.IsInstanceOfType(getResult.Result, typeof(UnauthorizedObjectResult));
+
+            var saveResult = await controller.SavePreferences(new UserPreferences());
+            Assert.IsInstanceOfType(saveResult.Result, typeof(UnauthorizedObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Preferences_UserNotFound()
+        {
+            using var context = DBConnection.NewContext();
+            var controller = new NameController(new UserService(context), Guid.NewGuid().ToString());
+
+            var getResult = await controller.GetPreferences();
+            Assert.IsInstanceOfType(getResult.Result, typeof(NotFoundObjectResult));
+
+            var saveResult = await controller.SavePreferences(new UserPreferences());
+            Assert.IsInstanceOfType(saveResult.Result, typeof(NotFoundObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Preferences_SaveAndDeleteWithUser()
+        {
+            using var context = DBConnection.NewContext();
+            var userService = new UserService(context);
+            var user = await CreatePreferencesUserAsync(context);
+            var controller = new NameController(userService, user.Id.ToString());
+
+            var empty = await controller.GetPreferences();
+            Assert.IsInstanceOfType(empty.Result, typeof(NoContentResult));
+
+            var saved = await controller.SavePreferences(new UserPreferences { TroeRateUnits = RateUnits.SI });
+            var okResult = saved.Result as OkObjectResult;
+            Assert.IsNotNull(okResult);
+            Assert.AreEqual(RateUnits.SI, ((UserPreferences)okResult.Value!).TroeRateUnits);
+
+            // The database deletes the preferences with the user.
+            var deleted = await controller.DeleteUser(user.Id);
+            Assert.IsInstanceOfType(deleted, typeof(NoContentResult));
+            using var verifyContext = DBConnection.NewContext();
+            Assert.IsFalse(await verifyContext.UserPreferences.AnyAsync(p => p.UserId == user.Id));
+        }
     }
 }

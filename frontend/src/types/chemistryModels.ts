@@ -232,6 +232,9 @@ export const supportedReactionTypes: Array<ReactionTypeName> = [
 
 /**
  * Represents all attributes configurable by the user for each reaction type.
+ * The unit of a parameter with a concentration unit depends on the reactants
+ * and on the display units of the user, so it is not set here. See
+ * helpers/rateUnits.ts.
  */
 export const reactionAttributeOptions: {
   [Type in ReactionTypeName | "NONE"]: Record<string, ReactionAttribute>;
@@ -243,7 +246,7 @@ export const reactionAttributeOptions: {
    * calculated elsewhere. See https://github.com/NCAR/chemistry-cafe/pull/166
    */
   ARRHENIUS: {
-    A: { units: "(mol m-3)^-(n-1) s-1", value: 0.0 },
+    A: { value: 0.0 },
     B: { value: 0.0 },
     Ea: { units: "J", value: 0.0 },
     D: { units: "K", value: 0.0 },
@@ -268,7 +271,7 @@ export const reactionAttributeOptions: {
     reactionProbability: { name: "Reaction Probability", value: 0.0 },
   },
   TAYLOR_SERIES: {
-    A: { units: "(mol m-3)^-(n-1) s-1", value: 0.0 },
+    A: { value: 0.0 },
     B: { value: 0.0 },
     Ea: { units: "J", value: 0.0 },
     D: { units: "K", value: 0.0 },
@@ -276,27 +279,27 @@ export const reactionAttributeOptions: {
     taylorCoefficients: { name: "Taylor Coefficients", value: [] },
   },
   TERNARY_CHEMICAL_ACTIVATION: {
-    k0A: { name: "k0 A", units: "(mol m-3)^-(n-1) s-1", value: 0.0 },
+    k0A: { name: "k0 A", value: 0.0 },
     k0B: { name: "k0 B", value: 0.0 },
     k0C: { name: "k0 C", units: "K", value: 0.0 },
-    kinfA: { name: "kinf A", units: "(mol m-3)^-(n-1) s-1", value: 0.0 },
+    kinfA: { name: "kinf A", value: 0.0 },
     kinfB: { name: "kinf B", value: 0.0 },
     kinfC: { name: "kinf C", units: "K", value: 0.0 },
     Fc: { value: 0.0 },
     N: { value: 0.0 },
   },
   TROE: {
-    k0A: { name: "k0 A", units: "(mol m-3)^-(n-1) s-1", value: 0.0 },
+    k0A: { name: "k0 A", value: 0.0 },
     k0B: { name: "k0 B", value: 0.0 },
     k0C: { name: "k0 C", units: "K", value: 0.0 },
-    kinfA: { name: "kinf A", units: "(mol m-3)^-(n-1) s-1", value: 0.0 },
+    kinfA: { name: "kinf A", value: 0.0 },
     kinfB: { name: "kinf B", value: 0.0 },
     kinfC: { name: "kinf C", units: "K", value: 0.0 },
     Fc: { value: 0.0 },
     N: { value: 0.0 },
   },
   TUNNELING: {
-    A: { units: "(mol m-3)^-(n-1) s-1", value: 0.0 },
+    A: { value: 0.0 },
     B: { units: "K", value: 0.0 },
     C: { units: "K^3", value: 0.0 },
   },

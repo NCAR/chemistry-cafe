@@ -22,6 +22,12 @@ import {
   TextField,
   Button,
   IconButton,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from "@mui/material";
 import { useEffect, useLayoutEffect, useState } from "react";
 import AccountBoxIcon from "@mui/icons-material/AccountBox";
@@ -32,18 +38,30 @@ import SpellcheckIcon from "@mui/icons-material/Spellcheck";
 import SettingsBrightnessIcon from "@mui/icons-material/SettingsBrightness";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
+import StraightenIcon from "@mui/icons-material/Straighten";
 import { useAuth } from "../components/AuthContext.tsx";
 import { APIUser } from "../API/API_Interfaces.tsx";
 import { updateUser } from "../API/API_UpdateMethods.tsx";
 import { AUTH_URL } from "../API/API_config.tsx";
 import GoogleIcon from "@mui/icons-material/Google";
 import OrcidImage from "../assets/ORCID-iD_icon_vector.svg";
+import { useUserPreferences } from "../components/UserPreferencesContext";
+import {
+  genericRateUnitExponent,
+  rateUnitParameters,
+  RateUnitReactionType,
+  rateUnitReactionTypes,
+  RateUnits,
+  RateUnitsByType,
+} from "../helpers/rateUnits";
+import { reactionTypeToString } from "../helpers/stringify";
+import { reactionAttributeOptions } from "../types/chemistryModels";
 
 const Settings = () => {
   const { theme } = useCustomTheme();
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedMenu, setSelectedMenu] = useState<
-    "profile" | "appearance" | "accessibility" | string
+    "profile" | "appearance" | "accessibility" | "units" | string
   >(searchParams.get("selectedMenu") ?? "appearance");
   const [menuComponent, setMenuComponent] = useState<JSX.Element>(
     <ProfileMenu />,
@@ -55,6 +73,8 @@ const Settings = () => {
         return <AppearanceMenu />;
       case "accessibility":
         return <AccessibilityMenu />;
+      case "units":
+        return <UnitsMenu />;
       default:
       case "profile":
         return <ProfileMenu />;
@@ -146,6 +166,27 @@ const Settings = () => {
                     data-testid="accessibility-menu-button"
                   >
                     Accessibility
+                  </Typography>
+                </ListItemText>
+              </ListItemButton>
+            </ListItem>
+
+            <ListItem disablePadding>
+              <ListItemButton
+                aria-label="open units settings"
+                onClick={() => selectMenu("units")}
+              >
+                <ListItemIcon>
+                  <StraightenIcon
+                    color={selectedMenu == "units" ? "primary" : "inherit"}
+                  />
+                </ListItemIcon>
+                <ListItemText>
+                  <Typography
+                    color={selectedMenu == "units" ? "primary" : "textPrimary"}
+                    data-testid="units-menu-button"
+                  >
+                    Units
                   </Typography>
                 </ListItemText>
               </ListItemButton>
@@ -545,6 +586,198 @@ const AccessibilityMenu = () => {
         </ListItem>
       </List>
     </>
+  );
+};
+
+/**
+ * Renders the unit of a rate parameter before the reactants are known, for
+ * example (cm3 molecule-1)^(n-1) s-1.
+ */
+const GenericRateUnit = ({
+  rateUnits,
+  offset,
+}: {
+  rateUnits: RateUnits;
+  offset: number;
+}) => {
+  const [volume, amount] =
+    rateUnits === "Molecule" ? ["cm", "molecule"] : ["m", "mol"];
+  return (
+    <span>
+      ({volume}
+      <sup>3</sup> {amount}
+      <sup>-1</sup>)<sup>{genericRateUnitExponent(offset)}</sup> s<sup>-1</sup>
+    </span>
+  );
+};
+
+const UnitsMenu = () => {
+  const { theme } = useCustomTheme();
+  const { preferences, setPreferences } = useUserPreferences();
+
+  const setRateUnits = (type: RateUnitReactionType, rateUnits: RateUnits) => {
+    setPreferences({
+      ...preferences,
+      rateUnits: { ...preferences.rateUnits, [type]: rateUnits },
+    });
+  };
+
+  const setAllRateUnits = (rateUnits: RateUnits) => {
+    setPreferences({
+      ...preferences,
+      rateUnits: Object.fromEntries(
+        rateUnitReactionTypes.map((type) => [type, rateUnits]),
+      ) as RateUnitsByType,
+    });
+  };
+
+  // The "set all" switch shows a selection only when all reaction types use
+  // the same units.
+  const allTypesUnits = rateUnitReactionTypes.every(
+    (type) =>
+      preferences.rateUnits[type] ===
+      preferences.rateUnits[rateUnitReactionTypes[0]],
+  )
+    ? preferences.rateUnits[rateUnitReactionTypes[0]]
+    : null;
+
+  // One group of rows for each reaction type, with one row for each parameter
+  // that the units change.
+  const groups = rateUnitReactionTypes
+    .map((type) => ({
+      type,
+      name: reactionTypeToString(type),
+      parameters: Object.entries(
+        rateUnitParameters[type] as Record<string, number>,
+      ).map(([key, offset]) => ({
+        key,
+        label: reactionAttributeOptions[type][key]?.name ?? key,
+        offset,
+      })),
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  const toggleSx = { "& .MuiToggleButton-root": { textTransform: "none" } };
+
+  return (
+    <List
+      sx={{
+        color: theme.palette.text.primary,
+        fontSize: theme.typography.fontSize + 4,
+      }}
+      subheader="Display Units"
+    >
+      <ListItem
+        sx={{ flexWrap: "wrap", columnGap: theme.spacing(2) }}
+        alignItems="flex-start"
+      >
+        <ListItemText sx={{ minWidth: "16em" }}>
+          <Typography color="textPrimary" fontSize="large">
+            Rate parameters
+          </Typography>
+          <Typography color="textSecondary" variant="body2">
+            The reaction editor shows and accepts the parameters below in the
+            unit of their reaction type. Chemistry Cafe always stores and
+            exports SI values.
+          </Typography>
+        </ListItemText>
+        <ToggleButtonGroup
+          value={allTypesUnits}
+          exclusive
+          size="small"
+          onChange={(_, rateUnits: RateUnits | null) =>
+            rateUnits && setAllRateUnits(rateUnits)
+          }
+          aria-label="Units of all reaction types"
+          sx={toggleSx}
+        >
+          <ToggleButton
+            value="Molecule"
+            aria-label="use molecule units for all"
+          >
+            All molecule cm<sup>-3</sup>
+          </ToggleButton>
+          <ToggleButton value="SI" aria-label="use SI units for all">
+            All mol m<sup>-3</sup>
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </ListItem>
+      <ListItem sx={{ display: "block" }}>
+        <TableContainer>
+          <Table
+            size="small"
+            aria-label="Parameters that use the display unit"
+            // Fixed column widths, so that a change of the unit does not move
+            // the columns.
+            sx={{ tableLayout: "fixed" }}
+          >
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ width: "28%" }}>Reaction type</TableCell>
+                <TableCell sx={{ width: "24%" }}>Display unit</TableCell>
+                <TableCell sx={{ width: "14%" }}>Parameter</TableCell>
+                <TableCell sx={{ width: "34%" }}>Unit</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {groups.flatMap((group) =>
+                group.parameters.map((parameter, index) => (
+                  <TableRow key={`${group.type}-${parameter.key}`}>
+                    {index === 0 && (
+                      <>
+                        <TableCell rowSpan={group.parameters.length}>
+                          {group.name}
+                        </TableCell>
+                        <TableCell rowSpan={group.parameters.length}>
+                          <ToggleButtonGroup
+                            value={preferences.rateUnits[group.type]}
+                            exclusive
+                            size="small"
+                            onChange={(_, rateUnits: RateUnits | null) =>
+                              rateUnits && setRateUnits(group.type, rateUnits)
+                            }
+                            aria-label={`Units of ${group.name}`}
+                            sx={toggleSx}
+                          >
+                            <ToggleButton
+                              value="Molecule"
+                              aria-label={`use molecule units for ${group.name}`}
+                            >
+                              molecule
+                            </ToggleButton>
+                            <ToggleButton
+                              value="SI"
+                              aria-label={`use SI units for ${group.name}`}
+                            >
+                              mol
+                            </ToggleButton>
+                          </ToggleButtonGroup>
+                        </TableCell>
+                      </>
+                    )}
+                    <TableCell>{parameter.label}</TableCell>
+                    <TableCell>
+                      <GenericRateUnit
+                        rateUnits={preferences.rateUnits[group.type]}
+                        offset={parameter.offset}
+                      />
+                    </TableCell>
+                  </TableRow>
+                )),
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <Typography
+          color="textSecondary"
+          variant="body2"
+          sx={{ paddingTop: theme.spacing(1) }}
+        >
+          n is the order of the reaction: the sum of the reactant coefficients.
+          The other parameters, for example Ea and k0 B, do not change.
+        </Typography>
+      </ListItem>
+    </List>
   );
 };
 

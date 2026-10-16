@@ -6,6 +6,7 @@ import { AuthProvider } from "../src/components/AuthContext";
 import axios, { AxiosHeaders, AxiosResponse } from "axios";
 import { APIUser } from "../src/API/API_Interfaces";
 import { CustomThemeProvider } from "../src/components/CustomThemeContext";
+import { UserPreferencesProvider } from "../src/components/UserPreferencesContext";
 import userEvent from "@testing-library/user-event";
 
 const mockUserInfo: APIUser = {
@@ -43,9 +44,11 @@ describe("Unauthenticated Settings Page", () => {
     render(
       <AuthProvider>
         <CustomThemeProvider>
-          <MemoryRouter initialEntries={["/", "/loggedIn"]}>
-            <Settings />
-          </MemoryRouter>
+          <UserPreferencesProvider>
+            <MemoryRouter initialEntries={["/", "/loggedIn"]}>
+              <Settings />
+            </MemoryRouter>
+          </UserPreferencesProvider>
         </CustomThemeProvider>
       </AuthProvider>,
     );
@@ -89,6 +92,89 @@ describe("Unauthenticated Settings Page", () => {
     fireEvent.click(darkButton);
     fireEvent.click(lightButton);
     fireEvent.click(systemButton);
+  });
+
+  it("Can set the rate units of one reaction type", () => {
+    fireEvent.click(screen.getByTestId("units-menu-button"));
+
+    const troeMolecule = screen.getByLabelText(
+      "use molecule units for Troe (Fall-Off)",
+    );
+    const troeSI = screen.getByLabelText("use SI units for Troe (Fall-Off)");
+    const arrheniusMolecule = screen.getByLabelText(
+      "use molecule units for Arrhenius",
+    );
+    expect(troeMolecule.getAttribute("aria-pressed")).toBe("true");
+
+    fireEvent.click(troeSI);
+    expect(troeSI.getAttribute("aria-pressed")).toBe("true");
+    expect(arrheniusMolecule.getAttribute("aria-pressed")).toBe("true");
+    const stored = JSON.parse(localStorage.getItem("userPreferences")!);
+    expect(stored.rateUnits.TROE).toBe("SI");
+    expect(stored.rateUnits.ARRHENIUS).toBe("Molecule");
+
+    // The "set all" switch has no selection when the types differ.
+    expect(
+      screen
+        .getByLabelText("use molecule units for all")
+        .getAttribute("aria-pressed"),
+    ).toBe("false");
+    expect(
+      screen
+        .getByLabelText("use SI units for all")
+        .getAttribute("aria-pressed"),
+    ).toBe("false");
+
+    // A click on the selected button does not clear the selection.
+    fireEvent.click(troeSI);
+    expect(troeSI.getAttribute("aria-pressed")).toBe("true");
+
+    fireEvent.click(troeMolecule);
+    expect(troeMolecule.getAttribute("aria-pressed")).toBe("true");
+  });
+
+  it("Can set the rate units of all reaction types", () => {
+    fireEvent.click(screen.getByTestId("units-menu-button"));
+
+    const allSI = screen.getByLabelText("use SI units for all");
+    fireEvent.click(allSI);
+    expect(allSI.getAttribute("aria-pressed")).toBe("true");
+    for (const name of ["Arrhenius", "Troe (Fall-Off)", "Tunneling"]) {
+      expect(
+        screen
+          .getByLabelText(`use SI units for ${name}`)
+          .getAttribute("aria-pressed"),
+      ).toBe("true");
+    }
+    const stored = JSON.parse(localStorage.getItem("userPreferences")!);
+    expect(new Set(Object.values(stored.rateUnits))).toEqual(new Set(["SI"]));
+  });
+
+  it("Lists each parameter that uses the rate units", () => {
+    fireEvent.click(screen.getByTestId("units-menu-button"));
+
+    const table = screen.getByLabelText("Parameters that use the display unit");
+    // One header row and one row for each parameter.
+    expect(table.querySelectorAll("tr")).toHaveLength(9);
+    for (const name of [
+      "Arrhenius",
+      "Branched NO RO2",
+      "Taylor Series",
+      "Ternary Chemical Activation",
+      "Troe (Fall-Off)",
+      "Tunneling",
+    ]) {
+      expect(table.textContent).toContain(name);
+    }
+    expect(table.textContent).toContain("(cm3 molecule-1)n-1 s-1");
+    expect(table.textContent).toContain("(cm3 molecule-1)n s-1");
+    expect(table.textContent).toContain("(cm3 molecule-1)n-2 s-1");
+
+    // Only the Troe rows change.
+    fireEvent.click(screen.getByLabelText("use SI units for Troe (Fall-Off)"));
+    expect(table.textContent).toContain("(m3 mol-1)n s-1");
+    expect(table.textContent).toContain("(m3 mol-1)n-1 s-1");
+    expect(table.textContent).toContain("(cm3 molecule-1)n-2 s-1");
   });
 });
 

@@ -1,7 +1,7 @@
 // API_UpdateMethods.ts
 
 import axios from "axios";
-import { APIFamily, APIUser } from "./API_Interfaces";
+import { APIFamily, APIUser, APIUserPreferences } from "./API_Interfaces";
 import { BASE_URL } from "./API_config";
 
 /**
@@ -12,6 +12,22 @@ import { BASE_URL } from "./API_config";
  */
 export async function updateUser(user: APIUser): Promise<void> {
   await axios.put(`${BASE_URL}/users/${user.id}`, user, {
+    withCredentials: true,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+}
+
+/**
+ * Creates or updates the display preferences of the currently logged in user
+ * @param preferences Preferences of the user
+ * @throws HTTP errors
+ */
+export async function updateUserPreferences(
+  preferences: APIUserPreferences,
+): Promise<void> {
+  await axios.put(`${BASE_URL}/users/me/preferences`, preferences, {
     withCredentials: true,
     headers: {
       "Content-Type": "application/json",

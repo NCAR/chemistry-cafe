@@ -29,6 +29,15 @@ import { SelectSpeciesButton } from "../SelectSpeciesButton";
 import { reactionTypeToString } from "../../helpers/stringify";
 import { modalStyle } from "./modalStyle";
 import { UUID } from "crypto";
+import { useUserPreferences } from "../UserPreferencesContext";
+import {
+  fromDisplayValue,
+  parameterOrder,
+  rateUnitLabel,
+  rateUnitsFor,
+  roundDisplayValue,
+  toDisplayValue,
+} from "../../helpers/rateUnits";
 
 type ReactionEditorModalProps = {
   open: boolean;
@@ -55,6 +64,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
 
   const [currentConfiguration, setCurrentConfiguration] =
     useState<ReactionConfiguration>(reactionConfigurations.NONE);
+
+  const { preferences } = useUserPreferences();
+  const rateUnits = rateUnitsFor(preferences.rateUnits, modifiedReaction?.type);
 
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [showAlert, setShowAlert] = useState<boolean>(false);
@@ -105,21 +117,14 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
         updatedReactionProperties.reactants = [];
         break;
       case ReactionSpeciesCount.ONE:
-        updatedReactionProperties.reactants =
-          modifiedReaction?.reactants.slice(0, 1) ?? [];
+        // A reaction with one reactant always has a coefficient of 1.
+        updatedReactionProperties.reactants = (
+          modifiedReaction?.reactants.slice(0, 1) ?? []
+        ).map((reactant) => ({ ...reactant, coefficient: 1 }));
         break;
       case ReactionSpeciesCount.MANY:
         updatedReactionProperties.reactants = modifiedReaction?.reactants ?? [];
         break;
-    }
-
-    if (modifiedReaction?.reactants.at(0)) {
-      updatedReactionProperties.reactants = [
-        {
-          ...modifiedReaction.reactants.at(0)!,
-          coefficient: 1,
-        },
-      ];
     }
 
     // Converts previous product selection to current count
@@ -134,15 +139,6 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
       case ReactionSpeciesCount.MANY:
         updatedReactionProperties.products = modifiedReaction?.products ?? [];
         break;
-    }
-
-    if (modifiedReaction?.reactants.at(0)) {
-      updatedReactionProperties.reactants = [
-        {
-          ...modifiedReaction.reactants.at(0)!,
-          coefficient: 1,
-        },
-      ];
     }
 
     // Clears the gas phase / gas phase species selection when the current
@@ -910,10 +906,42 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                   );
                 }
 
+                // A parameter with a concentration unit shows its value in
+                // the display units of the user. The reaction keeps the SI
+                // value.
+                const order = parameterOrder(
+                  modifiedReaction?.type,
+                  key,
+                  modifiedReaction?.reactants ?? [],
+                );
+                const storedValue = modifiedReaction?.attributes[key]?.value;
+                const isNumber = typeof storedValue === "number";
+                const shownValue = isNumber
+                  ? roundDisplayValue(
+                      toDisplayValue(storedValue, rateUnits, order),
+                    ).toString()
+                  : (storedValue?.toString() ?? "");
+                const unitLabel =
+                  order === null
+                    ? attribute.units
+                    : rateUnitLabel(rateUnits, order);
+                // A first-order value is the same in both units, so it
+                // needs no hint.
+                const storedAsHint =
+                  isNumber &&
+                  order !== null &&
+                  order !== 1 &&
+                  rateUnits !== "SI"
+                    ? `Stored as ${roundDisplayValue(storedValue)} ${rateUnitLabel("SI", order)}`
+                    : undefined;
+
                 return (
                   <TextField
                     color="primary"
-                    key={`${reaction?.id}-${key}`}
+                    // The type, order, and units are in the key, because a
+                    // change of one of them changes the shown value but not
+                    // the stored value.
+                    key={`${reaction?.id}-${key}-${modifiedReaction?.type}-${order}-${rateUnits}`}
                     id={`${reaction?.id}-${key}`}
                     onWheel={(event) =>
                       event.target instanceof HTMLElement && event.target.blur()
@@ -929,12 +957,11 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                         MozAppearance: "textfield",
                       },
                     }}
-                    defaultValue={
-                      reaction?.attributes[key]?.value.toString() ?? ""
-                    }
+                    defaultValue={shownValue}
                     label={`${attribute.name || key}${
-                      attribute.units ? ` [${attribute.units}]` : ""
+                      unitLabel ? ` [${unitLabel}]` : ""
                     }`}
+                    helperText={storedAsHint}
                     type="number"
                     onChange={(event) => {
                       const num = Number.parseFloat(event.target.value);
@@ -953,7 +980,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                         } else {
                           modifiedAttributes[key] = {
                             ...attribute,
-                            value: num,
+                            value: fromDisplayValue(num, rateUnits, order),
                           };
                         }
 
