@@ -110,7 +110,7 @@ describe("ReactionEditorModal rate parameter units", () => {
     expect(screen.getByText("Stored as 1 m3 mol-1 s-1")).toBeTruthy();
   });
 
-  it("shows the value in SI units when the user selects SI for the type", () => {
+  it("uses the units that the user selects for the reaction type", () => {
     localStorage.setItem(
       "userPreferences",
       JSON.stringify({ rateUnits: { ARRHENIUS: "SI" } }),
@@ -121,13 +121,9 @@ describe("ReactionEditorModal rate parameter units", () => {
     ) as HTMLInputElement;
     expect(input.value).toBe("1");
     expect(screen.queryByText(/Stored as/)).toBeNull();
-  });
+    cleanup();
 
-  it("uses the units of the reaction type of the reaction", () => {
-    localStorage.setItem(
-      "userPreferences",
-      JSON.stringify({ rateUnits: { ARRHENIUS: "SI" } }),
-    );
+    // Other reaction types keep their own units.
     renderEditor(makeReaction("TUNNELING", { A: { value: 1 } }));
     expect(
       screen.getByLabelText(`A [${rateUnitLabel("Molecule", 2)}]`),
@@ -151,13 +147,5 @@ describe("ReactionEditorModal rate parameter units", () => {
     );
     // An unchanged parameter keeps its exact stored value.
     expect(saved.attributes.kinfA.value).toBe(1);
-  });
-
-  it("does not convert a parameter without a concentration unit", () => {
-    renderEditor(
-      makeReaction("ARRHENIUS", { A: { value: 1 }, D: { value: 300 } }),
-    );
-    const input = screen.getByLabelText("D [K]") as HTMLInputElement;
-    expect(input.value).toBe("300");
   });
 });

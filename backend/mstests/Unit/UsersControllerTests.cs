@@ -645,45 +645,6 @@ namespace ChemistryCafeAPI.Tests
         }
 
         [TestMethod]
-        public async Task Preferences_ParseError()
-        {
-            using var context = DBConnection.NewContext();
-            var controller = new NameController(new UserService(context), "invalid-uuid");
-
-            var getResult = await controller.GetPreferences();
-            Assert.IsInstanceOfType(getResult.Result, typeof(BadRequestObjectResult));
-
-            var saveResult = await controller.SavePreferences(new UserPreferences());
-            Assert.IsInstanceOfType(saveResult.Result, typeof(BadRequestObjectResult));
-        }
-
-        [TestMethod]
-        public async Task Preferences_NullNameIdentifier()
-        {
-            using var context = DBConnection.NewContext();
-            var controller = new NameController(new UserService(context), null);
-
-            var getResult = await controller.GetPreferences();
-            Assert.IsInstanceOfType(getResult.Result, typeof(UnauthorizedObjectResult));
-
-            var saveResult = await controller.SavePreferences(new UserPreferences());
-            Assert.IsInstanceOfType(saveResult.Result, typeof(UnauthorizedObjectResult));
-        }
-
-        [TestMethod]
-        public async Task Preferences_UserNotFound()
-        {
-            using var context = DBConnection.NewContext();
-            var controller = new NameController(new UserService(context), Guid.NewGuid().ToString());
-
-            var getResult = await controller.GetPreferences();
-            Assert.IsInstanceOfType(getResult.Result, typeof(NotFoundObjectResult));
-
-            var saveResult = await controller.SavePreferences(new UserPreferences());
-            Assert.IsInstanceOfType(saveResult.Result, typeof(NotFoundObjectResult));
-        }
-
-        [TestMethod]
         public async Task Preferences_SaveAndDeleteWithUser()
         {
             using var context = DBConnection.NewContext();

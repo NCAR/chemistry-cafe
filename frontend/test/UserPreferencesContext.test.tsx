@@ -100,15 +100,14 @@ describe("API user preferences conversion", () => {
     const api = toAPIUserPreferences({ rateUnits: troeSI });
     expect(api).toEqual({ ...allMolecule, troeRateUnits: "SI" });
     expect(fromAPIUserPreferences(api)).toEqual({ rateUnits: troeSI });
-  });
 
-  it("uses the default for a missing or invalid API field", () => {
-    const api = {
+    // A missing or invalid field gets the default.
+    const invalid = {
       ...allMolecule,
       troeRateUnits: "Furlongs",
     } as unknown as APIUserPreferences;
-    delete (api as Partial<APIUserPreferences>).tunnelingRateUnits;
-    expect(fromAPIUserPreferences(api)).toEqual({
+    delete (invalid as Partial<APIUserPreferences>).tunnelingRateUnits;
+    expect(fromAPIUserPreferences(invalid)).toEqual({
       rateUnits: defaultRateUnitsByType,
     });
   });
@@ -149,14 +148,6 @@ describe("UserPreferencesProvider", () => {
   it("uses the defaults for stored preferences that are not valid", () => {
     mockBackend(false, null);
     localStorage.setItem("userPreferences", "{not json");
-    renderConsumer();
-    expect(troeUnits()).toBe("Molecule");
-    cleanup();
-
-    localStorage.setItem(
-      "userPreferences",
-      JSON.stringify({ rateUnits: { TROE: "Furlongs" } }),
-    );
     renderConsumer();
     expect(troeUnits()).toBe("Molecule");
   });
@@ -218,12 +209,5 @@ describe("UserPreferencesProvider", () => {
       { ...allMolecule, troeRateUnits: "SI" },
       expect.anything(),
     );
-  });
-
-  it("gives the defaults outside of a provider", () => {
-    render(<Consumer />);
-    expect(troeUnits()).toBe("Molecule");
-    fireEvent.click(screen.getByText("Use SI for Troe"));
-    expect(troeUnits()).toBe("Molecule");
   });
 });

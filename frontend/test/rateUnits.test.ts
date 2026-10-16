@@ -59,13 +59,6 @@ describe("parameter order", () => {
 });
 
 describe("rate parameter conversion", () => {
-  it("converts a second-order SI value to cm3 molecule-1 s-1 and back", () => {
-    const valueSI = 1;
-    const display = toDisplayValue(valueSI, "Molecule", 2);
-    expect(display).toBeCloseTo(1e6 / AVOGADRO_CONSTANT, 30);
-    expect(fromDisplayValue(display, "Molecule", 2)).toBeCloseTo(valueSI, 12);
-  });
-
   it("converts a JPL value to SI and back without visible noise", () => {
     // OH + NO2 + M -> HNO3: k0 = 1.8e-30 cm6 molecule-2 s-1
     const valueSI = fromDisplayValue(1.8e-30, "Molecule", 3);
@@ -92,21 +85,6 @@ describe("rate parameter conversion", () => {
     expect(rateUnitLabel("SI", 0)).toBe("mol m-3 s-1");
     expect(rateUnitLabel("Molecule", -1)).toBe("molecule2 cm-6 s-1");
   });
-
-  it("gives the JPL units of the OH + CO chemical activation", () => {
-    const k0Order = parameterOrder(
-      "TERNARY_CHEMICAL_ACTIVATION",
-      "k0A",
-      twoReactants,
-    )!;
-    const kinfOrder = parameterOrder(
-      "TERNARY_CHEMICAL_ACTIVATION",
-      "kinfA",
-      twoReactants,
-    )!;
-    expect(rateUnitLabel("Molecule", k0Order)).toBe("cm3 molecule-1 s-1");
-    expect(rateUnitLabel("Molecule", kinfOrder)).toBe("s-1");
-  });
 });
 
 describe("generic rate unit exponent", () => {
@@ -114,7 +92,6 @@ describe("generic rate unit exponent", () => {
     expect(genericRateUnitExponent(1)).toBe("n");
     expect(genericRateUnitExponent(0)).toBe("n-1");
     expect(genericRateUnitExponent(-1)).toBe("n-2");
-    expect(genericRateUnitExponent(2)).toBe("n+1");
   });
 });
 

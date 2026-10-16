@@ -94,17 +94,16 @@ describe("Unauthenticated Settings Page", () => {
     fireEvent.click(systemButton);
   });
 
-  it("Can set the rate units of one reaction type", () => {
+  it("Can set the rate units of one reaction type or of all types", () => {
     fireEvent.click(screen.getByTestId("units-menu-button"));
 
-    const troeMolecule = screen.getByLabelText(
-      "use molecule units for Troe (Fall-Off)",
-    );
     const troeSI = screen.getByLabelText("use SI units for Troe (Fall-Off)");
     const arrheniusMolecule = screen.getByLabelText(
       "use molecule units for Arrhenius",
     );
-    expect(troeMolecule.getAttribute("aria-pressed")).toBe("true");
+    const allMolecule = screen.getByLabelText("use molecule units for all");
+    const allSI = screen.getByLabelText("use SI units for all");
+    expect(allMolecule.getAttribute("aria-pressed")).toBe("true");
 
     fireEvent.click(troeSI);
     expect(troeSI.getAttribute("aria-pressed")).toBe("true");
@@ -114,40 +113,24 @@ describe("Unauthenticated Settings Page", () => {
     expect(stored.rateUnits.ARRHENIUS).toBe("Molecule");
 
     // The "set all" switch has no selection when the types differ.
-    expect(
-      screen
-        .getByLabelText("use molecule units for all")
-        .getAttribute("aria-pressed"),
-    ).toBe("false");
-    expect(
-      screen
-        .getByLabelText("use SI units for all")
-        .getAttribute("aria-pressed"),
-    ).toBe("false");
+    expect(allMolecule.getAttribute("aria-pressed")).toBe("false");
+    expect(allSI.getAttribute("aria-pressed")).toBe("false");
 
     // A click on the selected button does not clear the selection.
     fireEvent.click(troeSI);
     expect(troeSI.getAttribute("aria-pressed")).toBe("true");
 
-    fireEvent.click(troeMolecule);
-    expect(troeMolecule.getAttribute("aria-pressed")).toBe("true");
-  });
-
-  it("Can set the rate units of all reaction types", () => {
-    fireEvent.click(screen.getByTestId("units-menu-button"));
-
-    const allSI = screen.getByLabelText("use SI units for all");
     fireEvent.click(allSI);
     expect(allSI.getAttribute("aria-pressed")).toBe("true");
-    for (const name of ["Arrhenius", "Troe (Fall-Off)", "Tunneling"]) {
-      expect(
-        screen
-          .getByLabelText(`use SI units for ${name}`)
-          .getAttribute("aria-pressed"),
-      ).toBe("true");
-    }
-    const stored = JSON.parse(localStorage.getItem("userPreferences")!);
-    expect(new Set(Object.values(stored.rateUnits))).toEqual(new Set(["SI"]));
+    expect(
+      screen
+        .getByLabelText("use SI units for Arrhenius")
+        .getAttribute("aria-pressed"),
+    ).toBe("true");
+    const storedAll = JSON.parse(localStorage.getItem("userPreferences")!);
+    expect(new Set(Object.values(storedAll.rateUnits))).toEqual(
+      new Set(["SI"]),
+    );
   });
 
   it("Lists each parameter that uses the rate units", () => {

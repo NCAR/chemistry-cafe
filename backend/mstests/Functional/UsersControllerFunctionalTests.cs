@@ -149,18 +149,14 @@ namespace ChemistryCafeAPI.Tests.Functional
         }
 
         [TestMethod]
-        public async Task GetPreferences_Anonymous_ReturnsUnauthorized()
+        public async Task Preferences_Anonymous_ReturnsUnauthorized()
         {
-            var response = await AnonymousClient.GetAsync("/api/users/me/preferences");
-            Assert.AreEqual(HttpStatusCode.Unauthorized, response.StatusCode);
-        }
+            var getResponse = await AnonymousClient.GetAsync("/api/users/me/preferences");
+            Assert.AreEqual(HttpStatusCode.Unauthorized, getResponse.StatusCode);
 
-        [TestMethod]
-        public async Task SavePreferences_Anonymous_ReturnsUnauthorized()
-        {
             var preferences = new UserPreferences { TroeRateUnits = RateUnits.SI };
-            var response = await AnonymousClient.PutAsJsonAsync("/api/users/me/preferences", preferences);
-            Assert.AreEqual(HttpStatusCode.Unauthorized, response.StatusCode);
+            var putResponse = await AnonymousClient.PutAsJsonAsync("/api/users/me/preferences", preferences);
+            Assert.AreEqual(HttpStatusCode.Unauthorized, putResponse.StatusCode);
         }
 
         [TestMethod]
