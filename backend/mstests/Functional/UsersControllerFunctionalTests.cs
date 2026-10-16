@@ -149,6 +149,59 @@ namespace ChemistryCafeAPI.Tests.Functional
         }
 
         [TestMethod]
+        public async Task Preferences_Anonymous_ReturnsUnauthorized()
+        {
+            var getResponse = await AnonymousClient.GetAsync("/api/users/me/preferences");
+            Assert.AreEqual(HttpStatusCode.Unauthorized, getResponse.StatusCode);
+
+            var preferences = new UserPreferences { TroeRateUnits = RateUnits.SI };
+            var putResponse = await AnonymousClient.PutAsJsonAsync("/api/users/me/preferences", preferences);
+            Assert.AreEqual(HttpStatusCode.Unauthorized, putResponse.StatusCode);
+        }
+
+        [TestMethod]
+        public async Task GetPreferences_NoSavedPreferences_ReturnsNoContent()
+        {
+            var user = await CreateUserAsync(Role.None);
+            var client = CreateClient(true, user);
+
+            var response = await client.GetAsync("/api/users/me/preferences");
+            Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
+        }
+
+        [TestMethod]
+        public async Task SavePreferences_CreatesThenUpdates()
+        {
+            var user = await CreateUserAsync(Role.None);
+            var client = CreateClient(true, user);
+
+            var created = await client.PutAsJsonAsync("/api/users/me/preferences",
+                new UserPreferences { TroeRateUnits = RateUnits.SI, TunnelingRateUnits = RateUnits.SI });
+            Assert.AreEqual(HttpStatusCode.OK, created.StatusCode);
+            var saved = await client.GetFromJsonAsync<UserPreferences>("/api/users/me/preferences");
+            Assert.AreEqual(user.Id, saved!.UserId);
+            Assert.AreEqual(RateUnits.SI, saved.TroeRateUnits);
+            Assert.AreEqual(RateUnits.SI, saved.TunnelingRateUnits);
+            Assert.AreEqual(RateUnits.Molecule, saved.ArrheniusRateUnits);
+
+            var updated = await client.PutAsJsonAsync("/api/users/me/preferences", new UserPreferences
+            {
+                ArrheniusRateUnits = RateUnits.SI,
+                BranchedRateUnits = RateUnits.SI,
+                TaylorSeriesRateUnits = RateUnits.SI,
+                TernaryChemicalActivationRateUnits = RateUnits.SI,
+            });
+            Assert.AreEqual(HttpStatusCode.OK, updated.StatusCode);
+            saved = await client.GetFromJsonAsync<UserPreferences>("/api/users/me/preferences");
+            Assert.AreEqual(RateUnits.SI, saved!.ArrheniusRateUnits);
+            Assert.AreEqual(RateUnits.SI, saved.BranchedRateUnits);
+            Assert.AreEqual(RateUnits.SI, saved.TaylorSeriesRateUnits);
+            Assert.AreEqual(RateUnits.SI, saved.TernaryChemicalActivationRateUnits);
+            Assert.AreEqual(RateUnits.Molecule, saved.TroeRateUnits);
+            Assert.AreEqual(RateUnits.Molecule, saved.TunnelingRateUnits);
+        }
+
+        [TestMethod]
         public async Task Logout_Anonymous_IsAllowed()
         {
             var response = await AnonymousClient.GetAsync("/api/users/logout");

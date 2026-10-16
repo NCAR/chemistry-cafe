@@ -2,7 +2,7 @@
 
 import axios from "axios";
 
-import { APIFamily, APIUser } from "./API_Interfaces";
+import { APIFamily, APIUser, APIUserPreferences } from "./API_Interfaces";
 import { BASE_URL } from "./API_config";
 import { UUID } from "crypto";
 
@@ -61,6 +61,21 @@ export async function getCurrentUser(): Promise<APIUser | null> {
     );
     return null;
   }
+}
+
+/**
+ * Gets the display preferences of the currently logged in user
+ * @throws HTTP errors
+ * @returns The preferences, or null if the user has not saved any
+ */
+export async function getUserPreferences(): Promise<APIUserPreferences | null> {
+  const response = await axios.get<APIUserPreferences>(
+    `${BASE_URL}/users/me/preferences`,
+    {
+      withCredentials: true,
+    },
+  );
+  return response.status === 204 ? null : response.data;
 }
 
 export async function getAllFamilies(

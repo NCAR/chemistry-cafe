@@ -1,4 +1,5 @@
 import { UUID } from "crypto";
+import { RateUnits } from "../helpers/rateUnits";
 
 export interface APIUser {
   id: UUID;
@@ -10,6 +11,16 @@ export interface APIUser {
   createdDate?: string;
   googleId?: string | null;
   orcidId?: string | null;
+}
+
+export interface APIUserPreferences {
+  userId?: UUID;
+  arrheniusRateUnits: RateUnits;
+  branchedRateUnits: RateUnits;
+  taylorSeriesRateUnits: RateUnits;
+  ternaryChemicalActivationRateUnits: RateUnits;
+  troeRateUnits: RateUnits;
+  tunnelingRateUnits: RateUnits;
 }
 
 export interface APIFamily {

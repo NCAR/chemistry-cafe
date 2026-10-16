@@ -6,6 +6,7 @@ import { AuthProvider } from "../src/components/AuthContext";
 import axios, { AxiosHeaders, AxiosResponse } from "axios";
 import { APIUser } from "../src/API/API_Interfaces";
 import { CustomThemeProvider } from "../src/components/CustomThemeContext";
+import { UserPreferencesProvider } from "../src/components/UserPreferencesContext";
 import userEvent from "@testing-library/user-event";
 
 const mockUserInfo: APIUser = {
@@ -43,9 +44,11 @@ describe("Unauthenticated Settings Page", () => {
     render(
       <AuthProvider>
         <CustomThemeProvider>
-          <MemoryRouter initialEntries={["/", "/loggedIn"]}>
-            <Settings />
-          </MemoryRouter>
+          <UserPreferencesProvider>
+            <MemoryRouter initialEntries={["/", "/loggedIn"]}>
+              <Settings />
+            </MemoryRouter>
+          </UserPreferencesProvider>
         </CustomThemeProvider>
       </AuthProvider>,
     );
@@ -89,6 +92,45 @@ describe("Unauthenticated Settings Page", () => {
     fireEvent.click(darkButton);
     fireEvent.click(lightButton);
     fireEvent.click(systemButton);
+  });
+
+  it("Can set the rate units of one reaction type or of all types", () => {
+    fireEvent.click(screen.getByTestId("units-menu-button"));
+
+    const troeSI = screen.getByLabelText("use SI units for Troe (Fall-Off)");
+    const arrheniusMolecule = screen.getByLabelText(
+      "use molecule units for Arrhenius",
+    );
+    const allMolecule = screen.getByLabelText("use molecule units for all");
+    const allSI = screen.getByLabelText("use SI units for all");
+    expect(allMolecule.getAttribute("aria-pressed")).toBe("true");
+
+    fireEvent.click(troeSI);
+    expect(troeSI.getAttribute("aria-pressed")).toBe("true");
+    expect(arrheniusMolecule.getAttribute("aria-pressed")).toBe("true");
+    const stored = JSON.parse(localStorage.getItem("userPreferences")!);
+    expect(stored.rateUnits.TROE).toBe("SI");
+    expect(stored.rateUnits.ARRHENIUS).toBe("Molecule");
+
+    // The "set all" switch has no selection when the types differ.
+    expect(allMolecule.getAttribute("aria-pressed")).toBe("false");
+    expect(allSI.getAttribute("aria-pressed")).toBe("false");
+
+    // A click on the selected button does not clear the selection.
+    fireEvent.click(troeSI);
+    expect(troeSI.getAttribute("aria-pressed")).toBe("true");
+
+    fireEvent.click(allSI);
+    expect(allSI.getAttribute("aria-pressed")).toBe("true");
+    expect(
+      screen
+        .getByLabelText("use SI units for Arrhenius")
+        .getAttribute("aria-pressed"),
+    ).toBe("true");
+    const storedAll = JSON.parse(localStorage.getItem("userPreferences")!);
+    expect(new Set(Object.values(storedAll.rateUnits))).toEqual(
+      new Set(["SI"]),
+    );
   });
 });
 

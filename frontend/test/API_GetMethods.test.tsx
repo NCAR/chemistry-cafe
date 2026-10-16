@@ -4,6 +4,7 @@ import axios, { AxiosHeaders, AxiosResponse } from "axios";
 import {
   getAllUsers,
   getCurrentUser,
+  getUserPreferences,
   getUserByEmail,
   getUserById,
 } from "../src/API/API_GetMethods";
@@ -159,6 +160,29 @@ describe("User get functions", () => {
         ).mockRejectedValueOnce(new Error(errorMessage));
         expect(await getCurrentUser()).toEqual(null);
       }
+    });
+  });
+
+  describe("getUserPreferences", () => {
+    it("Gets the preferences of the current user", async () => {
+      const mockedGet = vi
+        .spyOn(axios, "get")
+        .mockResolvedValue(
+          createSuccessMockResponse({ troeRateUnits: "SI" }),
+        ) as Mock;
+      expect(await getUserPreferences()).toEqual({ troeRateUnits: "SI" });
+      expect(mockedGet).toHaveBeenCalledWith(
+        `${BASE_URL}/users/me/preferences`,
+        { withCredentials: true },
+      );
+    });
+
+    it("Returns null when the user has no saved preferences", async () => {
+      vi.spyOn(axios, "get").mockResolvedValue({
+        ...createSuccessMockResponse(""),
+        status: 204,
+      });
+      expect(await getUserPreferences()).toBeNull();
     });
   });
 });

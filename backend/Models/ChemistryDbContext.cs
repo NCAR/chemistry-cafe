@@ -15,6 +15,7 @@ public partial class ChemistryDbContext : DbContext
     }
 
     public virtual DbSet<User> Users { get; set; }
+    public virtual DbSet<UserPreferences> UserPreferences { get; set; }
     public virtual DbSet<Family> Families { get; set; }
     public virtual DbSet<Species> Species { get; set; }
     public virtual DbSet<Phase> Phases { get; set; }
@@ -26,6 +27,13 @@ public partial class ChemistryDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // User preferences share the user primary key (one-to-one).
+        modelBuilder.Entity<UserPreferences>()
+            .HasOne(p => p.User)
+            .WithOne()
+            .HasForeignKey<UserPreferences>(p => p.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // Configure Species Relations
         modelBuilder.Entity<Species>()

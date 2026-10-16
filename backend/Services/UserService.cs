@@ -233,6 +233,56 @@ namespace ChemistryCafeAPI.Services
         }
 
         /// <summary>
+        /// Retrieves the preferences of the principal user.
+        /// </summary>
+        /// <param name="nameIdentifier">ID of the principal user</param>
+        /// <returns>Result of the query and the preferences, or null if the user has not saved any</returns>
+        public async Task<(QueryResult Result, UserPreferences? Preferences)> GetPreferencesAsync(string nameIdentifier)
+        {
+            if (!Guid.TryParse(nameIdentifier, out var userId))
+            {
+                return (QueryResult.ParseError, null);
+            }
+
+            if (await GetUserByIdAsync(userId) == null)
+            {
+                return (QueryResult.NotFound, null);
+            }
+
+            var preferences = await context.UserPreferences.SingleOrDefaultAsync(p => p.UserId == userId);
+            return (QueryResult.Success, preferences);
+        }
+
+        /// <summary>
+        /// Creates or updates the preferences of the principal user.
+        /// </summary>
+        /// <param name="preferences">Preferences specified by the principal user. The user ID is ignored.</param>
+        /// <param name="nameIdentifier">ID of the principal user</param>
+        /// <returns>Result of the transaction and the saved preferences</returns>
+        public async Task<(QueryResult Result, UserPreferences? Preferences)> SavePreferencesAsync(UserPreferences preferences, string nameIdentifier)
+        {
+            var (result, existing) = await GetPreferencesAsync(nameIdentifier);
+            if (result != QueryResult.Success)
+            {
+                return (result, null);
+            }
+
+            if (existing == null)
+            {
+                existing = new UserPreferences { UserId = Guid.Parse(nameIdentifier) };
+                context.UserPreferences.Add(existing);
+            }
+            existing.ArrheniusRateUnits = preferences.ArrheniusRateUnits;
+            existing.BranchedRateUnits = preferences.BranchedRateUnits;
+            existing.TaylorSeriesRateUnits = preferences.TaylorSeriesRateUnits;
+            existing.TernaryChemicalActivationRateUnits = preferences.TernaryChemicalActivationRateUnits;
+            existing.TroeRateUnits = preferences.TroeRateUnits;
+            existing.TunnelingRateUnits = preferences.TunnelingRateUnits;
+            await context.SaveChangesAsync();
+            return (QueryResult.Success, existing);
+        }
+
+        /// <summary>
         /// Deletes a specified user.
         /// Fails when the principal user is not the specified user or am admin 
         /// </summary>

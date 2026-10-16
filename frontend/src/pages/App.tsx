@@ -11,6 +11,7 @@ import { AuthProvider } from "../components/AuthContext";
 import ProtectedRoute from "../components/ProtectedRoute";
 import Banner from "../components/CookieBanner";
 import { CustomThemeProvider } from "../components/CustomThemeContext.tsx";
+import { UserPreferencesProvider } from "../components/UserPreferencesContext.tsx";
 
 function App() {
   return (
@@ -18,26 +19,28 @@ function App() {
       {/* <AccessibilityWidget /> */}
       <AuthProvider>
         <CustomThemeProvider>
-          <Banner />
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/loggedin" element={<Dashboard />} />{" "}
-            {/* Legacy Route */}
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/familyeditor" element={<FamilyEditor />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/unauthorized" element={<NoAccess />} />
-            {/* Protected route for the Roles page */}
-            <Route
-              path="/usermanagement"
-              element={
-                <ProtectedRoute requiredRole="Admin">
-                  <UserManagement />
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
+          <UserPreferencesProvider>
+            <Banner />
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/loggedin" element={<Dashboard />} />{" "}
+              {/* Legacy Route */}
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/familyeditor" element={<FamilyEditor />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/unauthorized" element={<NoAccess />} />
+              {/* Protected route for the Roles page */}
+              <Route
+                path="/usermanagement"
+                element={
+                  <ProtectedRoute requiredRole="Admin">
+                    <UserManagement />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </UserPreferencesProvider>
         </CustomThemeProvider>
       </AuthProvider>
     </>

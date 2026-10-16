@@ -564,6 +564,34 @@ namespace ChemistryCafeAPI.Migrations
                     b.ToTable("UserDefinedParameters");
                 });
 
+            modelBuilder.Entity("ChemistryCafeAPI.Models.UserPreferences", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("ArrheniusRateUnits")
+                        .HasColumnType("int");
+
+                    b.Property<int>("BranchedRateUnits")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TaylorSeriesRateUnits")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TernaryChemicalActivationRateUnits")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TroeRateUnits")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TunnelingRateUnits")
+                        .HasColumnType("int");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("UserPreferences");
+                });
+
             modelBuilder.Entity("PhaseSpecies", b =>
                 {
                     b.Property<Guid>("PhasesId")
@@ -871,6 +899,17 @@ namespace ChemistryCafeAPI.Migrations
                         .IsRequired();
 
                     b.Navigation("Reaction");
+                });
+
+            modelBuilder.Entity("ChemistryCafeAPI.Models.UserPreferences", b =>
+                {
+                    b.HasOne("ChemistryCafeAPI.Models.User", "User")
+                        .WithOne()
+                        .HasForeignKey("ChemistryCafeAPI.Models.UserPreferences", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("PhaseSpecies", b =>
