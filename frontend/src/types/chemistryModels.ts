@@ -301,7 +301,7 @@ export const reactionAttributeOptions: {
   TUNNELING: {
     A: { value: 0.0 },
     B: { units: "K", value: 0.0 },
-    C: { units: "K^3", value: 0.0 },
+    C: { units: "K3", value: 0.0 },
   },
   USER_DEFINED: {
     scalingFactor: { name: "Scaling Factor", value: 0.0 },

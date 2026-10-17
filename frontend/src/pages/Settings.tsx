@@ -46,8 +46,8 @@ import { AUTH_URL } from "../API/API_config.tsx";
 import GoogleIcon from "@mui/icons-material/Google";
 import OrcidImage from "../assets/ORCID-iD_icon_vector.svg";
 import { useUserPreferences } from "../components/UserPreferencesContext";
+import { GenericRateUnit } from "../components/RateUnitText";
 import {
-  genericRateUnitExponent,
   rateUnitParameters,
   RateUnitReactionType,
   rateUnitReactionTypes,
@@ -586,28 +586,6 @@ const AccessibilityMenu = () => {
         </ListItem>
       </List>
     </>
-  );
-};
-
-/**
- * Renders the unit of a rate parameter before the reactants are known, for
- * example (cm3 molecule-1)^(n-1) s-1.
- */
-const GenericRateUnit = ({
-  rateUnits,
-  offset,
-}: {
-  rateUnits: RateUnits;
-  offset: number;
-}) => {
-  const [volume, amount] =
-    rateUnits === "Molecule" ? ["cm", "molecule"] : ["m", "mol"];
-  return (
-    <span>
-      ({volume}
-      <sup>3</sup> {amount}
-      <sup>-1</sup>)<sup>{genericRateUnitExponent(offset)}</sup> s<sup>-1</sup>
-    </span>
   );
 };
 
