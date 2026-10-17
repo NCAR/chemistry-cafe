@@ -105,15 +105,17 @@ describe("ReactionEditorModal rate parameter units", () => {
     const onUpdate = renderEditor(
       makeReaction("TROE", { k0A: { value: 1 }, kinfA: { value: 1 } }),
     );
-    const kinf = screen.getByLabelText(
-      `kinf A [${rateUnitLabel("Molecule", 2)}]`,
-    ) as HTMLInputElement;
+    // The unit is at the end of the field, and the SI value is in a tooltip.
+    const unitOf = (input: HTMLElement) =>
+      input.parentElement!.querySelector(".MuiInputAdornment-root")!
+        .textContent;
+    const kinf = screen.getByLabelText("kinf A") as HTMLInputElement;
     expect(Number(kinf.value)).toBe(roundDisplayValue(secondOrderFactor));
-    expect(screen.getByText("Stored as 1 m3 mol-1 s-1")).toBeTruthy();
+    expect(unitOf(kinf)).toBe(rateUnitLabel("Molecule", 2));
+    expect(screen.getByLabelText("Stored as 1 m3 mol-1 s-1")).toBeTruthy();
 
-    const k0 = screen.getByLabelText(
-      `k0 A [${rateUnitLabel("Molecule", 3)}]`,
-    ) as HTMLInputElement;
+    const k0 = screen.getByLabelText("k0 A") as HTMLInputElement;
+    expect(unitOf(k0)).toBe(rateUnitLabel("Molecule", 3));
     fireEvent.change(k0, { target: { value: "1.8e-30" } });
     fireEvent.click(screen.getByTestId("save-reaction-changes"));
 
