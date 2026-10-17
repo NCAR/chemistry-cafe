@@ -32,6 +32,7 @@ import { RowActionsButton } from "../RowActionsButton";
 import { UUID } from "crypto";
 import { generateID } from "../../helpers/localFamilies";
 import { ViewProps } from "./ViewProps";
+import { equationMatchesSearch } from "../../helpers/equationSearch";
 import { DataViewToolbar, useVisibleRows } from "./DataViewToolbar";
 import { EquationText } from "../EquationText";
 import { ReactionTypeInfo } from "./ReactionTypeInfo";
@@ -427,6 +428,10 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       // The parameter columns of a type can be many. These minimum widths
       // keep the first columns readable, and the grid scrolls to the side.
       minWidth: 220,
+      // The search compares the species, so spaces and the species order do
+      // not matter. See equationMatchesSearch.
+      getApplyQuickFilterFn: (search: string) => (_: string, row: Reaction) =>
+        equationMatchesSearch(search, row, family.species),
       valueGetter: (id: string) =>
         reactionToString(
           family.reactions.find((e) => e.id == id),
