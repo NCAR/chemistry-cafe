@@ -1,12 +1,15 @@
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 import {
   Autocomplete,
   Box,
+  Button,
+  Popover,
   TextField,
   Tooltip,
   Typography,
 } from "@mui/material";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import FunctionsIcon from "@mui/icons-material/Functions";
 import {
   DataGrid,
   GridColDef,
@@ -30,6 +33,7 @@ import { generateID } from "../../helpers/localFamilies";
 import { ViewProps } from "./ViewProps";
 import { DataViewToolbar, useVisibleRows } from "./DataViewToolbar";
 import { EquationText } from "../EquationText";
+import { ReactionTypeInfo } from "./ReactionTypeInfo";
 import { useUserPreferences } from "../UserPreferencesContext";
 import {
   fromDisplayValue,
@@ -209,6 +213,35 @@ type TypeOption = {
   count: number;
 };
 
+/**
+ * A toolbar button that shows the rate constant formula, the parameter
+ * units, and the docs of the reaction type in a popover.
+ */
+const RateConstantButton = ({ info }: { info: ReactNode }) => {
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  return (
+    <>
+      <Button
+        size="small"
+        startIcon={<FunctionsIcon />}
+        aria-haspopup="dialog"
+        aria-expanded={Boolean(anchorEl)}
+        onClick={(event) => setAnchorEl(event.currentTarget)}
+      >
+        Rate constant
+      </Button>
+      <Popover
+        open={Boolean(anchorEl)}
+        anchorEl={anchorEl}
+        onClose={() => setAnchorEl(null)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+      >
+        {info}
+      </Popover>
+    </>
+  );
+};
+
 type TypeFilterProps = {
   options: Array<TypeOption>;
   selectedType: ReactionTypeName | null;
@@ -257,6 +290,8 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
   const [typeFilter, setTypeFilter] = useState<ReactionTypeName | null>(null);
   const { preferences } = useUserPreferences();
   const apiRef = useGridApiRef();
+  // The reaction that the user clicked in the table.
+  const [selectedRowId, setSelectedRowId] = useState<UUID | null>(null);
   const visibleRows = useVisibleRows<Reaction>(apiRef);
   // The reaction type of all rows that the search leaves, or null if the rows
   // have more than one type.
@@ -490,6 +525,9 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       </Box>
       <DataGrid
         apiRef={apiRef}
+        onRowSelectionModelChange={(model) =>
+          setSelectedRowId((model[0] as UUID | undefined) ?? null)
+        }
         // The search and the Type menu replace the filter panel. The free
         // DataGrid allows only one filter condition at a time.
         disableColumnFilter
@@ -533,6 +571,22 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
                 options={typeOptions}
                 selectedType={activeType}
                 onSelect={setTypeFilter}
+              />
+            ),
+            actions: visibleType && (
+              <RateConstantButton
+                info={
+                  <ReactionTypeInfo
+                    type={visibleType}
+                    rateUnits={rateUnitsFor(preferences.rateUnits, visibleType)}
+                    reaction={family.reactions.find(
+                      (reaction) =>
+                        reaction.id === selectedRowId &&
+                        reaction.type === visibleType,
+                    )}
+                    species={family.species}
+                  />
+                }
               />
             ),
             visibleCount: visibleRows.length,

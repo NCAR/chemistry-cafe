@@ -41,6 +41,10 @@ import {
   toDisplayValue,
 } from "../../helpers/rateUnits";
 import { UnitText } from "../RateUnitText";
+import {
+  RateConstantFormula,
+  reactionTypeDocs,
+} from "../familyEditor/ReactionTypeInfo";
 
 // Hides the up and down arrows of a number field.
 const numberFieldSx = {
@@ -741,6 +745,10 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
               )}
             </Box>
           )}
+          {modifiedReaction?.type &&
+            modifiedReaction.type in reactionTypeDocs && (
+              <RateConstantFormula type={modifiedReaction.type} />
+            )}
           <Box
             sx={{
               display: "flex",
