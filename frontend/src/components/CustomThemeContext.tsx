@@ -234,6 +234,13 @@ const getThemeOptions = (settings: AppearanceSettings): ThemeOptionsType => {
             // only differs from the default in dark mode; background.paper
             // and background.default are equal in light mode).
             "--DataGrid-containerBackground": isDark ? darkSurface : "#FFFFFF",
+            // The grid gives the sort and menu icons of a column header no
+            // width until the pointer is over the header, so the title moves
+            // on hover. Keep their space at all times. The grid still shows
+            // them only on hover, or when the column is sorted.
+            "& .MuiDataGrid-iconButtonContainer, & .MuiDataGrid-menuIcon": {
+              width: "auto",
+            },
           },
         },
       },
