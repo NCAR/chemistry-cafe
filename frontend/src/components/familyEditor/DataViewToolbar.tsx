@@ -36,6 +36,16 @@ declare module "@mui/x-data-grid" {
 }
 
 /**
+ * Splits a search into words, and each word must match a column. A search
+ * with "+" or an arrow is an equation, for example "NO2 + OH -> HNO3". It
+ * stays one piece, so that the equation column can compare both sides.
+ */
+const parseSearch = (search: string) =>
+  /[+→]|->|=/.test(search)
+    ? [search.trim()]
+    : search.split(" ").filter((word) => word !== "");
+
+/**
  * The controls of a family editor table: the search and the filters at the
  * left, then the view controls and the add button at the right. Use it as
  * the toolbar slot of a DataGrid and give it its props with
@@ -61,6 +71,7 @@ export const DataViewToolbar = ({
       size="small"
       placeholder={searchPlaceholder ?? "Search"}
       debounceMs={300}
+      quickFilterParser={parseSearch}
       sx={{ width: "16em", paddingBottom: 0 }}
       {...quickFilterProps}
     />
