@@ -125,6 +125,29 @@ describe("ReactionsView reaction type filter", () => {
     expect(screen.queryByText(/^Showing/)).toBeNull();
   });
 
+  it("shows the formula, units, and docs of the type in a popover", async () => {
+    renderView(vi.fn());
+    expect(screen.queryByRole("button", { name: /Rate constant/ })).toBeNull();
+
+    await selectType("Troe");
+    // A selected reaction shows the units for its own order.
+    const row = screen.getAllByRole("row")[1];
+    fireEvent.click(within(row).getAllByRole("gridcell")[1]);
+    fireEvent.click(screen.getByRole("button", { name: /Rate constant/ }));
+
+    const info = screen.getByRole("region", {
+      name: "Troe (Fall-Off) rate constant",
+    });
+    expect(
+      within(info).getByRole("link", { name: /Documentation/ }),
+    ).toHaveProperty(
+      "href",
+      "https://mechanismconfiguration.readthedocs.io/en/latest/v1/reactions/troe.html",
+    );
+    expect(info.textContent).toContain("k0 Acm6 molecule-2 s-1");
+    expect(info.textContent).toContain("(n = 2)");
+  });
+
   it("shows a summary for mixed types and columns when a search leaves one type", async () => {
     renderView(vi.fn());
     expect(
