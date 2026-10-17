@@ -1,8 +1,12 @@
 import { useState } from "react";
-import { Box, Button, Tooltip, Typography } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
+import { Box, Tooltip, Typography } from "@mui/material";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
+import {
+  DataGrid,
+  GridColDef,
+  GridRenderCellParams,
+  useGridApiRef,
+} from "@mui/x-data-grid";
 import { UUID } from "crypto";
 import { generateID } from "../../helpers/localFamilies";
 import { Phase } from "../../types/chemistryModels";
@@ -10,10 +14,12 @@ import { PhaseCreationModal } from "../modals/PhaseCreationModal";
 import { RowActionsButton } from "../RowActionsButton";
 import { useCustomTheme } from "../CustomThemeContext";
 import { ViewProps } from "./ViewProps";
-import { DataViewToolbar } from "./DataViewToolbar";
+import { DataViewToolbar, useVisibleRows } from "./DataViewToolbar";
 
 export const PhaseView = ({ family, updateFamily }: ViewProps) => {
   const { theme } = useCustomTheme();
+  const apiRef = useGridApiRef();
+  const visibleRows = useVisibleRows(apiRef);
   const [phaseCreationModalOpen, setPhaseCreationModalOpen] = useState(false);
   const [selectedPhase, setSelectedPhase] = useState<Phase>();
 
@@ -134,6 +140,10 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
         </Tooltip>
       </Box>
       <DataGrid
+        apiRef={apiRef}
+        // The search replaces the filter panel. The free DataGrid allows only
+        // one filter condition at a time.
+        disableColumnFilter
         getRowId={(row: Phase) => row.id}
         initialState={{
           density: "compact",
@@ -156,27 +166,20 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
             fontFamily: theme.typography.fontFamily,
           },
         }}
-        slots={{
-          toolbar: () => (
-            <DataViewToolbar
-              customButton={
-                <Tooltip title="Add phase to family">
-                  <Button
-                    aria-label="Add Phase"
-                    data-testid="add-phase-button"
-                    onClick={() => {
-                      setSelectedPhase(undefined);
-                      setPhaseCreationModalOpen(true);
-                    }}
-                    color="primary"
-                  >
-                    <AddIcon />
-                    <Typography variant="caption">Add Phase</Typography>
-                  </Button>
-                </Tooltip>
-              }
-            />
-          ),
+        slots={{ toolbar: DataViewToolbar }}
+        slotProps={{
+          toolbar: {
+            addLabel: "Add Phase",
+            addTooltip: "Add phase to family",
+            addTestId: "add-phase-button",
+            onAdd: () => {
+              setSelectedPhase(undefined);
+              setPhaseCreationModalOpen(true);
+            },
+            searchPlaceholder: "Search phases",
+            visibleCount: visibleRows.length,
+            totalCount: family.phases.length,
+          },
         }}
       />
       <PhaseCreationModal

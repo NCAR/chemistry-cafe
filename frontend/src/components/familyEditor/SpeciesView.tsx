@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { Box, Button, Tooltip, Typography } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
+import { Box, Tooltip, Typography } from "@mui/material";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import {
   DataGrid,
@@ -10,6 +9,7 @@ import {
   GridPreProcessEditCellProps,
   GridRenderCellParams,
   GridRenderEditCellParams,
+  useGridApiRef,
 } from "@mui/x-data-grid";
 import { Family, Species } from "../../types/chemistryModels";
 import {
@@ -22,7 +22,7 @@ import { RowActionsButton } from "../RowActionsButton";
 import { UUID } from "crypto";
 import { generateID } from "../../helpers/localFamilies";
 import { ViewProps } from "./ViewProps";
-import { DataViewToolbar } from "./DataViewToolbar";
+import { DataViewToolbar, useVisibleRows } from "./DataViewToolbar";
 
 const EXCLUSIVE_OPTION_MESSAGE =
   "Only one of constant concentration, constant mixing ratio, or third body may be set.";
@@ -59,6 +59,8 @@ const ExclusiveBooleanEditCell = (props: GridRenderEditCellParams) => {
 
 export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
   const { theme } = useCustomTheme();
+  const apiRef = useGridApiRef();
+  const visibleRows = useVisibleRows(apiRef);
   const [speciesEditorOpen, setSpeciesEditorOpen] = useState<boolean>(false);
   const [selectedSpecies, setSelectedSpecies] = useState<Species>();
 
@@ -320,6 +322,10 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
         </Tooltip>
       </Box>
       <DataGrid
+        apiRef={apiRef}
+        // The search replaces the filter panel. The free DataGrid allows only
+        // one filter condition at a time.
+        disableColumnFilter
         getRowId={(row) => row.id}
         editMode="cell"
         processRowUpdate={handleSpeciesRowUpdate}
@@ -346,24 +352,17 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
             fontFamily: theme.typography.fontFamily,
           },
         }}
-        slots={{
-          toolbar: () => (
-            <DataViewToolbar
-              customButton={
-                <Tooltip title="Add species to family">
-                  <Button
-                    aria-label="Add species to family"
-                    data-testid="add-species-button"
-                    onClick={createSpecies}
-                    color="primary"
-                  >
-                    <AddIcon />
-                    <Typography variant="caption">Add Species</Typography>
-                  </Button>
-                </Tooltip>
-              }
-            />
-          ),
+        slots={{ toolbar: DataViewToolbar }}
+        slotProps={{
+          toolbar: {
+            addLabel: "Add Species",
+            addTooltip: "Add species to family",
+            addTestId: "add-species-button",
+            onAdd: createSpecies,
+            searchPlaceholder: "Search species",
+            visibleCount: visibleRows.length,
+            totalCount: family.species.length,
+          },
         }}
       />
       <SpeciesEditorModal
