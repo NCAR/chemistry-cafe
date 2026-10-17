@@ -1,8 +1,12 @@
 import { useState } from "react";
-import { Box, Button, Tooltip, Typography } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
+import { Box, Tooltip, Typography } from "@mui/material";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
+import {
+  DataGrid,
+  GridColDef,
+  GridRenderCellParams,
+  useGridApiRef,
+} from "@mui/x-data-grid";
 import { Reaction, ReactionTypeName } from "../../types/chemistryModels";
 import {
   reactionToString,
@@ -14,13 +18,15 @@ import { RowActionsButton } from "../RowActionsButton";
 import { UUID } from "crypto";
 import { generateID } from "../../helpers/localFamilies";
 import { ViewProps } from "./ViewProps";
-import { DataViewToolbar } from "./DataViewToolbar";
-
+import { DataViewToolbar, useVisibleRows } from "./DataViewToolbar";
+import { EquationText } from "../EquationText";
 export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
   const { theme } = useCustomTheme();
   const [reactionsEditorOpen, setReactionsEditorOpen] =
     useState<boolean>(false);
   const [selectedReaction, setSelectedReaction] = useState<Reaction>();
+  const apiRef = useGridApiRef();
+  const visibleRows = useVisibleRows<Reaction>(apiRef);
 
   const createReaction = () => {
     const frontendId: UUID = generateID();
@@ -107,16 +113,8 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
           family.species,
         ),
       renderCell: (params: GridRenderCellParams<Reaction>) => (
-        <Typography
-          variant="body1"
-          sx={{
-            color: params.value
-              ? theme.palette.text.primary
-              : theme.palette.text.disabled,
-          }}
-          noWrap
-        >
-          {params.value || "<Empty>"}
+        <Typography variant="body1" noWrap>
+          <EquationText reaction={params.row} species={family.species} />
         </Typography>
       ),
     },
@@ -162,6 +160,11 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       field: "type",
       headerName: "Reaction Type",
       flex: 1,
+      // The search uses the readable name, for example "Troe (Fall-Off)".
+      getApplyQuickFilterFn: (search: string) => (value: ReactionTypeName) =>
+        reactionTypeToString(value)
+          .toLowerCase()
+          .includes(search.toLowerCase()),
       renderCell: (params: GridRenderCellParams<Reaction>) => (
         <Typography
           variant="body1"
@@ -201,6 +204,10 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
         </Tooltip>
       </Box>
       <DataGrid
+        apiRef={apiRef}
+        // The search replaces the filter panel. The free DataGrid allows only
+        // one filter condition at a time.
+        disableColumnFilter
         initialState={{
           density: "compact",
           pagination: { paginationModel: { pageSize: 20 } },
@@ -222,24 +229,17 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
             fontFamily: theme.typography.fontFamily,
           },
         }}
-        slots={{
-          toolbar: () => (
-            <DataViewToolbar
-              customButton={
-                <Tooltip title="Add reaction to family">
-                  <Button
-                    aria-label="Add Reaction"
-                    data-testid="add-reaction-button"
-                    onClick={createReaction}
-                    color="primary"
-                  >
-                    <AddIcon />
-                    <Typography variant="caption">Add Reaction</Typography>
-                  </Button>
-                </Tooltip>
-              }
-            />
-          ),
+        slots={{ toolbar: DataViewToolbar }}
+        slotProps={{
+          toolbar: {
+            addLabel: "Add Reaction",
+            addTooltip: "Add reaction to family",
+            addTestId: "add-reaction-button",
+            onAdd: createReaction,
+            searchPlaceholder: "Search reactions",
+            visibleCount: visibleRows.length,
+            totalCount: family.reactions.length,
+          },
         }}
       />
       <ReactionEditorModal
