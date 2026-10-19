@@ -116,19 +116,6 @@ const sortedNames = (species: Array<Species>) =>
     .sort((a, b) => b.length - a.length);
 
 /**
- * Reads one side of an equation without an arrow, for example "2 NO2 + OH",
- * against the species of a family.
- */
-export function parseSide(
-  side: string,
-  species: Array<Species>,
-): { entries: Array<EquationEntry>; errors: Array<string> } {
-  const errors: Array<string> = [];
-  const entries = readSide(side, species, sortedNames(species), errors);
-  return { entries, errors };
-}
-
-/**
  * Reads an equation such as "2 NO2 + OH -> HNO3" against the species of a
  * family. It never creates species: a name that the family does not have is
  * an error. The arrow can be "->", "=>", "=", or "→".
@@ -191,5 +178,85 @@ export function formatEquation(
   if (left.length === 0 && right.length === 0) {
     return "";
   }
+  return `${left} -> ${right}`.trim();
+}
+
+/**
+ * Reads an equation with more than one product branch, for example
+ * "NO + RO2 -> NO2 + RO | RONO2". The products of each branch are separated
+ * by "|", in the order of the branches. Each product gets its branch.
+ */
+export function parseBranchedEquation(
+  equation: string,
+  species: Array<Species>,
+  branches: Array<string>,
+): {
+  reactants: Array<EquationEntry>;
+  products: Array<EquationEntry & { branch: string }>;
+  errors: Array<string>;
+} {
+  if (equation.trim().length === 0) {
+    return { reactants: [], products: [], errors: [] };
+  }
+  const sides = equation.split(arrowPattern);
+  if (sides.length !== 2) {
+    return {
+      reactants: [],
+      products: [],
+      errors: [
+        sides.length < 2
+          ? 'Use "->" between the reactants and the products'
+          : "Use only one arrow",
+      ],
+    };
+  }
+  const groups = sides[1].split("|");
+  if (groups.length > branches.length) {
+    return {
+      reactants: [],
+      products: [],
+      errors: [
+        `Use "|" only between the ${branches.length} product branches (${branches.join(" | ")})`,
+      ],
+    };
+  }
+
+  const errors: Array<string> = [];
+  const names = sortedNames(species);
+  const reactants = readSide(sides[0], species, names, errors);
+  const products = groups.flatMap((group, index) =>
+    readSide(group, species, names, errors).map((entry) => ({
+      ...entry,
+      branch: branches[index],
+    })),
+  );
+  return { reactants, products, errors };
+}
+
+/**
+ * Writes reactants and products with more than one product branch, for
+ * example "NO + RO2 -> NO2 + RO | RONO2". A product with a missing or
+ * unknown branch is in the first branch.
+ */
+export function formatBranchedEquation(
+  reactants: Array<{ speciesId: string; coefficient: number }>,
+  products: Array<{ speciesId: string; coefficient: number; branch?: string }>,
+  species: Array<Species>,
+  branches: Array<string>,
+): string {
+  const branchOf = (branch?: string) =>
+    branch && branches.includes(branch) ? branch : branches[0];
+  const groups = branches.map((branch) =>
+    formatSide(
+      products.filter((product) => branchOf(product.branch) === branch),
+      species,
+    ),
+  );
+  const left = formatSide(reactants, species);
+  if (left.length === 0 && groups.every((group) => group.length === 0)) {
+    return "";
+  }
+  // An empty branch leaves no extra space, for example "OH -> | HNO3".
+  const right = groups.join(" | ").replace(/\s+/g, " ").trim();
   return `${left} -> ${right}`.trim();
 }

@@ -157,32 +157,65 @@ describe("ReactionEditorModal rate parameter units", () => {
   it("edits the alkoxy and nitrate products of a branched reaction", () => {
     const onUpdate = renderEditor({
       ...makeReaction("BRANCHED_NO_RO2", {}),
-      // A product without a branch shows in the first branch.
+      // A product without a branch is in the first branch.
       products: [{ speciesId: "111-111-111-111-001", coefficient: 1 }],
     });
-    expect(screen.queryByLabelText("Equation")).toBeNull();
-    const alkoxy = screen.getByLabelText("Alkoxy products") as HTMLInputElement;
-    const nitrate = screen.getByLabelText(
-      "Nitrate products",
+    const equation = screen.getByLabelText(
+      "Equation (alkoxy | nitrate)",
     ) as HTMLInputElement;
-    expect(alkoxy.value).toBe("OH");
-    expect(nitrate.value).toBe("");
+    expect(equation.value).toBe("OH + NO2 -> OH |");
 
     // A species can be in only one branch.
-    fireEvent.change(nitrate, { target: { value: "OH" } });
-    fireEvent.keyDown(nitrate, { key: "Enter" });
+    fireEvent.change(equation, { target: { value: "OH + NO2 -> OH | OH" } });
+    fireEvent.keyDown(equation, { key: "Enter" });
     expect(
-      screen.getByText("OH is already in the alkoxy products"),
+      screen.getByText("OH can be in only one product branch"),
     ).toBeTruthy();
 
-    fireEvent.change(nitrate, { target: { value: "2 NO2" } });
-    fireEvent.keyDown(nitrate, { key: "Enter" });
+    fireEvent.change(equation, {
+      target: { value: "OH + NO2 -> OH | 2 NO2" },
+    });
     fireEvent.click(screen.getByTestId("save-reaction-changes"));
 
     const saved: Reaction = onUpdate.mock.calls[0][0];
     expect(saved.products).toEqual([
       { speciesId: "111-111-111-111-001", coefficient: 1, branch: "alkoxy" },
       { speciesId: "111-111-111-111-002", coefficient: 2, branch: "nitrate" },
+    ]);
+  });
+
+  it("allows coefficients for emissions and one-reactant types", () => {
+    const onUpdate = renderEditor({
+      ...makeReaction("EMISSION", {}),
+      reactants: [],
+    });
+    const equation = screen.getByLabelText("Equation") as HTMLInputElement;
+    // An emission has only one product, with any coefficient.
+    fireEvent.change(equation, { target: { value: "-> 2 NO2 + OH" } });
+    fireEvent.keyDown(equation, { key: "Enter" });
+    expect(
+      screen.getByText("This reaction type has only one product"),
+    ).toBeTruthy();
+    fireEvent.change(equation, { target: { value: "-> 2 NO2" } });
+    fireEvent.click(screen.getByTestId("save-reaction-changes"));
+    expect(onUpdate.mock.calls[0][0].products).toEqual([
+      { speciesId: "111-111-111-111-002", coefficient: 2 },
+    ]);
+    cleanup();
+
+    const onLossUpdate = renderEditor(makeReaction("FIRST_ORDER_LOSS", {}));
+    const lossEquation = screen.getByLabelText("Equation") as HTMLInputElement;
+    // A first-order loss has only one reactant, with any coefficient.
+    expect(lossEquation.value).toBe("OH ->");
+    fireEvent.change(lossEquation, { target: { value: "OH + NO2 ->" } });
+    fireEvent.keyDown(lossEquation, { key: "Enter" });
+    expect(
+      screen.getByText("This reaction type has only one reactant"),
+    ).toBeTruthy();
+    fireEvent.change(lossEquation, { target: { value: "0.5 OH ->" } });
+    fireEvent.click(screen.getByTestId("save-reaction-changes"));
+    expect(onLossUpdate.mock.calls[0][0].reactants).toEqual([
+      { speciesId: "111-111-111-111-001", coefficient: 0.5 },
     ]);
   });
 });

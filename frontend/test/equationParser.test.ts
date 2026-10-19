@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { formatEquation, parseEquation } from "../src/helpers/equationParser";
+import {
+  formatBranchedEquation,
+  formatEquation,
+  parseBranchedEquation,
+  parseEquation,
+} from "../src/helpers/equationParser";
 import { Species } from "../src/types/chemistryModels";
 
 const names = ["OH", "NO", "NO2", "HNO3", "H+", "OH-", "1-butene"];
@@ -41,5 +46,28 @@ describe("parseEquation", () => {
       products: [{ speciesId: id("HNO3"), coefficient: 1 }],
       errors: [],
     });
+  });
+
+  it.each<[string, string, Array<string>]>([
+    ["OH + NO -> NO2 | HNO3", "OH + NO -> NO2 | HNO3", []],
+    ["OH -> NO2", "OH -> NO2 |", []],
+    ["OH -> | HNO3", "OH -> | HNO3", []],
+    [
+      "OH -> NO2 | HNO3 | NO",
+      "",
+      ['Use "|" only between the 2 product branches (alkoxy | nitrate)'],
+    ],
+  ])("reads the branched equation %j", (equation, written, errors) => {
+    const branches = ["alkoxy", "nitrate"];
+    const parsed = parseBranchedEquation(equation, species, branches);
+    expect(parsed.errors).toEqual(errors);
+    expect(
+      formatBranchedEquation(
+        parsed.reactants,
+        parsed.products,
+        species,
+        branches,
+      ),
+    ).toBe(written);
   });
 });

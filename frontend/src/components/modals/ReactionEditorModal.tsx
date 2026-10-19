@@ -12,7 +12,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import React, { ReactNode, useLayoutEffect, useState } from "react";
+import React, { useLayoutEffect, useState } from "react";
 import {
   Family,
   Product,
@@ -29,7 +29,7 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import { SelectSpeciesButton } from "../SelectSpeciesButton";
+import { bySpeciesName, SelectSpeciesButton } from "../SelectSpeciesButton";
 import { reactionTypeToString } from "../../helpers/stringify";
 import { modalStyle } from "./modalStyle";
 import { UUID } from "crypto";
@@ -44,10 +44,10 @@ import {
 } from "../../helpers/rateUnits";
 import { UnitText } from "../RateUnitText";
 import {
+  formatBranchedEquation,
   formatEquation,
-  formatSide,
+  parseBranchedEquation,
   parseEquation,
-  parseSide,
 } from "../../helpers/equationParser";
 
 // Hides the up and down arrows of a number field.
@@ -74,10 +74,10 @@ type SpeciesRowsProps = {
   title: string;
   entries: Array<SpeciesEntry>;
   family: Family;
-  /** A text field for the species, under the title */
-  field?: ReactNode;
   /** Species that the add button does not offer, for example from another branch */
   unavailable?: Array<string>;
+  /** The most species that the list can have. The add button hides at this count. */
+  maxEntries?: number;
   addLabel: string;
   removeLabel: string;
   newEntry: (speciesId: UUID) => SpeciesEntry;
@@ -97,8 +97,8 @@ const SpeciesRows = ({
   title,
   entries,
   family,
-  field,
   unavailable,
+  maxEntries,
   addLabel,
   removeLabel,
   newEntry,
@@ -110,17 +110,18 @@ const SpeciesRows = ({
       <Typography color="textPrimary" variant="subtitle2">
         {title}
       </Typography>
-      <SelectSpeciesButton
-        aria-label={addLabel}
-        onSelect={(species) => onChange([...entries, newEntry(species.id)])}
-        species={family.species.filter(
-          (species) =>
-            !entries.some((e) => e.speciesId === species.id) &&
-            !unavailable?.includes(species.id),
-        )}
-      />
+      {(maxEntries === undefined || entries.length < maxEntries) && (
+        <SelectSpeciesButton
+          aria-label={addLabel}
+          onSelect={(species) => onChange([...entries, newEntry(species.id)])}
+          species={family.species.filter(
+            (species) =>
+              !entries.some((e) => e.speciesId === species.id) &&
+              !unavailable?.includes(species.id),
+          )}
+        />
+      )}
     </Box>
-    {field}
     {entries.length === 0 && (
       <Typography color="textSecondary" variant="body2">
         None
@@ -139,7 +140,8 @@ const SpeciesRows = ({
             display: "flex",
             alignItems: "center",
             columnGap: 1,
-            paddingY: 0.5,
+            // Room for the label on the top border of the coefficient field.
+            paddingTop: 1,
           }}
         >
           <Typography color="textPrimary" sx={{ flex: 1, minWidth: 0 }} noWrap>
@@ -184,34 +186,30 @@ type SingleSpeciesSelectProps = {
   onChange: (speciesId?: UUID) => void;
 };
 
-/** Selects the one species of a reaction type with one reactant or product. */
+/**
+ * Selects one species with a search, for example the gas phase species of a
+ * reaction. The species are in alphabetical order. The clear button selects
+ * no species.
+ */
 const SingleSpeciesSelect = ({
   label,
   speciesId,
   family,
   onChange,
 }: SingleSpeciesSelectProps) => (
-  <TextField
-    select
+  <Autocomplete
     size="small"
     fullWidth
-    label={label}
-    value={speciesId ?? "None"}
-    onChange={(event) =>
-      onChange(
-        event.target.value === "None"
-          ? undefined
-          : (event.target.value as UUID),
-      )
-    }
-  >
-    <MenuItem value="None">None</MenuItem>
-    {family.species.map((species) => (
-      <MenuItem key={`${label}-${species.id}`} value={species.id}>
-        {species.name || "<No Name>"}
-      </MenuItem>
-    ))}
-  </TextField>
+    value={family.species.find((species) => species.id === speciesId) ?? null}
+    options={[...family.species].sort(bySpeciesName)}
+    getOptionLabel={(option) => option.name || "<No Name>"}
+    isOptionEqualToValue={(option, value) => option.id === value.id}
+    noOptionsText="No species found"
+    renderInput={(params) => (
+      <TextField {...params} label={label} placeholder="Search species" />
+    )}
+    onChange={(_, selected) => onChange(selected?.id)}
+  />
 );
 
 type ReactionEditorModalProps = {
@@ -243,13 +241,10 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
   const { preferences } = useUserPreferences();
   const rateUnits = rateUnitsFor(preferences.rateUnits, modifiedReaction?.type);
 
-  // The text of each species field while the user changes it. The key is
-  // "equation", "reactants", or a product branch such as "alkoxy". A field
-  // without a key shows the species of the rows.
-  const [drafts, setDrafts] = useState<Record<string, string>>({});
-  const [draftErrors, setDraftErrors] = useState<Record<string, Array<string>>>(
-    {},
-  );
+  // The text of the equation field while the user changes it, or null when
+  // the field shows the reactants and products of the rows.
+  const [equationDraft, setEquationDraft] = useState<string | null>(null);
+  const [equationErrors, setEquationErrors] = useState<Array<string>>([]);
   const [speciesVersion, setSpeciesVersion] = useState<number>(0);
 
   const [errorMessage, setErrorMessage] = useState<string>("");
@@ -286,8 +281,8 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
 
   useLayoutEffect(() => {
     setModifiedReaction(reaction);
-    setDrafts({});
-    setDraftErrors({});
+    setEquationDraft(null);
+    setEquationErrors([]);
     const attributes = getReactionAttributes(reaction?.type);
     setDefaultAttributes(attributes);
     const configuration = getReactionConfiguration(reaction?.type);
@@ -303,10 +298,8 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
         updatedReactionProperties.reactants = [];
         break;
       case ReactionSpeciesCount.ONE:
-        // A reaction with one reactant always has a coefficient of 1.
-        updatedReactionProperties.reactants = (
-          modifiedReaction?.reactants.slice(0, 1) ?? []
-        ).map((reactant) => ({ ...reactant, coefficient: 1 }));
+        updatedReactionProperties.reactants =
+          modifiedReaction?.reactants.slice(0, 1) ?? [];
         break;
       case ReactionSpeciesCount.MANY:
         updatedReactionProperties.reactants = modifiedReaction?.reactants ?? [];
@@ -360,115 +353,76 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
   };
 
   /**
-   * Reads the species fields that the user changed into reactants and
-   * products. It also checks the number of species that the reaction type
-   * allows. The errors have the key of their field.
+   * Reads the equation field into reactants and products. A type with more
+   * than one product branch separates the products of each branch with "|".
+   * It also checks the number of species that the reaction type allows.
    */
-  const readDrafts = (pending: Record<string, string>) => {
-    const errors: Record<string, Array<string>> = {};
-    let newReactants: Array<Reactant> = modifiedReaction?.reactants ?? [];
-    let newProducts: Array<Product> = modifiedReaction?.products ?? [];
+  const readEquation = (text: string) => {
+    let errors: Array<string>;
+    let newReactants: Array<Reactant>;
+    let newProducts: Array<Product>;
+    if (productBranches.length > 0) {
+      const parsed = parseBranchedEquation(
+        text,
+        family.species,
+        productBranches,
+      );
+      errors = [...parsed.errors];
+      newReactants = parsed.reactants;
+      newProducts = parsed.products;
+      // The database keeps one product row for each species, so a species
+      // can be in only one branch.
+      const seen = new Set<string>();
+      for (const product of newProducts) {
+        if (seen.has(product.speciesId)) {
+          const name = family.species.find(
+            (s) => s.id === product.speciesId,
+          )?.name;
+          errors.push(`${name} can be in only one product branch`);
+        }
+        seen.add(product.speciesId);
+      }
+    } else {
+      const parsed = parseEquation(text, family.species);
+      errors = [...parsed.errors];
+      newReactants = parsed.reactants;
+      newProducts = parsed.products.map(withDefaultBranch);
+    }
 
     const checkCount = (
-      key: string,
       count: ReactionSpeciesCount,
       entries: Array<{ coefficient: number }>,
       side: string,
     ) => {
       if (count === ReactionSpeciesCount.NONE && entries.length > 0) {
-        errors[key].push(`This reaction type has no ${side}s`);
+        errors.push(`This reaction type has no ${side}s`);
       }
-      if (
-        count === ReactionSpeciesCount.ONE &&
-        (entries.length > 1 || entries.some((e) => e.coefficient !== 1))
-      ) {
-        errors[key].push(
-          `This reaction type has one ${side}, with a coefficient of 1`,
-        );
+      if (count === ReactionSpeciesCount.ONE && entries.length > 1) {
+        errors.push(`This reaction type has only one ${side}`);
       }
     };
+    checkCount(currentConfiguration.reactantCount, newReactants, "reactant");
+    checkCount(currentConfiguration.productCount, newProducts, "product");
 
-    if ("equation" in pending) {
-      const parsed = parseEquation(pending.equation, family.species);
-      errors.equation = [...parsed.errors];
-      newReactants = parsed.reactants;
-      newProducts = parsed.products.map(withDefaultBranch);
-      checkCount(
-        "equation",
-        currentConfiguration.reactantCount,
-        newReactants,
-        "reactant",
-      );
-      checkCount(
-        "equation",
-        currentConfiguration.productCount,
-        newProducts,
-        "product",
-      );
-    }
-    if ("reactants" in pending) {
-      const parsed = parseSide(pending.reactants, family.species);
-      errors.reactants = parsed.errors;
-      newReactants = parsed.entries;
-    }
-    for (const branch of productBranches) {
-      if (branch in pending) {
-        const parsed = parseSide(pending[branch], family.species);
-        errors[branch] = parsed.errors;
-        newProducts = [
-          ...newProducts.filter((product) => branchOf(product) !== branch),
-          ...parsed.entries.map((entry) => ({ ...entry, branch })),
-        ];
-      }
-    }
-
-    // The database keeps one product row for each species, so a species can
-    // be in only one branch.
-    for (const branch of productBranches) {
-      if (!(branch in pending)) {
-        continue;
-      }
-      for (const product of newProducts) {
-        const otherBranch = branchOf(product);
-        const repeated = newProducts.some(
-          (p) => p.speciesId === product.speciesId && branchOf(p) === branch,
-        );
-        if (otherBranch !== branch && repeated) {
-          const name = family.species.find(
-            (s) => s.id === product.speciesId,
-          )?.name;
-          errors[branch].push(
-            `${name} is already in the ${otherBranch} products`,
-          );
-        }
-      }
-    }
-
-    const hasErrors = Object.values(errors).some((list) => list.length > 0);
-    return {
-      reactants: newReactants,
-      products: newProducts,
-      errors,
-      hasErrors,
-    };
+    return { reactants: newReactants, products: newProducts, errors };
   };
 
-  // Applies the species fields to the rows. With errors, the rows do not
-  // change, and the fields keep the text of the user.
-  const applyDrafts = () => {
-    if (Object.keys(drafts).length === 0) {
+  // Applies the equation field to the rows. With errors, the rows do not
+  // change, and the field keeps the text of the user.
+  const applyEquationDraft = () => {
+    if (equationDraft === null) {
       return;
     }
-    const result = readDrafts(drafts);
-    setDraftErrors(result.errors);
-    if (result.hasErrors) {
+    const result = readEquation(equationDraft);
+    setEquationErrors(result.errors);
+    if (result.errors.length > 0) {
       return;
     }
     changeReactionProperties({
       reactants: result.reactants,
       products: result.products,
     });
-    setDrafts({});
+    setEquationDraft(null);
     setSpeciesVersion((version) => version + 1);
   };
 
@@ -479,15 +433,13 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
       return;
     }
 
-    // Species fields that the user did not apply yet are part of the save.
+    // An equation that the user did not apply yet is part of the save.
     let reactionToSave = modifiedReaction;
-    if (Object.keys(drafts).length > 0) {
-      const result = readDrafts(drafts);
-      if (result.hasErrors) {
-        setDraftErrors(result.errors);
-        setErrorMessage(
-          "Correct the species fields before you save the reaction",
-        );
+    if (equationDraft !== null) {
+      const result = readEquation(equationDraft);
+      if (result.errors.length > 0) {
+        setEquationErrors(result.errors);
+        setErrorMessage("Correct the equation before you save the reaction");
         setShowAlert(true);
         return;
       }
@@ -549,26 +501,72 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
     currentConfiguration.reactantCount !== ReactionSpeciesCount.NONE ||
     currentConfiguration.productCount !== ReactionSpeciesCount.NONE;
 
-  // The shared props of a species field. It shows the species of the rows,
-  // or the text of the user while the user changes it. Enter or a blur
-  // applies the text.
-  const speciesFieldProps = (key: string, formatted: string) => {
-    const errors = draftErrors[key] ?? [];
-    return {
-      value: drafts[key] ?? formatted,
-      error: errors.length > 0,
-      helperText: errors.length > 0 ? errors.join(". ") : undefined,
-      onChange: (event: React.ChangeEvent<HTMLInputElement>) =>
-        setDrafts((current) => ({ ...current, [key]: event.target.value })),
-      onBlur: applyDrafts,
-      onKeyDown: (event: React.KeyboardEvent) => {
-        if (event.key === "Enter") {
-          event.preventDefault();
-          applyDrafts();
-        }
-      },
-    };
-  };
+  // The lists of species under the equation field: the reactants, and the
+  // products of each branch, or all products.
+  const speciesLists: Array<
+    Omit<SpeciesRowsProps, "family" | "version"> & { key: string }
+  > = [];
+  if (currentConfiguration.reactantCount !== ReactionSpeciesCount.NONE) {
+    speciesLists.push({
+      key: "reactants",
+      title: "Reactants",
+      entries: reactants,
+      maxEntries:
+        currentConfiguration.reactantCount === ReactionSpeciesCount.ONE
+          ? 1
+          : undefined,
+      addLabel: "select-reaction-species",
+      removeLabel: "Remove Species From Reactants",
+      newEntry: (speciesId) => ({ speciesId, coefficient: 1 }),
+      onChange: (entries) => changeReactionProperties({ reactants: entries }),
+    });
+  }
+  if (productBranches.length > 0) {
+    for (const branch of productBranches) {
+      const title = `${branch.charAt(0).toUpperCase()}${branch.slice(1)} products`;
+      speciesLists.push({
+        key: branch,
+        title,
+        entries: products.filter((product) => branchOf(product) === branch),
+        unavailable: products
+          .filter((product) => branchOf(product) !== branch)
+          .map((product) => product.speciesId),
+        addLabel: `Add ${branch} product`,
+        removeLabel: `Remove Species From ${title}`,
+        newEntry: (speciesId) => ({ speciesId, coefficient: 1, branch }),
+        onChange: (changed) =>
+          changeReactionProperties({
+            products: [
+              ...products.filter((product) => branchOf(product) !== branch),
+              ...changed.map((entry) => ({ ...entry, branch })),
+            ],
+          }),
+      });
+    }
+  } else if (currentConfiguration.productCount !== ReactionSpeciesCount.NONE) {
+    speciesLists.push({
+      key: "products",
+      title: "Products",
+      entries: products,
+      maxEntries:
+        currentConfiguration.productCount === ReactionSpeciesCount.ONE
+          ? 1
+          : undefined,
+      addLabel: "Select Reaction Species",
+      removeLabel: "Remove Species From Products",
+      newEntry: (speciesId) => withDefaultBranch({ speciesId, coefficient: 1 }),
+      onChange: (entries) => changeReactionProperties({ products: entries }),
+    });
+  }
+  const formattedEquation =
+    productBranches.length > 0
+      ? formatBranchedEquation(
+          reactants,
+          products,
+          family.species,
+          productBranches,
+        )
+      : formatEquation(reactants, products, family.species);
 
   // Gives the field of one reaction parameter. A parameter with a
   // concentration unit shows its value in the display units of the user. The
@@ -837,176 +835,57 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
               )}
             </Box>
           )}
-          {hasSpecies && productBranches.length === 0 && (
+          {hasSpecies && (
             <TextField
               size="small"
               fullWidth
-              label="Equation"
-              placeholder="2 NO2 + OH -> HNO3"
-              {...speciesFieldProps(
-                "equation",
-                formatEquation(reactants, products, family.species),
-              )}
+              label={
+                productBranches.length > 0
+                  ? `Equation (${productBranches.join(" | ")})`
+                  : "Equation"
+              }
+              placeholder={
+                productBranches.length > 0
+                  ? "NO + RO2 -> NO2 + RO | RONO2"
+                  : "2 NO2 + OH -> HNO3"
+              }
+              value={equationDraft ?? formattedEquation}
+              error={equationErrors.length > 0}
+              helperText={
+                equationErrors.length > 0
+                  ? equationErrors.join(". ")
+                  : undefined
+              }
+              onChange={(event) => setEquationDraft(event.target.value)}
+              onBlur={applyEquationDraft}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  applyEquationDraft();
+                }
+              }}
             />
           )}
-          {productBranches.length > 0 && (
+          {hasSpecies && (
             <Box
               sx={{
                 display: "grid",
-                gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  sm: `repeat(${Math.max(speciesLists.length, 2)}, 1fr)`,
+                },
                 columnGap: 3,
                 rowGap: 1.5,
               }}
             >
-              <Box sx={{ gridColumn: "1 / -1" }}>
+              {speciesLists.map(({ key, ...list }) => (
                 <SpeciesRows
-                  title="Reactants"
-                  entries={reactants}
+                  key={key}
+                  {...list}
                   family={family}
-                  field={
-                    <TextField
-                      size="small"
-                      fullWidth
-                      placeholder="NO + RO2"
-                      inputProps={{ "aria-label": "Reactants" }}
-                      {...speciesFieldProps(
-                        "reactants",
-                        formatSide(reactants, family.species),
-                      )}
-                    />
-                  }
-                  addLabel="select-reaction-species"
-                  removeLabel="Remove Species From Reactants"
-                  newEntry={(speciesId) => ({ speciesId, coefficient: 1 })}
-                  onChange={(entries) =>
-                    changeReactionProperties({ reactants: entries })
-                  }
                   version={speciesVersion}
                 />
-              </Box>
-              {productBranches.map((branch) => {
-                const title = `${branch.charAt(0).toUpperCase()}${branch.slice(1)} products`;
-                const entries = products.filter(
-                  (product) => branchOf(product) === branch,
-                );
-                return (
-                  <SpeciesRows
-                    key={branch}
-                    title={title}
-                    entries={entries}
-                    family={family}
-                    field={
-                      <TextField
-                        size="small"
-                        fullWidth
-                        inputProps={{ "aria-label": title }}
-                        {...speciesFieldProps(
-                          branch,
-                          formatSide(entries, family.species),
-                        )}
-                      />
-                    }
-                    unavailable={products
-                      .filter((product) => branchOf(product) !== branch)
-                      .map((product) => product.speciesId)}
-                    addLabel={`Add ${branch} product`}
-                    removeLabel={`Remove Species From ${title}`}
-                    newEntry={(speciesId) => ({
-                      speciesId,
-                      coefficient: 1,
-                      branch,
-                    })}
-                    onChange={(changed) =>
-                      changeReactionProperties({
-                        products: [
-                          ...products.filter(
-                            (product) => branchOf(product) !== branch,
-                          ),
-                          ...changed.map((entry) => ({ ...entry, branch })),
-                        ],
-                      })
-                    }
-                    version={speciesVersion}
-                  />
-                );
-              })}
-            </Box>
-          )}
-          {hasSpecies && productBranches.length === 0 && (
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-                columnGap: 3,
-                rowGap: 1.5,
-              }}
-            >
-              <Box>
-                {currentConfiguration.reactantCount ===
-                  ReactionSpeciesCount.ONE && (
-                  <SingleSpeciesSelect
-                    label="Reactant"
-                    speciesId={reactants.at(0)?.speciesId}
-                    family={family}
-                    onChange={(speciesId) =>
-                      changeReactionProperties({
-                        reactants: speciesId
-                          ? [{ speciesId, coefficient: 1 }]
-                          : [],
-                      })
-                    }
-                  />
-                )}
-                {currentConfiguration.reactantCount ===
-                  ReactionSpeciesCount.MANY && (
-                  <SpeciesRows
-                    title="Reactants"
-                    entries={reactants}
-                    family={family}
-                    addLabel="select-reaction-species"
-                    removeLabel="Remove Species From Reactants"
-                    newEntry={(speciesId) => ({ speciesId, coefficient: 1 })}
-                    onChange={(entries) =>
-                      changeReactionProperties({ reactants: entries })
-                    }
-                    version={speciesVersion}
-                  />
-                )}
-              </Box>
-              <Box>
-                {currentConfiguration.productCount ===
-                  ReactionSpeciesCount.ONE && (
-                  <SingleSpeciesSelect
-                    label="Product"
-                    speciesId={products.at(0)?.speciesId}
-                    family={family}
-                    onChange={(speciesId) =>
-                      changeReactionProperties({
-                        products: speciesId
-                          ? [{ speciesId, coefficient: 1 }]
-                          : [],
-                      })
-                    }
-                  />
-                )}
-                {currentConfiguration.productCount ===
-                  ReactionSpeciesCount.MANY && (
-                  <SpeciesRows
-                    title="Products"
-                    entries={products}
-                    family={family}
-                    addLabel="Select Reaction Species"
-                    removeLabel="Remove Species From Products"
-                    newEntry={(speciesId) =>
-                      withDefaultBranch({ speciesId, coefficient: 1 })
-                    }
-                    onChange={(entries) =>
-                      changeReactionProperties({ products: entries })
-                    }
-                    version={speciesVersion}
-                  />
-                )}
-              </Box>
+              ))}
             </Box>
           )}
           <Typography color="textPrimary" variant="subtitle2">
