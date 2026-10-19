@@ -105,15 +105,17 @@ describe("ReactionEditorModal rate parameter units", () => {
     const onUpdate = renderEditor(
       makeReaction("TROE", { k0A: { value: 1 }, kinfA: { value: 1 } }),
     );
-    const kinf = screen.getByLabelText(
-      `kinf A [${rateUnitLabel("Molecule", 2)}]`,
-    ) as HTMLInputElement;
+    // The unit is at the end of the field, and the SI value is in a tooltip.
+    const unitOf = (input: HTMLElement) =>
+      input.parentElement!.querySelector(".MuiInputAdornment-root")!
+        .textContent;
+    const kinf = screen.getByLabelText("kinf A") as HTMLInputElement;
     expect(Number(kinf.value)).toBe(roundDisplayValue(secondOrderFactor));
-    expect(screen.getByText("Stored as 1 m3 mol-1 s-1")).toBeTruthy();
+    expect(unitOf(kinf)).toBe(rateUnitLabel("Molecule", 2));
+    expect(screen.getByLabelText("Stored as 1 m3 mol-1 s-1")).toBeTruthy();
 
-    const k0 = screen.getByLabelText(
-      `k0 A [${rateUnitLabel("Molecule", 3)}]`,
-    ) as HTMLInputElement;
+    const k0 = screen.getByLabelText("k0 A") as HTMLInputElement;
+    expect(unitOf(k0)).toBe(rateUnitLabel("Molecule", 3));
     fireEvent.change(k0, { target: { value: "1.8e-30" } });
     fireEvent.click(screen.getByTestId("save-reaction-changes"));
 
@@ -124,5 +126,96 @@ describe("ReactionEditorModal rate parameter units", () => {
     );
     // An unchanged parameter keeps its exact stored value.
     expect(saved.attributes.kinfA.value).toBe(1);
+  });
+
+  it("applies a typed equation and does not save one with unknown species", () => {
+    const onUpdate = renderEditor(
+      makeReaction("ARRHENIUS", { A: { value: 1 } }),
+    );
+    const equation = screen.getByLabelText("Equation") as HTMLInputElement;
+    expect(equation.value).toBe("OH + NO2 ->");
+
+    // An unknown species shows an error, and the save stops.
+    fireEvent.change(equation, { target: { value: "OH + NO3 -> NO2" } });
+    fireEvent.keyDown(equation, { key: "Enter" });
+    expect(screen.getByText("Unknown species: NO3")).toBeTruthy();
+    fireEvent.click(screen.getByTestId("save-reaction-changes"));
+    expect(onUpdate).not.toHaveBeenCalled();
+
+    // A valid equation that is not applied yet is part of the save.
+    fireEvent.change(equation, { target: { value: "2 NO2 -> OH" } });
+    fireEvent.click(screen.getByTestId("save-reaction-changes"));
+    const saved: Reaction = onUpdate.mock.calls[0][0];
+    expect(saved.reactants).toEqual([
+      { speciesId: "111-111-111-111-002", coefficient: 2 },
+    ]);
+    expect(saved.products).toEqual([
+      { speciesId: "111-111-111-111-001", coefficient: 1 },
+    ]);
+  });
+
+  it("edits the alkoxy and nitrate products of a branched reaction", () => {
+    const onUpdate = renderEditor({
+      ...makeReaction("BRANCHED_NO_RO2", {}),
+      // A product without a branch is in the first branch.
+      products: [{ speciesId: "111-111-111-111-001", coefficient: 1 }],
+    });
+    const equation = screen.getByLabelText(
+      "Equation (alkoxy | nitrate)",
+    ) as HTMLInputElement;
+    expect(equation.value).toBe("OH + NO2 -> OH |");
+
+    // A species can be in only one branch.
+    fireEvent.change(equation, { target: { value: "OH + NO2 -> OH | OH" } });
+    fireEvent.keyDown(equation, { key: "Enter" });
+    expect(
+      screen.getByText("OH can be in only one product branch"),
+    ).toBeTruthy();
+
+    fireEvent.change(equation, {
+      target: { value: "OH + NO2 -> OH | 2 NO2" },
+    });
+    fireEvent.click(screen.getByTestId("save-reaction-changes"));
+
+    const saved: Reaction = onUpdate.mock.calls[0][0];
+    expect(saved.products).toEqual([
+      { speciesId: "111-111-111-111-001", coefficient: 1, branch: "alkoxy" },
+      { speciesId: "111-111-111-111-002", coefficient: 2, branch: "nitrate" },
+    ]);
+  });
+
+  it("allows coefficients for emissions and one-reactant types", () => {
+    const onUpdate = renderEditor({
+      ...makeReaction("EMISSION", {}),
+      reactants: [],
+    });
+    const equation = screen.getByLabelText("Equation") as HTMLInputElement;
+    // An emission has only one product, with any coefficient.
+    fireEvent.change(equation, { target: { value: "-> 2 NO2 + OH" } });
+    fireEvent.keyDown(equation, { key: "Enter" });
+    expect(
+      screen.getByText("This reaction type has only one product"),
+    ).toBeTruthy();
+    fireEvent.change(equation, { target: { value: "-> 2 NO2" } });
+    fireEvent.click(screen.getByTestId("save-reaction-changes"));
+    expect(onUpdate.mock.calls[0][0].products).toEqual([
+      { speciesId: "111-111-111-111-002", coefficient: 2 },
+    ]);
+    cleanup();
+
+    const onLossUpdate = renderEditor(makeReaction("FIRST_ORDER_LOSS", {}));
+    const lossEquation = screen.getByLabelText("Equation") as HTMLInputElement;
+    // A first-order loss has only one reactant, with any coefficient.
+    expect(lossEquation.value).toBe("OH ->");
+    fireEvent.change(lossEquation, { target: { value: "OH + NO2 ->" } });
+    fireEvent.keyDown(lossEquation, { key: "Enter" });
+    expect(
+      screen.getByText("This reaction type has only one reactant"),
+    ).toBeTruthy();
+    fireEvent.change(lossEquation, { target: { value: "0.5 OH ->" } });
+    fireEvent.click(screen.getByTestId("save-reaction-changes"));
+    expect(onLossUpdate.mock.calls[0][0].reactants).toEqual([
+      { speciesId: "111-111-111-111-001", coefficient: 0.5 },
+    ]);
   });
 });
