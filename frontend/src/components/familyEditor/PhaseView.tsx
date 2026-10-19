@@ -47,6 +47,28 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
     setSelectedPhase(undefined);
   };
 
+  // An in-cell edit of the name or the description. An empty name keeps the
+  // old name, because a phase must have a name.
+  const handlePhaseRowUpdate = (updatedPhase: Phase, originalPhase: Phase) => {
+    const name = updatedPhase.name.trim();
+    if (!name) {
+      return originalPhase;
+    }
+    const phase: Phase = {
+      ...updatedPhase,
+      name,
+      description: updatedPhase.description?.trim() || null,
+    };
+
+    updateFamily({
+      ...family,
+      phases: family.phases.map((existing) =>
+        existing.id === phase.id ? phase : existing,
+      ),
+    });
+    return phase;
+  };
+
   const removePhase = (id: UUID) => {
     if (!family.phases.some((phase) => phase.id === id)) {
       return;
@@ -84,11 +106,13 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
     {
       field: "name",
       headerName: "Name",
+      editable: true,
       flex: 1,
     },
     {
       field: "description",
       headerName: "Description",
+      editable: true,
       flex: 1,
       renderCell: (params: GridRenderCellParams<Phase>) => (
         <Typography noWrap title={params.value || ""}>
@@ -151,6 +175,18 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
         }}
         rows={family.phases}
         columns={phaseColumns}
+        processRowUpdate={handlePhaseRowUpdate}
+        // A double-click on the species opens the phase editor. The name and
+        // the description use the in-cell edit.
+        onCellDoubleClick={(params) => {
+          if (params.field !== "speciesIds") {
+            return;
+          }
+          setSelectedPhase(
+            family.phases.find((phase) => phase.id === params.id),
+          );
+          setPhaseCreationModalOpen(true);
+        }}
         pageSizeOptions={[5, 10, 20, 100]}
         disableVirtualization
         sx={{
