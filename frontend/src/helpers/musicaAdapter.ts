@@ -471,7 +471,11 @@ function phaseToMusica(p: Phase, ctx: ExportCtx) {
     // musica's Phase holds PhaseSpecies objects (each serializes to
     // { name, "diffusion coefficient [m2 s-1]" }), not bare name strings.
     species: p.speciesIds.map(
-      (id) => new types.PhaseSpecies({ name: ctx.speciesName(String(id)) }),
+      (id) =>
+        new types.PhaseSpecies({
+          name: ctx.speciesName(String(id)),
+          diffusion_coefficient: p.diffusionCoefficients?.[id],
+        }),
     ),
   });
 }
@@ -558,17 +562,30 @@ export function deserializeMechanism(parsed: Record<string, any>): Family {
   for (const p of parsed.phases) {
     const id = generateID();
     phaseToId.set(p.name, id);
+    const speciesIds: UUID[] = [];
+    const diffusionCoefficients: Record<UUID, number> = {};
+    // musica emits phase species as { name, … } objects; older v1 configs
+    // used bare name strings. Accept either.
+    for (const s of (p.species ?? []) as Array<
+      string | { name: string; "diffusion coefficient [m2 s-1]"?: unknown }
+    >) {
+      const speciesId = nameToId.get(typeof s === "string" ? s : s.name);
+      if (speciesId === undefined) {
+        continue;
+      }
+      speciesIds.push(speciesId);
+      const coefficient =
+        typeof s === "string" ? undefined : s["diffusion coefficient [m2 s-1]"];
+      if (typeof coefficient === "number") {
+        diffusionCoefficients[speciesId] = coefficient;
+      }
+    }
     family.phases.push({
       id,
       name: p.name,
       description: null,
-      speciesIds: (p.species ?? [])
-        // musica emits phase species as { name, … } objects; older v1 configs
-        // used bare name strings. Accept either.
-        .map((s: string | { name: string }) =>
-          nameToId.get(typeof s === "string" ? s : s.name),
-        )
-        .filter((x: string | undefined): x is string => x !== undefined),
+      speciesIds,
+      diffusionCoefficients,
     });
   }
 

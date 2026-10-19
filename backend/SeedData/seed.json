@@ -1483,7 +1483,22 @@
             "NC4CHO",
             "TEPOMUC",
             "NH4"
-          ]
+          ],
+          "diffusionCoefficients": {
+            "ISOPNITB": 0.00001,
+            "N2O5": 0.00001,
+            "TERPNIT": 0.00001,
+            "NO2": 0.00001,
+            "NTERPOOH": 0.00001,
+            "GLYOXAL": 0.00001,
+            "NC4CH2OH": 0.00001,
+            "HO2": 0.00001,
+            "HONITR": 0.00001,
+            "ISOPNITA": 0.00001,
+            "ONITR": 0.00001,
+            "NO3": 0.00001,
+            "NC4CHO": 0.00001
+          }
         }
       ],
       "mechanisms": [

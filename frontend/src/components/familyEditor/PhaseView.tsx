@@ -27,12 +27,14 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
     name: string,
     description: string | null,
     speciesIds: UUID[],
+    diffusionCoefficients: Record<UUID, number>,
   ) => {
     const phase: Phase = {
       id: selectedPhase?.id ?? generateID(),
       name,
       description,
       speciesIds,
+      diffusionCoefficients,
     };
 
     updateFamily({

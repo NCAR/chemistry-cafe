@@ -96,6 +96,11 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
       phases: family.phases.map((phase) => ({
         ...phase,
         speciesIds: phase.speciesIds.filter((sid) => sid !== id),
+        diffusionCoefficients: Object.fromEntries(
+          Object.entries(phase.diffusionCoefficients ?? {}).filter(
+            ([sid]) => sid !== id,
+          ),
+        ),
       })),
       mechanisms: family.mechanisms.map((mechanism) => ({
         ...mechanism,

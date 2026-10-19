@@ -86,7 +86,13 @@ public static class DbInitializer
             };
             foreach (var speciesName in seedPhase.Species)
             {
-                phase.Species.Add(speciesByName[speciesName]);
+                phase.PhaseSpecies.Add(new PhaseSpecies
+                {
+                    Species = speciesByName[speciesName],
+                    DiffusionCoefficient = seedPhase.DiffusionCoefficients.TryGetValue(speciesName, out double value)
+                        ? value
+                        : null,
+                });
             }
             phaseByName[phase.Name] = phase;
             family.Phases.Add(phase);

@@ -139,6 +139,12 @@ export type Phase = {
 
   /** Species involved in the phase */
   speciesIds: Array<UUID>;
+
+  /**
+   * Diffusion coefficient [m2 s-1] of each member species, by species id.
+   * A species without a value has no key.
+   */
+  diffusionCoefficients?: Record<UUID, number>;
 };
 
 /**

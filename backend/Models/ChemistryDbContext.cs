@@ -217,7 +217,11 @@ public partial class ChemistryDbContext : DbContext
         // Configure Phase relationships
         modelBuilder.Entity<Phase>()
             .HasMany(p => p.Species)
-            .WithMany(s => s.Phases);
+            .WithMany(s => s.Phases)
+            .UsingEntity<PhaseSpecies>(
+                right => right.HasOne(ps => ps.Species).WithMany(s => s.PhaseSpecies).HasForeignKey(ps => ps.SpeciesId),
+                left => left.HasOne(ps => ps.Phase).WithMany(p => p.PhaseSpecies).HasForeignKey(ps => ps.PhasesId),
+                join => join.HasKey(ps => new { ps.PhasesId, ps.SpeciesId }));
 
         modelBuilder.Entity<Phase>()
             .HasOne(p => p.Family)

@@ -34,6 +34,8 @@ public class SeedPhase
 {
     public string Name { get; set; } = null!;
     public List<string> Species { get; set; } = new();
+    // Diffusion coefficient [m2 s-1] of each member species, by species name
+    public Dictionary<string, double> DiffusionCoefficients { get; set; } = new();
 }
 
 public class SeedMechanism

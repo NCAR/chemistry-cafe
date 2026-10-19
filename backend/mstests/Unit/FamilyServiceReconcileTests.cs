@@ -190,8 +190,35 @@ namespace ChemistryCafeAPI.Tests
 
             Family reloaded = await ReloadAsync(dto.Id);
             Phase reloadedPhase = reloaded.Phases.Single(p => p.Id == phase.Id);
-            Assert.AreEqual(1, reloadedPhase.Species.Count);
-            Assert.AreEqual(keptSpeciesId, reloadedPhase.Species.Single().Id);
+            Assert.AreEqual(1, reloadedPhase.PhaseSpecies.Count);
+            Assert.AreEqual(keptSpeciesId, reloadedPhase.PhaseSpecies.Single().SpeciesId);
+        }
+
+        [TestMethod]
+        public async Task Update_ChangesPhaseDiffusionCoefficients()
+        {
+            FamilyDto dto = BuildBaseFamily();
+            PhaseDto phase = dto.Phases.Single();
+            Guid a = dto.Species.Single(s => s.Name == "A").Id;
+            Guid b = dto.Species.Single(s => s.Name == "B").Id;
+            phase.DiffusionCoefficients = new Dictionary<Guid, double> { [a] = 1e-5 };
+            await CreateBaseFamilyAsync(dto);
+
+            // Change the value of A and give B a value.
+            phase.DiffusionCoefficients = new Dictionary<Guid, double> { [a] = 2e-5, [b] = 3e-5 };
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            Phase reloadedPhase = (await ReloadAsync(dto.Id)).Phases.Single(p => p.Id == phase.Id);
+            Assert.AreEqual(2e-5, reloadedPhase.PhaseSpecies.Single(ps => ps.SpeciesId == a).DiffusionCoefficient);
+            Assert.AreEqual(3e-5, reloadedPhase.PhaseSpecies.Single(ps => ps.SpeciesId == b).DiffusionCoefficient);
+
+            // Clear the value of A. A stays in the phase.
+            phase.DiffusionCoefficients.Remove(a);
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            reloadedPhase = (await ReloadAsync(dto.Id)).Phases.Single(p => p.Id == phase.Id);
+            Assert.AreEqual(2, reloadedPhase.PhaseSpecies.Count);
+            Assert.IsNull(reloadedPhase.PhaseSpecies.Single(ps => ps.SpeciesId == a).DiffusionCoefficient);
         }
 
         [TestMethod]

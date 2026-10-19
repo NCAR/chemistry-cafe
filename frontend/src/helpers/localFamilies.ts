@@ -50,6 +50,14 @@ export const cloneFamily = (family: Family): Family => {
         }
         return accumulator;
       }, []),
+      diffusionCoefficients: Object.fromEntries(
+        Object.entries(phase.diffusionCoefficients ?? {}).flatMap(
+          ([id, value]) => {
+            const mappedId = idMappings.get(id as UUID);
+            return mappedId ? [[mappedId, value]] : [];
+          },
+        ),
+      ),
     });
   }
 

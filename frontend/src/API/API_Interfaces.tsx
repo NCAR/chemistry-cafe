@@ -165,6 +165,7 @@ export interface APIPhase {
   description?: string;
   familyId: UUID;
   speciesIds: Array<UUID>;
+  diffusionCoefficients?: Record<UUID, number>;
 }
 
 export interface APIMechanism {
