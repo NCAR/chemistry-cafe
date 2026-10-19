@@ -154,6 +154,15 @@ describe("ReactionsView reaction type filter", () => {
       screen.getByRole("columnheader", { name: "Parameters" }),
     ).toBeTruthy();
 
+    // An equation without spaces and in another species order finds both
+    // reactions.
+    fireEvent.change(screen.getByPlaceholderText("Search reactions"), {
+      target: { value: "NO2+OH" },
+    });
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    expect(screen.getByText("Troe reaction")).toBeTruthy();
+    expect(screen.getByText("Arrhenius reaction")).toBeTruthy();
+
     fireEvent.change(screen.getByPlaceholderText("Search reactions"), {
       target: { value: "Troe" },
     });
