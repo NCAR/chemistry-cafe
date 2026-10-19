@@ -12,10 +12,6 @@ namespace ChemistryCafeAPI.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_Mechanisms_Families_FamilyId",
-                table: "Mechanisms");
-
-            migrationBuilder.DropForeignKey(
                 name: "FK_Phases_Families_FamilyId",
                 table: "Phases");
 
@@ -57,15 +53,13 @@ namespace ChemistryCafeAPI.Migrations
                 table: "Phases",
                 newName: "IX_Phases_FamilyVersionId");
 
-            migrationBuilder.RenameColumn(
-                name: "FamilyId",
+            migrationBuilder.AddColumn<Guid>(
+                name: "FamilyVersionId",
                 table: "Mechanisms",
-                newName: "FamilyVersionId");
-
-            migrationBuilder.RenameIndex(
-                name: "IX_Mechanisms_FamilyId",
-                table: "Mechanisms",
-                newName: "IX_Mechanisms_FamilyVersionId");
+                type: "char(36)",
+                nullable: false,
+                defaultValue: new Guid("00000000-0000-0000-0000-000000000000"),
+                collation: "ascii_general_ci");
 
             migrationBuilder.AddColumn<bool>(
                 name: "IsReadOnly",
@@ -100,6 +94,11 @@ namespace ChemistryCafeAPI.Migrations
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Mechanisms_FamilyVersionId",
+                table: "Mechanisms",
+                column: "FamilyVersionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Families_CurrentVersionId",
@@ -179,8 +178,16 @@ namespace ChemistryCafeAPI.Migrations
                 name: "FamilyVersions");
 
             migrationBuilder.DropIndex(
+                name: "IX_Mechanisms_FamilyVersionId",
+                table: "Mechanisms");
+
+            migrationBuilder.DropIndex(
                 name: "IX_Families_CurrentVersionId",
                 table: "Families");
+
+            migrationBuilder.DropColumn(
+                name: "FamilyVersionId",
+                table: "Mechanisms");
 
             migrationBuilder.DropColumn(
                 name: "IsReadOnly",
@@ -219,24 +226,6 @@ namespace ChemistryCafeAPI.Migrations
                 name: "IX_Phases_FamilyVersionId",
                 table: "Phases",
                 newName: "IX_Phases_FamilyId");
-
-            migrationBuilder.RenameColumn(
-                name: "FamilyVersionId",
-                table: "Mechanisms",
-                newName: "FamilyId");
-
-            migrationBuilder.RenameIndex(
-                name: "IX_Mechanisms_FamilyVersionId",
-                table: "Mechanisms",
-                newName: "IX_Mechanisms_FamilyId");
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Mechanisms_Families_FamilyId",
-                table: "Mechanisms",
-                column: "FamilyId",
-                principalTable: "Families",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Phases_Families_FamilyId",

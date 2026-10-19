@@ -16,9 +16,8 @@ public class FamilyVersion
     [JsonIgnore]
     public Family? Family { get; set; }
 
-    // Collections of species, reactions, phases, and mechanisms that belong to this version snapshot
+    // Collections of species, reactions, and phases that belong to this version snapshot
     public ICollection<Species> Species { get; set; } = new List<Species>();
     public ICollection<Reaction> Reactions { get; set; } = new List<Reaction>();
     public ICollection<Phase> Phases { get; set; } = new List<Phase>();
-    public ICollection<Mechanism> Mechanisms { get; set; } = new List<Mechanism>();
 }

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChemistryCafeAPI.Migrations
 {
     [DbContext(typeof(ChemistryDbContext))]
-    [Migration("20261020185820_AddFamilyVersion")]
+    [Migration("20261020194936_AddFamilyVersion")]
     partial class AddFamilyVersion
     {
         /// <inheritdoc />
@@ -163,6 +163,9 @@ namespace ChemistryCafeAPI.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("longtext");
 
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("char(36)");
+
                     b.Property<Guid>("FamilyVersionId")
                         .HasColumnType("char(36)");
 
@@ -177,6 +180,8 @@ namespace ChemistryCafeAPI.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("FamilyId");
 
                     b.HasIndex("FamilyVersionId");
 
@@ -715,11 +720,19 @@ namespace ChemistryCafeAPI.Migrations
 
             modelBuilder.Entity("ChemistryCafeAPI.Models.Mechanism", b =>
                 {
-                    b.HasOne("ChemistryCafeAPI.Models.FamilyVersion", "FamilyVersion")
+                    b.HasOne("ChemistryCafeAPI.Models.Family", "Family")
                         .WithMany("Mechanisms")
+                        .HasForeignKey("FamilyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ChemistryCafeAPI.Models.FamilyVersion", "FamilyVersion")
+                        .WithMany()
                         .HasForeignKey("FamilyVersionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Family");
 
                     b.Navigation("FamilyVersion");
                 });
@@ -984,13 +997,13 @@ namespace ChemistryCafeAPI.Migrations
 
             modelBuilder.Entity("ChemistryCafeAPI.Models.Family", b =>
                 {
+                    b.Navigation("Mechanisms");
+
                     b.Navigation("Versions");
                 });
 
             modelBuilder.Entity("ChemistryCafeAPI.Models.FamilyVersion", b =>
                 {
-                    b.Navigation("Mechanisms");
-
                     b.Navigation("Phases");
 
                     b.Navigation("Reactions");

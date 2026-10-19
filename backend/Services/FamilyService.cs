@@ -71,15 +71,12 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
                 .Include(f => f.CurrentVersion)
                         .ThenInclude(v => v!.Phases)
                         .ThenInclude(p => p.PhaseSpecies)
-                .Include(f => f.CurrentVersion)
-                        .ThenInclude(v => v!.Mechanisms)
-                        .ThenInclude(m => m.Species)
-                .Include(f => f.CurrentVersion)
-                    .ThenInclude(v => v!.Mechanisms)
-                        .ThenInclude(m => m.Reactions)
-                .Include(f => f.CurrentVersion)
-                        .ThenInclude(v => v!.Mechanisms)
-                        .ThenInclude(m => m.Phases);
+                .Include(f => f.Mechanisms)
+                    .ThenInclude(m => m.Species)
+                .Include(f => f.Mechanisms)
+                    .ThenInclude(m => m.Reactions)
+                .Include(f => f.Mechanisms)
+                    .ThenInclude(m => m.Phases);
         }
 
         if (userId != null)
@@ -146,16 +143,16 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
                 .ThenInclude(r => r.UserDefined)
             .Include(f => f.CurrentVersion)
                 .ThenInclude(v => v!.Phases)
-                    .ThenInclude(p => p.PhaseSpecies)
+                .ThenInclude(p => p.Species)
             .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v!.Mechanisms)
-                    .ThenInclude(m => m.Species)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v!.Mechanisms)
-                    .ThenInclude(m => m.Reactions)
-            .Include(f => f.CurrentVersion)
-                    .ThenInclude(v => v!.Mechanisms)
-                    .ThenInclude(m => m.Phases)
+                .ThenInclude(v => v!.Phases)
+                .ThenInclude(p => p.PhaseSpecies)
+            .Include(f => f.Mechanisms)
+                .ThenInclude(m => m.Species)
+            .Include(f => f.Mechanisms)
+                .ThenInclude(m => m.Reactions)
+            .Include(f => f.Mechanisms)
+                .ThenInclude(m => m.Phases)
             .SingleOrDefaultAsync(f => f.Id == id);
         return family;
     }
@@ -235,10 +232,14 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         
         Dictionary<Guid, Phase> phasesById = initialVersion.Phases.ToDictionary(p => p.Id);
         
-        initialVersion.Mechanisms = family.Mechanisms
+        familyInfo.Mechanisms = family.Mechanisms
             .Select(m =>
             {
                 Mechanism mechanism = m.ToEntity();
+                mechanism.FamilyId = familyInfo.Id;
+                mechanism.Family = familyInfo;
+                mechanism.FamilyVersionId = initialVersion.Id;
+                mechanism.FamilyVersion = initialVersion;
                 mechanism.Species = m.SpeciesIds.Select(id => speciesById[id]).ToList();
                 mechanism.Reactions = m.ReactionIds.Select(id => reactionsById[id]).ToList();
                 mechanism.Phases = m.PhaseIds.Select(id => phasesById[id]).ToList();
@@ -306,12 +307,9 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
                 .ThenInclude(v => v!.Phases).ThenInclude(p => p.Species)
             .Include(f => f.CurrentVersion)
                 .ThenInclude(v => v!.Phases).ThenInclude(p => p.PhaseSpecies)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v!.Mechanisms).ThenInclude(m => m.Species)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v!.Mechanisms).ThenInclude(m => m.Reactions)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v!.Mechanisms).ThenInclude(m => m.Phases)
+            .Include(f => f.Mechanisms).ThenInclude(m => m.Species)
+            .Include(f => f.Mechanisms).ThenInclude(m => m.Reactions)
+            .Include(f => f.Mechanisms).ThenInclude(m => m.Phases)
             .SingleOrDefaultAsync(f => f.Id == id);
 
         if (existingFamily == null)
@@ -827,14 +825,22 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         HashSet<Guid> deletedMechanismIds = existingMechanismIds.Except(incomingMechanismIds).ToHashSet();
         HashSet<Guid> newMechanismIds = incomingMechanismIds.Except(existingMechanismIds).ToHashSet();
         HashSet<Guid> maybeUpdatedMechanismIds = existingMechanismIds.Intersect(incomingMechanismIds).ToHashSet();
-        deletedMechanismIds.ToList().ForEach(id => context.Mechanisms.Remove(existing.Mechanisms.Single(m => m.Id == id)));
+        deletedMechanismIds.ToList().ForEach(id => {
+            Mechanism m = existing.Mechanisms.Single(m => m.Id == id);
+            context.Mechanisms.Remove(m);
+            existing.Mechanisms.Remove(m);
+        });
         newMechanismIds.ToList().ForEach(id => {
-            Mechanism added = incoming.Mechanisms.Single(m => m.Id == id).ToEntity();
-            added.FamilyVersionId = version.Id;
-            added.Species = incoming.Mechanisms.Single(m => m.Id == id).SpeciesIds.Select(sid => existing.Species.Single(s => s.Id == sid)).ToList();
-            added.Reactions = incoming.Mechanisms.Single(m => m.Id == id).ReactionIds.Select(rid => existing.Reactions.Single(r => r.Id == rid)).ToList();
-            added.Phases = incoming.Mechanisms.Single(m => m.Id == id).PhaseIds.Select(pid => existing.Phases.Single(p => p.Id == pid)).ToList();
+            MechanismDto incomingMechanism = incoming.Mechanisms.Single(m => m.Id == id);
+            Mechanism added = incomingMechanism.ToEntity();
+            added.FamilyId = existing.Id;
+            added.Family = existing;
+            added.FamilyVersionId = incomingMechanism.FamilyVersionId != Guid.Empty ? incomingMechanism.FamilyVersionId : version.Id;
+            added.Species = incomingMechanism.SpeciesIds.Select(sid => existing.Species.Single(s => s.Id == sid)).ToList();
+            added.Reactions = incomingMechanism.ReactionIds.Select(rid => existing.Reactions.Single(r => r.Id == rid)).ToList();
+            added.Phases = incomingMechanism.PhaseIds.Select(pid => existing.Phases.Single(p => p.Id == pid)).ToList();
             context.Mechanisms.Add(added);
+            existing.Mechanisms.Add(added);
         });
         maybeUpdatedMechanismIds.ToList().ForEach(id =>
         {
@@ -842,6 +848,12 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             Mechanism existingMechanism = existing.Mechanisms.Single(m => m.Id == id);
             existingMechanism.Name = incomingMechanism.Name;
             existingMechanism.Description = incomingMechanism.Description;
+            existingMechanism.IsReadOnly = incomingMechanism.IsReadOnly;
+            existingMechanism.FamilyId = existing.Id;
+            if (incomingMechanism.FamilyVersionId != Guid.Empty)
+            {
+                existingMechanism.FamilyVersionId = incomingMechanism.FamilyVersionId;
+            }
             existingMechanism.Species = incomingMechanism.SpeciesIds.Select(sid => existing.Species.Single(s => s.Id == sid)).ToList();
             existingMechanism.Reactions = incomingMechanism.ReactionIds.Select(rid => existing.Reactions.Single(r => r.Id == rid)).ToList();
             existingMechanism.Phases = incomingMechanism.PhaseIds.Select(pid => existing.Phases.Single(p => p.Id == pid)).ToList();

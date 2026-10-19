@@ -114,7 +114,10 @@ public static class DbInitializer
             {
                 Id = Guid.NewGuid(),
                 Name = seedMechanism.Name,
+                Family = family,
+                FamilyId = family.Id,
                 FamilyVersion = version,
+                FamilyVersionId = version.Id,
             };
 
             foreach (var speciesName in seedMechanism.Species)
@@ -174,7 +177,7 @@ public static class DbInitializer
                 mechanism.Reactions.Add(reaction);
             }
 
-            version.Mechanisms.Add(mechanism);
+            family.Mechanisms.Add(mechanism);
         }
 
         return family;

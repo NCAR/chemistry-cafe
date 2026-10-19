@@ -214,8 +214,14 @@ public partial class ChemistryDbContext : DbContext
 
         // Configure Mechanism relationships
         modelBuilder.Entity<Mechanism>()
+            .HasOne(m => m.Family)
+            .WithMany(f => f.Mechanisms)
+            .HasForeignKey(m => m.FamilyId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Mechanism>()
             .HasOne(m => m.FamilyVersion)
-            .WithMany(fv => fv.Mechanisms)
+            .WithMany()
             .HasForeignKey(m => m.FamilyVersionId)
             .OnDelete(DeleteBehavior.Cascade);
 

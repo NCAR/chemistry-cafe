@@ -23,18 +23,17 @@ public class Mechanism
 
     public bool IsReadOnly { get; set; } = false;
 
-    // FamilyVersion relationship
+    // Family relationship (Mechanism belongs to Family)
+    [ForeignKey("Family")]
+    public Guid FamilyId { get; set; }
+    [JsonIgnore]
+    public Family? Family { get; set; }
+
+    // FamilyVersion relationship (Mechanism is using a FamilyVersion)
     [ForeignKey("FamilyVersion")]
     public Guid FamilyVersionId { get; set; }
     [JsonIgnore]
     public FamilyVersion? FamilyVersion { get; set; }
-
-    [NotMapped]
-    public Guid FamilyId
-    {
-        get => FamilyVersion?.FamilyId ?? FamilyVersionId;
-        set => FamilyVersionId = value;
-    }
 }
 
 // Junction table for Mechanism-Species many-to-many relationship

@@ -62,10 +62,6 @@ public partial class Family
         set => EnsureCurrentVersion().Phases = value;
     }
 
-    [NotMapped]
-    public ICollection<Mechanism> Mechanisms
-    {
-        get => CurrentVersion?.Mechanisms ?? EnsureCurrentVersion().Mechanisms;
-        set => EnsureCurrentVersion().Mechanisms = value;
-    }
+    // Collection of mechanisms belonging to this family
+    public ICollection<Mechanism> Mechanisms { get; set; } = new List<Mechanism>();
 }

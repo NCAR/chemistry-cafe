@@ -30,6 +30,7 @@ public static class MechanismMapper
         return new Mechanism
         {
             Id = mechanismDto.Id,
+            FamilyId = mechanismDto.FamilyId,
             FamilyVersionId = mechanismDto.FamilyVersionId,
             IsReadOnly = mechanismDto.IsReadOnly,
             Name = mechanismDto.Name,
