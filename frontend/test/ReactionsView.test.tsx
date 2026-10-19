@@ -92,7 +92,11 @@ describe("ReactionsView reaction type filter", () => {
 
     expect(screen.queryByText("Arrhenius reaction")).toBeNull();
     const grid = screen.getByRole("grid");
-    expect(within(grid).getByText("Troe reaction")).toBeTruthy();
+    // One header row and the Troe reaction. A Troe reaction hides the name.
+    expect(within(grid).getAllByRole("row")).toHaveLength(2);
+    expect(
+      within(grid).queryByRole("columnheader", { name: "Name" }),
+    ).toBeNull();
     expect(
       within(grid).queryByRole("columnheader", { name: /Reaction Type/ }),
     ).toBeNull();
@@ -101,13 +105,24 @@ describe("ReactionsView reaction type filter", () => {
     ).toContain("(cm3 molecule-1)n s-1");
     expect(screen.getByText("Showing 1 of 2")).toBeTruthy();
 
-    // The clear button shows all types again.
-    fireEvent.click(screen.getByLabelText("Clear type"));
+    // A second type shows its reactions too, with the parameter summary.
+    fireEvent.click(screen.getByRole("option", { name: /^Arrhenius/ }));
     expect(await screen.findByText("Arrhenius reaction")).toBeTruthy();
-    await waitFor(() => expect(screen.queryByText(/^Showing/)).toBeNull());
     expect(
-      screen.getByRole("columnheader", { name: "Parameters" }),
+      await screen.findByRole("columnheader", { name: "Parameters" }),
     ).toBeTruthy();
+    // One header row and the two reactions.
+    expect(within(screen.getByRole("grid")).getAllByRole("row")).toHaveLength(
+      3,
+    );
+
+    // The clear button removes all types.
+    fireEvent.click(screen.getByLabelText("Clear type"));
+    await waitFor(() =>
+      expect(screen.queryByRole("button", { name: /Troe/ })).toBeNull(),
+    );
+    expect(screen.getByText("Arrhenius reaction")).toBeTruthy();
+    expect(screen.queryByText(/^Showing/)).toBeNull();
   });
 
   it("shows a summary for mixed types and columns when a search leaves one type", async () => {
@@ -134,7 +149,8 @@ describe("ReactionsView reaction type filter", () => {
     await selectType("Troe");
 
     // kinf A has the order 2: 1 m3 mol-1 s-1 is 1e6 / N_A cm3 molecule-1 s-1.
-    const row = screen.getByRole("row", { name: /Troe reaction/ });
+    // The only data row is the Troe reaction.
+    const row = screen.getAllByRole("row")[1];
     const cells = within(row).getAllByRole("gridcell");
     const kinfCell = cells.find(
       (cell) => cell.getAttribute("data-field") === "parameter-kinfA",

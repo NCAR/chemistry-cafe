@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Autocomplete,
   Box,
@@ -10,6 +10,7 @@ import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import {
   DataGrid,
   GridColDef,
+  GridColumnVisibilityModel,
   GridRenderCellParams,
   useGridApiRef,
 } from "@mui/x-data-grid";
@@ -204,27 +205,34 @@ function parameterSummary(
 }
 
 type TypeOption = {
-  type: ReactionTypeName | null;
+  type: ReactionTypeName;
   label: string;
   count: number;
 };
 
 type TypeFilterProps = {
   options: Array<TypeOption>;
-  selectedType: ReactionTypeName | null;
-  onSelect: (type: ReactionTypeName | null) => void;
+  selectedTypes: Array<ReactionTypeName>;
+  onSelect: (types: Array<ReactionTypeName>) => void;
 };
 
-/** A combo box that shows only the reactions of one type. */
-const TypeFilter = ({ options, selectedType, onSelect }: TypeFilterProps) => (
+/**
+ * A combo box that shows only the reactions of the selected types. With no
+ * type selected, the table shows all types.
+ */
+const TypeFilter = ({ options, selectedTypes, onSelect }: TypeFilterProps) => (
   <Autocomplete
+    multiple
     size="small"
+    // After two types, the field shows "+N", so that it keeps its width.
+    limitTags={2}
+    disableCloseOnSelect
     sx={{
-      width: "16em",
+      width: "18em",
       // The clear button is always visible when a type is selected.
       "& .MuiAutocomplete-clearIndicator": { visibility: "visible" },
     }}
-    value={options.find((option) => option.type === selectedType) ?? null}
+    value={options.filter((option) => selectedTypes.includes(option.type))}
     clearText="Clear type"
     options={options}
     isOptionEqualToValue={(option, value) => option.type === value.type}
@@ -242,19 +250,37 @@ const TypeFilter = ({ options, selectedType, onSelect }: TypeFilterProps) => (
       </Box>
     )}
     renderInput={(params) => (
-      <TextField {...params} label="Type" placeholder="All types" />
+      <TextField
+        {...params}
+        label="Type"
+        placeholder={selectedTypes.length === 0 ? "All types" : undefined}
+      />
     )}
-    onChange={(_, value) => onSelect(value?.type ?? null)}
+    onChange={(_, value) => onSelect(value.map((option) => option.type))}
   />
 );
+
+// The types without rate parameters that identify a reaction. The host
+// model finds their rates by the reaction name, so the table shows the name.
+const typesThatShowName: Array<ReactionTypeName> = [
+  "EMISSION",
+  "FIRST_ORDER_LOSS",
+  "PHOTOLYSIS",
+  "USER_DEFINED",
+];
+
+// Tells if the name column shows by default. With more than one visible type,
+// the rows can include a type that shows the name, so the name shows.
+const showsName = (visibleType: ReactionTypeName | null) =>
+  visibleType === null || typesThatShowName.includes(visibleType);
 
 export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
   const { theme } = useCustomTheme();
   const [reactionsEditorOpen, setReactionsEditorOpen] =
     useState<boolean>(false);
   const [selectedReaction, setSelectedReaction] = useState<Reaction>();
-  // The reaction type that the Type menu selects, or null for all types.
-  const [typeFilter, setTypeFilter] = useState<ReactionTypeName | null>(null);
+  // The reaction types that the Type field selects. None means all types.
+  const [typeFilter, setTypeFilter] = useState<Array<ReactionTypeName>>([]);
   const { preferences } = useUserPreferences();
   const apiRef = useGridApiRef();
   const visibleRows = useVisibleRows<Reaction>(apiRef);
@@ -263,6 +289,21 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
   const visibleTypes = new Set(visibleRows.map((reaction) => reaction.type));
   const visibleType: ReactionTypeName | null =
     visibleTypes.size === 1 ? [...visibleTypes][0] : null;
+
+  // The columns that the table shows. The Columns button can change them.
+  // The description is hidden by default, and the name follows the type.
+  const [columnVisibility, setColumnVisibility] =
+    useState<GridColumnVisibilityModel>({
+      description: false,
+      name: showsName(visibleType),
+    });
+  // A change of the visible type gives the name its default for that type.
+  useEffect(() => {
+    setColumnVisibility((current) => ({
+      ...current,
+      name: showsName(visibleType),
+    }));
+  }, [visibleType]);
 
   const createReaction = () => {
     const frontendId: UUID = generateID();
@@ -321,6 +362,11 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
     {
       field: "Row Actions",
       type: "actions",
+      // The column holds one menu button, so it needs no title and little
+      // space. The Columns panel shows its name.
+      headerName: "Actions",
+      renderHeader: () => null,
+      width: 56,
       headerClassName: "roleDataHeader",
       cellClassName: "actions",
       getActions: ({ id }) => {
@@ -343,6 +389,9 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       field: "id",
       headerName: "Equation",
       flex: 1,
+      // The parameter columns of a type can be many. These minimum widths
+      // keep the first columns readable, and the grid scrolls to the side.
+      minWidth: 220,
       valueGetter: (id: string) =>
         reactionToString(
           family.reactions.find((e) => e.id == id),
@@ -359,6 +408,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       headerName: "Name",
       type: "string",
       flex: 1,
+      minWidth: 140,
       renderCell: (params: GridRenderCellParams<Reaction>) => (
         <Typography
           variant="body1"
@@ -378,6 +428,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       headerName: "Description",
       type: "string",
       flex: 1,
+      minWidth: 160,
       renderCell: (params: GridRenderCellParams<Reaction>) => (
         <Typography
           variant="body1"
@@ -421,23 +472,22 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
   for (const reaction of family.reactions) {
     typeCounts.set(reaction.type, (typeCounts.get(reaction.type) ?? 0) + 1);
   }
-  // A type with no reactions left goes away from the menu, so its filter does
-  // too.
-  const activeType =
-    typeFilter && typeCounts.has(typeFilter) ? typeFilter : null;
-  const typeOptions: Array<TypeOption> = [
-    { type: null, label: "All", count: family.reactions.length },
-    ...[...typeCounts.entries()]
-      .map(([type, count]) => ({
-        type,
-        label: reactionTypeToString(type),
-        count,
-      }))
-      .sort((a, b) => a.label.localeCompare(b.label)),
-  ];
-  const rows = activeType
-    ? family.reactions.filter((reaction) => reaction.type === activeType)
-    : family.reactions;
+  // A type with no reactions left goes away from the list, so its filter
+  // does too.
+  const activeTypes = typeFilter.filter((type) => typeCounts.has(type));
+  const typeOptions: Array<TypeOption> = [...typeCounts.entries()]
+    .map(([type, count]) => ({
+      type,
+      label: reactionTypeToString(type),
+      count,
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label));
+  const rows =
+    activeTypes.length > 0
+      ? family.reactions.filter((reaction) =>
+          activeTypes.includes(reaction.type),
+        )
+      : family.reactions;
 
   // When all visible rows have one type, the table shows the parameters of
   // that type in their own columns. Otherwise, it shows a short summary.
@@ -499,6 +549,8 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
           density: "compact",
           pagination: { paginationModel: { pageSize: 20 } },
         }}
+        columnVisibilityModel={columnVisibility}
+        onColumnVisibilityModelChange={setColumnVisibility}
         rows={rows}
         columns={columns}
         processRowUpdate={(updatedRow: Reaction) => {
@@ -531,7 +583,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
             filters: (
               <TypeFilter
                 options={typeOptions}
-                selectedType={activeType}
+                selectedTypes={activeTypes}
                 onSelect={setTypeFilter}
               />
             ),
