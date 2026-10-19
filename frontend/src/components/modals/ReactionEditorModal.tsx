@@ -41,6 +41,7 @@ import {
   toDisplayValue,
 } from "../../helpers/rateUnits";
 import { UnitText } from "../RateUnitText";
+import { formatEquation, parseEquation } from "../../helpers/equationParser";
 
 // Hides the up and down arrows of a number field.
 const numberFieldSx = {
@@ -71,6 +72,11 @@ type SpeciesRowsProps = {
   removeLabel: string;
   newEntry: (speciesId: UUID) => SpeciesEntry;
   onChange: (entries: Array<SpeciesEntry>) => void;
+  /**
+   * Changes when the equation field replaces the entries, so that the
+   * coefficient fields show the new values.
+   */
+  version: number;
 };
 
 /**
@@ -87,6 +93,7 @@ const SpeciesRows = ({
   removeLabel,
   newEntry,
   onChange,
+  version,
 }: SpeciesRowsProps) => (
   <Box>
     <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -114,7 +121,7 @@ const SpeciesRows = ({
         );
       return (
         <Box
-          key={`${title}-${entry.speciesId}-${index}`}
+          key={`${title}-${entry.speciesId}-${index}-${version}`}
           sx={{
             display: "flex",
             alignItems: "center",
@@ -149,7 +156,8 @@ const SpeciesRows = ({
             type="number"
             defaultValue={entry.coefficient}
             error={entry.coefficient <= 0}
-            sx={{ ...numberFieldSx, width: "6.5em" }}
+            // Wide enough for a value such as 0.00000652.
+            sx={{ ...numberFieldSx, width: "9.5em" }}
             onWheel={blurOnWheel}
             onChange={(event) => {
               const coefficient = Number.parseFloat(event.target.value);
@@ -240,6 +248,12 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
   const { preferences } = useUserPreferences();
   const rateUnits = rateUnitsFor(preferences.rateUnits, modifiedReaction?.type);
 
+  // The text of the equation field while the user changes it, or null when
+  // the field shows the reactants and products of the rows.
+  const [equationDraft, setEquationDraft] = useState<string | null>(null);
+  const [equationErrors, setEquationErrors] = useState<Array<string>>([]);
+  const [speciesVersion, setSpeciesVersion] = useState<number>(0);
+
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [showAlert, setShowAlert] = useState<boolean>(false);
 
@@ -274,6 +288,8 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
 
   useLayoutEffect(() => {
     setModifiedReaction(reaction);
+    setEquationDraft(null);
+    setEquationErrors([]);
     const attributes = getReactionAttributes(reaction?.type);
     setDefaultAttributes(attributes);
     const configuration = getReactionConfiguration(reaction?.type);
@@ -327,6 +343,68 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
     changeReactionProperties(updatedReactionProperties);
   }, [defaultAttributes, currentConfiguration]);
 
+  /**
+   * Reads the equation field into reactants and products. It also checks the
+   * number of species that the reaction type allows.
+   */
+  const readEquation = (text: string) => {
+    const parsed = parseEquation(text, family.species);
+    const errors = [...parsed.errors];
+    const checkCount = (
+      count: ReactionSpeciesCount,
+      entries: Array<{ coefficient: number }>,
+      side: string,
+    ) => {
+      if (count === ReactionSpeciesCount.NONE && entries.length > 0) {
+        errors.push(`This reaction type has no ${side}s`);
+      }
+      if (
+        count === ReactionSpeciesCount.ONE &&
+        (entries.length > 1 || entries.some((e) => e.coefficient !== 1))
+      ) {
+        errors.push(
+          `This reaction type has one ${side}, with a coefficient of 1`,
+        );
+      }
+    };
+    checkCount(
+      currentConfiguration.reactantCount,
+      parsed.reactants,
+      "reactant",
+    );
+    checkCount(currentConfiguration.productCount, parsed.products, "product");
+
+    // A product keeps its branch if the reaction already had it. A type
+    // without branches gives its products no branch.
+    const products = parsed.products.map((product) => {
+      const branch =
+        modifiedReaction?.products.find(
+          (p) => p.speciesId === product.speciesId,
+        )?.branch ?? currentConfiguration.branches?.[0];
+      return branch === undefined ? product : { ...product, branch };
+    });
+    return { reactants: parsed.reactants, products, errors };
+  };
+
+  // Applies the equation field to the rows. With errors, the rows do not
+  // change, and the field keeps the text of the user.
+  const applyEquationDraft = () => {
+    if (equationDraft === null) {
+      return;
+    }
+    const result = readEquation(equationDraft);
+    setEquationErrors(result.errors);
+    if (result.errors.length > 0) {
+      return;
+    }
+    changeReactionProperties({
+      reactants: result.reactants,
+      products: result.products,
+    });
+    setEquationDraft(null);
+    setSpeciesVersion((version) => version + 1);
+  };
+
   const handleUpdateReaction = () => {
     if (!modifiedReaction) {
       setErrorMessage("Reaction is undefined");
@@ -334,7 +412,24 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
       return;
     }
 
-    for (const reactant of modifiedReaction.reactants) {
+    // An equation that the user did not apply yet is part of the save.
+    let reactionToSave = modifiedReaction;
+    if (equationDraft !== null) {
+      const result = readEquation(equationDraft);
+      if (result.errors.length > 0) {
+        setEquationErrors(result.errors);
+        setErrorMessage("Correct the equation before you save the reaction");
+        setShowAlert(true);
+        return;
+      }
+      reactionToSave = {
+        ...modifiedReaction,
+        reactants: result.reactants,
+        products: result.products,
+      };
+    }
+
+    for (const reactant of reactionToSave.reactants) {
       if (reactant.coefficient <= 0) {
         setErrorMessage(
           "Coefficient for reactants must be a finite positive number",
@@ -344,7 +439,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
       }
     }
 
-    for (const product of modifiedReaction.products) {
+    for (const product of reactionToSave.products) {
       if (product.coefficient <= 0) {
         setErrorMessage(
           "Coefficient for products must be a finite positive number",
@@ -356,14 +451,14 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
 
     if (
       currentConfiguration.hasGasPhaseSpecies &&
-      !modifiedReaction.gasPhaseSpeciesId
+      !reactionToSave.gasPhaseSpeciesId
     ) {
       setErrorMessage("This reaction type requires a gas phase species");
       setShowAlert(true);
       return;
     }
 
-    onUpdate(modifiedReaction);
+    onUpdate(reactionToSave);
     onClose();
   };
 
@@ -641,6 +736,32 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
             </Box>
           )}
           {hasSpecies && (
+            <TextField
+              size="small"
+              fullWidth
+              label="Equation"
+              placeholder="2 NO2 + OH -> HNO3"
+              value={
+                equationDraft ??
+                formatEquation(reactants, products, family.species)
+              }
+              error={equationErrors.length > 0}
+              helperText={
+                equationErrors.length > 0
+                  ? equationErrors.join(". ")
+                  : undefined
+              }
+              onChange={(event) => setEquationDraft(event.target.value)}
+              onBlur={applyEquationDraft}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  applyEquationDraft();
+                }
+              }}
+            />
+          )}
+          {hasSpecies && (
             <Box
               sx={{
                 display: "grid",
@@ -677,6 +798,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                     onChange={(entries) =>
                       changeReactionProperties({ reactants: entries })
                     }
+                    version={speciesVersion}
                   />
                 )}
               </Box>
@@ -713,6 +835,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                     onChange={(entries) =>
                       changeReactionProperties({ products: entries })
                     }
+                    version={speciesVersion}
                   />
                 )}
               </Box>

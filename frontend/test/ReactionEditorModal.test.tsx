@@ -127,4 +127,30 @@ describe("ReactionEditorModal rate parameter units", () => {
     // An unchanged parameter keeps its exact stored value.
     expect(saved.attributes.kinfA.value).toBe(1);
   });
+
+  it("applies a typed equation and does not save one with unknown species", () => {
+    const onUpdate = renderEditor(
+      makeReaction("ARRHENIUS", { A: { value: 1 } }),
+    );
+    const equation = screen.getByLabelText("Equation") as HTMLInputElement;
+    expect(equation.value).toBe("OH + NO2 ->");
+
+    // An unknown species shows an error, and the save stops.
+    fireEvent.change(equation, { target: { value: "OH + NO3 -> NO2" } });
+    fireEvent.keyDown(equation, { key: "Enter" });
+    expect(screen.getByText("Unknown species: NO3")).toBeTruthy();
+    fireEvent.click(screen.getByTestId("save-reaction-changes"));
+    expect(onUpdate).not.toHaveBeenCalled();
+
+    // A valid equation that is not applied yet is part of the save.
+    fireEvent.change(equation, { target: { value: "2 NO2 -> OH" } });
+    fireEvent.click(screen.getByTestId("save-reaction-changes"));
+    const saved: Reaction = onUpdate.mock.calls[0][0];
+    expect(saved.reactants).toEqual([
+      { speciesId: "111-111-111-111-002", coefficient: 2 },
+    ]);
+    expect(saved.products).toEqual([
+      { speciesId: "111-111-111-111-001", coefficient: 1 },
+    ]);
+  });
 });
