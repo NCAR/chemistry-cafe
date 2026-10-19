@@ -153,4 +153,36 @@ describe("ReactionEditorModal rate parameter units", () => {
       { speciesId: "111-111-111-111-001", coefficient: 1 },
     ]);
   });
+
+  it("edits the alkoxy and nitrate products of a branched reaction", () => {
+    const onUpdate = renderEditor({
+      ...makeReaction("BRANCHED_NO_RO2", {}),
+      // A product without a branch shows in the first branch.
+      products: [{ speciesId: "111-111-111-111-001", coefficient: 1 }],
+    });
+    expect(screen.queryByLabelText("Equation")).toBeNull();
+    const alkoxy = screen.getByLabelText("Alkoxy products") as HTMLInputElement;
+    const nitrate = screen.getByLabelText(
+      "Nitrate products",
+    ) as HTMLInputElement;
+    expect(alkoxy.value).toBe("OH");
+    expect(nitrate.value).toBe("");
+
+    // A species can be in only one branch.
+    fireEvent.change(nitrate, { target: { value: "OH" } });
+    fireEvent.keyDown(nitrate, { key: "Enter" });
+    expect(
+      screen.getByText("OH is already in the alkoxy products"),
+    ).toBeTruthy();
+
+    fireEvent.change(nitrate, { target: { value: "2 NO2" } });
+    fireEvent.keyDown(nitrate, { key: "Enter" });
+    fireEvent.click(screen.getByTestId("save-reaction-changes"));
+
+    const saved: Reaction = onUpdate.mock.calls[0][0];
+    expect(saved.products).toEqual([
+      { speciesId: "111-111-111-111-001", coefficient: 1, branch: "alkoxy" },
+      { speciesId: "111-111-111-111-002", coefficient: 2, branch: "nitrate" },
+    ]);
+  });
 });

@@ -107,6 +107,27 @@ function readSide(
   return entries;
 }
 
+// The species names, longest first, so that "NO2" is not read as "NO" and
+// "2".
+const sortedNames = (species: Array<Species>) =>
+  species
+    .map((s) => s.name)
+    .filter((name) => name.length > 0)
+    .sort((a, b) => b.length - a.length);
+
+/**
+ * Reads one side of an equation without an arrow, for example "2 NO2 + OH",
+ * against the species of a family.
+ */
+export function parseSide(
+  side: string,
+  species: Array<Species>,
+): { entries: Array<EquationEntry>; errors: Array<string> } {
+  const errors: Array<string> = [];
+  const entries = readSide(side, species, sortedNames(species), errors);
+  return { entries, errors };
+}
+
 /**
  * Reads an equation such as "2 NO2 + OH -> HNO3" against the species of a
  * family. It never creates species: a name that the family does not have is
@@ -117,11 +138,7 @@ export function parseEquation(
   species: Array<Species>,
 ): ParsedEquation {
   const errors: Array<string> = [];
-  // Longest names first, so that "NO2" is not read as "NO" and "2".
-  const names = species
-    .map((s) => s.name)
-    .filter((name) => name.length > 0)
-    .sort((a, b) => b.length - a.length);
+  const names = sortedNames(species);
 
   if (equation.trim().length === 0) {
     return { reactants: [], products: [], errors: [] };
@@ -144,7 +161,8 @@ export function parseEquation(
   return { reactants, products, errors };
 }
 
-const formatSide = (
+/** Writes one side of an equation, for example "2 NO2 + OH". */
+export const formatSide = (
   entries: Array<{ speciesId: string; coefficient: number }>,
   species: Array<Species>,
 ) =>
