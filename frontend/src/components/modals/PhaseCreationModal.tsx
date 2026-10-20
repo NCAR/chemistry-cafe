@@ -19,6 +19,7 @@ type PhaseCreationModalProps = {
     name: string,
     description: string | null,
     speciesIds: UUID[],
+    diffusionCoefficients: Record<UUID, number>,
   ) => void;
   phase?: Phase;
   species: Species[];
@@ -36,6 +37,14 @@ export const PhaseCreationModal = ({
   const [selectedSpeciesIds, setSelectedSpeciesIds] = useState<UUID[]>([]);
   const [speciesSearch, setSpeciesSearch] = useState("");
   const [nameError, setNameError] = useState(false);
+  // The text in each diffusion coefficient field, by species id. An empty
+  // field means that the species has no value.
+  const [diffusionCoefficients, setDiffusionCoefficients] = useState<
+    Record<UUID, string>
+  >({});
+  const [invalidCoefficientIds, setInvalidCoefficientIds] = useState<UUID[]>(
+    [],
+  );
 
   const filteredSpecies = species.filter((option) =>
     option.name.toLowerCase().includes(speciesSearch.trim().toLowerCase()),
@@ -49,6 +58,14 @@ export const PhaseCreationModal = ({
       setName(phase?.name ?? "");
       setDescription(phase?.description ?? "");
       setSelectedSpeciesIds(phase?.speciesIds ?? []);
+      setDiffusionCoefficients(
+        Object.fromEntries(
+          Object.entries(phase?.diffusionCoefficients ?? {}).map(
+            ([id, value]) => [id, String(value)],
+          ),
+        ),
+      );
+      setInvalidCoefficientIds([]);
       setSpeciesSearch("");
       setNameError(false);
     }
@@ -61,8 +78,40 @@ export const PhaseCreationModal = ({
       return;
     }
 
-    onSubmit(phaseName, description.trim() || null, selectedSpeciesIds);
+    // Only a selected species keeps its diffusion coefficient.
+    const coefficients: Record<UUID, number> = {};
+    const invalidIds: UUID[] = [];
+    for (const id of selectedSpeciesIds) {
+      const text = diffusionCoefficients[id]?.trim();
+      if (!text) {
+        continue;
+      }
+      const value = Number(text);
+      if (Number.isFinite(value) && value > 0) {
+        coefficients[id] = value;
+      } else {
+        invalidIds.push(id);
+      }
+    }
+    if (invalidIds.length > 0) {
+      setInvalidCoefficientIds(invalidIds);
+      // Clear the search, so that the search does not hide an invalid field.
+      setSpeciesSearch("");
+      return;
+    }
+
+    onSubmit(
+      phaseName,
+      description.trim() || null,
+      selectedSpeciesIds,
+      coefficients,
+    );
   };
+
+  // The species search also filters the diffusion coefficient fields.
+  const filteredSelectedSpecies = filteredSpecies.filter((option) =>
+    selectedSpeciesIds.includes(option.id),
+  );
 
   return (
     <Modal open={open} onClose={onClose}>
@@ -181,6 +230,65 @@ export const PhaseCreationModal = ({
             </Typography>
           )}
         </Box>
+        {selectedSpeciesIds.length > 0 && (
+          <>
+            <Typography
+              component="label"
+              id="diffusion-coefficients-label"
+              color="textPrimary"
+              variant="subtitle1"
+            >
+              Diffusion coefficients [m² s⁻¹]
+            </Typography>
+            <Box
+              role="group"
+              aria-labelledby="diffusion-coefficients-label"
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+                gap: "0.5em",
+                maxHeight: "16em",
+                overflowY: "auto",
+                pt: 1,
+              }}
+            >
+              {filteredSelectedSpecies.length === 0 && (
+                <Typography
+                  color="text.secondary"
+                  sx={{ gridColumn: "1 / -1" }}
+                >
+                  No matching species.
+                </Typography>
+              )}
+              {filteredSelectedSpecies.map((option) => {
+                const invalid = invalidCoefficientIds.includes(option.id);
+                return (
+                  <TextField
+                    key={option.id}
+                    size="small"
+                    color="primary"
+                    label={option.name}
+                    placeholder="None"
+                    error={invalid}
+                    helperText={
+                      invalid ? "Enter a positive number." : undefined
+                    }
+                    value={diffusionCoefficients[option.id] ?? ""}
+                    onChange={(event) => {
+                      setDiffusionCoefficients((current) => ({
+                        ...current,
+                        [option.id]: event.target.value,
+                      }));
+                      setInvalidCoefficientIds((current) =>
+                        current.filter((id) => id !== option.id),
+                      );
+                    }}
+                  />
+                );
+              })}
+            </Box>
+          </>
+        )}
         <Box
           sx={{
             display: "flex",

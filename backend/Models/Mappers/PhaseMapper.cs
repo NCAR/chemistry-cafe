@@ -13,8 +13,20 @@ public static class PhaseMapper
             FamilyId = phase.FamilyId,
             Name = phase.Name,
             Description = phase.Description,
-            SpeciesIds = phase.Species.Select(s => s.Id).ToList(),
+            SpeciesIds = phase.PhaseSpecies.Select(ps => ps.SpeciesId).ToList(),
+            DiffusionCoefficients = phase.PhaseSpecies
+                .Where(ps => ps.DiffusionCoefficient != null)
+                .ToDictionary(ps => ps.SpeciesId, ps => ps.DiffusionCoefficient!.Value),
         };
+    }
+
+    /// <summary>
+    /// Gives the diffusion coefficient of a member species, or null when the
+    /// phase has no value for that species.
+    /// </summary>
+    public static double? DiffusionCoefficientOf(this PhaseDto phaseDto, Guid speciesId)
+    {
+        return phaseDto.DiffusionCoefficients.TryGetValue(speciesId, out double value) ? value : null;
     }
 
     /// <summary>

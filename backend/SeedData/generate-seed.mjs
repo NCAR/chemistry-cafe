@@ -177,7 +177,7 @@ function reactionToSeed(r, index) {
 
 function buildFamily(name, keys) {
   const speciesByName = new Map(); // name -> seed species
-  const phaseByName = new Map(); // name -> { name, species: Set }
+  const phaseByName = new Map(); // name -> { name, species: Set, diffusionCoefficients: Map }
   const mechanisms = [];
 
   for (const key of keys) {
@@ -189,10 +189,18 @@ function buildFamily(name, keys) {
 
     const mechPhases = [];
     for (const p of config.phases ?? []) {
-      const members = (p.species ?? []).map(componentName);
-      if (!phaseByName.has(p.name)) phaseByName.set(p.name, { name: p.name, species: new Set() });
+      if (!phaseByName.has(p.name)) {
+        phaseByName.set(p.name, { name: p.name, species: new Set(), diffusionCoefficients: new Map() });
+      }
       const entry = phaseByName.get(p.name);
-      for (const m of members) entry.species.add(m);
+      for (const member of p.species ?? []) {
+        const memberName = componentName(member);
+        entry.species.add(memberName);
+        const coefficient = member["diffusion coefficient [m2 s-1]"];
+        if (coefficient !== undefined && !entry.diffusionCoefficients.has(memberName)) {
+          entry.diffusionCoefficients.set(memberName, coefficient);
+        }
+      }
       mechPhases.push(p.name);
     }
 
@@ -209,7 +217,13 @@ function buildFamily(name, keys) {
   return {
     name,
     species: [...speciesByName.values()],
-    phases: [...phaseByName.values()].map((p) => ({ name: p.name, species: [...p.species] })),
+    phases: [...phaseByName.values()].map((p) => ({
+      name: p.name,
+      species: [...p.species],
+      ...(p.diffusionCoefficients.size > 0 && {
+        diffusionCoefficients: Object.fromEntries(p.diffusionCoefficients),
+      }),
+    })),
     mechanisms,
   };
 }

@@ -35,6 +35,8 @@ public class Species
     // Phase relationships
     [JsonIgnore]
     public ICollection<Phase> Phases { get; set; } = new List<Phase>();
+    [JsonIgnore]
+    public ICollection<PhaseSpecies> PhaseSpecies { get; set; } = new List<PhaseSpecies>();
 
     // Navigation properties for reactions
     [JsonIgnore]

@@ -55,7 +55,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
                 .Include(f => f.Reactions)
                     .ThenInclude(r => r.UserDefined)
                 .Include(f => f.Phases)
-                    .ThenInclude(r => r.Species)
+                    .ThenInclude(p => p.PhaseSpecies)
                 .Include(f => f.Mechanisms)
                     .ThenInclude(m => m.Species)
                 .Include(f => f.Mechanisms)
@@ -113,7 +113,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             .Include(f => f.Reactions)
                 .ThenInclude(r => r.UserDefined)
             .Include(f => f.Phases)
-                .ThenInclude(r => r.Species)
+                .ThenInclude(p => p.PhaseSpecies)
             .Include(f => f.Mechanisms)
                 .ThenInclude(m => m.Species)
             .Include(f => f.Mechanisms)
@@ -175,7 +175,13 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             .Select(p =>
             {
                 Phase phase = p.ToEntity();
-                phase.Species = p.SpeciesIds.Select(id => speciesById[id]).ToList();
+                phase.PhaseSpecies = p.SpeciesIds
+                    .Select(id => new PhaseSpecies
+                    {
+                        Species = speciesById[id],
+                        DiffusionCoefficient = p.DiffusionCoefficientOf(id),
+                    })
+                    .ToList();
                 return phase;
             })
             .ToList();
@@ -231,7 +237,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             .Include(f => f.Reactions).ThenInclude(r => r.FirstOrderLoss)
             .Include(f => f.Reactions).ThenInclude(r => r.Photolysis)
             .Include(f => f.Reactions).ThenInclude(r => r.UserDefined)
-            .Include(f => f.Phases).ThenInclude(p => p.Species)
+            .Include(f => f.Phases).ThenInclude(p => p.PhaseSpecies)
             .Include(f => f.Mechanisms).ThenInclude(m => m.Species)
             .Include(f => f.Mechanisms).ThenInclude(m => m.Reactions)
             .Include(f => f.Mechanisms).ThenInclude(m => m.Phases)
@@ -329,6 +335,8 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         foreach (PhaseDto phase in family.Phases)
         {
             missing.AddRange(phase.SpeciesIds.Where(id => !speciesIds.Contains(id)));
+            // A diffusion coefficient may only be given for a member species.
+            missing.AddRange(phase.DiffusionCoefficients.Keys.Where(id => !phase.SpeciesIds.Contains(id)));
         }
 
         // Mechanism memberships.
@@ -694,7 +702,13 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             PhaseDto incomingPhase = incoming.Phases.Single(p => p.Id == id);
             Phase added = incoming.Phases.Single(p => p.Id == id).ToEntity();
             added.FamilyId = existing.Id;
-            added.Species = incomingPhase.SpeciesIds.Select(sid => existing.Species.Single(s => s.Id == sid)).ToList();
+            added.PhaseSpecies = incomingPhase.SpeciesIds
+                .Select(sid => new PhaseSpecies
+                {
+                    Species = existing.Species.Single(s => s.Id == sid),
+                    DiffusionCoefficient = incomingPhase.DiffusionCoefficientOf(sid),
+                })
+                .ToList();
             context.Phases.Add(added);
             existing.Phases.Add(added);
         });
@@ -704,7 +718,22 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             Phase existingPhase = existing.Phases.Single(p => p.Id == id);
             existingPhase.Name = incomingPhase.Name;
             existingPhase.Description = incomingPhase.Description;
-            existingPhase.Species = incomingPhase.SpeciesIds.Select(sid => existing.Species.Single(s => s.Id == sid)).ToList();
+            // Update the join rows in place. A new join row with the same key as
+            // a tracked row makes EF throw.
+            existingPhase.PhaseSpecies
+                .Where(ps => !incomingPhase.SpeciesIds.Contains(ps.SpeciesId))
+                .ToList()
+                .ForEach(ps => context.Remove(ps));
+            foreach (Guid sid in incomingPhase.SpeciesIds)
+            {
+                PhaseSpecies? member = existingPhase.PhaseSpecies.SingleOrDefault(ps => ps.SpeciesId == sid);
+                if (member == null)
+                {
+                    member = new PhaseSpecies { Species = existing.Species.Single(s => s.Id == sid) };
+                    existingPhase.PhaseSpecies.Add(member);
+                }
+                member.DiffusionCoefficient = incomingPhase.DiffusionCoefficientOf(sid);
+            }
         });
 
         // Mechanism changes

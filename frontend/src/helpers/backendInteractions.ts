@@ -455,6 +455,7 @@ export function apiToFrontendPhase(phase: APIPhase): Phase {
     name: phase.name,
     description: phase.description ?? "",
     speciesIds: phase.speciesIds,
+    diffusionCoefficients: phase.diffusionCoefficients ?? {},
   };
   return formattedPhase;
 }
@@ -480,6 +481,7 @@ export function frontendToAPIPhase(phase: Phase, family: Family): APIPhase {
     description: phase.description ?? undefined,
     familyId: family.id as UUID,
     speciesIds: phase.speciesIds as UUID[],
+    diffusionCoefficients: phase.diffusionCoefficients ?? {},
   };
   return formattedPhase;
 }

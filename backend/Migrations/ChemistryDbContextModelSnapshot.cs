@@ -227,6 +227,24 @@ namespace ChemistryCafeAPI.Migrations
                     b.ToTable("Phases");
                 });
 
+            modelBuilder.Entity("ChemistryCafeAPI.Models.PhaseSpecies", b =>
+                {
+                    b.Property<Guid>("PhasesId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("SpeciesId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<double?>("DiffusionCoefficient")
+                        .HasColumnType("double");
+
+                    b.HasKey("PhasesId", "SpeciesId");
+
+                    b.HasIndex("SpeciesId");
+
+                    b.ToTable("PhaseSpecies");
+                });
+
             modelBuilder.Entity("ChemistryCafeAPI.Models.PhotolysisParameters", b =>
                 {
                     b.Property<Guid>("ReactionId")
@@ -592,21 +610,6 @@ namespace ChemistryCafeAPI.Migrations
                     b.ToTable("UserPreferences");
                 });
 
-            modelBuilder.Entity("PhaseSpecies", b =>
-                {
-                    b.Property<Guid>("PhasesId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<Guid>("SpeciesId")
-                        .HasColumnType("char(36)");
-
-                    b.HasKey("PhasesId", "SpeciesId");
-
-                    b.HasIndex("SpeciesId");
-
-                    b.ToTable("PhaseSpecies");
-                });
-
             modelBuilder.Entity("ChemistryCafeAPI.Models.ArrheniusParameters", b =>
                 {
                     b.HasOne("ChemistryCafeAPI.Models.Reaction", "Reaction")
@@ -727,6 +730,25 @@ namespace ChemistryCafeAPI.Migrations
                         .IsRequired();
 
                     b.Navigation("Family");
+                });
+
+            modelBuilder.Entity("ChemistryCafeAPI.Models.PhaseSpecies", b =>
+                {
+                    b.HasOne("ChemistryCafeAPI.Models.Phase", "Phase")
+                        .WithMany("PhaseSpecies")
+                        .HasForeignKey("PhasesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ChemistryCafeAPI.Models.Species", "Species")
+                        .WithMany("PhaseSpecies")
+                        .HasForeignKey("SpeciesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Phase");
+
+                    b.Navigation("Species");
                 });
 
             modelBuilder.Entity("ChemistryCafeAPI.Models.PhotolysisParameters", b =>
@@ -912,21 +934,6 @@ namespace ChemistryCafeAPI.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("PhaseSpecies", b =>
-                {
-                    b.HasOne("ChemistryCafeAPI.Models.Phase", null)
-                        .WithMany()
-                        .HasForeignKey("PhasesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ChemistryCafeAPI.Models.Species", null)
-                        .WithMany()
-                        .HasForeignKey("SpeciesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("ChemistryCafeAPI.Models.Family", b =>
                 {
                     b.Navigation("Mechanisms");
@@ -943,6 +950,8 @@ namespace ChemistryCafeAPI.Migrations
                     b.Navigation("AsAerosolPhase");
 
                     b.Navigation("AsGasPhase");
+
+                    b.Navigation("PhaseSpecies");
                 });
 
             modelBuilder.Entity("ChemistryCafeAPI.Models.Reaction", b =>
@@ -985,6 +994,8 @@ namespace ChemistryCafeAPI.Migrations
                     b.Navigation("AsProduct");
 
                     b.Navigation("AsReactant");
+
+                    b.Navigation("PhaseSpecies");
                 });
 #pragma warning restore 612, 618
         }
