@@ -64,7 +64,12 @@ const FamilyPage = () => {
   const currentMenuName = useRef<string>(DataViewSelection.Default);
   const { theme } = useCustomTheme();
 
-  const updateFamily = (family: Family): void => {
+  const updateFamily = (family: Family, isModified?: boolean): void => {
+    const modified =
+      isModified !== undefined
+        ? isModified
+        : (family.isModified ?? (family.isInDatabase ? true : false));
+
     setFamilies((families) => {
       if (!families) {
         return families;
@@ -73,7 +78,7 @@ const FamilyPage = () => {
         if (family.id === element.id) {
           return {
             ...family,
-            isModified: family.isInDatabase?.valueOf(),
+            isModified: modified,
           };
         }
         return element;
@@ -84,10 +89,14 @@ const FamilyPage = () => {
     setDataView(
       getDataViewComponent(currentMenuName.current, {
         ...family,
-        isModified: true,
+        isModified: modified,
       }),
     );
-    window.onbeforeunload = () => true; // Sets "are you sure you want to leave" popup
+    if (modified) {
+      window.onbeforeunload = () => true; // Sets "are you sure you want to leave" popup
+    } else {
+      window.onbeforeunload = null;
+    }
   };
 
   useEffect(() => {
@@ -304,6 +313,7 @@ const FamilyPage = () => {
 
     setLoading(false);
     setFamilies(familyList);
+    window.onbeforeunload = null;
   };
 
   return (

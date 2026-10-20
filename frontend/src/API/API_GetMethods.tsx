@@ -2,7 +2,7 @@
 
 import axios from "axios";
 
-import { APIFamily, APIUser, APIUserPreferences } from "./API_Interfaces";
+import { APIFamily, APIFamilyVersion, APIUser, APIUserPreferences } from "./API_Interfaces";
 import { BASE_URL } from "./API_config";
 import { UUID } from "crypto";
 
@@ -101,3 +101,18 @@ export async function getFamily(id: UUID) {
 
   return response.data;
 }
+
+export async function getFamilyVersion(
+  familyId: UUID,
+  versionId: UUID,
+): Promise<APIFamilyVersion> {
+  const response = await axios.get<APIFamilyVersion>(
+    `${BASE_URL}/families/${familyId}/versions/${versionId}`,
+    {
+      withCredentials: true,
+    },
+  );
+
+  return response.data;
+}
+

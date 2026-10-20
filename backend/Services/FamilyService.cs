@@ -76,7 +76,9 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
                 .Include(f => f.Mechanisms)
                     .ThenInclude(m => m.Reactions)
                 .Include(f => f.Mechanisms)
-                    .ThenInclude(m => m.Phases);
+                    .ThenInclude(m => m.Phases)
+                .Include(f => f.Mechanisms)
+                    .ThenInclude(m => m.ValidatedBy);
         }
 
         if (userId != null)
@@ -100,6 +102,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         var family = await context.Families
             .AsSplitQuery()
             .Include(f => f.Owner)
+            .Include(f => f.Versions)
             .Include(f => f.CurrentVersion)
                 .ThenInclude(v => v.Species)
             .Include(f => f.CurrentVersion)
@@ -153,8 +156,70 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
                 .ThenInclude(m => m.Reactions)
             .Include(f => f.Mechanisms)
                 .ThenInclude(m => m.Phases)
+            .Include(f => f.Mechanisms)
+                .ThenInclude(m => m.ValidatedBy)
             .SingleOrDefaultAsync(f => f.Id == id);
+
+        if (family != null && family.CurrentVersion == null)
+        {
+            var latestVersion = await context.FamilyVersions
+                .Include(v => v.Species)
+                .Include(v => v.Reactions).ThenInclude(r => r.Reactants)
+                .Include(v => v.Reactions).ThenInclude(r => r.Products)
+                .Include(v => v.Reactions).ThenInclude(r => r.Arrhenius)
+                .Include(v => v.Reactions).ThenInclude(r => r.Tunneling)
+                .Include(v => v.Reactions).ThenInclude(r => r.Troe)
+                .Include(v => v.Reactions).ThenInclude(r => r.TernaryChemicalActivation)
+                .Include(v => v.Reactions).ThenInclude(r => r.Branched)
+                .Include(v => v.Reactions).ThenInclude(r => r.TaylorSeries)
+                .Include(v => v.Reactions).ThenInclude(r => r.Surface)
+                .Include(v => v.Reactions).ThenInclude(r => r.Emission)
+                .Include(v => v.Reactions).ThenInclude(r => r.FirstOrderLoss)
+                .Include(v => v.Reactions).ThenInclude(r => r.Photolysis)
+                .Include(v => v.Reactions).ThenInclude(r => r.UserDefined)
+                .Include(v => v.Phases).ThenInclude(p => p.Species)
+                .Where(v => v.FamilyId == family.Id)
+                .OrderByDescending(v => v.CreatedDate)
+                .FirstOrDefaultAsync();
+
+            if (latestVersion != null)
+            {
+                family.CurrentVersion = latestVersion;
+                family.CurrentVersionId = latestVersion.Id;
+            }
+        }
+
         return family;
+    }
+
+    /// <summary>
+    /// Gets a specific snapshot version of a family.
+    /// </summary>
+    /// <param name="familyId">The family ID</param>
+    /// <param name="versionId">The version ID</param>
+    /// <returns>The FamilyVersion or null if not found</returns>
+    public async Task<FamilyVersion?> GetFamilyVersionAsync(Guid familyId, Guid versionId)
+    {
+        var version = await context.FamilyVersions
+            .AsSplitQuery()
+            .Include(v => v.Species)
+            .Include(v => v.Reactions).ThenInclude(r => r.Reactants)
+            .Include(v => v.Reactions).ThenInclude(r => r.Products)
+            .Include(v => v.Reactions).ThenInclude(r => r.Arrhenius)
+            .Include(v => v.Reactions).ThenInclude(r => r.Tunneling)
+            .Include(v => v.Reactions).ThenInclude(r => r.Troe)
+            .Include(v => v.Reactions).ThenInclude(r => r.TernaryChemicalActivation)
+            .Include(v => v.Reactions).ThenInclude(r => r.Branched)
+            .Include(v => v.Reactions).ThenInclude(r => r.TaylorSeries)
+            .Include(v => v.Reactions).ThenInclude(r => r.Surface)
+            .Include(v => v.Reactions).ThenInclude(r => r.Emission)
+            .Include(v => v.Reactions).ThenInclude(r => r.FirstOrderLoss)
+            .Include(v => v.Reactions).ThenInclude(r => r.Photolysis)
+            .Include(v => v.Reactions).ThenInclude(r => r.UserDefined)
+            .Include(v => v.Phases).ThenInclude(p => p.Species)
+            .FirstOrDefaultAsync(v => v.Id == versionId && v.FamilyId == familyId);
+
+        return version;
     }
 
     /// <summary>
@@ -185,6 +250,12 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         if (FindUnresolvedReferences(family).Count > 0)
         {
             return (QueryResult.ValidationError, null);
+        }
+
+        if (family.Mechanisms.Any(m => m.ValidationStatus == ValidationStatus.Validated) &&
+            currentUser.Role != Role.Admin && currentUser.Role != Role.Verifier)
+        {
+            return (QueryResult.NoAccess, null);
         }
 
         Guid familyId = family.Id == Guid.Empty ? Guid.NewGuid() : family.Id;
@@ -238,6 +309,17 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
                 mechanism.Family = familyInfo;
                 mechanism.FamilyVersionId = initialVersion.Id;
                 mechanism.FamilyVersion = initialVersion;
+                mechanism.ValidationStatus = m.ValidationStatus;
+                if (m.ValidationStatus == ValidationStatus.Validated)
+                {
+                    mechanism.ValidatedById = currentUser.Id;
+                    mechanism.ValidatedBy = currentUser;
+                }
+                else
+                {
+                    mechanism.ValidatedById = null;
+                    mechanism.ValidatedBy = null;
+                }
                 mechanism.Species = m.SpeciesIds.Select(id => speciesById[id]).ToList();
                 mechanism.Reactions = m.ReactionIds.Select(id => reactionsById[id]).ToList();
                 mechanism.Phases = m.PhaseIds.Select(id => phasesById[id]).ToList();
@@ -273,6 +355,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         var existingFamily = await context.Families
             .AsSplitQuery()
             .Include(f => f.Owner)
+            .Include(f => f.Versions)
             .Include(f => f.CurrentVersion)
                 .ThenInclude(v => v.Species)
             .Include(f => f.CurrentVersion)
@@ -308,6 +391,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             .Include(f => f.Mechanisms).ThenInclude(m => m.Species)
             .Include(f => f.Mechanisms).ThenInclude(m => m.Reactions)
             .Include(f => f.Mechanisms).ThenInclude(m => m.Phases)
+            .Include(f => f.Mechanisms).ThenInclude(m => m.ValidatedBy)
             .SingleOrDefaultAsync(f => f.Id == id);
 
         if (existingFamily == null)
@@ -315,12 +399,47 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             return QueryResult.NotFound;
         }
 
-        if (existingFamily.Owner.Id != userId)
+        var loggedInUser = await _userService.GetUserByIdAsync(userId);
+        if (loggedInUser == null)
         {
-            var loggedInUser = await _userService.GetUserByIdAsync(userId);
-            if (loggedInUser == null || loggedInUser.Role != Role.Admin)
+            return QueryResult.NoAccess;
+        }
+
+        bool isOwner = existingFamily.Owner.Id == userId;
+        bool isAdmin = loggedInUser.Role == Role.Admin;
+        bool isVerifier = loggedInUser.Role == Role.Verifier;
+
+        if (!isOwner && !isAdmin && !isVerifier)
+        {
+            return QueryResult.NoAccess;
+        }
+
+        // A Verifier who is neither owner nor admin is ONLY authorized to update mechanism validation status.
+        if (!isOwner && !isAdmin && isVerifier)
+        {
+            if (existingFamily.Name != family.Name || existingFamily.Description != family.Description)
             {
                 return QueryResult.NoAccess;
+            }
+            if (HasContentChanges(family, existingFamily))
+            {
+                return QueryResult.NoAccess;
+            }
+        }
+
+        // Only Verifiers or Admins can mark a mechanism as Validated
+        if (!isVerifier && !isAdmin)
+        {
+            foreach (var incMech in family.Mechanisms)
+            {
+                if (incMech.ValidationStatus == ValidationStatus.Validated)
+                {
+                    var existingMech = existingFamily.Mechanisms.FirstOrDefault(m => m.Id == incMech.Id);
+                    if (existingMech == null || existingMech.ValidationStatus != ValidationStatus.Validated)
+                    {
+                        return QueryResult.NoAccess;
+                    }
+                }
             }
         }
 
@@ -339,7 +458,11 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         existingFamily.Description = family.Description;
 
         // reconcile all of the changes in all child objects
-        TrackChangesToFamily(family, existingFamily);
+        var result = TrackChangesToFamily(family, existingFamily, loggedInUser);
+        if (result != QueryResult.Success)
+        {
+            return result;
+        }
 
         await context.SaveChangesAsync();
         return QueryResult.Success;
@@ -409,6 +532,10 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         // Mechanism memberships.
         foreach (MechanismDto mechanism in family.Mechanisms)
         {
+            if (mechanism.IsReadOnly || mechanism.ValidationStatus != ValidationStatus.NoValidationRequested)
+            {
+                continue;
+            }
             missing.AddRange(mechanism.SpeciesIds.Where(id => !speciesIds.Contains(id)));
             missing.AddRange(mechanism.ReactionIds.Where(id => !reactionIds.Contains(id)));
             missing.AddRange(mechanism.PhaseIds.Where(id => !phaseIds.Contains(id)));
@@ -457,11 +584,181 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             || family.Mechanisms.Count != family.Mechanisms.Select(m => m.Id).Distinct().Count();
     }
 
+    private static bool HasContentChanges(FamilyDto incoming, Family existing)
+    {
+        if (incoming.Species.Count != existing.Species.Count ||
+            incoming.Reactions.Count != existing.Reactions.Count ||
+            incoming.Phases.Count != existing.Phases.Count ||
+            incoming.Mechanisms.Count != existing.Mechanisms.Count)
+        {
+            return true;
+        }
+
+        HashSet<Guid> existingSpeciesIds = existing.Species.Select(s => s.Id).ToHashSet();
+        if (incoming.Species.Any(s => !existingSpeciesIds.Contains(s.Id))) return true;
+
+        HashSet<Guid> existingReactionIds = existing.Reactions.Select(r => r.Id).ToHashSet();
+        if (incoming.Reactions.Any(r => !existingReactionIds.Contains(r.Id))) return true;
+
+        HashSet<Guid> existingPhaseIds = existing.Phases.Select(p => p.Id).ToHashSet();
+        if (incoming.Phases.Any(p => !existingPhaseIds.Contains(p.Id))) return true;
+
+        return false;
+    }
+
+    public static FamilyVersion BranchCurrentFamilyVersion(Family existing)
+    {
+        return BranchCurrentFamilyVersion(existing, out _, out _, out _);
+    }
+
+    public static FamilyVersion BranchCurrentFamilyVersion(
+        Family existing,
+        out Dictionary<Guid, Guid> speciesMap,
+        out Dictionary<Guid, Guid> reactionMap,
+        out Dictionary<Guid, Guid> phaseMap)
+    {
+        var current = existing.CurrentVersion;
+        var newVersion = new FamilyVersion
+        {
+            Id = Guid.NewGuid(),
+            FamilyId = existing.Id,
+            Family = existing,
+            CreatedDate = DateTime.UtcNow
+        };
+
+        // Deep-copy species
+        var sMap = new Dictionary<Guid, Guid>();
+        Dictionary<Guid, Species> newSpeciesEntities = new();
+        foreach (var oldSpecies in current.Species)
+        {
+            var newSpecies = new Species
+            {
+                Id = Guid.NewGuid(),
+                FamilyVersionId = newVersion.Id,
+                FamilyVersion = newVersion,
+                Name = oldSpecies.Name,
+                Description = oldSpecies.Description,
+                MolecularWeight = oldSpecies.MolecularWeight,
+                IsThirdBody = oldSpecies.IsThirdBody,
+                ConstantConcentration = oldSpecies.ConstantConcentration,
+                ConstantMixingRatio = oldSpecies.ConstantMixingRatio,
+                AbsoluteTolerance = oldSpecies.AbsoluteTolerance,
+                OtherProperties = oldSpecies.OtherProperties != null
+                    ? new Dictionary<string, System.Text.Json.JsonElement>(oldSpecies.OtherProperties)
+                    : null
+            };
+            sMap[oldSpecies.Id] = newSpecies.Id;
+            newSpeciesEntities[oldSpecies.Id] = newSpecies;
+            newVersion.Species.Add(newSpecies);
+        }
+
+        // Deep-copy phases
+        var pMap = new Dictionary<Guid, Guid>();
+        Dictionary<Guid, Phase> newPhaseEntities = new();
+        foreach (var oldPhase in current.Phases)
+        {
+            var newPhase = new Phase
+            {
+                Id = Guid.NewGuid(),
+                FamilyVersionId = newVersion.Id,
+                FamilyVersion = newVersion,
+                Name = oldPhase.Name,
+                Description = oldPhase.Description,
+                Species = oldPhase.Species
+                    .Where(s => newSpeciesEntities.ContainsKey(s.Id))
+                    .Select(s => newSpeciesEntities[s.Id])
+                    .ToList(),
+                PhaseSpecies = oldPhase.PhaseSpecies
+                    .Where(ps => newSpeciesEntities.ContainsKey(ps.SpeciesId))
+                    .Select(ps => new PhaseSpecies
+                    {
+                        SpeciesId = newSpeciesEntities[ps.SpeciesId].Id,
+                        Species = newSpeciesEntities[ps.SpeciesId],
+                        DiffusionCoefficient = ps.DiffusionCoefficient
+                    })
+                    .ToList()
+            };
+            pMap[oldPhase.Id] = newPhase.Id;
+            newPhaseEntities[oldPhase.Id] = newPhase;
+            newVersion.Phases.Add(newPhase);
+        }
+
+        // Deep-copy reactions
+        var rMap = new Dictionary<Guid, Guid>();
+        Dictionary<Guid, Reaction> newReactionEntities = new();
+        foreach (var oldReaction in current.Reactions)
+        {
+            var dto = ReactionMapper.ToDto(oldReaction);
+            var newReaction = ReactionMapper.ToEntity(dto);
+            newReaction.Id = Guid.NewGuid();
+            newReaction.FamilyVersionId = newVersion.Id;
+            newReaction.FamilyVersion = newVersion;
+
+            newReaction.Reactants = dto.Reactants
+                .Where(r => newSpeciesEntities.ContainsKey(r.SpeciesId))
+                .Select(r => new Reactant
+                {
+                    ReactionId = newReaction.Id,
+                    SpeciesId = newSpeciesEntities[r.SpeciesId].Id,
+                    Species = newSpeciesEntities[r.SpeciesId],
+                    Coefficient = r.Coefficient
+                }).ToList();
+
+            newReaction.Products = dto.Products
+                .Where(p => newSpeciesEntities.ContainsKey(p.SpeciesId))
+                .Select(p => new Product
+                {
+                    ReactionId = newReaction.Id,
+                    SpeciesId = newSpeciesEntities[p.SpeciesId].Id,
+                    Species = newSpeciesEntities[p.SpeciesId],
+                    Coefficient = p.Coefficient,
+                    Branch = p.Branch
+                }).ToList();
+
+            newReaction.GasPhaseId = dto.GasPhaseId.HasValue && newPhaseEntities.TryGetValue(dto.GasPhaseId.Value, out var gp) ? gp.Id : null;
+            newReaction.AerosolPhaseId = dto.AerosolPhaseId.HasValue && newPhaseEntities.TryGetValue(dto.AerosolPhaseId.Value, out var ap) ? ap.Id : null;
+            newReaction.GasPhaseSpeciesId = dto.GasPhaseSpeciesId.HasValue && newSpeciesEntities.TryGetValue(dto.GasPhaseSpeciesId.Value, out var gps) ? gps.Id : null;
+            newReaction.AerosolPhaseSpeciesId = dto.AerosolPhaseSpeciesId.HasValue && newSpeciesEntities.TryGetValue(dto.AerosolPhaseSpeciesId.Value, out var aps) ? aps.Id : null;
+            newReaction.AerosolPhaseWaterId = dto.AerosolPhaseWaterId.HasValue && newSpeciesEntities.TryGetValue(dto.AerosolPhaseWaterId.Value, out var apw) ? apw.Id : null;
+
+            rMap[oldReaction.Id] = newReaction.Id;
+            newReactionEntities[oldReaction.Id] = newReaction;
+            newVersion.Reactions.Add(newReaction);
+        }
+
+        // Remap non-read-only mechanisms to point to newVersion and new entities
+        foreach (var mech in existing.Mechanisms.Where(m => m.ValidationStatus == ValidationStatus.NoValidationRequested))
+        {
+            mech.FamilyVersionId = newVersion.Id;
+            mech.Species = mech.Species
+                .Where(s => newSpeciesEntities.ContainsKey(s.Id))
+                .Select(s => newSpeciesEntities[s.Id])
+                .ToList();
+            mech.Phases = mech.Phases
+                .Where(p => newPhaseEntities.ContainsKey(p.Id))
+                .Select(p => newPhaseEntities[p.Id])
+                .ToList();
+            mech.Reactions = mech.Reactions
+                .Where(r => newReactionEntities.ContainsKey(r.Id))
+                .Select(r => newReactionEntities[r.Id])
+                .ToList();
+        }
+
+        speciesMap = sMap;
+        reactionMap = rMap;
+        phaseMap = pMap;
+
+        existing.Versions.Add(newVersion);
+        existing.CurrentVersion = newVersion;
+        existing.CurrentVersionId = newVersion.Id;
+        return newVersion;
+    }
+
     /// <summary>
     /// Find the difference between the incoming and existing family graphs
-    /// Do this for each child object and make any deletionts, additions, or updates to the existing family graph
+    /// Do this for each child object and make any deletions, additions, or updates to the existing family graph
     /// </summary>
-    private void TrackChangesToFamily(FamilyDto incoming, Family existing)
+    private QueryResult TrackChangesToFamily(FamilyDto incoming, Family existing, User? loggedInUser = null)
     {
         FamilyVersion version = existing.CurrentVersion;
 
@@ -475,16 +772,87 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         HashSet<Guid> existingPhaseIds = existing.Phases.Select(p => p.Id).ToHashSet();
         HashSet<Guid> existingMechanismIds = existing.Mechanisms.Select(m => m.Id).ToHashSet();
 
+        HashSet<Guid> deletedMechanismIds = existingMechanismIds.Except(incomingMechanismIds).ToHashSet();
+        HashSet<Guid> newMechanismIds = incomingMechanismIds.Except(existingMechanismIds).ToHashSet();
+        HashSet<Guid> maybeUpdatedMechanismIds = existingMechanismIds.Intersect(incomingMechanismIds).ToHashSet();
+
+        // Cannot delete read-only or pending/validated mechanisms
+        foreach (Guid id in deletedMechanismIds)
+        {
+            Mechanism existingMech = existing.Mechanisms.Single(m => m.Id == id);
+            if (existingMech.ValidationStatus != ValidationStatus.NoValidationRequested || existingMech.IsReadOnly)
+            {
+                return QueryResult.ValidationError;
+            }
+        }
+
+        // Validate updates on existing mechanisms & check for version branching
+        bool shouldBranch = false;
+        foreach (Guid id in maybeUpdatedMechanismIds)
+        {
+            MechanismDto incomingMech = incoming.Mechanisms.Single(m => m.Id == id);
+            Mechanism existingMech = existing.Mechanisms.Single(m => m.Id == id);
+
+            if (existingMech.ValidationStatus != ValidationStatus.NoValidationRequested)
+            {
+                // Cannot revert to NoValidationRequested
+                if (incomingMech.ValidationStatus == ValidationStatus.NoValidationRequested)
+                {
+                    return QueryResult.ValidationError;
+                }
+
+                // If already Validated, cannot change status back to PendingValidation
+                if (existingMech.ValidationStatus == ValidationStatus.Validated &&
+                    incomingMech.ValidationStatus == ValidationStatus.PendingValidation)
+                {
+                    return QueryResult.ValidationError;
+                }
+
+                // Content cannot be modified on a read-only / validated mechanism
+                bool contentChanged = existingMech.Name != incomingMech.Name ||
+                    existingMech.Description != incomingMech.Description ||
+                    !existingMech.Species.Select(s => s.Id).Order().SequenceEqual(incomingMech.SpeciesIds.Order()) ||
+                    !existingMech.Reactions.Select(r => r.Id).Order().SequenceEqual(incomingMech.ReactionIds.Order()) ||
+                    !existingMech.Phases.Select(p => p.Id).Order().SequenceEqual(incomingMech.PhaseIds.Order());
+
+                if (contentChanged)
+                {
+                    return QueryResult.ValidationError;
+                }
+            }
+            else
+            {
+                if (incomingMech.ValidationStatus != ValidationStatus.NoValidationRequested)
+                {
+                    shouldBranch = true;
+                }
+            }
+        }
+
+        foreach (Guid id in newMechanismIds)
+        {
+            MechanismDto incomingMech = incoming.Mechanisms.Single(m => m.Id == id);
+            if (incomingMech.ValidationStatus != ValidationStatus.NoValidationRequested)
+            {
+                shouldBranch = true;
+            }
+        }
+
         // Species changes
         HashSet<Guid> deletedSpeciesIds = existingSpeciesIds.Except(incomingSpeciesIds).ToHashSet();
         HashSet<Guid> newSpeciesIds = incomingSpeciesIds.Except(existingSpeciesIds).ToHashSet();
         HashSet<Guid> maybeUpdatedSpeciesIds = existingSpeciesIds.Intersect(incomingSpeciesIds).ToHashSet();
-        deletedSpeciesIds.ToList().ForEach(id => context.Species.Remove(existing.Species.Single(s => s.Id == id)));
+
+        deletedSpeciesIds.ToList().ForEach(id => {
+            Species s = existing.Species.Single(s => s.Id == id);
+            context.Species.Remove(s);
+            existing.Species.Remove(s);
+        });
         newSpeciesIds.ToList().ForEach(id => {
             Species added = incoming.Species.Single(s => s.Id == id).ToEntity();
             added.FamilyVersionId = version.Id;
             context.Species.Add(added);
-            existing.Species.Add(added);
+            if (!existing.Species.Any(s => s.Id == added.Id)) existing.Species.Add(added);
         });
         maybeUpdatedSpeciesIds.ToList().ForEach(id =>
         {
@@ -504,12 +872,17 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         HashSet<Guid> deletedReactionIds = existingReactionIds.Except(incomingReactionIds).ToHashSet();
         HashSet<Guid> newReactionIds = incomingReactionIds.Except(existingReactionIds).ToHashSet();
         HashSet<Guid> maybeUpdatedReactionIds = existingReactionIds.Intersect(incomingReactionIds).ToHashSet();
-        deletedReactionIds.ToList().ForEach(id => context.Reactions.Remove(existing.Reactions.Single(r => r.Id == id)));
+
+        deletedReactionIds.ToList().ForEach(id => {
+            Reaction r = existing.Reactions.Single(r => r.Id == id);
+            context.Reactions.Remove(r);
+            existing.Reactions.Remove(r);
+        });
         newReactionIds.ToList().ForEach(id => {
             Reaction added = incoming.Reactions.Single(r => r.Id == id).ToEntity();
             added.FamilyVersionId = version.Id;
             context.Reactions.Add(added);
-            existing.Reactions.Add(added);
+            if (!existing.Reactions.Any(r => r.Id == added.Id)) existing.Reactions.Add(added);
         });
         maybeUpdatedReactionIds.ToList().ForEach(id =>
         {
@@ -766,20 +1139,25 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         HashSet<Guid> deletedPhaseIds = existingPhaseIds.Except(incomingPhaseIds).ToHashSet();
         HashSet<Guid> newPhaseIds = incomingPhaseIds.Except(existingPhaseIds).ToHashSet();
         HashSet<Guid> maybeUpdatedPhaseIds = existingPhaseIds.Intersect(incomingPhaseIds).ToHashSet();
-        deletedPhaseIds.ToList().ForEach(id => context.Phases.Remove(existing.Phases.Single(p => p.Id == id)));
+
+        deletedPhaseIds.ToList().ForEach(id => {
+            Phase p = existing.Phases.Single(p => p.Id == id);
+            context.Phases.Remove(p);
+            existing.Phases.Remove(p);
+        });
         newPhaseIds.ToList().ForEach(id => {
             PhaseDto incomingPhase = incoming.Phases.Single(p => p.Id == id);
-            Phase added = incoming.Phases.Single(p => p.Id == id).ToEntity();
+            Phase added = incomingPhase.ToEntity();
             added.FamilyVersionId = version.Id;
             added.PhaseSpecies = incomingPhase.SpeciesIds
                 .Select(sid => new PhaseSpecies
                 {
-                    Species = existing.Species.Single(s => s.Id == sid),
+                    Species = existing.Species.First(s => s.Id == sid),
                     DiffusionCoefficient = incomingPhase.DiffusionCoefficientOf(sid),
                 })
                 .ToList();
             context.Phases.Add(added);
-            existing.Phases.Add(added);
+            if (!existing.Phases.Any(p => p.Id == added.Id)) existing.Phases.Add(added);
         });
         maybeUpdatedPhaseIds.ToList().ForEach(id =>
         {
@@ -798,7 +1176,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
                 PhaseSpecies? member = existingPhase.PhaseSpecies.SingleOrDefault(ps => ps.SpeciesId == sid);
                 if (member == null)
                 {
-                    member = new PhaseSpecies { Species = existing.Species.Single(s => s.Id == sid) };
+                    member = new PhaseSpecies { Species = existing.Species.First(s => s.Id == sid) };
                     existingPhase.PhaseSpecies.Add(member);
                 }
                 member.DiffusionCoefficient = incomingPhase.DiffusionCoefficientOf(sid);
@@ -806,9 +1184,6 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         });
 
         // Mechanism changes
-        HashSet<Guid> deletedMechanismIds = existingMechanismIds.Except(incomingMechanismIds).ToHashSet();
-        HashSet<Guid> newMechanismIds = incomingMechanismIds.Except(existingMechanismIds).ToHashSet();
-        HashSet<Guid> maybeUpdatedMechanismIds = existingMechanismIds.Intersect(incomingMechanismIds).ToHashSet();
         deletedMechanismIds.ToList().ForEach(id => {
             Mechanism m = existing.Mechanisms.Single(m => m.Id == id);
             context.Mechanisms.Remove(m);
@@ -820,22 +1195,87 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             added.FamilyId = existing.Id;
             added.Family = existing;
             added.FamilyVersionId = version.Id;
-            added.Species = incomingMechanism.SpeciesIds.Select(sid => existing.Species.Single(s => s.Id == sid)).ToList();
-            added.Reactions = incomingMechanism.ReactionIds.Select(rid => existing.Reactions.Single(r => r.Id == rid)).ToList();
-            added.Phases = incomingMechanism.PhaseIds.Select(pid => existing.Phases.Single(p => p.Id == pid)).ToList();
+            added.ValidationStatus = incomingMechanism.ValidationStatus;
+            if (incomingMechanism.ValidationStatus == ValidationStatus.Validated)
+            {
+                added.ValidatedById = loggedInUser?.Id;
+                added.ValidatedBy = loggedInUser;
+            }
+            added.Species = incomingMechanism.SpeciesIds.Select(sid => existing.Species.First(s => s.Id == sid)).ToList();
+            added.Reactions = incomingMechanism.ReactionIds.Select(rid => existing.Reactions.First(r => r.Id == rid)).ToList();
+            added.Phases = incomingMechanism.PhaseIds.Select(pid => existing.Phases.First(p => p.Id == pid)).ToList();
             context.Mechanisms.Add(added);
-            existing.Mechanisms.Add(added);
+            if (!existing.Mechanisms.Any(m => m.Id == added.Id)) existing.Mechanisms.Add(added);
         });
         maybeUpdatedMechanismIds.ToList().ForEach(id =>
         {
             MechanismDto incomingMechanism = incoming.Mechanisms.Single(m => m.Id == id);
             Mechanism existingMechanism = existing.Mechanisms.Single(m => m.Id == id);
-            existingMechanism.Name = incomingMechanism.Name;
-            existingMechanism.Description = incomingMechanism.Description;
-            existingMechanism.FamilyId = existing.Id;
-            existingMechanism.Species = incomingMechanism.SpeciesIds.Select(sid => existing.Species.Single(s => s.Id == sid)).ToList();
-            existingMechanism.Reactions = incomingMechanism.ReactionIds.Select(rid => existing.Reactions.Single(r => r.Id == rid)).ToList();
-            existingMechanism.Phases = incomingMechanism.PhaseIds.Select(pid => existing.Phases.Single(p => p.Id == pid)).ToList();
+
+            if (existingMechanism.ValidationStatus == ValidationStatus.NoValidationRequested)
+            {
+                existingMechanism.Name = incomingMechanism.Name;
+                existingMechanism.Description = incomingMechanism.Description;
+                existingMechanism.Species = incomingMechanism.SpeciesIds.Select(sid => existing.Species.First(s => s.Id == sid)).ToList();
+                existingMechanism.Reactions = incomingMechanism.ReactionIds.Select(rid => existing.Reactions.First(r => r.Id == rid)).ToList();
+                existingMechanism.Phases = incomingMechanism.PhaseIds.Select(pid => existing.Phases.First(p => p.Id == pid)).ToList();
+            }
+
+            if (incomingMechanism.ValidationStatus != existingMechanism.ValidationStatus)
+            {
+                existingMechanism.ValidationStatus = incomingMechanism.ValidationStatus;
+                if (incomingMechanism.ValidationStatus == ValidationStatus.Validated)
+                {
+                    existingMechanism.ValidatedById = loggedInUser?.Id;
+                    existingMechanism.ValidatedBy = loggedInUser;
+                }
+                else
+                {
+                    existingMechanism.ValidatedById = null;
+                    existingMechanism.ValidatedBy = null;
+                }
+            }
         });
+
+        if (shouldBranch)
+        {
+            var newVersion = BranchCurrentFamilyVersion(existing, out var speciesMap, out var reactionMap, out var phaseMap);
+            context.FamilyVersions.Add(newVersion);
+
+            foreach (var s in incoming.Species)
+            {
+                if (speciesMap.TryGetValue(s.Id, out var newId)) s.Id = newId;
+            }
+            foreach (var r in incoming.Reactions)
+            {
+                if (reactionMap.TryGetValue(r.Id, out var newId)) r.Id = newId;
+                foreach (var reactant in r.Reactants)
+                    if (speciesMap.TryGetValue(reactant.SpeciesId, out var newSpecId)) reactant.SpeciesId = newSpecId;
+                foreach (var product in r.Products)
+                    if (speciesMap.TryGetValue(product.SpeciesId, out var newSpecId)) product.SpeciesId = newSpecId;
+                if (r.GasPhaseId.HasValue && phaseMap.TryGetValue(r.GasPhaseId.Value, out var newGpId)) r.GasPhaseId = newGpId;
+                if (r.AerosolPhaseId.HasValue && phaseMap.TryGetValue(r.AerosolPhaseId.Value, out var newApId)) r.AerosolPhaseId = newApId;
+                if (r.GasPhaseSpeciesId.HasValue && speciesMap.TryGetValue(r.GasPhaseSpeciesId.Value, out var newGpsId)) r.GasPhaseSpeciesId = newGpsId;
+                if (r.AerosolPhaseSpeciesId.HasValue && speciesMap.TryGetValue(r.AerosolPhaseSpeciesId.Value, out var newApsId)) r.AerosolPhaseSpeciesId = newApsId;
+                if (r.AerosolPhaseWaterId.HasValue && speciesMap.TryGetValue(r.AerosolPhaseWaterId.Value, out var newApwId)) r.AerosolPhaseWaterId = newApwId;
+            }
+            foreach (var p in incoming.Phases)
+            {
+                if (phaseMap.TryGetValue(p.Id, out var newId)) p.Id = newId;
+                p.SpeciesIds = p.SpeciesIds.Select(sid => speciesMap.TryGetValue(sid, out var newSid) ? newSid : sid).ToList();
+            }
+            foreach (var m in incoming.Mechanisms)
+            {
+                if (m.ValidationStatus == ValidationStatus.NoValidationRequested)
+                {
+                    m.SpeciesIds = m.SpeciesIds.Select(sid => speciesMap.TryGetValue(sid, out var newSid) ? newSid : sid).ToList();
+                    m.ReactionIds = m.ReactionIds.Select(rid => reactionMap.TryGetValue(rid, out var newRid) ? newRid : rid).ToList();
+                    m.PhaseIds = m.PhaseIds.Select(pid => phaseMap.TryGetValue(pid, out var newPid) ? newPid : pid).ToList();
+                }
+            }
+        }
+
+        return QueryResult.Success;
     }
 }
+

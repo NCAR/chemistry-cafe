@@ -2,5 +2,5 @@ import { Family } from "../../types/chemistryModels";
 
 export type ViewProps = {
   family: Family;
-  updateFamily: (family: Family) => void;
+  updateFamily: (family: Family, isModified?: boolean) => void;
 };

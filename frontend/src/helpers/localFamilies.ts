@@ -114,6 +114,11 @@ export const cloneFamily = (family: Family): Family => {
     clonedFamily.mechanisms.push({
       ...mechanism,
       id: frontendId,
+      familyId: clonedFamily.id,
+      familyVersionId: undefined,
+      isReadOnly: false,
+      validationStatus: "No Validation Requested",
+      validatedBy: undefined,
       speciesIds: mechanism.speciesIds.reduce((accumulator: UUID[], id) => {
         const mappedId = idMappings.get(id);
         if (mappedId) {

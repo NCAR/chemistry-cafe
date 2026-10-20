@@ -1,6 +1,8 @@
 using ChemistryCafeAPI.Models;
 using ChemistryCafeAPI.Models.Dto;
+using ChemistryCafeAPI.Models.Mappers;
 using ChemistryCafeAPI.Services;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -21,9 +23,15 @@ namespace ChemistryCafeAPI.Tests
     [TestClass]
     public class FamilyServiceReconcileTests
     {
-        private static User _owner;
+        private static User _owner = null!;
         private static Guid _ownerId;
         private static string _nameIdentifier = null!;
+        private static User _verifier = null!;
+        private static string _verifierIdentifier = null!;
+        private static User _admin = null!;
+        private static string _adminIdentifier = null!;
+        private static User _otherUser = null!;
+        private static string _otherIdentifier = null!;
         private static readonly List<Guid> _createdFamilyIds = new();
 
         [ClassInitialize]
@@ -35,6 +43,23 @@ namespace ChemistryCafeAPI.Tests
             _owner = owner;
             _ownerId = owner.Id;
             _nameIdentifier = owner.Id.ToString();
+
+            User verifier = userService.SignInGoogle("reconcile-verifier-id", "reconcile-verifier@fake-website.com").Result;
+            verifier.Role = Role.Verifier;
+            _verifier = verifier;
+            _verifierIdentifier = verifier.Id.ToString();
+
+            User admin = userService.SignInGoogle("reconcile-admin-id", "reconcile-admin@fake-website.com").Result;
+            admin.Role = Role.Admin;
+            _admin = admin;
+            _adminIdentifier = admin.Id.ToString();
+
+            User otherUser = userService.SignInGoogle("reconcile-other-id", "reconcile-other@fake-website.com").Result;
+            otherUser.Role = Role.None;
+            _otherUser = otherUser;
+            _otherIdentifier = otherUser.Id.ToString();
+
+            ctx.SaveChanges();
         }
 
         [ClassCleanup]
@@ -105,11 +130,12 @@ namespace ChemistryCafeAPI.Tests
             };
         }
 
-        private static async Task<FamilyDto> CreateBaseFamilyAsync(FamilyDto dto)
+        private static async Task<FamilyDto> CreateBaseFamilyAsync(FamilyDto dto, User? creator = null)
         {
+            User user = creator ?? _owner;
             using ChemistryDbContext ctx = DBConnection.NewContext();
-            ctx.Attach(_owner);
-            var (result, _) = await NewService(ctx).CreateFamilyAsync(dto, _owner);
+            ctx.Attach(user);
+            var (result, _) = await NewService(ctx).CreateFamilyAsync(dto, user);
             Assert.AreEqual(QueryResult.Success, result);
             _createdFamilyIds.Add(dto.Id);
             return dto;
@@ -841,6 +867,539 @@ namespace ChemistryCafeAPI.Tests
             UserDefinedParameters? userDefined = reloaded.Reactions.Single().UserDefined;
             Assert.IsNotNull(userDefined);
             Assert.AreEqual(5.0, userDefined!.ScalingFactor);
+        }
+
+        [TestMethod]
+        public async Task Update_Mechanism_MoveToPendingValidation_SetsReadOnly_AndTiesToCurrentVersion()
+        {
+            FamilyDto dto = await CreateBaseFamilyAsync(BuildBaseFamily());
+            MechanismDto mech = dto.Mechanisms.Single();
+            Assert.AreEqual(ValidationStatus.NoValidationRequested, mech.ValidationStatus);
+
+            mech.ValidationStatus = ValidationStatus.PendingValidation;
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            Family reloaded = await ReloadAsync(dto.Id);
+            Mechanism reloadedMech = reloaded.Mechanisms.Single();
+            Assert.AreEqual(ValidationStatus.PendingValidation, reloadedMech.ValidationStatus);
+            Assert.IsTrue(reloadedMech.IsReadOnly);
+            Assert.AreNotEqual(reloaded.CurrentVersionId, reloadedMech.FamilyVersionId);
+            Assert.IsTrue(reloaded.Versions.Any(v => v.Id == reloadedMech.FamilyVersionId));
+        }
+
+        [TestMethod]
+        public async Task Update_Mechanism_MoveFromPendingValidationToValidated_AsVerifier_Succeeds()
+        {
+            FamilyDto dto = await CreateBaseFamilyAsync(BuildBaseFamily());
+            dto.Mechanisms.Single().ValidationStatus = ValidationStatus.PendingValidation;
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            // Verifier updates validation status to Validated
+            dto.Mechanisms.Single().ValidationStatus = ValidationStatus.Validated;
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _verifierIdentifier));
+
+            Family reloaded = await ReloadAsync(dto.Id);
+            Mechanism reloadedMech = reloaded.Mechanisms.Single();
+            Assert.AreEqual(ValidationStatus.Validated, reloadedMech.ValidationStatus);
+            Assert.IsTrue(reloadedMech.IsReadOnly);
+            Assert.AreEqual(_verifier.Id, reloadedMech.ValidatedById);
+            Assert.IsNotNull(reloadedMech.ValidatedBy);
+            Assert.AreEqual(_verifier.Username, reloadedMech.ToDto().ValidatedBy);
+        }
+
+        [TestMethod]
+        public async Task Update_Mechanism_MoveFromPendingValidationToValidated_AsAdmin_Succeeds()
+        {
+            FamilyDto dto = await CreateBaseFamilyAsync(BuildBaseFamily());
+            dto.Mechanisms.Single().ValidationStatus = ValidationStatus.PendingValidation;
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            // Admin updates validation status to Validated
+            dto.Mechanisms.Single().ValidationStatus = ValidationStatus.Validated;
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _adminIdentifier));
+
+            Family reloaded = await ReloadAsync(dto.Id);
+            Mechanism reloadedMech = reloaded.Mechanisms.Single();
+            Assert.AreEqual(ValidationStatus.Validated, reloadedMech.ValidationStatus);
+            Assert.IsTrue(reloadedMech.IsReadOnly);
+            Assert.AreEqual(_admin.Id, reloadedMech.ValidatedById);
+            Assert.IsNotNull(reloadedMech.ValidatedBy);
+            Assert.AreEqual(_admin.Username, reloadedMech.ToDto().ValidatedBy);
+        }
+
+        [TestMethod]
+        public async Task Update_Mechanism_MoveToValidated_AsRegularUser_ReturnsNoAccess()
+        {
+            FamilyDto dto = await CreateBaseFamilyAsync(BuildBaseFamily());
+            dto.Mechanisms.Single().ValidationStatus = ValidationStatus.PendingValidation;
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            // Regular user (owner with Role.None) attempts to validate
+            dto.Mechanisms.Single().ValidationStatus = ValidationStatus.Validated;
+            Assert.AreEqual(QueryResult.NoAccess, await UpdateAsync(dto, _nameIdentifier));
+
+            Family reloaded = await ReloadAsync(dto.Id);
+            Mechanism reloadedMech = reloaded.Mechanisms.Single();
+            Assert.AreEqual(ValidationStatus.PendingValidation, reloadedMech.ValidationStatus);
+        }
+
+        [TestMethod]
+        public async Task Update_Mechanism_ReadOnly_CannotModifyContent()
+        {
+            FamilyDto dto = await CreateBaseFamilyAsync(BuildBaseFamily());
+            dto.Mechanisms.Single().ValidationStatus = ValidationStatus.PendingValidation;
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            // Attempt to modify name of read-only mechanism
+            dto.Mechanisms.Single().Name = "Modified Name";
+            Assert.AreEqual(QueryResult.ValidationError, await UpdateAsync(dto, _nameIdentifier));
+
+            // Attempt to add a species to read-only mechanism
+            dto.Mechanisms.Single().Name = "M1"; // restore name
+            Guid s2 = dto.Species.Single(s => s.Name == "B").Id;
+            dto.Mechanisms.Single().SpeciesIds.Add(s2);
+            Assert.AreEqual(QueryResult.ValidationError, await UpdateAsync(dto, _nameIdentifier));
+        }
+
+        [TestMethod]
+        public async Task Update_Mechanism_ReadOnly_CannotBeDeleted()
+        {
+            FamilyDto dto = await CreateBaseFamilyAsync(BuildBaseFamily());
+            dto.Mechanisms.Single().ValidationStatus = ValidationStatus.PendingValidation;
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            // Attempt to delete read-only mechanism
+            dto.Mechanisms.Clear();
+            Assert.AreEqual(QueryResult.ValidationError, await UpdateAsync(dto, _nameIdentifier));
+        }
+
+        [TestMethod]
+        public async Task Update_Mechanism_CannotRevertFromPendingOrValidatedToNoValidationRequested()
+        {
+            FamilyDto dto = await CreateBaseFamilyAsync(BuildBaseFamily());
+            dto.Mechanisms.Single().ValidationStatus = ValidationStatus.PendingValidation;
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            // Attempt to revert from PendingValidation to NoValidationRequested
+            dto.Mechanisms.Single().ValidationStatus = ValidationStatus.NoValidationRequested;
+            Assert.AreEqual(QueryResult.ValidationError, await UpdateAsync(dto, _nameIdentifier));
+
+            // Make it Validated via Verifier
+            dto.Mechanisms.Single().ValidationStatus = ValidationStatus.Validated;
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _verifierIdentifier));
+
+            // Attempt to revert from Validated to NoValidationRequested
+            dto.Mechanisms.Single().ValidationStatus = ValidationStatus.NoValidationRequested;
+            Assert.AreEqual(QueryResult.ValidationError, await UpdateAsync(dto, _verifierIdentifier));
+        }
+
+        [TestMethod]
+        public async Task Update_Mechanism_CannotRevertFromValidatedToPendingValidation()
+        {
+            FamilyDto dto = await CreateBaseFamilyAsync(BuildBaseFamily());
+            dto.Mechanisms.Single().ValidationStatus = ValidationStatus.PendingValidation;
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            dto.Mechanisms.Single().ValidationStatus = ValidationStatus.Validated;
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _verifierIdentifier));
+
+            // Attempt to revert from Validated to PendingValidation
+            dto.Mechanisms.Single().ValidationStatus = ValidationStatus.PendingValidation;
+            Assert.AreEqual(QueryResult.ValidationError, await UpdateAsync(dto, _verifierIdentifier));
+        }
+
+        [TestMethod]
+        public async Task Update_Family_NonOwnerVerifier_CannotModifyFamilyContent()
+        {
+            FamilyDto dto = await CreateBaseFamilyAsync(BuildBaseFamily());
+            dto.Mechanisms.Single().ValidationStatus = ValidationStatus.PendingValidation;
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            // Verifier attempts to change Family Name
+            dto.Name = "Verifier Changed Name";
+            dto.Mechanisms.Single().ValidationStatus = ValidationStatus.Validated;
+            Assert.AreEqual(QueryResult.NoAccess, await UpdateAsync(dto, _verifierIdentifier));
+
+            // Restore Family Name, but Verifier attempts to add a new species
+            dto.Name = "ReconcileFamily";
+            dto.Species.Add(new SpeciesDto { Id = Guid.NewGuid(), Name = "D" });
+            Assert.AreEqual(QueryResult.NoAccess, await UpdateAsync(dto, _verifierIdentifier));
+        }
+
+        [TestMethod]
+        public async Task Create_Mechanism_AsRegularUser_CannotCreateDirectlyValidated()
+        {
+            FamilyDto dto = BuildBaseFamily();
+            dto.Mechanisms.Single().ValidationStatus = ValidationStatus.Validated;
+
+            using ChemistryDbContext ctx = DBConnection.NewContext();
+            ctx.Attach(_owner);
+            var (result, _) = await NewService(ctx).CreateFamilyAsync(dto, _owner);
+            Assert.AreEqual(QueryResult.NoAccess, result);
+        }
+
+        [TestMethod]
+        public async Task Create_Mechanism_AsVerifier_CanCreateDirectlyValidated()
+        {
+            FamilyDto dto = BuildBaseFamily();
+            dto.OwnerId = _verifier.Id;
+            dto.Mechanisms.Single().ValidationStatus = ValidationStatus.Validated;
+
+            FamilyDto created = await CreateBaseFamilyAsync(dto, _verifier);
+            Family reloaded = await ReloadAsync(created.Id);
+            Mechanism reloadedMech = reloaded.Mechanisms.Single();
+            Assert.AreEqual(ValidationStatus.Validated, reloadedMech.ValidationStatus);
+            Assert.IsTrue(reloadedMech.IsReadOnly);
+        }
+
+        [TestMethod]
+        public async Task Update_Family_ChangesInCurrentFamily_ReadOnlyMechanismDoesNotChange()
+        {
+            FamilyDto dto = await CreateBaseFamilyAsync(BuildBaseFamily());
+            Guid m1Id = dto.Mechanisms.Single().Id;
+            Guid s1Id = dto.Species.Single(s => s.Name == "A").Id;
+            Guid r1Id = dto.Reactions.Single().Id;
+            Guid p1Id = dto.Phases.Single().Id;
+
+            // Make M1 read-only via PendingValidation
+            dto.Mechanisms.Single().ValidationStatus = ValidationStatus.PendingValidation;
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            // Reload active family after locking M1 to get the new branched version
+            Family lockedFamily = await ReloadAsync(dto.Id);
+            dto = lockedFamily.ToDto();
+            Guid currentS1Id = dto.Species.Single(s => s.Name == "A").Id;
+            Guid currentP1Id = dto.Phases.Single().Id;
+
+            // Now make changes in the current family:
+            Guid s4Id = Guid.NewGuid();
+            dto.Species.Add(new SpeciesDto { Id = s4Id, Name = "D", MolecularWeight = 28.0 });
+
+            // Delete unreferenced species "C"
+            dto.Species.Remove(dto.Species.Single(s => s.Name == "C"));
+
+            Guid r2Id = Guid.NewGuid();
+            dto.Reactions.Add(new ReactionDto
+            {
+                Id = r2Id,
+                Name = "R2",
+                ReactionType = "ARRHENIUS",
+                Reactants = new List<ReactantDto> { new ReactantDto { SpeciesId = s4Id, Coefficient = 1 } },
+                Products = new List<ProductDto> { new ProductDto { SpeciesId = currentS1Id, Coefficient = 1 } },
+            });
+            // 4. Add new editable mechanism "M2"
+            Guid m2Id = Guid.NewGuid();
+            dto.Mechanisms.Add(new MechanismDto
+            {
+                Id = m2Id,
+                Name = "M2",
+                ValidationStatus = ValidationStatus.NoValidationRequested,
+                SpeciesIds = new List<Guid> { s4Id },
+                ReactionIds = new List<Guid> { r2Id },
+                PhaseIds = new List<Guid> { currentP1Id },
+            });
+
+            // Update family with these changes
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            // Reload and verify
+            Family reloaded = await ReloadAsync(dto.Id);
+
+            // Current family received the changes
+            Assert.AreEqual(3, reloaded.Species.Count);
+            Assert.IsTrue(reloaded.Species.Any(s => s.Id == s4Id && s.Name == "D"));
+            Assert.IsFalse(reloaded.Species.Any(s => s.Name == "C"));
+            Assert.AreEqual(2, reloaded.Reactions.Count);
+            Assert.IsTrue(reloaded.Reactions.Any(r => r.Id == r2Id));
+            Assert.AreEqual(2, reloaded.Mechanisms.Count);
+
+            // Read-only mechanism M1 did NOT change
+            Mechanism m1 = reloaded.Mechanisms.Single(m => m.Id == m1Id);
+            Assert.AreEqual(ValidationStatus.PendingValidation, m1.ValidationStatus);
+            Assert.IsTrue(m1.IsReadOnly);
+            Assert.AreEqual("M1", m1.Name);
+
+            // Existing species entry in M1 was NOT modified
+            Assert.AreEqual(1, m1.Species.Count);
+            Species m1Species = m1.Species.Single();
+            Assert.AreEqual(s1Id, m1Species.Id);
+            Assert.AreEqual("A", m1Species.Name);
+
+            // Existing reaction in M1 was NOT modified
+            Assert.AreEqual(1, m1.Reactions.Count);
+            Assert.AreEqual(r1Id, m1.Reactions.Single().Id);
+
+            // Existing phase in M1 was NOT modified
+            Assert.AreEqual(1, m1.Phases.Count);
+            Assert.AreEqual(p1Id, m1.Phases.Single().Id);
+        }
+
+        [TestMethod]
+        public async Task Update_Family_ModifySpeciesInFamilyUsedByReadOnlyMechanism_IsAllowed()
+        {
+            FamilyDto dto = await CreateBaseFamilyAsync(BuildBaseFamily());
+            dto.Mechanisms.Single().ValidationStatus = ValidationStatus.PendingValidation;
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            // Reload active family after locking M1
+            Family lockedFamily = await ReloadAsync(dto.Id);
+            FamilyDto updateDto = lockedFamily.ToDto();
+
+            // Modify Species A (which is in the active family)
+            SpeciesDto speciesA = updateDto.Species.Single(s => s.Name == "A");
+            speciesA.Name = "A_modified";
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(updateDto, _nameIdentifier));
+
+            // Verify:
+            // Current family has A_modified
+            Family reloaded = await ReloadAsync(dto.Id);
+            Assert.AreEqual("A_modified", reloaded.Species.Single(s => s.Name == "A_modified").Name);
+
+            // Read-only mechanism M1 still has "A" (unmodified!)
+            Mechanism m1 = reloaded.Mechanisms.Single();
+            Assert.AreEqual(ValidationStatus.PendingValidation, m1.ValidationStatus);
+            Assert.AreEqual("A", m1.Species.Single().Name);
+        }
+
+        [TestMethod]
+        public async Task Update_Family_ModifyReactionInFamilyUsedByReadOnlyMechanism_IsAllowed()
+        {
+            FamilyDto dto = await CreateBaseFamilyAsync(BuildBaseFamily());
+            dto.Mechanisms.Single().ValidationStatus = ValidationStatus.PendingValidation;
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            // Reload active family after locking M1
+            Family lockedFamily = await ReloadAsync(dto.Id);
+            FamilyDto updateDto = lockedFamily.ToDto();
+
+            // Modify Reaction R1 (which is in the active family)
+            ReactionDto reactionR1 = updateDto.Reactions.Single();
+            reactionR1.Name = "R1_renamed";
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(updateDto, _nameIdentifier));
+
+            // Verify:
+            // Current family has R1_renamed
+            Family reloaded = await ReloadAsync(dto.Id);
+            Assert.AreEqual("R1_renamed", reloaded.Reactions.Single(r => r.Name == "R1_renamed").Name);
+
+            // Read-only mechanism M1 still has "R1" (unmodified!)
+            Mechanism m1 = reloaded.Mechanisms.Single();
+            Assert.AreEqual("R1", m1.Reactions.Single().Name);
+        }
+
+        [TestMethod]
+        public async Task Update_Family_ModifyPhaseInFamilyUsedByReadOnlyMechanism_IsAllowed()
+        {
+            FamilyDto dto = await CreateBaseFamilyAsync(BuildBaseFamily());
+            dto.Mechanisms.Single().ValidationStatus = ValidationStatus.PendingValidation;
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            // Reload active family after locking M1
+            Family lockedFamily = await ReloadAsync(dto.Id);
+            FamilyDto updateDto = lockedFamily.ToDto();
+
+            // Modify Phase Gas (which is in the active family)
+            PhaseDto phase = updateDto.Phases.Single();
+            phase.Name = "Liquid";
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(updateDto, _nameIdentifier));
+
+            // Verify:
+            // Current family has Liquid
+            Family reloaded = await ReloadAsync(dto.Id);
+            Assert.AreEqual("Liquid", reloaded.Phases.Single(p => p.Name == "Liquid").Name);
+
+            // Read-only mechanism M1 still has "gas" (unmodified)
+            Mechanism m1 = reloaded.Mechanisms.Single();
+            Assert.AreEqual("gas", m1.Phases.Single().Name);
+        }
+
+        [TestMethod]
+        public async Task Update_Family_DeleteSpeciesInReadOnlyMechanism_ReturnsValidationError()
+        {
+            FamilyDto dto = await CreateBaseFamilyAsync(BuildBaseFamily());
+            dto.Mechanisms.Single().ValidationStatus = ValidationStatus.PendingValidation;
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            // Attempt to delete Species A (which is used by M1)
+            dto.Species.Remove(dto.Species.Single(s => s.Name == "A"));
+            Assert.AreEqual(QueryResult.ValidationError, await UpdateAsync(dto, _nameIdentifier));
+        }
+
+        [TestMethod]
+        public void BranchCurrentFamilyVersion_CreatesIndependentDeepCopy()
+        {
+            Family family = new Family
+            {
+                Id = Guid.NewGuid(),
+                Name = "TestFamily"
+            };
+            FamilyVersion v1 = new FamilyVersion {
+                Id = Guid.NewGuid(),
+                Family = family,
+                FamilyId = family.Id,
+            };
+            family.CurrentVersion = v1;
+            family.Versions.Add(v1);
+            Species s1 = new Species { Id = Guid.NewGuid(), Name = "O3", FamilyVersionId = v1.Id };
+            Phase p1 = new Phase { Id = Guid.NewGuid(), Name = "gas", FamilyVersionId = v1.Id, Species = new List<Species> { s1 } };
+            Reaction r1 = new Reaction
+            {
+                Id = Guid.NewGuid(),
+                Name = "R1",
+                ReactionType = "ARRHENIUS",
+                FamilyVersionId = v1.Id,
+                Reactants = new List<Reactant> { new Reactant { SpeciesId = s1.Id, Coefficient = 1 } }
+            };
+            Mechanism m_active = new Mechanism
+            {
+                Id = Guid.NewGuid(),
+                Name = "ActiveMech",
+                ValidationStatus = ValidationStatus.NoValidationRequested,
+                FamilyVersionId = v1.Id,
+                Species = new List<Species> { s1 },
+                Reactions = new List<Reaction> { r1 },
+                Phases = new List<Phase> { p1 }
+            };
+            Mechanism m_locked = new Mechanism
+            {
+                Id = Guid.NewGuid(),
+                Name = "LockedMech",
+                ValidationStatus = ValidationStatus.PendingValidation,
+                FamilyVersionId = v1.Id,
+                Species = new List<Species> { s1 },
+                Reactions = new List<Reaction> { r1 },
+                Phases = new List<Phase> { p1 }
+            };
+            v1.Species.Add(s1);
+            v1.Phases.Add(p1);
+            v1.Reactions.Add(r1);
+            family.Mechanisms.Add(m_active);
+            family.Mechanisms.Add(m_locked);
+
+            FamilyVersion v2 = FamilyService.BranchCurrentFamilyVersion(family);
+
+            Assert.AreNotEqual(v1.Id, v2.Id);
+            Assert.AreEqual(v2.Id, family.CurrentVersionId);
+            Assert.AreEqual(2, family.Versions.Count);
+
+            // Verify v2 entities have new IDs
+            Species v2Species = v2.Species.Single();
+            Assert.AreNotEqual(s1.Id, v2Species.Id);
+            Assert.AreEqual("O3", v2Species.Name);
+            Assert.AreEqual(v2.Id, v2Species.FamilyVersionId);
+
+            Phase v2Phase = v2.Phases.Single();
+            Assert.AreNotEqual(p1.Id, v2Phase.Id);
+            Assert.AreEqual(v2Species.Id, v2Phase.Species.Single().Id);
+
+            Reaction v2Reaction = v2.Reactions.Single();
+            Assert.AreNotEqual(r1.Id, v2Reaction.Id);
+            Assert.AreEqual(v2Species.Id, v2Reaction.Reactants.Single().SpeciesId);
+
+            // Active mechanism moved to v2
+            Assert.AreEqual(v2.Id, m_active.FamilyVersionId);
+            Assert.AreEqual(v2Species.Id, m_active.Species.Single().Id);
+
+            // Locked mechanism remained on v1
+            Assert.AreEqual(v1.Id, m_locked.FamilyVersionId);
+            Assert.AreEqual(s1.Id, m_locked.Species.Single().Id);
+        }
+
+        [TestMethod]
+        public void DbInitializer_Seed_RunsSuccessfullyOnEmptyContext()
+        {
+            var options = new Microsoft.EntityFrameworkCore.DbContextOptionsBuilder<ChemistryDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+            using var ctx = new ChemistryDbContext(options);
+            ChemistryCafeAPI.SeedData.DbInitializer.Seed(ctx);
+
+            Assert.IsTrue(ctx.Families.Any());
+            var family = Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.Include(ctx.Families, f => f.CurrentVersion).First();
+            Assert.IsNotNull(family.CurrentVersion);
+            Assert.AreEqual(family.CurrentVersion.Id, family.CurrentVersionId);
+        }
+
+        [TestMethod]
+        public async Task Update_SeededFamily_CanUpdateSpecies()
+        {
+            var options = new Microsoft.EntityFrameworkCore.DbContextOptionsBuilder<ChemistryDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+            using (var seedCtx = new ChemistryDbContext(options))
+            {
+                ChemistryCafeAPI.SeedData.DbInitializer.Seed(seedCtx);
+            }
+
+            using var ctx = new ChemistryDbContext(options);
+            var family = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstAsync(ctx.Families);
+            var service = NewService(ctx);
+            var familyFull = await service.GetFamilyAsync(family.Id);
+            Assert.IsNotNull(familyFull);
+            var dto = familyFull.ToDto();
+            dto.Species.First().Description = "Updated description";
+
+            var result = await service.UpdateFamilyAsync(dto.Id, dto, familyFull.Owner.Id.ToString());
+            Assert.AreEqual(QueryResult.Success, result);
+        }
+
+        [TestMethod]
+        public async Task Update_FamilyWithNullCurrentVersionId_RecoversVersionAndSucceeds()
+        {
+            var options = new Microsoft.EntityFrameworkCore.DbContextOptionsBuilder<ChemistryDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+            Guid familyId;
+            Guid ownerId;
+            using (var seedCtx = new ChemistryDbContext(options))
+            {
+                ChemistryCafeAPI.SeedData.DbInitializer.Seed(seedCtx);
+                var f = seedCtx.Families.First();
+                familyId = f.Id;
+                ownerId = f.Owner.Id;
+                f.CurrentVersion = null;
+                f.CurrentVersionId = null;
+                seedCtx.SaveChanges();
+            }
+
+            using var ctx = new ChemistryDbContext(options);
+            var service = NewService(ctx);
+            var familyFull = await service.GetFamilyAsync(familyId);
+            Assert.IsNotNull(familyFull);
+            Assert.IsNotNull(familyFull.CurrentVersion);
+            var dto = familyFull.ToDto();
+            dto.Species.First().Description = "Updated after null CurrentVersionId recovery";
+
+            var result = await service.UpdateFamilyAsync(dto.Id, dto, ownerId.ToString());
+            Assert.AreEqual(QueryResult.Success, result);
+        }
+
+        [TestMethod]
+        public void MechanismMapper_ToDto_And_ToEntity_PreservesValidatedBy()
+        {
+            Guid validatedById = Guid.NewGuid();
+            var user = new User { Id = validatedById, FirstName = "Jane", LastName = "Smith", Username = "jsmith" };
+            var mechanism = new Mechanism
+            {
+                Id = Guid.NewGuid(),
+                FamilyId = Guid.NewGuid(),
+                FamilyVersionId = Guid.NewGuid(),
+                Name = "Mechanism A",
+                ValidationStatus = ValidationStatus.Validated,
+                ValidatedById = validatedById,
+                ValidatedBy = user
+            };
+
+            MechanismDto dto = mechanism.ToDto();
+            Assert.AreEqual(validatedById, dto.ValidatedById);
+            Assert.AreEqual("jsmith", dto.ValidatedBy);
+
+            Mechanism roundtripEntity = dto.ToEntity();
+            Assert.AreEqual(dto.Id, roundtripEntity.Id);
+            Assert.AreEqual(dto.ValidatedById, roundtripEntity.ValidatedById);
         }
     }
 }

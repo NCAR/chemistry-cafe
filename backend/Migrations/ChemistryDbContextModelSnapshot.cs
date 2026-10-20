@@ -173,11 +173,19 @@ namespace ChemistryCafeAPI.Migrations
                     b.Property<DateTime>("UpdatedDate")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<Guid?>("ValidatedById")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("ValidationStatus")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("FamilyId");
 
                     b.HasIndex("FamilyVersionId");
+
+                    b.HasIndex("ValidatedById");
 
                     b.ToTable("Mechanisms");
                 });
@@ -729,9 +737,16 @@ namespace ChemistryCafeAPI.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ChemistryCafeAPI.Models.User", "ValidatedBy")
+                        .WithMany()
+                        .HasForeignKey("ValidatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("Family");
 
                     b.Navigation("FamilyVersion");
+
+                    b.Navigation("ValidatedBy");
                 });
 
             modelBuilder.Entity("ChemistryCafeAPI.Models.MechanismPhase", b =>

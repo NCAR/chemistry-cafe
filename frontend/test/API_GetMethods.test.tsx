@@ -5,6 +5,7 @@ import {
   getAllUsers,
   getCurrentUser,
   getUserPreferences,
+  getFamilyVersion,
   getUserByEmail,
   getUserById,
 } from "../src/API/API_GetMethods";
@@ -183,6 +184,32 @@ describe("User get functions", () => {
         status: 204,
       });
       expect(await getUserPreferences()).toBeNull();
+    });
+  });
+
+  describe("getFamilyVersion", () => {
+    it("Gets a family version by familyId and versionId", async () => {
+      const mockVersion = {
+        id: "11111111-1111-1111-1111-111111111111",
+        familyId: "22222222-2222-2222-2222-222222222222",
+        species: [],
+        reactions: [],
+        phases: [],
+      };
+      const mockedGet = vi
+        .spyOn(axios, "get")
+        .mockResolvedValue(createSuccessMockResponse(mockVersion)) as Mock;
+
+      const result = await getFamilyVersion(
+        mockVersion.familyId as any,
+        mockVersion.id as any,
+      );
+
+      expect(mockedGet).toHaveBeenCalledWith(
+        `${BASE_URL}/families/${mockVersion.familyId}/versions/${mockVersion.id}`,
+        { withCredentials: true },
+      );
+      expect(result).toEqual(mockVersion);
     });
   });
 });

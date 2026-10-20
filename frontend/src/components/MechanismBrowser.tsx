@@ -4,6 +4,7 @@ import {
   ButtonGroup,
   Card,
   CardContent,
+  Chip,
   Typography,
 } from "@mui/material";
 import { Family, Mechanism } from "../types/chemistryModels";
@@ -13,6 +14,7 @@ import EditIcon from "@mui/icons-material/Edit";
 export type MechanismBrowserProps = {
   family: Family;
   onEditButtonClick?: (mechanism: Mechanism) => void;
+  updateMechanism?: (mechanism: Mechanism) => void;
 };
 
 /**
@@ -22,7 +24,7 @@ export const MechanismBrowser: React.FC<MechanismBrowserProps> = ({
   family,
   onEditButtonClick,
 }) => {
-  if (family.mechanisms.length == 0) {
+  if (family.mechanisms.length === 0) {
     return <Typography>No Mechanisms Found</Typography>;
   }
 
@@ -32,17 +34,37 @@ export const MechanismBrowser: React.FC<MechanismBrowserProps> = ({
         key={`mechanism-${mechanism.id}-${index}`}
         sx={{
           padding: 1,
+          mb: 1,
         }}
         variant="elevation"
         elevation={3}
       >
         <CardContent>
-          <Box>
-            <Typography color="textPrimary">{mechanism.name}</Typography>
-            <Typography color="textSecondary">
-              {mechanism.description}
-            </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
+            <Typography color="textPrimary" variant="h6">{mechanism.name}</Typography>
+            {(mechanism.validationStatus === "Validated" ||
+              mechanism.validationStatus === "Pending Validation") && (
+              <Chip
+                label={mechanism.validationStatus}
+                size="small"
+                color={
+                  mechanism.validationStatus === "Validated"
+                    ? "success"
+                    : "warning"
+                }
+              />
+            )}
+            {mechanism.validationStatus === "Validated" && mechanism.validatedBy && (
+              <Typography variant="caption" color="textSecondary">
+                Validated by {mechanism.validatedBy}
+              </Typography>
+            )}
           </Box>
+          <Typography color="textSecondary" sx={{ mb: 1 }}>
+            {mechanism.description}
+          </Typography>
+
+
           <ButtonGroup variant="contained">
             {onEditButtonClick && (
               <Button

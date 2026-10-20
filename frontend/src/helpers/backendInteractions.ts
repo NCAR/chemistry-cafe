@@ -486,6 +486,16 @@ export function apiToFrontendMechanism(apiMechanism: APIMechanism): Mechanism {
     name: apiMechanism.name,
     description: apiMechanism.description ?? "",
     familyId: apiMechanism.familyId,
+    familyVersionId: apiMechanism.familyVersionId,
+    isReadOnly: apiMechanism.isReadOnly ?? false,
+    validationStatus:
+      apiMechanism.validationStatus === "Validated"
+        ? "Validated"
+        : apiMechanism.validationStatus === "PendingValidation" ||
+            apiMechanism.validationStatus === "Pending Validation"
+          ? "Pending Validation"
+          : "No Validation Requested",
+    validatedBy: apiMechanism.validatedBy ?? null,
     speciesIds: apiMechanism.speciesIds,
     reactionIds: apiMechanism.reactionIds,
     phaseIds: apiMechanism.phaseIds,
@@ -519,6 +529,16 @@ export function frontendToAPIMechanism(
     reactionIds: mechanism.reactionIds as UUID[],
     phaseIds: mechanism.phaseIds as UUID[],
     familyId: family.id as UUID,
+    familyVersionId: mechanism.familyVersionId,
+    isReadOnly: mechanism.isReadOnly,
+    validationStatus:
+      mechanism.validationStatus === "Validated"
+        ? "Validated"
+        : mechanism.validationStatus === "Pending Validation" ||
+            mechanism.validationStatus === "PendingValidation"
+          ? "PendingValidation"
+          : "NoValidationRequested",
+    validatedBy: mechanism.validatedBy ?? undefined,
   };
 
   return formattedMechanism;

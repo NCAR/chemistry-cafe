@@ -1,10 +1,19 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics.CodeAnalysis;
 
 namespace ChemistryCafeAPI.Models;
+
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum ValidationStatus
+{
+    NoValidationRequested = 0,
+    PendingValidation = 1,
+    Validated = 2
+}
 
 [Table("Mechanisms")]
 public class Mechanism
@@ -21,7 +30,15 @@ public class Mechanism
     public ICollection<Species> Species { get; set; } = new List<Species>();
     public ICollection<Reaction> Reactions { get; set; } = new List<Reaction>();
 
-    public bool IsReadOnly => false;
+    public bool IsReadOnly => ValidationStatus != ValidationStatus.NoValidationRequested;
+
+    public ValidationStatus ValidationStatus { get; set; } = ValidationStatus.NoValidationRequested;
+
+    // User who marked the mechanism as Validated (optional)
+    [ForeignKey("ValidatedBy")]
+    public Guid? ValidatedById { get; set; }
+    [JsonIgnore]
+    public User? ValidatedBy { get; set; }
 
     // Family relationship (Mechanism belongs to Family)
     [ForeignKey("Family")]
