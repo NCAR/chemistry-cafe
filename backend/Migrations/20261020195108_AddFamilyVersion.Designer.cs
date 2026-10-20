@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChemistryCafeAPI.Migrations
 {
     [DbContext(typeof(ChemistryDbContext))]
-    [Migration("20261020194936_AddFamilyVersion")]
+    [Migration("20261020195108_AddFamilyVersion")]
     partial class AddFamilyVersion
     {
         /// <inheritdoc />
@@ -168,9 +168,6 @@ namespace ChemistryCafeAPI.Migrations
 
                     b.Property<Guid>("FamilyVersionId")
                         .HasColumnType("char(36)");
-
-                    b.Property<bool>("IsReadOnly")
-                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Name")
                         .IsRequired()

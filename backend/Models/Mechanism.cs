@@ -21,7 +21,7 @@ public class Mechanism
     public ICollection<Species> Species { get; set; } = new List<Species>();
     public ICollection<Reaction> Reactions { get; set; } = new List<Reaction>();
 
-    public bool IsReadOnly { get; set; } = false;
+    public bool IsReadOnly => false;
 
     // Family relationship (Mechanism belongs to Family)
     [ForeignKey("Family")]

@@ -32,7 +32,6 @@ public static class MechanismMapper
             Id = mechanismDto.Id,
             FamilyId = mechanismDto.FamilyId,
             FamilyVersionId = mechanismDto.FamilyVersionId,
-            IsReadOnly = mechanismDto.IsReadOnly,
             Name = mechanismDto.Name,
             Description = mechanismDto.Description,
         };

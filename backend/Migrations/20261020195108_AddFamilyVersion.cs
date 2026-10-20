@@ -61,13 +61,6 @@ namespace ChemistryCafeAPI.Migrations
                 defaultValue: new Guid("00000000-0000-0000-0000-000000000000"),
                 collation: "ascii_general_ci");
 
-            migrationBuilder.AddColumn<bool>(
-                name: "IsReadOnly",
-                table: "Mechanisms",
-                type: "tinyint(1)",
-                nullable: false,
-                defaultValue: false);
-
             migrationBuilder.AddColumn<Guid>(
                 name: "CurrentVersionId",
                 table: "Families",
@@ -187,10 +180,6 @@ namespace ChemistryCafeAPI.Migrations
 
             migrationBuilder.DropColumn(
                 name: "FamilyVersionId",
-                table: "Mechanisms");
-
-            migrationBuilder.DropColumn(
-                name: "IsReadOnly",
                 table: "Mechanisms");
 
             migrationBuilder.DropColumn(

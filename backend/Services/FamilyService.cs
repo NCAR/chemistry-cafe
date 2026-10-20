@@ -848,7 +848,6 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             Mechanism existingMechanism = existing.Mechanisms.Single(m => m.Id == id);
             existingMechanism.Name = incomingMechanism.Name;
             existingMechanism.Description = incomingMechanism.Description;
-            existingMechanism.IsReadOnly = incomingMechanism.IsReadOnly;
             existingMechanism.FamilyId = existing.Id;
             if (incomingMechanism.FamilyVersionId != Guid.Empty)
             {

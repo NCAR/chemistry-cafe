@@ -166,9 +166,6 @@ namespace ChemistryCafeAPI.Migrations
                     b.Property<Guid>("FamilyVersionId")
                         .HasColumnType("char(36)");
 
-                    b.Property<bool>("IsReadOnly")
-                        .HasColumnType("tinyint(1)");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("longtext");
