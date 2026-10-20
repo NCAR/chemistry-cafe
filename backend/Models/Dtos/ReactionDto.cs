@@ -28,6 +28,7 @@ public class ReactionDto
     public PhotolysisParametersDto? Photolysis { get; set; }
     public UserDefinedParametersDto? UserDefined { get; set; }
 
+    public Guid? PhaseId { get; set; }
     public Guid? GasPhaseId { get; set; }
     public Guid? GasPhaseSpeciesId { get; set; }
     public Guid? AerosolPhaseId { get; set; }

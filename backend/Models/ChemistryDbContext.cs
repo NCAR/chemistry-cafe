@@ -183,6 +183,12 @@ public partial class ChemistryDbContext : DbContext
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Reaction>()
+            .HasOne(r => r.Phase)
+            .WithMany(p => p.AsReactionPhase)
+            .HasForeignKey(r => r.PhaseId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<Reaction>()
             .HasOne(r => r.GasPhase)
             .WithMany(p => p.AsGasPhase)
             .HasForeignKey(r => r.GasPhaseId)

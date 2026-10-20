@@ -90,6 +90,9 @@ export const cloneFamily = (family: Family): Family => {
         }
         return accumulator;
       }, []),
+      phaseId: reaction.phaseId
+      ? idMappings.get(reaction.phaseId)
+      : undefined,
       gasPhaseId: reaction.gasPhaseId
         ? idMappings.get(reaction.gasPhaseId)
         : undefined,

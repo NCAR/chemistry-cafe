@@ -56,6 +56,10 @@ public class Reaction
 
     // Phase information
     [ForeignKey("Phases")]
+    public Guid? PhaseId { get; set; }
+    public Phase? Phase { get; set; }
+
+    [ForeignKey("Phases")]
     public Guid? GasPhaseId { get; set; }
     public Phase? GasPhase { get; set; }
 

@@ -561,6 +561,26 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
         </Typography>
       ),
     },
+    {
+      field: "phaseId",
+      headerName: "Phase",
+      flex: 0.75,
+      valueGetter: (_value, row: Reaction) =>
+        family.phases.find((phase) => phase.id === row.phaseId)?.name ?? "",
+      renderCell: (params: GridRenderCellParams<Reaction>) => (
+        <Typography
+          variant="body1"
+          sx={{
+            color: params.value
+              ? theme.palette.text.primary
+              : theme.palette.text.disabled,
+          }}
+          noWrap
+        >
+          {params.value || "<None>"}
+        </Typography>
+      ),
+    },
   ];
 
   const typeCounts = new Map<ReactionTypeName, number>();

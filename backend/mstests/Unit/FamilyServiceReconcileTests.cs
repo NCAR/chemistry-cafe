@@ -280,6 +280,36 @@ namespace ChemistryCafeAPI.Tests
         }
 
         [TestMethod]
+        public async Task Update_RejectsReactionSpeciesOutsideItsPhase()
+        {
+            FamilyDto dto = await CreateBaseFamilyAsync(BuildBaseFamily());
+            ReactionDto reaction = dto.Reactions.Single();
+            reaction.PhaseId = dto.Phases.Single().Id;
+            reaction.Products.Single().SpeciesId = dto.Species.Single(s => s.Name == "C").Id;
+
+            Assert.AreEqual(QueryResult.ValidationError, await UpdateAsync(dto, _nameIdentifier));
+
+            Family reloaded = await ReloadAsync(dto.Id);
+            Assert.IsNull(reloaded.Reactions.Single().PhaseId);
+            Assert.AreNotEqual(
+                dto.Species.Single(s => s.Name == "C").Id,
+                reloaded.Reactions.Single().Products.Single().SpeciesId);
+        }
+
+        [TestMethod]
+        public async Task Update_SavesReactionPhase()
+        {
+            FamilyDto dto = await CreateBaseFamilyAsync(BuildBaseFamily());
+            Guid phaseId = dto.Phases.Single().Id;
+            dto.Reactions.Single().PhaseId = phaseId;
+
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            Family reloaded = await ReloadAsync(dto.Id);
+            Assert.AreEqual(phaseId, reloaded.Reactions.Single().PhaseId);
+        }
+
+        [TestMethod]
         public async Task Update_DuplicateChildIds_ReturnsValidationError()
         {
             FamilyDto dto = await CreateBaseFamilyAsync(BuildBaseFamily());

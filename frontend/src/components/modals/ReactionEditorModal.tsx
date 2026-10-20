@@ -85,6 +85,7 @@ type SpeciesRowsProps = {
   title: string;
   entries: Array<SpeciesEntry>;
   family: Family;
+  availableSpecies: Family["species"];
   /** Species that the add button does not offer, for example from another branch */
   unavailable?: Array<string>;
   /** The most species that the list can have. The add button hides at this count. */
@@ -108,6 +109,7 @@ const SpeciesRows = ({
   title,
   entries,
   family,
+  availableSpecies,
   unavailable,
   maxEntries,
   addLabel,
@@ -125,7 +127,7 @@ const SpeciesRows = ({
         <SelectSpeciesButton
           aria-label={addLabel}
           onSelect={(species) => onChange([...entries, newEntry(species.id)])}
-          species={family.species.filter(
+          species={availableSpecies.filter(
             (species) =>
               !entries.some((e) => e.speciesId === species.id) &&
               !unavailable?.includes(species.id),
@@ -251,7 +253,16 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
 
   const { preferences } = useUserPreferences();
   const rateUnits = rateUnitsFor(preferences.rateUnits, modifiedReaction?.type);
-  const { activationParameter } = preferences;
+  const selectedPhase = family.phases.find(
+    (phase) => phase.id === modifiedReaction?.phaseId,
+  );
+  const availableSpecies = selectedPhase
+    ? family.species.filter((species) =>
+        selectedPhase.speciesIds.includes(species.id),
+      )
+    : family.phases.length === 0
+      ? family.species
+      : [];
 
   // The text of the equation field while the user changes it, or null when
   // the field shows the reactants and products of the rows.
@@ -376,7 +387,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
     if (productBranches.length > 0) {
       const parsed = parseBranchedEquation(
         text,
-        family.species,
+        availableSpecies,
         productBranches,
       );
       errors = [...parsed.errors];
@@ -395,7 +406,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
         seen.add(product.speciesId);
       }
     } else {
-      const parsed = parseEquation(text, family.species);
+      const parsed = parseEquation(text, availableSpecies);
       errors = [...parsed.errors];
       newReactants = parsed.reactants;
       newProducts = parsed.products.map(withDefaultBranch);
@@ -416,7 +427,26 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
     checkCount(currentConfiguration.reactantCount, newReactants, "reactant");
     checkCount(currentConfiguration.productCount, newProducts, "product");
 
-    return { reactants: newReactants, products: newProducts, errors };
+    const phaseErrors = errors.map((error) => {
+      const match = /^Unknown species: (.*?)(?: \(did you mean .*\?\))?$/.exec(
+        error,
+      );
+      if (!selectedPhase || !match) {
+        return error;
+      }
+      const knownSpecies = family.species.find(
+        (species) => species.name.toLowerCase() === match[1].toLowerCase(),
+      );
+      return knownSpecies
+        ? `Species ${knownSpecies.name} is not in the selected phase`
+        : error;
+    });
+
+    return {
+      reactants: newReactants,
+      products: newProducts,
+      errors: phaseErrors,
+    };
   };
 
   // Applies the equation field to the rows. With errors, the rows do not
@@ -441,6 +471,12 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
   const handleUpdateReaction = () => {
     if (!modifiedReaction) {
       setErrorMessage("Reaction is undefined");
+      setShowAlert(true);
+      return;
+    }
+
+    if (family.phases.length > 0 && !selectedPhase) {
+      setErrorMessage("Select a phase for this reaction");
       setShowAlert(true);
       return;
     }
@@ -495,6 +531,17 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
     }
 
     if (
+      selectedPhase &&
+      [...reactionToSave.reactants, ...reactionToSave.products].some(
+        (entry) => !selectedPhase.speciesIds.includes(entry.speciesId),
+      )
+    ) {
+      setErrorMessage("All reactants and products must belong to the selected phase");
+      setShowAlert(true);
+      return;
+    }
+
+    if (
       currentConfiguration.hasGasPhaseSpecies &&
       !reactionToSave.gasPhaseSpeciesId
     ) {
@@ -516,7 +563,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
   // The lists of species under the equation field: the reactants, and the
   // products of each branch, or all products.
   const speciesLists: Array<
-    Omit<SpeciesRowsProps, "family" | "version"> & { key: string }
+    Omit<SpeciesRowsProps, "family" | "version" | "availableSpecies"> & {
+      key: string;
+    }
   > = [];
   if (currentConfiguration.reactantCount !== ReactionSpeciesCount.NONE) {
     speciesLists.push({
@@ -819,6 +868,45 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
               });
             }}
           />
+          {family.phases.length > 0 && (
+            <TextField
+              select
+              size="small"
+              fullWidth
+              required
+              label="Reaction Phase"
+              value={modifiedReaction?.phaseId ?? ""}
+              helperText="Reactants and products must belong to this phase."
+              onChange={(event) => {
+                const phaseId = event.target.value as UUID;
+                const phase = family.phases.find(
+                  (option) => option.id === phaseId,
+                );
+                if (!phase) {
+                  return;
+                }
+                const speciesIds = new Set(phase.speciesIds);
+                changeReactionProperties({
+                  phaseId,
+                  reactants: (modifiedReaction?.reactants ?? []).filter(
+                    (entry) => speciesIds.has(entry.speciesId),
+                  ),
+                  products: (modifiedReaction?.products ?? []).filter(
+                    (entry) => speciesIds.has(entry.speciesId),
+                  ),
+                });
+                setEquationDraft(null);
+                setEquationErrors([]);
+                setSpeciesVersion((version) => version + 1);
+              }}
+            >
+              {family.phases.map((phase) => (
+                <MenuItem key={phase.id} value={phase.id}>
+                  {phase.name || "<No Name>"}
+                </MenuItem>
+              ))}
+            </TextField>
+          )}
           {(currentConfiguration.hasGasPhase ||
             currentConfiguration.hasGasPhaseSpecies) && (
             <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5 }}>
@@ -912,6 +1000,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                   key={key}
                   {...list}
                   family={family}
+                  availableSpecies={availableSpecies}
                   version={speciesVersion}
                 />
               ))}

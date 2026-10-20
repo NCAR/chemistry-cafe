@@ -395,6 +395,8 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         HashSet<Guid> speciesIds = family.Species.Select(s => s.Id).ToHashSet();
         HashSet<Guid> reactionIds = family.Reactions.Select(r => r.Id).ToHashSet();
         HashSet<Guid> phaseIds = family.Phases.Select(p => p.Id).ToHashSet();
+        Dictionary<Guid, HashSet<Guid>> speciesByPhase = family.Phases
+            .ToDictionary(p => p.Id, p => p.SpeciesIds.ToHashSet());
 
         List<Guid> missing = new();
 
@@ -440,6 +442,21 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             if (reaction.AerosolPhaseId is Guid aerosolPhase && !phaseIds.Contains(aerosolPhase))
             {
                 missing.Add(aerosolPhase);
+            }
+            if (reaction.PhaseId is Guid reactionPhase)
+            {
+                if (!speciesByPhase.TryGetValue(reactionPhase, out HashSet<Guid> phaseSpecies))
+                {
+                    missing.Add(reactionPhase);
+                    continue;
+                }
+
+                missing.AddRange(reaction.Reactants
+                    .Select(r => r.SpeciesId)
+                    .Where(id => !phaseSpecies.Contains(id)));
+                missing.AddRange(reaction.Products
+                    .Select(p => p.SpeciesId)
+                    .Where(id => !phaseSpecies.Contains(id)));
             }
         }
 
@@ -520,6 +537,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             existingReaction.GasPhaseSpeciesId = incomingReaction.GasPhaseSpeciesId;
             existingReaction.AerosolPhaseSpeciesId = incomingReaction.AerosolPhaseSpeciesId;
             existingReaction.AerosolPhaseWaterId = incomingReaction.AerosolPhaseWaterId;
+            existingReaction.PhaseId = incomingReaction.PhaseId;
             existingReaction.GasPhaseId = incomingReaction.GasPhaseId;
             existingReaction.AerosolPhaseId = incomingReaction.AerosolPhaseId;
             existingReaction.Reactants = incomingReaction.Reactants.Select(r => r.ToEntity()).ToList();

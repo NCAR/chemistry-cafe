@@ -175,13 +175,15 @@ describe("Reaction Conversion", () => {
   test("gas phase and aerosol phase references round-trip in both directions", () => {
     const phaseReaction: Reaction = {
       ...frontendReaction,
+      phaseId: "66666666-6666-6666-6666-666666666666",
       gasPhaseId: "11111111-1111-1111-1111-111111111111",
       gasPhaseSpeciesId: "22222222-2222-2222-2222-222222222222",
       aerosolPhaseId: "33333333-3333-3333-3333-333333333333",
       aerosolPhaseSpeciesId: "44444444-4444-4444-4444-444444444444",
       aerosolPhaseWaterId: "55555555-5555-5555-5555-555555555555",
     };
-    const toApi = frontendToAPIReaction(phaseReaction);
+    const toApi = frontendToAPIReaction(phaseReaction, frontendFamily);
+    expect(toApi.phaseId).toEqual(phaseReaction.phaseId);
     expect(toApi.gasPhaseId).toEqual(phaseReaction.gasPhaseId);
     expect(toApi.gasPhaseSpeciesId).toEqual(phaseReaction.gasPhaseSpeciesId);
     expect(toApi.aerosolPhaseId).toEqual(phaseReaction.aerosolPhaseId);
@@ -194,6 +196,7 @@ describe("Reaction Conversion", () => {
 
     const apiPhaseReaction: APIReaction = {
       ...apiReaction,
+      phaseId: phaseReaction.phaseId,
       gasPhaseId: phaseReaction.gasPhaseId,
       gasPhaseSpeciesId: phaseReaction.gasPhaseSpeciesId,
       aerosolPhaseId: phaseReaction.aerosolPhaseId,
@@ -201,6 +204,7 @@ describe("Reaction Conversion", () => {
       aerosolPhaseWaterId: phaseReaction.aerosolPhaseWaterId,
     };
     const toFrontend = apiToFrontendReaction(apiPhaseReaction);
+    expect(toFrontend.phaseId).toEqual(phaseReaction.phaseId);
     expect(toFrontend.gasPhaseId).toEqual(phaseReaction.gasPhaseId);
     expect(toFrontend.gasPhaseSpeciesId).toEqual(
       phaseReaction.gasPhaseSpeciesId,

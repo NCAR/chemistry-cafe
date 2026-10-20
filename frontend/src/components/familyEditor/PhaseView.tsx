@@ -79,6 +79,11 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
     updateFamily({
       ...family,
       phases: family.phases.filter((phase) => phase.id !== id),
+      reactions: family.reactions.map((reaction) =>
+        reaction.phaseId === id
+          ? { ...reaction, phaseId: undefined }
+          : reaction,
+      ),
       mechanisms: family.mechanisms.map((mechanism) => ({
         ...mechanism,
         phaseIds: mechanism.phaseIds.filter((phaseId) => phaseId !== id),
