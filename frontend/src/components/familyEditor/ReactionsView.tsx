@@ -394,6 +394,21 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
     });
   };
 
+  const addSpeciesToPhase = (phaseId: UUID, speciesIds: Array<UUID>) => {
+    updateFamily({
+      ...family,
+      phases: family.phases.map((phase) =>
+        phase.id === phaseId
+          ? {
+              ...phase,
+              speciesIds: [...new Set([...phase.speciesIds, ...speciesIds])],
+            }
+          : phase,
+      ),
+      isModified: true,
+    });
+  };
+
   const reactionsColumns: GridColDef[] = [
     {
       field: "Row Actions",
@@ -691,6 +706,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
           setSelectedReaction(undefined);
         }}
         onUpdate={updateReaction}
+        onAddSpeciesToPhase={addSpeciesToPhase}
         reaction={selectedReaction}
         family={family}
       />
