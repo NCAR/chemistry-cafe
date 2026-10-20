@@ -27,41 +27,59 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         {
             query = query
                 .Include(f => f.Owner)
-                .Include(f => f.Species)
-                .Include(f => f.Reactions)
-                    .ThenInclude(r => r.Reactants)
-                .Include(f => f.Reactions)
-                    .ThenInclude(r => r.Products)
-                .Include(f => f.Reactions)
-                    .ThenInclude(r => r.Arrhenius)
-                .Include(f => f.Reactions)
-                    .ThenInclude(r => r.Tunneling)
-                .Include(f => f.Reactions)
-                    .ThenInclude(r => r.Troe)
-                .Include(f => f.Reactions)
-                    .ThenInclude(r => r.TernaryChemicalActivation)
-                .Include(f => f.Reactions)
-                    .ThenInclude(r => r.Branched)
-                .Include(f => f.Reactions)
-                    .ThenInclude(r => r.TaylorSeries)
-                .Include(f => f.Reactions)
-                    .ThenInclude(r => r.Surface)
-                .Include(f => f.Reactions)
-                    .ThenInclude(r => r.Emission)
-                .Include(f => f.Reactions)
-                    .ThenInclude(r => r.FirstOrderLoss)
-                .Include(f => f.Reactions)
-                    .ThenInclude(r => r.Photolysis)
-                .Include(f => f.Reactions)
-                    .ThenInclude(r => r.UserDefined)
-                .Include(f => f.Phases)
-                    .ThenInclude(p => p.PhaseSpecies)
-                .Include(f => f.Mechanisms)
-                    .ThenInclude(m => m.Species)
-                .Include(f => f.Mechanisms)
-                    .ThenInclude(m => m.Reactions)
-                .Include(f => f.Mechanisms)
-                    .ThenInclude(m => m.Phases);
+                .Include(f => f.CurrentVersion)
+                        .ThenInclude(v => v!.Species)
+                .Include(f => f.CurrentVersion)
+                        .ThenInclude(v => v!.Reactions)
+                        .ThenInclude(r => r.Reactants)
+                .Include(f => f.CurrentVersion)
+                        .ThenInclude(v => v!.Reactions)
+                        .ThenInclude(r => r.Products)
+                .Include(f => f.CurrentVersion)
+                        .ThenInclude(v => v!.Reactions)
+                        .ThenInclude(r => r.Arrhenius)
+                .Include(f => f.CurrentVersion)
+                        .ThenInclude(v => v!.Reactions)
+                        .ThenInclude(r => r.Tunneling)
+                .Include(f => f.CurrentVersion)
+                        .ThenInclude(v => v!.Reactions)
+                        .ThenInclude(r => r.Troe)
+                .Include(f => f.CurrentVersion)
+                        .ThenInclude(v => v!.Reactions)
+                        .ThenInclude(r => r.TernaryChemicalActivation)
+                .Include(f => f.CurrentVersion)
+                        .ThenInclude(v => v!.Reactions)
+                        .ThenInclude(r => r.Branched)
+                .Include(f => f.CurrentVersion)
+                        .ThenInclude(v => v!.Reactions)
+                        .ThenInclude(r => r.TaylorSeries)
+                .Include(f => f.CurrentVersion)
+                        .ThenInclude(v => v!.Reactions)
+                        .ThenInclude(r => r.Surface)
+                .Include(f => f.CurrentVersion)
+                        .ThenInclude(v => v!.Reactions)
+                        .ThenInclude(r => r.Emission)
+                .Include(f => f.CurrentVersion)
+                        .ThenInclude(v => v!.Reactions)
+                        .ThenInclude(r => r.FirstOrderLoss)
+                .Include(f => f.CurrentVersion)
+                        .ThenInclude(v => v!.Reactions)
+                        .ThenInclude(r => r.Photolysis)
+                .Include(f => f.CurrentVersion)
+                        .ThenInclude(v => v!.Reactions)
+                        .ThenInclude(r => r.UserDefined)
+                .Include(f => f.CurrentVersion)
+                        .ThenInclude(v => v!.Phases)
+                        .ThenInclude(p => p.PhaseSpecies)
+                .Include(f => f.CurrentVersion)
+                        .ThenInclude(v => v!.Mechanisms)
+                        .ThenInclude(m => m.Species)
+                .Include(f => f.CurrentVersion)
+                    .ThenInclude(v => v!.Mechanisms)
+                        .ThenInclude(m => m.Reactions)
+                .Include(f => f.CurrentVersion)
+                        .ThenInclude(v => v!.Mechanisms)
+                        .ThenInclude(m => m.Phases);
         }
 
         if (userId != null)
@@ -85,41 +103,59 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         var family = await context.Families
             .AsSplitQuery()
             .Include(f => f.Owner)
-            .Include(f => f.Species)
-            .Include(f => f.Reactions)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Species)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Reactions)
                 .ThenInclude(r => r.Reactants)
-            .Include(f => f.Reactions)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Reactions)
                 .ThenInclude(r => r.Products)
-            .Include(f => f.Reactions)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Reactions)
                 .ThenInclude(r => r.Arrhenius)
-            .Include(f => f.Reactions)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Reactions)
                 .ThenInclude(r => r.Tunneling)
-            .Include(f => f.Reactions)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Reactions)
                 .ThenInclude(r => r.Troe)
-            .Include(f => f.Reactions)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Reactions)
                 .ThenInclude(r => r.TernaryChemicalActivation)
-            .Include(f => f.Reactions)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Reactions)
                 .ThenInclude(r => r.Branched)
-            .Include(f => f.Reactions)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Reactions)
                 .ThenInclude(r => r.TaylorSeries)
-            .Include(f => f.Reactions)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Reactions)
                 .ThenInclude(r => r.Surface)
-            .Include(f => f.Reactions)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Reactions)
                 .ThenInclude(r => r.Emission)
-            .Include(f => f.Reactions)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Reactions)
                 .ThenInclude(r => r.FirstOrderLoss)
-            .Include(f => f.Reactions)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Reactions)
                 .ThenInclude(r => r.Photolysis)
-            .Include(f => f.Reactions)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Reactions)
                 .ThenInclude(r => r.UserDefined)
-            .Include(f => f.Phases)
-                .ThenInclude(p => p.PhaseSpecies)
-            .Include(f => f.Mechanisms)
-                .ThenInclude(m => m.Species)
-            .Include(f => f.Mechanisms)
-                .ThenInclude(m => m.Reactions)
-            .Include(f => f.Mechanisms)
-                .ThenInclude(m => m.Phases)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Phases)
+                    .ThenInclude(p => p.PhaseSpecies)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Mechanisms)
+                    .ThenInclude(m => m.Species)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Mechanisms)
+                    .ThenInclude(m => m.Reactions)
+            .Include(f => f.CurrentVersion)
+                    .ThenInclude(v => v!.Mechanisms)
+                    .ThenInclude(m => m.Phases)
             .SingleOrDefaultAsync(f => f.Id == id);
         return family;
     }
@@ -163,15 +199,26 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             Name = family.Name,
             Description = family.Description,
             Owner = currentUser,
+        };
+
+        FamilyVersion initialVersion = new FamilyVersion
+        {
+            Id = Guid.NewGuid(),
+            FamilyId = familyId,
+            Family = familyInfo,
+            CreatedDate = DateTime.UtcNow,
             Species = family.Species.Select(s => s.ToEntity()).ToList(),
             Reactions = family.Reactions.Select(r => r.ToEntity()).ToList(),
         };
 
-        // now we need to create the child objects and link them to the family
-        Dictionary<Guid, Species> speciesById = familyInfo.Species.ToDictionary(s => s.Id);
-        Dictionary<Guid, Reaction> reactionsById = familyInfo.Reactions.ToDictionary(r => r.Id);
+        familyInfo.CurrentVersion = null;
+        familyInfo.CurrentVersionId = null;
 
-        familyInfo.Phases = family.Phases
+        // now we need to create the child objects and link them to the version
+        Dictionary<Guid, Species> speciesById = initialVersion.Species.ToDictionary(s => s.Id);
+        Dictionary<Guid, Reaction> reactionsById = initialVersion.Reactions.ToDictionary(r => r.Id);
+
+        initialVersion.Phases = family.Phases
             .Select(p =>
             {
                 Phase phase = p.ToEntity();
@@ -186,9 +233,9 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             })
             .ToList();
         
-        Dictionary<Guid, Phase> phasesById = familyInfo.Phases.ToDictionary(p => p.Id);
+        Dictionary<Guid, Phase> phasesById = initialVersion.Phases.ToDictionary(p => p.Id);
         
-        familyInfo.Mechanisms = family.Mechanisms
+        initialVersion.Mechanisms = family.Mechanisms
             .Select(m =>
             {
                 Mechanism mechanism = m.ToEntity();
@@ -199,11 +246,15 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             })
             .ToList();
 
-
-        var createdFamily = context.Families.Add(familyInfo);
+        context.Families.Add(familyInfo);
+        context.FamilyVersions.Add(initialVersion);
         await context.SaveChangesAsync();
 
-        return (QueryResult.Success, createdFamily);
+        familyInfo.CurrentVersion = initialVersion;
+        familyInfo.CurrentVersionId = initialVersion.Id;
+        await context.SaveChangesAsync();
+
+        return (QueryResult.Success, context.Entry(familyInfo));
     }
 
     /// <summary>
@@ -223,24 +274,44 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         var existingFamily = await context.Families
             .AsSplitQuery()
             .Include(f => f.Owner)
-            .Include(f => f.Species)
-            .Include(f => f.Reactions).ThenInclude(r => r.Reactants)
-            .Include(f => f.Reactions).ThenInclude(r => r.Products)
-            .Include(f => f.Reactions).ThenInclude(r => r.Arrhenius)
-            .Include(f => f.Reactions).ThenInclude(r => r.Tunneling)
-            .Include(f => f.Reactions).ThenInclude(r => r.Troe)
-            .Include(f => f.Reactions).ThenInclude(r => r.TernaryChemicalActivation)
-            .Include(f => f.Reactions).ThenInclude(r => r.Branched)
-            .Include(f => f.Reactions).ThenInclude(r => r.TaylorSeries)
-            .Include(f => f.Reactions).ThenInclude(r => r.Surface)
-            .Include(f => f.Reactions).ThenInclude(r => r.Emission)
-            .Include(f => f.Reactions).ThenInclude(r => r.FirstOrderLoss)
-            .Include(f => f.Reactions).ThenInclude(r => r.Photolysis)
-            .Include(f => f.Reactions).ThenInclude(r => r.UserDefined)
-            .Include(f => f.Phases).ThenInclude(p => p.PhaseSpecies)
-            .Include(f => f.Mechanisms).ThenInclude(m => m.Species)
-            .Include(f => f.Mechanisms).ThenInclude(m => m.Reactions)
-            .Include(f => f.Mechanisms).ThenInclude(m => m.Phases)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Species)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Reactions).ThenInclude(r => r.Reactants)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Reactions).ThenInclude(r => r.Products)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Reactions).ThenInclude(r => r.Arrhenius)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Reactions).ThenInclude(r => r.Tunneling)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Reactions).ThenInclude(r => r.Troe)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Reactions).ThenInclude(r => r.TernaryChemicalActivation)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Reactions).ThenInclude(r => r.Branched)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Reactions).ThenInclude(r => r.TaylorSeries)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Reactions).ThenInclude(r => r.Surface)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Reactions).ThenInclude(r => r.Emission)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Reactions).ThenInclude(r => r.FirstOrderLoss)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Reactions).ThenInclude(r => r.Photolysis)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Reactions).ThenInclude(r => r.UserDefined)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Phases).ThenInclude(p => p.Species)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Phases).ThenInclude(p => p.PhaseSpecies)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Mechanisms).ThenInclude(m => m.Species)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Mechanisms).ThenInclude(m => m.Reactions)
+            .Include(f => f.CurrentVersion)
+                .ThenInclude(v => v!.Mechanisms).ThenInclude(m => m.Phases)
             .SingleOrDefaultAsync(f => f.Id == id);
 
         if (existingFamily == null)
@@ -270,6 +341,20 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         // Update the easy fields
         existingFamily.Name = family.Name;
         existingFamily.Description = family.Description;
+
+        if (existingFamily.CurrentVersion == null)
+        {
+            var initialVersion = new FamilyVersion
+            {
+                Id = Guid.NewGuid(),
+                FamilyId = existingFamily.Id,
+                Family = existingFamily
+            };
+            existingFamily.CurrentVersion = initialVersion;
+            existingFamily.CurrentVersionId = initialVersion.Id;
+            existingFamily.Versions.Add(initialVersion);
+            context.FamilyVersions.Add(initialVersion);
+        }
 
         // reconcile all of the changes in all child objects
         TrackChangesToFamily(family, existingFamily);
@@ -396,6 +481,8 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
     /// </summary>
     private void TrackChangesToFamily(FamilyDto incoming, Family existing)
     {
+        FamilyVersion version = existing.EnsureCurrentVersion();
+
         HashSet<Guid> incomingSpeciesIds = incoming.Species.Select(s => s.Id).ToHashSet();
         HashSet<Guid> incomingReactionIds = incoming.Reactions.Select(r => r.Id).ToHashSet();
         HashSet<Guid> incomingPhaseIds = incoming.Phases.Select(p => p.Id).ToHashSet();
@@ -413,7 +500,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         deletedSpeciesIds.ToList().ForEach(id => context.Species.Remove(existing.Species.Single(s => s.Id == id)));
         newSpeciesIds.ToList().ForEach(id => {
             Species added = incoming.Species.Single(s => s.Id == id).ToEntity();
-            added.FamilyId = existing.Id;
+            added.FamilyVersionId = version.Id;
             context.Species.Add(added);
             existing.Species.Add(added);
         });
@@ -438,7 +525,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         deletedReactionIds.ToList().ForEach(id => context.Reactions.Remove(existing.Reactions.Single(r => r.Id == id)));
         newReactionIds.ToList().ForEach(id => {
             Reaction added = incoming.Reactions.Single(r => r.Id == id).ToEntity();
-            added.FamilyId = existing.Id;
+            added.FamilyVersionId = version.Id;
             context.Reactions.Add(added);
             existing.Reactions.Add(added);
         });
@@ -701,7 +788,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         newPhaseIds.ToList().ForEach(id => {
             PhaseDto incomingPhase = incoming.Phases.Single(p => p.Id == id);
             Phase added = incoming.Phases.Single(p => p.Id == id).ToEntity();
-            added.FamilyId = existing.Id;
+            added.FamilyVersionId = version.Id;
             added.PhaseSpecies = incomingPhase.SpeciesIds
                 .Select(sid => new PhaseSpecies
                 {
@@ -743,7 +830,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         deletedMechanismIds.ToList().ForEach(id => context.Mechanisms.Remove(existing.Mechanisms.Single(m => m.Id == id)));
         newMechanismIds.ToList().ForEach(id => {
             Mechanism added = incoming.Mechanisms.Single(m => m.Id == id).ToEntity();
-            added.FamilyId = existing.Id;
+            added.FamilyVersionId = version.Id;
             added.Species = incoming.Mechanisms.Single(m => m.Id == id).SpeciesIds.Select(sid => existing.Species.Single(s => s.Id == sid)).ToList();
             added.Reactions = incoming.Mechanisms.Single(m => m.Id == id).ReactionIds.Select(rid => existing.Reactions.Single(r => r.Id == rid)).ToList();
             added.Phases = incoming.Mechanisms.Single(m => m.Id == id).PhaseIds.Select(pid => existing.Phases.Single(p => p.Id == pid)).ToList();

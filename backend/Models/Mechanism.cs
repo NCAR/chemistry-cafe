@@ -21,11 +21,20 @@ public class Mechanism
     public ICollection<Species> Species { get; set; } = new List<Species>();
     public ICollection<Reaction> Reactions { get; set; } = new List<Reaction>();
 
-    // Family relationship
-    [ForeignKey("Family")]
-    public Guid FamilyId { get; set; }
+    public bool IsReadOnly { get; set; } = false;
+
+    // FamilyVersion relationship
+    [ForeignKey("FamilyVersion")]
+    public Guid FamilyVersionId { get; set; }
     [JsonIgnore]
-    public Family? Family { get; set; }
+    public FamilyVersion? FamilyVersion { get; set; }
+
+    [NotMapped]
+    public Guid FamilyId
+    {
+        get => FamilyVersion?.FamilyId ?? FamilyVersionId;
+        set => FamilyVersionId = value;
+    }
 }
 
 // Junction table for Mechanism-Species many-to-many relationship

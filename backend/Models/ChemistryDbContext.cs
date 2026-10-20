@@ -17,6 +17,7 @@ public partial class ChemistryDbContext : DbContext
     public virtual DbSet<User> Users { get; set; }
     public virtual DbSet<UserPreferences> UserPreferences { get; set; }
     public virtual DbSet<Family> Families { get; set; }
+    public virtual DbSet<FamilyVersion> FamilyVersions { get; set; }
     public virtual DbSet<Species> Species { get; set; }
     public virtual DbSet<Phase> Phases { get; set; }
     public virtual DbSet<Mechanism> Mechanisms { get; set; }
@@ -35,6 +36,25 @@ public partial class ChemistryDbContext : DbContext
             .HasForeignKey<UserPreferences>(p => p.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // Configure Family and FamilyVersion Relations
+        modelBuilder.Entity<Family>()
+            .HasOne(f => f.Owner)
+            .WithMany()
+            .HasForeignKey(f => f.OwnerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Family>()
+            .HasOne(f => f.CurrentVersion)
+            .WithMany()
+            .HasForeignKey(f => f.CurrentVersionId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<FamilyVersion>()
+            .HasOne(fv => fv.Family)
+            .WithMany(f => f.Versions)
+            .HasForeignKey(fv => fv.FamilyId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         // Configure Species Relations
         modelBuilder.Entity<Species>()
             .Property(s => s.OtherProperties)
@@ -43,16 +63,16 @@ public partial class ChemistryDbContext : DbContext
                 v => JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(v, (JsonSerializerOptions?)null) ?? new Dictionary<string, JsonElement>());
 
         modelBuilder.Entity<Species>()
-            .HasOne(s => s.Family)
-            .WithMany(f => f.Species)
-            .HasForeignKey(s => s.FamilyId)
+            .HasOne(s => s.FamilyVersion)
+            .WithMany(fv => fv.Species)
+            .HasForeignKey(s => s.FamilyVersionId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // Configure Reaction Relations
         modelBuilder.Entity<Reaction>()
-            .HasOne(r => r.Family)
-            .WithMany(f => f.Reactions)
-            .HasForeignKey(r => r.FamilyId)
+            .HasOne(r => r.FamilyVersion)
+            .WithMany(fv => fv.Reactions)
+            .HasForeignKey(r => r.FamilyVersionId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // Arrhenius parameters share the reaction primary key (one-to-one).
@@ -194,9 +214,9 @@ public partial class ChemistryDbContext : DbContext
 
         // Configure Mechanism relationships
         modelBuilder.Entity<Mechanism>()
-            .HasOne(m => m.Family)
-            .WithMany(f => f.Mechanisms)
-            .HasForeignKey(m => m.FamilyId)
+            .HasOne(m => m.FamilyVersion)
+            .WithMany(fv => fv.Mechanisms)
+            .HasForeignKey(m => m.FamilyVersionId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Mechanism>()
@@ -224,9 +244,9 @@ public partial class ChemistryDbContext : DbContext
                 join => join.HasKey(ps => new { ps.PhasesId, ps.SpeciesId }));
 
         modelBuilder.Entity<Phase>()
-            .HasOne(p => p.Family)
-            .WithMany(f => f.Phases)
-            .HasForeignKey(p => p.FamilyId)
+            .HasOne(p => p.FamilyVersion)
+            .WithMany(fv => fv.Phases)
+            .HasForeignKey(p => p.FamilyVersionId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // Configure composite keys

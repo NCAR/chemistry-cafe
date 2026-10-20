@@ -130,15 +130,25 @@ namespace ChemistryCafeAPI.Tests.Functional
                 };
                 db.Users.Add(testUser);
 
-                db.Families.Add(new Family
+                var testFamily = new Family
                 {
                     Id = TestFamilyId,
                     Name = "Test Family",
                     Description = "Test Family Description",
                     Owner = testUser,
                     CreatedDate = DateTime.UtcNow
-                });
-
+                };
+                var testVersion = new FamilyVersion
+                {
+                    Id = Guid.NewGuid(),
+                    Family = testFamily,
+                    FamilyId = TestFamilyId
+                };
+                testFamily.CurrentVersion = testVersion;
+                testFamily.Versions.Add(testVersion);
+                db.Families.Add(testFamily);
+                db.SaveChanges();
+                testFamily.CurrentVersionId = testVersion.Id;
                 db.SaveChanges();
             }
 
@@ -207,7 +217,17 @@ namespace ChemistryCafeAPI.Tests.Functional
                 Owner = trackedOwner ?? owner,
                 CreatedDate = DateTime.UtcNow
             };
+            var version = new FamilyVersion
+            {
+                Id = Guid.NewGuid(),
+                Family = family,
+                FamilyId = familyId
+            };
+            family.CurrentVersion = version;
+            family.Versions.Add(version);
             db.Families.Add(family);
+            await db.SaveChangesAsync();
+            family.CurrentVersionId = version.Id;
             await db.SaveChangesAsync();
             return family;
         }
@@ -226,7 +246,17 @@ namespace ChemistryCafeAPI.Tests.Functional
                 Owner = trackedOwner ?? owner,
                 CreatedDate = DateTime.UtcNow
             };
+            var version = new FamilyVersion
+            {
+                Id = Guid.NewGuid(),
+                Family = family,
+                FamilyId = familyId
+            };
+            family.CurrentVersion = version;
+            family.Versions.Add(version);
             db.Families.Add(family);
+            db.SaveChanges();
+            family.CurrentVersionId = version.Id;
             db.SaveChanges();
             return family;
         }

@@ -10,7 +10,9 @@ public static class MechanismMapper
         return new MechanismDto
         {
             Id = mechanism.Id,
+            FamilyVersionId = mechanism.FamilyVersionId,
             FamilyId = mechanism.FamilyId,
+            IsReadOnly = mechanism.IsReadOnly,
             Name = mechanism.Name,
             Description = mechanism.Description,
             SpeciesIds = mechanism.Species.Select(s => s.Id).ToList(),
@@ -28,7 +30,8 @@ public static class MechanismMapper
         return new Mechanism
         {
             Id = mechanismDto.Id,
-            FamilyId = mechanismDto.FamilyId,
+            FamilyVersionId = mechanismDto.FamilyVersionId,
+            IsReadOnly = mechanismDto.IsReadOnly,
             Name = mechanismDto.Name,
             Description = mechanismDto.Description,
         };

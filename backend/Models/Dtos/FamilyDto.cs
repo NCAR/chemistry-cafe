@@ -18,6 +18,7 @@ public class FamilyDto
     public OwnerDto? Owner { get; set; }
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
+    public Guid? CurrentVersionId { get; set; }
     public List<SpeciesDto> Species { get; set; } = new();
     public List<ReactionDto> Reactions { get; set; } = new();
     public List<PhaseDto> Phases { get; set; } = new();

@@ -11,7 +11,8 @@ public class SpeciesDto
     public double? ConstantConcentration { get; set; }
     public double? ConstantMixingRatio { get; set; }
     public string? Description { get; set; }
-    public Guid FamilyId { get; set; }
+    public Guid FamilyVersionId { get; set; }
+    public Guid FamilyId { get => FamilyVersionId; set => FamilyVersionId = value; }
     public Guid Id { get; set; }
     public bool? IsThirdBody { get; set; }
     public double? MolecularWeight { get; set; }

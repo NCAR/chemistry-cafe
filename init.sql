@@ -1322,3 +1322,336 @@ DROP PROCEDURE MigrationsScript;
 
 COMMIT;
 
+START TRANSACTION;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261020185820_AddFamilyVersion') THEN
+
+    ALTER TABLE `Mechanisms` DROP FOREIGN KEY `FK_Mechanisms_Families_FamilyId`;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261020185820_AddFamilyVersion') THEN
+
+    ALTER TABLE `Phases` DROP FOREIGN KEY `FK_Phases_Families_FamilyId`;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261020185820_AddFamilyVersion') THEN
+
+    ALTER TABLE `Reactions` DROP FOREIGN KEY `FK_Reactions_Families_FamilyId`;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261020185820_AddFamilyVersion') THEN
+
+    ALTER TABLE `Species` DROP FOREIGN KEY `FK_Species_Families_FamilyId`;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261020185820_AddFamilyVersion') THEN
+
+    ALTER TABLE `Species` RENAME COLUMN `FamilyId` TO `FamilyVersionId`;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261020185820_AddFamilyVersion') THEN
+
+    ALTER TABLE `Species` RENAME INDEX `IX_Species_FamilyId` TO `IX_Species_FamilyVersionId`;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261020185820_AddFamilyVersion') THEN
+
+    ALTER TABLE `Reactions` RENAME COLUMN `FamilyId` TO `FamilyVersionId`;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261020185820_AddFamilyVersion') THEN
+
+    ALTER TABLE `Reactions` RENAME INDEX `IX_Reactions_FamilyId` TO `IX_Reactions_FamilyVersionId`;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261020185820_AddFamilyVersion') THEN
+
+    ALTER TABLE `Phases` RENAME COLUMN `FamilyId` TO `FamilyVersionId`;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261020185820_AddFamilyVersion') THEN
+
+    ALTER TABLE `Phases` RENAME INDEX `IX_Phases_FamilyId` TO `IX_Phases_FamilyVersionId`;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261020185820_AddFamilyVersion') THEN
+
+    ALTER TABLE `Mechanisms` RENAME COLUMN `FamilyId` TO `FamilyVersionId`;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261020185820_AddFamilyVersion') THEN
+
+    ALTER TABLE `Mechanisms` RENAME INDEX `IX_Mechanisms_FamilyId` TO `IX_Mechanisms_FamilyVersionId`;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261020185820_AddFamilyVersion') THEN
+
+    ALTER TABLE `Mechanisms` ADD `IsReadOnly` tinyint(1) NOT NULL DEFAULT FALSE;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261020185820_AddFamilyVersion') THEN
+
+    ALTER TABLE `Families` ADD `CurrentVersionId` char(36) COLLATE ascii_general_ci NULL;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261020185820_AddFamilyVersion') THEN
+
+    CREATE TABLE `FamilyVersions` (
+        `Id` char(36) COLLATE ascii_general_ci NOT NULL,
+        `CreatedDate` datetime(6) NOT NULL,
+        `FamilyId` char(36) COLLATE ascii_general_ci NOT NULL,
+        CONSTRAINT `PK_FamilyVersions` PRIMARY KEY (`Id`),
+        CONSTRAINT `FK_FamilyVersions_Families_FamilyId` FOREIGN KEY (`FamilyId`) REFERENCES `Families` (`Id`) ON DELETE CASCADE
+    ) CHARACTER SET=utf8mb4;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261020185820_AddFamilyVersion') THEN
+
+    CREATE INDEX `IX_Families_CurrentVersionId` ON `Families` (`CurrentVersionId`);
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261020185820_AddFamilyVersion') THEN
+
+    CREATE INDEX `IX_FamilyVersions_FamilyId` ON `FamilyVersions` (`FamilyId`);
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261020185820_AddFamilyVersion') THEN
+
+    ALTER TABLE `Families` ADD CONSTRAINT `FK_Families_FamilyVersions_CurrentVersionId` FOREIGN KEY (`CurrentVersionId`) REFERENCES `FamilyVersions` (`Id`) ON DELETE SET NULL;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261020185820_AddFamilyVersion') THEN
+
+    ALTER TABLE `Mechanisms` ADD CONSTRAINT `FK_Mechanisms_FamilyVersions_FamilyVersionId` FOREIGN KEY (`FamilyVersionId`) REFERENCES `FamilyVersions` (`Id`) ON DELETE CASCADE;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261020185820_AddFamilyVersion') THEN
+
+    ALTER TABLE `Phases` ADD CONSTRAINT `FK_Phases_FamilyVersions_FamilyVersionId` FOREIGN KEY (`FamilyVersionId`) REFERENCES `FamilyVersions` (`Id`) ON DELETE CASCADE;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261020185820_AddFamilyVersion') THEN
+
+    ALTER TABLE `Reactions` ADD CONSTRAINT `FK_Reactions_FamilyVersions_FamilyVersionId` FOREIGN KEY (`FamilyVersionId`) REFERENCES `FamilyVersions` (`Id`) ON DELETE CASCADE;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261020185820_AddFamilyVersion') THEN
+
+    ALTER TABLE `Species` ADD CONSTRAINT `FK_Species_FamilyVersions_FamilyVersionId` FOREIGN KEY (`FamilyVersionId`) REFERENCES `FamilyVersions` (`Id`) ON DELETE CASCADE;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261020185820_AddFamilyVersion') THEN
+
+    INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+    VALUES ('20261020185820_AddFamilyVersion', '8.0.10');
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+COMMIT;
+
