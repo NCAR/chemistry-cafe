@@ -85,6 +85,9 @@ export type Reaction = {
   /** Type of the reaction. This determines what other properties the reaction should have */
   type: ReactionTypeName;
 
+  /** Phase in which the reaction occurs */
+  phaseId?: UUID;
+
   /** Optional id for the gas phase. Required in all reactions */
   gasPhaseId?: UUID;
 

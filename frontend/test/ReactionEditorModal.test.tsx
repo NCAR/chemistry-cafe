@@ -62,7 +62,11 @@ function makeReaction(
 
 // Like ReactionsView, the test mounts the editor without a reaction and then
 // selects one.
-function renderEditor(reaction: Reaction, onUpdate = vi.fn()) {
+function renderEditor(
+  reaction: Reaction,
+  onUpdate = vi.fn(),
+  testFamily = family,
+) {
   const editor = (selected?: Reaction) => (
     <AuthProvider>
       <UserPreferencesProvider>
@@ -71,7 +75,7 @@ function renderEditor(reaction: Reaction, onUpdate = vi.fn()) {
           onClose={() => {}}
           onUpdate={onUpdate}
           reaction={selected}
-          family={family}
+          family={testFamily}
         />
       </UserPreferencesProvider>
     </AuthProvider>
@@ -151,6 +155,66 @@ describe("ReactionEditorModal rate parameter units", () => {
     ]);
     expect(saved.products).toEqual([
       { speciesId: "111-111-111-111-001", coefficient: 1 },
+    ]);
+  });
+
+  it("requires a reaction phase and rejects species outside that phase", () => {
+    const gasPhaseId = "333-333-333-333-001";
+    const aerosolPhaseId = "333-333-333-333-002";
+    const familyWithPhases: Family = {
+      ...family,
+      phases: [
+        {
+          id: gasPhaseId,
+          name: "Gas",
+          description: null,
+          speciesIds: [family.species[0].id],
+        },
+        {
+          id: aerosolPhaseId,
+          name: "Aerosol",
+          description: null,
+          speciesIds: [family.species[1].id],
+        },
+      ],
+    };
+    const onUpdate = renderEditor(
+      {
+        ...makeReaction("ARRHENIUS", { A: { value: 1 } }),
+        reactants: [],
+        products: [],
+      },
+      vi.fn(),
+      familyWithPhases,
+    );
+
+    fireEvent.click(screen.getByTestId("save-reaction-changes"));
+    expect(screen.getByText("Select a phase for this reaction")).toBeTruthy();
+    expect(onUpdate).not.toHaveBeenCalled();
+
+    fireEvent.mouseDown(
+      screen.getByRole("combobox", { name: "Reaction Phase" }),
+    );
+    fireEvent.click(screen.getByRole("option", { name: "Gas" }));
+    fireEvent.click(screen.getByLabelText("select-reaction-species"));
+    expect(screen.getByRole("option", { name: "OH" })).toBeTruthy();
+    expect(screen.queryByRole("option", { name: "NO2" })).toBeNull();
+    fireEvent.click(screen.getByRole("option", { name: "OH" }));
+
+    const equation = screen.getByLabelText("Equation") as HTMLInputElement;
+    fireEvent.change(equation, { target: { value: "OH -> NO2" } });
+    fireEvent.keyDown(equation, { key: "Enter" });
+    expect(
+      screen.getByText("Species NO2 is not in the selected phase"),
+    ).toBeTruthy();
+    fireEvent.click(screen.getByTestId("save-reaction-changes"));
+    expect(onUpdate).not.toHaveBeenCalled();
+
+    fireEvent.change(equation, { target: { value: "OH ->" } });
+    fireEvent.click(screen.getByTestId("save-reaction-changes"));
+    expect(onUpdate.mock.calls[0][0].phaseId).toBe(gasPhaseId);
+    expect(onUpdate.mock.calls[0][0].reactants).toEqual([
+      { speciesId: family.species[0].id, coefficient: 1 },
     ]);
   });
 
