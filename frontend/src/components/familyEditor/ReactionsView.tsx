@@ -447,6 +447,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       field: "name",
       headerName: "Name",
       type: "string",
+      editable: true,
       flex: 1,
       minWidth: 140,
       renderCell: (params: GridRenderCellParams<Reaction>) => (
@@ -467,6 +468,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       field: "description",
       headerName: "Description",
       type: "string",
+      editable: true,
       flex: 1,
       minWidth: 160,
       renderCell: (params: GridRenderCellParams<Reaction>) => (
@@ -596,6 +598,17 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
         onColumnVisibilityModelChange={setColumnVisibility}
         rows={rows}
         columns={columns}
+        // A double-click opens the reaction editor. An editable cell, for
+        // example the name or a parameter, keeps its in-cell edit.
+        onCellDoubleClick={(params) => {
+          if (params.isEditable || params.colDef.type === "actions") {
+            return;
+          }
+          setSelectedReaction(
+            family.reactions.find((element) => element.id === params.id),
+          );
+          setReactionsEditorOpen(true);
+        }}
         processRowUpdate={(updatedRow: Reaction) => {
           updateReaction(updatedRow);
           return updatedRow;
