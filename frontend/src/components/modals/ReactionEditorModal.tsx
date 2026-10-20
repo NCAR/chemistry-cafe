@@ -3,6 +3,11 @@ import {
   Autocomplete,
   Box,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   IconButton,
   InputAdornment,
   MenuItem,
@@ -229,6 +234,7 @@ type ReactionEditorModalProps = {
   open: boolean;
   onClose: () => void;
   onUpdate: (reaction: Reaction) => void;
+  onAddSpeciesToPhase: (phaseId: UUID, speciesIds: Array<UUID>) => void;
   reaction?: Reaction;
   family: Family;
 };
@@ -237,6 +243,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
   open,
   onClose,
   onUpdate,
+  onAddSpeciesToPhase,
   reaction,
   family,
 }) => {
@@ -272,6 +279,10 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
 
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [showAlert, setShowAlert] = useState<boolean>(false);
+  const [pendingPhaseChange, setPendingPhaseChange] = useState<{
+    phaseId: UUID;
+    missingSpeciesIds: Array<UUID>;
+  } | null>(null);
 
   const changeReactionProperties = (properties: Partial<Reaction>) => {
     setModifiedReaction({
@@ -302,10 +313,31 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
     setShowAlert(false);
   };
 
+  const changeReactionPhase = (phaseId: UUID) => {
+    changeReactionProperties({ phaseId });
+    setEquationDraft(null);
+    setEquationErrors([]);
+    setSpeciesVersion((version) => version + 1);
+  };
+
+  const confirmPhaseChange = () => {
+    if (!pendingPhaseChange) {
+      return;
+    }
+
+    onAddSpeciesToPhase(
+      pendingPhaseChange.phaseId,
+      pendingPhaseChange.missingSpeciesIds,
+    );
+    changeReactionPhase(pendingPhaseChange.phaseId);
+    setPendingPhaseChange(null);
+  };
+
   useLayoutEffect(() => {
     setModifiedReaction(reaction);
     setEquationDraft(null);
     setEquationErrors([]);
+    setPendingPhaseChange(null);
     const attributes = getReactionAttributes(reaction?.type);
     setDefaultAttributes(attributes);
     const configuration = getReactionConfiguration(reaction?.type);
@@ -873,6 +905,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
               select
               size="small"
               fullWidth
+              data-testid="reaction-phase-select"
               required
               label="Reaction Phase"
               value={modifiedReaction?.phaseId ?? ""}
@@ -885,19 +918,25 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                 if (!phase) {
                   return;
                 }
-                const speciesIds = new Set(phase.speciesIds);
-                changeReactionProperties({
-                  phaseId,
-                  reactants: (modifiedReaction?.reactants ?? []).filter(
-                    (entry) => speciesIds.has(entry.speciesId),
+                const targetSpecies = new Set(phase.speciesIds);
+                const reactionSpecies = new Set([
+                  ...(modifiedReaction?.reactants ?? []).map(
+                    (entry) => entry.speciesId,
                   ),
-                  products: (modifiedReaction?.products ?? []).filter(
-                    (entry) => speciesIds.has(entry.speciesId),
+                  ...(modifiedReaction?.products ?? []).map(
+                    (entry) => entry.speciesId,
                   ),
-                });
-                setEquationDraft(null);
-                setEquationErrors([]);
-                setSpeciesVersion((version) => version + 1);
+                ]);
+                const missingSpeciesIds = [...reactionSpecies].filter(
+                  (speciesId) => !targetSpecies.has(speciesId),
+                );
+
+                if (missingSpeciesIds.length > 0) {
+                  setPendingPhaseChange({ phaseId, missingSpeciesIds });
+                  return;
+                }
+
+                changeReactionPhase(phaseId);
               }}
             >
               {family.phases.map((phase) => (
@@ -1062,6 +1101,42 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
           </Box>
         </Box>
       </Modal>
+      <Dialog
+        open={pendingPhaseChange !== null}
+        onClose={() => setPendingPhaseChange(null)}
+        aria-labelledby="phase-change-dialog-title"
+      >
+        <DialogTitle id="phase-change-dialog-title">
+          Add reaction species to phase?
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {pendingPhaseChange &&
+              `The selected phase does not contain ${pendingPhaseChange.missingSpeciesIds
+                .map(
+                  (speciesId) =>
+                    family.species.find((species) => species.id === speciesId)
+                      ?.name ?? "<No Name>",
+                )
+                .join(", ")}. Add ${pendingPhaseChange.missingSpeciesIds.length === 1 ? "this species" : "these species"} to the phase to change the reaction phase?`}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setPendingPhaseChange(null)}
+            data-testid="cancel-phase-change"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={confirmPhaseChange}
+            variant="contained"
+            data-testid="add-reaction-species-to-phase"
+          >
+            Add species and change phase
+          </Button>
+        </DialogActions>
+      </Dialog>
       <Snackbar
         open={showAlert}
         autoHideDuration={5000}

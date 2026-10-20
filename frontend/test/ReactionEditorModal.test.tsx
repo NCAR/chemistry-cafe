@@ -66,6 +66,7 @@ function renderEditor(
   reaction: Reaction,
   onUpdate = vi.fn(),
   testFamily = family,
+  onAddSpeciesToPhase = vi.fn(),
 ) {
   const editor = (selected?: Reaction) => (
     <AuthProvider>
@@ -74,6 +75,7 @@ function renderEditor(
           open
           onClose={() => {}}
           onUpdate={onUpdate}
+          onAddSpeciesToPhase={onAddSpeciesToPhase}
           reaction={selected}
           family={testFamily}
         />
@@ -234,6 +236,109 @@ describe("ReactionEditorModal rate parameter units", () => {
     expect(onUpdate.mock.calls[0][0].reactants).toEqual([
       { speciesId: family.species[0].id, coefficient: 1 },
     ]);
+  });
+
+  it("asks before adding missing reaction species to a newly selected phase", () => {
+    const gasPhaseId = "333-333-333-333-001";
+    const aerosolPhaseId = "333-333-333-333-002";
+    const familyWithPhases: Family = {
+      ...family,
+      phases: [
+        {
+          id: gasPhaseId,
+          name: "Gas",
+          description: null,
+          speciesIds: family.species.map((species) => species.id),
+        },
+        {
+          id: aerosolPhaseId,
+          name: "Aerosol",
+          description: null,
+          speciesIds: [family.species[1].id],
+        },
+      ],
+    };
+    const onAddSpeciesToPhase = vi.fn();
+    renderEditor(
+      {
+        ...makeReaction("ARRHENIUS", { A: { value: 1 } }),
+        phaseId: gasPhaseId,
+      },
+      vi.fn(),
+      familyWithPhases,
+      onAddSpeciesToPhase,
+    );
+
+    fireEvent.mouseDown(
+      screen.getByRole("combobox", { name: "Reaction Phase" }),
+    );
+    fireEvent.click(screen.getByRole("option", { name: "Aerosol" }));
+
+    expect(
+      screen.getByText(/selected phase does not contain OH/),
+    ).toBeTruthy();
+    expect(onAddSpeciesToPhase).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByTestId("cancel-phase-change"));
+    expect(
+      screen
+        .getByTestId("reaction-phase-select")
+        .querySelector(".MuiSelect-select"),
+    ).toHaveTextContent("Gas");
+    expect(onAddSpeciesToPhase).not.toHaveBeenCalled();
+  });
+
+  it("adds missing reactants and products when confirming a phase change", () => {
+    const gasPhaseId = "333-333-333-333-001";
+    const aerosolPhaseId = "333-333-333-333-002";
+    const familyWithPhases: Family = {
+      ...family,
+      phases: [
+        {
+          id: gasPhaseId,
+          name: "Gas",
+          description: null,
+          speciesIds: family.species.map((species) => species.id),
+        },
+        {
+          id: aerosolPhaseId,
+          name: "Aerosol",
+          description: null,
+          speciesIds: [],
+        },
+      ],
+    };
+    const onAddSpeciesToPhase = vi.fn();
+    renderEditor(
+      {
+        ...makeReaction("ARRHENIUS", { A: { value: 1 } }),
+        phaseId: gasPhaseId,
+        products: [
+          { speciesId: family.species[0].id, coefficient: 1 },
+        ],
+      },
+      vi.fn(),
+      familyWithPhases,
+      onAddSpeciesToPhase,
+    );
+
+    fireEvent.mouseDown(
+      screen.getByRole("combobox", { name: "Reaction Phase" }),
+    );
+    fireEvent.click(screen.getByRole("option", { name: "Aerosol" }));
+    fireEvent.click(
+      screen.getByTestId("add-reaction-species-to-phase"),
+    );
+
+    expect(onAddSpeciesToPhase).toHaveBeenCalledWith(aerosolPhaseId, [
+      family.species[0].id,
+      family.species[1].id,
+    ]);
+    expect(
+      screen
+        .getByTestId("reaction-phase-select")
+        .querySelector(".MuiSelect-select"),
+    ).toHaveTextContent("Aerosol");
   });
 
   it("edits the alkoxy and nitrate products of a branched reaction", () => {
