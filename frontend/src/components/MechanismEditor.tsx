@@ -58,7 +58,7 @@ const RemoveFromMechanismButton = ({
     <GridActionsCellItem
       aria-label={label}
       data-testid="remove-from-mechanism-button"
-      icon={<RemoveCircleOutlineIcon />}
+      icon={<RemoveCircleOutlineIcon sx={{ color: "red" }}/>}
       label={label}
       onClick={onClick}
     />
