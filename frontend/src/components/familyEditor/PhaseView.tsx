@@ -11,6 +11,7 @@ import { UUID } from "crypto";
 import { generateID } from "../../helpers/localFamilies";
 import { Phase } from "../../types/chemistryModels";
 import { PhaseCreationModal } from "../modals/PhaseCreationModal";
+import { ConfirmActionModal } from "../modals/ConfirmActionModal";
 import { RowActionsButton } from "../RowActionsButton";
 import { useCustomTheme } from "../CustomThemeContext";
 import { ViewProps } from "./ViewProps";
@@ -22,6 +23,10 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
   const visibleRows = useVisibleRows(apiRef);
   const [phaseCreationModalOpen, setPhaseCreationModalOpen] = useState(false);
   const [selectedPhase, setSelectedPhase] = useState<Phase>();
+  const [pendingPhaseUpdate, setPendingPhaseUpdate] = useState<{
+    phase: Phase;
+    reactionIds: UUID[];
+  } | null>(null);
 
   const updatePhase = (
     name: string,
@@ -37,6 +42,38 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
       diffusionCoefficients,
     };
 
+    const removedSpeciesIds = new Set(
+      (selectedPhase?.speciesIds ?? []).filter(
+        (speciesId) => !speciesIds.includes(speciesId),
+      ),
+    );
+    const affectedReactions = selectedPhase
+      ? family.reactions.filter(
+          (reaction) =>
+            reaction.phaseId === selectedPhase.id &&
+            [
+              ...reaction.reactants.map((entry) => entry.speciesId),
+              ...reaction.products.map((entry) => entry.speciesId),
+              reaction.gasPhaseSpeciesId,
+              reaction.aerosolPhaseSpeciesId,
+              reaction.aerosolPhaseWaterId,
+            ].some(
+              (speciesId) =>
+                speciesId !== undefined && removedSpeciesIds.has(speciesId),
+            ),
+        )
+      : [];
+
+    if (affectedReactions.length > 0) {
+      setPendingPhaseUpdate({
+        phase,
+        reactionIds: affectedReactions.map((reaction) => reaction.id),
+      });
+      setPhaseCreationModalOpen(false);
+      setSelectedPhase(undefined);
+      return;
+    }
+
     updateFamily({
       ...family,
       phases: selectedPhase
@@ -47,6 +84,33 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
     });
     setPhaseCreationModalOpen(false);
     setSelectedPhase(undefined);
+  };
+
+  const confirmPhaseUpdate = () => {
+    if (!pendingPhaseUpdate) {
+      return;
+    }
+
+    const reactionIds = new Set(pendingPhaseUpdate.reactionIds);
+    updateFamily({
+      ...family,
+      phases: family.phases.map((phase) =>
+        phase.id === pendingPhaseUpdate.phase.id
+          ? pendingPhaseUpdate.phase
+          : phase,
+      ),
+      reactions: family.reactions.filter(
+        (reaction) => !reactionIds.has(reaction.id),
+      ),
+      mechanisms: family.mechanisms.map((mechanism) => ({
+        ...mechanism,
+        reactionIds: mechanism.reactionIds.filter(
+          (reactionId) => !reactionIds.has(reactionId),
+        ),
+      })),
+      isModified: true,
+    });
+    setPendingPhaseUpdate(null);
   };
 
   // An in-cell edit of the name or the description. An empty name keeps the
@@ -234,6 +298,15 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
         onSubmit={updatePhase}
         phase={selectedPhase}
         species={family.species}
+      />
+      <ConfirmActionModal
+        open={pendingPhaseUpdate !== null}
+        onClose={() => setPendingPhaseUpdate(null)}
+        onAction={confirmPhaseUpdate}
+        message="Removed species are used in reactions in this phase."
+        subtitle={`Saving this phase change will remove ${pendingPhaseUpdate?.reactionIds.length ?? 0} affected reaction${pendingPhaseUpdate?.reactionIds.length === 1 ? "" : "s"} from the family and any mechanisms that reference them.`}
+        confirmColor="error"
+        confirmLabel="Remove reactions and save phase"
       />
     </Box>
   );
