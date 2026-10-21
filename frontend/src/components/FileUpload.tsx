@@ -20,7 +20,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileParse, sx }) => {
     const fileText = await file.text();
 
     try {
-      const parsedFamily = deserializeV1Mechanism(fileText);
+      const parsedFamily = await deserializeV1Mechanism(fileText);
       onFileParse(parsedFamily);
     } catch (err) {
       console.error(err);

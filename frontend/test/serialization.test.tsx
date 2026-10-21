@@ -308,9 +308,11 @@ const serialize = (m = mechanism, f = family): Record<string, any> =>
 let serialized: Record<string, any>;
 let imported: Family;
 
-const initFixtures = () => {
+const initFixtures = async () => {
   serialized = serialize();
-  imported = deserializeV1Mechanism(serializeMechanismJSON(mechanism, family))!;
+  imported = (await deserializeV1Mechanism(
+    serializeMechanismJSON(mechanism, family),
+  ))!;
 };
 
 /** Find the serialized reaction of a given type. */
@@ -335,9 +337,9 @@ const reactionHasGasPhase = (reaction: Reaction, gasPhaseId: string): boolean =>
   reaction.gasPhaseId === gasPhaseId;
 
 describe("Mechanism Serialization", () => {
-  it("serializes to a JSON string that deserializes to an object", () => {
+  it("serializes to a JSON string that deserializes to an object", async () => {
     const result = serializeMechanismJSON(mechanism, family);
-    const deserialized = deserializeV1Mechanism(result);
+    const deserialized = await deserializeV1Mechanism(result);
     expect(typeof result).toBe("string");
     expect(typeof deserialized).toBe("object");
     const deserializedGasPhase = deserialized?.phases.find(
@@ -349,10 +351,10 @@ describe("Mechanism Serialization", () => {
     });
   });
 
-  it("serializes to a YAML string that deserializes to an object", () => {
+  it("serializes to a YAML string that deserializes to an object", async () => {
     const result = serializeMechanismYAML(mechanism, family);
     expect(typeof result).toBe("string");
-    const deserialized = deserializeV1Mechanism(result);
+    const deserialized = await deserializeV1Mechanism(result);
     expect(typeof deserialized).toBe("object");
     const deserializedGasPhase = deserialized?.phases.find(
       (p) => p.name === "gas",
@@ -441,10 +443,10 @@ describe("Gas phase name fidelity (non-'gas')", () => {
     expect(parsed.reactions[0]["gas phase"]).toBe("troposphere");
   });
 
-  it("imports the reaction's gas phase by name", () => {
-    const back = deserializeV1Mechanism(
+  it("imports the reaction's gas phase by name", async () => {
+    const back = (await deserializeV1Mechanism(
       serializeMechanismJSON(tropoMechanism, tropoFamily),
-    )!;
+    ))!;
     const importedPhase = back.phases.find((p) => p.name === "troposphere");
     expect(importedPhase).toBeDefined();
     expect(back.reactions[0].gasPhaseId).toBe(importedPhase!.id);
@@ -527,7 +529,8 @@ describe("Reaction type serialization and deserialization", () => {
     it("deserializes", () => {
       const back = importedReactionOfType("ARRHENIUS");
       expect(back.attributes["A"]?.value).toBe(1);
-      expect(back.attributes["Ea"]?.value).toBe(3);
+      // The musica parser stores Ea as C = -Ea / k_B; the import converts it back
+      expect(back.attributes["Ea"]?.value as number).toBeCloseTo(3, 12);
       expect(back.attributes["C"]).toBeUndefined();
       expect(importedName(String(back.reactants[0].speciesId))).toBe(
         reactant.name,
@@ -683,7 +686,12 @@ describe("Reaction type serialization and deserialization", () => {
     it("deserializes", () => {
       const back = importedReactionOfType("TAYLOR_SERIES");
       expect(back.attributes["A"]?.value).toBe(1);
-      expect(back.attributes["C"]?.value).toBe(3);
+      // A C value is converted to Ea = -C * k_B, because the editor shows Ea
+      expect(back.attributes["Ea"]?.value as number).toBeCloseTo(
+        -3 * 1.380649e-23,
+        35,
+      );
+      expect(back.attributes["C"]).toBeUndefined();
       expect(back.attributes["taylorCoefficients"]?.value).toEqual([1, 2, 3]);
       expect(importedName(String(back.reactants[0].speciesId))).toBe(
         reactant.name,
@@ -789,5 +797,13 @@ describe("Reaction type serialization and deserialization", () => {
       );
       expect(reactionHasGasPhase(back, importedGasPhase()!.id)).toBe(true);
     });
+  });
+});
+
+describe("Import through the musica parser", () => {
+  it("rejects a file that the musica parser cannot validate", async () => {
+    await expect(
+      deserializeV1Mechanism(JSON.stringify({ version: "1.0.0", species: [] })),
+    ).rejects.toThrow();
   });
 });

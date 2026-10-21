@@ -1,11 +1,12 @@
 import { Family, Mechanism, Reaction, Species } from "../types/chemistryModels";
 import { serializeMechanism, deserializeMechanism } from "./musicaAdapter";
+import { initModule, mechanismConfiguration } from "@ncar/musica";
 import * as YAML from "yaml";
 import JSZip from "jszip";
 
-// V1 mechanism-configuration serialization is owned by @ncar/musica via the
-// adapter (musicaAdapter.ts). This module only handles file-level concerns:
-// parsing/formatting (JSON & YAML) and the separate MusicBox/CAMP-V0 export.
+// V1 mechanism-configuration parsing and serialization are owned by @ncar/musica
+// via the adapter (musicaAdapter.ts). This module only handles file-level
+// concerns: formatting (JSON & YAML) and the separate MusicBox/CAMP-V0 export.
 
 const supportedV1Versions = ["1.0.0"];
 
@@ -34,11 +35,16 @@ export const serializeMechanismYAML = (
 /**
  * Takes a V1 mechanism string in either JSON or YAML and creates a new Family
  * with one mechanism's worth of data based on the file.
- * @throws Parsing errors
+ * @throws Parsing and validation errors from the musica parser
  */
-export const deserializeV1Mechanism = (fileText: string): Family | null => {
-  // YAML.parse also accepts JSON, so it covers both file formats.
-  const parsed = YAML.parse(fileText);
+export const deserializeV1Mechanism = async (
+  fileText: string,
+): Promise<Family | null> => {
+  // The musica parser validates the file and accepts JSON or YAML.
+  await initModule();
+  const parsed = mechanismConfiguration.parseMechanismFromString(fileText) as {
+    version?: string;
+  } & Record<string, unknown>;
   if (parsed?.version && !supportedV1Versions.includes(parsed.version)) {
     console.warn(
       `Errors may occur due to an unsupported V1 mechanism version: ${parsed.version}`,
