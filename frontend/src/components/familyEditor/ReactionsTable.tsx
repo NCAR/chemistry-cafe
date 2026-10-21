@@ -313,10 +313,15 @@ export type ReactionsTableProps = {
   species: Array<Species>;
   /** Gives the buttons of the Row Actions column for the row with this ID. */
   getRowActions: (id: UUID) => Array<ReactElement>;
-  /** Saves a cell edit. Without it, the parameter cells are read-only. */
+  /** Saves a cell edit. Without it, the cells are read-only. */
   onRowUpdate?: (reaction: Reaction) => void;
   /** Shows the add button of the toolbar, and calls this when it is clicked. */
   onAdd?: () => void;
+  /**
+   * Opens the editor of the reaction with this ID when a cell that is not
+   * editable is double-clicked. Without it, a double-click there does nothing.
+   */
+  onEdit?: (id: UUID) => void;
   /** Custom components to render in the toolbar before the Columns button */
   customToolbarActions?: ReactNode;
 };
@@ -331,6 +336,7 @@ export const ReactionsTable = ({
   getRowActions,
   onRowUpdate,
   onAdd,
+  onEdit,
   customToolbarActions,
 }: ReactionsTableProps) => {
   const { theme } = useCustomTheme();
@@ -362,7 +368,7 @@ export const ReactionsTable = ({
     }));
   }, [visibleType]);
 
-  // Without a way to save an edit, the parameter cells are read-only.
+  // Without a way to save an edit, the cells are read-only.
   const editable = onRowUpdate !== undefined;
 
   const reactionsColumns: GridColDef[] = [
@@ -404,6 +410,7 @@ export const ReactionsTable = ({
       field: "name",
       headerName: "Name",
       type: "string",
+      editable,
       flex: 1,
       minWidth: 140,
       renderCell: (params: GridRenderCellParams<Reaction>) => (
@@ -424,6 +431,7 @@ export const ReactionsTable = ({
       field: "description",
       headerName: "Description",
       type: "string",
+      editable,
       flex: 1,
       minWidth: 160,
       renderCell: (params: GridRenderCellParams<Reaction>) => (
@@ -531,6 +539,14 @@ export const ReactionsTable = ({
       onColumnVisibilityModelChange={setColumnVisibility}
       rows={rows}
       columns={columns}
+      // A double-click opens the reaction editor. An editable cell, for
+      // example the name or a parameter, keeps its in-cell edit.
+      onCellDoubleClick={(params) => {
+        if (params.isEditable || params.colDef.type === "actions") {
+          return;
+        }
+        onEdit?.(params.id as UUID);
+      }}
       processRowUpdate={(updatedRow: Reaction) => {
         onRowUpdate?.(updatedRow);
         return updatedRow;
