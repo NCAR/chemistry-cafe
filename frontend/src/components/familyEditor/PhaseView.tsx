@@ -174,6 +174,11 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
       ).length
     : 0;
 
+  const editPhase = (id: UUID) => {
+    setSelectedPhase(family.phases.find((phase) => phase.id === id));
+    setPhaseCreationModalOpen(true);
+  };
+
   return (
     <Box
       sx={{
@@ -203,16 +208,15 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
           <RowActionsButton
             key={id}
             handleDeleteButtonClick={() => removePhase(id)}
-            handleEditButtonClick={() => {
-              setSelectedPhase(family.phases.find((phase) => phase.id === id));
-              setPhaseCreationModalOpen(true);
-            }}
+            handleEditButtonClick={() => editPhase(id)}
           />,
         ]}
+        onRowUpdate={handlePhaseRowUpdate}
         onAdd={() => {
           setSelectedPhase(undefined);
           setPhaseCreationModalOpen(true);
         }}
+        onEdit={editPhase}
       />
       <PhaseCreationModal
         open={phaseCreationModalOpen}

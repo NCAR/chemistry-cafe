@@ -105,6 +105,11 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
     });
   };
   
+  const editReaction = (id: UUID) => {
+    setSelectedReaction(family.reactions.find((element) => element.id === id));
+    setReactionsEditorOpen(true);
+  };
+
   return (
     <Box
       sx={{
@@ -136,16 +141,12 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
             handleDeleteButtonClick={() => {
               removeReaction(id);
             }}
-            handleEditButtonClick={() => {
-              setSelectedReaction(
-                family.reactions.find((element) => element.id === id),
-              );
-              setReactionsEditorOpen(true);
-            }}
+            handleEditButtonClick={() => editReaction(id)}
           />,
         ]}
         onRowUpdate={updateReaction}
         onAdd={createReaction}
+        onEdit={editReaction}
       />
       <ReactionEditorModal
         open={reactionsEditorOpen}

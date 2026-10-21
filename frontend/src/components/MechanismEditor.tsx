@@ -65,6 +65,18 @@ const RemoveFromMechanismButton = ({
   </Tooltip>
 );
 
+/**
+ * The panel of a tab with a table. It fills the height under the tabs, so the
+ * table scrolls inside it and the page does not grow with the rows. The
+ * minimum height of 0 lets the panel become smaller than its table.
+ */
+const tablePanelSx = {
+  display: "flex",
+  flexDirection: "column",
+  flex: 1,
+  minHeight: 0,
+} as const;
+
 export const MechanismEditor: React.FC<MechanismEditorProps> = ({
   family,
   mechanism,
@@ -123,6 +135,10 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
       sx={{
         width: "100%",
         height: "100%",
+        minHeight: 0,
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
       }}
       component="section"
     >
@@ -218,7 +234,7 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
         </Box>
       )}
       {selectedTab === TabValue.Species && (
-        <div>
+        <Box sx={tablePanelSx}>
           <Typography color="textPrimary" variant="h5">
             {mechanism.name || "<No Name>"} Species
           </Typography>
@@ -256,10 +272,10 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
               />
             }
           />
-        </div>
+        </Box>
       )}
       {selectedTab === TabValue.Reactions && (
-        <div>
+        <Box sx={tablePanelSx}>
           <Typography color="textPrimary" variant="h5">
             {mechanism.name || "<No Name>"} Reactions
           </Typography>
@@ -300,10 +316,10 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
               />
             }
           />
-        </div>
+        </Box>
       )}
       {selectedTab === TabValue.Phases && (
-        <div>
+        <Box sx={tablePanelSx}>
           <Typography color="textPrimary" variant="h5">
             {mechanism.name || "<No Name>"} Phases
           </Typography>
@@ -337,7 +353,7 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
                   />
                 }
             />
-        </div>
+        </Box>
       )}
     </Box>
   );

@@ -18,26 +18,40 @@ export type PhaseTableProps = {
   species: Array<Species>;
   /** Gives the buttons of the Row Actions column for the row with this ID. */
   getRowActions: (id: UUID) => Array<ReactElement>;
+  /**
+   * Saves a cell edit of the name or the description, and gives the row that
+   * the table then shows. Without it, the cells are read-only.
+   */
+  onRowUpdate?: (updated: Phase, original: Phase) => Phase;
   /** Shows the add button of the toolbar, and calls this when it is clicked. */
   onAdd?: () => void;
+  /**
+   * Opens the editor of the phase with this ID when its Species cell is
+   * double-clicked. Without it, a double-click on the cell does nothing.
+   */
+  onEdit?: (id: UUID) => void;
   /** Custom components to render in the toolbar before the Columns button */
   customToolbarActions?: ReactNode;
 };
 
 /**
  * The table of phases. The phase editor and the mechanism editor share it, and
- * they differ in the row actions and the add button.
+ * they differ in the row actions, the add button, and the editing.
  */
 export const PhaseTable = ({
   phases,
   species,
   getRowActions,
+  onRowUpdate,
   onAdd,
+  onEdit,
   customToolbarActions,
 }: PhaseTableProps) => {
   const { theme } = useCustomTheme();
   const apiRef = useGridApiRef();
   const visibleRows = useVisibleRows(apiRef);
+  // Without a way to save an edit, the cells are read-only.
+  const editable = onRowUpdate !== undefined;
 
   const phaseColumns: GridColDef[] = [
     {
@@ -51,11 +65,13 @@ export const PhaseTable = ({
     {
       field: "name",
       headerName: "Name",
+      editable,
       flex: 1,
     },
     {
       field: "description",
       headerName: "Description",
+      editable,
       flex: 1,
       renderCell: (params: GridRenderCellParams<Phase>) => (
         <Typography noWrap title={params.value || ""}>
@@ -97,6 +113,15 @@ export const PhaseTable = ({
       }}
       rows={phases}
       columns={phaseColumns}
+      processRowUpdate={onRowUpdate}
+      // A double-click on the species opens the phase editor. The name and
+      // the description use the in-cell edit.
+      onCellDoubleClick={(params) => {
+        if (params.field !== "speciesIds") {
+          return;
+        }
+        onEdit?.(params.id as UUID);
+      }}
       pageSizeOptions={[5, 10, 20, 100]}
       disableVirtualization
       sx={{
