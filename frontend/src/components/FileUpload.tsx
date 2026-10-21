@@ -4,7 +4,8 @@ import { Family } from "../types/chemistryModels";
 import { deserializeV1Mechanism } from "../helpers/serialization";
 
 type FileUploadProps = {
-  onFileParse: (family: Family | null) => any;
+  /** Called with the parsed family, or with null and the parser error message */
+  onFileParse: (family: Family | null, error?: string) => any;
   sx?: SxProps<Theme>;
 };
 
@@ -24,7 +25,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileParse, sx }) => {
       onFileParse(parsedFamily);
     } catch (err) {
       console.error(err);
-      onFileParse(null);
+      onFileParse(null, err instanceof Error ? err.message : String(err));
       return;
     }
   };
