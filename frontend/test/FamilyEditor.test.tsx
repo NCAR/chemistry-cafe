@@ -22,7 +22,7 @@ import {
   applySpeciesRowUpdate,
   speciesExclusiveConflict,
 } from "../src/helpers/editorHelpers";
-import { Species } from "../src/types/chemistryModels";
+import { Family, Species } from "../src/types/chemistryModels";
 import { CustomThemeProvider } from "../src/components/CustomThemeContext";
 import { MechanismEditor } from "../src/components/MechanismEditor";
 
@@ -416,6 +416,157 @@ describe("PhaseView", () => {
         mechanisms: [
           expect.objectContaining({
             phaseIds: [],
+          }),
+        ],
+        isModified: true,
+      }),
+    );
+  });
+
+  const renderPhaseWithReactionsUsingSpecies = () => {
+    cleanup();
+    const speciesId = "111-111-111-111-333";
+    const phaseId = "120984";
+    const family: Family = {
+      id: "111-111-111-111-111",
+      name: "Test Family",
+      description: "Test Description",
+      owner: null,
+      species: [
+        {
+          id: speciesId,
+          name: "Test Species",
+          description: "Cool species",
+          familyId: "111-111-111-111-111",
+          attributes: {},
+          isDeleted: false,
+          isInDatabase: true,
+          isModified: false,
+        },
+      ],
+      phases: [
+        {
+          id: phaseId,
+          name: "gas",
+          description: null,
+          speciesIds: [speciesId],
+        },
+      ],
+      reactions: [
+        {
+          id: "reaction-1",
+          name: "First affected reaction",
+          description: null,
+          type: "ARRHENIUS",
+          phaseId,
+          reactants: [{ speciesId, coefficient: 1 }],
+          products: [],
+          attributes: {},
+        },
+        {
+          id: "reaction-2",
+          name: "Second affected reaction",
+          description: null,
+          type: "ARRHENIUS",
+          phaseId,
+          reactants: [],
+          products: [{ speciesId, coefficient: 1 }],
+          attributes: {},
+        },
+        {
+          id: "reaction-3",
+          name: "Reaction using the species as gas phase species",
+          description: null,
+          type: "ARRHENIUS",
+          phaseId,
+          reactants: [],
+          products: [],
+          gasPhaseSpeciesId: speciesId,
+          attributes: {},
+        },
+        {
+          id: "reaction-5",
+          name: "Unaffected reaction in phase",
+          description: null,
+          type: "ARRHENIUS",
+          phaseId,
+          reactants: [],
+          products: [],
+          attributes: {},
+        },
+        {
+          id: "reaction-4",
+          name: "Reaction in another phase",
+          description: null,
+          type: "ARRHENIUS",
+          phaseId: "other-phase",
+          reactants: [{ speciesId, coefficient: 1 }],
+          products: [],
+          attributes: {},
+        },
+      ],
+      mechanisms: [
+        {
+          id: "mechanism-id",
+          name: "Test Mechanism",
+          description: null,
+          familyId: "111-111-111-111-111",
+          speciesIds: [speciesId],
+          reactionIds: [
+            "reaction-1",
+            "reaction-2",
+            "reaction-3",
+            "reaction-4",
+            "reaction-5",
+          ],
+          phaseIds: [phaseId],
+        },
+      ],
+    };
+    const updateFamily = vi.fn();
+    render(
+      <CustomThemeProvider>
+        <PhaseView family={family} updateFamily={updateFamily} />
+      </CustomThemeProvider>,
+    );
+
+    fireEvent.click(screen.getByTestId("row-actions-button"));
+    fireEvent.click(screen.getByTestId("edit-row"));
+    fireEvent.click(screen.getAllByRole("checkbox")[0]);
+    fireEvent.click(screen.getByTestId("save-phase-button"));
+    return updateFamily;
+  };
+
+  it("prompts before removing species used by reactions and cancels without changes", () => {
+    const updateFamily = renderPhaseWithReactionsUsingSpecies();
+
+    expect(
+      screen.getByText(/will remove 3 affected reactions/),
+    ).toBeTruthy();
+    fireEvent.click(screen.getByLabelText("Cancel Irreversable Action"));
+
+    expect(updateFamily).not.toHaveBeenCalled();
+  });
+
+  it("removes affected reactions and their mechanism references when confirmed", () => {
+    const updateFamily = renderPhaseWithReactionsUsingSpecies();
+    fireEvent.click(screen.getByTestId("confirm-action"));
+
+    expect(updateFamily).toHaveBeenCalledWith(
+      expect.objectContaining({
+        phases: [
+          expect.objectContaining({
+            id: "120984",
+            speciesIds: [],
+          }),
+        ],
+        reactions: [
+          expect.objectContaining({ id: "reaction-5" }),
+          expect.objectContaining({ id: "reaction-4" }),
+        ],
+        mechanisms: [
+          expect.objectContaining({
+            reactionIds: ["reaction-4", "reaction-5"],
           }),
         ],
         isModified: true,
