@@ -1,26 +1,16 @@
 import { useState } from "react";
 import { Box, Tooltip, Typography } from "@mui/material";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import {
-  DataGrid,
-  GridColDef,
-  GridRenderCellParams,
-  useGridApiRef,
-} from "@mui/x-data-grid";
 import { UUID } from "crypto";
 import { generateID } from "../../helpers/localFamilies";
 import { Phase } from "../../types/chemistryModels";
 import { PhaseCreationModal } from "../modals/PhaseCreationModal";
 import { ConfirmActionModal } from "../modals/ConfirmActionModal";
 import { RowActionsButton } from "../RowActionsButton";
-import { useCustomTheme } from "../CustomThemeContext";
 import { ViewProps } from "./ViewProps";
-import { DataViewToolbar, useVisibleRows } from "./DataViewToolbar";
+import { PhaseTable } from "./PhaseTable";
 
 export const PhaseView = ({ family, updateFamily }: ViewProps) => {
-  const { theme } = useCustomTheme();
-  const apiRef = useGridApiRef();
-  const visibleRows = useVisibleRows(apiRef);
   const [phaseCreationModalOpen, setPhaseCreationModalOpen] = useState(false);
   const [selectedPhase, setSelectedPhase] = useState<Phase>();
   const [pendingPhaseUpdate, setPendingPhaseUpdate] = useState<{
@@ -58,8 +48,6 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
               ...reaction.reactants.map((entry) => entry.speciesId),
               ...reaction.products.map((entry) => entry.speciesId),
               reaction.gasPhaseSpeciesId,
-              reaction.aerosolPhaseSpeciesId,
-              reaction.aerosolPhaseWaterId,
             ].some(
               (speciesId) =>
                 speciesId !== undefined && removedSpeciesIds.has(speciesId),
@@ -143,17 +131,13 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
       ...family,
       phases: family.phases.filter((existing) => existing.id !== phase.id),
       reactions: family.reactions.map((reaction) =>
-        reaction.gasPhaseId === phase.id || reaction.aerosolPhaseId === phase.id
+        reaction.gasPhaseId === phase.id
           ? {
               ...reaction,
               gasPhaseId:
                 reaction.gasPhaseId === phase.id
                   ? undefined
                   : reaction.gasPhaseId,
-              aerosolPhaseId:
-                reaction.aerosolPhaseId === phase.id
-                  ? undefined
-                  : reaction.aerosolPhaseId,
             }
           : reaction,
       ),
@@ -173,7 +157,7 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
 
     const phaseIsUsedByReaction = family.reactions.some(
       (reaction) =>
-        reaction.gasPhaseId === id || reaction.aerosolPhaseId === id,
+        reaction.gasPhaseId === id,
     );
     if (phaseIsUsedByReaction) {
       setPendingPhaseDelete(phase);
@@ -186,66 +170,9 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
   const pendingPhaseReactionCount = pendingPhaseDelete
     ? family.reactions.filter(
         (reaction) =>
-          reaction.gasPhaseId === pendingPhaseDelete.id ||
-          reaction.aerosolPhaseId === pendingPhaseDelete.id,
+          reaction.gasPhaseId === pendingPhaseDelete.id,
       ).length
     : 0;
-
-  const phaseColumns: GridColDef[] = [
-    {
-      field: "Row Actions",
-      type: "actions",
-      headerClassName: "roleDataHeader",
-      cellClassName: "actions",
-      disableColumnMenu: true,
-      getActions: ({ id }) => [
-        <RowActionsButton
-          key={id}
-          handleDeleteButtonClick={() => removePhase(id as UUID)}
-          handleEditButtonClick={() => {
-            setSelectedPhase(family.phases.find((phase) => phase.id === id));
-            setPhaseCreationModalOpen(true);
-          }}
-        />,
-      ],
-    },
-    {
-      field: "name",
-      headerName: "Name",
-      editable: true,
-      flex: 1,
-    },
-    {
-      field: "description",
-      headerName: "Description",
-      editable: true,
-      flex: 1,
-      renderCell: (params: GridRenderCellParams<Phase>) => (
-        <Typography noWrap title={params.value || ""}>
-          {params.value || "<Empty>"}
-        </Typography>
-      ),
-    },
-    {
-      field: "speciesIds",
-      headerName: "Species",
-      flex: 2,
-      sortable: false,
-      valueGetter: (_value, row: Phase) =>
-        row.speciesIds
-          .map(
-            (id) =>
-              family.species.find((species) => species.id === id)?.name ??
-              "<Unknown>",
-          )
-          .join(", "),
-      renderCell: (params: GridRenderCellParams<Phase>) => (
-        <Typography noWrap title={String(params.value || "")}>
-          {params.value || "<None>"}
-        </Typography>
-      ),
-    },
-  ];
 
   return (
     <Box
@@ -269,59 +196,22 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
           <HelpOutlineIcon fontSize="small" />
         </Tooltip>
       </Box>
-      <DataGrid
-        apiRef={apiRef}
-        // The search replaces the filter panel. The free DataGrid allows only
-        // one filter condition at a time.
-        disableColumnFilter
-        getRowId={(row: Phase) => row.id}
-        initialState={{
-          density: "compact",
-          pagination: { paginationModel: { pageSize: 20 } },
-        }}
-        rows={family.phases}
-        columns={phaseColumns}
-        processRowUpdate={handlePhaseRowUpdate}
-        // A double-click on the species opens the phase editor. The name and
-        // the description use the in-cell edit.
-        onCellDoubleClick={(params) => {
-          if (params.field !== "speciesIds") {
-            return;
-          }
-          setSelectedPhase(
-            family.phases.find((phase) => phase.id === params.id),
-          );
-          setPhaseCreationModalOpen(true);
-        }}
-        pageSizeOptions={[5, 10, 20, 100]}
-        disableVirtualization
-        sx={{
-          flex: 1,
-          "& .MuiDataGrid-cell": {
-            display: "flex",
-            alignItems: "center",
-          },
-          ".MuiDataGrid-columnHeaderTitle": {
-            fontFamily: theme.typography.fontFamily,
-          },
-          ".MuiDataGrid-overlay": {
-            fontFamily: theme.typography.fontFamily,
-          },
-        }}
-        slots={{ toolbar: DataViewToolbar }}
-        slotProps={{
-          toolbar: {
-            addLabel: "Add Phase",
-            addTooltip: "Add phase to family",
-            addTestId: "add-phase-button",
-            onAdd: () => {
-              setSelectedPhase(undefined);
+      <PhaseTable
+        phases={family.phases}
+        species={family.species}
+        getRowActions={(id) => [
+          <RowActionsButton
+            key={id}
+            handleDeleteButtonClick={() => removePhase(id)}
+            handleEditButtonClick={() => {
+              setSelectedPhase(family.phases.find((phase) => phase.id === id));
               setPhaseCreationModalOpen(true);
-            },
-            searchPlaceholder: "Search phases",
-            visibleCount: visibleRows.length,
-            totalCount: family.phases.length,
-          },
+            }}
+          />,
+        ]}
+        onAdd={() => {
+          setSelectedPhase(undefined);
+          setPhaseCreationModalOpen(true);
         }}
       />
       <PhaseCreationModal
