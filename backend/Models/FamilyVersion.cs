@@ -14,7 +14,7 @@ public class FamilyVersion
     [ForeignKey("Family")]
     public Guid FamilyId { get; set; }
     [JsonIgnore]
-    public Family? Family { get; set; }
+    public Family Family { get; set; } = null!;
 
     // Collections of species, reactions, and phases that belong to this version snapshot
     public ICollection<Species> Species { get; set; } = new List<Species>();

@@ -49,21 +49,22 @@ public static class DbInitializer
     // reactants/products/attributes) and the mechanism join rows.
     private static Family BuildFamily(SeedFamily seedFamily, User owner)
     {
+        var version = new FamilyVersion
+        {
+            Id = Guid.NewGuid(),
+        };
+
         var family = new Family
         {
             Id = Guid.NewGuid(),
             Name = seedFamily.Name,
             Owner = owner,
+            CurrentVersion = version,
+            CurrentVersionId = version.Id
         };
 
-        var version = new FamilyVersion
-        {
-            Id = Guid.NewGuid(),
-            Family = family,
-            FamilyId = family.Id
-        };
-        family.CurrentVersion = version;
-        family.CurrentVersionId = version.Id;
+        version.Family = family;
+        version.FamilyId = family.Id;
         family.Versions.Add(version);
 
         var speciesByName = new Dictionary<string, Species>();

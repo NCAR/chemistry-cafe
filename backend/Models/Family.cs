@@ -19,47 +19,31 @@ public partial class Family
     // Pointer to active/editable draft version
     [ForeignKey("CurrentVersion")]
     public Guid? CurrentVersionId { get; set; }
-    public FamilyVersion? CurrentVersion { get; set; }
+    public FamilyVersion CurrentVersion { get; set; } = null!;
 
     // Collection of all versions belonging to this family
     public ICollection<FamilyVersion> Versions { get; set; } = new List<FamilyVersion>();
-
-    public FamilyVersion EnsureCurrentVersion()
-    {
-        if (CurrentVersion == null)
-        {
-            CurrentVersion = new FamilyVersion
-            {
-                Id = Guid.NewGuid(),
-                FamilyId = Id,
-                Family = this
-            };
-            CurrentVersionId = CurrentVersion.Id;
-            Versions.Add(CurrentVersion);
-        }
-        return CurrentVersion;
-    }
 
     // Convenience accessors delegating to CurrentVersion (not mapped to DB columns on Families table)
     [NotMapped]
     public ICollection<Species> Species
     {
-        get => CurrentVersion?.Species ?? EnsureCurrentVersion().Species;
-        set => EnsureCurrentVersion().Species = value;
+        get => CurrentVersion?.Species ?? [];
+        set => CurrentVersion.Species = value;
     }
 
     [NotMapped]
     public ICollection<Reaction> Reactions
     {
-        get => CurrentVersion?.Reactions ?? EnsureCurrentVersion().Reactions;
-        set => EnsureCurrentVersion().Reactions = value;
+        get => CurrentVersion?.Reactions ?? [];
+        set => CurrentVersion.Reactions = value;
     }
 
     [NotMapped]
     public ICollection<Phase> Phases
     {
-        get => CurrentVersion?.Phases ?? EnsureCurrentVersion().Phases;
-        set => EnsureCurrentVersion().Phases = value;
+        get => CurrentVersion?.Phases ?? [];
+        set => CurrentVersion.Phases = value;
     }
 
     // Collection of mechanisms belonging to this family

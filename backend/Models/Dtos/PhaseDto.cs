@@ -9,7 +9,7 @@ public class PhaseDto
 {
     public Guid Id { get; set; }
     public Guid FamilyVersionId { get; set; }
-    public Guid FamilyId { get => FamilyVersionId; set => FamilyVersionId = value; }
+    public Guid FamilyId { get; set; }
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
     public List<Guid> SpeciesIds { get; set; } = new();

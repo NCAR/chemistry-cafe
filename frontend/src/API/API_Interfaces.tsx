@@ -42,6 +42,7 @@ export interface APISpecies {
   createdDate?: string;
   description?: string | null;
   familyId: UUID;
+  familyVersionId: UUID;
   id: UUID;
   isThirdBody?: boolean;
   molecularWeight?: number;
@@ -144,6 +145,7 @@ export interface APIReaction {
   aerosolPhaseSpeciesId?: UUID | null;
   aerosolPhaseWaterId?: UUID | null;
   familyId: UUID;
+  familyVersionId: UUID;
 }
 
 export interface APIReactant {
@@ -164,6 +166,7 @@ export interface APIPhase {
   name: string;
   description?: string;
   familyId: UUID;
+  familyVersionId: UUID;
   speciesIds: Array<UUID>;
   diffusionCoefficients?: Record<UUID, number>;
 }
