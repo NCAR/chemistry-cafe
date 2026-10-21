@@ -1,22 +1,24 @@
-import { useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useMemo, useState } from "react";
 import { Family, Mechanism } from "../types/chemistryModels";
 import {
   Box,
   Button,
-  List,
-  ListItem,
   Tab,
   Tabs,
   TextField,
   Tooltip,
   Typography,
 } from "@mui/material";
+import { GridActionsCellItem } from "@mui/x-data-grid";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EditNoteIcon from "@mui/icons-material/EditNote";
+import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import { SelectSpeciesButton } from "./SelectSpeciesButton";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { SelectReactionButton } from "./SelectReactionButton";
-import { reactionToString } from "../helpers/stringify";
+import { SelectPhaseButton } from "./SelectPhaseButton";
+import { SpeciesTable } from "./familyEditor/SpeciesTable";
+import { ReactionsTable } from "./familyEditor/ReactionsTable";
+import { PhaseTable } from "./familyEditor/PhaseTable";
 
 export type MechanismEditorProps = {
   family: Family;
@@ -24,6 +26,44 @@ export type MechanismEditorProps = {
   updateMechanism: (mechanism: Mechanism) => void;
   navigateBack: () => void;
 };
+
+/**
+ * Gives the items with the given IDs, in the order of the IDs. An ID without
+ * an item gives no row, and an ID that repeats gives one row, because a table
+ * needs one row for each ID.
+ */
+const itemsWithIds = <T extends { id: string }>(
+  items: Array<T>,
+  ids: Array<T["id"]>,
+): Array<T> => {
+  const byId = new Map<T["id"], T>(items.map((item) => [item.id, item]));
+  return [...new Set(ids)].flatMap((id) => {
+    const item = byId.get(id);
+    return item ? [item] : [];
+  });
+};
+
+/**
+ * The row action of the tables in this editor. It takes the item out of the
+ * mechanism, and the family keeps the item.
+ */
+const RemoveFromMechanismButton = ({
+  label,
+  onClick,
+}: {
+  label: string;
+  onClick: () => void;
+}) => (
+  <Tooltip title={label} disableInteractive>
+    <GridActionsCellItem
+      aria-label={label}
+      data-testid="remove-from-mechanism-button"
+      icon={<RemoveCircleOutlineIcon />}
+      label={label}
+      onClick={onClick}
+    />
+  </Tooltip>
+);
 
 export const MechanismEditor: React.FC<MechanismEditorProps> = ({
   family,
@@ -48,6 +88,20 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
     setModifiedMechanism(mechanism);
     setChangesSaved(true);
   }, [mechanism]);
+
+  // The rows of the tables: the family items that the mechanism contains.
+  const mechanismSpecies = useMemo(
+    () => itemsWithIds(family.species, modifiedMechanism.speciesIds),
+    [family.species, modifiedMechanism.speciesIds],
+  );
+  const mechanismReactions = useMemo(
+    () => itemsWithIds(family.reactions, modifiedMechanism.reactionIds),
+    [family.reactions, modifiedMechanism.reactionIds],
+  );
+  const mechanismPhases = useMemo(
+    () => itemsWithIds(family.phases, modifiedMechanism.phaseIds),
+    [family.phases, modifiedMechanism.phaseIds],
+  );
 
   const changeMechanismProperties = (properties: Partial<Mechanism>) => {
     setModifiedMechanism({
@@ -168,48 +222,40 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
           <Typography color="textPrimary" variant="h5">
             {mechanism.name || "<No Name>"} Species
           </Typography>
-          <SelectSpeciesButton
-            aria-label="select-mechanism-species"
-            text="Add Species"
-            onSelect={(species) => {
-              changeMechanismProperties({
-                speciesIds: [species.id, ...modifiedMechanism.speciesIds],
-              });
-            }}
-            species={family.species.filter((species) => {
-              for (const speciesId of modifiedMechanism?.speciesIds) {
-                if (speciesId === species.id) {
-                  return false;
+          <SpeciesTable
+            species={mechanismSpecies}
+            getRowActions={(id) => [
+              <RemoveFromMechanismButton
+                label="Remove species from mechanism"
+                onClick={() =>
+                  changeMechanismProperties({
+                    speciesIds: modifiedMechanism.speciesIds.filter(
+                      (speciesId) => speciesId !== id,
+                    ),
+                  })
                 }
-              }
-              return true;
-            })}
+              />,
+            ]}
+            customToolbarActions={
+              <SelectSpeciesButton
+                aria-label="select-mechanism-species"
+                text="Add Species"
+                onSelect={(species) => {
+                  changeMechanismProperties({
+                    speciesIds: [species.id, ...modifiedMechanism.speciesIds],
+                  });
+                }}
+                species={family.species.filter((species) => {
+                  for (const speciesId of modifiedMechanism?.speciesIds) {
+                    if (speciesId === species.id) {
+                      return false;
+                    }
+                  }
+                  return true;
+                })}
+              />
+            }
           />
-          <List>
-            {modifiedMechanism.speciesIds.map((id) => {
-              const species = family.species.find(
-                (element) => element.id === id,
-              );
-              return (
-                <ListItem
-                  key={`${id}-species-list-item`}
-                  sx={{
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    columnGap: "1rem",
-                  }}
-                >
-                  <Typography>{species?.name || "<No name>"}</Typography>
-                  {species?.description && (
-                    <Tooltip title={species?.description}>
-                      <InfoOutlinedIcon />
-                    </Tooltip>
-                  )}
-                </ListItem>
-              );
-            })}
-          </List>
         </div>
       )}
       {selectedTab === TabValue.Reactions && (
@@ -217,59 +263,79 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
           <Typography color="textPrimary" variant="h5">
             {mechanism.name || "<No Name>"} Reactions
           </Typography>
-          <SelectReactionButton
-            aria-label="select-mechanism-reactions"
-            text="Add Reaction"
-            family={family}
-            onSelect={(reaction) => {
-              changeMechanismProperties({
-                reactionIds: [reaction.id, ...modifiedMechanism.reactionIds],
-              });
-            }}
-            reactions={family.reactions.filter((reactions) => {
-              for (const speciesId of modifiedMechanism?.reactionIds) {
-                if (speciesId === reactions.id) {
-                  return false;
+          <ReactionsTable
+            reactions={mechanismReactions}
+            species={family.species}
+            getRowActions={(id) => [
+              <RemoveFromMechanismButton
+                label="Remove reaction from mechanism"
+                onClick={() =>
+                  changeMechanismProperties({
+                    reactionIds: modifiedMechanism.reactionIds.filter(
+                      (reactionId) => reactionId !== id,
+                    ),
+                  })
                 }
-              }
-              return true;
-            })}
+              />,
+            ]}
+            customToolbarActions={
+              <SelectReactionButton
+                aria-label="select-mechanism-reactions"
+                text="Add Reaction"
+                family={family}
+                onSelect={(reaction) => {
+                  changeMechanismProperties({
+                    reactionIds: [reaction.id, ...modifiedMechanism.reactionIds],
+                  });
+                }}
+                reactions={family.reactions.filter((reactions) => {
+                  for (const speciesId of modifiedMechanism?.reactionIds) {
+                    if (speciesId === reactions.id) {
+                      return false;
+                    }
+                  }
+                  return true;
+                })}
+              />
+            }
           />
-          <List>
-            {modifiedMechanism.reactionIds.map((id) => {
-              const reaction = family.reactions.find(
-                (element) => element.id === id,
-              );
-              return (
-                <ListItem
-                  key={`${id}-reaction-list-item`}
-                  sx={{
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    columnGap: "1rem",
-                  }}
-                >
-                  <Typography>
-                    {reactionToString(reaction, family.species)}
-                  </Typography>
-                  {reaction?.description && (
-                    <Tooltip title={reaction?.description}>
-                      <InfoOutlinedIcon />
-                    </Tooltip>
-                  )}
-                </ListItem>
-              );
-            })}
-          </List>
         </div>
       )}
       {selectedTab === TabValue.Phases && (
         <div>
-          <Typography color="textPrimary">
-            Phases are currently a work in progress. Everything is assumed to be
-            in a gas phase.
+          <Typography color="textPrimary" variant="h5">
+            {mechanism.name || "<No Name>"} Phases
           </Typography>
+            <PhaseTable
+              phases={mechanismPhases}
+              species={family.species}
+              getRowActions={(id) => [
+                <RemoveFromMechanismButton
+                  label="Remove phase from mechanism"
+                  onClick={() =>
+                    changeMechanismProperties({
+                      phaseIds: modifiedMechanism.phaseIds.filter(
+                        (phaseId) => phaseId !== id,
+                      ),
+                    })
+                  }
+                />,
+              ]}
+              customToolbarActions={
+                  <SelectPhaseButton
+                    aria-label="select-mechanism-phases"
+                    text="Add Phase"
+                    onSelect={(phase) => {
+                      changeMechanismProperties({
+                        phaseIds: [phase.id, ...modifiedMechanism.phaseIds],
+                      });
+                    }}
+                    phases={family.phases.filter(
+                      (phase) => !modifiedMechanism.phaseIds.includes(phase.id),
+                    )}
+                  />
+                }
+            />
         </div>
       )}
     </Box>
