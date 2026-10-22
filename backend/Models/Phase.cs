@@ -20,14 +20,7 @@ public class Phase
     [ForeignKey("FamilyVersion")]
     public Guid FamilyVersionId { get; set; }
     [JsonIgnore]
-    public FamilyVersion? FamilyVersion { get; set; }
-
-    [NotMapped]
-    public Guid FamilyId
-    {
-        get => FamilyVersion?.FamilyId ?? FamilyVersionId;
-        set => FamilyVersionId = value;
-    }
+    public FamilyVersion FamilyVersion { get; set; } = null!;
 
     // Navigation property for species in this phase
     public ICollection<Species> Species { get; set; } = new List<Species>();

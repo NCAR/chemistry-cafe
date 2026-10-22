@@ -1,6 +1,7 @@
 using System.Text.Json;
 using ChemistryCafeAPI.Models;
 using ChemistryCafeAPI.Models.Mappers;
+using Microsoft.EntityFrameworkCore;
 
 namespace ChemistryCafeAPI.SeedData;
 
@@ -39,6 +40,15 @@ public static class DbInitializer
         foreach (var seedFamily in root.Families)
         {
             context.Families.Add(BuildFamily(seedFamily, owner));
+        }
+
+        context.SaveChanges();
+
+        // With the families and versions saved in the database,
+        // now CurrentVersion can be set without a circular dependency error.
+        foreach (var family in context.Families.Include(family => family.Versions))
+        {
+            family.CurrentVersion = family.Versions.First();
         }
 
         context.SaveChanges();

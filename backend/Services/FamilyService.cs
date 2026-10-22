@@ -819,7 +819,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             Mechanism added = incomingMechanism.ToEntity();
             added.FamilyId = existing.Id;
             added.Family = existing;
-            added.FamilyVersionId = incomingMechanism.FamilyVersionId != Guid.Empty ? incomingMechanism.FamilyVersionId : version.Id;
+            added.FamilyVersionId = version.Id;
             added.Species = incomingMechanism.SpeciesIds.Select(sid => existing.Species.Single(s => s.Id == sid)).ToList();
             added.Reactions = incomingMechanism.ReactionIds.Select(rid => existing.Reactions.Single(r => r.Id == rid)).ToList();
             added.Phases = incomingMechanism.PhaseIds.Select(pid => existing.Phases.Single(p => p.Id == pid)).ToList();
@@ -833,10 +833,6 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             existingMechanism.Name = incomingMechanism.Name;
             existingMechanism.Description = incomingMechanism.Description;
             existingMechanism.FamilyId = existing.Id;
-            if (incomingMechanism.FamilyVersionId != Guid.Empty)
-            {
-                existingMechanism.FamilyVersionId = incomingMechanism.FamilyVersionId;
-            }
             existingMechanism.Species = incomingMechanism.SpeciesIds.Select(sid => existing.Species.Single(s => s.Id == sid)).ToList();
             existingMechanism.Reactions = incomingMechanism.ReactionIds.Select(rid => existing.Reactions.Single(r => r.Id == rid)).ToList();
             existingMechanism.Phases = incomingMechanism.PhaseIds.Select(pid => existing.Phases.Single(p => p.Id == pid)).ToList();

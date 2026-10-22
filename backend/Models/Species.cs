@@ -29,15 +29,9 @@ public class Species
     // FamilyVersion relationship
     [ForeignKey("FamilyVersion")]
     public Guid FamilyVersionId { get; set; }
-    [JsonIgnore]
-    public FamilyVersion? FamilyVersion { get; set; }
 
-    [NotMapped]
-    public Guid FamilyId
-    {
-        get => FamilyVersion?.FamilyId ?? FamilyVersionId;
-        set => FamilyVersionId = value;
-    }
+    [JsonIgnore]
+    public FamilyVersion FamilyVersion { get; set; } = null!;
 
     // Phase relationships
     [JsonIgnore]

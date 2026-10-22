@@ -84,14 +84,7 @@ public class Reaction
     public Guid FamilyVersionId { get; set; }
 
     [JsonIgnore]
-    public FamilyVersion? FamilyVersion { get; set; }
-
-    [NotMapped]
-    public Guid FamilyId
-    {
-        get => FamilyVersion?.FamilyId ?? FamilyVersionId;
-        set => FamilyVersionId = value;
-    }
+    public FamilyVersion FamilyVersion { get; set; } = null!;
 }
 
 [Table("Reactants")]
