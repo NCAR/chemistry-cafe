@@ -12,7 +12,7 @@ import {
 import { GridActionsCellItem } from "@mui/x-data-grid";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EditNoteIcon from "@mui/icons-material/EditNote";
-import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
+import DeleteIcon from '@mui/icons-material/Delete';
 import { SelectSpeciesButton } from "./SelectSpeciesButton";
 import { SelectReactionButton } from "./SelectReactionButton";
 import { SelectPhaseButton } from "./SelectPhaseButton";
@@ -58,7 +58,7 @@ const RemoveFromMechanismButton = ({
     <GridActionsCellItem
       aria-label={label}
       data-testid="remove-from-mechanism-button"
-      icon={<RemoveCircleOutlineIcon sx={{ color: "red" }}/>}
+      icon={<DeleteIcon/>}
       label={label}
       onClick={onClick}
     />
