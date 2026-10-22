@@ -1,4 +1,12 @@
-import { Box, Button, List, ListItem, Modal, Typography } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  List,
+  ListItem,
+  Modal,
+  Typography,
+} from "@mui/material";
 import React, { useState } from "react";
 import { Family } from "../../types/chemistryModels";
 import FileUpload from "../FileUpload";
@@ -16,12 +24,13 @@ export const ImportFamilyModal: React.FC<ImportFamilyModalProps> = ({
   onSubmit,
 }) => {
   const [family, setFamily] = useState<Family | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const onFileParse = (uploadedFamily: Family | null) => {
+  const onFileParse = (uploadedFamily: Family | null, parseError?: string) => {
     setFamily(uploadedFamily);
-    if (!uploadedFamily) {
-      alert("Could not parse input file");
-    }
+    setError(
+      uploadedFamily ? null : (parseError ?? "Could not parse input file"),
+    );
   };
 
   return (
@@ -29,6 +38,7 @@ export const ImportFamilyModal: React.FC<ImportFamilyModalProps> = ({
       open={open}
       onClose={() => {
         setFamily(null);
+        setError(null);
         onClose();
       }}
     >
@@ -43,6 +53,11 @@ export const ImportFamilyModal: React.FC<ImportFamilyModalProps> = ({
         component="div"
       >
         <FileUpload onFileParse={onFileParse} />
+        {error && (
+          <Alert severity="error" sx={{ whiteSpace: "pre-wrap" }}>
+            {error}
+          </Alert>
+        )}
         {family && (
           <Box>
             <Typography color="textPrimary">Configuration Info:</Typography>
