@@ -41,14 +41,12 @@ const frontendSpecies: Species = {
   id: "00000000-0000-0000-0000-000000000000",
   name: "Test Species",
   description: "Test Description",
-  familyId: "00000000-0000-0000-0000-000000000000",
 };
 
 const apiSpecies: APISpecies = {
   id: frontendSpecies.id as UUID,
   name: frontendSpecies.name,
   description: frontendSpecies.description,
-  familyId: frontendSpecies.id as UUID,
 };
 
 const frontendPhase: Phase = {
@@ -61,7 +59,6 @@ const frontendPhase: Phase = {
 const apiPhase: APIPhase = {
   id: frontendPhase.id as UUID,
   name: frontendPhase.name,
-  familyId: "00000000-0000-0000-0000-000000000000",
   species: [],
 };
 
@@ -84,7 +81,6 @@ const apiReaction: APIReaction = {
   reactants: [],
   reactionType: frontendReaction.type,
   products: [],
-  familyId: "00000000-0000-0000-0000-000000000000",
 };
 
 const frontendMechanism: Mechanism = {
@@ -130,11 +126,10 @@ const apiFamily: APIFamily = {
 
 describe("Species Conversion", () => {
   test("Conversion from frontend to backend definition", () => {
-    const result = frontendToAPISpecies(frontendSpecies, frontendFamily);
+    const result = frontendToAPISpecies(frontendSpecies);
     expect(result.id).toEqual(apiSpecies.id);
     expect(result.name).toEqual(apiSpecies.name);
     expect(result.description).toEqual(apiSpecies.description);
-    expect(result.familyId).toEqual(apiSpecies.familyId);
   });
 
   test("Conversion from backend to frontend definition", () => {
@@ -142,7 +137,6 @@ describe("Species Conversion", () => {
     expect(result.id).toEqual(frontendSpecies.id);
     expect(result.name).toEqual(frontendSpecies.name);
     expect(result.description).toEqual(frontendSpecies.description);
-    expect(result.familyId).toEqual(frontendSpecies.familyId);
   });
 
   test("isThirdBody round-trips in both directions", () => {
@@ -151,7 +145,7 @@ describe("Species Conversion", () => {
       name: "M",
       isThirdBody: true,
     };
-    const toApi = frontendToAPISpecies(thirdBodySpecies, frontendFamily);
+    const toApi = frontendToAPISpecies(thirdBodySpecies);
     expect(toApi.isThirdBody).toBe(true);
 
     const apiThirdBodySpecies: APISpecies = {
@@ -165,7 +159,7 @@ describe("Species Conversion", () => {
 
 describe("Reaction Conversion", () => {
   test("Conversion from frontend to backend definition", () => {
-    const result = frontendToAPIReaction(frontendReaction, frontendFamily);
+    const result = frontendToAPIReaction(frontendReaction);
     expect(result.id).toEqual(apiReaction.id);
     expect(result.name).toEqual(apiReaction.name);
     expect(result.description).toEqual(apiReaction.description);
@@ -187,7 +181,7 @@ describe("Reaction Conversion", () => {
       aerosolPhaseSpeciesId: "44444444-4444-4444-4444-444444444444",
       aerosolPhaseWaterId: "55555555-5555-5555-5555-555555555555",
     };
-    const toApi = frontendToAPIReaction(phaseReaction, frontendFamily);
+    const toApi = frontendToAPIReaction(phaseReaction);
     expect(toApi.gasPhaseId).toEqual(phaseReaction.gasPhaseId);
     expect(toApi.gasPhaseSpeciesId).toEqual(phaseReaction.gasPhaseSpeciesId);
     expect(toApi.aerosolPhaseId).toEqual(phaseReaction.aerosolPhaseId);
@@ -239,7 +233,7 @@ describe("Arrhenius parameter translation", () => {
   };
 
   test("frontendToAPIReaction writes params to the arrhenius field, not the attribute lists", () => {
-    const result = frontendToAPIReaction(arrheniusReaction, frontendFamily);
+    const result = frontendToAPIReaction(arrheniusReaction);
     expect(result.arrhenius).toEqual({
       a: 1.2e-11,
       b: 0,
@@ -258,7 +252,6 @@ describe("Arrhenius parameter translation", () => {
       arrhenius: { a: 1.2e-11, b: 0, ea: 100, d: 300, e: 0 },
       reactants: [],
       products: [],
-      familyId: "00000000-0000-0000-0000-000000000000",
     };
     const result = apiToFrontendReaction(apiArrhenius);
     expect(result.attributes["A"].value).toBe(1.2e-11);
@@ -285,7 +278,7 @@ describe("Tunneling parameter translation", () => {
   };
 
   test("frontendToAPIReaction writes params to the tunneling field, not the attribute lists", () => {
-    const result = frontendToAPIReaction(tunnelingReaction, frontendFamily);
+    const result = frontendToAPIReaction(tunnelingReaction);
     expect(result.tunneling).toEqual({
       a: 1.2e-11,
       b: 0,
@@ -301,7 +294,6 @@ describe("Tunneling parameter translation", () => {
       tunneling: { a: 1.2e-11, b: 0, c: 300 },
       reactants: [],
       products: [],
-      familyId: "00000000-0000-0000-0000-000000000000",
     };
     const result = apiToFrontendReaction(apiTunneling);
     expect(result.attributes["A"].value).toBe(1.2e-11);
@@ -331,7 +323,7 @@ describe("Troe parameter translation", () => {
   };
 
   test("frontendToAPIReaction writes params to the troe field, not the attribute lists", () => {
-    const result = frontendToAPIReaction(troeReaction, frontendFamily);
+    const result = frontendToAPIReaction(troeReaction);
     expect(result.troe).toEqual({
       k0A: 1.2e-11,
       k0B: 0,
@@ -361,7 +353,6 @@ describe("Troe parameter translation", () => {
       },
       reactants: [],
       products: [],
-      familyId: "00000000-0000-0000-0000-000000000000",
     };
     const result = apiToFrontendReaction(apiTroe);
     expect(result.attributes["k0A"].value).toBe(1.2e-11);
@@ -393,7 +384,7 @@ describe("Ternary Chemical Activation parameter translation", () => {
   };
 
   test("frontendToAPIReaction writes params to the ternaryChemicalActivation field, not the attribute lists", () => {
-    const result = frontendToAPIReaction(tcaReaction, frontendFamily);
+    const result = frontendToAPIReaction(tcaReaction);
     expect(result.ternaryChemicalActivation).toEqual({
       k0A: 1.2e-11,
       k0B: 0,
@@ -423,7 +414,6 @@ describe("Ternary Chemical Activation parameter translation", () => {
       },
       reactants: [],
       products: [],
-      familyId: "00000000-0000-0000-0000-000000000000",
     };
     const result = apiToFrontendReaction(apiTca);
     expect(result.attributes["k0A"].value).toBe(1.2e-11);
@@ -451,7 +441,7 @@ describe("Branched (no RO2) parameter translation", () => {
   };
 
   test("frontendToAPIReaction writes params to the branched field, not the attribute lists", () => {
-    const result = frontendToAPIReaction(branchedReaction, frontendFamily);
+    const result = frontendToAPIReaction(branchedReaction);
     expect(result.branched).toEqual({
       x: 1.2e-11,
       y: 300,
@@ -468,7 +458,6 @@ describe("Branched (no RO2) parameter translation", () => {
       branched: { x: 1.2e-11, y: 300, a0: 0.5, n: 6 },
       reactants: [],
       products: [],
-      familyId: "00000000-0000-0000-0000-000000000000",
     };
     const result = apiToFrontendReaction(apiBranched);
     expect(result.attributes["X"].value).toBe(1.2e-11);
@@ -500,7 +489,7 @@ describe("Taylor Series parameter translation", () => {
   };
 
   test("frontendToAPIReaction writes params to the taylorSeries field, not the attribute lists", () => {
-    const result = frontendToAPIReaction(taylorSeriesReaction, frontendFamily);
+    const result = frontendToAPIReaction(taylorSeriesReaction);
     expect(result.taylorSeries).toEqual({
       a: 1.0,
       b: 0.0,
@@ -527,7 +516,6 @@ describe("Taylor Series parameter translation", () => {
       },
       reactants: [],
       products: [],
-      familyId: "00000000-0000-0000-0000-000000000000",
     };
     const result = apiToFrontendReaction(apiTaylorSeries);
     expect(result.attributes["A"].value).toBe(1.0);
@@ -556,7 +544,7 @@ describe("Surface parameter translation", () => {
   };
 
   test("frontendToAPIReaction writes params to the surface field, not the attribute lists", () => {
-    const result = frontendToAPIReaction(surfaceReaction, frontendFamily);
+    const result = frontendToAPIReaction(surfaceReaction);
     expect(result.surface).toEqual({
       reactionProbability: 1.0,
     });
@@ -570,7 +558,6 @@ describe("Surface parameter translation", () => {
       surface: { reactionProbability: 1.0 },
       reactants: [],
       products: [],
-      familyId: "00000000-0000-0000-0000-000000000000",
     };
     const result = apiToFrontendReaction(apiSurface);
     expect(result.attributes["reactionProbability"].value).toBe(1.0);
@@ -591,7 +578,7 @@ describe("Emission parameter translation", () => {
   };
 
   test("frontendToAPIReaction writes params to the emission field, not the attribute lists", () => {
-    const result = frontendToAPIReaction(emissionReaction, frontendFamily);
+    const result = frontendToAPIReaction(emissionReaction);
     expect(result.emission).toEqual({
       scalingFactor: 1.5,
     });
@@ -605,7 +592,6 @@ describe("Emission parameter translation", () => {
       emission: { scalingFactor: 1.5 },
       reactants: [],
       products: [],
-      familyId: "00000000-0000-0000-0000-000000000000",
     };
     const result = apiToFrontendReaction(apiEmission);
     expect(result.attributes["scalingFactor"].value).toBe(1.5);
@@ -628,7 +614,6 @@ describe("First Order Loss parameter translation", () => {
   test("frontendToAPIReaction writes params to the firstOrderLoss field, not the attribute lists", () => {
     const result = frontendToAPIReaction(
       firstOrderLossReaction,
-      frontendFamily,
     );
     expect(result.firstOrderLoss).toEqual({
       scalingFactor: 2.0,
@@ -643,7 +628,6 @@ describe("First Order Loss parameter translation", () => {
       firstOrderLoss: { scalingFactor: 2.0 },
       reactants: [],
       products: [],
-      familyId: "00000000-0000-0000-0000-000000000000",
     };
     const result = apiToFrontendReaction(apiFirstOrderLoss);
     expect(result.attributes["scalingFactor"].value).toBe(2.0);
@@ -664,7 +648,7 @@ describe("Photolysis parameter translation", () => {
   };
 
   test("frontendToAPIReaction writes params to the photolysis field, not the attribute lists", () => {
-    const result = frontendToAPIReaction(photolysisReaction, frontendFamily);
+    const result = frontendToAPIReaction(photolysisReaction);
     expect(result.photolysis).toEqual({
       scalingFactor: 0.8,
     });
@@ -678,7 +662,6 @@ describe("Photolysis parameter translation", () => {
       photolysis: { scalingFactor: 0.8 },
       reactants: [],
       products: [],
-      familyId: "00000000-0000-0000-0000-000000000000",
     };
     const result = apiToFrontendReaction(apiPhotolysis);
     expect(result.attributes["scalingFactor"].value).toBe(0.8);
@@ -699,7 +682,7 @@ describe("User Defined parameter translation", () => {
   };
 
   test("frontendToAPIReaction writes params to the userDefined field, not the attribute lists", () => {
-    const result = frontendToAPIReaction(userDefinedReaction, frontendFamily);
+    const result = frontendToAPIReaction(userDefinedReaction);
     expect(result.userDefined).toEqual({
       scalingFactor: 3.2,
     });
@@ -713,7 +696,6 @@ describe("User Defined parameter translation", () => {
       userDefined: { scalingFactor: 3.2 },
       reactants: [],
       products: [],
-      familyId: "00000000-0000-0000-0000-000000000000",
     };
     const result = apiToFrontendReaction(apiUserDefined);
     expect(result.attributes["scalingFactor"].value).toBe(3.2);
@@ -722,7 +704,7 @@ describe("User Defined parameter translation", () => {
 
 describe("Phase Conversion", () => {
   test("Conversion from frontend to backend definition", () => {
-    const result = frontendToAPIPhase(frontendPhase, frontendFamily);
+    const result = frontendToAPIPhase(frontendPhase);
     expect(result.id).toEqual(apiPhase.id);
     expect(result.name).toEqual(apiPhase.name);
   });
@@ -738,7 +720,7 @@ describe("Phase Conversion", () => {
       ...frontendPhase,
       description: "gas phase",
     };
-    const result = frontendToAPIPhase(describedPhase, frontendFamily);
+    const result = frontendToAPIPhase(describedPhase);
     expect(result.description).toEqual("gas phase");
   });
 });

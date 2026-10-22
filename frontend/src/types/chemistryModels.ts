@@ -19,9 +19,6 @@ export type Species = {
   /** Description of the species */
   description: string | null;
 
-  /** Id of the family on the frontend this mechanism is a part of */
-  familyId: UUID;
-
   /** ID stored in the SQL database. If this is not in the database, this is used for frontend purposes */
   id: UUID;
 

@@ -73,7 +73,6 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
     const frontendId: UUID = generateID();
     const species: Species = {
       description: "",
-      familyId: family.id,
       id: frontendId,
       name: "",
     };
