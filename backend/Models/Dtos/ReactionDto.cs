@@ -7,8 +7,6 @@ namespace ChemistryCafeAPI.Models.Dto;
 public class ReactionDto
 {
     public Guid Id { get; set; }
-    public Guid FamilyVersionId { get; set; }
-    public Guid FamilyId { get; set; }
     public string Name { get; set; } = null!;
     public string ReactionType { get; set; } = null!;
     public string? Description { get; set; }

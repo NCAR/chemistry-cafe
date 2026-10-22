@@ -10,8 +10,6 @@ public static class PhaseMapper
         return new PhaseDto
         {
             Id = phase.Id,
-            FamilyId = phase.FamilyVersion.FamilyId,
-            FamilyVersionId = phase.FamilyVersionId,
             Name = phase.Name,
             Description = phase.Description,
             SpeciesIds = phase.PhaseSpecies.Select(ps => ps.SpeciesId).ToList(),
@@ -39,7 +37,6 @@ public static class PhaseMapper
         return new Phase
         {
             Id = phaseDto.Id,
-            FamilyVersionId = phaseDto.FamilyVersionId,
             Name = phaseDto.Name,
             Description = phaseDto.Description,
         };
