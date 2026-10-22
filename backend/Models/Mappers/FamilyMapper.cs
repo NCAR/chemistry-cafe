@@ -7,7 +7,6 @@ public static class FamilyMapper
 {
     public static FamilyDto ToDto(this Family family)
     {
-        var current = family.CurrentVersion;
         return new FamilyDto
         {
             Id = family.Id,
