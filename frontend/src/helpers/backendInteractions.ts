@@ -534,8 +534,7 @@ export function frontendToAPIMechanism(
     validationStatus:
       mechanism.validationStatus === "Validated"
         ? "Validated"
-        : mechanism.validationStatus === "Pending Validation" ||
-            mechanism.validationStatus === "PendingValidation"
+        : mechanism.validationStatus === "Pending Validation"
           ? "PendingValidation"
           : "NoValidationRequested",
     validatedBy: mechanism.validatedBy ?? undefined,

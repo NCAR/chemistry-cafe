@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useState } from "react";
-import { Family, Mechanism, Reaction, Species, ValidationStatus } from "../types/chemistryModels";
+import { Family, Mechanism, Reaction, Species } from "../types/chemistryModels";
 import {
   Box,
   Button,
