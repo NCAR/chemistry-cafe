@@ -59,8 +59,6 @@ public static class DbInitializer
             Id = Guid.NewGuid(),
             Name = seedFamily.Name,
             Owner = owner,
-            CurrentVersion = version,
-            CurrentVersionId = version.Id
         };
 
         version.Family = family;
