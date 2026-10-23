@@ -54,9 +54,7 @@ export function apiToFrontendSpecies(apiSpecies: APISpecies): Species {
  * Species -> APISpecies
  * @param species Species information to convert
  */
-export function frontendToAPISpecies(
-  species: Species
-): APISpecies {
+export function frontendToAPISpecies(species: Species): APISpecies {
   const formattedSpecies: APISpecies = {
     absoluteTolerance: species.absoluteTolerance,
     constantConcentration: species.constantConcentration,
@@ -330,9 +328,7 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
  * Reaction -> APIReaction
  * @param reaction Reaction information to convert
  */
-export function frontendToAPIReaction(
-  reaction: Reaction
-): APIReaction {
+export function frontendToAPIReaction(reaction: Reaction): APIReaction {
   const formattedReaction: APIReaction = {
     id: reaction.id,
     name: reaction.name,
@@ -575,15 +571,11 @@ export function frontendToAPIFamily(
     name: family.name,
     description: family.description,
     owner: family.owner,
-    species: expand
-      ? family.species.map((e) => frontendToAPISpecies(e))
-      : [],
+    species: expand ? family.species.map((e) => frontendToAPISpecies(e)) : [],
     reactions: expand
       ? family.reactions.map((e) => frontendToAPIReaction(e))
       : [],
-    phases: expand
-      ? family.phases.map((e) => frontendToAPIPhase(e))
-      : [],
+    phases: expand ? family.phases.map((e) => frontendToAPIPhase(e)) : [],
     mechanisms: expand
       ? family.mechanisms.map((e) => frontendToAPIMechanism(e, family))
       : [],

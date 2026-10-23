@@ -619,10 +619,7 @@ export function deserializeMechanism(parsed: Record<string, any>): Family {
   return family;
 }
 
-function speciesFromJSON(
-  s: Record<string, unknown>,
-  id: UUID,
-): Species {
+function speciesFromJSON(s: Record<string, unknown>, id: UUID): Species {
   const otherProperties: Record<string, string | number | boolean> = {};
   for (const [rawKey, value] of Object.entries(s)) {
     if (!rawKey.startsWith("__")) continue;

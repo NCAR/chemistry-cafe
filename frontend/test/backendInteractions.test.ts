@@ -612,9 +612,7 @@ describe("First Order Loss parameter translation", () => {
   };
 
   test("frontendToAPIReaction writes params to the firstOrderLoss field, not the attribute lists", () => {
-    const result = frontendToAPIReaction(
-      firstOrderLossReaction,
-    );
+    const result = frontendToAPIReaction(firstOrderLossReaction);
     expect(result.firstOrderLoss).toEqual({
       scalingFactor: 2.0,
     });
