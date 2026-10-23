@@ -19,6 +19,22 @@ public static class DbInitializer
     {
         if (context.Families.Any())
         {
+            var unversioned = context.Families.Where(f => f.CurrentVersionId == null).ToList();
+            if (unversioned.Count > 0)
+            {
+                foreach (var f in unversioned)
+                {
+                    var latest = context.FamilyVersions
+                        .Where(v => v.FamilyId == f.Id)
+                        .OrderByDescending(v => v.CreatedDate)
+                        .FirstOrDefault();
+                    if (latest != null)
+                    {
+                        f.CurrentVersionId = latest.Id;
+                    }
+                }
+                context.SaveChanges();
+            }
             return;
         }
 
@@ -37,9 +53,21 @@ public static class DbInitializer
         var owner = context.Users.FirstOrDefault(u => u.Username == "seed")
             ?? new User { Id = Guid.NewGuid(), Username = "seed", Role = Role.Admin };
 
+        var familiesToUpdate = new List<(Family family, FamilyVersion version)>();
         foreach (var seedFamily in root.Families)
         {
-            context.Families.Add(BuildFamily(seedFamily, owner));
+            var (family, version) = BuildFamily(seedFamily, owner);
+            context.Families.Add(family);
+            context.FamilyVersions.Add(version);
+            familiesToUpdate.Add((family, version));
+        }
+
+        context.SaveChanges();
+
+        foreach (var (family, version) in familiesToUpdate)
+        {
+            family.CurrentVersion = version;
+            family.CurrentVersionId = version.Id;
         }
 
         context.SaveChanges();
@@ -57,7 +85,7 @@ public static class DbInitializer
     // Builds a whole Family graph wired by navigation properties. A single
     // SaveChanges cascade-inserts species, phases, reactions (with their
     // reactants/products/attributes) and the mechanism join rows.
-    private static Family BuildFamily(SeedFamily seedFamily, User owner)
+    private static (Family, FamilyVersion) BuildFamily(SeedFamily seedFamily, User owner)
     {
         var version = new FamilyVersion
         {
@@ -189,6 +217,6 @@ public static class DbInitializer
             family.Mechanisms.Add(mechanism);
         }
 
-        return family;
+        return (family, version);
     }
 }

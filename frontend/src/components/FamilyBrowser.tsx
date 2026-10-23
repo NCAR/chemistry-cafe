@@ -21,12 +21,14 @@ type FamilyBrowserProps = {
   families?: Array<APIFamily>;
   handleEditButtonClick?: (id: UUID) => any;
   handleCloneButtonClick?: (id: UUID) => any;
+  handleViewButtonClick?: (id: UUID) => any;
 };
 
 const FamilyBrowser: React.FC<FamilyBrowserProps> = ({
   families,
   handleEditButtonClick,
   handleCloneButtonClick,
+  handleViewButtonClick,
 }) => {
   return (
     <List>
@@ -37,6 +39,7 @@ const FamilyBrowser: React.FC<FamilyBrowserProps> = ({
             family={family}
             handleEditButtonClick={handleEditButtonClick}
             handleCloneButtonClick={handleCloneButtonClick}
+            handleViewButtonClick={handleViewButtonClick}
           />
         );
       })}
@@ -48,6 +51,7 @@ const FamilyInfoCard = memo(function FamilyInfoCard({
   family,
   handleEditButtonClick,
   handleCloneButtonClick,
+  handleViewButtonClick,
 }: {
   family: APIFamily;
 } & FamilyBrowserProps) {
@@ -133,6 +137,22 @@ const FamilyInfoCard = memo(function FamilyInfoCard({
                   size="small"
                 >
                   Edit Family
+                </Button>
+              )}
+            {(handleViewButtonClick || handleEditButtonClick) &&
+              user?.role?.toLowerCase() === "verifier" &&
+              user?.id !== family.owner.id && (
+                <Button
+                  color="primary"
+                  onClick={() =>
+                    handleViewButtonClick
+                      ? handleViewButtonClick(family.id)
+                      : handleEditButtonClick!(family.id)
+                  }
+                  size="small"
+                  data-testid="view-family-button"
+                >
+                  View Family
                 </Button>
               )}
             {handleCloneButtonClick && (

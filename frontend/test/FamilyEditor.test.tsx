@@ -160,69 +160,71 @@ describe("Family Editor Page", () => {
 describe("MechanismEditor", () => {
   it("Can navigate between tabs", () => {
     render(
-      <CustomThemeProvider>
-        <MechanismEditor
-          family={{
-            id: "111-111-111-111-111",
-            name: "Test Family",
-            description: "",
-            owner: null,
-            mechanisms: [
-              {
-                id: "111-111-111-111-111",
-                name: "Test Mechanism",
-                description: "",
-                phaseIds: [],
-                familyId: "111-111-111-111",
-                speciesIds: ["111-111-111-111-111"],
-                reactionIds: ["111-111-111-111-111"],
-              },
-            ],
-            species: [
-              {
-                id: "111-111-111-111-111",
-                name: "Test Species",
-                description: null,
-                familyId: "",
-                attributes: {},
-              },
-            ],
-            reactions: [
-              {
-                id: "111-111-111-111-111",
-                name: "Test Reaction",
-                description: null,
-                type: "ARRHENIUS",
-                reactants: [
-                  {
-                    speciesId: "111-111-111-111-111",
-                    coefficient: 0,
-                  },
-                ],
-                products: [
-                  {
-                    speciesId: "111-111-111-111-111",
-                    coefficient: 0,
-                  },
-                ],
-                attributes: {},
-              },
-            ],
-            phases: [],
-          }}
-          mechanism={{
-            id: "111-111-111-111-111",
-            name: "Test Mechanism",
-            description: "",
-            phaseIds: [],
-            familyId: "111-111-111-111",
-            speciesIds: ["111-111-111-111-111"],
-            reactionIds: ["111-111-111-111-111"],
-          }}
-          updateMechanism={vi.fn()}
-          navigateBack={vi.fn()}
-        />
-      </CustomThemeProvider>,
+      <AuthProvider>
+        <CustomThemeProvider>
+          <MechanismEditor
+            family={{
+              id: "111-111-111-111-111",
+              name: "Test Family",
+              description: "",
+              owner: null,
+              mechanisms: [
+                {
+                  id: "111-111-111-111-111",
+                  name: "Test Mechanism",
+                  description: "",
+                  phaseIds: [],
+                  familyId: "111-111-111-111",
+                  speciesIds: ["111-111-111-111-111"],
+                  reactionIds: ["111-111-111-111-111"],
+                },
+              ],
+              species: [
+                {
+                  id: "111-111-111-111-111",
+                  name: "Test Species",
+                  description: null,
+                  familyId: "",
+                  attributes: {},
+                },
+              ],
+              reactions: [
+                {
+                  id: "111-111-111-111-111",
+                  name: "Test Reaction",
+                  description: null,
+                  type: "ARRHENIUS",
+                  reactants: [
+                    {
+                      speciesId: "111-111-111-111-111",
+                      coefficient: 0,
+                    },
+                  ],
+                  products: [
+                    {
+                      speciesId: "111-111-111-111-111",
+                      coefficient: 0,
+                    },
+                  ],
+                  attributes: {},
+                },
+              ],
+              phases: [],
+            }}
+            mechanism={{
+              id: "111-111-111-111-111",
+              name: "Test Mechanism",
+              description: "",
+              phaseIds: [],
+              familyId: "111-111-111-111",
+              speciesIds: ["111-111-111-111-111"],
+              reactionIds: ["111-111-111-111-111"],
+            }}
+            updateMechanism={vi.fn()}
+            navigateBack={vi.fn()}
+          />
+        </CustomThemeProvider>
+      </AuthProvider>,
     );
 
     const tabs = screen.getAllByTestId("mechanism-tab");
@@ -792,59 +794,61 @@ describe("MechanismsView", () => {
     window.URL.revokeObjectURL = vi.fn(() => undefined);
     updateFamily = vi.fn();
     render(
-      <CustomThemeProvider>
-        <MechanismsView
-          family={{
-            id: "111-111-111-111-111",
-            name: "Test Family",
-            description: "",
-            owner: null,
-            mechanisms: [
-              {
-                id: "111-111-111-111-111",
-                name: "Test Mechanism",
-                description: "",
-                phaseIds: [],
-                familyId: "111-111-111-111",
-                speciesIds: ["111-111-111-111-111"],
-                reactionIds: ["111-111-111-111-111"],
-              },
-            ],
-            species: [
-              {
-                id: "111-111-111-111-111",
-                name: "Test Species",
-                description: null,
-                familyId: "",
-                attributes: {},
-              },
-            ],
-            phases: [],
-            reactions: [
-              {
-                id: "111-111-111-111-111",
-                name: "Test Reaction",
-                description: null,
-                type: "ARRHENIUS",
-                reactants: [
-                  {
-                    speciesId: "111-111-111-111-111",
-                    coefficient: 0,
-                  },
-                ],
-                products: [
-                  {
-                    speciesId: "111-111-111-111-111",
-                    coefficient: 0,
-                  },
-                ],
-                attributes: {},
-              },
-            ],
-          }}
-          updateFamily={updateFamily}
-        />
-      </CustomThemeProvider>,
+      <AuthProvider>
+        <CustomThemeProvider>
+          <MechanismsView
+            family={{
+              id: "111-111-111-111-111",
+              name: "Test Family",
+              description: "",
+              owner: null,
+              mechanisms: [
+                {
+                  id: "111-111-111-111-111",
+                  name: "Test Mechanism",
+                  description: "",
+                  phaseIds: [],
+                  familyId: "111-111-111-111",
+                  speciesIds: ["111-111-111-111-111"],
+                  reactionIds: ["111-111-111-111-111"],
+                },
+              ],
+              species: [
+                {
+                  id: "111-111-111-111-111",
+                  name: "Test Species",
+                  description: null,
+                  familyId: "",
+                  attributes: {},
+                },
+              ],
+              phases: [],
+              reactions: [
+                {
+                  id: "111-111-111-111-111",
+                  name: "Test Reaction",
+                  description: null,
+                  type: "ARRHENIUS",
+                  reactants: [
+                    {
+                      speciesId: "111-111-111-111-111",
+                      coefficient: 0,
+                    },
+                  ],
+                  products: [
+                    {
+                      speciesId: "111-111-111-111-111",
+                      coefficient: 0,
+                    },
+                  ],
+                  attributes: {},
+                },
+              ],
+            }}
+            updateFamily={updateFamily}
+          />
+        </CustomThemeProvider>
+      </AuthProvider>,
     );
   });
 

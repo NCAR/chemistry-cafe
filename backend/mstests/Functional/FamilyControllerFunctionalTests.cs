@@ -122,5 +122,147 @@ namespace ChemistryCafeAPI.Tests.Functional
             var response = await client.DeleteAsync($"/api/families/{family.Id}");
             Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
         }
+
+        [TestMethod]
+        public async Task UpdateFamily_VerifierValidatingMechanism_IsAllowed()
+        {
+            var owner = await CreateUserAsync(Role.None);
+            var ownerClient = CreateClient(true, owner);
+
+            var familyId = Guid.NewGuid();
+            var mechId = Guid.NewGuid();
+            var newFamily = new FamilyDto
+            {
+                Id = familyId,
+                Name = "Validation Test Family",
+                Description = "Desc",
+                Mechanisms = new List<MechanismDto>
+                {
+                    new MechanismDto
+                    {
+                        Id = mechId,
+                        Name = "Test Mechanism",
+                        ValidationStatus = ValidationStatus.PendingValidation
+                    }
+                }
+            };
+            var createResponse = await ownerClient.PostAsJsonAsync("/api/families", newFamily);
+            Assert.AreEqual(HttpStatusCode.Created, createResponse.StatusCode);
+
+            var verifierUser = await CreateUserAsync(Role.Verifier);
+            var verifierClient = CreateClient(true, verifierUser);
+
+            newFamily.Mechanisms[0].ValidationStatus = ValidationStatus.Validated;
+            var updateResponse = await verifierClient.PatchAsJsonAsync($"/api/families/{familyId}", newFamily);
+            Assert.AreEqual(HttpStatusCode.NoContent, updateResponse.StatusCode);
+        }
+
+        [TestMethod]
+        public async Task UpdateFamily_NonOwnerNonVerifierValidatingMechanism_ReturnsForbidden()
+        {
+            var owner = await CreateUserAsync(Role.None);
+            var ownerClient = CreateClient(true, owner);
+
+            var familyId = Guid.NewGuid();
+            var mechId = Guid.NewGuid();
+            var newFamily = new FamilyDto
+            {
+                Id = familyId,
+                Name = "Validation Test Family",
+                Description = "Desc",
+                Mechanisms = new List<MechanismDto>
+                {
+                    new MechanismDto
+                    {
+                        Id = mechId,
+                        Name = "Test Mechanism",
+                        ValidationStatus = ValidationStatus.PendingValidation
+                    }
+                }
+            };
+            var createResponse = await ownerClient.PostAsJsonAsync("/api/families", newFamily);
+            Assert.AreEqual(HttpStatusCode.Created, createResponse.StatusCode);
+
+            var regularUser = await CreateUserAsync(Role.None);
+            var regularClient = CreateClient(true, regularUser);
+
+            newFamily.Mechanisms[0].ValidationStatus = ValidationStatus.Validated;
+            var updateResponse = await regularClient.PatchAsJsonAsync($"/api/families/{familyId}", newFamily);
+            Assert.AreEqual(HttpStatusCode.Forbidden, updateResponse.StatusCode);
+        }
+
+        [TestMethod]
+        public async Task UpdateFamily_NonOwnerVerifier_ModifyingFamilyContent_ReturnsForbidden()
+        {
+            var owner = await CreateUserAsync(Role.None);
+            var ownerClient = CreateClient(true, owner);
+
+            var familyId = Guid.NewGuid();
+            var mechId = Guid.NewGuid();
+            var newFamily = new FamilyDto
+            {
+                Id = familyId,
+                Name = "Validation Test Family",
+                Description = "Desc",
+                Mechanisms = new List<MechanismDto>
+                {
+                    new MechanismDto
+                    {
+                        Id = mechId,
+                        Name = "Test Mechanism",
+                        ValidationStatus = ValidationStatus.PendingValidation
+                    }
+                }
+            };
+            var createResponse = await ownerClient.PostAsJsonAsync("/api/families", newFamily);
+            Assert.AreEqual(HttpStatusCode.Created, createResponse.StatusCode);
+
+            var verifierUser = await CreateUserAsync(Role.Verifier);
+            var verifierClient = CreateClient(true, verifierUser);
+
+            newFamily.Name = "Verifier Changed Name";
+            newFamily.Mechanisms[0].ValidationStatus = ValidationStatus.Validated;
+            var updateResponse = await verifierClient.PatchAsJsonAsync($"/api/families/{familyId}", newFamily);
+            Assert.AreEqual(HttpStatusCode.Forbidden, updateResponse.StatusCode);
+        }
+
+        [TestMethod]
+        public async Task GetFamilyVersion_ReturnsVersionWithChildEntities()
+        {
+            var owner = await CreateUserAsync(Role.None);
+            var ownerClient = CreateClient(true, owner);
+
+            var familyId = Guid.NewGuid();
+            var speciesId = Guid.NewGuid();
+            var newFamily = new FamilyDto
+            {
+                Id = familyId,
+                Name = "Versioned Family",
+                Description = "Desc",
+                Species = new List<SpeciesDto>
+                {
+                    new SpeciesDto
+                    {
+                        Id = speciesId,
+                        Name = "O3",
+                        MolecularWeight = 48.0
+                    }
+                }
+            };
+            var createResponse = await ownerClient.PostAsJsonAsync("/api/families", newFamily);
+            Assert.AreEqual(HttpStatusCode.Created, createResponse.StatusCode);
+            var createdFamily = await createResponse.Content.ReadFromJsonAsync<FamilyDto>();
+            Assert.IsNotNull(createdFamily);
+            Assert.IsNotNull(createdFamily.CurrentVersionId);
+
+            var unauthClient = CreateClient(false, owner);
+            var versionResponse = await unauthClient.GetAsync($"/api/families/{familyId}/versions/{createdFamily.CurrentVersionId}");
+            Assert.AreEqual(HttpStatusCode.OK, versionResponse.StatusCode);
+            var versionDto = await versionResponse.Content.ReadFromJsonAsync<FamilyVersionDto>();
+            Assert.IsNotNull(versionDto);
+            Assert.AreEqual(createdFamily.CurrentVersionId, versionDto.Id);
+            Assert.AreEqual(1, versionDto.Species.Count);
+            Assert.AreEqual("O3", versionDto.Species[0].Name);
+        }
     }
 }

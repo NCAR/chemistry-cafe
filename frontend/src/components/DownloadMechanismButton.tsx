@@ -7,6 +7,13 @@ import {
   serializeMechanismMusicBox as serializeMusicBoxConfiguration,
   serializeMechanismYAML,
 } from "../helpers/serialization";
+import { getFamilyVersion } from "../API/API_GetMethods";
+import {
+  apiToFrontendPhase,
+  apiToFrontendReaction,
+  apiToFrontendSpecies,
+} from "../helpers/backendInteractions";
+import { UUID } from "crypto";
 
 type RowActionsButtonProps = {
   mechanism: Mechanism;
@@ -31,6 +38,26 @@ export const DownloadMechanismButton: React.FC<RowActionsButtonProps> = ({
   const handleMenuClose = () => {
     setAnchorEl(null);
     setOpen(false);
+  };
+
+  const resolveFamily = async (): Promise<Family> => {
+    if (mechanism.isReadOnly && mechanism.familyVersionId && family.id) {
+      try {
+        const ver = await getFamilyVersion(
+          family.id as UUID,
+          mechanism.familyVersionId as UUID,
+        );
+        return {
+          ...family,
+          species: ver.species.map(apiToFrontendSpecies),
+          reactions: ver.reactions.map(apiToFrontendReaction),
+          phases: ver.phases.map(apiToFrontendPhase),
+        };
+      } catch (err) {
+        console.error("Failed to load family version for mechanism download:", err);
+      }
+    }
+    return family;
   };
 
   const downloadBlob = (blob: Blob, variant: "JSON" | "YAML" | "MusicBox") => {
@@ -96,7 +123,8 @@ export const DownloadMechanismButton: React.FC<RowActionsButtonProps> = ({
               sx={{
                 textTransform: "none",
               }}
-              onClick={() => {
+              onClick={async () => {
+                const family = await resolveFamily();
                 const serializedMechanism = serializeMechanismJSON(
                   mechanism,
                   family,
@@ -117,7 +145,8 @@ export const DownloadMechanismButton: React.FC<RowActionsButtonProps> = ({
               sx={{
                 textTransform: "none",
               }}
-              onClick={() => {
+              onClick={async () => {
+                const family = await resolveFamily();
                 const serializedMechanism = serializeMechanismYAML(
                   mechanism,
                   family,
@@ -138,7 +167,8 @@ export const DownloadMechanismButton: React.FC<RowActionsButtonProps> = ({
               sx={{
                 textTransform: "none",
               }}
-              onClick={() => {
+              onClick={async () => {
+                const family = await resolveFamily();
                 serializeMusicBoxConfiguration(mechanism, family).then(
                   (blob) => {
                     console.log(blob);

@@ -57,6 +57,10 @@ const Dashboard = () => {
             addUploadedFamilyIdLocally(familyId);
             navigate("/familyeditor");
           }}
+          handleViewButtonClick={(familyId) => {
+            addUploadedFamilyIdLocally(familyId);
+            navigate("/familyeditor");
+          }}
           handleCloneButtonClick={(id) => {
             getFamily(id)
               .then((family) => {

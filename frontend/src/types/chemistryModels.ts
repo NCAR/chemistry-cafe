@@ -149,6 +149,11 @@ export type Phase = {
  * A mechanism is a subset of a families species and reactions.
  * Mechanisms also contain information about different reaction phases.
  */
+export type ValidationStatus =
+  | "No Validation Requested"
+  | "Pending Validation"
+  | "Validated";
+
 export type Mechanism = {
   /** ID stored in the SQL database. If this is not in the database, this is used for frontend purposes */
   id: UUID;
@@ -161,6 +166,18 @@ export type Mechanism = {
 
   /** Id of the family on the frontend this mechanism is a part of */
   familyId: UUID;
+
+  /** Id of the family version this mechanism is tied to */
+  familyVersionId?: UUID;
+
+  /** Whether the mechanism is read-only */
+  isReadOnly?: boolean;
+
+  /** Validation status of the mechanism */
+  validationStatus?: ValidationStatus;
+
+  /** Display name of the user who marked the mechanism as validated */
+  validatedBy?: string | null;
 
   /** Species ids associated with the mechanism */
   speciesIds: Array<UUID>;

@@ -7,16 +7,25 @@ import { MechanismCreationModal } from "../modals/MechanismCreationModal";
 import { MechanismEditor } from "../MechanismEditor";
 import { MechanismBrowser } from "../MechanismBrowser";
 import { ViewProps } from "./ViewProps";
+import { saveFamilyChanges } from "../../helpers/backendInteractions";
+
+let lastSelectedMechanismId: string | null = null;
 
 export const MechanismsView = ({ family, updateFamily }: ViewProps) => {
   const [mechanismCreationModalOpen, setMechanismCreationModalOpen] =
     useState<boolean>(false);
   const [selectedMechanism, setSelectedMechanism] = useState<Mechanism | null>(
-    null,
+    () =>
+      family.mechanisms.find((m) => m.id === lastSelectedMechanismId) ?? null,
   );
   const [menuComponent, setMenuComponent] = useState<React.JSX.Element | null>(
     null,
   );
+
+  const selectMechanism = (mech: Mechanism | null) => {
+    lastSelectedMechanismId = mech?.id ?? null;
+    setSelectedMechanism(mech);
+  };
 
   const createMechanism = (mechanism: Mechanism) => {
     updateFamily({
@@ -30,7 +39,7 @@ export const MechanismsView = ({ family, updateFamily }: ViewProps) => {
       ],
     });
     setMechanismCreationModalOpen(false);
-    setSelectedMechanism(mechanism);
+    selectMechanism(mechanism);
   };
 
   const updateMechanism = (mechanism: Mechanism) => {
@@ -45,7 +54,38 @@ export const MechanismsView = ({ family, updateFamily }: ViewProps) => {
         return element;
       }),
     });
-    setSelectedMechanism(mechanism);
+    selectMechanism(mechanism);
+  };
+
+  const saveAndApplyMechanism = async (mechanism: Mechanism) => {
+    const updatedFamily = {
+      ...family,
+      isModified: true,
+      mechanisms: family.mechanisms.map((element) => {
+        if (element.id == mechanism.id) {
+          return {
+            ...mechanism,
+          };
+        }
+        return element;
+      }),
+    };
+    if (family.isInDatabase) {
+      try {
+        const savedFamily = await saveFamilyChanges(updatedFamily);
+        const savedMech =
+          savedFamily.mechanisms.find((m) => m.id === mechanism.id) ??
+          mechanism;
+        selectMechanism(savedMech);
+        updateFamily({ ...savedFamily, isModified: false }, false);
+      } catch (err) {
+        console.error("Failed to automatically save family:", err);
+        alert("An error occurred while automatically saving the family");
+      }
+    } else {
+      updateFamily(updatedFamily);
+      selectMechanism(mechanism);
+    }
   };
 
   const getMenuComponent = (mechanism: Mechanism | null): React.JSX.Element => {
@@ -53,7 +93,8 @@ export const MechanismsView = ({ family, updateFamily }: ViewProps) => {
       return (
         <MechanismBrowser
           family={family}
-          onEditButtonClick={setSelectedMechanism}
+          onEditButtonClick={selectMechanism}
+          updateMechanism={updateMechanism}
         />
       );
     }
@@ -63,8 +104,9 @@ export const MechanismsView = ({ family, updateFamily }: ViewProps) => {
         family={family}
         mechanism={mechanism}
         updateMechanism={updateMechanism}
+        onSaveMechanism={saveAndApplyMechanism}
         navigateBack={() => {
-          setSelectedMechanism(null);
+          selectMechanism(null);
         }}
       />
     );
@@ -76,8 +118,8 @@ export const MechanismsView = ({ family, updateFamily }: ViewProps) => {
   }, [selectedMechanism, family]);
 
   useLayoutEffect(() => {
-    setSelectedMechanism(null);
-  }, [family]);
+    selectMechanism(null);
+  }, [family.id]);
 
   return (
     <Box>

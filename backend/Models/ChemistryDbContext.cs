@@ -226,6 +226,12 @@ public partial class ChemistryDbContext : DbContext
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Mechanism>()
+            .HasOne(m => m.ValidatedBy)
+            .WithMany()
+            .HasForeignKey(m => m.ValidatedById)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<Mechanism>()
             .HasMany(m => m.Species)
             .WithMany(r => r.Mechanisms)
             .UsingEntity<MechanismSpecies>();

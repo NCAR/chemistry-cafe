@@ -13,6 +13,9 @@ public static class MechanismMapper
             FamilyVersionId = mechanism.FamilyVersionId,
             FamilyId = mechanism.FamilyId,
             IsReadOnly = mechanism.IsReadOnly,
+            ValidationStatus = mechanism.ValidationStatus,
+            ValidatedById = mechanism.ValidatedById,
+            ValidatedBy = mechanism.ValidatedBy?.Username,
             Name = mechanism.Name,
             Description = mechanism.Description,
             SpeciesIds = mechanism.Species.Select(s => s.Id).ToList(),
@@ -32,6 +35,8 @@ public static class MechanismMapper
             Id = mechanismDto.Id,
             FamilyId = mechanismDto.FamilyId,
             FamilyVersionId = mechanismDto.FamilyVersionId,
+            ValidationStatus = mechanismDto.ValidationStatus,
+            ValidatedById = mechanismDto.ValidatedById,
             Name = mechanismDto.Name,
             Description = mechanismDto.Description,
         };

@@ -35,6 +35,20 @@ namespace ChemistryCafeAPI.Controllers
         }
 
         /// <summary>
+        /// Gets a specific snapshot version of a family.
+        /// </summary>
+        /// <param name="familyId">Database ID of the family</param>
+        /// <param name="versionId">Database ID of the family version snapshot</param>
+        /// <returns>FamilyVersionDto or 404</returns>
+        [AllowAnonymous]
+        [HttpGet("{familyId}/versions/{versionId}")]
+        public async Task<ActionResult<FamilyVersionDto>> GetFamilyVersion(Guid familyId, Guid versionId)
+        {
+            var version = await familyService.GetFamilyVersionAsync(familyId, versionId);
+            return version == null ? NotFound() : Ok(version.ToDto());
+        }
+
+        /// <summary>
         /// Creates a brand new family assigned to the user with a unique GUID
         /// The user is only able to specify the following fields:
         /// <list type="bullet">
