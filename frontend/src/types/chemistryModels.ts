@@ -243,15 +243,13 @@ export const reactionAttributeOptions: {
   [Type in ReactionTypeName | "NONE"]: Record<string, ReactionAttribute>;
 } = {
   NONE: {},
-  /**
-   * For Arrhenius reactions, there is another value, C, which we don't
-   * represent on the frontend. It is defined as C = -Ea / kb, so it's
-   * calculated elsewhere. See https://github.com/NCAR/chemistry-cafe/pull/166
-   */
   ARRHENIUS: {
     A: { value: 0.0 },
     B: { value: 0.0 },
+    // A reaction stores Ea or C, with C = -Ea / k_B. The UI shows the one that
+    // the user enters. See helpers/activationEnergy.ts.
     Ea: { units: "J", value: 0.0 },
+    C: { units: "K", value: 0.0 },
     D: { units: "K", value: 0.0 },
     E: { units: "Pa-1", value: 0.0 },
   },
@@ -276,7 +274,10 @@ export const reactionAttributeOptions: {
   TAYLOR_SERIES: {
     A: { value: 0.0 },
     B: { value: 0.0 },
+    // A reaction stores Ea or C, with C = -Ea / k_B. The UI shows the one that
+    // the user enters. See helpers/activationEnergy.ts.
     Ea: { units: "J", value: 0.0 },
+    C: { units: "K", value: 0.0 },
     D: { units: "K", value: 0.0 },
     E: { units: "Pa-1", value: 0.0 },
     taylorCoefficients: { name: "Taylor Coefficients", value: [] },

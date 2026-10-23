@@ -5,11 +5,11 @@ import { ReactionEditorModal } from "../src/components/modals/ReactionEditorModa
 import { AuthProvider } from "../src/components/AuthContext";
 import { UserPreferencesProvider } from "../src/components/UserPreferencesContext";
 import { Family, Reaction } from "../src/types/chemistryModels";
+import { rateUnitLabel, roundDisplayValue } from "../src/helpers/rateUnits";
 import {
   AVOGADRO_CONSTANT,
-  rateUnitLabel,
-  roundDisplayValue,
-} from "../src/helpers/rateUnits";
+  BOLTZMANN_CONSTANT,
+} from "../src/helpers/constants";
 
 vi.mock("axios");
 
@@ -99,6 +99,24 @@ describe("ReactionEditorModal rate parameter units", () => {
     );
     fireEvent.click(screen.getByTestId("save-reaction-changes"));
     expect(onUpdate.mock.calls[0][0].reactants).toEqual(twoReactants);
+  });
+
+  it("shows Ea with C in parentheses, and stores only the edited Ea", () => {
+    const onUpdate = renderEditor(
+      makeReaction("ARRHENIUS", { A: { value: 1 }, C: { value: -500 } }),
+    );
+    const ea = screen.getByLabelText("Ea") as HTMLInputElement;
+    expect(Number(ea.value)).toBeCloseTo(500 * BOLTZMANN_CONSTANT, 30);
+    expect(screen.getByText("(C = -500 K)")).toBeTruthy();
+
+    fireEvent.change(ea, { target: { value: "1e-20" } });
+    expect(screen.getByText("(C = -724.297 K)")).toBeTruthy();
+    fireEvent.click(screen.getByTestId("save-reaction-changes"));
+
+    const saved: Reaction = onUpdate.mock.calls[0][0];
+    expect(saved.attributes.Ea.value).toBe(1e-20);
+    expect(saved.attributes.C).toBeUndefined();
+    expect(saved.attributes.A.value).toBe(1);
   });
 
   it("shows molecule units by default and saves the SI value", () => {

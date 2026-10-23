@@ -9,8 +9,9 @@ import {
 } from "@testing-library/react";
 import { ReactionsView } from "../src/components/familyEditor/ReactionsView";
 import { Family, Reaction } from "../src/types/chemistryModels";
-import { AVOGADRO_CONSTANT } from "../src/helpers/rateUnits";
+import { AVOGADRO_CONSTANT } from "../src/helpers/constants";
 import { CustomThemeProvider } from "../src/components/CustomThemeContext";
+import { eaFromC } from "../src/helpers/activationEnergy";
 
 const species = (
   id: `${string}-${string}-${string}-${string}-${string}`,
@@ -64,13 +65,22 @@ const family: Family = {
   phases: [],
 };
 
-function renderView(updateFamily: (family: Family) => void) {
+function renderView(
+  updateFamily: (family: Family) => void,
+  viewFamily: Family = family,
+) {
   render(
     <CustomThemeProvider>
-      <ReactionsView family={family} updateFamily={updateFamily} />
+      <ReactionsView family={viewFamily} updateFamily={updateFamily} />
     </CustomThemeProvider>,
   );
 }
+
+// The cell of a parameter in the first data row
+const parameterCell = (key: string) =>
+  within(screen.getAllByRole("row")[1])
+    .getAllByRole("gridcell")
+    .find((cell) => cell.getAttribute("data-field") === `parameter-${key}`)!;
 
 async function selectType(name: string) {
   fireEvent.mouseDown(screen.getByLabelText("Type"));
@@ -182,11 +192,7 @@ describe("ReactionsView reaction type filter", () => {
 
     // kinf A has the order 2: 1 m3 mol-1 s-1 is 1e6 / N_A cm3 molecule-1 s-1.
     // The only data row is the Troe reaction.
-    const row = screen.getAllByRole("row")[1];
-    const cells = within(row).getAllByRole("gridcell");
-    const kinfCell = cells.find(
-      (cell) => cell.getAttribute("data-field") === "parameter-kinfA",
-    )!;
+    const kinfCell = parameterCell("kinfA");
     // The cell shows 6 significant digits.
     expect(
       Number(kinfCell.textContent) / (1e6 / AVOGADRO_CONSTANT),
@@ -206,5 +212,29 @@ describe("ReactionsView reaction type filter", () => {
     );
     // The other parameter keeps its exact stored value.
     expect(troe.attributes.k0A.value).toBe(1);
+  });
+
+  it("shows Ea with C in parentheses, and stores only the edited Ea", async () => {
+    const updateFamily = vi.fn();
+    const reaction = makeReaction(
+      "222-222-222-222-003",
+      "Arrhenius reaction",
+      "ARRHENIUS",
+      { A: { value: 1 }, C: { value: -500 } },
+    );
+    renderView(updateFamily, { ...family, reactions: [reaction] });
+    await screen.findByRole("columnheader", { name: /^Ea/ });
+    const ea = Number(eaFromC(-500).toPrecision(6));
+    expect(parameterCell("Ea").textContent).toBe(`${ea}(C = -500 K)`);
+
+    fireEvent.doubleClick(parameterCell("Ea"));
+    const input = within(parameterCell("Ea")).getByRole("spinbutton");
+    fireEvent.change(input, { target: { value: "1e-20" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    await waitFor(() => expect(updateFamily).toHaveBeenCalled());
+    const attributes = updateFamily.mock.calls[0][0].reactions[0].attributes;
+    expect(attributes.Ea.value).toBe(1e-20);
+    expect(attributes.C).toBeUndefined();
   });
 });

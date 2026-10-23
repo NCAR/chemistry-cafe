@@ -44,6 +44,14 @@ import {
 } from "../../helpers/rateUnits";
 import { UnitText } from "../RateUnitText";
 import {
+  ActivationParameter,
+  activationValues,
+  isActivationParameter,
+  otherActivationText,
+  showsAttribute,
+  withActivationValue,
+} from "../../helpers/activationEnergy";
+import {
   formatBranchedEquation,
   formatEquation,
   parseBranchedEquation,
@@ -244,6 +252,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
 
   const { preferences } = useUserPreferences();
   const rateUnits = rateUnitsFor(preferences.rateUnits, modifiedReaction?.type);
+  const activationParameter: ActivationParameter = "Ea";
 
   // The text of the equation field while the user changes it, or null when
   // the field shows the reactants and products of the rows.
@@ -574,10 +583,15 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
 
   // Gives the field of one reaction parameter. A parameter with a
   // concentration unit shows its value in the display units of the user. The
-  // reaction keeps the SI value.
+  // reaction keeps the SI value. The field of Ea or C shows the other one
+  // below the field.
   const renderParameter = (key: string, attribute: ReactionAttribute) => {
+    const activation = isActivationParameter(key) ? key : undefined;
+    const attributes = modifiedReaction?.attributes ?? {};
     const order = parameterOrder(modifiedReaction?.type, key, reactants);
-    const storedValue = modifiedReaction?.attributes[key]?.value;
+    const storedValue = activation
+      ? activationValues(attributes)[activation]
+      : attributes[key]?.value;
     const isNumber = typeof storedValue === "number";
     const shownValue = isNumber
       ? roundDisplayValue(
@@ -586,6 +600,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
       : (storedValue?.toString() ?? "");
     const unitLabel =
       order === null ? attribute.units : rateUnitLabel(rateUnits, order);
+    const otherText = activation && otherActivationText(attributes, activation);
     // A first-order value is the same in both units, so it needs no hint.
     const storedAsHint =
       isNumber && order !== null && order !== 1 && rateUnits !== "SI"
@@ -600,6 +615,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
         key={`${reaction?.id}-${key}-${modifiedReaction?.type}-${order}-${rateUnits}`}
         id={`${reaction?.id}-${key}`}
         label={attribute.name || key}
+        helperText={otherText && `(${otherText})`}
         type="number"
         defaultValue={shownValue}
         sx={numberFieldSx}
@@ -622,13 +638,23 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
         }}
         onChange={(event) => {
           const num = Number.parseFloat(event.target.value);
-          if (!Number.isFinite(num) && event.target.value.length !== 0) {
+          const empty = event.target.value.length === 0;
+          if (!Number.isFinite(num) && !empty) {
             return;
           }
-          const modifiedAttributes: Record<string, ReactionAttribute> = {
-            ...modifiedReaction?.attributes,
-          };
-          if (event.target.value.length === 0) {
+          if (activation) {
+            // A reaction stores only one of Ea and C.
+            changeReactionProperties({
+              attributes: withActivationValue(
+                attributes,
+                activation,
+                empty ? null : num,
+              ),
+            });
+            return;
+          }
+          const modifiedAttributes = { ...attributes };
+          if (empty) {
             delete modifiedAttributes[key];
           } else {
             modifiedAttributes[key] = {
@@ -908,11 +934,13 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                 rowGap: 2,
               }}
             >
-              {Object.entries(defaultAttributes).map(([key, attribute]) =>
-                key === "taylorCoefficients"
-                  ? renderTaylorCoefficients(key, attribute)
-                  : renderParameter(key, attribute),
-              )}
+              {Object.entries(defaultAttributes)
+                .filter(([key]) => showsAttribute(key, activationParameter))
+                .map(([key, attribute]) =>
+                  key === "taylorCoefficients"
+                    ? renderTaylorCoefficients(key, attribute)
+                    : renderParameter(key, attribute),
+                )}
             </Box>
           )}
           {modifiedReaction?.type &&
