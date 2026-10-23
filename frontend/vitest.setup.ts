@@ -1,5 +1,6 @@
 import "@testing-library/react";
 import "@testing-library/jest-dom";
+import { afterEach } from "vitest";
 
 // Node >= 25 exposes a global `localStorage` that is non-functional (an empty
 // null-prototype object with no methods unless `--localstorage-file` is set).
@@ -45,3 +46,18 @@ Object.defineProperty(window, "localStorage", {
   configurable: true,
   writable: true,
 });
+
+// The same problem applies to `sessionStorage`. Each test starts with an empty
+// session.
+const sessionStore = new MemoryStorage();
+Object.defineProperty(globalThis, "sessionStorage", {
+  value: sessionStore,
+  configurable: true,
+  writable: true,
+});
+Object.defineProperty(window, "sessionStorage", {
+  value: sessionStore,
+  configurable: true,
+  writable: true,
+});
+afterEach(() => sessionStore.clear());
