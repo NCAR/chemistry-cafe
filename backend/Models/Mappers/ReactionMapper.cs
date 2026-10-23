@@ -10,7 +10,6 @@ public static class ReactionMapper
         return new ReactionDto
         {
             Id = reaction.Id,
-            FamilyId = reaction.FamilyId,
             Name = reaction.Name,
             ReactionType = reaction.ReactionType,
             Description = reaction.Description,
@@ -49,7 +48,6 @@ public static class ReactionMapper
         return new Reaction
         {
             Id = reactionDto.Id,
-            FamilyId = reactionDto.FamilyId,
             Name = reactionDto.Name,
             ReactionType = reactionDto.ReactionType,
             Description = reactionDto.Description,

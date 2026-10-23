@@ -26,11 +26,12 @@ public class Species
     public Dictionary<string, JsonElement>? OtherProperties { get; set; }
     public DateTime UpdatedDate { get; set; } = DateTime.UtcNow;
 
-    // Family relationship
-    [ForeignKey("Families")]
-    public Guid FamilyId { get; set; }
+    // FamilyVersion relationship
+    [ForeignKey("FamilyVersion")]
+    public Guid FamilyVersionId { get; set; }
+
     [JsonIgnore]
-    public Family? Family { get; set; }
+    public FamilyVersion FamilyVersion { get; set; } = null!;
 
     // Phase relationships
     [JsonIgnore]

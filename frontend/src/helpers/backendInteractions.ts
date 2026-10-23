@@ -35,7 +35,6 @@ export function apiToFrontendSpecies(apiSpecies: APISpecies): Species {
     constantConcentration: apiSpecies.constantConcentration ?? undefined,
     constantMixingRatio: apiSpecies.constantMixingRatio ?? undefined,
     description: apiSpecies.description || "",
-    familyId: apiSpecies.familyId,
     id: apiSpecies.id,
     isThirdBody: apiSpecies.isThirdBody ?? undefined,
     molecularWeight: apiSpecies.molecularWeight ?? undefined,
@@ -54,18 +53,15 @@ export function apiToFrontendSpecies(apiSpecies: APISpecies): Species {
  *
  * Species -> APISpecies
  * @param species Species information to convert
- * @param family Family this species belongs to
  */
 export function frontendToAPISpecies(
-  species: Species,
-  family: Family,
+  species: Species
 ): APISpecies {
   const formattedSpecies: APISpecies = {
     absoluteTolerance: species.absoluteTolerance,
     constantConcentration: species.constantConcentration,
     constantMixingRatio: species.constantMixingRatio,
     description: species.description,
-    familyId: family.id as UUID,
     id: species.id,
     isThirdBody: species.isThirdBody,
     molecularWeight: species.molecularWeight,
@@ -333,15 +329,12 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
  *
  * Reaction -> APIReaction
  * @param reaction Reaction information to convert
- * @param family Family this reaction belongs to
  */
 export function frontendToAPIReaction(
-  reaction: Reaction,
-  family: Family,
+  reaction: Reaction
 ): APIReaction {
   const formattedReaction: APIReaction = {
     id: reaction.id,
-    familyId: family.id as UUID,
     name: reaction.name,
     description: reaction.description ?? "",
     reactants: reaction.reactants as Array<APIReactant>,
@@ -472,14 +465,12 @@ export function apiToFrontendPhase(phase: APIPhase): Phase {
  *
  * Phase -> APIPhase
  * @param phase Phase information to convert
- * @param family Family this phase belongs to
  */
-export function frontendToAPIPhase(phase: Phase, family: Family): APIPhase {
+export function frontendToAPIPhase(phase: Phase): APIPhase {
   const formattedPhase: APIPhase = {
     id: phase.id,
     name: phase.name,
     description: phase.description ?? undefined,
-    familyId: family.id as UUID,
     speciesIds: phase.speciesIds as UUID[],
     diffusionCoefficients: phase.diffusionCoefficients ?? {},
   };
@@ -585,13 +576,13 @@ export function frontendToAPIFamily(
     description: family.description,
     owner: family.owner,
     species: expand
-      ? family.species.map((e) => frontendToAPISpecies(e, family))
+      ? family.species.map((e) => frontendToAPISpecies(e))
       : [],
     reactions: expand
-      ? family.reactions.map((e) => frontendToAPIReaction(e, family))
+      ? family.reactions.map((e) => frontendToAPIReaction(e))
       : [],
     phases: expand
-      ? family.phases.map((e) => frontendToAPIPhase(e, family))
+      ? family.phases.map((e) => frontendToAPIPhase(e))
       : [],
     mechanisms: expand
       ? family.mechanisms.map((e) => frontendToAPIMechanism(e, family))

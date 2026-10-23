@@ -568,7 +568,7 @@ export function deserializeMechanism(parsed: Record<string, any>): Family {
   for (const s of parsed.species) {
     const id = generateID();
     nameToId.set(s.name, id);
-    family.species.push(speciesFromJSON(s, id, familyId));
+    family.species.push(speciesFromJSON(s, id));
   }
 
   // 2. phases — resolve member species names back to ids.
@@ -622,7 +622,6 @@ export function deserializeMechanism(parsed: Record<string, any>): Family {
 function speciesFromJSON(
   s: Record<string, unknown>,
   id: UUID,
-  familyId: UUID,
 ): Species {
   const otherProperties: Record<string, string | number | boolean> = {};
   for (const [rawKey, value] of Object.entries(s)) {
@@ -644,7 +643,6 @@ function speciesFromJSON(
       | number
       | undefined,
     description: null,
-    familyId,
     id,
     isThirdBody: s["is third body"] as boolean | undefined,
     molecularWeight: s["molecular weight [kg mol-1]"] as number | undefined,

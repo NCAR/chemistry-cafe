@@ -79,12 +79,12 @@ public class Reaction
     [JsonIgnore]
     public ICollection<Mechanism> Mechanisms { get; set; } = new List<Mechanism>();
 
-    // Family relationship
-    [ForeignKey("Family")]
-    public Guid FamilyId { get; set; }
+    // FamilyVersion relationship
+    [ForeignKey("FamilyVersion")]
+    public Guid FamilyVersionId { get; set; }
 
     [JsonIgnore]
-    public Family? Family { get; set; }
+    public FamilyVersion FamilyVersion { get; set; } = null!;
 }
 
 [Table("Reactants")]

@@ -19,6 +19,7 @@ public static class FamilyMapper
             },
             Name = family.Name,
             Description = family.Description,
+            CurrentVersionId = family.CurrentVersionId,
             Species = family.Species.Select(s => s.ToDto()).ToList(),
             Reactions = family.Reactions.Select(r => r.ToDto()).ToList(),
             Phases = family.Phases.Select(p => p.ToDto()).ToList(),

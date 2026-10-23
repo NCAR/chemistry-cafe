@@ -130,15 +130,25 @@ namespace ChemistryCafeAPI.Tests.Functional
                 };
                 db.Users.Add(testUser);
 
-                db.Families.Add(new Family
+                var testVersion = new FamilyVersion
+                {
+                    Id = Guid.NewGuid(),
+                    FamilyId = TestFamilyId
+                };
+                var testFamily = new Family
                 {
                     Id = TestFamilyId,
                     Name = "Test Family",
                     Description = "Test Family Description",
                     Owner = testUser,
-                    CreatedDate = DateTime.UtcNow
-                });
-
+                    CreatedDate = DateTime.UtcNow,
+                    CurrentVersion = testVersion,
+                };
+                testVersion.Family = testFamily;
+                testFamily.Versions.Add(testVersion);
+                db.Families.Add(testFamily);
+                db.SaveChanges();
+                testFamily.CurrentVersionId = testVersion.Id;
                 db.SaveChanges();
             }
 
@@ -199,15 +209,26 @@ namespace ChemistryCafeAPI.Tests.Functional
             var db = scope.ServiceProvider.GetRequiredService<ChemistryDbContext>();
             var trackedOwner = await db.Users.FindAsync(owner.Id);
             var familyId = id ?? Guid.NewGuid();
+            var version = new FamilyVersion
+            {
+                Id = Guid.NewGuid(),
+                FamilyId = familyId
+            };
             var family = new Family
             {
                 Id = familyId,
                 Name = name ?? $"family_{familyId:N}",
                 Description = description ?? "Test Family Description",
                 Owner = trackedOwner ?? owner,
-                CreatedDate = DateTime.UtcNow
+                CreatedDate = DateTime.UtcNow,
+                CurrentVersion = version,
             };
+            version.Family = family;
+            family.CurrentVersion = version;
+            family.Versions.Add(version);
             db.Families.Add(family);
+            await db.SaveChangesAsync();
+            family.CurrentVersionId = version.Id;
             await db.SaveChangesAsync();
             return family;
         }
@@ -218,15 +239,25 @@ namespace ChemistryCafeAPI.Tests.Functional
             var db = scope.ServiceProvider.GetRequiredService<ChemistryDbContext>();
             var trackedOwner = db.Users.Find(owner.Id);
             var familyId = id ?? Guid.NewGuid();
+            var version = new FamilyVersion
+            {
+                Id = Guid.NewGuid(),
+                FamilyId = familyId
+            };
             var family = new Family
             {
                 Id = familyId,
                 Name = name ?? $"family_{familyId:N}",
                 Description = description ?? "Test Family Description",
                 Owner = trackedOwner ?? owner,
-                CreatedDate = DateTime.UtcNow
+                CreatedDate = DateTime.UtcNow,
+                CurrentVersion = version,
             };
+            version.Family = family;
+            family.Versions.Add(version);
             db.Families.Add(family);
+            db.SaveChanges();
+            family.CurrentVersionId = version.Id;
             db.SaveChanges();
             return family;
         }

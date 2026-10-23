@@ -256,6 +256,8 @@ namespace ChemistryCafeAPI.Tests
 
             Family reloaded = await ReloadAsync(dto.Id);
             Mechanism added = reloaded.Mechanisms.Single(m => m.Id == newMechanismId);
+            Assert.AreEqual(reloaded.Id, added.FamilyId, "mechanism does not point to the family it belongs to");
+            Assert.AreEqual(reloaded.CurrentVersionId, added.FamilyVersionId, "mechanism does not point to the family version it is using");
             Assert.AreEqual(1, added.Species.Count, "new mechanism lost its species membership");
             Assert.AreEqual(1, added.Reactions.Count, "new mechanism lost its reaction membership");
             Assert.AreEqual(1, added.Phases.Count, "new mechanism lost its phase membership");

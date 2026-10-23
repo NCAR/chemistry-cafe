@@ -16,10 +16,11 @@ public class Phase
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
 
-    // Family this phase is a part of
-    public Guid FamilyId { get; set; }
+    // FamilyVersion this phase is a part of
+    [ForeignKey("FamilyVersion")]
+    public Guid FamilyVersionId { get; set; }
     [JsonIgnore]
-    public Family? Family { get; set; }
+    public FamilyVersion FamilyVersion { get; set; } = null!;
 
     // Navigation property for species in this phase
     public ICollection<Species> Species { get; set; } = new List<Species>();
