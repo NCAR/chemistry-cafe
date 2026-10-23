@@ -36,6 +36,7 @@ const allMolecule: APIUserPreferences = {
   ternaryChemicalActivationRateUnits: "Molecule",
   troeRateUnits: "Molecule",
   tunnelingRateUnits: "Molecule",
+  activationParameter: "Ea",
 };
 
 const troeSI: RateUnitsByType = { ...defaultRateUnitsByType, TROE: "SI" };
@@ -72,6 +73,7 @@ const Consumer = () => {
       <button
         onClick={() =>
           setPreferences({
+            ...preferences,
             rateUnits: { ...preferences.rateUnits, TROE: "SI" },
           })
         }
@@ -97,18 +99,28 @@ const arrheniusUnits = () => screen.getByTestId("arrhenius-units").textContent;
 
 describe("API user preferences conversion", () => {
   it("maps each reaction type to its API field and back", () => {
-    const api = toAPIUserPreferences({ rateUnits: troeSI });
-    expect(api).toEqual({ ...allMolecule, troeRateUnits: "SI" });
-    expect(fromAPIUserPreferences(api)).toEqual({ rateUnits: troeSI });
+    const preferences = {
+      rateUnits: troeSI,
+      activationParameter: "C" as const,
+    };
+    const api = toAPIUserPreferences(preferences);
+    expect(api).toEqual({
+      ...allMolecule,
+      troeRateUnits: "SI",
+      activationParameter: "C",
+    });
+    expect(fromAPIUserPreferences(api)).toEqual(preferences);
 
     // A missing or invalid field gets the default.
     const invalid = {
       ...allMolecule,
       troeRateUnits: "Furlongs",
+      activationParameter: "Ergs",
     } as unknown as APIUserPreferences;
     delete (invalid as Partial<APIUserPreferences>).tunnelingRateUnits;
     expect(fromAPIUserPreferences(invalid)).toEqual({
       rateUnits: defaultRateUnitsByType,
+      activationParameter: "Ea",
     });
   });
 });

@@ -368,7 +368,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
   // The reaction types that the Type field selects. None means all types.
   const [typeFilter, setTypeFilter] = useState<Array<ReactionTypeName>>([]);
   const { preferences } = useUserPreferences();
-  const activationParameter: ActivationParameter = "Ea";
+  const { activationParameter } = preferences;
   const apiRef = useGridApiRef();
   // The reaction that the user clicked in the table.
   const [selectedRowId, setSelectedRowId] = useState<UUID | null>(null);

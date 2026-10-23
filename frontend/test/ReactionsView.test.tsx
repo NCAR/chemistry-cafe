@@ -11,7 +11,10 @@ import { ReactionsView } from "../src/components/familyEditor/ReactionsView";
 import { Family, Reaction } from "../src/types/chemistryModels";
 import { AVOGADRO_CONSTANT } from "../src/helpers/constants";
 import { CustomThemeProvider } from "../src/components/CustomThemeContext";
-import { eaFromC } from "../src/helpers/activationEnergy";
+import { cFromEa, eaFromC } from "../src/helpers/activationEnergy";
+import { AuthProvider } from "../src/components/AuthContext";
+import { UserPreferencesProvider } from "../src/components/UserPreferencesContext";
+import axios from "axios";
 
 const species = (
   id: `${string}-${string}-${string}-${string}-${string}`,
@@ -91,7 +94,9 @@ async function selectType(name: string) {
 
 describe("ReactionsView reaction type filter", () => {
   afterEach(() => {
+    localStorage.clear();
     cleanup();
+    vi.restoreAllMocks();
   });
 
   it("shows only the selected type and its parameters", async () => {
@@ -236,5 +241,46 @@ describe("ReactionsView reaction type filter", () => {
     const attributes = updateFamily.mock.calls[0][0].reactions[0].attributes;
     expect(attributes.Ea.value).toBe(1e-20);
     expect(attributes.C).toBeUndefined();
+  });
+
+  it("shows and edits C when the user enters C", async () => {
+    // No user is logged in, so the preference comes from local storage.
+    vi.spyOn(axios, "get").mockRejectedValue(new Error("401"));
+    localStorage.setItem(
+      "userPreferences",
+      JSON.stringify({ activationParameter: "C" }),
+    );
+    const updateFamily = vi.fn();
+    const reaction = makeReaction(
+      "222-222-222-222-003",
+      "Arrhenius reaction",
+      "ARRHENIUS",
+      { A: { value: 1 }, Ea: { value: 1e-20 } },
+    );
+    render(
+      <CustomThemeProvider>
+        <AuthProvider>
+          <UserPreferencesProvider>
+            <ReactionsView
+              family={{ ...family, reactions: [reaction] }}
+              updateFamily={updateFamily}
+            />
+          </UserPreferencesProvider>
+        </AuthProvider>
+      </CustomThemeProvider>,
+    );
+    await screen.findByRole("columnheader", { name: /^C/ });
+    const c = Number(cFromEa(1e-20).toPrecision(6));
+    expect(parameterCell("C").textContent).toBe(`${c}(Ea = 1e-20 J)`);
+
+    fireEvent.doubleClick(parameterCell("C"));
+    const input = within(parameterCell("C")).getByRole("spinbutton");
+    fireEvent.change(input, { target: { value: "-250" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    await waitFor(() => expect(updateFamily).toHaveBeenCalled());
+    const attributes = updateFamily.mock.calls[0][0].reactions[0].attributes;
+    expect(attributes.C.value).toBe(-250);
+    expect(attributes.Ea).toBeUndefined();
   });
 });

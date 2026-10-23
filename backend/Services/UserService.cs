@@ -278,6 +278,7 @@ namespace ChemistryCafeAPI.Services
             existing.TernaryChemicalActivationRateUnits = preferences.TernaryChemicalActivationRateUnits;
             existing.TroeRateUnits = preferences.TroeRateUnits;
             existing.TunnelingRateUnits = preferences.TunnelingRateUnits;
+            existing.ActivationParameter = preferences.ActivationParameter;
             await context.SaveChangesAsync();
             return (QueryResult.Success, existing);
         }
