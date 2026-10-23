@@ -176,13 +176,19 @@ namespace ChemistryCafeAPI.Tests.Functional
             var client = CreateClient(true, user);
 
             var created = await client.PutAsJsonAsync("/api/users/me/preferences",
-                new UserPreferences { TroeRateUnits = RateUnits.SI, TunnelingRateUnits = RateUnits.SI });
+                new UserPreferences
+                {
+                    TroeRateUnits = RateUnits.SI,
+                    TunnelingRateUnits = RateUnits.SI,
+                    ActivationParameter = ActivationParameter.C,
+                });
             Assert.AreEqual(HttpStatusCode.OK, created.StatusCode);
             var saved = await client.GetFromJsonAsync<UserPreferences>("/api/users/me/preferences");
             Assert.AreEqual(user.Id, saved!.UserId);
             Assert.AreEqual(RateUnits.SI, saved.TroeRateUnits);
             Assert.AreEqual(RateUnits.SI, saved.TunnelingRateUnits);
             Assert.AreEqual(RateUnits.Molecule, saved.ArrheniusRateUnits);
+            Assert.AreEqual(ActivationParameter.C, saved.ActivationParameter);
 
             var updated = await client.PutAsJsonAsync("/api/users/me/preferences", new UserPreferences
             {
@@ -199,6 +205,7 @@ namespace ChemistryCafeAPI.Tests.Functional
             Assert.AreEqual(RateUnits.SI, saved.TernaryChemicalActivationRateUnits);
             Assert.AreEqual(RateUnits.Molecule, saved.TroeRateUnits);
             Assert.AreEqual(RateUnits.Molecule, saved.TunnelingRateUnits);
+            Assert.AreEqual(ActivationParameter.Ea, saved.ActivationParameter);
         }
 
         [TestMethod]
