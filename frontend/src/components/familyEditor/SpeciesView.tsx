@@ -1,66 +1,16 @@
 import { useState } from "react";
 import { Box, Tooltip, Typography } from "@mui/material";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import {
-  DataGrid,
-  GridColDef,
-  GridEditBooleanCell,
-  GridEditInputCell,
-  GridPreProcessEditCellProps,
-  GridRenderCellParams,
-  GridRenderEditCellParams,
-  useGridApiRef,
-} from "@mui/x-data-grid";
-import { Family, Species } from "../../types/chemistryModels";
-import {
-  speciesExclusiveConflict,
-  applySpeciesRowUpdate,
-} from "../../helpers/editorHelpers";
-import { useCustomTheme } from "../CustomThemeContext";
+import { Species } from "../../types/chemistryModels";
+import { applySpeciesRowUpdate } from "../../helpers/editorHelpers";
 import { SpeciesEditorModal } from "../modals/SpeciesEditorModal";
 import { RowActionsButton } from "../RowActionsButton";
 import { UUID } from "crypto";
 import { generateID } from "../../helpers/localFamilies";
 import { ViewProps } from "./ViewProps";
-import { DataViewToolbar, useVisibleRows } from "./DataViewToolbar";
-
-const EXCLUSIVE_OPTION_MESSAGE =
-  "Only one of constant concentration, constant mixing ratio, or third body may be set.";
-
-const exclusiveOptionPreProcess =
-  (field: keyof Species) => (params: GridPreProcessEditCellProps) => {
-    const candidate = { ...params.row, [field]: params.props.value };
-    return {
-      ...params.props,
-      error: speciesExclusiveConflict(candidate)
-        ? EXCLUSIVE_OPTION_MESSAGE
-        : undefined,
-    };
-  };
-
-// Edit cells that surface the mutual-exclusion error as a tooltip.
-const ExclusiveNumberEditCell = (props: GridRenderEditCellParams) => {
-  const { error } = props as unknown as { error?: string };
-  return (
-    <Tooltip open={Boolean(error)} title={error ?? ""} arrow placement="top">
-      <GridEditInputCell {...props} />
-    </Tooltip>
-  );
-};
-
-const ExclusiveBooleanEditCell = (props: GridRenderEditCellParams) => {
-  const { error } = props as unknown as { error?: string };
-  return (
-    <Tooltip open={Boolean(error)} title={error ?? ""} arrow placement="top">
-      <GridEditBooleanCell {...props} />
-    </Tooltip>
-  );
-};
+import { SpeciesTable } from "./SpeciesTable";
 
 export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
-  const { theme } = useCustomTheme();
-  const apiRef = useGridApiRef();
-  const visibleRows = useVisibleRows(apiRef);
   const [speciesEditorOpen, setSpeciesEditorOpen] = useState<boolean>(false);
   const [selectedSpecies, setSelectedSpecies] = useState<Species>();
 
@@ -148,160 +98,6 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
     });
   };
 
-  const speciesColumns: GridColDef[] = [
-    {
-      field: "Row Actions",
-      type: "actions",
-      headerClassName: "roleDataHeader",
-      cellClassName: "actions",
-      disableColumnMenu: true,
-      getActions: ({ id }) => {
-        return [
-          <RowActionsButton
-            handleDeleteButtonClick={() => {
-              removeSpecies(id as UUID);
-            }}
-            handleEditButtonClick={() => {
-              setSelectedSpecies(
-                family.species.find((element) => element.id === id),
-              );
-              setSpeciesEditorOpen(true);
-            }}
-          />,
-        ];
-      },
-    },
-    {
-      field: "name",
-      headerName: "Name",
-      editable: true,
-      type: "string",
-      flex: 1,
-      renderCell: (params: GridRenderCellParams<Family>) => (
-        <Typography
-          variant="body1"
-          sx={{
-            color: params.value
-              ? theme.palette.text.primary
-              : theme.palette.text.disabled,
-          }}
-        >
-          {params.value || "<Empty>"}
-        </Typography>
-      ),
-    },
-    {
-      field: "description",
-      headerName: "Description",
-      editable: true,
-      type: "string",
-      flex: 1,
-      renderCell: (params: GridRenderCellParams<Family>) => (
-        <Typography
-          variant="body1"
-          sx={{
-            color: params.value
-              ? theme.palette.text.primary
-              : theme.palette.text.disabled,
-          }}
-        >
-          {params.value || "<Empty>"}
-        </Typography>
-      ),
-    },
-    {
-      field: "absoluteTolerance",
-      headerName: "Absolute Tolerance [mol m-3]",
-      editable: true,
-      type: "number",
-      flex: 1,
-      renderCell: (params: GridRenderCellParams<Family>) => (
-        <Typography
-          variant="body1"
-          sx={{
-            color: params.value
-              ? theme.palette.text.primary
-              : theme.palette.text.disabled,
-          }}
-        >
-          {params.value ?? "<Empty>"}
-        </Typography>
-      ),
-    },
-    {
-      field: "constantConcentration",
-      headerName: "Constant Concentration [mol m-3]",
-      editable: true,
-      type: "number",
-      flex: 1,
-      preProcessEditCellProps: exclusiveOptionPreProcess(
-        "constantConcentration",
-      ),
-      renderEditCell: (params) => <ExclusiveNumberEditCell {...params} />,
-      renderCell: (params: GridRenderCellParams<Family>) => (
-        <Typography
-          variant="body1"
-          sx={{
-            color: params.value
-              ? theme.palette.text.primary
-              : theme.palette.text.disabled,
-          }}
-        >
-          {params.value ?? "<Empty>"}
-        </Typography>
-      ),
-    },
-    {
-      field: "constantMixingRatio",
-      headerName: "Constant Mixing Ratio [mol mol-1]",
-      editable: true,
-      type: "number",
-      flex: 1,
-      preProcessEditCellProps: exclusiveOptionPreProcess("constantMixingRatio"),
-      renderEditCell: (params) => <ExclusiveNumberEditCell {...params} />,
-      renderCell: (params: GridRenderCellParams<Family>) => (
-        <Typography
-          variant="body1"
-          sx={{
-            color: params.value
-              ? theme.palette.text.primary
-              : theme.palette.text.disabled,
-          }}
-        >
-          {params.value ?? "<Empty>"}
-        </Typography>
-      ),
-    },
-    {
-      field: "molecularWeight",
-      headerName: "Molecular Weight [kg mol-1]",
-      editable: true,
-      type: "number",
-      flex: 1,
-      renderCell: (params: GridRenderCellParams<Family>) => (
-        <Typography
-          variant="body1"
-          sx={{
-            color: params.value
-              ? theme.palette.text.primary
-              : theme.palette.text.disabled,
-          }}
-        >
-          {params.value ?? "<Empty>"}
-        </Typography>
-      ),
-    },
-    {
-      field: "isThirdBody",
-      headerName: "Third Body (M)",
-      editable: true,
-      type: "boolean",
-      flex: 1,
-      preProcessEditCellProps: exclusiveOptionPreProcess("isThirdBody"),
-      renderEditCell: (params) => <ExclusiveBooleanEditCell {...params} />,
-    },
-  ];
-
   return (
     <Box
       sx={{
@@ -325,49 +121,23 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
           <HelpOutlineIcon fontSize="small" />
         </Tooltip>
       </Box>
-      <DataGrid
-        apiRef={apiRef}
-        // The search replaces the filter panel. The free DataGrid allows only
-        // one filter condition at a time.
-        disableColumnFilter
-        getRowId={(row) => row.id}
-        editMode="cell"
-        processRowUpdate={handleSpeciesRowUpdate}
-        initialState={{
-          density: "compact",
-          pagination: { paginationModel: { pageSize: 20 } },
-          sorting: { sortModel: [{ field: "name", sort: "asc" }] },
-        }}
-        rows={family.species}
-        columns={speciesColumns}
-        pageSizeOptions={[5, 10, 20, 100]}
-        disableRowSelectionOnClick
-        disableVirtualization // Enables DataGrid to be rendered in testing
-        sx={{
-          flex: 1,
-          "& .MuiDataGrid-cell": {
-            display: "flex",
-            alignItems: "center",
-          },
-          ".MuiDataGrid-columnHeaderTitle": {
-            fontFamily: theme.typography.fontFamily,
-          },
-          ".MuiDataGrid-overlay": {
-            fontFamily: theme.typography.fontFamily,
-          },
-        }}
-        slots={{ toolbar: DataViewToolbar }}
-        slotProps={{
-          toolbar: {
-            addLabel: "Add Species",
-            addTooltip: "Add species to family",
-            addTestId: "add-species-button",
-            onAdd: createSpecies,
-            searchPlaceholder: "Search species",
-            visibleCount: visibleRows.length,
-            totalCount: family.species.length,
-          },
-        }}
+      <SpeciesTable
+        species={family.species}
+        getRowActions={(id) => [
+          <RowActionsButton
+            handleDeleteButtonClick={() => {
+              removeSpecies(id);
+            }}
+            handleEditButtonClick={() => {
+              setSelectedSpecies(
+                family.species.find((element) => element.id === id),
+              );
+              setSpeciesEditorOpen(true);
+            }}
+          />,
+        ]}
+        onRowUpdate={handleSpeciesRowUpdate}
+        onAdd={createSpecies}
       />
       <SpeciesEditorModal
         open={speciesEditorOpen}
