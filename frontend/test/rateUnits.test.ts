@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { AVOGADRO_CONSTANT } from "../src/helpers/constants";
 import {
-  AVOGADRO_CONSTANT,
   fromDisplayValue,
   parameterOrder,
   rateUnitLabel,

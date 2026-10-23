@@ -17,6 +17,10 @@ import {
   RateUnits,
   reactionOrder,
 } from "../../helpers/rateUnits";
+import {
+  ActivationParameter,
+  showsAttribute,
+} from "../../helpers/activationEnergy";
 import { GenericRateUnit, UnitText } from "../RateUnitText";
 import { EquationText } from "../EquationText";
 
@@ -118,6 +122,8 @@ export const RateConstantFormula = ({ type }: { type: ReactionTypeName }) => (
 type ReactionTypeInfoProps = {
   type: ReactionTypeName;
   rateUnits: RateUnits;
+  /** Ea or C, whichever the user enters */
+  activationParameter: ActivationParameter;
   /** A selected reaction of this type. Its units use its own order. */
   reaction?: Reaction;
   species: Array<Species>;
@@ -130,6 +136,7 @@ type ReactionTypeInfoProps = {
 export const ReactionTypeInfo = ({
   type,
   rateUnits,
+  activationParameter,
   reaction,
   species,
 }: ReactionTypeInfoProps) => {
@@ -172,8 +179,9 @@ export const ReactionTypeInfo = ({
           rowGap: 0.5,
         }}
       >
-        {Object.entries(reactionAttributeOptions[type]).map(
-          ([key, attribute]) => {
+        {Object.entries(reactionAttributeOptions[type])
+          .filter(([key]) => showsAttribute(key, activationParameter))
+          .map(([key, attribute]) => {
             const offset = offsets?.[key];
             let unit: ReactNode = attribute.units ? (
               <UnitText units={attribute.units} />
@@ -201,9 +209,13 @@ export const ReactionTypeInfo = ({
                 </Typography>
               </Fragment>
             );
-          },
-        )}
+          })}
       </Box>
+      {"Ea" in reactionAttributeOptions[type] && (
+        <Typography variant="caption" color="textSecondary">
+          C = −Ea / k<sub>B</sub>.
+        </Typography>
+      )}
       {offsets !== undefined && (
         <Typography variant="caption" color="textSecondary">
           {reaction ? (

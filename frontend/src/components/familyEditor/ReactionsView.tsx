@@ -48,6 +48,14 @@ import {
   toDisplayValue,
 } from "../../helpers/rateUnits";
 import { GenericRateUnit, UnitText } from "../RateUnitText";
+import {
+  ActivationParameter,
+  activationValues,
+  isActivationParameter,
+  otherActivationText,
+  showsAttribute,
+  withActivationValue,
+} from "../../helpers/activationEnergy";
 
 /**
  * Gives a column width that shows the whole name and unit of a parameter
@@ -67,11 +75,14 @@ const formatParameter = (value: number | null) =>
 /**
  * Gives one editable column for each parameter of a reaction type. A
  * parameter with a concentration unit shows its value in the display units of
- * the user. The reaction keeps the SI value.
+ * the user. The reaction keeps the SI value. The column of Ea or C shows the
+ * one that the user enters, and the other one in parentheses. A reaction
+ * stores only the entered one.
  */
 function parameterColumns(
   type: ReactionTypeName,
   rateUnits: RateUnits,
+  activationParameter: ActivationParameter,
 ): Array<GridColDef<Reaction>> {
   const offsets: Record<string, number> | undefined = (
     rateUnitParameters as Partial<
@@ -79,8 +90,10 @@ function parameterColumns(
     >
   )[type];
 
-  return Object.entries(reactionAttributeOptions[type]).map(
-    ([key, attribute]): GridColDef<Reaction> => {
+  return Object.entries(reactionAttributeOptions[type])
+    .filter(([key]) => showsAttribute(key, activationParameter))
+    .map(([key, attribute]): GridColDef<Reaction> => {
+      const activation = isActivationParameter(key) ? key : undefined;
       const name = attribute.name || key;
       const offset = offsets?.[key];
       // The plain text of the unit, for the column width.
@@ -140,7 +153,9 @@ function parameterColumns(
       }
 
       const shownValue = (row: Reaction): number | null => {
-        const value = row.attributes[key]?.value;
+        const value = activation
+          ? activationValues(row.attributes)[activation]
+          : row.attributes[key]?.value;
         if (typeof value !== "number") {
           return null;
         }
@@ -154,18 +169,52 @@ function parameterColumns(
         renderHeader: () => header,
         type: "number",
         editable: true,
-        minWidth: headerMinWidth(name, unitText),
+        // Room for the other value of Ea or C in parentheses
+        minWidth: headerMinWidth(name, unitText) + (activation ? 80 : 0),
         flex: 1,
         valueGetter: (_, row) => shownValue(row),
         valueFormatter: (value: number | null) => formatParameter(value),
+        renderCell:
+          activation &&
+          ((params: GridRenderCellParams<Reaction, number | null>) => {
+            const other = otherActivationText(
+              params.row.attributes,
+              activation,
+            );
+            return (
+              <span>
+                {params.formattedValue}
+                {other && (
+                  <Typography
+                    component="span"
+                    variant="body2"
+                    color="textSecondary"
+                    sx={{ marginLeft: 0.5 }}
+                  >
+                    ({other})
+                  </Typography>
+                )}
+              </span>
+            );
+          }),
         valueSetter: (value: number | null, row) => {
           // An edit that does not change the shown value keeps the exact
           // stored value.
           if (value === shownValue(row)) {
             return row;
           }
+          const valid = value !== null && Number.isFinite(value);
+          if (activation) {
+            // A reaction stores only one of Ea and C.
+            const attributes = withActivationValue(
+              row.attributes,
+              activation,
+              valid ? value : null,
+            );
+            return { ...row, attributes };
+          }
           const attributes = { ...row.attributes };
-          if (value === null || !Number.isFinite(value)) {
+          if (!valid) {
             delete attributes[key];
           } else {
             const order = parameterOrder(type, key, row.reactants);
@@ -178,8 +227,7 @@ function parameterColumns(
           return { ...row, attributes };
         },
       };
-    },
-  );
+    });
 }
 
 /**
@@ -190,11 +238,15 @@ function parameterColumns(
 function parameterSummary(
   reaction: Reaction,
   rateUnits: RateUnitsByType,
+  activation: ActivationParameter,
 ): string {
   const units = rateUnitsFor(rateUnits, reaction.type);
   return Object.entries(reactionAttributeOptions[reaction.type] ?? {})
+    .filter(([key]) => showsAttribute(key, activation))
     .flatMap(([key, attribute]) => {
-      const value = reaction.attributes[key]?.value;
+      const value = isActivationParameter(key)
+        ? activationValues(reaction.attributes)[key]
+        : reaction.attributes[key]?.value;
       const name = attribute.name || key;
       if (Array.isArray(value)) {
         return value.length > 0 ? [`${name} = [${value.join(", ")}]`] : [];
@@ -316,6 +368,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
   // The reaction types that the Type field selects. None means all types.
   const [typeFilter, setTypeFilter] = useState<Array<ReactionTypeName>>([]);
   const { preferences } = useUserPreferences();
+  const activationParameter: ActivationParameter = "Ea";
   const apiRef = useGridApiRef();
   // The reaction that the user clicked in the table.
   const [selectedRowId, setSelectedRowId] = useState<UUID | null>(null);
@@ -539,6 +592,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
         ...(parameterColumns(
           visibleType,
           rateUnitsFor(preferences.rateUnits, visibleType),
+          activationParameter,
         ) as Array<GridColDef>),
       ]
     : [
@@ -549,7 +603,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
           flex: 1.5,
           sortable: false,
           valueGetter: (_, row: Reaction) =>
-            parameterSummary(row, preferences.rateUnits),
+            parameterSummary(row, preferences.rateUnits, activationParameter),
           renderCell: (params: GridRenderCellParams<Reaction>) => (
             <Typography variant="body2" color="textSecondary" noWrap>
               {params.value}
@@ -649,6 +703,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
                   <ReactionTypeInfo
                     type={visibleType}
                     rateUnits={rateUnitsFor(preferences.rateUnits, visibleType)}
+                    activationParameter={activationParameter}
                     reaction={family.reactions.find(
                       (reaction) =>
                         reaction.id === selectedRowId &&

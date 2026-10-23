@@ -37,20 +37,6 @@ const num = (value: unknown, fallback: number): number =>
     ? fallback
     : Number(value);
 
-/** Boltzmann constant [J K-1], as in MechanismConfiguration. */
-const BOLTZMANN = 1.380649e-23;
-
-/**
- * Read Ea from a wire reaction. The musica parser stores Ea as C = -Ea / k_B,
- * and the editor shows only Ea, so a C value is converted back to Ea.
- */
-const eaFromJSON = (json: Record<string, unknown>): number | undefined => {
-  if (json.Ea !== undefined) return Number(json.Ea);
-  if (json.C === undefined) return undefined;
-  const c = Number(json.C);
-  return c === 0 ? 0 : -c * BOLTZMANN;
-};
-
 /** Build a reaction.attributes object from a params record, dropping undefined. */
 const attrsFromParams = (
   params: Record<string, number | number[] | string | undefined>,
@@ -125,7 +111,9 @@ const ARRHENIUS: ReactionAdapter = {
     attributes: attrsFromParams({
       A: json.A,
       B: json.B,
-      Ea: eaFromJSON(json),
+      // The reaction keeps the one of Ea and C that the parser gives.
+      Ea: json.Ea,
+      C: json.C,
       D: json.D,
       E: json.E,
     }),
@@ -312,7 +300,9 @@ const TAYLOR_SERIES: ReactionAdapter = {
     attributes: attrsFromParams({
       A: json.A,
       B: json.B,
-      Ea: eaFromJSON(json),
+      // The reaction keeps the one of Ea and C that the parser gives.
+      Ea: json.Ea,
+      C: json.C,
       D: json.D,
       E: json.E,
       taylorCoefficients: json["taylor coefficients"] as number[],

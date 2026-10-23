@@ -1,4 +1,5 @@
 import { Reactant, ReactionTypeName } from "../types/chemistryModels";
+import { AVOGADRO_CONSTANT } from "./constants";
 
 // The display units of rate parameters. The database and the downloaded
 // configurations always use SI values, in (m3 mol-1)^(order-1) s-1. The
@@ -8,9 +9,6 @@ import { Reactant, ReactionTypeName } from "../types/chemistryModels";
 export type RateUnits = "Molecule" | "SI";
 
 export const defaultRateUnits: RateUnits = "Molecule";
-
-/** Avogadro constant [mol-1] */
-export const AVOGADRO_CONSTANT = 6.02214076e23;
 
 // For each reaction type, the parameters that have a concentration unit. The
 // value is the order of the parameter minus the order n of the reaction. It

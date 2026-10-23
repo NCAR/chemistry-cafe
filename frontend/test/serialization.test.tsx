@@ -13,6 +13,7 @@ import {
   serializeMechanismYAML,
 } from "../src/helpers/serialization";
 import * as YAML from "yaml";
+import { activationValues, cFromEa } from "../src/helpers/activationEnergy";
 
 /** Build a reaction.attributes object ({ [key]: { key, value } }). */
 const attrs = (
@@ -529,9 +530,10 @@ describe("Reaction type serialization and deserialization", () => {
     it("deserializes", () => {
       const back = importedReactionOfType("ARRHENIUS");
       expect(back.attributes["A"]?.value).toBe(1);
-      // The musica parser stores Ea as C = -Ea / k_B; the import converts it back
-      expect(back.attributes["Ea"]?.value as number).toBeCloseTo(3, 12);
-      expect(back.attributes["C"]).toBeUndefined();
+      // The musica parser gives Ea as C = -Ea / k_B, and the reaction keeps C.
+      expect(back.attributes["C"]?.value).toBe(cFromEa(3));
+      expect(back.attributes["Ea"]).toBeUndefined();
+      expect(activationValues(back.attributes).Ea).toBeCloseTo(3, 12);
       expect(importedName(String(back.reactants[0].speciesId))).toBe(
         reactant.name,
       );
@@ -686,12 +688,9 @@ describe("Reaction type serialization and deserialization", () => {
     it("deserializes", () => {
       const back = importedReactionOfType("TAYLOR_SERIES");
       expect(back.attributes["A"]?.value).toBe(1);
-      // A C value is converted to Ea = -C * k_B, because the editor shows Ea
-      expect(back.attributes["Ea"]?.value as number).toBeCloseTo(
-        -3 * 1.380649e-23,
-        35,
-      );
-      expect(back.attributes["C"]).toBeUndefined();
+      // The reaction keeps the C value of the file.
+      expect(back.attributes["C"]?.value).toBe(3);
+      expect(back.attributes["Ea"]).toBeUndefined();
       expect(back.attributes["taylorCoefficients"]?.value).toEqual([1, 2, 3]);
       expect(importedName(String(back.reactants[0].speciesId))).toBe(
         reactant.name,
