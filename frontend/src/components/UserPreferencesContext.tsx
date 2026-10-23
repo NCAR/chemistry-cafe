@@ -16,14 +16,18 @@ import {
   RateUnitsByType,
   rateUnitReactionTypes,
 } from "../helpers/rateUnits";
+import { ActivationParameter } from "../helpers/activationEnergy";
 
 export type UserPreferences = {
   /** The display units of each reaction type */
   rateUnits: RateUnitsByType;
+  /** Whether the user enters Ea or C, for all reaction types */
+  activationParameter: ActivationParameter;
 };
 
 export const defaultUserPreferences: Readonly<UserPreferences> = Object.freeze({
   rateUnits: defaultRateUnitsByType,
+  activationParameter: "Ea",
 });
 
 const storageKey = "userPreferences";
@@ -57,6 +61,10 @@ function toRateUnitsByType(
   ) as RateUnitsByType;
 }
 
+// A missing or invalid value gets the default, Ea.
+const toActivationParameter = (value: unknown): ActivationParameter =>
+  value === "C" ? "C" : "Ea";
+
 export function fromAPIUserPreferences(
   preferences: APIUserPreferences,
 ): UserPreferences {
@@ -64,18 +72,22 @@ export function fromAPIUserPreferences(
     rateUnits: toRateUnitsByType(
       (type) => preferences[apiRateUnitFields[type]],
     ),
+    activationParameter: toActivationParameter(preferences.activationParameter),
   };
 }
 
 export function toAPIUserPreferences(
   preferences: UserPreferences,
 ): APIUserPreferences {
-  return Object.fromEntries(
-    rateUnitReactionTypes.map((type) => [
-      apiRateUnitFields[type],
-      preferences.rateUnits[type],
-    ]),
-  ) as unknown as APIUserPreferences;
+  return {
+    ...Object.fromEntries(
+      rateUnitReactionTypes.map((type) => [
+        apiRateUnitFields[type],
+        preferences.rateUnits[type],
+      ]),
+    ),
+    activationParameter: preferences.activationParameter,
+  } as unknown as APIUserPreferences;
 }
 
 // Local storage can be unavailable, for example in a private window. Then the
@@ -88,9 +100,11 @@ function readStoredPreferences(): UserPreferences {
     }
     const parsed = JSON.parse(stored) as {
       rateUnits?: Partial<Record<string, unknown>>;
+      activationParameter?: unknown;
     };
     return {
       rateUnits: toRateUnitsByType((type) => parsed?.rateUnits?.[type]),
+      activationParameter: toActivationParameter(parsed?.activationParameter),
     };
   } catch (err) {
     console.error(`Issue reading user preferences: ${err}`);

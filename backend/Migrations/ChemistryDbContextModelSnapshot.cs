@@ -616,6 +616,9 @@ namespace ChemistryCafeAPI.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("char(36)");
 
+                    b.Property<int>("ActivationParameter")
+                        .HasColumnType("int");
+
                     b.Property<int>("ArrheniusRateUnits")
                         .HasColumnType("int");
 

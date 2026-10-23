@@ -1,4 +1,3 @@
-import { useSearchParams } from "react-router-dom";
 import { Header, Footer } from "../components/HeaderFooter";
 import "../styles/Settings.css";
 import {
@@ -8,13 +7,12 @@ import {
 } from "../components/CustomThemeContext";
 import {
   Box,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
+  Container,
+  Divider,
   Paper,
   Slider,
+  Stack,
+  Switch,
   Typography,
   ToggleButton,
   ToggleButtonGroup,
@@ -28,17 +26,13 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Tab,
+  Tabs,
 } from "@mui/material";
-import { useEffect, useLayoutEffect, useState } from "react";
-import AccountBoxIcon from "@mui/icons-material/AccountBox";
-import SettingsAccessibilityIcon from "@mui/icons-material/SettingsAccessibility";
-import TvIcon from "@mui/icons-material/Tv";
-import TextFieldsIcon from "@mui/icons-material/TextFields";
-import SpellcheckIcon from "@mui/icons-material/Spellcheck";
+import { ReactNode, useEffect, useState } from "react";
 import SettingsBrightnessIcon from "@mui/icons-material/SettingsBrightness";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
-import StraightenIcon from "@mui/icons-material/Straighten";
 import { useAuth } from "../components/AuthContext.tsx";
 import { APIUser } from "../API/API_Interfaces.tsx";
 import { updateUser } from "../API/API_UpdateMethods.tsx";
@@ -55,187 +49,56 @@ import {
   RateUnitsByType,
 } from "../helpers/rateUnits";
 import { reactionTypeToString } from "../helpers/stringify";
+import {
+  ActivationParameter,
+  activationUnits,
+} from "../helpers/activationEnergy";
 import { reactionAttributeOptions } from "../types/chemistryModels";
 
+type SettingsTab = "appearance" | "units" | "rateParameters" | "profile";
+
 const Settings = () => {
-  const { theme } = useCustomTheme();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [selectedMenu, setSelectedMenu] = useState<
-    "profile" | "appearance" | "accessibility" | "units" | string
-  >(searchParams.get("selectedMenu") ?? "appearance");
-  const [menuComponent, setMenuComponent] = useState<JSX.Element>(
-    <ProfileMenu />,
-  );
-
-  const getMenuComponent = (menuName: string) => {
-    switch (menuName) {
-      case "appearance":
-        return <AppearanceMenu />;
-      case "accessibility":
-        return <AccessibilityMenu />;
-      case "units":
-        return <UnitsMenu />;
-      default:
-      case "profile":
-        return <ProfileMenu />;
-    }
-  };
-
-  const selectMenu = (menuName: string) => {
-    if (selectedMenu !== menuName) {
-      setSelectedMenu(menuName);
-      setSearchParams(`selectedMenu=${menuName}`);
-    }
-  };
-
-  useLayoutEffect(() => {
-    setMenuComponent(getMenuComponent(selectedMenu));
-  }, [selectedMenu]);
-
+  const [selectedTab, setSelectedTab] = useState<SettingsTab>("appearance");
   const { user: loggedInUser } = useAuth(); // Get logged in user info from AuthContext
+
+  // The profile tab is only for logged in users. After a logout, the page
+  // shows the first tab.
+  const tab =
+    selectedTab === "profile" && !loggedInUser ? "appearance" : selectedTab;
 
   return (
     <div className="layout-settings">
       <header>
         <Header />
       </header>
-      <Paper
-        square
-        sx={{
-          paddingLeft: "5%",
-          paddingRight: "5%",
-        }}
+      <Container
         component="section"
+        maxWidth="md"
         className="content-settings"
+        sx={{ py: 2 }}
       >
-        <Box
-          sx={{
-            height: "100%",
-            p: 1,
-          }}
-          className="settings-selector"
-        >
-          <List
-            sx={{
-              color: theme.palette.text.primary,
-              fontSize: theme.typography.fontSize + 4,
-            }}
-            subheader="App Settings"
+        <Paper variant="outlined">
+          <Tabs
+            value={tab}
+            onChange={(_, value: SettingsTab) => setSelectedTab(value)}
+            aria-label="Settings tabs"
+            variant="scrollable"
+            scrollButtons="auto"
+            sx={{ borderBottom: 1, borderColor: "divider" }}
           >
-            <ListItem disablePadding>
-              <ListItemButton
-                aria-label="open appearance settings"
-                onClick={() => selectMenu("appearance")}
-              >
-                <ListItemIcon>
-                  <TvIcon
-                    color={selectedMenu == "appearance" ? "primary" : "inherit"}
-                  />
-                </ListItemIcon>
-                <ListItemText>
-                  <Typography
-                    color={
-                      selectedMenu == "appearance" ? "primary" : "textPrimary"
-                    }
-                  >
-                    Appearance
-                  </Typography>
-                </ListItemText>
-              </ListItemButton>
-            </ListItem>
-
-            <ListItem disablePadding>
-              <ListItemButton
-                aria-label="open accessibility settings"
-                onClick={() => selectMenu("accessibility")}
-              >
-                <ListItemIcon>
-                  <SettingsAccessibilityIcon
-                    color={
-                      selectedMenu == "accessibility" ? "primary" : "inherit"
-                    }
-                  />
-                </ListItemIcon>
-                <ListItemText>
-                  <Typography
-                    color={
-                      selectedMenu == "accessibility"
-                        ? "primary"
-                        : "textPrimary"
-                    }
-                    data-testid="accessibility-menu-button"
-                  >
-                    Accessibility
-                  </Typography>
-                </ListItemText>
-              </ListItemButton>
-            </ListItem>
-
-            <ListItem disablePadding>
-              <ListItemButton
-                aria-label="open units settings"
-                onClick={() => selectMenu("units")}
-              >
-                <ListItemIcon>
-                  <StraightenIcon
-                    color={selectedMenu == "units" ? "primary" : "inherit"}
-                  />
-                </ListItemIcon>
-                <ListItemText>
-                  <Typography
-                    color={selectedMenu == "units" ? "primary" : "textPrimary"}
-                    data-testid="units-menu-button"
-                  >
-                    Units
-                  </Typography>
-                </ListItemText>
-              </ListItemButton>
-            </ListItem>
-          </List>
-
-          {!!loggedInUser && (
-            <List
-              sx={{
-                color: theme.palette.text.primary,
-                fontSize: theme.typography.fontSize + 4,
-              }}
-              subheader="User Settings"
-            >
-              <ListItem disablePadding>
-                <ListItemButton
-                  aria-label="open profile settings"
-                  onClick={() => selectMenu("profile")}
-                >
-                  <ListItemIcon>
-                    <AccountBoxIcon
-                      color={selectedMenu == "profile" ? "primary" : "inherit"}
-                    />
-                  </ListItemIcon>
-                  <ListItemText>
-                    <Typography
-                      color={
-                        selectedMenu == "profile" ? "primary" : "textPrimary"
-                      }
-                    >
-                      My Profile
-                    </Typography>
-                  </ListItemText>
-                </ListItemButton>
-              </ListItem>
-            </List>
-          )}
-        </Box>
-        <Paper
-          sx={{
-            p: 2,
-          }}
-          square
-          elevation={2}
-          className="settings-editor"
-        >
-          {menuComponent}
+            <Tab label="Appearance" value="appearance" />
+            <Tab label="Units" value="units" />
+            <Tab label="Rate Parameters" value="rateParameters" />
+            {loggedInUser && <Tab label="Profile" value="profile" />}
+          </Tabs>
+          <Box sx={{ px: 2, py: 1 }}>
+            {tab === "appearance" && <AppearanceMenu />}
+            {tab === "units" && <UnitsMenu />}
+            {tab === "rateParameters" && <RateParametersMenu />}
+            {tab === "profile" && <ProfileMenu />}
+          </Box>
         </Paper>
-      </Paper>
+      </Container>
 
       <footer>
         <Footer />
@@ -244,75 +107,124 @@ const Settings = () => {
   );
 };
 
+/** One setting: a title and a description on the left, the control on the right. */
+const SettingRow = ({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description?: ReactNode;
+  children?: ReactNode;
+}) => (
+  <Box
+    sx={{
+      display: "flex",
+      flexWrap: "wrap",
+      alignItems: "center",
+      justifyContent: "space-between",
+      columnGap: 2,
+      rowGap: 1,
+      py: 1.5,
+    }}
+  >
+    <Box sx={{ flex: 1, minWidth: "14em" }}>
+      <Typography color="textPrimary">{title}</Typography>
+      {description && (
+        <Typography color="textSecondary" variant="body2">
+          {description}
+        </Typography>
+      )}
+    </Box>
+    {children}
+  </Box>
+);
+
+const toggleSx = { "& .MuiToggleButton-root": { textTransform: "none" } };
+
 const ProfileMenu = () => {
   const { user: loggedInUser } = useAuth(); // Get logged in user info from AuthContext
-  const { theme } = useCustomTheme();
   const userCopy = { ...loggedInUser } as APIUser;
   const [user, setUser] = useState(userCopy);
   useEffect(() => {
     setUser(userCopy);
   }, [loggedInUser]);
 
-  return loggedInUser ? (
-    <List
-      sx={{
-        color: theme.palette.text.primary,
-        fontSize: theme.typography.fontSize + 4,
-      }}
-      subheader="Account Info"
-    >
-      <ListItem sx={{ paddingTop: theme.spacing(2) }}>
-        <TextField
+  if (!loggedInUser) {
+    return null;
+  }
+
+  return (
+    <Stack divider={<Divider flexItem />}>
+      <Box sx={{ py: 1.5 }}>
+        <Box
           sx={{
-            width: "100%",
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+            gap: 2,
           }}
-          label="Username"
-          required
-          defaultValue={loggedInUser?.username}
-          onChange={(e) => setUser((p) => ({ ...p, username: e.target.value }))}
-        />
-      </ListItem>
-      <ListItem>
-        <TextField
-          sx={{
-            width: "100%",
-          }}
-          label="Email"
-          required
-          defaultValue={loggedInUser?.email}
-          onChange={(e) => setUser((p) => ({ ...p, email: e.target.value }))}
-        />
-      </ListItem>
-      <ListItem>
-        <TextField
-          sx={{
-            width: "100%",
-          }}
-          label="First Name"
-          required
-          defaultValue={loggedInUser?.firstName}
-          onChange={(e) =>
-            setUser((p) => ({ ...p, firstName: e.target.value }))
+        >
+          <TextField
+            size="small"
+            label="Username"
+            required
+            defaultValue={loggedInUser.username}
+            onChange={(e) =>
+              setUser((p) => ({ ...p, username: e.target.value }))
+            }
+          />
+          <TextField
+            size="small"
+            label="Email"
+            required
+            defaultValue={loggedInUser.email}
+            onChange={(e) => setUser((p) => ({ ...p, email: e.target.value }))}
+          />
+          <TextField
+            size="small"
+            label="First Name"
+            required
+            defaultValue={loggedInUser.firstName}
+            onChange={(e) =>
+              setUser((p) => ({ ...p, firstName: e.target.value }))
+            }
+          />
+          <TextField
+            size="small"
+            label="Last Name"
+            required
+            defaultValue={loggedInUser.lastName}
+            onChange={(e) =>
+              setUser((p) => ({ ...p, lastName: e.target.value }))
+            }
+          />
+        </Box>
+        <Button
+          sx={{ mt: 2 }}
+          disabled={Object.entries(user).reduce(
+            (prev, [key, val]) =>
+              prev && loggedInUser[key as keyof APIUser] === val,
+            true,
+          )}
+          color="primary"
+          variant="contained"
+          onClick={() =>
+            updateUser(user)
+              .then(() => window.location.reload())
+              .catch(() => window.alert("error updating profile"))
           }
-        />
-      </ListItem>
-      <ListItem>
-        <TextField
-          sx={{
-            width: "100%",
-          }}
-          label="Last Name"
-          required
-          defaultValue={loggedInUser?.lastName}
-          onChange={(e) => setUser((p) => ({ ...p, lastName: e.target.value }))}
-        />
-      </ListItem>
-      <ListItem>
-        <Typography>
-          Link to
+        >
+          Save Changes
+        </Button>
+      </Box>
+      <SettingRow
+        title="Link a login"
+        description="Log in to Chemistry Cafe with this account through another provider."
+      >
+        <Box>
           <IconButton
             title={"Link to Google"}
-            disabled={!!loggedInUser?.googleId}
+            disabled={!!loggedInUser.googleId}
             component={"button"}
             color="primary"
             onClick={() => window.location.assign(`${AUTH_URL}/google/login`)}
@@ -321,7 +233,7 @@ const ProfileMenu = () => {
           </IconButton>
           <IconButton
             title={"Link to ORCID"}
-            disabled={!!loggedInUser?.orcidId}
+            disabled={!!loggedInUser.orcidId}
             component={"button"}
             color="primary"
             onClick={() => window.location.assign(`${AUTH_URL}/orcid/login`)}
@@ -333,15 +245,17 @@ const ProfileMenu = () => {
               style={{
                 width: 24,
                 height: 24,
-                filter: !!loggedInUser?.orcidId ? "grayscale(100%)" : "",
+                filter: loggedInUser.orcidId ? "grayscale(100%)" : "",
               }}
             />
           </IconButton>
-        </Typography>
-      </ListItem>
-      <ListItem>
-        <Typography>
-          Merge with
+        </Box>
+      </SettingRow>
+      <SettingRow
+        title="Merge accounts"
+        description="Merge in the Chemistry Cafe account of another login. The other account is deleted."
+      >
+        <Box>
           <IconButton
             title={"Merge account with Google login"}
             component={"button"}
@@ -371,34 +285,17 @@ const ProfileMenu = () => {
               style={{ width: 24, height: 24 }}
             />
           </IconButton>
-        </Typography>
-      </ListItem>
-      <ListItem>
-        <Button
-          disabled={Object.entries(user).reduce(
-            (prev, [key, val]) =>
-              prev && loggedInUser[key as keyof APIUser] === val,
-            true,
-          )}
-          color="primary"
-          variant="contained"
-          onClick={() =>
-            updateUser(user)
-              .then(() => window.location.reload())
-              .catch(() => window.alert("error updating profile"))
-          }
-        >
-          Save Changes
-        </Button>
-      </ListItem>
-    </List>
-  ) : (
-    <Typography>No User Listed</Typography>
+        </Box>
+      </SettingRow>
+    </Stack>
   );
 };
 
 const AppearanceMenu = () => {
-  const { theme, appearanceSettings, setAppearanceSettings } = useCustomTheme();
+  const { appearanceSettings, setAppearanceSettings } = useCustomTheme();
+  const [fontSliderValue, setFontSliderValue] = useState(
+    appearanceSettings.fontSize,
+  );
 
   const setColorModePreference = (
     _: React.MouseEvent<HTMLElement>,
@@ -412,55 +309,6 @@ const AppearanceMenu = () => {
       colorModePreference: preference,
     });
   };
-
-  return (
-    <>
-      <List
-        sx={{
-          color: theme.palette.text.primary,
-          fontSize: theme.typography.fontSize + 4,
-        }}
-        subheader="Color Theme"
-      >
-        <ListItem>
-          <ListItemText>
-            <Typography color="textPrimary" fontSize="large">
-              Theme
-            </Typography>
-            <Typography color="textSecondary" variant="body2">
-              Follow your system setting, or choose light or dark.
-            </Typography>
-          </ListItemText>
-          <ToggleButtonGroup
-            value={appearanceSettings?.colorModePreference ?? "system"}
-            exclusive
-            onChange={setColorModePreference}
-            aria-label="Color theme preference"
-          >
-            <ToggleButton value="system" aria-label="use system theme">
-              <SettingsBrightnessIcon sx={{ mr: 1 }} fontSize="small" />
-              System
-            </ToggleButton>
-            <ToggleButton value="light" aria-label="use light theme">
-              <LightModeIcon sx={{ mr: 1 }} fontSize="small" />
-              Light
-            </ToggleButton>
-            <ToggleButton value="dark" aria-label="use dark theme">
-              <DarkModeIcon sx={{ mr: 1 }} fontSize="small" />
-              Dark
-            </ToggleButton>
-          </ToggleButtonGroup>
-        </ListItem>
-      </List>
-    </>
-  );
-};
-
-const AccessibilityMenu = () => {
-  const { theme, appearanceSettings, setAppearanceSettings } = useCustomTheme();
-  const [fontSliderValue, setFontSliderValue] = useState(
-    appearanceSettings.fontSize,
-  );
 
   const setFontSize = (fontSize: number) => {
     setAppearanceSettings({
@@ -478,114 +326,91 @@ const AccessibilityMenu = () => {
     });
   };
 
-  const marks = [
-    { value: 5, label: "5" },
-    { value: 12, label: "12" },
-    { value: 14, label: "14" },
-    { value: 18, label: "18" },
-    { value: 24, label: "24" },
-    { value: 30, label: "30" },
-    { value: 36, label: "36" },
-    { value: 42, label: "42" },
-    { value: 50, label: "50" },
-  ];
-
   return (
-    <>
-      <List
-        sx={{
-          fontSize: theme.typography.fontSize + 4,
-        }}
-        subheader="Text Content"
+    <Stack divider={<Divider flexItem />}>
+      <SettingRow
+        title="Theme"
+        description="Follow your system setting, or choose light or dark."
       >
-        <ListItem>
-          {" "}
-          {/* Font Size */}
-          <Paper
-            sx={{
-              p: 1,
-              width: "40vw",
-            }}
-          >
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                columnGap: 1,
-              }}
-            >
-              <TextFieldsIcon />
-              <Typography>Adjust Font Size</Typography>
-            </Box>
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                textAlign: "center",
-                alignItems: "center",
-                columnGap: 6,
-              }}
-            >
-              <Slider
-                // aria-label="font-size"
-                track={false}
-                defaultValue={appearanceSettings.fontSize ?? 12}
-                min={5}
-                max={50}
-                marks={marks}
-                // value={appearanceSettings.fontSize ?? 12}
-                valueLabelDisplay="auto"
-                onChange={(_, value) => {
-                  setFontSliderValue(Number(value));
-                }}
-                onChangeCommitted={(_, value) => {
-                  setFontSize(Number(value));
-                }}
-              />
-            </Box>
-            <Input
-              value={fontSliderValue}
-              size="small"
-              onChange={(e) => {
-                let n: number = Number.parseInt(e.target.value);
-                if (Number.isFinite(n)) {
-                  setFontSliderValue(n);
-                } else {
-                  setFontSliderValue(undefined);
-                }
-              }}
-              onBlur={() => {
-                let n = fontSliderValue ?? 14;
-                if (n < 5) n = 5;
-                if (n > 50) n = 50;
-                setFontSliderValue(n);
-                setFontSize(n);
-              }}
-              inputProps={{
-                step: 2,
-                min: 5,
-                max: 50,
-                type: "number",
-              }}
-            />
-          </Paper>
-        </ListItem>
-        <ListItem>
-          {" "}
-          {/* Dyslexia Font */}
-          <ToggleButton
-            value="dyslexiaButton"
-            selected={Boolean(appearanceSettings?.fontFamily)}
-            onChange={toggleDyslexiaFont}
-            aria-label="Dyslexia Font"
-            sx={{ textTransform: "none" }}
-          >
-            <SpellcheckIcon />
-            Dyslexia Font
+        <ToggleButtonGroup
+          value={appearanceSettings?.colorModePreference ?? "system"}
+          exclusive
+          size="small"
+          onChange={setColorModePreference}
+          aria-label="Color theme preference"
+          sx={toggleSx}
+        >
+          <ToggleButton value="system" aria-label="use system theme">
+            <SettingsBrightnessIcon sx={{ mr: 1 }} fontSize="small" />
+            System
           </ToggleButton>
-        </ListItem>
-      </List>
-    </>
+          <ToggleButton value="light" aria-label="use light theme">
+            <LightModeIcon sx={{ mr: 1 }} fontSize="small" />
+            Light
+          </ToggleButton>
+          <ToggleButton value="dark" aria-label="use dark theme">
+            <DarkModeIcon sx={{ mr: 1 }} fontSize="small" />
+            Dark
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </SettingRow>
+      <SettingRow title="Font size">
+        <Box sx={{ display: "flex", alignItems: "center", columnGap: 2 }}>
+          <Slider
+            aria-label="Font size"
+            sx={{ width: 180 }}
+            track={false}
+            value={fontSliderValue ?? 12}
+            min={5}
+            max={50}
+            valueLabelDisplay="auto"
+            onChange={(_, value) => {
+              setFontSliderValue(Number(value));
+            }}
+            onChangeCommitted={(_, value) => {
+              setFontSize(Number(value));
+            }}
+          />
+          <Input
+            value={fontSliderValue ?? ""}
+            size="small"
+            sx={{ width: "4em" }}
+            onChange={(e) => {
+              const n: number = Number.parseInt(e.target.value);
+              if (Number.isFinite(n)) {
+                setFontSliderValue(n);
+              } else {
+                setFontSliderValue(undefined);
+              }
+            }}
+            onBlur={() => {
+              let n = fontSliderValue ?? 14;
+              if (n < 5) n = 5;
+              if (n > 50) n = 50;
+              setFontSliderValue(n);
+              setFontSize(n);
+            }}
+            inputProps={{
+              "aria-label": "Font size value",
+              step: 2,
+              min: 5,
+              max: 50,
+              type: "number",
+            }}
+          />
+        </Box>
+      </SettingRow>
+      <SettingRow
+        title="Dyslexia font"
+        description="Use a font that is easier to read for some people with dyslexia."
+      >
+        <Switch
+          checked={Boolean(appearanceSettings?.fontFamily)}
+          onChange={toggleDyslexiaFont}
+          inputProps={{ "aria-label": "Dyslexia Font" }}
+        />
+      </SettingRow>
+    </Stack>
   );
 };
 
@@ -635,30 +460,12 @@ const UnitsMenu = () => {
     }))
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  const toggleSx = { "& .MuiToggleButton-root": { textTransform: "none" } };
-
   return (
-    <List
-      sx={{
-        color: theme.palette.text.primary,
-        fontSize: theme.typography.fontSize + 4,
-      }}
-      subheader="Display Units"
-    >
-      <ListItem
-        sx={{ flexWrap: "wrap", columnGap: theme.spacing(2) }}
-        alignItems="flex-start"
+    <>
+      <SettingRow
+        title="Concentration units"
+        description="The reaction editor shows and accepts the parameters below in the unit of their reaction type. Chemistry Cafe always stores SI values."
       >
-        <ListItemText sx={{ minWidth: "16em" }}>
-          <Typography color="textPrimary" fontSize="large">
-            Rate parameters
-          </Typography>
-          <Typography color="textSecondary" variant="body2">
-            The reaction editor shows and accepts the parameters below in the
-            unit of their reaction type. Chemistry Cafe always stores and
-            exports SI values.
-          </Typography>
-        </ListItemText>
         <ToggleButtonGroup
           value={allTypesUnits}
           exclusive
@@ -679,83 +486,117 @@ const UnitsMenu = () => {
             All mol m<sup>-3</sup>
           </ToggleButton>
         </ToggleButtonGroup>
-      </ListItem>
-      <ListItem sx={{ display: "block" }}>
-        <TableContainer>
-          <Table
-            size="small"
-            aria-label="Parameters that use the display unit"
-            // Fixed column widths, so that a change of the unit does not move
-            // the columns.
-            sx={{ tableLayout: "fixed" }}
-          >
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ width: "28%" }}>Reaction type</TableCell>
-                <TableCell sx={{ width: "24%" }}>Display unit</TableCell>
-                <TableCell sx={{ width: "14%" }}>Parameter</TableCell>
-                <TableCell sx={{ width: "34%" }}>Unit</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {groups.flatMap((group) =>
-                group.parameters.map((parameter, index) => (
-                  <TableRow key={`${group.type}-${parameter.key}`}>
-                    {index === 0 && (
-                      <>
-                        <TableCell rowSpan={group.parameters.length}>
-                          {group.name}
-                        </TableCell>
-                        <TableCell rowSpan={group.parameters.length}>
-                          <ToggleButtonGroup
-                            value={preferences.rateUnits[group.type]}
-                            exclusive
-                            size="small"
-                            onChange={(_, rateUnits: RateUnits | null) =>
-                              rateUnits && setRateUnits(group.type, rateUnits)
-                            }
-                            aria-label={`Units of ${group.name}`}
-                            sx={toggleSx}
-                          >
-                            <ToggleButton
-                              value="Molecule"
-                              aria-label={`use molecule units for ${group.name}`}
-                            >
-                              molecule
-                            </ToggleButton>
-                            <ToggleButton
-                              value="SI"
-                              aria-label={`use SI units for ${group.name}`}
-                            >
-                              mol
-                            </ToggleButton>
-                          </ToggleButtonGroup>
-                        </TableCell>
-                      </>
-                    )}
-                    <TableCell>{parameter.label}</TableCell>
-                    <TableCell>
-                      <GenericRateUnit
-                        rateUnits={preferences.rateUnits[group.type]}
-                        offset={parameter.offset}
-                      />
-                    </TableCell>
-                  </TableRow>
-                )),
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <Typography
-          color="textSecondary"
-          variant="body2"
-          sx={{ paddingTop: theme.spacing(1) }}
+      </SettingRow>
+      <TableContainer>
+        <Table
+          size="small"
+          aria-label="Parameters that use the display unit"
+          // Fixed column widths, so that a change of the unit does not move
+          // the columns.
+          sx={{ tableLayout: "fixed" }}
         >
-          n is the order of the reaction: the sum of the reactant coefficients.
-          The other parameters, for example Ea and k0 B, do not change.
-        </Typography>
-      </ListItem>
-    </List>
+          <TableHead>
+            <TableRow>
+              <TableCell sx={{ width: "28%" }}>Reaction type</TableCell>
+              <TableCell sx={{ width: "24%" }}>Display unit</TableCell>
+              <TableCell sx={{ width: "14%" }}>Parameter</TableCell>
+              <TableCell sx={{ width: "34%" }}>Unit</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {groups.flatMap((group) =>
+              group.parameters.map((parameter, index) => (
+                <TableRow key={`${group.type}-${parameter.key}`}>
+                  {index === 0 && (
+                    <>
+                      <TableCell rowSpan={group.parameters.length}>
+                        {group.name}
+                      </TableCell>
+                      <TableCell rowSpan={group.parameters.length}>
+                        <ToggleButtonGroup
+                          value={preferences.rateUnits[group.type]}
+                          exclusive
+                          size="small"
+                          onChange={(_, rateUnits: RateUnits | null) =>
+                            rateUnits && setRateUnits(group.type, rateUnits)
+                          }
+                          aria-label={`Units of ${group.name}`}
+                          sx={toggleSx}
+                        >
+                          <ToggleButton
+                            value="Molecule"
+                            aria-label={`use molecule units for ${group.name}`}
+                          >
+                            molecule
+                          </ToggleButton>
+                          <ToggleButton
+                            value="SI"
+                            aria-label={`use SI units for ${group.name}`}
+                          >
+                            mol
+                          </ToggleButton>
+                        </ToggleButtonGroup>
+                      </TableCell>
+                    </>
+                  )}
+                  <TableCell>{parameter.label}</TableCell>
+                  <TableCell>
+                    <GenericRateUnit
+                      rateUnits={preferences.rateUnits[group.type]}
+                      offset={parameter.offset}
+                    />
+                  </TableCell>
+                </TableRow>
+              )),
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <Typography
+        color="textSecondary"
+        variant="body2"
+        sx={{ py: theme.spacing(1) }}
+      >
+        n is the order of the reaction: the sum of the reactant coefficients.
+        The other parameters, for example Ea and k0 B, do not change.
+      </Typography>
+    </>
+  );
+};
+
+const RateParametersMenu = () => {
+  const { preferences, setPreferences } = useUserPreferences();
+
+  return (
+    <SettingRow
+      title="Activation energy"
+      description={
+        <>
+          Choose whether you enter Ea ({activationUnits.Ea}) or C (
+          {activationUnits.C}) for Arrhenius and Taylor Series reactions, with C
+          = −Ea / k<sub>B</sub>.
+        </>
+      }
+    >
+      <ToggleButtonGroup
+        value={preferences.activationParameter}
+        exclusive
+        size="small"
+        onChange={(_, parameter: ActivationParameter | null) =>
+          parameter &&
+          setPreferences({ ...preferences, activationParameter: parameter })
+        }
+        aria-label="Activation parameter"
+        sx={toggleSx}
+      >
+        <ToggleButton value="Ea" aria-label="enter Ea">
+          Ea
+        </ToggleButton>
+        <ToggleButton value="C" aria-label="enter C">
+          C
+        </ToggleButton>
+      </ToggleButtonGroup>
+    </SettingRow>
   );
 };
 

@@ -1,5 +1,6 @@
 import { UUID } from "crypto";
 import { RateUnits } from "../helpers/rateUnits";
+import { ActivationParameter } from "../helpers/activationEnergy";
 
 export interface APIUser {
   id: UUID;
@@ -21,6 +22,7 @@ export interface APIUserPreferences {
   ternaryChemicalActivationRateUnits: RateUnits;
   troeRateUnits: RateUnits;
   tunnelingRateUnits: RateUnits;
+  activationParameter: ActivationParameter;
 }
 
 export interface APIFamily {

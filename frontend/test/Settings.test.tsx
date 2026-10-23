@@ -60,31 +60,30 @@ describe("Unauthenticated Settings Page", () => {
     cleanup();
   });
 
-  it("Renders", () => {
-    expect(screen.getByText("App Settings")).toBeTruthy();
+  it("Opens on the appearance tab", () => {
+    expect(
+      screen.getByRole("tab", { name: "Appearance", selected: true }),
+    ).toBeTruthy();
+    expect(screen.getByLabelText("use system theme")).toBeTruthy();
+    expect(screen.getByLabelText("Font size")).toBeTruthy();
+    expect(screen.getByLabelText("Dyslexia Font")).toBeTruthy();
   });
 
-  it("Can navigate to the appearance menu", () => {
-    const appearanceButton = screen.getByText("Appearance");
-    expect(appearanceButton).toBeTruthy();
-    fireEvent.click(appearanceButton);
+  it("Can switch between the preference tabs", () => {
+    fireEvent.click(screen.getByRole("tab", { name: "Units" }));
+    expect(screen.getByLabelText("use SI units for all")).toBeTruthy();
+    expect(screen.queryByLabelText("use system theme")).toBeNull();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Rate Parameters" }));
+    expect(screen.getByLabelText("enter C")).toBeTruthy();
+    expect(screen.queryByLabelText("use SI units for all")).toBeNull();
   });
 
-  it("Can navigate to the accessibility menu", () => {
-    const accessibilityButton = screen.getByTestId("accessibility-menu-button");
-    expect(accessibilityButton).toBeTruthy();
-    fireEvent.click(accessibilityButton);
-  });
-
-  it("Can Not navigate to the user settings menu", async () => {
-    const userSettingsButton = screen.queryByText("My Profile");
-    expect(userSettingsButton).toBeFalsy();
+  it("Does not show the profile tab", () => {
+    expect(screen.queryByRole("tab", { name: "Profile" })).toBeNull();
   });
 
   it("Can switch between system, light, and dark theme", () => {
-    const appearanceButton = screen.getByText("Appearance");
-    fireEvent.click(appearanceButton);
-
     const lightButton = screen.getByLabelText("use light theme");
     const darkButton = screen.getByLabelText("use dark theme");
     const systemButton = screen.getByLabelText("use system theme");
@@ -94,8 +93,20 @@ describe("Unauthenticated Settings Page", () => {
     fireEvent.click(systemButton);
   });
 
+  it("Can choose whether to enter Ea or C", () => {
+    fireEvent.click(screen.getByRole("tab", { name: "Rate Parameters" }));
+    const ea = screen.getByLabelText("enter Ea");
+    const c = screen.getByLabelText("enter C");
+    expect(ea.getAttribute("aria-pressed")).toBe("true");
+
+    fireEvent.click(c);
+    expect(c.getAttribute("aria-pressed")).toBe("true");
+    const stored = JSON.parse(localStorage.getItem("userPreferences")!);
+    expect(stored.activationParameter).toBe("C");
+  });
+
   it("Can set the rate units of one reaction type or of all types", () => {
-    fireEvent.click(screen.getByTestId("units-menu-button"));
+    fireEvent.click(screen.getByRole("tab", { name: "Units" }));
 
     const troeSI = screen.getByLabelText("use SI units for Troe (Fall-Off)");
     const arrheniusMolecule = screen.getByLabelText(
@@ -174,26 +185,14 @@ describe("Authenticated Settings Page", () => {
     cleanup();
   });
 
-  it("Renders", () => {
-    expect(screen.getByText("App Settings")).toBeTruthy();
-  });
+  it("Can switch between the appearance and profile tabs", () => {
+    fireEvent.click(screen.getByRole("tab", { name: "Profile" }));
+    expect(screen.getByText("Save Changes")).toBeTruthy();
+    expect(screen.queryByLabelText("use system theme")).toBeNull();
 
-  it("Can navigate to the appearance menu", () => {
-    const appearanceButton = screen.getByText("Appearance");
-    expect(appearanceButton).toBeTruthy();
-    fireEvent.click(appearanceButton);
-  });
-
-  it("Can navigate to the accessibility menu", () => {
-    const accessibilityButton = screen.getByTestId("accessibility-menu-button");
-    expect(accessibilityButton).toBeTruthy();
-    fireEvent.click(accessibilityButton);
-  });
-
-  it("Can navigate to the user settings menu", () => {
-    const userSettingsButton = screen.getByText("My Profile");
-    expect(userSettingsButton).toBeTruthy();
-    fireEvent.click(userSettingsButton);
+    fireEvent.click(screen.getByRole("tab", { name: "Appearance" }));
+    expect(screen.getByLabelText("use system theme")).toBeTruthy();
+    expect(screen.queryByText("Save Changes")).toBeNull();
   });
 
   it("Can use Profile Info", async () => {
@@ -202,8 +201,7 @@ describe("Authenticated Settings Page", () => {
     expect(userVal).toBeTruthy();
     const profile = JSON.parse(userVal as string) as APIUser;
 
-    const appearanceButton = screen.getByText("My Profile");
-    fireEvent.click(appearanceButton);
+    fireEvent.click(screen.getByRole("tab", { name: "Profile" }));
 
     let submitBox = screen.getByText("Save Changes") as HTMLButtonElement;
     expect(submitBox).toBeTruthy();
@@ -247,9 +245,6 @@ describe("Authenticated Settings Page", () => {
   });
 
   it("Can switch between system, light, and dark theme", () => {
-    const appearanceButton = screen.getByText("Appearance");
-    fireEvent.click(appearanceButton);
-
     const lightButton = screen.getByLabelText("use light theme");
     const darkButton = screen.getByLabelText("use dark theme");
     const systemButton = screen.getByLabelText("use system theme");

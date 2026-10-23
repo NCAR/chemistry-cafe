@@ -44,7 +44,6 @@ import {
 } from "../../helpers/rateUnits";
 import { UnitText } from "../RateUnitText";
 import {
-  ActivationParameter,
   activationValues,
   isActivationParameter,
   otherActivationText,
@@ -252,7 +251,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
 
   const { preferences } = useUserPreferences();
   const rateUnits = rateUnitsFor(preferences.rateUnits, modifiedReaction?.type);
-  const activationParameter: ActivationParameter = "Ea";
+  const { activationParameter } = preferences;
 
   // The text of the equation field while the user changes it, or null when
   // the field shows the reactants and products of the rows.
