@@ -54,11 +54,27 @@ import {
   activationUnits,
 } from "../helpers/activationEnergy";
 import { reactionAttributeOptions } from "../types/chemistryModels";
+import { readRememberedView, rememberView } from "../helpers/rememberedView";
 
-type SettingsTab = "appearance" | "units" | "rateParameters" | "profile";
+const settingsTabs = [
+  "appearance",
+  "units",
+  "rateParameters",
+  "profile",
+] as const;
+type SettingsTab = (typeof settingsTabs)[number];
+
+const viewKey = "settingsView";
+
+const readSettingsTab = (): SettingsTab => {
+  const tab = readRememberedView(viewKey);
+  return settingsTabs.includes(tab as SettingsTab)
+    ? (tab as SettingsTab)
+    : "appearance";
+};
 
 const Settings = () => {
-  const [selectedTab, setSelectedTab] = useState<SettingsTab>("appearance");
+  const [selectedTab, setSelectedTab] = useState<SettingsTab>(readSettingsTab);
   const { user: loggedInUser } = useAuth(); // Get logged in user info from AuthContext
 
   // The profile tab is only for logged in users. After a logout, the page
@@ -80,7 +96,10 @@ const Settings = () => {
         <Paper variant="outlined">
           <Tabs
             value={tab}
-            onChange={(_, value: SettingsTab) => setSelectedTab(value)}
+            onChange={(_, value: SettingsTab) => {
+              setSelectedTab(value);
+              rememberView(viewKey, value);
+            }}
             aria-label="Settings tabs"
             variant="scrollable"
             scrollButtons="auto"

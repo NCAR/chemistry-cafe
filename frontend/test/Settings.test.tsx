@@ -69,6 +69,27 @@ describe("Unauthenticated Settings Page", () => {
     expect(screen.getByLabelText("Dyslexia Font")).toBeTruthy();
   });
 
+  it("Shows the last tab again when the user comes back", () => {
+    fireEvent.click(screen.getByRole("tab", { name: "Units" }));
+
+    // The user goes to another page, and then comes back.
+    cleanup();
+    render(
+      <AuthProvider>
+        <CustomThemeProvider>
+          <UserPreferencesProvider>
+            <MemoryRouter>
+              <Settings />
+            </MemoryRouter>
+          </UserPreferencesProvider>
+        </CustomThemeProvider>
+      </AuthProvider>,
+    );
+    expect(
+      screen.getByRole("tab", { name: "Units", selected: true }),
+    ).toBeTruthy();
+  });
+
   it("Can switch between the preference tabs", () => {
     fireEvent.click(screen.getByRole("tab", { name: "Units" }));
     expect(screen.getByLabelText("use SI units for all")).toBeTruthy();

@@ -42,6 +42,10 @@ import { MechanismsView } from "../components/familyEditor/MechanismsView";
 import { PhaseView } from "../components/familyEditor/PhaseView";
 import { ReactionsView } from "../components/familyEditor/ReactionsView";
 import { SpeciesView } from "../components/familyEditor/SpeciesView";
+import { readRememberedView, rememberView } from "../helpers/rememberedView";
+
+// The remembered view is the id of the tree item: "{familyId};{menuName}"
+const viewKey = "familyEditorView";
 
 const FamilyPage = () => {
   enum DataViewSelection {
@@ -62,6 +66,10 @@ const FamilyPage = () => {
   const [openImportMenu, setOpenImportMenu] = useState<boolean>(false); // Used when user attempts to import families
   const { user } = useAuth();
   const currentMenuName = useRef<string>(DataViewSelection.Default);
+  const [rememberedView] = useState(() => readRememberedView(viewKey));
+  const [rememberedFamilyId, rememberedMenuName] =
+    rememberedView?.split(";") ?? [];
+  const viewRestored = useRef(false);
   const { theme } = useCustomTheme();
 
   const updateFamily = (family: Family): void => {
@@ -206,7 +214,26 @@ const FamilyPage = () => {
 
     setSelectedFamilyId(family.id);
     setDataView(getDataViewComponent(menuName, family));
+    rememberView(viewKey, itemId);
   };
+
+  // Shows the remembered view again, after the families load. This effect
+  // runs after a render with the families, so that the view gets the current
+  // families.
+  useEffect(() => {
+    if (!families || viewRestored.current) {
+      return;
+    }
+    viewRestored.current = true;
+    const family = families.find(
+      (element) => element.id === rememberedFamilyId,
+    );
+    if (!family) {
+      return;
+    }
+    setSelectedFamilyId(family.id);
+    setDataView(getDataViewComponent(rememberedMenuName, family));
+  }, [families]);
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -277,6 +304,9 @@ const FamilyPage = () => {
   const removeFamilyLocally = (family: Family): void => {
     if (selectedFamilyId === family.id) {
       setDataView(<DefaultView />);
+    }
+    if (readRememberedView(viewKey)?.startsWith(`${family.id};`)) {
+      rememberView(viewKey, null);
     }
     setFamilies(families?.filter((element) => element.id != family.id));
   };
@@ -355,14 +385,26 @@ const FamilyPage = () => {
           {families?.length === 0 ? (
             <Typography color="">No families to edit</Typography>
           ) : (
-            <SimpleTreeView
-              onItemSelectionToggle={handleTreeItemToggle}
-              sx={{
-                [`& .${treeItemClasses.label}`]: { fontSize: "0.85rem" },
-              }}
-            >
-              {families &&
-                families.map((family, index) => (
+            // The tree mounts after the families load, so that it opens and
+            // selects the remembered view.
+            families && (
+              <SimpleTreeView
+                defaultExpandedItems={families.flatMap((family, index) =>
+                  family.id === rememberedFamilyId
+                    ? [`${family.id}-${index}`]
+                    : [],
+                )}
+                defaultSelectedItems={
+                  families.some((family) => family.id === rememberedFamilyId)
+                    ? rememberedView
+                    : null
+                }
+                onItemSelectionToggle={handleTreeItemToggle}
+                sx={{
+                  [`& .${treeItemClasses.label}`]: { fontSize: "0.85rem" },
+                }}
+              >
+                {families.map((family, index) => (
                   <FamilyTreeItem
                     aria-label={`Expand options for ${family.name || "No name"} family`}
                     key={`${family.id}-${index}`}
@@ -442,7 +484,8 @@ const FamilyPage = () => {
                     />
                   </FamilyTreeItem>
                 ))}
-            </SimpleTreeView>
+              </SimpleTreeView>
+            )
           )}
         </div>
         <div className="family-view">{dataView}</div>

@@ -937,3 +937,50 @@ describe("MechanismsView", () => {
     fireEvent.click(musicBoxButton);
   });
 });
+
+describe("Family Editor remembered view", () => {
+  const renderEditor = () =>
+    render(
+      <AuthProvider>
+        <CustomThemeProvider>
+          <MemoryRouter>
+            <FamilyEditor />
+          </MemoryRouter>
+        </CustomThemeProvider>
+      </AuthProvider>,
+    );
+
+  beforeEach(() => {
+    localStorage.setItem("uploadedFamilyIds", JSON.stringify([testFamily.id]));
+    vi.spyOn(axios, "get").mockResolvedValue({
+      data: testFamily,
+      status: 200,
+    } as AxiosResponse);
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+    cleanup();
+  });
+
+  it("Shows the last view again when the user comes back", async () => {
+    renderEditor();
+    fireEvent.click(await screen.findByText("Test Family"));
+    fireEvent.click(screen.getByText("Species (0)"));
+    expect(screen.getByText("Chemical Species")).toBeTruthy();
+
+    // The user goes to another page, and then comes back.
+    cleanup();
+    renderEditor();
+    expect(await screen.findByText("Chemical Species")).toBeTruthy();
+    expect(screen.getByText("Species (0)")).toBeTruthy();
+    expect(screen.queryByText("No Family Selected")).toBeNull();
+  });
+
+  it("Shows the default view when the remembered family is gone", async () => {
+    sessionStorage.setItem("familyEditorView", "999-999-999;species");
+    renderEditor();
+    expect(await screen.findByText("Test Family")).toBeTruthy();
+    expect(screen.getByText("No Family Selected")).toBeTruthy();
+  });
+});
