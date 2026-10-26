@@ -259,6 +259,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
     useState<ReactionConfiguration>(reactionConfigurations.NONE);
 
   const { preferences } = useUserPreferences();
+  const { activationParameter } = preferences;
   const rateUnits = rateUnitsFor(preferences.rateUnits, modifiedReaction?.type);
   const selectedPhase = family.phases.find(
     (phase) => phase.id === modifiedReaction?.phaseId,
