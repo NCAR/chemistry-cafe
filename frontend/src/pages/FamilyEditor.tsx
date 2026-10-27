@@ -170,6 +170,25 @@ const FamilyPage = () => {
                 removeFamilyLocally(family);
               }
             }}
+            onChangeVisibility={async (isPublic: boolean) => {
+              setLoading(true);
+              await saveFamilyChanges({ ...family, isPublic, isModified: true })
+                .then((savedFamily) => {
+                  setFamilies((families) =>
+                    families?.map((element) =>
+                      element.id === savedFamily.id ? savedFamily : element,
+                    ),
+                  );
+                  setDataView(
+                    getDataViewComponent(DataViewSelection.GeneralInfo, savedFamily),
+                  );
+                })
+                .catch((e) => {
+                  console.error(e);
+                  alert("An issue occurred while changing the family visibility");
+                })
+                .finally(() => setLoading(false));
+            }}
           />
         );
       case DataViewSelection.Phases:
