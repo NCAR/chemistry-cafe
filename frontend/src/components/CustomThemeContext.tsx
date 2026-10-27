@@ -207,6 +207,15 @@ const getThemeOptions = (settings: AppearanceSettings): ThemeOptionsType => {
           },
         ],
       },
+      MuiSwitch: {
+        styleOverrides: {
+          // The default white thumb has almost no edge on a white page, and
+          // the default off track is too light to see. Light mode gets a
+          // darker track and an outline on the thumb.
+          thumb: isDark ? {} : { border: `1px solid ${muted}` },
+          track: isDark ? {} : { opacity: 0.6 },
+        },
+      },
       MuiPaper: {
         styleOverrides: {
           root: {

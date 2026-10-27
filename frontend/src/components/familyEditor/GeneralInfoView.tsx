@@ -132,6 +132,7 @@ export const GeneralInfoView = ({
           {canChangeVisibility && (
             <Tooltip title={family.isModified ? "Save your changes first" : ""}>
               <FormControlLabel
+                sx={{ ml: 0 }}
                 label={family.isPublic ? "Public" : "Private"}
                 control={
                   <Switch
