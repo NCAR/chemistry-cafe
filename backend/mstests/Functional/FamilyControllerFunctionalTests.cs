@@ -19,7 +19,10 @@ namespace ChemistryCafeAPI.Tests.Functional
         [TestMethod]
         public async Task GetFamilyById_Anonymous_IsAllowed()
         {
-            var response = await AnonymousClient.GetAsync($"/api/families/{TestWebApplicationFactory.TestFamilyId}");
+            var owner = await CreateUserAsync(Role.None);
+            var family = await CreateFamilyAsync(owner, isPublic: true);
+
+            var response = await AnonymousClient.GetAsync($"/api/families/{family.Id}");
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
         }
 

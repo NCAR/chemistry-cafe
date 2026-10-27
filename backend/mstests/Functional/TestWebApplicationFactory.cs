@@ -203,7 +203,7 @@ namespace ChemistryCafeAPI.Tests.Functional
             return user;
         }
 
-        public async Task<Family> CreateFamilyAsync(User owner, string? name = null, string? description = null, Guid? id = null)
+        public async Task<Family> CreateFamilyAsync(User owner, string? name = null, string? description = null, Guid? id = null, bool isPublic = false)
         {
             using var scope = Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ChemistryDbContext>();
@@ -222,7 +222,7 @@ namespace ChemistryCafeAPI.Tests.Functional
                 Owner = trackedOwner ?? owner,
                 CreatedDate = DateTime.UtcNow,
                 CurrentVersion = version,
-                IsPublic = false
+                IsPublic = isPublic
             };
             version.Family = family;
             family.CurrentVersion = version;
@@ -234,7 +234,7 @@ namespace ChemistryCafeAPI.Tests.Functional
             return family;
         }
 
-        public Family CreateFamily(User owner, string? name = null, string? description = null, Guid? id = null)
+        public Family CreateFamily(User owner, string? name = null, string? description = null, Guid? id = null, bool isPublic = false)
         {
             using var scope = Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ChemistryDbContext>();
@@ -253,7 +253,7 @@ namespace ChemistryCafeAPI.Tests.Functional
                 Owner = trackedOwner ?? owner,
                 CreatedDate = DateTime.UtcNow,
                 CurrentVersion = version,
-                IsPublic = false
+                IsPublic = isPublic
             };
             version.Family = family;
             family.Versions.Add(version);
