@@ -538,6 +538,7 @@ export function apiToFrontendFamily(apiFamily: APIFamily): Family {
     id: apiFamily.id,
     name: apiFamily.name,
     description: apiFamily.description ?? "",
+    isPublic: apiFamily.isPublic,
     owner: apiFamily.owner,
     mechanisms: apiFamily.mechanisms.map((e) => apiToFrontendMechanism(e)),
     species: apiFamily.species.map((e) => apiToFrontendSpecies(e)),
@@ -570,6 +571,7 @@ export function frontendToAPIFamily(
     id: family.id,
     name: family.name,
     description: family.description,
+    isPublic: family.isPublic ?? false,
     owner: family.owner,
     species: expand ? family.species.map((e) => frontendToAPISpecies(e)) : [],
     reactions: expand

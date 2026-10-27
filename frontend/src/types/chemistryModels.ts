@@ -187,6 +187,9 @@ export type Family = {
   /** Description of the family */
   description: string;
 
+  /** If the family is public */
+  isPublic: boolean;
+
   /** API definition of the owner of the family */
   owner: APIUser | null;
 

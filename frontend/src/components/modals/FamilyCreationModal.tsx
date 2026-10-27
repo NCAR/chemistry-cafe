@@ -57,6 +57,7 @@ export const FamilyCreationModal: React.FC<FamilyCreationModalProps> = ({
       isModified: false,
       isDeleted: false,
       isInDatabase: false,
+      isPublic: false,
     };
     onSubmit(family);
     familyName.current = "";
