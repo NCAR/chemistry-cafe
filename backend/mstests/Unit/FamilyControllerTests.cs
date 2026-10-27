@@ -84,7 +84,7 @@ namespace ChemistryCafeAPI.Tests
             var controller = await CreateSignedInController();
 
             // Act
-            var actionResult = await controller.GetFamilies(true, _Owner!.Id);
+            var actionResult = await controller.GetFamilies(true);
 
             // Assert
             Assert.IsNotNull(actionResult);

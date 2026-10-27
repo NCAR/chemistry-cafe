@@ -19,10 +19,11 @@ namespace ChemistryCafeAPI.Controllers
         [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<FamilyDto>>>
-            GetFamilies([FromQuery] bool? expand = false, [FromQuery] Guid? userId = null)
+            GetFamilies([FromQuery] bool? expand = false)
         {
+            var (_, viewer) = await userService.GetCurrentUserAsync(GetNameIdentifier());
             var bExpand = expand ?? false;
-            var families = await familyService.GetFamiliesAsync(bExpand, userId);
+            var families = await familyService.GetFamiliesAsync(bExpand, viewer);
             return Ok(families.Select(f => f.ToDto()));
         }
 
@@ -30,7 +31,8 @@ namespace ChemistryCafeAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<FamilyDto>> GetFamily(Guid id)
         {
-            var family = await familyService.GetFamilyAsync(id);
+            var (_, viewer) = await userService.GetCurrentUserAsync(GetNameIdentifier());
+            var family = await familyService.GetFamilyAsync(id, viewer);
             return family == null ? NotFound() : Ok(family.ToDto());
         }
 

@@ -222,6 +222,7 @@ namespace ChemistryCafeAPI.Tests.Functional
                 Owner = trackedOwner ?? owner,
                 CreatedDate = DateTime.UtcNow,
                 CurrentVersion = version,
+                IsPublic = false
             };
             version.Family = family;
             family.CurrentVersion = version;
@@ -252,6 +253,7 @@ namespace ChemistryCafeAPI.Tests.Functional
                 Owner = trackedOwner ?? owner,
                 CreatedDate = DateTime.UtcNow,
                 CurrentVersion = version,
+                IsPublic = false
             };
             version.Family = family;
             family.Versions.Add(version);
