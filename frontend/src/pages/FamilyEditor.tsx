@@ -180,12 +180,17 @@ const FamilyPage = () => {
                     ),
                   );
                   setDataView(
-                    getDataViewComponent(DataViewSelection.GeneralInfo, savedFamily),
+                    getDataViewComponent(
+                      DataViewSelection.GeneralInfo,
+                      savedFamily,
+                    ),
                   );
                 })
                 .catch((e) => {
                   console.error(e);
-                  alert("An issue occurred while changing the family visibility");
+                  alert(
+                    "An issue occurred while changing the family visibility",
+                  );
                 })
                 .finally(() => setLoading(false));
             }}
@@ -414,10 +419,7 @@ const FamilyPage = () => {
                           </Typography>
                         </Tooltip>
                         {!family.isInDatabase && (
-                          <Tooltip
-                            title="This family is not currently published"
-                            arrow
-                          >
+                          <Tooltip title="Only saved in this browser" arrow>
                             <CloudOffIcon />
                           </Tooltip>
                         )}
