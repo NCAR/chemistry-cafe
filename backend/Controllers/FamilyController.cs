@@ -42,6 +42,7 @@ namespace ChemistryCafeAPI.Controllers
         /// <list type="bullet">
         ///     <item>name</item>
         ///     <item>description</item>
+        ///     <item>isPublic</item>
         /// </list>
         /// Everything else is set to a default value when the family is created.
         /// </summary>
@@ -87,6 +88,7 @@ namespace ChemistryCafeAPI.Controllers
         ///     <item>name</item>
         ///     <item>description</item>
         ///     <item>owner</item>
+        ///     <item>isPublic</item>
         /// </list>
         /// </summary>
         /// <param name="id">Database ID of the family to update</param>
