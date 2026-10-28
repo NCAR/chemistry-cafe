@@ -37,11 +37,14 @@ export const GeneralInfoView = ({
 
   const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false);
   const [openPublishModal, setOpenPublishModal] = useState<boolean>(false);
-  const [openMakePublicModal, setOpenMakePublicModal] = useState<boolean>(false);
+  const [openMakePublicModal, setOpenMakePublicModal] =
+    useState<boolean>(false);
 
   const { user } = useAuth();
 
-  const canChangeVisibility = family.isInDatabase && user?.id === family.owner?.id || user?.role === "admin";
+  const canChangeVisibility =
+    (family.isInDatabase && user?.id === family.owner?.id) ||
+    user?.role === "admin";
 
   const handleSave = () => {
     if (name.length === 0) {
