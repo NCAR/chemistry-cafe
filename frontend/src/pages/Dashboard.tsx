@@ -47,8 +47,9 @@ const Dashboard = () => {
       <Paper square component="section" className="content-dashboard">
         <Typography variant="h5">Browse Families &amp; Mechanisms</Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-          Every published family from the community. Clone one to start your own
-          copy, or edit directly if you are the owner.
+          Public families from the community, and your own private families.
+          Clone one to start your own copy, or edit it directly if you are the
+          owner.
         </Typography>
         {loadingFamilies && <CircularProgress />}
         <FamilyBrowser

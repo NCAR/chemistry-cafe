@@ -89,6 +89,7 @@ const family: Family = {
   reactions: [reaction],
   mechanisms: [mechanism],
   owner: null,
+  isPublic: false,
 };
 
 describe("cloneFamily", () => {
@@ -114,6 +115,12 @@ describe("cloneFamily", () => {
     expect(result.mechanisms.at(0)?.id).not.toEqual(
       family.mechanisms.at(0)?.id,
     );
+  });
+
+  it("Makes a clone of a public family private", () => {
+    const result = cloneFamily({ ...family, isPublic: true });
+
+    expect(result.isPublic).toBe(false);
   });
 });
 

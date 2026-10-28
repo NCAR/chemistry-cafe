@@ -9,9 +9,11 @@ import {
   IconButton,
   List,
   ListItem,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import LockIcon from "@mui/icons-material/Lock";
 import React, { memo, useState } from "react";
 import { APIFamily } from "../API/API_Interfaces";
 import { UUID } from "crypto";
@@ -59,14 +61,25 @@ const FamilyInfoCard = memo(function FamilyInfoCard({
     <ListItem>
       <Card sx={{ flex: 1 }} variant="outlined">
         <CardContent>
-          <Typography
-            sx={{ fontWeight: "bold" }}
-            noWrap
-            variant="h6"
-            color="textPrimary"
-          >
-            {family.name}
-          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", columnGap: 1 }}>
+            <Typography
+              sx={{ fontWeight: "bold", minWidth: 0 }}
+              noWrap
+              variant="h6"
+              color="textPrimary"
+            >
+              {family.name}
+            </Typography>
+            {!family.isPublic && (
+              <Tooltip title="Private: only the owner and admins can see this family">
+                <LockIcon
+                  fontSize="small"
+                  color="action"
+                  titleAccess="Private family"
+                />
+              </Tooltip>
+            )}
+          </Box>
           <Typography noWrap variant="inherit" color="textSecondary">
             {family.owner.username}
           </Typography>

@@ -22,6 +22,7 @@ export const cloneFamily = (family: Family): Family => {
     reactions: [],
     mechanisms: [],
     isInDatabase: false,
+    isPublic: false,
   };
   const idMappings: Map<UUID, UUID> = new Map();
 

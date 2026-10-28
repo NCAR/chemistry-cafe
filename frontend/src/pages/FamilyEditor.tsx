@@ -170,6 +170,30 @@ const FamilyPage = () => {
                 removeFamilyLocally(family);
               }
             }}
+            onChangeVisibility={async (isPublic: boolean) => {
+              setLoading(true);
+              await saveFamilyChanges({ ...family, isPublic, isModified: true })
+                .then((savedFamily) => {
+                  setFamilies((families) =>
+                    families?.map((element) =>
+                      element.id === savedFamily.id ? savedFamily : element,
+                    ),
+                  );
+                  setDataView(
+                    getDataViewComponent(
+                      DataViewSelection.GeneralInfo,
+                      savedFamily,
+                    ),
+                  );
+                })
+                .catch((e) => {
+                  console.error(e);
+                  alert(
+                    "An issue occurred while changing the family visibility",
+                  );
+                })
+                .finally(() => setLoading(false));
+            }}
           />
         );
       case DataViewSelection.Phases:
@@ -395,10 +419,7 @@ const FamilyPage = () => {
                           </Typography>
                         </Tooltip>
                         {!family.isInDatabase && (
-                          <Tooltip
-                            title="This family is not currently published"
-                            arrow
-                          >
+                          <Tooltip title="Only saved in this browser" arrow>
                             <CloudOffIcon />
                           </Tooltip>
                         )}

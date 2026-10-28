@@ -30,6 +30,7 @@ export interface APIFamily {
   createdDate?: string;
   name: string;
   description: string | null;
+  isPublic: boolean;
   owner: APIUser;
   species: Array<APISpecies>;
   reactions: Array<APIReaction>;
