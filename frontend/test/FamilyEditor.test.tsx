@@ -412,6 +412,11 @@ describe("PhaseView", () => {
     fireEvent.click(screen.getByTestId("row-actions-button"));
     fireEvent.click(screen.getByTestId("delete-row"));
 
+    expect(screen.getByText("This phase is used by 2 reactions.")).toBeTruthy();
+    expect(updateFamily).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByTestId("confirm-action"));
+
     expect(updateFamily).toHaveBeenCalledWith(
       expect.objectContaining({
         phases: [],
@@ -429,6 +434,15 @@ describe("PhaseView", () => {
         isModified: true,
       }),
     );
+  });
+
+  it("cancels phase deletion when a reaction uses it", () => {
+    fireEvent.click(screen.getByTestId("row-actions-button"));
+    fireEvent.click(screen.getByTestId("delete-row"));
+    fireEvent.click(screen.getByLabelText("Cancel Irreversable Action"));
+
+    expect(updateFamily).not.toHaveBeenCalled();
+    expect(screen.getByText("gas")).toBeTruthy();
   });
 
   const renderPhaseWithReactionsUsingSpecies = () => {
