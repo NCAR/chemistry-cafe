@@ -82,10 +82,7 @@ export type Reaction = {
   /** Type of the reaction. This determines what other properties the reaction should have */
   type: ReactionTypeName;
 
-  /** Phase in which the reaction occurs */
-  phaseId?: UUID;
-
-  /** Optional id for the gas phase. Required in all reactions */
+  /** ID for the gas phase in which the reaction occurs */
   gasPhaseId?: UUID;
 
   /** Optional id for the gas phase species. Required in certain reactions */
@@ -328,7 +325,6 @@ export enum ReactionSpeciesCount {
 export type ReactionConfiguration = {
   reactantCount: ReactionSpeciesCount;
   productCount: ReactionSpeciesCount;
-  hasGasPhase: boolean;
   hasGasPhaseSpecies: boolean;
   hasAerosolPhase: boolean;
   hasAerosolPhaseSpecies: boolean;
@@ -346,7 +342,6 @@ export const reactionConfigurations: {
   NONE: {
     reactantCount: ReactionSpeciesCount.NONE,
     productCount: ReactionSpeciesCount.NONE,
-    hasGasPhase: false,
     hasGasPhaseSpecies: false,
     hasAerosolPhase: false,
     hasAerosolPhaseSpecies: false,
@@ -355,7 +350,6 @@ export const reactionConfigurations: {
   ARRHENIUS: {
     reactantCount: ReactionSpeciesCount.MANY,
     productCount: ReactionSpeciesCount.MANY,
-    hasGasPhase: false,
     hasGasPhaseSpecies: false,
     hasAerosolPhase: false,
     hasAerosolPhaseSpecies: false,
@@ -364,7 +358,6 @@ export const reactionConfigurations: {
   BRANCHED_NO_RO2: {
     reactantCount: ReactionSpeciesCount.MANY,
     productCount: ReactionSpeciesCount.MANY,
-    hasGasPhase: true,
     hasGasPhaseSpecies: false,
     hasAerosolPhase: false,
     hasAerosolPhaseSpecies: false,
@@ -374,7 +367,6 @@ export const reactionConfigurations: {
   EMISSION: {
     reactantCount: ReactionSpeciesCount.NONE,
     productCount: ReactionSpeciesCount.ONE,
-    hasGasPhase: true,
     hasGasPhaseSpecies: false,
     hasAerosolPhase: false,
     hasAerosolPhaseSpecies: false,
@@ -383,7 +375,6 @@ export const reactionConfigurations: {
   FIRST_ORDER_LOSS: {
     reactantCount: ReactionSpeciesCount.ONE,
     productCount: ReactionSpeciesCount.NONE,
-    hasGasPhase: true,
     hasGasPhaseSpecies: false,
     hasAerosolPhase: false,
     hasAerosolPhaseSpecies: false,
@@ -392,7 +383,6 @@ export const reactionConfigurations: {
   PHOTOLYSIS: {
     reactantCount: ReactionSpeciesCount.ONE,
     productCount: ReactionSpeciesCount.MANY,
-    hasGasPhase: true,
     hasGasPhaseSpecies: false,
     hasAerosolPhase: false,
     hasAerosolPhaseSpecies: false,
@@ -401,7 +391,6 @@ export const reactionConfigurations: {
   SURFACE: {
     reactantCount: ReactionSpeciesCount.NONE,
     productCount: ReactionSpeciesCount.MANY,
-    hasGasPhase: true,
     hasGasPhaseSpecies: true,
     hasAerosolPhase: false,
     hasAerosolPhaseSpecies: false,
@@ -411,7 +400,6 @@ export const reactionConfigurations: {
   TAYLOR_SERIES: {
     reactantCount: ReactionSpeciesCount.MANY,
     productCount: ReactionSpeciesCount.MANY,
-    hasGasPhase: true,
     hasGasPhaseSpecies: false,
     hasAerosolPhase: false,
     hasAerosolPhaseSpecies: false,
@@ -420,7 +408,6 @@ export const reactionConfigurations: {
   TERNARY_CHEMICAL_ACTIVATION: {
     reactantCount: ReactionSpeciesCount.MANY,
     productCount: ReactionSpeciesCount.MANY,
-    hasGasPhase: true,
     hasGasPhaseSpecies: false,
     hasAerosolPhase: false,
     hasAerosolPhaseSpecies: false,
@@ -429,7 +416,6 @@ export const reactionConfigurations: {
   TROE: {
     reactantCount: ReactionSpeciesCount.MANY,
     productCount: ReactionSpeciesCount.MANY,
-    hasGasPhase: true,
     hasGasPhaseSpecies: false,
     hasAerosolPhase: false,
     hasAerosolPhaseSpecies: false,
@@ -438,7 +424,6 @@ export const reactionConfigurations: {
   TUNNELING: {
     reactantCount: ReactionSpeciesCount.MANY,
     productCount: ReactionSpeciesCount.MANY,
-    hasGasPhase: true,
     hasGasPhaseSpecies: false,
     hasAerosolPhase: false,
     hasAerosolPhaseSpecies: false,
@@ -447,7 +432,6 @@ export const reactionConfigurations: {
   USER_DEFINED: {
     reactantCount: ReactionSpeciesCount.MANY,
     productCount: ReactionSpeciesCount.MANY,
-    hasGasPhase: true,
     hasGasPhaseSpecies: false,
     hasAerosolPhase: false,
     hasAerosolPhaseSpecies: false,

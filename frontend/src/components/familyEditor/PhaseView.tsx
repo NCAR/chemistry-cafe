@@ -50,7 +50,7 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
     const affectedReactions = selectedPhase
       ? family.reactions.filter(
           (reaction) =>
-            reaction.phaseId === selectedPhase.id &&
+            reaction.gasPhaseId === selectedPhase.id &&
             [
               ...reaction.reactants.map((entry) => entry.speciesId),
               ...reaction.products.map((entry) => entry.speciesId),
@@ -144,8 +144,8 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
       ...family,
       phases: family.phases.filter((phase) => phase.id !== id),
       reactions: family.reactions.map((reaction) =>
-        reaction.phaseId === id
-          ? { ...reaction, phaseId: undefined }
+        reaction.gasPhaseId === id
+          ? { ...reaction, gasPhaseId: undefined }
           : reaction,
       ),
       mechanisms: family.mechanisms.map((mechanism) => ({

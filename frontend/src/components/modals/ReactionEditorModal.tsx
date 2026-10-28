@@ -262,7 +262,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
   const { activationParameter } = preferences;
   const rateUnits = rateUnitsFor(preferences.rateUnits, modifiedReaction?.type);
   const selectedPhase = family.phases.find(
-    (phase) => phase.id === modifiedReaction?.phaseId,
+    (phase) => phase.id === modifiedReaction?.gasPhaseId,
   );
   const availableSpecies = selectedPhase
     ? family.species.filter((species) =>
@@ -315,7 +315,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
   };
 
   const changeReactionPhase = (phaseId: UUID) => {
-    changeReactionProperties({ phaseId });
+    changeReactionProperties({ gasPhaseId: phaseId });
     setEquationDraft(null);
     setEquationErrors([]);
     setSpeciesVersion((version) => version + 1);
@@ -376,12 +376,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
         break;
     }
 
-    // Clears the gas phase / gas phase species selection when the current
-    // reaction type no longer uses it, so a stale reference isn't carried
-    // silently into a type that doesn't support it.
-    updatedReactionProperties.gasPhaseId = currentConfiguration.hasGasPhase
-      ? modifiedReaction?.gasPhaseId
-      : undefined;
+    // Clears gas-phase species when the reaction type no longer uses them.
     updatedReactionProperties.gasPhaseSpeciesId =
       currentConfiguration.hasGasPhaseSpecies
         ? modifiedReaction?.gasPhaseSpeciesId
@@ -471,7 +466,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
         (species) => species.name.toLowerCase() === match[1].toLowerCase(),
       );
       return knownSpecies
-        ? `Species ${knownSpecies.name} is not in the selected phase`
+        ? `Species ${knownSpecies.name} is not in the selected gas phase`
         : error;
     });
 
@@ -509,7 +504,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
     }
 
     if (family.phases.length > 0 && !selectedPhase) {
-      setErrorMessage("Select a phase for this reaction");
+      setErrorMessage("Select a gas phase for this reaction");
       setShowAlert(true);
       return;
     }
@@ -569,7 +564,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
         (entry) => !selectedPhase.speciesIds.includes(entry.speciesId),
       )
     ) {
-      setErrorMessage("All reactants and products must belong to the selected phase");
+      setErrorMessage("All reactants and products must belong to the selected gas phase");
       setShowAlert(true);
       return;
     }
@@ -906,11 +901,11 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
               select
               size="small"
               fullWidth
-              data-testid="reaction-phase-select"
+              data-testid="reaction-gas-phase-select"
               required
-              label="Reaction Phase"
-              value={modifiedReaction?.phaseId ?? ""}
-              helperText="Reactants and products must belong to this phase."
+              label="Gas Phase"
+              value={modifiedReaction?.gasPhaseId ?? ""}
+              helperText="Reactants and products must belong to this gas phase."
               onChange={(event) => {
                 const phaseId = event.target.value as UUID;
                 const phase = family.phases.find(
@@ -947,35 +942,8 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
               ))}
             </TextField>
           )}
-          {(currentConfiguration.hasGasPhase ||
-            currentConfiguration.hasGasPhaseSpecies) && (
+          {currentConfiguration.hasGasPhaseSpecies && (
             <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5 }}>
-              {currentConfiguration.hasGasPhase && (
-                <TextField
-                  select
-                  size="small"
-                  label="Gas Phase"
-                  sx={{ flex: "1 1 14em" }}
-                  value={modifiedReaction?.gasPhaseId ?? "None"}
-                  onChange={(event) => {
-                    const phaseId = event.target.value;
-                    changeReactionProperties({
-                      gasPhaseId:
-                        phaseId === "None" ? undefined : (phaseId as UUID),
-                    });
-                  }}
-                >
-                  <MenuItem value="None">None</MenuItem>
-                  {family.phases.map((phase) => (
-                    <MenuItem
-                      key={`${phase.id}-gas-phase-menuitem`}
-                      value={phase.id}
-                    >
-                      {phase.name || "<No Name>"}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              )}
               {currentConfiguration.hasGasPhaseSpecies && (
                 <Box sx={{ flex: "1 1 14em" }}>
                   <SingleSpeciesSelect
@@ -1113,7 +1081,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
         <DialogContent>
           <DialogContentText>
             {pendingPhaseChange &&
-              `The selected phase does not contain ${pendingPhaseChange.missingSpeciesIds
+              `The selected gas phase does not contain ${pendingPhaseChange.missingSpeciesIds
                 .map(
                   (speciesId) =>
                     family.species.find((species) => species.id === speciesId)

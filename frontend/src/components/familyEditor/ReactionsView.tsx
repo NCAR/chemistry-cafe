@@ -577,11 +577,11 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       ),
     },
     {
-      field: "phaseId",
-      headerName: "Phase",
+      field: "gasPhaseId",
+      headerName: "Gas Phase",
       flex: 0.75,
       valueGetter: (_value, row: Reaction) =>
-        family.phases.find((phase) => phase.id === row.phaseId)?.name ?? "",
+        family.phases.find((phase) => phase.id === row.gasPhaseId)?.name ?? "",
       renderCell: (params: GridRenderCellParams<Reaction>) => (
         <Typography
           variant="body1"

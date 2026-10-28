@@ -178,7 +178,7 @@ describe("ReactionEditorModal rate parameter units", () => {
     ]);
   });
 
-  it("requires a reaction phase and rejects species outside that phase", () => {
+  it("requires a gas phase and rejects species outside that phase", () => {
     const gasPhaseId = "333-333-333-333-001";
     const aerosolPhaseId = "333-333-333-333-002";
     const familyWithPhases: Family = {
@@ -209,11 +209,13 @@ describe("ReactionEditorModal rate parameter units", () => {
     );
 
     fireEvent.click(screen.getByTestId("save-reaction-changes"));
-    expect(screen.getByText("Select a phase for this reaction")).toBeTruthy();
+    expect(
+      screen.getByText("Select a gas phase for this reaction"),
+    ).toBeTruthy();
     expect(onUpdate).not.toHaveBeenCalled();
 
     fireEvent.mouseDown(
-      screen.getByRole("combobox", { name: "Reaction Phase" }),
+      screen.getByRole("combobox", { name: "Gas Phase" }),
     );
     fireEvent.click(screen.getByRole("option", { name: "Gas" }));
     fireEvent.click(screen.getByLabelText("select-reaction-species"));
@@ -225,14 +227,14 @@ describe("ReactionEditorModal rate parameter units", () => {
     fireEvent.change(equation, { target: { value: "OH -> NO2" } });
     fireEvent.keyDown(equation, { key: "Enter" });
     expect(
-      screen.getByText("Species NO2 is not in the selected phase"),
+      screen.getByText("Species NO2 is not in the selected gas phase"),
     ).toBeTruthy();
     fireEvent.click(screen.getByTestId("save-reaction-changes"));
     expect(onUpdate).not.toHaveBeenCalled();
 
     fireEvent.change(equation, { target: { value: "OH ->" } });
     fireEvent.click(screen.getByTestId("save-reaction-changes"));
-    expect(onUpdate.mock.calls[0][0].phaseId).toBe(gasPhaseId);
+    expect(onUpdate.mock.calls[0][0].gasPhaseId).toBe(gasPhaseId);
     expect(onUpdate.mock.calls[0][0].reactants).toEqual([
       { speciesId: family.species[0].id, coefficient: 1 },
     ]);
@@ -262,7 +264,7 @@ describe("ReactionEditorModal rate parameter units", () => {
     renderEditor(
       {
         ...makeReaction("ARRHENIUS", { A: { value: 1 } }),
-        phaseId: gasPhaseId,
+        gasPhaseId,
       },
       vi.fn(),
       familyWithPhases,
@@ -270,19 +272,19 @@ describe("ReactionEditorModal rate parameter units", () => {
     );
 
     fireEvent.mouseDown(
-      screen.getByRole("combobox", { name: "Reaction Phase" }),
+      screen.getByRole("combobox", { name: "Gas Phase" }),
     );
     fireEvent.click(screen.getByRole("option", { name: "Aerosol" }));
 
     expect(
-      screen.getByText(/selected phase does not contain OH/),
+      screen.getByText(/selected gas phase does not contain OH/),
     ).toBeTruthy();
     expect(onAddSpeciesToPhase).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByTestId("cancel-phase-change"));
     expect(
       screen
-        .getByTestId("reaction-phase-select")
+        .getByTestId("reaction-gas-phase-select")
         .querySelector(".MuiSelect-select"),
     ).toHaveTextContent("Gas");
     expect(onAddSpeciesToPhase).not.toHaveBeenCalled();
@@ -312,7 +314,7 @@ describe("ReactionEditorModal rate parameter units", () => {
     renderEditor(
       {
         ...makeReaction("ARRHENIUS", { A: { value: 1 } }),
-        phaseId: gasPhaseId,
+        gasPhaseId,
         products: [
           { speciesId: family.species[0].id, coefficient: 1 },
         ],
@@ -323,7 +325,7 @@ describe("ReactionEditorModal rate parameter units", () => {
     );
 
     fireEvent.mouseDown(
-      screen.getByRole("combobox", { name: "Reaction Phase" }),
+      screen.getByRole("combobox", { name: "Gas Phase" }),
     );
     fireEvent.click(screen.getByRole("option", { name: "Aerosol" }));
     fireEvent.click(
@@ -336,7 +338,7 @@ describe("ReactionEditorModal rate parameter units", () => {
     ]);
     expect(
       screen
-        .getByTestId("reaction-phase-select")
+        .getByTestId("reaction-gas-phase-select")
         .querySelector(".MuiSelect-select"),
     ).toHaveTextContent("Aerosol");
   });

@@ -439,24 +439,19 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             {
                 missing.Add(gasPhase);
             }
+            else if (reaction.GasPhaseId is Guid reactionGasPhase &&
+                speciesByPhase.TryGetValue(reactionGasPhase, out HashSet<Guid>? gasPhaseSpecies))
+            {
+                missing.AddRange(reaction.Reactants
+                    .Select(r => r.SpeciesId)
+                    .Where(id => !gasPhaseSpecies.Contains(id)));
+                missing.AddRange(reaction.Products
+                    .Select(p => p.SpeciesId)
+                    .Where(id => !gasPhaseSpecies.Contains(id)));
+            }
             if (reaction.AerosolPhaseId is Guid aerosolPhase && !phaseIds.Contains(aerosolPhase))
             {
                 missing.Add(aerosolPhase);
-            }
-            if (reaction.PhaseId is Guid reactionPhase)
-            {
-                if (!speciesByPhase.TryGetValue(reactionPhase, out HashSet<Guid> phaseSpecies))
-                {
-                    missing.Add(reactionPhase);
-                    continue;
-                }
-
-                missing.AddRange(reaction.Reactants
-                    .Select(r => r.SpeciesId)
-                    .Where(id => !phaseSpecies.Contains(id)));
-                missing.AddRange(reaction.Products
-                    .Select(p => p.SpeciesId)
-                    .Where(id => !phaseSpecies.Contains(id)));
             }
         }
 
@@ -537,7 +532,6 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             existingReaction.GasPhaseSpeciesId = incomingReaction.GasPhaseSpeciesId;
             existingReaction.AerosolPhaseSpeciesId = incomingReaction.AerosolPhaseSpeciesId;
             existingReaction.AerosolPhaseWaterId = incomingReaction.AerosolPhaseWaterId;
-            existingReaction.PhaseId = incomingReaction.PhaseId;
             existingReaction.GasPhaseId = incomingReaction.GasPhaseId;
             existingReaction.AerosolPhaseId = incomingReaction.AerosolPhaseId;
             existingReaction.Reactants = incomingReaction.Reactants.Select(r => r.ToEntity()).ToList();

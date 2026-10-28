@@ -354,6 +354,7 @@ describe("PhaseView", () => {
                 name: "Test Reaction",
                 description: "",
                 type: "ARRHENIUS",
+                gasPhaseId: "120984",
                 reactants: [],
                 products: [],
                 attributes: {},
@@ -363,6 +364,7 @@ describe("PhaseView", () => {
                 name: "Another Test Reaction",
                 description: "",
                 type: "FIRST_ORDER_LOSS",
+                gasPhaseId: "120984",
                 reactants: [],
                 products: [],
                 attributes: {},
@@ -406,13 +408,19 @@ describe("PhaseView", () => {
     );
   });
 
-  it("deletes a phase and removes its mechanism reference", async () => {
+  it("deletes a phase and removes its mechanism and reaction references", async () => {
     fireEvent.click(screen.getByTestId("row-actions-button"));
     fireEvent.click(screen.getByTestId("delete-row"));
 
     expect(updateFamily).toHaveBeenCalledWith(
       expect.objectContaining({
         phases: [],
+        reactions: expect.arrayContaining([
+          expect.objectContaining({
+            id: "111-111-111-111",
+            gasPhaseId: undefined,
+          }),
+        ]),
         mechanisms: [
           expect.objectContaining({
             phaseIds: [],
@@ -458,7 +466,7 @@ describe("PhaseView", () => {
           name: "First affected reaction",
           description: null,
           type: "ARRHENIUS",
-          phaseId,
+          gasPhaseId: phaseId,
           reactants: [{ speciesId, coefficient: 1 }],
           products: [],
           attributes: {},
@@ -468,7 +476,7 @@ describe("PhaseView", () => {
           name: "Second affected reaction",
           description: null,
           type: "ARRHENIUS",
-          phaseId,
+          gasPhaseId: phaseId,
           reactants: [],
           products: [{ speciesId, coefficient: 1 }],
           attributes: {},
@@ -478,7 +486,7 @@ describe("PhaseView", () => {
           name: "Reaction using the species as gas phase species",
           description: null,
           type: "ARRHENIUS",
-          phaseId,
+          gasPhaseId: phaseId,
           reactants: [],
           products: [],
           gasPhaseSpeciesId: speciesId,
@@ -489,7 +497,7 @@ describe("PhaseView", () => {
           name: "Unaffected reaction in phase",
           description: null,
           type: "ARRHENIUS",
-          phaseId,
+          gasPhaseId: phaseId,
           reactants: [],
           products: [],
           attributes: {},
@@ -499,7 +507,7 @@ describe("PhaseView", () => {
           name: "Reaction in another phase",
           description: null,
           type: "ARRHENIUS",
-          phaseId: "other-phase",
+          gasPhaseId: "other-phase",
           reactants: [{ speciesId, coefficient: 1 }],
           products: [],
           attributes: {},

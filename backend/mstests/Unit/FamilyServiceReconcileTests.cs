@@ -280,33 +280,33 @@ namespace ChemistryCafeAPI.Tests
         }
 
         [TestMethod]
-        public async Task Update_RejectsReactionSpeciesOutsideItsPhase()
+        public async Task Update_RejectsReactionSpeciesOutsideItsGasPhase()
         {
             FamilyDto dto = await CreateBaseFamilyAsync(BuildBaseFamily());
             ReactionDto reaction = dto.Reactions.Single();
-            reaction.PhaseId = dto.Phases.Single().Id;
+            reaction.GasPhaseId = dto.Phases.Single().Id;
             reaction.Products.Single().SpeciesId = dto.Species.Single(s => s.Name == "C").Id;
 
             Assert.AreEqual(QueryResult.ValidationError, await UpdateAsync(dto, _nameIdentifier));
 
             Family reloaded = await ReloadAsync(dto.Id);
-            Assert.IsNull(reloaded.Reactions.Single().PhaseId);
+            Assert.IsNull(reloaded.Reactions.Single().GasPhaseId);
             Assert.AreNotEqual(
                 dto.Species.Single(s => s.Name == "C").Id,
                 reloaded.Reactions.Single().Products.Single().SpeciesId);
         }
 
         [TestMethod]
-        public async Task Update_SavesReactionPhase()
+        public async Task Update_SavesReactionGasPhase()
         {
             FamilyDto dto = await CreateBaseFamilyAsync(BuildBaseFamily());
             Guid phaseId = dto.Phases.Single().Id;
-            dto.Reactions.Single().PhaseId = phaseId;
+            dto.Reactions.Single().GasPhaseId = phaseId;
 
             Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
 
             Family reloaded = await ReloadAsync(dto.Id);
-            Assert.AreEqual(phaseId, reloaded.Reactions.Single().PhaseId);
+            Assert.AreEqual(phaseId, reloaded.Reactions.Single().GasPhaseId);
         }
 
         [TestMethod]
