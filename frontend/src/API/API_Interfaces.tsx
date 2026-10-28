@@ -142,9 +142,6 @@ export interface APIReaction {
   products: Array<APIProduct>;
   gasPhaseId?: UUID | null;
   gasPhaseSpeciesId?: UUID | null;
-  aerosolPhaseId?: UUID | null;
-  aerosolPhaseSpeciesId?: UUID | null;
-  aerosolPhaseWaterId?: UUID | null;
 }
 
 export interface APIReactant {

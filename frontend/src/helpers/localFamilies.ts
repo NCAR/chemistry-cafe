@@ -97,15 +97,6 @@ export const cloneFamily = (family: Family): Family => {
       gasPhaseSpeciesId: reaction.gasPhaseSpeciesId
         ? idMappings.get(reaction.gasPhaseSpeciesId)
         : undefined,
-      aerosolPhaseId: reaction.aerosolPhaseId
-        ? idMappings.get(reaction.aerosolPhaseId)
-        : undefined,
-      aerosolPhaseSpeciesId: reaction.aerosolPhaseSpeciesId
-        ? idMappings.get(reaction.aerosolPhaseSpeciesId)
-        : undefined,
-      aerosolPhaseWaterId: reaction.aerosolPhaseWaterId
-        ? idMappings.get(reaction.aerosolPhaseWaterId)
-        : undefined,
     });
   }
 
