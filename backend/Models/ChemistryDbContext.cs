@@ -24,6 +24,7 @@ public partial class ChemistryDbContext : DbContext
     public virtual DbSet<Reaction> Reactions { get; set; }
     public virtual DbSet<Reactant> Reactants { get; set; }
     public virtual DbSet<Product> Products { get; set; }
+    public virtual DbSet<FamilyContributor> FamilyContributors { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -53,6 +54,22 @@ public partial class ChemistryDbContext : DbContext
             .HasOne(fv => fv.Family)
             .WithMany(f => f.Versions)
             .HasForeignKey(fv => fv.FamilyId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Configure FamilyContributors Relations
+        modelBuilder.Entity<FamilyContributor>()
+            .HasKey(fc => new { fc.FamilyId, fc.UserId });
+
+        modelBuilder.Entity<FamilyContributor>()
+            .HasOne(fc => fc.Family)
+            .WithMany(f => f.Contributors)
+            .HasForeignKey(fc => fc.FamilyId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<FamilyContributor>()
+            .HasOne(fc => fc.User)
+            .WithMany()
+            .HasForeignKey(fc => fc.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // Configure Species Relations

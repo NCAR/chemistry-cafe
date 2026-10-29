@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
 import axios, { AxiosHeaders, AxiosResponse } from "axios";
-import { createFamily } from "../src/API/API_CreateMethods";
-import { APIFamily, APIUser } from "../src/API/API_Interfaces";
+import { addFamilyContributor, createFamily } from "../src/API/API_CreateMethods";
+import { APIFamily, APIFamilyContributor, APIUser } from "../src/API/API_Interfaces";
 
 // Mock axios using vitest's built-in mock function
 vi.mock("axios");
@@ -60,3 +60,25 @@ describe.each([["createFamily", createFamily, mockAPIFamily, "families"]])(
     });
   },
 );
+
+describe("addFamilyContributor function", () => {
+  it("Posts contributor data and returns response", async () => {
+    const mockContributor: APIFamilyContributor = {
+      userId: "u-1" as any,
+      role: "Editor",
+      email: "colleague@example.com",
+    };
+
+    vi.spyOn(axios, "post").mockResolvedValue({
+      data: mockContributor,
+      status: 200,
+    });
+
+    const result = await addFamilyContributor("f-1" as any, {
+      email: "colleague@example.com",
+      role: "Editor",
+    });
+
+    expect(result).toEqual(mockContributor);
+  });
+});

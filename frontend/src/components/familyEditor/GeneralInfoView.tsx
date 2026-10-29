@@ -3,6 +3,7 @@ import {
   Alert,
   Box,
   Button,
+  Divider,
   FormControlLabel,
   Snackbar,
   Switch,
@@ -16,6 +17,7 @@ import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import { ConfirmActionModal } from "../modals/ConfirmActionModal";
 import { ViewProps } from "./ViewProps";
 import { useAuth } from "../AuthContext";
+import { ContributorsView } from "./ContributorsView";
 
 type ExtraGeneralInfoViewProps = {
   onDelete: () => any;
@@ -44,7 +46,12 @@ export const GeneralInfoView = ({
 
   const canChangeVisibility =
     (family.isInDatabase && user?.id === family.owner?.id) ||
-    user?.role === "admin";
+    user?.role?.toLowerCase() === "admin";
+
+  const isOwnerOrAdmin =
+    !family.isInDatabase ||
+    user?.id === family.owner?.id ||
+    user?.role?.toLowerCase() === "admin";
 
   const handleSave = () => {
     if (name.length === 0) {
@@ -163,15 +170,21 @@ export const GeneralInfoView = ({
               Upload Family
             </Button>
           )}
-          <Button
-            startIcon={<DeleteForeverIcon />}
-            color="error"
-            variant="contained"
-            onClick={() => setOpenDeleteModal(true)}
-          >
-            Delete Family
-          </Button>
+          {isOwnerOrAdmin && (
+            <Button
+              startIcon={<DeleteForeverIcon />}
+              color="error"
+              variant="contained"
+              onClick={() => setOpenDeleteModal(true)}
+            >
+              Delete Family
+            </Button>
+          )}
         </Box>
+      </Box>
+      <Divider sx={{ my: 3, maxWidth: "60em" }} />
+      <Box sx={{ maxWidth: "60em" }}>
+        <ContributorsView family={family} updateFamily={updateFamily} />
       </Box>
       <Snackbar
         open={showAlert}

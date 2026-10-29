@@ -532,6 +532,7 @@ export function apiToFrontendFamily(apiFamily: APIFamily): Family {
     description: apiFamily.description ?? "",
     isPublic: apiFamily.isPublic,
     owner: apiFamily.owner,
+    contributorIds: apiFamily.contributorIds ?? [],
     mechanisms: apiFamily.mechanisms.map((e) => apiToFrontendMechanism(e)),
     species: apiFamily.species.map((e) => apiToFrontendSpecies(e)),
     reactions: apiFamily.reactions.map((e) => apiToFrontendReaction(e)),
@@ -565,6 +566,7 @@ export function frontendToAPIFamily(
     description: family.description,
     isPublic: family.isPublic ?? false,
     owner: family.owner,
+    contributorIds: family.contributorIds ?? [],
     species: expand ? family.species.map((e) => frontendToAPISpecies(e)) : [],
     reactions: expand
       ? family.reactions.map((e) => frontendToAPIReaction(e))

@@ -16,6 +16,7 @@ public class FamilyDto
     /// authenticated user.
     /// </summary>
     public OwnerDto? Owner { get; set; }
+    public List<Guid> ContributorIds { get; set; } = new();
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
     public bool IsPublic { get; set; }
@@ -31,4 +32,24 @@ public class OwnerDto
     public Guid Id { get; set; }
     public string Username { get; set; } = null!;
     public Role Role { get; set; } = Role.None;
+    public string? Email { get; set; }
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
+}
+
+public class FamilyContributorDto
+{
+    public Guid UserId { get; set; }
+    public ContributorRole Role { get; set; } = ContributorRole.Viewer;
+    public string? Email { get; set; }
+    public string? Username { get; set; }
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
+}
+
+public class AddFamilyContributorDto
+{
+    public Guid? UserId { get; set; }
+    public string? Email { get; set; }
+    public ContributorRole Role { get; set; } = ContributorRole.Viewer;
 }
