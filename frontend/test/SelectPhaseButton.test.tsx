@@ -4,78 +4,61 @@ import {
   fireEvent,
   render,
   screen,
-  waitFor,
+  within,
 } from "@testing-library/react";
 import { SelectPhaseButton } from "../src/components/SelectPhaseButton";
-import { Phase } from "../src/types/chemistryModels";
-
-const phases: Array<Phase> = ["Gas", "Aerosol", ""].map((name, index) => ({
-  id: `0-0-0-0-${index}`,
-  name,
-  description: null,
-  speciesIds: [],
-  diffusionCoefficients: {},
-}));
 
 describe("SelectPhaseButton", () => {
   afterEach(() => {
     cleanup();
   });
 
-  it("lists the phases in the given order and selects one", async () => {
+  it("shows a button with the text and the add icon, and calls onSelect when it is clicked", () => {
     const onSelect = vi.fn();
-    render(
-      <SelectPhaseButton
-        aria-label="Add phase"
-        phases={phases}
-        onSelect={onSelect}
-      />,
-    );
-    fireEvent.click(screen.getByLabelText("Add phase"));
-
-    // A phase without a name shows a placeholder.
-    expect(
-      screen.getAllByRole("menuitem").map((item) => item.textContent),
-    ).toEqual(["Gas", "Aerosol", "<No Name>"]);
-
-    fireEvent.click(screen.getByRole("menuitem", { name: "Aerosol" }));
-    expect(onSelect).toHaveBeenCalledTimes(1);
-    expect(onSelect).toHaveBeenCalledWith(phases[1]);
-
-    // A selection closes the menu.
-    await waitFor(() =>
-      expect(screen.queryAllByRole("menuitem")).toHaveLength(0),
-    );
-  });
-
-  it("shows the text on the button when it has one", () => {
     render(
       <SelectPhaseButton
         aria-label="Add phase"
         text="Add Phase"
-        phases={phases}
-        onSelect={vi.fn()}
+        onSelect={onSelect}
       />,
     );
-    fireEvent.click(screen.getByRole("button", { name: "Add Phase" }));
 
-    expect(screen.getAllByRole("menuitem")).toHaveLength(phases.length);
+    const button = screen.getByRole("button", { name: "Add Phase" });
+    expect(within(button).getByTestId("AddIcon")).toBeTruthy();
+    expect(onSelect).not.toHaveBeenCalled();
+    fireEvent.click(button);
+    expect(onSelect).toHaveBeenCalledTimes(1);
   });
 
-  it("shows a disabled message when there are no phases", () => {
+  it("shows an icon button with the label when it has no text", () => {
+    const onSelect = vi.fn();
+    render(<SelectPhaseButton aria-label="Add phase" onSelect={onSelect} />);
+
+    const button = screen.getByRole("button", { name: "Add phase" });
+    expect(within(button).getByTestId("AddIcon")).toBeTruthy();
+    expect(button.textContent).toBe("");
+    fireEvent.click(button);
+    expect(onSelect).toHaveBeenCalledTimes(1);
+  });
+
+  it("opens nothing itself, and calls onSelect each time it is clicked", () => {
     const onSelect = vi.fn();
     render(
       <SelectPhaseButton
         aria-label="Add phase"
-        phases={[]}
+        text="Add Phase"
         onSelect={onSelect}
       />,
     );
-    fireEvent.click(screen.getByLabelText("Add phase"));
 
-    const item = screen.getByRole("menuitem", { name: "No Phases Found" });
-    expect(item.getAttribute("aria-disabled")).toBe("true");
-    fireEvent.click(item);
-    expect(onSelect).not.toHaveBeenCalled();
+    const button = screen.getByRole("button", { name: "Add Phase" });
+    fireEvent.click(button);
+    fireEvent.click(button);
+
+    // The parent opens the dialog, so the button shows no menu or list.
+    expect(onSelect).toHaveBeenCalledTimes(2);
+    expect(screen.queryByRole("menu")).toBeNull();
+    expect(screen.queryByRole("listbox")).toBeNull();
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 });

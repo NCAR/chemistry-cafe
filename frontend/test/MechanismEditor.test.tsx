@@ -159,6 +159,23 @@ const applyButton = () =>
 const findRow = async (text: string) =>
   (await screen.findByText(text)).closest('[role="row"]') as HTMLElement;
 
+// Opens the add dialog of a tab. Each item of the dialog has a check box.
+const openAddDialog = (buttonName: string, dialogName: string) => {
+  fireEvent.click(screen.getByRole("button", { name: buttonName }));
+  return screen.getByRole("dialog", { name: dialogName });
+};
+
+// The texts of the items in the dialog.
+const itemLabels = (dialog: HTMLElement) =>
+  within(dialog)
+    .queryAllByRole("checkbox")
+    .map((box) => box.closest("label")!.textContent);
+
+const addButtonOf = (dialog: HTMLElement) =>
+  within(dialog).getByRole("button", {
+    name: /^Add Selected/,
+  }) as HTMLButtonElement;
+
 describe("MechanismEditor info tab", () => {
   afterEach(() => {
     cleanup();
@@ -264,24 +281,20 @@ describe("MechanismEditor species tab", () => {
     });
   });
 
-  it("adds a species of the family that the mechanism does not have", async () => {
+  it("adds species of the family that the mechanism does not have", async () => {
     const { updateMechanism } = renderEditor();
     openTab("Species");
 
-    fireEvent.click(screen.getByRole("button", { name: "Add Species" }));
-    // The list leaves out the species of the mechanism.
-    expect(screen.getAllByRole("option").map((o) => o.textContent)).toEqual([
-      "HNO3",
-      "O3",
-    ]);
-    fireEvent.click(screen.getByRole("option", { name: "O3" }));
+    const dialog = openAddDialog("Add Species", "Add Species");
+    // The dialog leaves out the species of the mechanism.
+    expect(itemLabels(dialog)).toEqual(["HNO3", "O3"]);
+    fireEvent.click(within(dialog).getByRole("checkbox", { name: "O3" }));
+    fireEvent.click(addButtonOf(dialog));
 
-    // A selection closes the picker. The search field of the table has the
-    // same placeholder, so the wait is for the options to go.
-    await waitFor(() => expect(screen.queryAllByRole("option")).toHaveLength(0));
+    expect(screen.queryByRole("dialog")).toBeNull();
     expect(await screen.findByText("O3")).toBeTruthy();
     fireEvent.click(applyButton());
-    // The new species is first.
+    // The new species are first.
     expect(updateMechanism).toHaveBeenCalledWith({
       ...mechanism,
       speciesIds: [O3_ID, OH_ID, NO2_ID],
@@ -328,20 +341,21 @@ describe("MechanismEditor reactions tab", () => {
     });
   });
 
-  it("adds a reaction of the family that the mechanism does not have", async () => {
+  it("adds reactions of the family that the mechanism does not have", async () => {
     const { updateMechanism } = renderEditor();
     openTab("Reactions");
 
-    fireEvent.click(screen.getByRole("button", { name: "Add Reaction" }));
-    // The menu leaves out the reactions of the mechanism.
-    expect(
-      screen.getAllByRole("menuitem").map((item) => item.textContent),
-    ).toEqual([reactionToString(thirdReaction, family.species)]);
-    fireEvent.click(screen.getAllByRole("menuitem")[0]);
+    const dialog = openAddDialog("Add Reaction", "Add Reactions");
+    // The dialog leaves out the reactions of the mechanism.
+    expect(itemLabels(dialog)).toEqual([
+      reactionToString(thirdReaction, family.species),
+    ]);
+    fireEvent.click(within(dialog).getAllByRole("checkbox")[0]);
+    fireEvent.click(addButtonOf(dialog));
 
     expect(await screen.findByText("Third reaction")).toBeTruthy();
     fireEvent.click(applyButton());
-    // The new reaction is first.
+    // The new reactions are first.
     expect(updateMechanism).toHaveBeenCalledWith({
       ...mechanism,
       reactionIds: [THIRD_ID, TROE_ID, ARRHENIUS_ID],
@@ -384,21 +398,20 @@ describe("MechanismEditor phases tab", () => {
     });
   });
 
-  it("adds a phase of the family that the mechanism does not have", async () => {
+  it("adds phases of the family that the mechanism does not have", async () => {
     const { updateMechanism } = renderEditor();
     openTab("Phases");
 
-    fireEvent.click(screen.getByRole("button", { name: "Add Phase" }));
-    // The menu leaves out the phases of the mechanism.
-    expect(
-      screen.getAllByRole("menuitem").map((item) => item.textContent),
-    ).toEqual(["Aerosol"]);
-    fireEvent.click(screen.getAllByRole("menuitem")[0]);
+    const dialog = openAddDialog("Add Phase", "Add Phases");
+    // The dialog leaves out the phases of the mechanism.
+    expect(itemLabels(dialog)).toEqual(["Aerosol"]);
+    fireEvent.click(within(dialog).getAllByRole("checkbox")[0]);
+    fireEvent.click(addButtonOf(dialog));
 
     // The species of the new phase show in the table.
     expect(await screen.findByText("HNO3")).toBeTruthy();
     fireEvent.click(applyButton());
-    // The new phase is first.
+    // The new phases are first.
     expect(updateMechanism).toHaveBeenCalledWith({
       ...mechanism,
       phaseIds: [AEROSOL_ID, GAS_ID],
@@ -439,37 +452,31 @@ describe("MechanismEditor tables", () => {
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
-// Closes the list of an add button without a choice, and waits until the list
-// is gone.
-const clickAway = async () => {
-  fireEvent.click(document.querySelector(".MuiBackdrop-root") as HTMLElement);
-  await waitFor(() =>
-    expect(document.querySelector(".MuiBackdrop-root")).toBeNull(),
-  );
-};
-
 type TabCase = {
   tab: "Species" | "Reactions" | "Phases";
   /** The property of the mechanism with the IDs of the tab. */
   key: "speciesIds" | "reactionIds" | "phaseIds";
   addButton: string;
+  /** The name of the add dialog, and the noun in its search field. */
+  dialogName: string;
+  noun: string;
   removeLabel: string;
-  /** The role of the items in the list of the add button. */
-  itemRole: "option" | "menuitem";
-  /** What the list shows when no item is left. */
+  /** What the dialog shows when it has no items, and when none matches. */
   noItemsText: string;
-  /** The IDs of all items of the family. */
+  noMatchText: string;
+  /** The IDs of all items of the family, in the order of the dialog. */
   allIds: Array<Id>;
   /** The first two items of the mechanism, with their texts in the table. */
   first: { id: Id; text: string };
   second: { id: Id; text: string };
-  /** The item that the list shows first when the mechanism has no items. */
-  firstListed: Id;
+  /** A search that finds one item when the mechanism has none. */
+  searchText: string;
+  matchedId: Id;
   /** After the removal of the first item: the IDs that stay... */
   afterRemove: Array<Id>;
-  /** ...the number of items that the list then shows... */
+  /** ...the number of items that the dialog then shows... */
   listedAfterRemove: number;
-  /** ...and the item of the list that the test picks. */
+  /** ...and the item of the dialog that the test chooses. */
   pickIndex: number;
   picked: Id;
 };
@@ -479,14 +486,17 @@ const tabCases: Array<TabCase> = [
     tab: "Species",
     key: "speciesIds",
     addButton: "Add Species",
+    dialogName: "Add Species",
+    noun: "Species",
     removeLabel: "Remove species from mechanism",
-    itemRole: "option",
-    noItemsText: "No species found",
-    allIds: [OH_ID, NO2_ID, HNO3_ID, O3_ID],
+    noItemsText: "No species available.",
+    noMatchText: "No matching species.",
+    // The species are in alphabetical order.
+    allIds: [HNO3_ID, NO2_ID, O3_ID, OH_ID],
     first: { id: OH_ID, text: "OH" },
     second: { id: NO2_ID, text: "NO2" },
-    // The list of species is in alphabetical order: HNO3, NO2, O3, OH.
-    firstListed: HNO3_ID,
+    searchText: "hn",
+    matchedId: HNO3_ID,
     afterRemove: [NO2_ID],
     listedAfterRemove: 3,
     pickIndex: 0,
@@ -496,14 +506,18 @@ const tabCases: Array<TabCase> = [
     tab: "Reactions",
     key: "reactionIds",
     addButton: "Add Reaction",
+    dialogName: "Add Reactions",
+    noun: "Reactions",
     removeLabel: "Remove reaction from mechanism",
-    itemRole: "menuitem",
-    noItemsText: "No Reactions Found",
+    noItemsText: "No reactions available.",
+    noMatchText: "No matching reactions.",
+    // The reactions are in the order of the family.
     allIds: [TROE_ID, ARRHENIUS_ID, THIRD_ID],
     first: { id: TROE_ID, text: "Troe reaction" },
     second: { id: ARRHENIUS_ID, text: "Arrhenius reaction" },
-    // The list of reactions is in the order of the family.
-    firstListed: TROE_ID,
+    // Only the third reaction has HNO3 in its equation.
+    searchText: "HNO3",
+    matchedId: THIRD_ID,
     afterRemove: [ARRHENIUS_ID],
     listedAfterRemove: 2,
     pickIndex: 1,
@@ -513,13 +527,16 @@ const tabCases: Array<TabCase> = [
     tab: "Phases",
     key: "phaseIds",
     addButton: "Add Phase",
+    dialogName: "Add Phases",
+    noun: "Phases",
     removeLabel: "Remove phase from mechanism",
-    itemRole: "menuitem",
-    noItemsText: "No Phases Found",
+    noItemsText: "No phases available.",
+    noMatchText: "No matching phases.",
     allIds: [GAS_ID, AEROSOL_ID],
     first: { id: GAS_ID, text: "Gas" },
     second: { id: AEROSOL_ID, text: "Aerosol" },
-    firstListed: GAS_ID,
+    searchText: "aero",
+    matchedId: AEROSOL_ID,
     afterRemove: [],
     listedAfterRemove: 2,
     pickIndex: 1,
@@ -534,7 +551,7 @@ describe.each(tabCases)("MechanismEditor $tab tab edge cases", (c) => {
 
   const withIds = (ids: Array<Id>) =>
     ({ ...mechanism, [c.key]: ids }) as Mechanism;
-  const addButton = () => screen.getByRole("button", { name: c.addButton });
+  const openDialog = () => openAddDialog(c.addButton, c.dialogName);
   const gridRows = () => within(screen.getByRole("grid")).getAllByRole("row");
 
   it("shows each item once and no unknown items", async () => {
@@ -559,33 +576,102 @@ describe.each(tabCases)("MechanismEditor $tab tab edge cases", (c) => {
     await waitFor(() => expect(gridRows()).toHaveLength(1));
     expect(applyButton().disabled).toBe(true);
 
-    fireEvent.click(addButton());
-    expect(screen.getAllByRole(c.itemRole)).toHaveLength(c.allIds.length);
-    fireEvent.click(screen.getAllByRole(c.itemRole)[0]);
+    const dialog = openDialog();
+    expect(itemLabels(dialog)).toHaveLength(c.allIds.length);
+    fireEvent.click(within(dialog).getAllByRole("checkbox")[0]);
+    fireEvent.click(addButtonOf(dialog));
     fireEvent.click(applyButton());
 
-    expect(updateMechanism).toHaveBeenCalledWith(withIds([c.firstListed]));
+    expect(updateMechanism).toHaveBeenCalledWith(withIds([c.allIds[0]]));
   });
 
   it("tells that no item is left when the mechanism has all of them", () => {
     renderEditor(withIds(c.allIds));
     openTab(c.tab);
 
-    fireEvent.click(addButton());
+    const dialog = openDialog();
 
-    expect(screen.getByText(c.noItemsText)).toBeTruthy();
+    expect(within(dialog).getByText(c.noItemsText)).toBeTruthy();
+    expect(within(dialog).queryAllByRole("checkbox")).toHaveLength(0);
+    expect(
+      (within(dialog).getByRole("button", { name: "Select All" }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
+    expect(addButtonOf(dialog).disabled).toBe(true);
   });
 
-  it("changes nothing when the add list closes without a choice", async () => {
+  it("adds nothing when the dialog is cancelled, and starts empty when it opens again", async () => {
     renderEditor();
     openTab(c.tab);
     await screen.findByText(c.first.text);
 
-    fireEvent.click(addButton());
-    await clickAway();
+    const dialog = openDialog();
+    fireEvent.click(within(dialog).getAllByRole("checkbox")[0]);
+    expect(addButtonOf(dialog).textContent).toBe("Add Selected (1)");
+    fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
 
+    expect(screen.queryByRole("dialog")).toBeNull();
     expect(applyButton().disabled).toBe(true);
     expect(gridRows()).toHaveLength(mechanism[c.key].length + 1);
+
+    const again = openDialog();
+    expect(
+      within(again)
+        .getAllByRole("checkbox")
+        .every((box) => !(box as HTMLInputElement).checked),
+    ).toBe(true);
+    expect(addButtonOf(again).textContent).toBe("Add Selected (0)");
+  });
+
+  it("adds all items at once with Select All", () => {
+    const { updateMechanism } = renderEditor(withIds([]));
+    openTab(c.tab);
+
+    const dialog = openDialog();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Select All" }));
+    expect(addButtonOf(dialog).textContent).toBe(
+      `Add Selected (${c.allIds.length})`,
+    );
+    fireEvent.click(addButtonOf(dialog));
+    fireEvent.click(applyButton());
+
+    // The items are in the order of the dialog.
+    expect(updateMechanism).toHaveBeenCalledWith(withIds(c.allIds));
+  });
+
+  it("chooses only the items that the search leaves", () => {
+    const { updateMechanism } = renderEditor(withIds([]));
+    openTab(c.tab);
+
+    const dialog = openDialog();
+    const search = within(dialog).getByLabelText(`Search ${c.noun}...`);
+    fireEvent.change(search, { target: { value: c.searchText } });
+    expect(within(dialog).getAllByRole("checkbox")).toHaveLength(1);
+    fireEvent.click(within(dialog).getByRole("button", { name: "Select All" }));
+    fireEvent.change(search, { target: { value: "" } });
+
+    // The other items are still there, and not chosen.
+    expect(within(dialog).getAllByRole("checkbox")).toHaveLength(
+      c.allIds.length,
+    );
+    expect(addButtonOf(dialog).textContent).toBe("Add Selected (1)");
+    fireEvent.click(addButtonOf(dialog));
+    fireEvent.click(applyButton());
+
+    expect(updateMechanism).toHaveBeenCalledWith(withIds([c.matchedId]));
+  });
+
+  it("tells when no item matches the search", () => {
+    renderEditor();
+    openTab(c.tab);
+
+    const dialog = openDialog();
+    fireEvent.change(within(dialog).getByLabelText(`Search ${c.noun}...`), {
+      target: { value: "zzz" },
+    });
+
+    expect(within(dialog).getByText(c.noMatchText)).toBeTruthy();
+    expect(within(dialog).queryAllByRole("checkbox")).toHaveLength(0);
   });
 
   it("keeps a removal and an addition together in one save", async () => {
@@ -595,10 +681,11 @@ describe.each(tabCases)("MechanismEditor $tab tab edge cases", (c) => {
     fireEvent.click(
       within(await findRow(c.first.text)).getByLabelText(c.removeLabel),
     );
-    fireEvent.click(addButton());
-    // The removed item is in the list again.
-    expect(screen.getAllByRole(c.itemRole)).toHaveLength(c.listedAfterRemove);
-    fireEvent.click(screen.getAllByRole(c.itemRole)[c.pickIndex]);
+    const dialog = openDialog();
+    // The removed item is in the dialog again.
+    expect(itemLabels(dialog)).toHaveLength(c.listedAfterRemove);
+    fireEvent.click(within(dialog).getAllByRole("checkbox")[c.pickIndex]);
+    fireEvent.click(addButtonOf(dialog));
     fireEvent.click(applyButton());
 
     expect(updateMechanism).toHaveBeenCalledTimes(1);
@@ -717,8 +804,9 @@ describe("MechanismEditor reactions tab with one type", () => {
     ).toBeNull();
 
     // A reaction of another type brings the summary and the name back.
-    fireEvent.click(screen.getByRole("button", { name: "Add Reaction" }));
-    fireEvent.click(screen.getAllByRole("menuitem")[0]);
+    const dialog = openAddDialog("Add Reaction", "Add Reactions");
+    fireEvent.click(within(dialog).getAllByRole("checkbox")[0]);
+    fireEvent.click(addButtonOf(dialog));
 
     expect(
       await screen.findByRole("columnheader", { name: /^Parameters/ }),
@@ -756,5 +844,42 @@ describe("MechanismEditor info tab with empty values", () => {
     expect(
       screen.getByRole("heading", { name: "<No Name> Info" }),
     ).toBeTruthy();
+  });
+});
+
+describe("MechanismEditor add dialogs", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
+  it("finds a reaction by its name as well as by its equation", () => {
+    renderEditor({ ...mechanism, reactionIds: [] });
+    openTab("Reactions");
+
+    const dialog = openAddDialog("Add Reaction", "Add Reactions");
+    fireEvent.change(within(dialog).getByLabelText("Search Reactions..."), {
+      target: { value: "third reaction" },
+    });
+
+    expect(itemLabels(dialog)).toEqual([
+      reactionToString(thirdReaction, family.species),
+    ]);
+  });
+
+  it("keeps the choices when the editor renders again while the dialog is open", () => {
+    const { rerender } = renderEditor();
+    openTab("Species");
+    const dialog = openAddDialog("Add Species", "Add Species");
+    fireEvent.click(within(dialog).getByRole("checkbox", { name: "O3" }));
+
+    // The editor makes a new list of choices on each render.
+    rerender(mechanism);
+
+    const again = screen.getByRole("dialog", { name: "Add Species" });
+    expect(
+      (within(again).getByRole("checkbox", { name: "O3" }) as HTMLInputElement)
+        .checked,
+    ).toBe(true);
+    expect(addButtonOf(again).textContent).toBe("Add Selected (1)");
   });
 });
