@@ -106,7 +106,9 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
   };
   
   const editReaction = (id: UUID) => {
-    setSelectedReaction(family.reactions.find((element) => element.id === id));
+    setSelectedReaction(
+      family.reactions.find((element) => element.id === id)
+    );
     setReactionsEditorOpen(true);
   };
 
@@ -128,7 +130,10 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
         <Typography color="textPrimary" variant="h6">
           Chemical Reactions
         </Typography>
-        <Tooltip title="Chemical reactions consist of reactants which create products during a certain phase. They can also be tuned with specific parameters given by the reaction type.">
+        <Tooltip title="Chemical reactions consist of reactants which create products 
+            during a certain phase. They can also be tuned with specific parameters given by the 
+            reaction type."
+        >
           <HelpOutlineIcon fontSize="small" />
         </Tooltip>
       </Box>
