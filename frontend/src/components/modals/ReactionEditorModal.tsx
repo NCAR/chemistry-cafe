@@ -86,6 +86,11 @@ type SpeciesEntry = {
   branch?: string;
 };
 
+export type PhaseSpeciesAddition = {
+  phaseId: UUID;
+  speciesIds: Array<UUID>;
+};
+
 type SpeciesRowsProps = {
   title: string;
   entries: Array<SpeciesEntry>;
@@ -233,8 +238,10 @@ const SingleSpeciesSelect = ({
 type ReactionEditorModalProps = {
   open: boolean;
   onClose: () => void;
-  onUpdate: (reaction: Reaction) => void;
-  onAddSpeciesToPhase: (phaseId: UUID, speciesIds: Array<UUID>) => void;
+  onUpdate: (
+    reaction: Reaction,
+    phaseSpeciesAdditions: Array<PhaseSpeciesAddition>,
+  ) => void;
   reaction?: Reaction;
   family: Family;
 };
@@ -243,7 +250,6 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
   open,
   onClose,
   onUpdate,
-  onAddSpeciesToPhase,
   reaction,
   family,
 }) => {
@@ -261,9 +267,22 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
   const { preferences } = useUserPreferences();
   const { activationParameter } = preferences;
   const rateUnits = rateUnitsFor(preferences.rateUnits, modifiedReaction?.type);
-  const selectedPhase = family.phases.find(
-    (phase) => phase.id === modifiedReaction?.gasPhaseId,
-  );
+  const [phaseSpeciesAdditions, setPhaseSpeciesAdditions] = useState<
+    Array<PhaseSpeciesAddition>
+  >([]);
+  const selectedPhase = family.phases
+    .filter((phase) => phase.id === modifiedReaction?.gasPhaseId)
+    .map((phase) => ({
+      ...phase,
+      speciesIds: [
+        ...new Set([
+          ...phase.speciesIds,
+          ...phaseSpeciesAdditions
+            .filter((addition) => addition.phaseId === phase.id)
+            .flatMap((addition) => addition.speciesIds),
+        ]),
+      ],
+    }))[0];
   const availableSpecies = selectedPhase
     ? family.species.filter((species) =>
         selectedPhase.speciesIds.includes(species.id),
@@ -326,10 +345,31 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
       return;
     }
 
-    onAddSpeciesToPhase(
-      pendingPhaseChange.phaseId,
-      pendingPhaseChange.missingSpeciesIds,
-    );
+    setPhaseSpeciesAdditions((additions) => {
+      const existing = additions.find(
+        (addition) => addition.phaseId === pendingPhaseChange.phaseId,
+      );
+      if (!existing) {
+        return [
+          {
+            phaseId: pendingPhaseChange.phaseId,
+            speciesIds: pendingPhaseChange.missingSpeciesIds,
+          },
+        ];
+      }
+
+      return [
+        {
+          ...existing,
+          speciesIds: [
+            ...new Set([
+              ...existing.speciesIds,
+              ...pendingPhaseChange.missingSpeciesIds,
+            ]),
+          ],
+        },
+      ];
+    });
     changeReactionPhase(pendingPhaseChange.phaseId);
     setPendingPhaseChange(null);
   };
@@ -339,6 +379,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
     setEquationDraft(null);
     setEquationErrors([]);
     setPendingPhaseChange(null);
+    setPhaseSpeciesAdditions([]);
     const attributes = getReactionAttributes(reaction?.type);
     setDefaultAttributes(attributes);
     const configuration = getReactionConfiguration(reaction?.type);
@@ -578,7 +619,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
       return;
     }
 
-    onUpdate(reactionToSave);
+    onUpdate(reactionToSave, phaseSpeciesAdditions);
     onClose();
   };
 
@@ -914,7 +955,12 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                 if (!phase) {
                   return;
                 }
-                const targetSpecies = new Set(phase.speciesIds);
+                const targetSpecies = new Set([
+                  ...phase.speciesIds,
+                  ...phaseSpeciesAdditions
+                    .filter((addition) => addition.phaseId === phase.id)
+                    .flatMap((addition) => addition.speciesIds),
+                ]);
                 const reactionSpecies = new Set([
                   ...(modifiedReaction?.reactants ?? []).map(
                     (entry) => entry.speciesId,
@@ -932,6 +978,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                   return;
                 }
 
+                setPhaseSpeciesAdditions((additions) =>
+                  additions.filter((addition) => addition.phaseId === phaseId),
+                );
                 changeReactionPhase(phaseId);
               }}
             >

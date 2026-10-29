@@ -27,7 +27,10 @@ import {
   reactionTypeToString,
 } from "../../helpers/stringify";
 import { useCustomTheme } from "../CustomThemeContext";
-import { ReactionEditorModal } from "../modals/ReactionEditorModal";
+import {
+  ReactionEditorModal,
+  type PhaseSpeciesAddition,
+} from "../modals/ReactionEditorModal";
 import { RowActionsButton } from "../RowActionsButton";
 import { UUID } from "crypto";
 import { generateID } from "../../helpers/localFamilies";
@@ -429,7 +432,10 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
     });
   };
 
-  const updateReaction = (reaction: Reaction) => {
+  const updateReaction = (
+    reaction: Reaction,
+    phaseSpeciesAdditions: Array<PhaseSpeciesAddition> = [],
+  ) => {
     const reactionList = [...family.reactions];
     const existingIndex = reactionList.findIndex(
       (element) => element.id === reaction.id,
@@ -444,21 +450,23 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
     updateFamily({
       ...family,
       reactions: reactionList,
-    });
-  };
-
-  const addSpeciesToPhase = (phaseId: UUID, speciesIds: Array<UUID>) => {
-    updateFamily({
-      ...family,
       phases: family.phases.map((phase) =>
-        phase.id === phaseId
+        phaseSpeciesAdditions.some(
+          (addition) => addition.phaseId === phase.id,
+        )
           ? {
               ...phase,
-              speciesIds: [...new Set([...phase.speciesIds, ...speciesIds])],
+              speciesIds: [
+                ...new Set([
+                  ...phase.speciesIds,
+                  ...phaseSpeciesAdditions
+                    .filter((addition) => addition.phaseId === phase.id)
+                    .flatMap((addition) => addition.speciesIds),
+                ]),
+              ],
             }
           : phase,
       ),
-      isModified: true,
     });
   };
 
@@ -761,7 +769,6 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
           setSelectedReaction(undefined);
         }}
         onUpdate={updateReaction}
-        onAddSpeciesToPhase={addSpeciesToPhase}
         reaction={selectedReaction}
         family={family}
       />

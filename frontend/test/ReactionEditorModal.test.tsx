@@ -66,7 +66,6 @@ function renderEditor(
   reaction: Reaction,
   onUpdate = vi.fn(),
   testFamily = family,
-  onAddSpeciesToPhase = vi.fn(),
 ) {
   const editor = (selected?: Reaction) => (
     <AuthProvider>
@@ -75,7 +74,6 @@ function renderEditor(
           open
           onClose={() => {}}
           onUpdate={onUpdate}
-          onAddSpeciesToPhase={onAddSpeciesToPhase}
           reaction={selected}
           family={testFamily}
         />
@@ -260,15 +258,14 @@ describe("ReactionEditorModal rate parameter units", () => {
         },
       ],
     };
-    const onAddSpeciesToPhase = vi.fn();
+    const onUpdate = vi.fn();
     renderEditor(
       {
         ...makeReaction("ARRHENIUS", { A: { value: 1 } }),
         gasPhaseId,
       },
-      vi.fn(),
+      onUpdate,
       familyWithPhases,
-      onAddSpeciesToPhase,
     );
 
     fireEvent.mouseDown(
@@ -279,7 +276,6 @@ describe("ReactionEditorModal rate parameter units", () => {
     expect(
       screen.getByText(/selected gas phase does not contain OH/),
     ).toBeTruthy();
-    expect(onAddSpeciesToPhase).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByTestId("cancel-phase-change"));
     expect(
@@ -287,7 +283,7 @@ describe("ReactionEditorModal rate parameter units", () => {
         .getByTestId("reaction-gas-phase-select")
         .querySelector(".MuiSelect-select"),
     ).toHaveTextContent("Gas");
-    expect(onAddSpeciesToPhase).not.toHaveBeenCalled();
+    expect(onUpdate).not.toHaveBeenCalled();
   });
 
   it("adds missing reactants and products when confirming a phase change", () => {
@@ -310,7 +306,7 @@ describe("ReactionEditorModal rate parameter units", () => {
         },
       ],
     };
-    const onAddSpeciesToPhase = vi.fn();
+    const onUpdate = vi.fn();
     renderEditor(
       {
         ...makeReaction("ARRHENIUS", { A: { value: 1 } }),
@@ -319,9 +315,8 @@ describe("ReactionEditorModal rate parameter units", () => {
           { speciesId: family.species[0].id, coefficient: 1 },
         ],
       },
-      vi.fn(),
+      onUpdate,
       familyWithPhases,
-      onAddSpeciesToPhase,
     );
 
     fireEvent.mouseDown(
@@ -332,15 +327,61 @@ describe("ReactionEditorModal rate parameter units", () => {
       screen.getByTestId("add-reaction-species-to-phase"),
     );
 
-    expect(onAddSpeciesToPhase).toHaveBeenCalledWith(aerosolPhaseId, [
-      family.species[0].id,
-      family.species[1].id,
-    ]);
+    expect(onUpdate).not.toHaveBeenCalled();
     expect(
       screen
         .getByTestId("reaction-gas-phase-select")
         .querySelector(".MuiSelect-select"),
     ).toHaveTextContent("Aerosol");
+
+    fireEvent.click(screen.getByTestId("save-reaction-changes"));
+    expect(onUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ gasPhaseId: aerosolPhaseId }),
+      [
+        {
+          phaseId: aerosolPhaseId,
+          speciesIds: [family.species[0].id, family.species[1].id],
+        },
+      ],
+    );
+  });
+
+  it("does not add species to a phase when reaction edits are canceled", () => {
+    const gasPhaseId = "333-333-333-333-001";
+    const aerosolPhaseId = "333-333-333-333-002";
+    const familyWithPhases: Family = {
+      ...family,
+      phases: [
+        {
+          id: gasPhaseId,
+          name: "Gas",
+          description: null,
+          speciesIds: family.species.map((species) => species.id),
+        },
+        {
+          id: aerosolPhaseId,
+          name: "Aerosol",
+          description: null,
+          speciesIds: [],
+        },
+      ],
+    };
+    const onUpdate = vi.fn();
+    renderEditor(
+      {
+        ...makeReaction("ARRHENIUS", { A: { value: 1 } }),
+        gasPhaseId,
+      },
+      onUpdate,
+      familyWithPhases,
+    );
+
+    fireEvent.mouseDown(screen.getByRole("combobox", { name: "Gas Phase" }));
+    fireEvent.click(screen.getByRole("option", { name: "Aerosol" }));
+    fireEvent.click(screen.getByTestId("add-reaction-species-to-phase"));
+    fireEvent.click(screen.getByLabelText("Cancel Edit"));
+
+    expect(onUpdate).not.toHaveBeenCalled();
   });
 
   it("edits the alkoxy and nitrate products of a branched reaction", () => {
