@@ -86,11 +86,6 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
     products: apiReaction.products,
     gasPhaseId: apiReaction.gasPhaseId as UUID | undefined,
     gasPhaseSpeciesId: apiReaction.gasPhaseSpeciesId as UUID | undefined,
-    aerosolPhaseId: apiReaction.aerosolPhaseId as UUID | undefined,
-    aerosolPhaseSpeciesId: apiReaction.aerosolPhaseSpeciesId as
-      | UUID
-      | undefined,
-    aerosolPhaseWaterId: apiReaction.aerosolPhaseWaterId as UUID | undefined,
     attributes: {},
   };
 
@@ -337,9 +332,6 @@ export function frontendToAPIReaction(reaction: Reaction): APIReaction {
     products: reaction.products as Array<APIProduct>,
     gasPhaseId: reaction.gasPhaseId as UUID,
     gasPhaseSpeciesId: reaction.gasPhaseSpeciesId as UUID,
-    aerosolPhaseId: reaction.aerosolPhaseId as UUID,
-    aerosolPhaseSpeciesId: reaction.aerosolPhaseSpeciesId as UUID,
-    aerosolPhaseWaterId: reaction.aerosolPhaseWaterId as UUID,
     reactionType: reaction.type,
   };
 
@@ -538,6 +530,7 @@ export function apiToFrontendFamily(apiFamily: APIFamily): Family {
     id: apiFamily.id,
     name: apiFamily.name,
     description: apiFamily.description ?? "",
+    isPublic: apiFamily.isPublic,
     owner: apiFamily.owner,
     mechanisms: apiFamily.mechanisms.map((e) => apiToFrontendMechanism(e)),
     species: apiFamily.species.map((e) => apiToFrontendSpecies(e)),
@@ -570,6 +563,7 @@ export function frontendToAPIFamily(
     id: family.id,
     name: family.name,
     description: family.description,
+    isPublic: family.isPublic ?? false,
     owner: family.owner,
     species: expand ? family.species.map((e) => frontendToAPISpecies(e)) : [],
     reactions: expand

@@ -3,7 +3,9 @@ import {
   Alert,
   Box,
   Button,
+  FormControlLabel,
   Snackbar,
+  Switch,
   TextField,
   Tooltip,
   Typography,
@@ -13,10 +15,12 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import { ConfirmActionModal } from "../modals/ConfirmActionModal";
 import { ViewProps } from "./ViewProps";
+import { useAuth } from "../AuthContext";
 
 type ExtraGeneralInfoViewProps = {
   onDelete: () => any;
   onPublish: () => any;
+  onChangeVisibility: (isPublic: boolean) => any;
 };
 
 export const GeneralInfoView = ({
@@ -24,6 +28,7 @@ export const GeneralInfoView = ({
   updateFamily,
   onDelete,
   onPublish,
+  onChangeVisibility,
 }: ViewProps & ExtraGeneralInfoViewProps) => {
   const [name, setName] = useState<string>(family.name);
   const [showAlert, setShowAlert] = useState<boolean>(false);
@@ -32,6 +37,14 @@ export const GeneralInfoView = ({
 
   const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false);
   const [openPublishModal, setOpenPublishModal] = useState<boolean>(false);
+  const [openMakePublicModal, setOpenMakePublicModal] =
+    useState<boolean>(false);
+
+  const { user } = useAuth();
+
+  const canChangeVisibility =
+    (family.isInDatabase && user?.id === family.owner?.id) ||
+    user?.role === "admin";
 
   const handleSave = () => {
     if (name.length === 0) {
@@ -119,6 +132,27 @@ export const GeneralInfoView = ({
             width: "100%",
           }}
         >
+          {canChangeVisibility && (
+            <Tooltip title={family.isModified ? "Save your changes first" : ""}>
+              <FormControlLabel
+                sx={{ ml: 0 }}
+                label={family.isPublic ? "Public" : "Private"}
+                control={
+                  <Switch
+                    checked={family.isPublic}
+                    disabled={family.isModified}
+                    onChange={(_, checked) => {
+                      if (checked) {
+                        setOpenMakePublicModal(true);
+                      } else {
+                        onChangeVisibility(false);
+                      }
+                    }}
+                  />
+                }
+              />
+            </Tooltip>
+          )}
           {!family.isInDatabase && (
             <Button
               startIcon={<CloudUploadIcon />}
@@ -171,8 +205,19 @@ export const GeneralInfoView = ({
           onPublish();
           setOpenPublishModal(false);
         }}
-        message="This will make the family configuration publicly available."
+        message="This saves the family to the server as a private family. Only you can see it until you make it public."
         subtitle="Are you sure you want to continue?"
+        confirmColor="secondary"
+      />
+      <ConfirmActionModal
+        open={openMakePublicModal}
+        onClose={() => setOpenMakePublicModal(false)}
+        onAction={() => {
+          onChangeVisibility(true);
+          setOpenMakePublicModal(false);
+        }}
+        message="All users can see and clone a public family."
+        subtitle="Are you sure you want to make this family public?"
         confirmColor="secondary"
       />
     </Box>

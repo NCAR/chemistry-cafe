@@ -124,7 +124,7 @@ namespace ChemistryCafeAPI.Tests
         private static async Task<Family> ReloadAsync(Guid id)
         {
             using ChemistryDbContext ctx = DBConnection.NewContext();
-            Family? family = await NewService(ctx).GetFamilyAsync(id);
+            Family? family = await NewService(ctx).GetFamilyAsync(id, _owner);
             Assert.IsNotNull(family);
             return family!;
         }

@@ -240,63 +240,66 @@ describe("GeneralInfoView", () => {
   beforeEach(() => {
     updateFamily = vi.fn();
     render(
-      <CustomThemeProvider>
-        <GeneralInfoView
-          family={{
-            id: "111-111-111-111-111",
-            name: "Test Family",
-            description: "Test Description",
-            mechanisms: [
-              {
-                id: "mechanism-id",
-                name: "Test Mechanism",
-                description: null,
-                familyId: "111-111-111-111-111",
-                speciesIds: [],
-                reactionIds: [],
-                phaseIds: ["120984"],
-              },
-            ],
-            owner: null,
-            species: [
-              {
-                id: "111-111-111-111-333",
-                name: "Test Species",
-                description: "Cool species",
-                familyId: "111-111-111-111-111",
-                attributes: {},
-                isDeleted: false,
-                isInDatabase: true,
-                isModified: false,
-              },
-            ],
-            phases: [],
-            reactions: [
-              {
-                id: "111-111-111-111",
-                name: "Test Reaction",
-                description: "",
-                type: "ARRHENIUS",
-                reactants: [],
-                products: [],
-                attributes: {},
-              },
-              {
-                id: "222-222-222-222",
-                name: "Another Test Reaction",
-                description: "",
-                type: "FIRST_ORDER_LOSS",
-                reactants: [],
-                products: [],
-                attributes: {},
-              },
-            ],
-          }}
-          updateFamily={updateFamily}
-          onDelete={vi.fn()}
-          onPublish={vi.fn()}
-        />
-      </CustomThemeProvider>,
+      <AuthProvider>
+        <CustomThemeProvider>
+          <GeneralInfoView
+            family={{
+              id: "111-111-111-111-111",
+              name: "Test Family",
+              description: "Test Description",
+              mechanisms: [
+                {
+                  id: "mechanism-id",
+                  name: "Test Mechanism",
+                  description: null,
+                  familyId: "111-111-111-111-111",
+                  speciesIds: [],
+                  reactionIds: [],
+                  phaseIds: ["120984"],
+                },
+              ],
+              owner: null,
+              species: [
+                {
+                  id: "111-111-111-111-333",
+                  name: "Test Species",
+                  description: "Cool species",
+                  familyId: "111-111-111-111-111",
+                  attributes: {},
+                  isDeleted: false,
+                  isInDatabase: true,
+                  isModified: false,
+                },
+              ],
+              phases: [],
+              reactions: [
+                {
+                  id: "111-111-111-111",
+                  name: "Test Reaction",
+                  description: "",
+                  type: "ARRHENIUS",
+                  reactants: [],
+                  products: [],
+                  attributes: {},
+                },
+                {
+                  id: "222-222-222-222",
+                  name: "Another Test Reaction",
+                  description: "",
+                  type: "FIRST_ORDER_LOSS",
+                  reactants: [],
+                  products: [],
+                  attributes: {},
+                },
+              ],
+            }}
+            updateFamily={updateFamily}
+            onDelete={vi.fn()}
+            onPublish={vi.fn()}
+            onChangeVisibility={vi.fn()}
+          />
+        </CustomThemeProvider>
+      </AuthProvider>,
     );
   });
 

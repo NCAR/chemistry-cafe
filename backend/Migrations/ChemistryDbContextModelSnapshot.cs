@@ -100,6 +100,9 @@ namespace ChemistryCafeAPI.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("longtext");
 
+                    b.Property<bool>("IsPublic")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -332,15 +335,6 @@ namespace ChemistryCafeAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
-                    b.Property<Guid?>("AerosolPhaseId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<Guid?>("AerosolPhaseSpeciesId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<Guid?>("AerosolPhaseWaterId")
-                        .HasColumnType("char(36)");
-
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime(6)");
 
@@ -368,12 +362,6 @@ namespace ChemistryCafeAPI.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AerosolPhaseId");
-
-                    b.HasIndex("AerosolPhaseSpeciesId");
-
-                    b.HasIndex("AerosolPhaseWaterId");
 
                     b.HasIndex("FamilyVersionId");
 
@@ -860,21 +848,6 @@ namespace ChemistryCafeAPI.Migrations
 
             modelBuilder.Entity("ChemistryCafeAPI.Models.Reaction", b =>
                 {
-                    b.HasOne("ChemistryCafeAPI.Models.Phase", "AerosolPhase")
-                        .WithMany("AsAerosolPhase")
-                        .HasForeignKey("AerosolPhaseId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("ChemistryCafeAPI.Models.Species", "AerosolPhaseSpecies")
-                        .WithMany("AsAerosolPhaseSpecies")
-                        .HasForeignKey("AerosolPhaseSpeciesId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("ChemistryCafeAPI.Models.Species", "AerosolPhaseWater")
-                        .WithMany("AsAerosolPhaseWater")
-                        .HasForeignKey("AerosolPhaseWaterId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("ChemistryCafeAPI.Models.FamilyVersion", "FamilyVersion")
                         .WithMany("Reactions")
                         .HasForeignKey("FamilyVersionId")
@@ -890,12 +863,6 @@ namespace ChemistryCafeAPI.Migrations
                         .WithMany("AsGasPhaseSpecies")
                         .HasForeignKey("GasPhaseSpeciesId")
                         .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("AerosolPhase");
-
-                    b.Navigation("AerosolPhaseSpecies");
-
-                    b.Navigation("AerosolPhaseWater");
 
                     b.Navigation("FamilyVersion");
 
@@ -1010,8 +977,6 @@ namespace ChemistryCafeAPI.Migrations
 
             modelBuilder.Entity("ChemistryCafeAPI.Models.Phase", b =>
                 {
-                    b.Navigation("AsAerosolPhase");
-
                     b.Navigation("AsGasPhase");
 
                     b.Navigation("PhaseSpecies");
@@ -1048,10 +1013,6 @@ namespace ChemistryCafeAPI.Migrations
 
             modelBuilder.Entity("ChemistryCafeAPI.Models.Species", b =>
                 {
-                    b.Navigation("AsAerosolPhaseSpecies");
-
-                    b.Navigation("AsAerosolPhaseWater");
-
                     b.Navigation("AsGasPhaseSpecies");
 
                     b.Navigation("AsProduct");

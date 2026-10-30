@@ -546,6 +546,7 @@ export function deserializeMechanism(parsed: Record<string, any>): Family {
     id: familyId,
     name: parsed.name ?? "New Family",
     description: "This family was automatically generated from a file",
+    isPublic: false,
     owner: null,
     species: [],
     phases: [],

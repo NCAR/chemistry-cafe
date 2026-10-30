@@ -194,24 +194,6 @@ public partial class ChemistryDbContext : DbContext
             .HasForeignKey(r => r.GasPhaseSpeciesId)
             .OnDelete(DeleteBehavior.SetNull);
 
-        modelBuilder.Entity<Reaction>()
-            .HasOne(r => r.AerosolPhase)
-            .WithMany(p => p.AsAerosolPhase)
-            .HasForeignKey(r => r.AerosolPhaseId)
-            .OnDelete(DeleteBehavior.SetNull);
-
-        modelBuilder.Entity<Reaction>()
-            .HasOne(r => r.AerosolPhaseSpecies)
-            .WithMany(p => p.AsAerosolPhaseSpecies)
-            .HasForeignKey(r => r.AerosolPhaseSpeciesId)
-            .OnDelete(DeleteBehavior.SetNull);
-
-        modelBuilder.Entity<Reaction>()
-            .HasOne(r => r.AerosolPhaseWater)
-            .WithMany(p => p.AsAerosolPhaseWater)
-            .HasForeignKey(r => r.AerosolPhaseWaterId)
-            .OnDelete(DeleteBehavior.SetNull);
-
         // Configure Mechanism relationships
         modelBuilder.Entity<Mechanism>()
             .HasOne(m => m.Family)

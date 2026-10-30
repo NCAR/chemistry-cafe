@@ -14,11 +14,11 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
     /// Returns every family in the database with some constraints
     /// </summary>
     /// <param name="expand">Adds extra child classes if true. This is mainly false for large bulk queries where the nested objects aren't needed</param>
-    /// <param name="userId">User ID constraint to only query families from a certain user if not null</param>
+    /// <param name="viewer">The user who is viewing the families. If null, only public families are returned.</param>
     /// <returns>List of families</returns>
-    public async Task<IEnumerable<Family>> GetFamiliesAsync(bool expand, Guid? userId = null)
+    public async Task<IEnumerable<Family>> GetFamiliesAsync(bool expand, User? viewer = null)
     {
-        IQueryable<Family> query = context.Families;
+        IQueryable<Family> query = VisibleTo(context.Families, viewer);
 
         // Always include Owner
         query = query.AsSplitQuery().Include(f => f.Owner);
@@ -26,7 +26,6 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         if (expand)
         {
             query = query
-                .Include(f => f.Owner)
                 .Include(f => f.CurrentVersion)
                         .ThenInclude(v => v.Species)
                 .Include(f => f.CurrentVersion)
@@ -79,12 +78,6 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
                     .ThenInclude(m => m.Phases);
         }
 
-        if (userId != null)
-        {
-            query = query
-                .Where(f => f.Owner.Id == userId);
-        }
-
         var families = await query.ToListAsync();
 
         return families;
@@ -95,11 +88,14 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
     /// </summary>
     /// <param name="id">The id of the family</param>
     /// <returns>Family or null if not found</returns>
-    public async Task<Family?> GetFamilyAsync(Guid id)
+    public async Task<Family?> GetFamilyAsync(Guid id, User? viewer = null)
     {
-        var family = await context.Families
-            .AsSplitQuery()
-            .Include(f => f.Owner)
+        IQueryable<Family> query = VisibleTo(context.Families, viewer);
+
+        // Always include Owner
+        query = query.AsSplitQuery().Include(f => f.Owner);
+
+        var family = await query
             .Include(f => f.CurrentVersion)
                 .ThenInclude(v => v.Species)
             .Include(f => f.CurrentVersion)
@@ -205,6 +201,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             Name = family.Name,
             Description = family.Description,
             Owner = currentUser,
+            IsPublic = family.IsPublic,
         };
 
         initialVersion.Family = familyInfo;
@@ -337,6 +334,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         // Update the easy fields
         existingFamily.Name = family.Name;
         existingFamily.Description = family.Description;
+        existingFamily.IsPublic = family.IsPublic;
 
         // reconcile all of the changes in all child objects
         TrackChangesToFamily(family, existingFamily);
@@ -417,7 +415,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         }
 
         // Reaction references. Reactants and products point at species, and the
-        // gas/aerosol fields point at species or phases.
+        // gas-phase fields point at species or phases.
         foreach (ReactionDto reaction in family.Reactions)
         {
             missing.AddRange(reaction.Reactants.Select(r => r.SpeciesId).Where(id => !speciesIds.Contains(id)));
@@ -426,14 +424,6 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             if (reaction.GasPhaseSpeciesId is Guid gasSpecies && !speciesIds.Contains(gasSpecies))
             {
                 missing.Add(gasSpecies);
-            }
-            if (reaction.AerosolPhaseSpeciesId is Guid aerosolSpecies && !speciesIds.Contains(aerosolSpecies))
-            {
-                missing.Add(aerosolSpecies);
-            }
-            if (reaction.AerosolPhaseWaterId is Guid aerosolWater && !speciesIds.Contains(aerosolWater))
-            {
-                missing.Add(aerosolWater);
             }
             if (reaction.GasPhaseId is Guid gasPhase && !phaseIds.Contains(gasPhase))
             {
@@ -530,10 +520,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             existingReaction.Name = incomingReaction.Name;
             existingReaction.Description = incomingReaction.Description;
             existingReaction.GasPhaseSpeciesId = incomingReaction.GasPhaseSpeciesId;
-            existingReaction.AerosolPhaseSpeciesId = incomingReaction.AerosolPhaseSpeciesId;
-            existingReaction.AerosolPhaseWaterId = incomingReaction.AerosolPhaseWaterId;
             existingReaction.GasPhaseId = incomingReaction.GasPhaseId;
-            existingReaction.AerosolPhaseId = incomingReaction.AerosolPhaseId;
             existingReaction.Reactants = incomingReaction.Reactants.Select(r => r.ToEntity()).ToList();
             existingReaction.Products = incomingReaction.Products.Select(p => p.ToEntity()).ToList();
 
@@ -849,5 +836,24 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             existingMechanism.Reactions = incomingMechanism.ReactionIds.Select(rid => existing.Reactions.Single(r => r.Id == rid)).ToList();
             existingMechanism.Phases = incomingMechanism.PhaseIds.Select(pid => existing.Phases.Single(p => p.Id == pid)).ToList();
         });
+    }
+
+    /// <summary>
+    /// Filters a query of families to only those that are visible to the given user.
+    /// </summary>
+    private static IQueryable<Family> VisibleTo(IQueryable<Family> query, User? viewer)
+    {
+        if (viewer == null)
+        {
+            return query.Where(f => f.IsPublic);
+        }
+        else if (viewer.Role == Role.Admin)
+        {
+            return query;
+        }
+        else
+        {
+            return query.Where(f => f.IsPublic || f.OwnerId == viewer.Id);
+        }
     }
 }

@@ -46,10 +46,6 @@ public class Species
     public ICollection<Product> AsProduct { get; set; } = new List<Product>();
     [JsonIgnore]
     public ICollection<Reaction> AsGasPhaseSpecies { get; set; } = new List<Reaction>();
-    [JsonIgnore]
-    public ICollection<Reaction> AsAerosolPhaseSpecies { get; set; } = new List<Reaction>();
-    [JsonIgnore]
-    public ICollection<Reaction> AsAerosolPhaseWater { get; set; } = new List<Reaction>();
 
     // Mechanisms that reference this species
     [JsonIgnore]

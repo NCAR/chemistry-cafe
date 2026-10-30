@@ -46,9 +46,9 @@ namespace ChemistryCafeAPI.Tests.Functional
         /// <summary>
         /// Creates a new family in the test database with the specified owner.
         /// </summary>
-        protected async Task<Family> CreateFamilyAsync(User owner, string? name = null, string? description = null, Guid? id = null)
+        protected async Task<Family> CreateFamilyAsync(User owner, string? name = null, string? description = null, Guid? id = null, bool isPublic = false)
         {
-            return await _factory.CreateFamilyAsync(owner, name, description, id);
+            return await _factory.CreateFamilyAsync(owner, name, description, id, isPublic);
         }
     }
 }

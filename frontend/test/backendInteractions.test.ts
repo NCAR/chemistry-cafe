@@ -172,45 +172,25 @@ describe("Reaction Conversion", () => {
     expect(result.description).toEqual(frontendReaction.description);
   });
 
-  test("gas phase and aerosol phase references round-trip in both directions", () => {
+  test("gas phase references round-trip in both directions", () => {
     const phaseReaction: Reaction = {
       ...frontendReaction,
       gasPhaseId: "11111111-1111-1111-1111-111111111111",
       gasPhaseSpeciesId: "22222222-2222-2222-2222-222222222222",
-      aerosolPhaseId: "33333333-3333-3333-3333-333333333333",
-      aerosolPhaseSpeciesId: "44444444-4444-4444-4444-444444444444",
-      aerosolPhaseWaterId: "55555555-5555-5555-5555-555555555555",
     };
     const toApi = frontendToAPIReaction(phaseReaction, frontendFamily);
     expect(toApi.gasPhaseId).toEqual(phaseReaction.gasPhaseId);
     expect(toApi.gasPhaseSpeciesId).toEqual(phaseReaction.gasPhaseSpeciesId);
-    expect(toApi.aerosolPhaseId).toEqual(phaseReaction.aerosolPhaseId);
-    expect(toApi.aerosolPhaseSpeciesId).toEqual(
-      phaseReaction.aerosolPhaseSpeciesId,
-    );
-    expect(toApi.aerosolPhaseWaterId).toEqual(
-      phaseReaction.aerosolPhaseWaterId,
-    );
 
     const apiPhaseReaction: APIReaction = {
       ...apiReaction,
       gasPhaseId: phaseReaction.gasPhaseId,
       gasPhaseSpeciesId: phaseReaction.gasPhaseSpeciesId,
-      aerosolPhaseId: phaseReaction.aerosolPhaseId,
-      aerosolPhaseSpeciesId: phaseReaction.aerosolPhaseSpeciesId,
-      aerosolPhaseWaterId: phaseReaction.aerosolPhaseWaterId,
     };
     const toFrontend = apiToFrontendReaction(apiPhaseReaction);
     expect(toFrontend.gasPhaseId).toEqual(phaseReaction.gasPhaseId);
     expect(toFrontend.gasPhaseSpeciesId).toEqual(
       phaseReaction.gasPhaseSpeciesId,
-    );
-    expect(toFrontend.aerosolPhaseId).toEqual(phaseReaction.aerosolPhaseId);
-    expect(toFrontend.aerosolPhaseSpeciesId).toEqual(
-      phaseReaction.aerosolPhaseSpeciesId,
-    );
-    expect(toFrontend.aerosolPhaseWaterId).toEqual(
-      phaseReaction.aerosolPhaseWaterId,
     );
   });
 });

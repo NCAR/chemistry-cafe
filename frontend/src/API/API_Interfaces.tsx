@@ -30,6 +30,7 @@ export interface APIFamily {
   createdDate?: string;
   name: string;
   description: string | null;
+  isPublic: boolean;
   owner: APIUser;
   species: Array<APISpecies>;
   reactions: Array<APIReaction>;
@@ -141,9 +142,6 @@ export interface APIReaction {
   products: Array<APIProduct>;
   gasPhaseId?: UUID | null;
   gasPhaseSpeciesId?: UUID | null;
-  aerosolPhaseId?: UUID | null;
-  aerosolPhaseSpeciesId?: UUID | null;
-  aerosolPhaseWaterId?: UUID | null;
 }
 
 export interface APIReactant {

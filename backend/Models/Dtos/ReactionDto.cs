@@ -30,9 +30,6 @@ public class ReactionDto
 
     public Guid? GasPhaseId { get; set; }
     public Guid? GasPhaseSpeciesId { get; set; }
-    public Guid? AerosolPhaseId { get; set; }
-    public Guid? AerosolPhaseSpeciesId { get; set; }
-    public Guid? AerosolPhaseWaterId { get; set; }
 }
 
 public class ReactantDto

@@ -88,15 +88,6 @@ export type Reaction = {
   /** Optional id for the gas phase species. Required in certain reactions */
   gasPhaseSpeciesId?: UUID;
 
-  /** Optional id for the aerosol phase. Required in certain reactions */
-  aerosolPhaseId?: UUID;
-
-  /** Optional id for the aerosol phase species. Required in certain reactions */
-  aerosolPhaseSpeciesId?: UUID;
-
-  /** Optional id for the aerosol phase water. Required in certain reactions */
-  aerosolPhaseWaterId?: UUID;
-
   /** List of reactants in the reaction */
   reactants: Array<Reactant>;
 
@@ -186,6 +177,9 @@ export type Family = {
 
   /** Description of the family */
   description: string;
+
+  /** If the family is public */
+  isPublic: boolean;
 
   /** API definition of the owner of the family */
   owner: APIUser | null;
@@ -326,9 +320,6 @@ export type ReactionConfiguration = {
   reactantCount: ReactionSpeciesCount;
   productCount: ReactionSpeciesCount;
   hasGasPhaseSpecies: boolean;
-  hasAerosolPhase: boolean;
-  hasAerosolPhaseSpecies: boolean;
-  hasAerosolPhaseWater: boolean;
   branches?: Array<string>;
 };
 
@@ -343,98 +334,62 @@ export const reactionConfigurations: {
     reactantCount: ReactionSpeciesCount.NONE,
     productCount: ReactionSpeciesCount.NONE,
     hasGasPhaseSpecies: false,
-    hasAerosolPhase: false,
-    hasAerosolPhaseSpecies: false,
-    hasAerosolPhaseWater: false,
   },
   ARRHENIUS: {
     reactantCount: ReactionSpeciesCount.MANY,
     productCount: ReactionSpeciesCount.MANY,
     hasGasPhaseSpecies: false,
-    hasAerosolPhase: false,
-    hasAerosolPhaseSpecies: false,
-    hasAerosolPhaseWater: false,
   },
   BRANCHED_NO_RO2: {
     reactantCount: ReactionSpeciesCount.MANY,
     productCount: ReactionSpeciesCount.MANY,
     hasGasPhaseSpecies: false,
-    hasAerosolPhase: false,
-    hasAerosolPhaseSpecies: false,
-    hasAerosolPhaseWater: false,
     branches: ["alkoxy", "nitrate"],
   },
   EMISSION: {
     reactantCount: ReactionSpeciesCount.NONE,
     productCount: ReactionSpeciesCount.ONE,
     hasGasPhaseSpecies: false,
-    hasAerosolPhase: false,
-    hasAerosolPhaseSpecies: false,
-    hasAerosolPhaseWater: false,
   },
   FIRST_ORDER_LOSS: {
     reactantCount: ReactionSpeciesCount.ONE,
     productCount: ReactionSpeciesCount.NONE,
     hasGasPhaseSpecies: false,
-    hasAerosolPhase: false,
-    hasAerosolPhaseSpecies: false,
-    hasAerosolPhaseWater: false,
   },
   PHOTOLYSIS: {
     reactantCount: ReactionSpeciesCount.ONE,
     productCount: ReactionSpeciesCount.MANY,
     hasGasPhaseSpecies: false,
-    hasAerosolPhase: false,
-    hasAerosolPhaseSpecies: false,
-    hasAerosolPhaseWater: false,
   },
   SURFACE: {
     reactantCount: ReactionSpeciesCount.NONE,
     productCount: ReactionSpeciesCount.MANY,
     hasGasPhaseSpecies: true,
-    hasAerosolPhase: false,
-    hasAerosolPhaseSpecies: false,
-    hasAerosolPhaseWater: false,
     branches: ["gas-phase"],
   },
   TAYLOR_SERIES: {
     reactantCount: ReactionSpeciesCount.MANY,
     productCount: ReactionSpeciesCount.MANY,
     hasGasPhaseSpecies: false,
-    hasAerosolPhase: false,
-    hasAerosolPhaseSpecies: false,
-    hasAerosolPhaseWater: false,
   },
   TERNARY_CHEMICAL_ACTIVATION: {
     reactantCount: ReactionSpeciesCount.MANY,
     productCount: ReactionSpeciesCount.MANY,
     hasGasPhaseSpecies: false,
-    hasAerosolPhase: false,
-    hasAerosolPhaseSpecies: false,
-    hasAerosolPhaseWater: false,
   },
   TROE: {
     reactantCount: ReactionSpeciesCount.MANY,
     productCount: ReactionSpeciesCount.MANY,
     hasGasPhaseSpecies: false,
-    hasAerosolPhase: false,
-    hasAerosolPhaseSpecies: false,
-    hasAerosolPhaseWater: false,
   },
   TUNNELING: {
     reactantCount: ReactionSpeciesCount.MANY,
     productCount: ReactionSpeciesCount.MANY,
     hasGasPhaseSpecies: false,
-    hasAerosolPhase: false,
-    hasAerosolPhaseSpecies: false,
-    hasAerosolPhaseWater: false,
   },
   USER_DEFINED: {
     reactantCount: ReactionSpeciesCount.MANY,
     productCount: ReactionSpeciesCount.MANY,
     hasGasPhaseSpecies: false,
-    hasAerosolPhase: false,
-    hasAerosolPhaseSpecies: false,
-    hasAerosolPhaseWater: false,
   },
 });
