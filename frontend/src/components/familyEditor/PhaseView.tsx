@@ -166,8 +166,7 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
     }
 
     const phaseIsUsedByReaction = family.reactions.some(
-      (reaction) =>
-        reaction.gasPhaseId === id,
+      (reaction) => reaction.gasPhaseId === id,
     );
     if (phaseIsUsedByReaction) {
       setPendingPhaseDelete(phase);
@@ -179,8 +178,7 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
 
   const pendingPhaseReactionCount = pendingPhaseDelete
     ? family.reactions.filter(
-        (reaction) =>
-          reaction.gasPhaseId === pendingPhaseDelete.id,
+        (reaction) => reaction.gasPhaseId === pendingPhaseDelete.id,
       ).length
     : 0;
 
