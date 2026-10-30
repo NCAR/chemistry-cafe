@@ -159,9 +159,7 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
       ),
       mechanisms: family.mechanisms.map((mechanism) => ({
         ...mechanism,
-        phaseIds: mechanism.phaseIds.filter(
-          (phaseId) => phaseId !== phase.id,
-        ),
+        phaseIds: mechanism.phaseIds.filter((phaseId) => phaseId !== phase.id),
       })),
       isModified: true,
     });

@@ -605,7 +605,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
         (entry) => !selectedPhase.speciesIds.includes(entry.speciesId),
       )
     ) {
-      setErrorMessage("All reactants and products must belong to the selected gas phase");
+      setErrorMessage(
+        "All reactants and products must belong to the selected gas phase",
+      );
       setShowAlert(true);
       return;
     }
@@ -1136,7 +1138,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                     family.species.find((species) => species.id === speciesId)
                       ?.name ?? "<No Name>",
                 )
-                .join(", ")}. Add ${pendingPhaseChange.missingSpeciesIds.length === 1 ? "this species" : "these species"} to the phase to change the reaction phase?`}
+                .join(
+                  ", ",
+                )}. Add ${pendingPhaseChange.missingSpeciesIds.length === 1 ? "this species" : "these species"} to the phase to change the reaction phase?`}
           </DialogContentText>
         </DialogContent>
         <DialogActions>

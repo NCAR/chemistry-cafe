@@ -212,9 +212,7 @@ describe("ReactionEditorModal rate parameter units", () => {
     ).toBeTruthy();
     expect(onUpdate).not.toHaveBeenCalled();
 
-    fireEvent.mouseDown(
-      screen.getByRole("combobox", { name: "Gas Phase" }),
-    );
+    fireEvent.mouseDown(screen.getByRole("combobox", { name: "Gas Phase" }));
     fireEvent.click(screen.getByRole("option", { name: "Gas" }));
     fireEvent.click(screen.getByLabelText("select-reaction-species"));
     expect(screen.getByRole("option", { name: "OH" })).toBeTruthy();
@@ -268,9 +266,7 @@ describe("ReactionEditorModal rate parameter units", () => {
       familyWithPhases,
     );
 
-    fireEvent.mouseDown(
-      screen.getByRole("combobox", { name: "Gas Phase" }),
-    );
+    fireEvent.mouseDown(screen.getByRole("combobox", { name: "Gas Phase" }));
     fireEvent.click(screen.getByRole("option", { name: "Aerosol" }));
 
     expect(
@@ -311,21 +307,15 @@ describe("ReactionEditorModal rate parameter units", () => {
       {
         ...makeReaction("ARRHENIUS", { A: { value: 1 } }),
         gasPhaseId,
-        products: [
-          { speciesId: family.species[0].id, coefficient: 1 },
-        ],
+        products: [{ speciesId: family.species[0].id, coefficient: 1 }],
       },
       onUpdate,
       familyWithPhases,
     );
 
-    fireEvent.mouseDown(
-      screen.getByRole("combobox", { name: "Gas Phase" }),
-    );
+    fireEvent.mouseDown(screen.getByRole("combobox", { name: "Gas Phase" }));
     fireEvent.click(screen.getByRole("option", { name: "Aerosol" }));
-    fireEvent.click(
-      screen.getByTestId("add-reaction-species-to-phase"),
-    );
+    fireEvent.click(screen.getByTestId("add-reaction-species-to-phase"));
 
     expect(onUpdate).not.toHaveBeenCalled();
     expect(

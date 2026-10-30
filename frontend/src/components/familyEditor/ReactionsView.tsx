@@ -451,9 +451,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       ...family,
       reactions: reactionList,
       phases: family.phases.map((phase) =>
-        phaseSpeciesAdditions.some(
-          (addition) => addition.phaseId === phase.id,
-        )
+        phaseSpeciesAdditions.some((addition) => addition.phaseId === phase.id)
           ? {
               ...phase,
               speciesIds: [

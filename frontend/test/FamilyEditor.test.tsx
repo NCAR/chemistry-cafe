@@ -565,9 +565,7 @@ describe("PhaseView", () => {
   it("prompts before removing species used by reactions and cancels without changes", () => {
     const updateFamily = renderPhaseWithReactionsUsingSpecies();
 
-    expect(
-      screen.getByText(/will remove 3 affected reactions/),
-    ).toBeTruthy();
+    expect(screen.getByText(/will remove 3 affected reactions/)).toBeTruthy();
     fireEvent.click(screen.getByLabelText("Cancel Irreversable Action"));
 
     expect(updateFamily).not.toHaveBeenCalled();
