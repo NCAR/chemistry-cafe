@@ -1,24 +1,7 @@
 import { useState } from "react";
 import { Box, Tooltip, Typography } from "@mui/material";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import FunctionsIcon from "@mui/icons-material/Functions";
-import {
-  DataGrid,
-  GridColDef,
-  GridColumnVisibilityModel,
-  GridRenderCellParams,
-  useGridApiRef,
-} from "@mui/x-data-grid";
-import {
-  Reaction,
-  reactionAttributeOptions,
-  ReactionTypeName,
-} from "../../types/chemistryModels";
-import {
-  reactionToString,
-  reactionTypeToString,
-} from "../../helpers/stringify";
-import { useCustomTheme } from "../CustomThemeContext";
+import { Reaction } from "../../types/chemistryModels";
 import {
   ReactionEditorModal,
   type PhaseSpeciesAddition,
