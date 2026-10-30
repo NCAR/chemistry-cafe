@@ -5,6 +5,7 @@ import {
   Card,
   CardActions,
   CardContent,
+  Chip,
   Collapse,
   IconButton,
   List,
@@ -57,6 +58,12 @@ const FamilyInfoCard = memo(function FamilyInfoCard({
   const [mechanismsOpen, setMechanismsOpen] = useState(false);
   const mechanismCount = family.mechanisms?.length ?? 0;
 
+  const isOwner = user?.id === family.owner?.id;
+  const isAdmin = user?.role?.toLowerCase() === "admin";
+  const isContributor =
+    Boolean(user?.id && family.contributorIds?.includes(user.id)) && !isOwner;
+  const canEdit = isOwner || isAdmin || isContributor;
+
   return (
     <ListItem>
       <Card sx={{ flex: 1 }} variant="outlined">
@@ -70,8 +77,16 @@ const FamilyInfoCard = memo(function FamilyInfoCard({
             >
               {family.name}
             </Typography>
+            {isContributor && (
+              <Chip
+                size="small"
+                label="Contributor"
+                color="info"
+                variant="outlined"
+              />
+            )}
             {!family.isPublic && (
-              <Tooltip title="Private: only the owner and admins can see this family">
+              <Tooltip title="Private: only the owner, contributors, and admins can see this family">
                 <LockIcon
                   fontSize="small"
                   color="action"
@@ -137,17 +152,15 @@ const FamilyInfoCard = memo(function FamilyInfoCard({
         </CardContent>
         <CardActions>
           <ButtonGroup variant="outlined">
-            {handleEditButtonClick &&
-              (user?.id === family.owner.id ||
-                user?.role?.toLowerCase() === "admin") && (
-                <Button
-                  color="primary"
-                  onClick={() => handleEditButtonClick(family.id)}
-                  size="small"
-                >
-                  Edit Family
-                </Button>
-              )}
+            {handleEditButtonClick && canEdit && (
+              <Button
+                color="primary"
+                onClick={() => handleEditButtonClick(family.id)}
+                size="small"
+              >
+                Edit Family
+              </Button>
+            )}
             {handleCloneButtonClick && (
               <Button
                 color="primary"

@@ -32,10 +32,28 @@ export interface APIFamily {
   description: string | null;
   isPublic: boolean;
   owner: APIUser;
+  contributorIds?: Array<UUID>;
   species: Array<APISpecies>;
   reactions: Array<APIReaction>;
   phases: Array<APIPhase>;
   mechanisms: Array<APIMechanism>;
+}
+
+export type ContributorRole = "Viewer" | "Editor" | "Owner";
+
+export interface APIFamilyContributor {
+  userId: UUID;
+  role: ContributorRole;
+  email?: string | null;
+  username?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+}
+
+export interface AddFamilyContributorRequest {
+  userId?: UUID;
+  email?: string;
+  role: ContributorRole;
 }
 
 export interface APISpecies {
