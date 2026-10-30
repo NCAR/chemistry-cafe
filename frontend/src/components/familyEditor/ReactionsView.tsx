@@ -27,7 +27,10 @@ import {
   reactionTypeToString,
 } from "../../helpers/stringify";
 import { useCustomTheme } from "../CustomThemeContext";
-import { ReactionEditorModal } from "../modals/ReactionEditorModal";
+import {
+  ReactionEditorModal,
+  type PhaseSpeciesAddition,
+} from "../modals/ReactionEditorModal";
 import { RowActionsButton } from "../RowActionsButton";
 import { UUID } from "crypto";
 import { generateID } from "../../helpers/localFamilies";
@@ -429,7 +432,10 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
     });
   };
 
-  const updateReaction = (reaction: Reaction) => {
+  const updateReaction = (
+    reaction: Reaction,
+    phaseSpeciesAdditions: Array<PhaseSpeciesAddition> = [],
+  ) => {
     const reactionList = [...family.reactions];
     const existingIndex = reactionList.findIndex(
       (element) => element.id === reaction.id,
@@ -444,6 +450,23 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
     updateFamily({
       ...family,
       reactions: reactionList,
+      phases: family.phases.map((phase) =>
+        phaseSpeciesAdditions.some(
+          (addition) => addition.phaseId === phase.id,
+        )
+          ? {
+              ...phase,
+              speciesIds: [
+                ...new Set([
+                  ...phase.speciesIds,
+                  ...phaseSpeciesAdditions
+                    .filter((addition) => addition.phaseId === phase.id)
+                    .flatMap((addition) => addition.speciesIds),
+                ]),
+              ],
+            }
+          : phase,
+      ),
     });
   };
 
@@ -558,6 +581,26 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
           noWrap
         >
           {reactionTypeToString(params.value as ReactionTypeName)}
+        </Typography>
+      ),
+    },
+    {
+      field: "gasPhaseId",
+      headerName: "Gas Phase",
+      flex: 0.75,
+      valueGetter: (_value, row: Reaction) =>
+        family.phases.find((phase) => phase.id === row.gasPhaseId)?.name ?? "",
+      renderCell: (params: GridRenderCellParams<Reaction>) => (
+        <Typography
+          variant="body1"
+          sx={{
+            color: params.value
+              ? theme.palette.text.primary
+              : theme.palette.text.disabled,
+          }}
+          noWrap
+        >
+          {params.value || "<None>"}
         </Typography>
       ),
     },

@@ -3,6 +3,11 @@ import {
   Autocomplete,
   Box,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   IconButton,
   InputAdornment,
   MenuItem,
@@ -81,10 +86,16 @@ type SpeciesEntry = {
   branch?: string;
 };
 
+export type PhaseSpeciesAddition = {
+  phaseId: UUID;
+  speciesIds: Array<UUID>;
+};
+
 type SpeciesRowsProps = {
   title: string;
   entries: Array<SpeciesEntry>;
   family: Family;
+  availableSpecies: Family["species"];
   /** Species that the add button does not offer, for example from another branch */
   unavailable?: Array<string>;
   /** The most species that the list can have. The add button hides at this count. */
@@ -108,6 +119,7 @@ const SpeciesRows = ({
   title,
   entries,
   family,
+  availableSpecies,
   unavailable,
   maxEntries,
   addLabel,
@@ -125,7 +137,7 @@ const SpeciesRows = ({
         <SelectSpeciesButton
           aria-label={addLabel}
           onSelect={(species) => onChange([...entries, newEntry(species.id)])}
-          species={family.species.filter(
+          species={availableSpecies.filter(
             (species) =>
               !entries.some((e) => e.speciesId === species.id) &&
               !unavailable?.includes(species.id),
@@ -226,7 +238,10 @@ const SingleSpeciesSelect = ({
 type ReactionEditorModalProps = {
   open: boolean;
   onClose: () => void;
-  onUpdate: (reaction: Reaction) => void;
+  onUpdate: (
+    reaction: Reaction,
+    phaseSpeciesAdditions: Array<PhaseSpeciesAddition>,
+  ) => void;
   reaction?: Reaction;
   family: Family;
 };
@@ -250,8 +265,31 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
     useState<ReactionConfiguration>(reactionConfigurations.NONE);
 
   const { preferences } = useUserPreferences();
-  const rateUnits = rateUnitsFor(preferences.rateUnits, modifiedReaction?.type);
   const { activationParameter } = preferences;
+  const rateUnits = rateUnitsFor(preferences.rateUnits, modifiedReaction?.type);
+  const [phaseSpeciesAdditions, setPhaseSpeciesAdditions] = useState<
+    Array<PhaseSpeciesAddition>
+  >([]);
+  const selectedPhase = family.phases
+    .filter((phase) => phase.id === modifiedReaction?.gasPhaseId)
+    .map((phase) => ({
+      ...phase,
+      speciesIds: [
+        ...new Set([
+          ...phase.speciesIds,
+          ...phaseSpeciesAdditions
+            .filter((addition) => addition.phaseId === phase.id)
+            .flatMap((addition) => addition.speciesIds),
+        ]),
+      ],
+    }))[0];
+  const availableSpecies = selectedPhase
+    ? family.species.filter((species) =>
+        selectedPhase.speciesIds.includes(species.id),
+      )
+    : family.phases.length === 0
+      ? family.species
+      : [];
 
   // The text of the equation field while the user changes it, or null when
   // the field shows the reactants and products of the rows.
@@ -261,6 +299,10 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
 
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [showAlert, setShowAlert] = useState<boolean>(false);
+  const [pendingPhaseChange, setPendingPhaseChange] = useState<{
+    phaseId: UUID;
+    missingSpeciesIds: Array<UUID>;
+  } | null>(null);
 
   const changeReactionProperties = (properties: Partial<Reaction>) => {
     setModifiedReaction({
@@ -291,10 +333,53 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
     setShowAlert(false);
   };
 
+  const changeReactionPhase = (phaseId: UUID) => {
+    changeReactionProperties({ gasPhaseId: phaseId });
+    setEquationDraft(null);
+    setEquationErrors([]);
+    setSpeciesVersion((version) => version + 1);
+  };
+
+  const confirmPhaseChange = () => {
+    if (!pendingPhaseChange) {
+      return;
+    }
+
+    setPhaseSpeciesAdditions((additions) => {
+      const existing = additions.find(
+        (addition) => addition.phaseId === pendingPhaseChange.phaseId,
+      );
+      if (!existing) {
+        return [
+          {
+            phaseId: pendingPhaseChange.phaseId,
+            speciesIds: pendingPhaseChange.missingSpeciesIds,
+          },
+        ];
+      }
+
+      return [
+        {
+          ...existing,
+          speciesIds: [
+            ...new Set([
+              ...existing.speciesIds,
+              ...pendingPhaseChange.missingSpeciesIds,
+            ]),
+          ],
+        },
+      ];
+    });
+    changeReactionPhase(pendingPhaseChange.phaseId);
+    setPendingPhaseChange(null);
+  };
+
   useLayoutEffect(() => {
     setModifiedReaction(reaction);
     setEquationDraft(null);
     setEquationErrors([]);
+    setPendingPhaseChange(null);
+    setPhaseSpeciesAdditions([]);
     const attributes = getReactionAttributes(reaction?.type);
     setDefaultAttributes(attributes);
     const configuration = getReactionConfiguration(reaction?.type);
@@ -332,12 +417,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
         break;
     }
 
-    // Clears the gas phase / gas phase species selection when the current
-    // reaction type no longer uses it, so a stale reference isn't carried
-    // silently into a type that doesn't support it.
-    updatedReactionProperties.gasPhaseId = currentConfiguration.hasGasPhase
-      ? modifiedReaction?.gasPhaseId
-      : undefined;
+    // Clears gas-phase species when the reaction type no longer uses them.
     updatedReactionProperties.gasPhaseSpeciesId =
       currentConfiguration.hasGasPhaseSpecies
         ? modifiedReaction?.gasPhaseSpeciesId
@@ -376,7 +456,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
     if (productBranches.length > 0) {
       const parsed = parseBranchedEquation(
         text,
-        family.species,
+        availableSpecies,
         productBranches,
       );
       errors = [...parsed.errors];
@@ -395,7 +475,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
         seen.add(product.speciesId);
       }
     } else {
-      const parsed = parseEquation(text, family.species);
+      const parsed = parseEquation(text, availableSpecies);
       errors = [...parsed.errors];
       newReactants = parsed.reactants;
       newProducts = parsed.products.map(withDefaultBranch);
@@ -416,7 +496,26 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
     checkCount(currentConfiguration.reactantCount, newReactants, "reactant");
     checkCount(currentConfiguration.productCount, newProducts, "product");
 
-    return { reactants: newReactants, products: newProducts, errors };
+    const phaseErrors = errors.map((error) => {
+      const match = /^Unknown species: (.*?)(?: \(did you mean .*\?\))?$/.exec(
+        error,
+      );
+      if (!selectedPhase || !match) {
+        return error;
+      }
+      const knownSpecies = family.species.find(
+        (species) => species.name.toLowerCase() === match[1].toLowerCase(),
+      );
+      return knownSpecies
+        ? `Species ${knownSpecies.name} is not in the selected gas phase`
+        : error;
+    });
+
+    return {
+      reactants: newReactants,
+      products: newProducts,
+      errors: phaseErrors,
+    };
   };
 
   // Applies the equation field to the rows. With errors, the rows do not
@@ -441,6 +540,12 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
   const handleUpdateReaction = () => {
     if (!modifiedReaction) {
       setErrorMessage("Reaction is undefined");
+      setShowAlert(true);
+      return;
+    }
+
+    if (family.phases.length > 0 && !selectedPhase) {
+      setErrorMessage("Select a gas phase for this reaction");
       setShowAlert(true);
       return;
     }
@@ -495,6 +600,17 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
     }
 
     if (
+      selectedPhase &&
+      [...reactionToSave.reactants, ...reactionToSave.products].some(
+        (entry) => !selectedPhase.speciesIds.includes(entry.speciesId),
+      )
+    ) {
+      setErrorMessage("All reactants and products must belong to the selected gas phase");
+      setShowAlert(true);
+      return;
+    }
+
+    if (
       currentConfiguration.hasGasPhaseSpecies &&
       !reactionToSave.gasPhaseSpeciesId
     ) {
@@ -503,7 +619,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
       return;
     }
 
-    onUpdate(reactionToSave);
+    onUpdate(reactionToSave, phaseSpeciesAdditions);
     onClose();
   };
 
@@ -516,7 +632,9 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
   // The lists of species under the equation field: the reactants, and the
   // products of each branch, or all products.
   const speciesLists: Array<
-    Omit<SpeciesRowsProps, "family" | "version"> & { key: string }
+    Omit<SpeciesRowsProps, "family" | "version" | "availableSpecies"> & {
+      key: string;
+    }
   > = [];
   if (currentConfiguration.reactantCount !== ReactionSpeciesCount.NONE) {
     speciesLists.push({
@@ -819,35 +937,62 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
               });
             }}
           />
-          {(currentConfiguration.hasGasPhase ||
-            currentConfiguration.hasGasPhaseSpecies) && (
+          {family.phases.length > 0 && (
+            <TextField
+              select
+              size="small"
+              fullWidth
+              data-testid="reaction-gas-phase-select"
+              required
+              label="Gas Phase"
+              value={modifiedReaction?.gasPhaseId ?? ""}
+              helperText="Reactants and products must belong to this gas phase."
+              onChange={(event) => {
+                const phaseId = event.target.value as UUID;
+                const phase = family.phases.find(
+                  (option) => option.id === phaseId,
+                );
+                if (!phase) {
+                  return;
+                }
+                const targetSpecies = new Set([
+                  ...phase.speciesIds,
+                  ...phaseSpeciesAdditions
+                    .filter((addition) => addition.phaseId === phase.id)
+                    .flatMap((addition) => addition.speciesIds),
+                ]);
+                const reactionSpecies = new Set([
+                  ...(modifiedReaction?.reactants ?? []).map(
+                    (entry) => entry.speciesId,
+                  ),
+                  ...(modifiedReaction?.products ?? []).map(
+                    (entry) => entry.speciesId,
+                  ),
+                ]);
+                const missingSpeciesIds = [...reactionSpecies].filter(
+                  (speciesId) => !targetSpecies.has(speciesId),
+                );
+
+                if (missingSpeciesIds.length > 0) {
+                  setPendingPhaseChange({ phaseId, missingSpeciesIds });
+                  return;
+                }
+
+                setPhaseSpeciesAdditions((additions) =>
+                  additions.filter((addition) => addition.phaseId === phaseId),
+                );
+                changeReactionPhase(phaseId);
+              }}
+            >
+              {family.phases.map((phase) => (
+                <MenuItem key={phase.id} value={phase.id}>
+                  {phase.name || "<No Name>"}
+                </MenuItem>
+              ))}
+            </TextField>
+          )}
+          {currentConfiguration.hasGasPhaseSpecies && (
             <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5 }}>
-              {currentConfiguration.hasGasPhase && (
-                <TextField
-                  select
-                  size="small"
-                  label="Gas Phase"
-                  sx={{ flex: "1 1 14em" }}
-                  value={modifiedReaction?.gasPhaseId ?? "None"}
-                  onChange={(event) => {
-                    const phaseId = event.target.value;
-                    changeReactionProperties({
-                      gasPhaseId:
-                        phaseId === "None" ? undefined : (phaseId as UUID),
-                    });
-                  }}
-                >
-                  <MenuItem value="None">None</MenuItem>
-                  {family.phases.map((phase) => (
-                    <MenuItem
-                      key={`${phase.id}-gas-phase-menuitem`}
-                      value={phase.id}
-                    >
-                      {phase.name || "<No Name>"}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              )}
               {currentConfiguration.hasGasPhaseSpecies && (
                 <Box sx={{ flex: "1 1 14em" }}>
                   <SingleSpeciesSelect
@@ -912,6 +1057,7 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
                   key={key}
                   {...list}
                   family={family}
+                  availableSpecies={availableSpecies}
                   version={speciesVersion}
                 />
               ))}
@@ -973,6 +1119,42 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
           </Box>
         </Box>
       </Modal>
+      <Dialog
+        open={pendingPhaseChange !== null}
+        onClose={() => setPendingPhaseChange(null)}
+        aria-labelledby="phase-change-dialog-title"
+      >
+        <DialogTitle id="phase-change-dialog-title">
+          Add reaction species to phase?
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {pendingPhaseChange &&
+              `The selected gas phase does not contain ${pendingPhaseChange.missingSpeciesIds
+                .map(
+                  (speciesId) =>
+                    family.species.find((species) => species.id === speciesId)
+                      ?.name ?? "<No Name>",
+                )
+                .join(", ")}. Add ${pendingPhaseChange.missingSpeciesIds.length === 1 ? "this species" : "these species"} to the phase to change the reaction phase?`}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setPendingPhaseChange(null)}
+            data-testid="cancel-phase-change"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={confirmPhaseChange}
+            variant="contained"
+            data-testid="add-reaction-species-to-phase"
+          >
+            Add species and change phase
+          </Button>
+        </DialogActions>
+      </Dialog>
       <Snackbar
         open={showAlert}
         autoHideDuration={5000}

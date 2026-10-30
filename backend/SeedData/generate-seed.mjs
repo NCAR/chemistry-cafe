@@ -169,7 +169,7 @@ function reactionToSeed(r, index) {
     reactants,
     products,
   };
-  if (r["gas phase"]) seed.gasPhase = r["gas phase"];
+  seed.gasPhase = r["gas phase"] ?? "gas";
   if (r["gas-phase species"]) seed.gasPhaseSpecies = componentName(r["gas-phase species"]);
   if (Object.keys(params).length > 0) seed[paramConfig.seedField] = params;
   return seed;

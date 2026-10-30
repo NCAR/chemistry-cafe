@@ -54,7 +54,6 @@ public class Reaction
     public ICollection<Reactant> Reactants { get; set; } = new List<Reactant>();
     public ICollection<Product> Products { get; set; } = new List<Product>();
 
-    // Phase information
     [ForeignKey("Phases")]
     public Guid? GasPhaseId { get; set; }
     public Phase? GasPhase { get; set; }

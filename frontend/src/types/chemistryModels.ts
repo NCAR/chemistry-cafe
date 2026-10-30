@@ -82,7 +82,7 @@ export type Reaction = {
   /** Type of the reaction. This determines what other properties the reaction should have */
   type: ReactionTypeName;
 
-  /** Optional id for the gas phase. Required in all reactions */
+  /** ID for the gas phase in which the reaction occurs */
   gasPhaseId?: UUID;
 
   /** Optional id for the gas phase species. Required in certain reactions */
@@ -319,7 +319,6 @@ export enum ReactionSpeciesCount {
 export type ReactionConfiguration = {
   reactantCount: ReactionSpeciesCount;
   productCount: ReactionSpeciesCount;
-  hasGasPhase: boolean;
   hasGasPhaseSpecies: boolean;
   branches?: Array<string>;
 };
@@ -334,75 +333,63 @@ export const reactionConfigurations: {
   NONE: {
     reactantCount: ReactionSpeciesCount.NONE,
     productCount: ReactionSpeciesCount.NONE,
-    hasGasPhase: false,
     hasGasPhaseSpecies: false,
   },
   ARRHENIUS: {
     reactantCount: ReactionSpeciesCount.MANY,
     productCount: ReactionSpeciesCount.MANY,
-    hasGasPhase: false,
     hasGasPhaseSpecies: false,
   },
   BRANCHED_NO_RO2: {
     reactantCount: ReactionSpeciesCount.MANY,
     productCount: ReactionSpeciesCount.MANY,
-    hasGasPhase: true,
     hasGasPhaseSpecies: false,
     branches: ["alkoxy", "nitrate"],
   },
   EMISSION: {
     reactantCount: ReactionSpeciesCount.NONE,
     productCount: ReactionSpeciesCount.ONE,
-    hasGasPhase: true,
     hasGasPhaseSpecies: false,
   },
   FIRST_ORDER_LOSS: {
     reactantCount: ReactionSpeciesCount.ONE,
     productCount: ReactionSpeciesCount.NONE,
-    hasGasPhase: true,
     hasGasPhaseSpecies: false,
   },
   PHOTOLYSIS: {
     reactantCount: ReactionSpeciesCount.ONE,
     productCount: ReactionSpeciesCount.MANY,
-    hasGasPhase: true,
     hasGasPhaseSpecies: false,
   },
   SURFACE: {
     reactantCount: ReactionSpeciesCount.NONE,
     productCount: ReactionSpeciesCount.MANY,
-    hasGasPhase: true,
     hasGasPhaseSpecies: true,
     branches: ["gas-phase"],
   },
   TAYLOR_SERIES: {
     reactantCount: ReactionSpeciesCount.MANY,
     productCount: ReactionSpeciesCount.MANY,
-    hasGasPhase: true,
     hasGasPhaseSpecies: false,
   },
   TERNARY_CHEMICAL_ACTIVATION: {
     reactantCount: ReactionSpeciesCount.MANY,
     productCount: ReactionSpeciesCount.MANY,
-    hasGasPhase: true,
     hasGasPhaseSpecies: false,
   },
   TROE: {
     reactantCount: ReactionSpeciesCount.MANY,
     productCount: ReactionSpeciesCount.MANY,
-    hasGasPhase: true,
     hasGasPhaseSpecies: false,
   },
   TUNNELING: {
     reactantCount: ReactionSpeciesCount.MANY,
     productCount: ReactionSpeciesCount.MANY,
-    hasGasPhase: true,
     hasGasPhaseSpecies: false,
   },
   USER_DEFINED: {
     reactantCount: ReactionSpeciesCount.MANY,
     productCount: ReactionSpeciesCount.MANY,
-    hasGasPhase: true,
     hasGasPhaseSpecies: false,
   },
 });

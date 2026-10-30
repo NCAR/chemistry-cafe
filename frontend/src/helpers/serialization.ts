@@ -10,6 +10,50 @@ import JSZip from "jszip";
 
 const supportedV1Versions = ["1.0.0"];
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const validatePhaseSpecies = (parsed: unknown): void => {
+  if (!isRecord(parsed)) {
+    return;
+  }
+
+  const speciesNames = new Set(
+    Array.isArray(parsed.species)
+      ? parsed.species.flatMap((species) =>
+          isRecord(species) && typeof species.name === "string"
+            ? [species.name]
+            : [],
+        )
+      : [],
+  );
+
+  if (!Array.isArray(parsed.phases)) {
+    return;
+  }
+
+  for (const phase of parsed.phases) {
+    if (!isRecord(phase) || !Array.isArray(phase.species)) {
+      continue;
+    }
+
+    const phaseName = typeof phase.name === "string" ? phase.name : "";
+    for (const member of phase.species) {
+      const speciesName =
+        typeof member === "string"
+          ? member
+          : isRecord(member) && typeof member.name === "string"
+            ? member.name
+            : undefined;
+      if (speciesName !== undefined && !speciesNames.has(speciesName)) {
+        throw new Error(
+          `Unknown species name '${speciesName}' found in '${phaseName}' phase`,
+        );
+      }
+    }
+  }
+};
+
 /**
  * Converts a given mechanism to a serialized JSON string which uses the V1 schema
  * @param mechanism Mechanism to serialize
@@ -40,6 +84,7 @@ export const serializeMechanismYAML = (
 export const deserializeV1Mechanism = async (
   fileText: string,
 ): Promise<Family | null> => {
+  validatePhaseSpecies(YAML.parse(fileText));
   // The musica parser validates the file and accepts JSON or YAML.
   await initModule();
   const parsed = mechanismConfiguration.parseMechanismFromString(fileText) as {

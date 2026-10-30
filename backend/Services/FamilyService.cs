@@ -393,6 +393,8 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         HashSet<Guid> speciesIds = family.Species.Select(s => s.Id).ToHashSet();
         HashSet<Guid> reactionIds = family.Reactions.Select(r => r.Id).ToHashSet();
         HashSet<Guid> phaseIds = family.Phases.Select(p => p.Id).ToHashSet();
+        Dictionary<Guid, HashSet<Guid>> speciesByPhase = family.Phases
+            .ToDictionary(p => p.Id, p => p.SpeciesIds.ToHashSet());
 
         List<Guid> missing = new();
 
@@ -426,6 +428,20 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             if (reaction.GasPhaseId is Guid gasPhase && !phaseIds.Contains(gasPhase))
             {
                 missing.Add(gasPhase);
+            }
+            else if (reaction.GasPhaseId is Guid reactionGasPhase &&
+                speciesByPhase.TryGetValue(reactionGasPhase, out HashSet<Guid>? gasPhaseSpecies))
+            {
+                missing.AddRange(reaction.Reactants
+                    .Select(r => r.SpeciesId)
+                    .Where(id => !gasPhaseSpecies.Contains(id)));
+                missing.AddRange(reaction.Products
+                    .Select(p => p.SpeciesId)
+                    .Where(id => !gasPhaseSpecies.Contains(id)));
+            }
+            if (reaction.AerosolPhaseId is Guid aerosolPhase && !phaseIds.Contains(aerosolPhase))
+            {
+                missing.Add(aerosolPhase);
             }
         }
 

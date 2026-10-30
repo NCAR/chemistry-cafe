@@ -10,6 +10,7 @@ type ConfirmActionModalProps = {
   message: string;
   subtitle: string;
   confirmColor?: "primary" | "secondary" | "warning" | "error";
+  confirmLabel?: string;
 };
 
 export const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({
@@ -19,6 +20,7 @@ export const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({
   message,
   subtitle,
   confirmColor,
+  confirmLabel = "Confirm",
 }) => {
   return (
     <Modal open={open} onClose={onClose}>
@@ -66,7 +68,7 @@ export const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({
             variant="contained"
             onClick={onAction}
           >
-            Confirm
+            {confirmLabel}
           </Button>
           <Button
             sx={{
