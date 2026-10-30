@@ -58,8 +58,6 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
               ...reaction.reactants.map((entry) => entry.speciesId),
               ...reaction.products.map((entry) => entry.speciesId),
               reaction.gasPhaseSpeciesId,
-              reaction.aerosolPhaseSpeciesId,
-              reaction.aerosolPhaseWaterId,
             ].some(
               (speciesId) =>
                 speciesId !== undefined && removedSpeciesIds.has(speciesId),
@@ -143,17 +141,13 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
       ...family,
       phases: family.phases.filter((existing) => existing.id !== phase.id),
       reactions: family.reactions.map((reaction) =>
-        reaction.gasPhaseId === phase.id || reaction.aerosolPhaseId === phase.id
+        reaction.gasPhaseId === phase.id
           ? {
               ...reaction,
               gasPhaseId:
                 reaction.gasPhaseId === phase.id
                   ? undefined
                   : reaction.gasPhaseId,
-              aerosolPhaseId:
-                reaction.aerosolPhaseId === phase.id
-                  ? undefined
-                  : reaction.aerosolPhaseId,
             }
           : reaction,
       ),
@@ -173,7 +167,7 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
 
     const phaseIsUsedByReaction = family.reactions.some(
       (reaction) =>
-        reaction.gasPhaseId === id || reaction.aerosolPhaseId === id,
+        reaction.gasPhaseId === id,
     );
     if (phaseIsUsedByReaction) {
       setPendingPhaseDelete(phase);
@@ -186,8 +180,7 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
   const pendingPhaseReactionCount = pendingPhaseDelete
     ? family.reactions.filter(
         (reaction) =>
-          reaction.gasPhaseId === pendingPhaseDelete.id ||
-          reaction.aerosolPhaseId === pendingPhaseDelete.id,
+          reaction.gasPhaseId === pendingPhaseDelete.id,
       ).length
     : 0;
 
