@@ -10,12 +10,11 @@ import {
   Typography,
 } from "@mui/material";
 import { GridActionsCellItem } from "@mui/x-data-grid";
+import AddIcon from "@mui/icons-material/Add";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EditNoteIcon from "@mui/icons-material/EditNote";
 import DeleteIcon from '@mui/icons-material/Delete';
-import { SelectSpeciesButton, bySpeciesName } from "./SelectSpeciesButton";
-import { SelectReactionButton } from "./SelectReactionButton";
-import { SelectPhaseButton } from "./SelectPhaseButton";
+import { bySpeciesName } from "./SelectSpeciesButton";
 import { SpeciesTable } from "./familyEditor/SpeciesTable";
 import { ReactionsTable } from "./familyEditor/ReactionsTable";
 import { PhaseTable } from "./familyEditor/PhaseTable";
@@ -270,11 +269,15 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
               />,
             ]}
             customToolbarActions={
-              <SelectSpeciesButton
+              <Button
                 aria-label="select-mechanism-species"
-                text="Add Species"
-                onSelect={() => setSpeciesOpen(true)}
-              />
+                onClick={() => setSpeciesOpen(true)}
+                startIcon={<AddIcon />}
+                color="primary"
+                sx={{ alignSelf: "flex-start" }}
+              >
+                <Typography variant="caption">Add Species</Typography>
+            </Button>
             }
           />
           <MechanismSearchModal
@@ -313,11 +316,15 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
               />,
             ]}
             customToolbarActions={
-              <SelectReactionButton
+              <Button
                 aria-label="select-mechanism-reactions"
-                text="Add Reaction"
-                onSelect={() => setReactionsOpen(true)}
-              />
+                onClick={() => setReactionsOpen(true)}
+                startIcon={<AddIcon />}
+                color="primary"
+                sx={{ alignSelf: "flex-start" }}
+              >
+                <Typography variant="caption">Add Reaction</Typography>
+            </Button>
             }
           />
           <MechanismSearchModal
@@ -358,11 +365,15 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
               />,
             ]}
             customToolbarActions={
-              <SelectPhaseButton
+              <Button
                 aria-label="select-mechanism-phases"
-                text="Add Phase"
-                onSelect={() => setPhasesOpen(true)}
-              />
+                onClick={() => setPhasesOpen(true)}
+                startIcon={<AddIcon />}
+                color="primary"
+                sx={{ alignSelf: "flex-start" }}
+              >
+                <Typography variant="caption">Add Phase</Typography>
+            </Button>
             }
           />
           <MechanismSearchModal
