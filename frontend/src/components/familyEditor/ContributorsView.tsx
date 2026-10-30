@@ -34,7 +34,6 @@ import { deleteFamilyContributor } from "../../API/API_DeleteMethods";
 
 export const ContributorsView: React.FC<ViewProps> = ({
   family,
-  updateFamily,
 }) => {
   const { user } = useAuth();
   const [contributors, setContributors] = useState<Array<APIFamilyContributor>>(
@@ -117,15 +116,9 @@ export const ContributorsView: React.FC<ViewProps> = ({
         return [...filtered, added];
       });
 
-      // Update parent family contributorIds
-      if (updateFamily) {
-        const currentIds = family.contributorIds ?? [];
-        if (!currentIds.includes(added.userId)) {
-          updateFamily({
-            ...family,
-            contributorIds: [...currentIds, added.userId],
-          });
-        }
+      // Update parent family contributorIds in memory without marking family as modified
+      if (family.contributorIds && !family.contributorIds.includes(added.userId)) {
+        family.contributorIds.push(added.userId);
       }
 
       setSearchEmail("");
@@ -177,12 +170,11 @@ export const ContributorsView: React.FC<ViewProps> = ({
       await deleteFamilyContributor(family.id, contributor.userId);
       setContributors((prev) => prev.filter((c) => c.userId !== contributor.userId));
 
-      if (updateFamily) {
-        const currentIds = family.contributorIds ?? [];
-        updateFamily({
-          ...family,
-          contributorIds: currentIds.filter((id) => id !== contributor.userId),
-        });
+      if (family.contributorIds) {
+        const idx = family.contributorIds.indexOf(contributor.userId);
+        if (idx !== -1) {
+          family.contributorIds.splice(idx, 1);
+        }
       }
 
       setSuccessMessage("Contributor removed successfully.");
@@ -312,88 +304,122 @@ export const ContributorsView: React.FC<ViewProps> = ({
                 </TableRow>
               </TableHead>
               <TableBody>
-                {family.owner && (
-                  <TableRow
-                    key={`owner-${family.owner.id || "owner"}`}
-                    data-testid="contributor-row-owner"
-                  >
-                    <TableCell>
-                      {family.owner.username ||
-                        (family.owner.firstName || family.owner.lastName
-                          ? `${family.owner.firstName ?? ""} ${family.owner.lastName ?? ""}`.trim()
-                          : "Owner")}
-                    </TableCell>
-                    <TableCell>
-                      {family.owner.email || "—"}
-                    </TableCell>
-                    <TableCell>
-                      <Chip label="Owner" size="small" color="primary" />
-                    </TableCell>
-                    {isOwnerOrAdmin && <TableCell align="right">—</TableCell>}
-                  </TableRow>
-                )}
-
-                {contributors.map((contrib) => (
-                  <TableRow
-                    key={contrib.userId}
-                    data-testid={`contributor-row-${contrib.userId}`}
-                  >
-                    <TableCell>
-                      {contrib.username ||
-                        (contrib.firstName || contrib.lastName
-                          ? `${contrib.firstName ?? ""} ${contrib.lastName ?? ""}`.trim()
-                          : "Unknown User")}
-                    </TableCell>
-                    <TableCell>{contrib.email || "—"}</TableCell>
-                    <TableCell>
-                      {isOwnerOrAdmin ? (
-                        <FormControl size="small" variant="standard">
-                          <Select
-                            value={contrib.role}
-                            onChange={(e) =>
-                              handleRoleChange(
-                                contrib.userId,
-                                e.target.value as ContributorRole,
-                              )
-                            }
-                            aria-label={`Change role for ${contrib.email || contrib.username}`}
-                            data-testid={`role-select-${contrib.userId}`}
-                          >
-                            <MenuItem value="Editor">Editor</MenuItem>
-                            <MenuItem value="Viewer">Viewer</MenuItem>
-                          </Select>
-                        </FormControl>
-                      ) : (
-                        <Chip
-                          label={contrib.role}
-                          size="small"
-                          variant="outlined"
-                          data-testid={`role-badge-${contrib.userId}`}
-                        />
-                      )}
-                    </TableCell>
-                    {isOwnerOrAdmin && (
-                      <TableCell align="right">
-                        <Tooltip title="Remove contributor">
-                          <IconButton
-                            size="small"
-                            color="error"
-                            onClick={() => handleRemoveContributor(contrib)}
-                            aria-label={`Remove contributor ${contrib.email || contrib.username}`}
-                            data-testid={`remove-contributor-${contrib.userId}`}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
+                {/* Fallback owner row if owner is not present in contributors list */}
+                {family.owner &&
+                  !contributors.some(
+                    (c) => c.role === "Owner" || c.userId === family.owner?.id,
+                  ) && (
+                    <TableRow
+                      key={`owner-${family.owner.id || "owner"}`}
+                      data-testid="contributor-row-owner"
+                    >
+                      <TableCell>
+                        {family.owner.username ||
+                          (family.owner.firstName || family.owner.lastName
+                            ? `${family.owner.firstName ?? ""} ${family.owner.lastName ?? ""}`.trim()
+                            : "Owner")}
                       </TableCell>
-                    )}
-                  </TableRow>
-                ))}
+                      <TableCell>
+                        {family.owner.email ||
+                          (user?.id === family.owner.id ? user?.email : "") ||
+                          "—"}
+                      </TableCell>
+                      <TableCell>
+                        <Chip label="Owner" size="small" color="primary" />
+                      </TableCell>
+                      {isOwnerOrAdmin && <TableCell align="right">—</TableCell>}
+                    </TableRow>
+                  )}
+
+                {contributors.map((contrib) => {
+                  const isOwnerItem =
+                    contrib.role === "Owner" || contrib.userId === family.owner?.id;
+
+                  if (isOwnerItem) {
+                    return (
+                      <TableRow
+                        key={`owner-${contrib.userId}`}
+                        data-testid="contributor-row-owner"
+                      >
+                        <TableCell>
+                          {contrib.username ||
+                            (contrib.firstName || contrib.lastName
+                              ? `${contrib.firstName ?? ""} ${contrib.lastName ?? ""}`.trim()
+                              : "Owner")}
+                        </TableCell>
+                        <TableCell>{contrib.email || "—"}</TableCell>
+                        <TableCell>
+                          <Chip label="Owner" size="small" color="primary" />
+                        </TableCell>
+                        {isOwnerOrAdmin && <TableCell align="right">—</TableCell>}
+                      </TableRow>
+                    );
+                  }
+
+                  return (
+                    <TableRow
+                      key={contrib.userId}
+                      data-testid={`contributor-row-${contrib.userId}`}
+                    >
+                      <TableCell>
+                        {contrib.username ||
+                          (contrib.firstName || contrib.lastName
+                            ? `${contrib.firstName ?? ""} ${contrib.lastName ?? ""}`.trim()
+                            : "Unknown User")}
+                      </TableCell>
+                      <TableCell>{contrib.email || "—"}</TableCell>
+                      <TableCell>
+                        {isOwnerOrAdmin ? (
+                          <FormControl size="small" variant="standard">
+                            <Select
+                              value={contrib.role}
+                              onChange={(e) =>
+                                handleRoleChange(
+                                  contrib.userId,
+                                  e.target.value as ContributorRole,
+                                )
+                              }
+                              aria-label={`Change role for ${contrib.email || contrib.username}`}
+                              data-testid={`role-select-${contrib.userId}`}
+                            >
+                              <MenuItem value="Editor">Editor</MenuItem>
+                              <MenuItem value="Viewer">Viewer</MenuItem>
+                            </Select>
+                          </FormControl>
+                        ) : (
+                          <Chip
+                            label={contrib.role}
+                            size="small"
+                            variant="outlined"
+                            data-testid={`role-badge-${contrib.userId}`}
+                          />
+                        )}
+                      </TableCell>
+                      {isOwnerOrAdmin && (
+                        <TableCell align="right">
+                          <Tooltip title="Remove contributor">
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => handleRemoveContributor(contrib)}
+                              aria-label={`Remove contributor ${contrib.email || contrib.username}`}
+                              data-testid={`remove-contributor-${contrib.userId}`}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </TableContainer>
 
-          {contributors.length === 0 && (
+          {contributors.filter(
+            (c) => c.role !== "Owner" && c.userId !== family.owner?.id,
+          ).length === 0 && (
             <Typography variant="body2" color="textSecondary" sx={{ mt: 1.5 }}>
               No contributors yet.
               {isOwnerOrAdmin

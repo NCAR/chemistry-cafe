@@ -144,6 +144,13 @@ const FamilyPage = () => {
                       return element;
                     });
                   });
+                  setSelectedFamilyId(databaseFamily.id);
+                  setDataView(
+                    getDataViewComponent(
+                      DataViewSelection.GeneralInfo,
+                      databaseFamily,
+                    ),
+                  );
                 })
                 .catch((e) => {
                   console.error(e);

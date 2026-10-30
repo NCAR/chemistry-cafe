@@ -315,6 +315,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
 
         bool isOwner = existingFamily.OwnerId == userId;
         bool isEditor = existingFamily.Contributors.Any(c => c.UserId == userId && c.Role == ContributorRole.Editor);
+        bool isAdmin = false;
         if (!isOwner && !isEditor)
         {
             var loggedInUser = await _userService.GetUserByIdAsync(userId);
@@ -322,6 +323,12 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             {
                 return QueryResult.NoAccess;
             }
+            isAdmin = true;
+        }
+        else if (!isOwner)
+        {
+            var loggedInUser = await _userService.GetUserByIdAsync(userId);
+            isAdmin = loggedInUser?.Role == Role.Admin;
         }
 
         if (HasDuplicateChildIds(family))
@@ -334,10 +341,19 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             return QueryResult.ValidationError;
         }
 
+        // Only the owner or an admin can change family visibility (IsPublic)
+        if (existingFamily.IsPublic != family.IsPublic && !isOwner && !isAdmin)
+        {
+            return QueryResult.NoAccess;
+        }
+
         // Update the easy fields
         existingFamily.Name = family.Name;
         existingFamily.Description = family.Description;
-        existingFamily.IsPublic = family.IsPublic;
+        if (isOwner || isAdmin)
+        {
+            existingFamily.IsPublic = family.IsPublic;
+        }
 
         // reconcile all of the changes in all child objects
         TrackChangesToFamily(family, existingFamily);
@@ -857,7 +873,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
     }
 
     /// <summary>
-    /// Gets all contributors for a specific family. Caller must be the family owner, an admin, a contributor, or the family must be public.
+    /// Gets all contributors for a specific family. Caller must be the family owner, an admin, or a contributor.
     /// </summary>
     public async Task<(QueryResult, IEnumerable<FamilyContributorDto>?)> GetContributorsAsync(Guid familyId, string nameIdentifier)
     {
@@ -883,17 +899,33 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             return (QueryResult.NotFound, null);
         }
 
+        var contributors = await context.FamilyContributors
+            .Include(c => c.User)
+            .Where(c => c.FamilyId == familyId)
+            .ToListAsync();
+
         bool canView = family.OwnerId == userId
             || loggedInUser.Role == Role.Admin
-            || family.Contributors.Any(c => c.UserId == userId)
-            || family.IsPublic;
+            || contributors.Any(c => c.UserId == userId);
 
         if (!canView)
         {
             return (QueryResult.NoAccess, null);
         }
 
-        var dtos = family.Contributors.Select(c => c.ToDto()).ToList();
+        var dtos = new List<FamilyContributorDto>
+        {
+            new FamilyContributorDto
+            {
+                UserId = family.Owner.Id,
+                Role = ContributorRole.Owner,
+                Email = family.Owner.Email,
+                Username = family.Owner.Username,
+                FirstName = family.Owner.FirstName,
+                LastName = family.Owner.LastName,
+            }
+        };
+        dtos.AddRange(contributors.Select(c => c.ToDto()));
         return (QueryResult.Success, dtos);
     }
 
@@ -940,6 +972,11 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         else if (!string.IsNullOrWhiteSpace(targetEmail))
         {
             targetUser = await context.Users.FirstOrDefaultAsync(u => u.Email == targetEmail);
+        }
+
+        if (role == ContributorRole.Owner)
+        {
+            return (QueryResult.ValidationError, null);
         }
 
         if (targetUser == null)
@@ -1006,6 +1043,11 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             {
                 return QueryResult.NoAccess;
             }
+        }
+
+        if (targetUserId.HasValue && targetUserId.Value == family.OwnerId)
+        {
+            return QueryResult.ValidationError;
         }
 
         FamilyContributor? contributor = null;

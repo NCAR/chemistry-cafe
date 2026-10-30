@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using ChemistryCafeAPI.Controllers;
@@ -598,6 +598,48 @@ namespace ChemistryCafeAPI.Tests
             await userService.DeleteUserAsync(userPrev.Id, userPrev.Id.ToString());
         }
 
+
+        [TestMethod]
+        public async Task MergeUsers_TransfersContributorRecords()
+        {
+            var userService = new UserService(ctx);
+            var familyService = new FamilyService(ctx, userService);
+
+            var thirdUser = await userService.SignInOrcid("third-orcid-1", "third@example.com");
+            var destUser = await userService.SignInOrcid("dest-orcid-1", "dest@example.com");
+            var srcUser = await userService.SignInOrcid("src-orcid-1", "src@example.com");
+
+            var family = new FamilyDto
+            {
+                Name = "Shared Family",
+                Description = "A family to contribute to"
+            };
+            var (createCode, createdFamily) = await familyService.CreateFamilyAsync(family, thirdUser);
+            Assert.AreEqual(QueryResult.Success, createCode);
+            Assert.IsNotNull(createdFamily);
+
+            // Add srcUser as an Editor
+            var (addCode, _) = await familyService.AddOrUpdateContributorAsync(
+                createdFamily.Entity.Id, srcUser.Id, null, ContributorRole.Editor, thirdUser.Id.ToString());
+            Assert.AreEqual(QueryResult.Success, addCode);
+
+            // Merge srcUser into destUser
+            var merged = await userService.MergeUsers(destUser, srcUser);
+            Assert.AreEqual(destUser.Id, merged.Id);
+
+            // Verify destUser is now a contributor on the family
+            var (getCode, contributors) = await familyService.GetContributorsAsync(createdFamily.Entity.Id, thirdUser.Id.ToString());
+            Assert.AreEqual(QueryResult.Success, getCode);
+            Assert.IsNotNull(contributors);
+
+            var contribList = contributors.ToList();
+            Assert.IsTrue(contribList.Any(c => c.UserId == destUser.Id && c.Role == ContributorRole.Editor));
+            Assert.IsFalse(contribList.Any(c => c.UserId == srcUser.Id));
+
+            // Clean up
+            await userService.DeleteUserAsync(thirdUser.Id, thirdUser.Id.ToString());
+            await userService.DeleteUserAsync(destUser.Id, destUser.Id.ToString());
+        }
 
         [TestMethod]
         public async Task GetCurrentUserNotExists()

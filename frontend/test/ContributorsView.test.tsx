@@ -80,7 +80,6 @@ describe("ContributorsView Component", () => {
     (getFamilyContributors as unknown as ReturnType<typeof vi.fn>).mockResolvedValue([
       {
         userId: "u-1" as any,
-        familyId: "fam-1" as any,
         role: "Editor",
         email: "colleague@example.com",
         username: "ColleagueUser",
@@ -143,7 +142,6 @@ describe("ContributorsView Component", () => {
     (getFamilyContributors as unknown as ReturnType<typeof vi.fn>).mockResolvedValue([
       {
         userId: "u-1" as any,
-        familyId: "fam-1" as any,
         role: "Editor",
         email: "colleague@example.com",
         username: "ColleagueUser",
@@ -171,7 +169,6 @@ describe("ContributorsView Component", () => {
     (getFamilyContributors as unknown as ReturnType<typeof vi.fn>).mockResolvedValue([]);
     (addFamilyContributor as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
       userId: "u-2" as any,
-      familyId: "fam-1" as any,
       role: "Editor",
       email: "newuser@example.com",
       username: "NewUser",
@@ -206,11 +203,8 @@ describe("ContributorsView Component", () => {
       expect(screen.getByText("newuser@example.com")).toBeTruthy();
     });
 
-    expect(updateFamilyMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        contributorIds: ["u-2"],
-      }),
-    );
+    // Should NOT mark the family as modified/unsaved
+    expect(updateFamilyMock).not.toHaveBeenCalled();
   });
 
   it("Shows error when adding non-existent user", async () => {
@@ -284,7 +278,6 @@ describe("ContributorsView Component", () => {
     (getFamilyContributors as unknown as ReturnType<typeof vi.fn>).mockResolvedValue([
       {
         userId: "u-1" as any,
-        familyId: "fam-1" as any,
         role: "Viewer",
         email: "removeme@example.com",
         username: "RemoveUser",
@@ -315,11 +308,8 @@ describe("ContributorsView Component", () => {
       expect(screen.queryByText("removeme@example.com")).toBeFalsy();
     });
 
-    expect(updateFamilyMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        contributorIds: [],
-      }),
-    );
+    // Should NOT mark the family as modified/unsaved
+    expect(updateFamilyMock).not.toHaveBeenCalled();
   });
 });
 

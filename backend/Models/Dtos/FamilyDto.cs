@@ -32,9 +32,6 @@ public class OwnerDto
     public Guid Id { get; set; }
     public string Username { get; set; } = null!;
     public Role Role { get; set; } = Role.None;
-    public string? Email { get; set; }
-    public string? FirstName { get; set; }
-    public string? LastName { get; set; }
 }
 
 public class FamilyContributorDto

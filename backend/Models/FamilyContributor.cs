@@ -9,7 +9,8 @@ namespace ChemistryCafeAPI.Models;
 public enum ContributorRole
 {
     Viewer = 0,
-    Editor = 1
+    Editor = 1,
+    Owner = 2
 }
 
 [Table("FamilyContributors")]

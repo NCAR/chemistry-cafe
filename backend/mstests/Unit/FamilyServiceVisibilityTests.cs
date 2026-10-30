@@ -38,6 +38,8 @@ namespace ChemistryCafeAPI.Tests
             var familyService = new FamilyService(ctx, userService);
             familyService.AddOrUpdateContributorAsync(_privateId, _contributorViewer.Id, null, ContributorRole.Viewer, _owner.Id.ToString()).Wait();
             familyService.AddOrUpdateContributorAsync(_privateId, _contributorEditor.Id, null, ContributorRole.Editor, _owner.Id.ToString()).Wait();
+            familyService.AddOrUpdateContributorAsync(_publicId, _contributorViewer.Id, null, ContributorRole.Viewer, _owner.Id.ToString()).Wait();
+            familyService.AddOrUpdateContributorAsync(_publicId, _contributorEditor.Id, null, ContributorRole.Editor, _owner.Id.ToString()).Wait();
         }
 
         [ClassCleanup]
@@ -87,6 +89,53 @@ namespace ChemistryCafeAPI.Tests
             CollectionAssert.Contains(ids, _publicId);
             Assert.AreEqual(expectPrivateVisible, ids.Contains(_privateId));
             Assert.AreEqual(expectPrivateVisible, await service.GetFamilyAsync(_privateId, user) != null);
+        }
+
+        [TestMethod]
+        [DataRow(Viewer.OtherUser, false, QueryResult.NoAccess)]
+        [DataRow(Viewer.OtherUser, true, QueryResult.NoAccess)]
+        [DataRow(Viewer.Owner, false, QueryResult.Success)]
+        [DataRow(Viewer.Owner, true, QueryResult.Success)]
+        [DataRow(Viewer.Admin, false, QueryResult.Success)]
+        [DataRow(Viewer.Admin, true, QueryResult.Success)]
+        [DataRow(Viewer.ContributorViewer, false, QueryResult.Success)]
+        [DataRow(Viewer.ContributorViewer, true, QueryResult.Success)]
+        [DataRow(Viewer.ContributorEditor, false, QueryResult.Success)]
+        [DataRow(Viewer.ContributorEditor, true, QueryResult.Success)]
+        public async Task GetContributors_ApplyVisibility(Viewer viewer, bool isPublic, QueryResult expectedResult)
+        {
+            User user = viewer switch
+            {
+                Viewer.Owner => _owner,
+                Viewer.OtherUser => _otherUser,
+                Viewer.Admin => new User { Id = Guid.NewGuid(), Username = "admin_vis", Role = Role.Admin },
+                Viewer.ContributorViewer => _contributorViewer,
+                Viewer.ContributorEditor => _contributorEditor,
+                _ => throw new ArgumentOutOfRangeException(nameof(viewer)),
+            };
+            using ChemistryDbContext ctx = DBConnection.NewContext();
+            var userService = new UserService(ctx);
+            if (viewer == Viewer.Admin)
+            {
+                ctx.Users.Add(user);
+                await ctx.SaveChangesAsync();
+            }
+            var service = new FamilyService(ctx, userService);
+            Guid targetFamilyId = isPublic ? _publicId : _privateId;
+
+            var (code, contributors) = await service.GetContributorsAsync(targetFamilyId, user.Id.ToString());
+            Assert.AreEqual(expectedResult, code);
+
+            if (expectedResult == QueryResult.Success)
+            {
+                Assert.IsNotNull(contributors);
+            }
+
+            if (viewer == Viewer.Admin)
+            {
+                ctx.Users.Remove(user);
+                await ctx.SaveChangesAsync();
+            }
         }
     }
 }

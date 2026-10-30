@@ -56,7 +56,7 @@ namespace ChemistryCafeAPI.Tests.Functional
         }
 
         [TestMethod]
-        public async Task GetFamily_IncludesOwnerDetails()
+        public async Task GetFamily_DoesNotIncludeOwnerEmail()
         {
             var owner = await CreateUserAsync(Role.None, "owner_with_email", "owner@email.com");
             var family = await CreateFamilyAsync(owner, isPublic: true);
@@ -69,7 +69,13 @@ namespace ChemistryCafeAPI.Tests.Functional
             Assert.IsNotNull(familyDto);
             Assert.IsNotNull(familyDto.Owner);
             Assert.AreEqual("owner_with_email", familyDto.Owner.Username);
-            Assert.AreEqual("owner@email.com", familyDto.Owner.Email);
+            Assert.AreEqual(owner.Id, familyDto.Owner.Id);
+
+            // Verify anonymous request to public family list does not leak owner email
+            var anonResponse = await AnonymousClient.GetAsync($"/api/families/{family.Id}");
+            Assert.AreEqual(HttpStatusCode.OK, anonResponse.StatusCode);
+            var rawJson = await anonResponse.Content.ReadAsStringAsync();
+            Assert.IsFalse(rawJson.Contains("owner@email.com"));
         }
 
         [TestMethod]
@@ -97,7 +103,7 @@ namespace ChemistryCafeAPI.Tests.Functional
         [DataRow(Viewer.Owner, false, true, HttpStatusCode.NoContent, true)]
         [DataRow(Viewer.Owner, true, false, HttpStatusCode.NoContent, false)]
         [DataRow(Viewer.Admin, false, true, HttpStatusCode.NoContent, true)]
-        [DataRow(Viewer.ContributorEditor, false, true, HttpStatusCode.NoContent, true)]
+        [DataRow(Viewer.ContributorEditor, false, true, HttpStatusCode.Forbidden, false)]
         [DataRow(Viewer.ContributorViewer, false, true, HttpStatusCode.Forbidden, false)]
         [DataRow(Viewer.OtherUser, false, true, HttpStatusCode.Forbidden, false)]
         [DataRow(Viewer.Anonymous, false, true, HttpStatusCode.Unauthorized, false)]
@@ -117,6 +123,29 @@ namespace ChemistryCafeAPI.Tests.Functional
         }
 
         [TestMethod]
+        public async Task UpdateFamily_ContributorEditor_CanUpdateFamilyContent_WhenIsPublicUnchanged()
+        {
+            var owner = await CreateUserAsync(Role.None);
+            var family = await CreateFamilyAsync(owner, isPublic: false);
+            var client = await ClientForAsync(Viewer.ContributorEditor, owner, family);
+
+            var update = new FamilyDto
+            {
+                Id = family.Id,
+                Name = "Updated By Editor",
+                Description = "Updated Desc",
+                IsPublic = false // unchanged
+            };
+            var patch = await client.PatchAsJsonAsync($"/api/families/{family.Id}", update);
+            Assert.AreEqual(HttpStatusCode.NoContent, patch.StatusCode);
+
+            var verifyClient = CreateClient(true, owner);
+            var get = await verifyClient.GetFromJsonAsync<FamilyDto>($"/api/families/{family.Id}");
+            Assert.IsNotNull(get);
+            Assert.AreEqual("Updated By Editor", get.Name);
+        }
+
+        [TestMethod]
         [DataRow(Viewer.ContributorEditor)]
         [DataRow(Viewer.ContributorViewer)]
         public async Task DeleteFamily_Contributor_ReturnsForbidden(Viewer viewer)
@@ -127,6 +156,43 @@ namespace ChemistryCafeAPI.Tests.Functional
 
             var response = await client.DeleteAsync($"/api/families/{family.Id}");
             Assert.AreEqual(HttpStatusCode.Forbidden, response.StatusCode);
+        }
+
+        [TestMethod]
+        // Private family: only Owner, Admin, Contributor (Editor/Viewer) allowed
+        [DataRow(Viewer.Owner, false, HttpStatusCode.OK)]
+        [DataRow(Viewer.Admin, false, HttpStatusCode.OK)]
+        [DataRow(Viewer.ContributorEditor, false, HttpStatusCode.OK)]
+        [DataRow(Viewer.ContributorViewer, false, HttpStatusCode.OK)]
+        [DataRow(Viewer.OtherUser, false, HttpStatusCode.Forbidden)]
+        [DataRow(Viewer.Anonymous, false, HttpStatusCode.Unauthorized)]
+        // Public family: STILL only Owner, Admin, Contributor (Editor/Viewer) allowed
+        [DataRow(Viewer.Owner, true, HttpStatusCode.OK)]
+        [DataRow(Viewer.Admin, true, HttpStatusCode.OK)]
+        [DataRow(Viewer.ContributorEditor, true, HttpStatusCode.OK)]
+        [DataRow(Viewer.ContributorViewer, true, HttpStatusCode.OK)]
+        [DataRow(Viewer.OtherUser, true, HttpStatusCode.Forbidden)]
+        [DataRow(Viewer.Anonymous, true, HttpStatusCode.Unauthorized)]
+        public async Task GetContributors_AuthorizationMatrix(
+            Viewer viewer, bool isPublic, HttpStatusCode expectedStatus)
+        {
+            var owner = await CreateUserAsync(Role.None, "owner_user", "owner@example.com");
+            var family = await CreateFamilyAsync(owner, isPublic: isPublic);
+            var contributorUser = await CreateUserAsync(Role.None, "existing_contrib", "contrib@example.com");
+            await AddContributorAsync(family.Id, contributorUser, ContributorRole.Editor);
+
+            var client = await ClientForAsync(viewer, owner, family);
+            var response = await client.GetAsync($"/api/families/{family.Id}/contributors");
+            Assert.AreEqual(expectedStatus, response.StatusCode);
+
+            if (expectedStatus == HttpStatusCode.OK)
+            {
+                var contributors = await response.Content.ReadFromJsonAsync<List<FamilyContributorDto>>();
+                Assert.IsNotNull(contributors);
+                Assert.IsTrue(contributors.Count >= 2);
+                Assert.IsTrue(contributors.Any(c => c.UserId == owner.Id && c.Role == ContributorRole.Owner));
+                Assert.IsTrue(contributors.Any(c => c.UserId == contributorUser.Id && c.Role == ContributorRole.Editor));
+            }
         }
 
         [TestMethod]
@@ -151,7 +217,7 @@ namespace ChemistryCafeAPI.Tests.Functional
         [TestMethod]
         public async Task GetContributors_Owner_ReturnsContributors()
         {
-            var owner = await CreateUserAsync(Role.None);
+            var owner = await CreateUserAsync(Role.None, "owner_user", "owner@example.com");
             var family = await CreateFamilyAsync(owner);
             var contributorUser = await CreateUserAsync(Role.None, "contrib_user", "contrib@example.com");
             await AddContributorAsync(family.Id, contributorUser, ContributorRole.Editor);
@@ -162,16 +228,20 @@ namespace ChemistryCafeAPI.Tests.Functional
 
             var contributors = await response.Content.ReadFromJsonAsync<List<FamilyContributorDto>>();
             Assert.IsNotNull(contributors);
-            Assert.AreEqual(1, contributors.Count);
-            Assert.AreEqual(contributorUser.Id, contributors[0].UserId);
-            Assert.AreEqual(ContributorRole.Editor, contributors[0].Role);
-            Assert.AreEqual("contrib@example.com", contributors[0].Email);
+            // Returns both the owner and the contributor
+            Assert.AreEqual(2, contributors.Count);
+            Assert.AreEqual(owner.Id, contributors[0].UserId);
+            Assert.AreEqual(ContributorRole.Owner, contributors[0].Role);
+            Assert.AreEqual("owner@example.com", contributors[0].Email);
+            Assert.AreEqual(contributorUser.Id, contributors[1].UserId);
+            Assert.AreEqual(ContributorRole.Editor, contributors[1].Role);
+            Assert.AreEqual("contrib@example.com", contributors[1].Email);
         }
 
         [TestMethod]
         public async Task GetContributors_Contributor_ReturnsContributors()
         {
-            var owner = await CreateUserAsync(Role.None);
+            var owner = await CreateUserAsync(Role.None, "owner_user", "owner@example.com");
             var family = await CreateFamilyAsync(owner);
             var contributorUser = await CreateUserAsync(Role.None, "contrib_user", "contrib@example.com");
             await AddContributorAsync(family.Id, contributorUser, ContributorRole.Viewer);
@@ -182,8 +252,10 @@ namespace ChemistryCafeAPI.Tests.Functional
 
             var contributors = await response.Content.ReadFromJsonAsync<List<FamilyContributorDto>>();
             Assert.IsNotNull(contributors);
-            Assert.AreEqual(1, contributors.Count);
-            Assert.AreEqual(contributorUser.Id, contributors[0].UserId);
+            Assert.AreEqual(2, contributors.Count);
+            Assert.AreEqual(owner.Id, contributors[0].UserId);
+            Assert.AreEqual(ContributorRole.Owner, contributors[0].Role);
+            Assert.AreEqual(contributorUser.Id, contributors[1].UserId);
         }
 
         [TestMethod]
@@ -341,11 +413,14 @@ namespace ChemistryCafeAPI.Tests.Functional
             var response = await client.DeleteAsync($"/api/families/{family.Id}/contributors/{contributorUser.Id}");
             Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
 
-            // Verify contributor is gone
+            // Verify contributor is gone (only owner remains)
             var getResponse = await client.GetAsync($"/api/families/{family.Id}/contributors");
             var contributors = await getResponse.Content.ReadFromJsonAsync<List<FamilyContributorDto>>();
             Assert.IsNotNull(contributors);
-            Assert.AreEqual(0, contributors.Count);
+            Assert.AreEqual(1, contributors.Count);
+            Assert.AreEqual(owner.Id, contributors[0].UserId);
+            Assert.AreEqual(ContributorRole.Owner, contributors[0].Role);
+            Assert.IsFalse(contributors.Any(c => c.UserId == contributorUser.Id));
         }
 
         [TestMethod]

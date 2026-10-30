@@ -83,11 +83,64 @@ namespace ChemistryCafeAPI.Services
             {
                 return dest;
             }
+
+            // Transfer ownership of families from src to dest
             var families = await context.Families.Where(f => f.Owner.Id == src.Id).ToListAsync();
             foreach (var family in families)
             {
                 family.Owner = dest;
+                // If dest was a contributor to a family src owned, remove the contributor record since dest is now owner
+                var existingDestContrib = await context.FamilyContributors
+                    .FirstOrDefaultAsync(fc => fc.FamilyId == family.Id && fc.UserId == dest.Id);
+                if (existingDestContrib != null)
+                {
+                    context.FamilyContributors.Remove(existingDestContrib);
+                }
             }
+
+            // Transfer contributor records where src was a contributor
+            var srcContributors = await context.FamilyContributors
+                .Include(fc => fc.Family)
+                .Where(fc => fc.UserId == src.Id)
+                .ToListAsync();
+
+            foreach (var srcContrib in srcContributors)
+            {
+                srcContrib.Family?.Contributors?.Remove(srcContrib);
+                context.FamilyContributors.Remove(srcContrib);
+
+                // If dest is already the owner of this family (either previously or transferred above), do not add contributor
+                var family = srcContrib.Family ?? await context.Families.FirstOrDefaultAsync(f => f.Id == srcContrib.FamilyId);
+                if (family != null && family.OwnerId == dest.Id)
+                {
+                    continue;
+                }
+
+                // Check if dest is already a contributor on this family
+                var destContrib = await context.FamilyContributors
+                    .FirstOrDefaultAsync(fc => fc.FamilyId == srcContrib.FamilyId && fc.UserId == dest.Id);
+
+                if (destContrib != null)
+                {
+                    // Upgrade role if src was Editor
+                    if (srcContrib.Role == ContributorRole.Editor)
+                    {
+                        destContrib.Role = ContributorRole.Editor;
+                    }
+                }
+                else
+                {
+                    var newContrib = new FamilyContributor
+                    {
+                        FamilyId = srcContrib.FamilyId,
+                        UserId = dest.Id,
+                        Role = srcContrib.Role,
+                    };
+                    context.FamilyContributors.Add(newContrib);
+                    family?.Contributors?.Add(newContrib);
+                }
+            }
+
             dest.Email ??= src.Email;
             dest.OrcidId ??= src.OrcidId;
             dest.GoogleId ??= src.GoogleId;

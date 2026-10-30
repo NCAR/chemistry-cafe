@@ -39,7 +39,7 @@ export interface APIFamily {
   mechanisms: Array<APIMechanism>;
 }
 
-export type ContributorRole = "Viewer" | "Editor";
+export type ContributorRole = "Viewer" | "Editor" | "Owner";
 
 export interface APIFamilyContributor {
   userId: UUID;
