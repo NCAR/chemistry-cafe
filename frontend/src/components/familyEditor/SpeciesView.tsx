@@ -113,14 +113,6 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
           reaction.gasPhaseSpeciesId === id
             ? undefined
             : reaction.gasPhaseSpeciesId,
-        aerosolPhaseSpeciesId:
-          reaction.aerosolPhaseSpeciesId === id
-            ? undefined
-            : reaction.aerosolPhaseSpeciesId,
-        aerosolPhaseWaterId:
-          reaction.aerosolPhaseWaterId === id
-            ? undefined
-            : reaction.aerosolPhaseWaterId,
       })),
       isModified: true,
     });

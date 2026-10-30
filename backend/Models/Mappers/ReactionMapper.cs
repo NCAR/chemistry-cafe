@@ -32,9 +32,6 @@ public static class ReactionMapper
             UserDefined = reaction.UserDefined?.ToDto(),
             GasPhaseId = reaction.GasPhaseId,
             GasPhaseSpeciesId = reaction.GasPhaseSpeciesId,
-            AerosolPhaseId = reaction.AerosolPhaseId,
-            AerosolPhaseSpeciesId = reaction.AerosolPhaseSpeciesId,
-            AerosolPhaseWaterId = reaction.AerosolPhaseWaterId,
         };
     }
 
@@ -66,9 +63,6 @@ public static class ReactionMapper
             UserDefined = reactionDto.UserDefined?.ToEntity(),
             GasPhaseId = reactionDto.GasPhaseId,
             GasPhaseSpeciesId = reactionDto.GasPhaseSpeciesId,
-            AerosolPhaseId = reactionDto.AerosolPhaseId,
-            AerosolPhaseSpeciesId = reactionDto.AerosolPhaseSpeciesId,
-            AerosolPhaseWaterId = reactionDto.AerosolPhaseWaterId,
         };
     }
 

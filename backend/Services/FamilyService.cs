@@ -413,7 +413,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         }
 
         // Reaction references. Reactants and products point at species, and the
-        // gas/aerosol fields point at species or phases.
+        // gas-phase fields point at species or phases.
         foreach (ReactionDto reaction in family.Reactions)
         {
             missing.AddRange(reaction.Reactants.Select(r => r.SpeciesId).Where(id => !speciesIds.Contains(id)));
@@ -423,21 +423,9 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             {
                 missing.Add(gasSpecies);
             }
-            if (reaction.AerosolPhaseSpeciesId is Guid aerosolSpecies && !speciesIds.Contains(aerosolSpecies))
-            {
-                missing.Add(aerosolSpecies);
-            }
-            if (reaction.AerosolPhaseWaterId is Guid aerosolWater && !speciesIds.Contains(aerosolWater))
-            {
-                missing.Add(aerosolWater);
-            }
             if (reaction.GasPhaseId is Guid gasPhase && !phaseIds.Contains(gasPhase))
             {
                 missing.Add(gasPhase);
-            }
-            if (reaction.AerosolPhaseId is Guid aerosolPhase && !phaseIds.Contains(aerosolPhase))
-            {
-                missing.Add(aerosolPhase);
             }
         }
 
@@ -516,10 +504,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             existingReaction.Name = incomingReaction.Name;
             existingReaction.Description = incomingReaction.Description;
             existingReaction.GasPhaseSpeciesId = incomingReaction.GasPhaseSpeciesId;
-            existingReaction.AerosolPhaseSpeciesId = incomingReaction.AerosolPhaseSpeciesId;
-            existingReaction.AerosolPhaseWaterId = incomingReaction.AerosolPhaseWaterId;
             existingReaction.GasPhaseId = incomingReaction.GasPhaseId;
-            existingReaction.AerosolPhaseId = incomingReaction.AerosolPhaseId;
             existingReaction.Reactants = incomingReaction.Reactants.Select(r => r.ToEntity()).ToList();
             existingReaction.Products = incomingReaction.Products.Select(p => p.ToEntity()).ToList();
 

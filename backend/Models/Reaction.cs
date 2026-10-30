@@ -62,18 +62,6 @@ public class Reaction
     [ForeignKey("Species")]
     public Guid? GasPhaseSpeciesId { get; set; }
     public Species? GasPhaseSpecies { get; set; }
-    
-    [ForeignKey("Phases")]
-    public Guid? AerosolPhaseId { get; set; }
-    public Phase? AerosolPhase { get; set; }
-    
-    [ForeignKey("Species")]
-    public Guid? AerosolPhaseSpeciesId { get; set; }
-    public Species? AerosolPhaseSpecies { get; set; }
-    
-    [ForeignKey("Species")]
-    public Guid? AerosolPhaseWaterId { get; set; }
-    public Species? AerosolPhaseWater { get; set; }
 
     // Mechanisms that reference this reaction
     [JsonIgnore]
