@@ -439,10 +439,6 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
                     .Select(p => p.SpeciesId)
                     .Where(id => !gasPhaseSpecies.Contains(id)));
             }
-            if (reaction.AerosolPhaseId is Guid aerosolPhase && !phaseIds.Contains(aerosolPhase))
-            {
-                missing.Add(aerosolPhase);
-            }
         }
 
         return missing;
