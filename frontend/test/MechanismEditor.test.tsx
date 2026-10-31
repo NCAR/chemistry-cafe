@@ -39,7 +39,6 @@ const makeSpecies = (id: Id, name: string): Species => ({
   id,
   name,
   description: null,
-  familyId: FAMILY_ID,
 });
 
 const makeReaction = (
@@ -159,9 +158,10 @@ const applyButton = () =>
 const findRow = async (text: string) =>
   (await screen.findByText(text)).closest('[role="row"]') as HTMLElement;
 
-// Opens the add dialog of a tab. Each item of the dialog has a check box.
-const openAddDialog = (buttonName: string, dialogName: string) => {
-  fireEvent.click(screen.getByRole("button", { name: buttonName }));
+// Opens the add dialog of a tab. Each item of the dialog has a check box. The
+// add button has an aria-label of its own, so the test finds it by its text.
+const openAddDialog = (buttonText: string, dialogName: string) => {
+  fireEvent.click(screen.getByText(buttonText).closest("button")!);
   return screen.getByRole("dialog", { name: dialogName });
 };
 
@@ -481,6 +481,23 @@ type TabCase = {
   picked: Id;
 };
 
+// The dialogs list the species by name, the reactions by equation, and the
+// phases by name, in alphabetical order. Numbers in the text sort by value.
+const byText = (a: string, b: string) =>
+  a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" });
+
+// The IDs of the given reactions of the family, in the order of the dialog.
+const reactionIdsByEquation = (ids: Array<Id>) =>
+  family.reactions
+    .filter((reaction) => ids.includes(reaction.id))
+    .sort((a, b) =>
+      byText(
+        reactionToString(a, family.species),
+        reactionToString(b, family.species),
+      ),
+    )
+    .map((reaction) => reaction.id);
+
 const tabCases: Array<TabCase> = [
   {
     tab: "Species",
@@ -511,8 +528,8 @@ const tabCases: Array<TabCase> = [
     removeLabel: "Remove reaction from mechanism",
     noItemsText: "No reactions available.",
     noMatchText: "No matching reactions.",
-    // The reactions are in the order of the family.
-    allIds: [TROE_ID, ARRHENIUS_ID, THIRD_ID],
+    // The reactions are in the alphabetical order of their equations.
+    allIds: reactionIdsByEquation([TROE_ID, ARRHENIUS_ID, THIRD_ID]),
     first: { id: TROE_ID, text: "Troe reaction" },
     second: { id: ARRHENIUS_ID, text: "Arrhenius reaction" },
     // Only the third reaction has HNO3 in its equation.
@@ -520,7 +537,9 @@ const tabCases: Array<TabCase> = [
     matchedId: THIRD_ID,
     afterRemove: [ARRHENIUS_ID],
     listedAfterRemove: 2,
-    pickIndex: 1,
+    // After the removal of the Troe reaction, the dialog lists the Troe
+    // reaction and the third reaction.
+    pickIndex: reactionIdsByEquation([TROE_ID, THIRD_ID]).indexOf(THIRD_ID),
     picked: THIRD_ID,
   },
   {
@@ -532,14 +551,15 @@ const tabCases: Array<TabCase> = [
     removeLabel: "Remove phase from mechanism",
     noItemsText: "No phases available.",
     noMatchText: "No matching phases.",
-    allIds: [GAS_ID, AEROSOL_ID],
+    // The phases are in the alphabetical order of their names.
+    allIds: [AEROSOL_ID, GAS_ID],
     first: { id: GAS_ID, text: "Gas" },
     second: { id: AEROSOL_ID, text: "Aerosol" },
     searchText: "aero",
     matchedId: AEROSOL_ID,
     afterRemove: [],
     listedAfterRemove: 2,
-    pickIndex: 1,
+    pickIndex: 0,
     picked: AEROSOL_ID,
   },
 ];
@@ -881,5 +901,44 @@ describe("MechanismEditor add dialogs", () => {
         .checked,
     ).toBe(true);
     expect(addButtonOf(again).textContent).toBe("Add Selected (1)");
+  });
+});
+
+describe("MechanismEditor add dialogs sort their items", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
+  it("lists species alphabetically", () => {
+    renderEditor({ ...mechanism, speciesIds: [] });
+    openTab("Species");
+
+    const dialog = openAddDialog("Add Species", "Add Species");
+
+    expect(itemLabels(dialog)).toEqual(["HNO3", "NO2", "O3", "OH"]);
+  });
+
+  it("lists reactions alphabetically by equation, not in the order of the family", () => {
+    renderEditor({ ...mechanism, reactionIds: [] });
+    openTab("Reactions");
+
+    const dialog = openAddDialog("Add Reaction", "Add Reactions");
+
+    const inFamilyOrder = family.reactions.map((reaction) =>
+      reactionToString(reaction, family.species),
+    );
+    const labels = itemLabels(dialog);
+    expect(labels).not.toEqual(inFamilyOrder);
+    expect(labels).toEqual([...inFamilyOrder].sort(byText));
+  });
+
+  it("lists phases alphabetically by name, not in the order of the family", () => {
+    renderEditor({ ...mechanism, phaseIds: [] });
+    openTab("Phases");
+
+    const dialog = openAddDialog("Add Phase", "Add Phases");
+
+    // The family has the Gas phase first and the Aerosol phase second.
+    expect(itemLabels(dialog)).toEqual(["Aerosol", "Gas"]);
   });
 });
