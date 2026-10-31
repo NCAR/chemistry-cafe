@@ -1,5 +1,5 @@
 import { useLayoutEffect, useMemo, useState } from "react";
-import { Family, Mechanism } from "../types/chemistryModels";
+import { Family, Mechanism, Phase, Reaction } from "../types/chemistryModels";
 import {
   Box,
   Button,
@@ -119,17 +119,29 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
     [family.phases, modifiedMechanism.phaseIds],
   );
 
+  // Sorts text in alphabetical order. Numbers in the text sort by value, so
+  // "P2" comes before "P10". This is the same rule as bySpeciesName.
+  const byText = (a: string, b: string) =>
+    a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" });
+
   // The choices of the add dialogs: the family items that the mechanism does
   // not contain yet. The species are in alphabetical order.
   const availableSpecies = family.species
     .filter((species) => !modifiedMechanism.speciesIds.includes(species.id))
     .sort(bySpeciesName);
-  const availableReactions = family.reactions.filter(
-    (reaction) => !modifiedMechanism.reactionIds.includes(reaction.id),
-  );
-  const availablePhases = family.phases.filter(
-    (phase) => !modifiedMechanism.phaseIds.includes(phase.id),
-  );
+  const availableReactions = family.reactions
+    .filter((reaction) => !modifiedMechanism.reactionIds.includes(reaction.id))
+    .sort((a:Reaction, b:Reaction) =>
+      byText(
+        reactionToString(a, family.species),
+        reactionToString(b, family.species),
+      ),
+    );
+  const availablePhases = family.phases
+    .filter((phase) => !modifiedMechanism.phaseIds.includes(phase.id))
+    .sort((a:Phase, b:Phase) => 
+      byText(a.name, b.name),
+    );
 
   const changeMechanismProperties = (properties: Partial<Mechanism>) => {
     setModifiedMechanism({
