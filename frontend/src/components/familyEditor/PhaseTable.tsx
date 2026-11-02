@@ -30,8 +30,6 @@ export type PhaseTableProps = {
    * double-clicked. Without it, a double-click on the cell does nothing.
    */
   onEdit?: (id: UUID) => void;
-  /** Custom components to render in the toolbar before the Columns button */
-  customToolbarActions?: ReactNode;
 };
 
 /**
@@ -45,7 +43,6 @@ export const PhaseTable = ({
   onRowUpdate,
   onAdd,
   onEdit,
-  customToolbarActions,
 }: PhaseTableProps) => {
   const { theme } = useCustomTheme();
   const apiRef = useGridApiRef();
@@ -147,7 +144,6 @@ export const PhaseTable = ({
           searchPlaceholder: "Search phases",
           visibleCount: visibleRows.length,
           totalCount: phases.length,
-          customToolbarActions: customToolbarActions,
         },
       }}
     />

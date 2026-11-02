@@ -58,8 +58,6 @@ export type SpeciesTableProps = {
   onRowUpdate?: (species: Species) => void;
   /** Shows the add button of the toolbar, and calls this when it is clicked. */
   onAdd?: () => void;
-  /** Custom components to render in the toolbar before the Columns button */
-  customToolbarActions?: ReactNode;
 };
 
 /**
@@ -71,7 +69,6 @@ export const SpeciesTable = ({
   getRowActions,
   onRowUpdate,
   onAdd,
-  customToolbarActions,
 }: SpeciesTableProps) => {
   const { theme } = useCustomTheme();
   const apiRef = useGridApiRef();
@@ -264,7 +261,6 @@ export const SpeciesTable = ({
           searchPlaceholder: "Search species",
           visibleCount: visibleRows.length,
           totalCount: species.length,
-          customToolbarActions: customToolbarActions,
         },
       }}
     />

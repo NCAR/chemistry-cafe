@@ -117,6 +117,7 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
         species={family.species}
         getRowActions={(id) => [
           <RowActionsButton
+            key={id}
             handleDeleteButtonClick={() => {
               removeSpecies(id);
             }}

@@ -270,6 +270,7 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
             species={mechanismSpecies}
             getRowActions={(id) => [
               <RemoveFromMechanismButton
+                key={id}
                 label="Remove species from mechanism"
                 onClick={() =>
                   changeMechanismProperties({
@@ -280,17 +281,7 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
                 }
               />,
             ]}
-            customToolbarActions={
-              <Button
-                aria-label="select-mechanism-species"
-                onClick={() => setSpeciesOpen(true)}
-                startIcon={<AddIcon />}
-                color="primary"
-                sx={{ alignSelf: "flex-start" }}
-              >
-                <Typography variant="caption">Add Species</Typography>
-            </Button>
-            }
+            onAdd={() => setSpeciesOpen(true) }
           />
           <MechanismSearchModal
             open={speciesOpen}
@@ -317,6 +308,7 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
             species={family.species}
             getRowActions={(id) => [
               <RemoveFromMechanismButton
+                key={id}
                 label="Remove reaction from mechanism"
                 onClick={() =>
                   changeMechanismProperties({
@@ -327,17 +319,7 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
                 }
               />,
             ]}
-            customToolbarActions={
-              <Button
-                aria-label="select-mechanism-reactions"
-                onClick={() => setReactionsOpen(true)}
-                startIcon={<AddIcon />}
-                color="primary"
-                sx={{ alignSelf: "flex-start" }}
-              >
-                <Typography variant="caption">Add Reaction</Typography>
-            </Button>
-            }
+            onAdd={ () => setReactionsOpen(true) }
           />
           <MechanismSearchModal
             open={reactionsOpen}
@@ -366,6 +348,7 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
             species={family.species}
             getRowActions={(id) => [
               <RemoveFromMechanismButton
+                key={id}
                 label="Remove phase from mechanism"
                 onClick={() =>
                   changeMechanismProperties({
@@ -376,17 +359,7 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
                 }
               />,
             ]}
-            customToolbarActions={
-              <Button
-                aria-label="select-mechanism-phases"
-                onClick={() => setPhasesOpen(true)}
-                startIcon={<AddIcon />}
-                color="primary"
-                sx={{ alignSelf: "flex-start" }}
-              >
-                <Typography variant="caption">Add Phase</Typography>
-            </Button>
-            }
+            onAdd={ () => setPhasesOpen(true) }
           />
           <MechanismSearchModal
             open={phasesOpen}

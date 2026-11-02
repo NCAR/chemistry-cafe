@@ -376,8 +376,6 @@ export type ReactionsTableProps = {
    * editable is double-clicked. Without it, a double-click there does nothing.
    */
   onEdit?: (id: UUID) => void;
-  /** Custom components to render in the toolbar before the Columns button */
-  customToolbarActions?: ReactNode;
 };
 
 /**
@@ -392,7 +390,6 @@ export const ReactionsTable = ({
   onRowUpdate,
   onAdd,
   onEdit,
-  customToolbarActions,
 }: ReactionsTableProps) => {
   const { theme } = useCustomTheme();
   // The reaction types that the Type field selects. None means all types.
@@ -679,7 +676,6 @@ export const ReactionsTable = ({
           ),
           visibleCount: visibleRows.length,
           totalCount: reactions.length,
-          customToolbarActions: customToolbarActions,
         },
       }}
     />

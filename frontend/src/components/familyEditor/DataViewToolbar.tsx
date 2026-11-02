@@ -22,8 +22,6 @@ declare module "@mui/x-data-grid" {
     /** Test ID of the add button */
     addTestId?: string;
     onAdd?: () => void;
-    /** The add related buttons for the MechanismEditor*/
-    customToolbarActions?: ReactNode;
     /** Placeholder of the search field */
     searchPlaceholder?: string;
     /** More filters after the search field */
@@ -61,7 +59,6 @@ export const DataViewToolbar = ({
   searchPlaceholder,
   filters,
   actions,
-  customToolbarActions,
   visibleCount,
   totalCount,
   quickFilterProps,
@@ -106,12 +103,6 @@ export const DataViewToolbar = ({
             <Typography variant="caption">{addLabel}</Typography>
           </Button>
         </Tooltip>
-      </>
-    )}
-    {customToolbarActions && (
-      <>
-        <Divider orientation="vertical" flexItem />
-        {customToolbarActions}
       </>
     )}
   </GridToolbarContainer>

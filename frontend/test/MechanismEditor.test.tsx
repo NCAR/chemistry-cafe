@@ -89,6 +89,7 @@ const thirdReaction = makeReaction(
 const family: Family = {
   id: FAMILY_ID,
   name: "Test Family",
+  isPublic: false,
   description: "",
   owner: null,
   mechanisms: [mechanism],

@@ -126,6 +126,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
         species={family.species}
         getRowActions={(id) => [
           <RowActionsButton
+            key={id}
             handleDeleteButtonClick={() => {
               removeReaction(id);
             }}
