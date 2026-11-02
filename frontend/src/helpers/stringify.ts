@@ -48,8 +48,15 @@ export const reactionToString = (
     return "<none> -> <none>";
   }
 
+  const reactants =
+    reaction.reactants.length > 0
+      ? reaction.reactants
+      : reaction.gasPhaseSpeciesId
+        ? [{ speciesId: reaction.gasPhaseSpeciesId, coefficient: 1 }]
+        : [];
+
   const reactantStrings = [];
-  for (const reactant of reaction.reactants) {
+  for (const reactant of reactants) {
     const species = speciesList.find((e) => e.id == reactant.speciesId);
     if (!species) {
       continue;

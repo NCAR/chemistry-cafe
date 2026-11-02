@@ -39,4 +39,23 @@ describe("EquationText", () => {
       "NO + RO2 → NO2 + RO (alkoxy) | RONO2 (nitrate)",
     );
   });
+
+  it("shows the gas-phase reactant for a surface reaction", () => {
+    const reaction: Reaction = {
+      id: "1-1-1-1-2",
+      name: "usr_N2O5_aer",
+      description: null,
+      type: "SURFACE",
+      gasPhaseSpeciesId: id("NO2"),
+      reactants: [],
+      products: [
+        { speciesId: id("NO"), coefficient: 2, branch: "gas-phase" },
+      ],
+      attributes: {},
+    };
+    const { container } = render(
+      <EquationText reaction={reaction} species={species} />,
+    );
+    expect(container.textContent).toBe("NO2 → 2 NO");
+  });
 });

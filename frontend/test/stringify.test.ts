@@ -152,4 +152,43 @@ describe("reactionToString", () => {
     const result = reactionToString(reaction, []);
     expect(result).toBe("<none> -> <none>");
   });
+
+  it("Returns a string showing the gas-phase reactant for a surface reaction", () => {
+    const speciesList: Array<Species> = [
+      {
+        id: "1",
+        name: "N2O5",
+        description: null,
+        familyId: "",
+        attributes: {},
+      },
+      {
+        id: "2",
+        name: "HNO3",
+        description: null,
+        familyId: "",
+        attributes: {},
+      },
+    ];
+
+    const reaction: Reaction = {
+      id: "",
+      name: "usr_N2O5_aer",
+      description: null,
+      type: "SURFACE",
+      gasPhaseSpeciesId: "1",
+      reactants: [],
+      products: [
+        {
+          speciesId: "2",
+          coefficient: 2,
+          branch: "gas-phase",
+        },
+      ],
+      attributes: {},
+    };
+
+    const result = reactionToString(reaction, speciesList);
+    expect(result).toBe("N2O5 -> 2HNO3");
+  });
 });
