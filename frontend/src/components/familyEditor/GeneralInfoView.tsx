@@ -17,6 +17,8 @@ import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import { ConfirmActionModal } from "../modals/ConfirmActionModal";
 import { ViewProps } from "./ViewProps";
 import { useAuth } from "../AuthContext";
+import { ValidationErrorsModal } from "../modals/ValidationErrorsModal";
+import { validateMechanism } from "../../helpers/serialization";
 import { ContributorsView } from "./ContributorsView";
 
 type ExtraGeneralInfoViewProps = {
@@ -41,6 +43,7 @@ export const GeneralInfoView = ({
   const [openPublishModal, setOpenPublishModal] = useState<boolean>(false);
   const [openMakePublicModal, setOpenMakePublicModal] =
     useState<boolean>(false);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   const { user } = useAuth();
 
@@ -52,6 +55,24 @@ export const GeneralInfoView = ({
     !family.isInDatabase ||
     user?.id === family.owner?.id ||
     user?.role?.toLowerCase() === "admin";
+
+  /**
+   * Checks each mechanism of the family. If all are valid, asks the user to
+   * confirm the change to public. Otherwise, shows the validator messages.
+   */
+  const handleMakePublic = async () => {
+    const errors: string[] = [];
+    for (const mechanism of family.mechanisms) {
+      for (const error of await validateMechanism(mechanism, family)) {
+        errors.push(`${mechanism.name}: ${error}`);
+      }
+    }
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+      return;
+    }
+    setOpenMakePublicModal(true);
+  };
 
   const handleSave = () => {
     if (name.length === 0) {
@@ -150,7 +171,7 @@ export const GeneralInfoView = ({
                     disabled={family.isModified}
                     onChange={(_, checked) => {
                       if (checked) {
-                        setOpenMakePublicModal(true);
+                        handleMakePublic();
                       } else {
                         onChangeVisibility(false);
                       }
@@ -232,6 +253,12 @@ export const GeneralInfoView = ({
         message="All users can see and clone a public family."
         subtitle="Are you sure you want to make this family public?"
         confirmColor="secondary"
+      />
+      <ValidationErrorsModal
+        open={validationErrors.length > 0}
+        onClose={() => setValidationErrors([])}
+        message="Fix these problems before you make the family public."
+        errors={validationErrors}
       />
     </Box>
   );

@@ -485,11 +485,10 @@ function phaseToMusica(p: Phase, ctx: ExportCtx) {
 }
 
 /**
- * Serialize one mechanism of a family into a V1 mechanism-configuration object
- * (the value musica's getJSON() produces). Callers format it as JSON or YAML.
+ * Build the musica Mechanism for one mechanism of a family.
  * @throws if the mechanism contains a reaction type without a registry entry.
  */
-export function serializeMechanism(mech: Mechanism, family: Family) {
+export function toMusicaMechanism(mech: Mechanism, family: Family) {
   const speciesIdToName = new Map(
     family.species.map((s) => [String(s.id), s.name]),
   );
@@ -501,7 +500,7 @@ export function serializeMechanism(mech: Mechanism, family: Family) {
     phaseName: (id) => phaseIdToName.get(id) ?? id,
   };
 
-  const musicaMechanism = new MusicaMechanism({
+  return new MusicaMechanism({
     name: mech.name,
     version: V1_VERSION,
     species: family.species
@@ -532,8 +531,15 @@ export function serializeMechanism(mech: Mechanism, family: Family) {
         return adapter.toMusica(r, ctx);
       }),
   });
+}
 
-  return musicaMechanism.getJSON();
+/**
+ * Serialize one mechanism of a family into a V1 mechanism-configuration object
+ * (the value musica's getJSON() produces). Callers format it as JSON or YAML.
+ * @throws if the mechanism contains a reaction type without a registry entry.
+ */
+export function serializeMechanism(mech: Mechanism, family: Family) {
+  return toMusicaMechanism(mech, family).getJSON();
 }
 
 /**
