@@ -53,10 +53,6 @@ import {
   showsAttribute,
   withActivationValue,
 } from "../../helpers/activationEnergy";
-import {
-  ReactionEditorModal,
-  type PhaseSpeciesAddition,
-} from "../modals/ReactionEditorModal";
 
 /**
  * Gives a column width that shows the whole name and unit of a parameter
