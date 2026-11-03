@@ -80,7 +80,14 @@ export const MechanismsView = ({ family, updateFamily }: ViewProps) => {
   }, [family]);
 
   return (
-    <Box>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        minHeight: 0,
+      }}
+    >
       <Box
         sx={{
           display: "flex",
@@ -104,6 +111,7 @@ export const MechanismsView = ({ family, updateFamily }: ViewProps) => {
             onClick={() => setMechanismCreationModalOpen(true)}
             startIcon={<AddIcon />}
             color="primary"
+            sx={{ alignSelf: "flex-start" }}
           >
             <Typography variant="caption">Create New Mechanism</Typography>
           </Button>
