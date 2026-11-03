@@ -14,6 +14,7 @@ import {
   GridColDef,
   GridColumnVisibilityModel,
   GridRenderCellParams,
+  GridRowSelectionModel,
   useGridApiRef,
 } from "@mui/x-data-grid";
 import {
@@ -388,6 +389,14 @@ export type ReactionsTableProps = {
   onEdit?: (id: UUID) => void;
   /** The problems of the reactions. The table marks the reactions that have one. */
   issues?: ItemIssues;
+  /**
+   * Gives the actions on the selected reactions, for example to set their gas
+   * phase. With it, the table shows a checkbox on each row.
+   */
+  selectionActions?: (
+    ids: Array<UUID>,
+    clearSelection: () => void,
+  ) => ReactNode;
 };
 
 /**
@@ -403,6 +412,7 @@ export const ReactionsTable = ({
   onAdd,
   onEdit,
   issues,
+  selectionActions,
 }: ReactionsTableProps) => {
   const { theme } = useCustomTheme();
   // The reaction types that the Type field selects. None means all types.
@@ -414,6 +424,8 @@ export const ReactionsTable = ({
   const apiRef = useGridApiRef();
   // The reaction that the user clicked in the table.
   const [selectedRowId, setSelectedRowId] = useState<UUID | null>(null);
+  // The reactions that the checkboxes select.
+  const [selection, setSelection] = useState<GridRowSelectionModel>([]);
   const visibleRows = useVisibleRows<Reaction>(apiRef);
   // The reaction type of all rows that the search leaves, or null if the rows
   // have more than one type.
@@ -695,9 +707,15 @@ export const ReactionsTable = ({
   return (
     <DataGrid
       apiRef={apiRef}
-      onRowSelectionModelChange={(model) =>
-        setSelectedRowId((model[0] as UUID | undefined) ?? null)
-      }
+      checkboxSelection={selectionActions !== undefined}
+      rowSelectionModel={selection}
+      onRowSelectionModelChange={(model) => {
+        setSelection(model);
+        // The information about the rate constant uses one selected reaction.
+        setSelectedRowId(
+          model.length === 1 ? ((model[0] as UUID | undefined) ?? null) : null,
+        );
+      }}
       // The search and the Type menu replace the filter panel. The free
       // DataGrid allows only one filter condition at a time.
       disableColumnFilter
@@ -764,6 +782,16 @@ export const ReactionsTable = ({
                 selected={onlyProblems}
                 onChange={setOnlyProblems}
               />
+            </>
+          ),
+          selectionActions: selectionActions && selection.length > 0 && (
+            <>
+              <Typography variant="body2" data-testid="selection-count">
+                {selection.length} selected
+              </Typography>
+              {selectionActions(selection as Array<UUID>, () =>
+                setSelection([]),
+              )}
             </>
           ),
           actions: visibleType && (

@@ -12,6 +12,7 @@ import { generateID } from "../../helpers/localFamilies";
 import { ViewProps } from "./ViewProps";
 import { useFamilyValidation } from "./FamilyValidationContext";
 import { ReactionsTable } from "./ReactionsTable";
+import { setGasPhase, SetGasPhaseButton } from "./SetGasPhaseButton";
 
 export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
   const { byItem } = useFamilyValidation();
@@ -123,6 +124,18 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       </Box>
       <ReactionsTable
         issues={byItem}
+        selectionActions={(ids, clearSelection) => (
+          <SetGasPhaseButton
+            family={family}
+            reactionIds={ids}
+            onSet={(phaseId, addMissingSpecies) => {
+              updateFamily(
+                setGasPhase(family, ids, phaseId, addMissingSpecies),
+              );
+              clearSelection();
+            }}
+          />
+        )}
         reactions={family.reactions}
         phases={family.phases}
         species={family.species}

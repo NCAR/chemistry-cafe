@@ -28,6 +28,8 @@ declare module "@mui/x-data-grid" {
     filters?: ReactNode;
     /** More buttons before the Columns button */
     actions?: ReactNode;
+    /** The actions on the selected rows. They show after the filters. */
+    selectionActions?: ReactNode;
     /** The number of rows that the search and the filters leave */
     visibleCount?: number;
     /** The number of rows before the search and the filters */
@@ -59,6 +61,7 @@ export const DataViewToolbar = ({
   searchPlaceholder,
   filters,
   actions,
+  selectionActions,
   visibleCount,
   totalCount,
   quickFilterProps,
@@ -76,6 +79,7 @@ export const DataViewToolbar = ({
       {...quickFilterProps}
     />
     {filters}
+    {selectionActions}
     {visibleCount !== undefined &&
       totalCount !== undefined &&
       visibleCount < totalCount && (
