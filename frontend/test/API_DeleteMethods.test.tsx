@@ -1,7 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
 import axios, { AxiosResponse } from "axios";
-import { deleteFamily, deleteFamilyContributor, deleteUser } from "../src/API/API_DeleteMethods";
+import {
+  deleteFamily,
+  deleteFamilyContributor,
+  deleteUser,
+} from "../src/API/API_DeleteMethods";
 
 // Mock axios using vitest's built-in mock function
 vi.mock("axios");
@@ -56,7 +60,9 @@ describe.each([
 
 describe("deleteFamilyContributor", () => {
   it("Calls delete endpoint for contributor", async () => {
-    const mockedDelete = vi.spyOn(axios, "delete").mockResolvedValue(createMockResponse());
+    const mockedDelete = vi
+      .spyOn(axios, "delete")
+      .mockResolvedValue(createMockResponse());
     await deleteFamilyContributor("f-1" as any, "u-1" as any);
     expect(mockedDelete).toHaveBeenCalledWith(
       `${BASE_URL}/families/f-1/contributors/u-1`,

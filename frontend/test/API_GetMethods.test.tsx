@@ -190,7 +190,12 @@ describe("User get functions", () => {
   describe("getFamilyContributors", () => {
     it("Gets contributors for a family", async () => {
       const mockContributors = [
-        { userId: "u-1", familyId: "f-1", role: "Editor", email: "edit@test.com" },
+        {
+          userId: "u-1",
+          familyId: "f-1",
+          role: "Editor",
+          email: "edit@test.com",
+        },
       ];
       const mockedGet = vi
         .spyOn(axios, "get")

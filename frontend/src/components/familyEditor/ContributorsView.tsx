@@ -27,14 +27,15 @@ import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import { ViewProps } from "./ViewProps";
 import { useAuth } from "../AuthContext";
-import { APIFamilyContributor, ContributorRole } from "../../API/API_Interfaces";
+import {
+  APIFamilyContributor,
+  ContributorRole,
+} from "../../API/API_Interfaces";
 import { getFamilyContributors } from "../../API/API_GetMethods";
 import { addFamilyContributor } from "../../API/API_CreateMethods";
 import { deleteFamilyContributor } from "../../API/API_DeleteMethods";
 
-export const ContributorsView: React.FC<ViewProps> = ({
-  family,
-}) => {
+export const ContributorsView: React.FC<ViewProps> = ({ family }) => {
   const { user } = useAuth();
   const [contributors, setContributors] = useState<Array<APIFamilyContributor>>(
     [],
@@ -117,12 +118,17 @@ export const ContributorsView: React.FC<ViewProps> = ({
       });
 
       // Update parent family contributorIds in memory without marking family as modified
-      if (family.contributorIds && !family.contributorIds.includes(added.userId)) {
+      if (
+        family.contributorIds &&
+        !family.contributorIds.includes(added.userId)
+      ) {
         family.contributorIds.push(added.userId);
       }
 
       setSearchEmail("");
-      setSuccessMessage(`Contributor added successfully with ${selectedRole} role.`);
+      setSuccessMessage(
+        `Contributor added successfully with ${selectedRole} role.`,
+      );
     } catch (err: any) {
       console.error("Failed to add contributor:", err);
       if (err.response?.status === 404) {
@@ -136,7 +142,9 @@ export const ContributorsView: React.FC<ViewProps> = ({
             : "Cannot add this user as a contributor.",
         );
       } else if (err.response?.status === 403) {
-        setErrorMessage("Only the family owner or admin can manage contributors.");
+        setErrorMessage(
+          "Only the family owner or admin can manage contributors.",
+        );
       } else {
         setErrorMessage("An error occurred while adding contributor.");
       }
@@ -156,7 +164,9 @@ export const ContributorsView: React.FC<ViewProps> = ({
       });
 
       setContributors((prev) =>
-        prev.map((c) => (c.userId === userId ? { ...c, role: updated.role } : c)),
+        prev.map((c) =>
+          c.userId === userId ? { ...c, role: updated.role } : c,
+        ),
       );
       setSuccessMessage("Contributor role updated.");
     } catch (err: any) {
@@ -168,7 +178,9 @@ export const ContributorsView: React.FC<ViewProps> = ({
   const handleRemoveContributor = async (contributor: APIFamilyContributor) => {
     try {
       await deleteFamilyContributor(family.id, contributor.userId);
-      setContributors((prev) => prev.filter((c) => c.userId !== contributor.userId));
+      setContributors((prev) =>
+        prev.filter((c) => c.userId !== contributor.userId),
+      );
 
       if (family.contributorIds) {
         const idx = family.contributorIds.indexOf(contributor.userId);
@@ -187,7 +199,14 @@ export const ContributorsView: React.FC<ViewProps> = ({
   if (!family.isInDatabase) {
     return (
       <Box sx={{ mt: 2 }}>
-        <Box sx={{ display: "flex", alignItems: "center", columnGap: "0.5rem", mb: 1 }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            columnGap: "0.5rem",
+            mb: 1,
+          }}
+        >
           <Typography color="textPrimary" variant="h6">
             Contributors
           </Typography>
@@ -212,7 +231,14 @@ export const ContributorsView: React.FC<ViewProps> = ({
         maxWidth: "60em",
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "center", columnGap: "0.5rem", mb: 1 }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          columnGap: "0.5rem",
+          mb: 1,
+        }}
+      >
         <Typography color="textPrimary" variant="h6">
           Contributors
         </Typography>
@@ -260,7 +286,9 @@ export const ContributorsView: React.FC<ViewProps> = ({
               id="role-select"
               value={selectedRole}
               label="Role"
-              onChange={(e) => setSelectedRole(e.target.value as ContributorRole)}
+              onChange={(e) =>
+                setSelectedRole(e.target.value as ContributorRole)
+              }
               inputProps={{
                 "aria-label": "Contributor role",
                 "data-testid": "contributor-role-select",
@@ -333,7 +361,8 @@ export const ContributorsView: React.FC<ViewProps> = ({
 
                 {contributors.map((contrib) => {
                   const isOwnerItem =
-                    contrib.role === "Owner" || contrib.userId === family.owner?.id;
+                    contrib.role === "Owner" ||
+                    contrib.userId === family.owner?.id;
 
                   if (isOwnerItem) {
                     return (
@@ -351,7 +380,9 @@ export const ContributorsView: React.FC<ViewProps> = ({
                         <TableCell>
                           <Chip label="Owner" size="small" color="primary" />
                         </TableCell>
-                        {isOwnerOrAdmin && <TableCell align="right">—</TableCell>}
+                        {isOwnerOrAdmin && (
+                          <TableCell align="right">—</TableCell>
+                        )}
                       </TableRow>
                     );
                   }
@@ -464,4 +495,3 @@ export const ContributorsView: React.FC<ViewProps> = ({
     </Box>
   );
 };
-
