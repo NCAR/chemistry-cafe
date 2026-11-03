@@ -12,7 +12,7 @@ import {
 import { GridActionsCellItem } from "@mui/x-data-grid";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EditNoteIcon from "@mui/icons-material/EditNote";
-import DeleteIcon from '@mui/icons-material/Delete';
+import DeleteIcon from "@mui/icons-material/Delete";
 import { bySpeciesName } from "./SelectSpeciesButton";
 import { SpeciesTable } from "./familyEditor/SpeciesTable";
 import { ReactionsTable } from "./familyEditor/ReactionsTable";
@@ -58,7 +58,7 @@ const RemoveFromMechanismButton = ({
     <GridActionsCellItem
       aria-label={label}
       data-testid="remove-from-mechanism-button"
-      icon={<DeleteIcon/>}
+      icon={<DeleteIcon />}
       label={label}
       onClick={onClick}
     />
@@ -130,7 +130,7 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
     .sort(bySpeciesName);
   const availableReactions = family.reactions
     .filter((reaction) => !modifiedMechanism.reactionIds.includes(reaction.id))
-    .sort((a:Reaction, b:Reaction) =>
+    .sort((a: Reaction, b: Reaction) =>
       byText(
         reactionToString(a, family.species),
         reactionToString(b, family.species),
@@ -138,9 +138,7 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
     );
   const availablePhases = family.phases
     .filter((phase) => !modifiedMechanism.phaseIds.includes(phase.id))
-    .sort((a:Phase, b:Phase) => 
-      byText(a.name, b.name),
-    );
+    .sort((a: Phase, b: Phase) => byText(a.name, b.name));
 
   const changeMechanismProperties = (properties: Partial<Mechanism>) => {
     setModifiedMechanism({
@@ -280,7 +278,7 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
                 }
               />,
             ]}
-            onAdd={() => setSpeciesOpen(true) }
+            onAdd={() => setSpeciesOpen(true)}
           />
           <MechanismSearchModal
             open={speciesOpen}
@@ -318,7 +316,7 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
                 }
               />,
             ]}
-            onAdd={ () => setReactionsOpen(true) }
+            onAdd={() => setReactionsOpen(true)}
           />
           <MechanismSearchModal
             open={reactionsOpen}
@@ -358,7 +356,7 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
                 }
               />,
             ]}
-            onAdd={ () => setPhasesOpen(true) }
+            onAdd={() => setPhasesOpen(true)}
           />
           <MechanismSearchModal
             open={phasesOpen}

@@ -202,15 +202,15 @@ function parameterColumns(
             return row;
           }
           const valid = value !== null && Number.isFinite(value);
-            if (activation) {
-              // A reaction stores only one of Ea and C.
-              const attributes = withActivationValue(
-                row.attributes,
-                activation,
-                valid ? value : null,
-              );
-              return { ...row, attributes };
-            }
+          if (activation) {
+            // A reaction stores only one of Ea and C.
+            const attributes = withActivationValue(
+              row.attributes,
+              activation,
+              valid ? value : null,
+            );
+            return { ...row, attributes };
+          }
           const attributes = { ...row.attributes };
           if (!valid) {
             delete attributes[key];
@@ -562,9 +562,7 @@ export const ReactionsTable = ({
     .sort((a, b) => a.label.localeCompare(b.label));
   const rows =
     activeTypes.length > 0
-      ? reactions.filter((reaction) => 
-          activeTypes.includes(reaction.type),
-        )
+      ? reactions.filter((reaction) => activeTypes.includes(reaction.type))
       : reactions;
 
   // When all visible rows have one type, the table shows the parameters of

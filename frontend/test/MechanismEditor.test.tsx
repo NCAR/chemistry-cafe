@@ -152,8 +152,7 @@ const openTab = (name: string) =>
 
 // The Apply Changes button has the same aria-label as the Back button, so
 // the tests find it by its text.
-const applyButton = () =>
-  screen.getByText("Apply Changes").closest("button")!;
+const applyButton = () => screen.getByText("Apply Changes").closest("button")!;
 
 // The row of the grid that shows the text.
 const findRow = async (text: string) =>
@@ -252,9 +251,7 @@ describe("MechanismEditor info tab", () => {
     rerender(updateMechanism.mock.calls[0][0] as Mechanism);
 
     expect(applyButton().disabled).toBe(true);
-    expect(
-      screen.getByRole("heading", { name: "Renamed Info" }),
-    ).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Renamed Info" })).toBeTruthy();
   });
 });
 
@@ -615,8 +612,11 @@ describe.each(tabCases)("MechanismEditor $tab tab edge cases", (c) => {
     expect(within(dialog).getByText(c.noItemsText)).toBeTruthy();
     expect(within(dialog).queryAllByRole("checkbox")).toHaveLength(0);
     expect(
-      (within(dialog).getByRole("button", { name: "Select All" }) as HTMLButtonElement)
-        .disabled,
+      (
+        within(dialog).getByRole("button", {
+          name: "Select All",
+        }) as HTMLButtonElement
+      ).disabled,
     ).toBe(true);
     expect(addButtonOf(dialog).disabled).toBe(true);
   });
@@ -786,8 +786,7 @@ describe.each(longCases)(
       const long = build();
       renderEditor(long.mechanism, long.family);
       openTab(tab);
-      const rows = () =>
-        within(screen.getByRole("grid")).getAllByRole("row");
+      const rows = () => within(screen.getByRole("grid")).getAllByRole("row");
 
       // One header row and the 20 rows of the first page.
       await screen.findByText(`${prefix}01`);
@@ -832,7 +831,9 @@ describe("MechanismEditor reactions tab with one type", () => {
     expect(
       await screen.findByRole("columnheader", { name: /^Parameters/ }),
     ).toBeTruthy();
-    expect(await screen.findByRole("columnheader", { name: /^Name/ })).toBeTruthy();
+    expect(
+      await screen.findByRole("columnheader", { name: /^Name/ }),
+    ).toBeTruthy();
     expect(screen.queryByRole("columnheader", { name: /^k0 A/ })).toBeNull();
   });
 });
