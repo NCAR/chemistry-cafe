@@ -2,7 +2,7 @@ replicaCount: 1
 instanceName: dev
 imageRegistry: ghcr.io
 imageRepository: ncar/chemistry-cafe
-imageTag: "adc54ae"
+imageTag: "d7dd613"
 imagePullPolicy: Always
 mysql:
   image:
