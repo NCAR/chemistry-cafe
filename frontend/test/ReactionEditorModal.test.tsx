@@ -270,7 +270,7 @@ describe("ReactionEditorModal rate parameter units", () => {
     fireEvent.click(screen.getByRole("option", { name: "Aerosol" }));
 
     expect(
-      screen.getByText(/selected gas phase does not contain OH/),
+      screen.getByText(/selected gas phase "Aerosol" does not contain OH/),
     ).toBeTruthy();
 
     fireEvent.click(screen.getByTestId("cancel-phase-change"));
@@ -580,7 +580,7 @@ describe("ReactionEditorModal rate parameter units", () => {
 
     // Prompt appears asking to add OH to Gas Phase 2
     expect(
-      screen.getByText(/selected gas phase does not contain OH/),
+      screen.getByText(/selected gas phase "Gas Phase 2" does not contain OH/),
     ).toBeTruthy();
 
     // Click "Switch Anyways"
