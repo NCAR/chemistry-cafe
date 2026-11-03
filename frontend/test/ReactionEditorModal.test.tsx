@@ -596,7 +596,9 @@ describe("ReactionEditorModal rate parameter units", () => {
     ).toHaveTextContent("Gas Phase 2");
 
     // Gas Phase Species was cleared to None / empty
-    const gasSpeciesInput = screen.getByLabelText("Gas Phase Species") as HTMLInputElement;
+    const gasSpeciesInput = screen.getByLabelText(
+      "Gas Phase Species",
+    ) as HTMLInputElement;
     expect(gasSpeciesInput.value).toBe("");
 
     // Equation reflects no gas-phase reactant

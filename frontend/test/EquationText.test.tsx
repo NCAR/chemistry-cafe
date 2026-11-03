@@ -48,9 +48,7 @@ describe("EquationText", () => {
       type: "SURFACE",
       gasPhaseSpeciesId: id("NO2"),
       reactants: [],
-      products: [
-        { speciesId: id("NO"), coefficient: 2, branch: "gas-phase" },
-      ],
+      products: [{ speciesId: id("NO"), coefficient: 2, branch: "gas-phase" }],
       attributes: {},
     };
     const { container } = render(
