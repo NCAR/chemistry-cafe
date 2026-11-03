@@ -333,4 +333,31 @@ describe("ReactionsView gas phase of many reactions", () => {
       "111-111-111-111-002",
     ]);
   });
+
+  it("deletes the selected reactions from the family and its mechanisms", () => {
+    const updateFamily = vi.fn();
+    renderView(updateFamily, {
+      ...family,
+      mechanisms: [
+        {
+          id: "444-444-444-444-001",
+          name: "Mechanism",
+          description: null,
+          familyId: family.id,
+          speciesIds: [],
+          phaseIds: [],
+          reactionIds: ["222-222-222-222-001", "222-222-222-222-002"],
+        },
+      ],
+    });
+
+    fireEvent.click(screen.getByRole("checkbox", { name: "Select all rows" }));
+    fireEvent.click(screen.getByTestId("delete-reactions-button"));
+    expect(updateFamily).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByTestId("confirm-action"));
+
+    const updated: Family = updateFamily.mock.calls[0][0];
+    expect(updated.reactions).toEqual([]);
+    expect(updated.mechanisms[0].reactionIds).toEqual([]);
+  });
 });

@@ -13,6 +13,10 @@ import { ViewProps } from "./ViewProps";
 import { useFamilyValidation } from "./FamilyValidationContext";
 import { ReactionsTable } from "./ReactionsTable";
 import { setGasPhase, SetGasPhaseButton } from "./SetGasPhaseButton";
+import {
+  DeleteReactionsButton,
+  removeReactions,
+} from "./DeleteReactionsButton";
 
 export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
   const { byItem } = useFamilyValidation();
@@ -43,16 +47,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       return;
     }
 
-    updateFamily({
-      ...family,
-      reactions: family.reactions.filter((element) => element.id !== id),
-      // Strip the removed reaction from any mechanism that referenced it.
-      mechanisms: family.mechanisms.map((mechanism) => ({
-        ...mechanism,
-        reactionIds: mechanism.reactionIds.filter((rid) => rid !== id),
-      })),
-      isModified: true,
-    });
+    updateFamily(removeReactions(family, [id]));
   };
 
   const updateReaction = (
@@ -125,16 +120,25 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       <ReactionsTable
         issues={byItem}
         selectionActions={(ids, clearSelection) => (
-          <SetGasPhaseButton
-            family={family}
-            reactionIds={ids}
-            onSet={(phaseId, addMissingSpecies) => {
-              updateFamily(
-                setGasPhase(family, ids, phaseId, addMissingSpecies),
-              );
-              clearSelection();
-            }}
-          />
+          <>
+            <SetGasPhaseButton
+              family={family}
+              reactionIds={ids}
+              onSet={(phaseId, addMissingSpecies) => {
+                updateFamily(
+                  setGasPhase(family, ids, phaseId, addMissingSpecies),
+                );
+                clearSelection();
+              }}
+            />
+            <DeleteReactionsButton
+              reactionIds={ids}
+              onDelete={() => {
+                updateFamily(removeReactions(family, ids));
+                clearSelection();
+              }}
+            />
+          </>
         )}
         reactions={family.reactions}
         phases={family.phases}
