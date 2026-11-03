@@ -7,6 +7,7 @@ import {
   getUserPreferences,
   getUserByEmail,
   getUserById,
+  getFamilyContributors,
 } from "../src/API/API_GetMethods";
 import { APIMechanism, APIUser } from "../src/API/API_Interfaces";
 import { BASE_URL } from "../src/API/API_config";
@@ -183,6 +184,24 @@ describe("User get functions", () => {
         status: 204,
       });
       expect(await getUserPreferences()).toBeNull();
+    });
+  });
+
+  describe("getFamilyContributors", () => {
+    it("Gets contributors for a family", async () => {
+      const mockContributors = [
+        { userId: "u-1", familyId: "f-1", role: "Editor", email: "edit@test.com" },
+      ];
+      const mockedGet = vi
+        .spyOn(axios, "get")
+        .mockResolvedValue(createSuccessMockResponse(mockContributors)) as Mock;
+
+      const result = await getFamilyContributors("f-1" as any);
+      expect(mockedGet).toHaveBeenCalledWith(
+        `${BASE_URL}/families/f-1/contributors`,
+        { withCredentials: true },
+      );
+      expect(result).toEqual(mockContributors);
     });
   });
 });

@@ -21,7 +21,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         IQueryable<Family> query = VisibleTo(context.Families, viewer);
 
         // Always include Owner
-        query = query.AsSplitQuery().Include(f => f.Owner);
+        query = query.AsSplitQuery().Include(f => f.Owner).Include(f => f.Contributors);
 
         if (expand)
         {
@@ -93,7 +93,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         IQueryable<Family> query = VisibleTo(context.Families, viewer);
 
         // Always include Owner
-        query = query.AsSplitQuery().Include(f => f.Owner);
+        query = query.AsSplitQuery().Include(f => f.Owner).Include(f => f.Contributors);
 
         var family = await query
             .Include(f => f.CurrentVersion)
@@ -270,6 +270,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         var existingFamily = await context.Families
             .AsSplitQuery()
             .Include(f => f.Owner)
+            .Include(f => f.Contributors)
             .Include(f => f.CurrentVersion)
                 .ThenInclude(v => v.Species)
             .Include(f => f.CurrentVersion)
@@ -312,13 +313,22 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             return QueryResult.NotFound;
         }
 
-        if (existingFamily.Owner.Id != userId)
+        bool isOwner = existingFamily.OwnerId == userId;
+        bool isEditor = existingFamily.Contributors.Any(c => c.UserId == userId && c.Role == ContributorRole.Editor);
+        bool isAdmin = false;
+        if (!isOwner && !isEditor)
         {
             var loggedInUser = await _userService.GetUserByIdAsync(userId);
             if (loggedInUser == null || loggedInUser.Role != Role.Admin)
             {
                 return QueryResult.NoAccess;
             }
+            isAdmin = true;
+        }
+        else if (!isOwner)
+        {
+            var loggedInUser = await _userService.GetUserByIdAsync(userId);
+            isAdmin = loggedInUser?.Role == Role.Admin;
         }
 
         if (HasDuplicateChildIds(family))
@@ -331,10 +341,19 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             return QueryResult.ValidationError;
         }
 
+        // Only the owner or an admin can change family visibility (IsPublic)
+        if (existingFamily.IsPublic != family.IsPublic && !isOwner && !isAdmin)
+        {
+            return QueryResult.NoAccess;
+        }
+
         // Update the easy fields
         existingFamily.Name = family.Name;
         existingFamily.Description = family.Description;
-        existingFamily.IsPublic = family.IsPublic;
+        if (isOwner || isAdmin)
+        {
+            existingFamily.IsPublic = family.IsPublic;
+        }
 
         // reconcile all of the changes in all child objects
         TrackChangesToFamily(family, existingFamily);
@@ -849,7 +868,202 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         }
         else
         {
-            return query.Where(f => f.IsPublic || f.OwnerId == viewer.Id);
+            return query.Where(f => f.IsPublic || f.OwnerId == viewer.Id || f.Contributors.Any(c => c.UserId == viewer.Id));
         }
+    }
+
+    /// <summary>
+    /// Gets all contributors for a specific family. Caller must be the family owner, an admin, or a contributor.
+    /// </summary>
+    public async Task<(QueryResult, IEnumerable<FamilyContributorDto>?)> GetContributorsAsync(Guid familyId, string nameIdentifier)
+    {
+        if (!Guid.TryParse(nameIdentifier, out Guid userId))
+        {
+            return (QueryResult.ParseError, null);
+        }
+
+        var family = await context.Families
+            .Include(f => f.Owner)
+            .Include(f => f.Contributors)
+                .ThenInclude(c => c.User)
+            .FirstOrDefaultAsync(f => f.Id == familyId);
+
+        if (family == null)
+        {
+            return (QueryResult.NotFound, null);
+        }
+
+        var loggedInUser = await _userService.GetUserByIdAsync(userId);
+        if (loggedInUser == null)
+        {
+            return (QueryResult.NotFound, null);
+        }
+
+        var contributors = await context.FamilyContributors
+            .Include(c => c.User)
+            .Where(c => c.FamilyId == familyId)
+            .ToListAsync();
+
+        bool canView = family.OwnerId == userId
+            || loggedInUser.Role == Role.Admin
+            || contributors.Any(c => c.UserId == userId);
+
+        if (!canView)
+        {
+            return (QueryResult.NoAccess, null);
+        }
+
+        var dtos = new List<FamilyContributorDto>
+        {
+            new FamilyContributorDto
+            {
+                UserId = family.Owner.Id,
+                Role = ContributorRole.Owner,
+                Email = family.Owner.Email,
+                Username = family.Owner.Username,
+                FirstName = family.Owner.FirstName,
+                LastName = family.Owner.LastName,
+            }
+        };
+        dtos.AddRange(contributors.Select(c => c.ToDto()));
+        return (QueryResult.Success, dtos);
+    }
+
+    /// <summary>
+    /// Adds or updates a contributor for a family. Caller must be the family owner or an admin.
+    /// </summary>
+    public async Task<(QueryResult, FamilyContributorDto?)> AddOrUpdateContributorAsync(
+        Guid familyId,
+        Guid? targetUserId,
+        string? targetEmail,
+        ContributorRole role,
+        string nameIdentifier)
+    {
+        if (!Guid.TryParse(nameIdentifier, out Guid userId))
+        {
+            return (QueryResult.ParseError, null);
+        }
+
+        var family = await context.Families
+            .Include(f => f.Owner)
+            .Include(f => f.Contributors)
+                .ThenInclude(c => c.User)
+            .FirstOrDefaultAsync(f => f.Id == familyId);
+
+        if (family == null)
+        {
+            return (QueryResult.NotFound, null);
+        }
+
+        if (family.OwnerId != userId)
+        {
+            var loggedInUser = await _userService.GetUserByIdAsync(userId);
+            if (loggedInUser == null || loggedInUser.Role != Role.Admin)
+            {
+                return (QueryResult.NoAccess, null);
+            }
+        }
+
+        User? targetUser = null;
+        if (targetUserId.HasValue && targetUserId.Value != Guid.Empty)
+        {
+            targetUser = await context.Users.FirstOrDefaultAsync(u => u.Id == targetUserId.Value);
+        }
+        else if (!string.IsNullOrWhiteSpace(targetEmail))
+        {
+            targetUser = await context.Users.FirstOrDefaultAsync(u => u.Email == targetEmail);
+        }
+
+        if (role == ContributorRole.Owner)
+        {
+            return (QueryResult.ValidationError, null);
+        }
+
+        if (targetUser == null)
+        {
+            return (QueryResult.UserNotFound, null);
+        }
+
+        if (targetUser.Id == family.OwnerId)
+        {
+            return (QueryResult.ValidationError, null);
+        }
+
+        var existingContributor = family.Contributors.FirstOrDefault(c => c.UserId == targetUser.Id);
+        if (existingContributor != null)
+        {
+            existingContributor.Role = role;
+        }
+        else
+        {
+            existingContributor = new FamilyContributor
+            {
+                FamilyId = family.Id,
+                Family = family,
+                UserId = targetUser.Id,
+                User = targetUser,
+                Role = role,
+            };
+            context.FamilyContributors.Add(existingContributor);
+            family.Contributors.Add(existingContributor);
+        }
+
+        await context.SaveChangesAsync();
+        return (QueryResult.Success, existingContributor.ToDto());
+    }
+
+    /// <summary>
+    /// Removes a contributor from a family. Caller must be the family owner or an admin.
+    /// </summary>
+    public async Task<QueryResult> RemoveContributorAsync(
+        Guid familyId,
+        Guid? targetUserId,
+        string nameIdentifier)
+    {
+        if (!Guid.TryParse(nameIdentifier, out Guid userId))
+        {
+            return QueryResult.ParseError;
+        }
+
+        var family = await context.Families
+            .Include(f => f.Owner)
+            .Include(f => f.Contributors)
+                .ThenInclude(c => c.User)
+            .FirstOrDefaultAsync(f => f.Id == familyId);
+
+        if (family == null)
+        {
+            return QueryResult.NotFound;
+        }
+
+        if (family.OwnerId != userId)
+        {
+            var loggedInUser = await _userService.GetUserByIdAsync(userId);
+            if (loggedInUser == null || loggedInUser.Role != Role.Admin)
+            {
+                return QueryResult.NoAccess;
+            }
+        }
+
+        if (targetUserId.HasValue && targetUserId.Value == family.OwnerId)
+        {
+            return QueryResult.ValidationError;
+        }
+
+        FamilyContributor? contributor = null;
+        if (targetUserId.HasValue && targetUserId.Value != Guid.Empty)
+        {
+            contributor = family.Contributors.FirstOrDefault(c => c.UserId == targetUserId.Value);
+        }
+
+        if (contributor == null)
+        {
+            return QueryResult.NotFound;
+        }
+
+        context.FamilyContributors.Remove(contributor);
+        await context.SaveChangesAsync();
+
+        return QueryResult.Success;
     }
 }

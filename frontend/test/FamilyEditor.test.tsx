@@ -17,6 +17,7 @@ import FamilyEditor, {
   PhaseView,
   ReactionsView,
   SpeciesView,
+  ContributorsView,
 } from "../src/pages/FamilyEditor";
 import {
   applySpeciesRowUpdate,
@@ -63,7 +64,27 @@ describe("Family Editor Page", () => {
       assign: vi.fn((_: string | URL) => {}),
     } as any;
     localStorage.setItem("uploadedFamilyIds", JSON.stringify([testFamily.id]));
-    vi.spyOn(axios, "get").mockResolvedValue(createMockData());
+    vi.spyOn(axios, "get").mockImplementation((url: string) => {
+      if (url.includes("/users/whoami")) {
+        return Promise.resolve({
+          data: testFamily.owner,
+          status: 200,
+          statusText: "OK",
+          headers: {},
+          config: { headers: new AxiosHeaders() },
+        } as AxiosResponse);
+      }
+      if (url.includes("/contributors")) {
+        return Promise.resolve({
+          data: [],
+          status: 200,
+          statusText: "OK",
+          headers: {},
+          config: { headers: new AxiosHeaders() },
+        } as AxiosResponse);
+      }
+      return Promise.resolve(createMockData());
+    });
 
     render(
       <AuthProvider>
@@ -305,6 +326,7 @@ describe("GeneralInfoView", () => {
 
   it("renders", () => {
     expect(screen.getByText("Test Description")).toBeTruthy();
+    expect(screen.getByText("Contributors")).toBeTruthy();
   });
 });
 

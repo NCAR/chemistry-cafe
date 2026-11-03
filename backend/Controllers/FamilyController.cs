@@ -142,5 +142,74 @@ namespace ChemistryCafeAPI.Controllers
                 _ => NoContent(),
             };
         }
+
+        [Authorize]
+        [HttpGet("{id}/contributors")]
+        public async Task<ActionResult<IEnumerable<FamilyContributorDto>>> GetContributors(Guid id)
+        {
+            string? nameIdentifier = GetNameIdentifier();
+            if (nameIdentifier == null)
+            {
+                return Unauthorized("User is not authenticated");
+            }
+
+            var (code, contributors) = await familyService.GetContributorsAsync(id, nameIdentifier);
+            return code switch
+            {
+                QueryResult.NotFound => NotFound("Family not found"),
+                QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
+                QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier claim"),
+                _ => Ok(contributors),
+            };
+        }
+
+        [Authorize]
+        [HttpPost("{id}/contributors")]
+        public async Task<ActionResult<FamilyContributorDto>> AddOrUpdateContributor(Guid id, [FromBody] AddFamilyContributorDto request)
+        {
+            string? nameIdentifier = GetNameIdentifier();
+            if (nameIdentifier == null)
+            {
+                return Unauthorized("User is not authenticated");
+            }
+
+            if (!request.UserId.HasValue && string.IsNullOrWhiteSpace(request.Email))
+            {
+                return BadRequest("Either userId or email must be provided.");
+            }
+
+            var (code, contributor) = await familyService.AddOrUpdateContributorAsync(
+                id, request.UserId, request.Email, request.Role, nameIdentifier);
+
+            return code switch
+            {
+                QueryResult.NotFound => NotFound("Family not found"),
+                QueryResult.UserNotFound => NotFound("User not found. Contributor must have logged in once."),
+                QueryResult.ValidationError => BadRequest("Owner cannot be added as a contributor."),
+                QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
+                QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier claim"),
+                _ => Ok(contributor),
+            };
+        }
+
+        [Authorize]
+        [HttpDelete("{id}/contributors/{contributorUserId}")]
+        public async Task<IActionResult> DeleteContributor(Guid id, Guid contributorUserId)
+        {
+            string? nameIdentifier = GetNameIdentifier();
+            if (nameIdentifier == null)
+            {
+                return Unauthorized("User is not authenticated");
+            }
+
+            var code = await familyService.RemoveContributorAsync(id, contributorUserId, nameIdentifier);
+            return code switch
+            {
+                QueryResult.NotFound => NotFound("Family or contributor not found"),
+                QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
+                QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier claim"),
+                _ => NoContent(),
+            };
+        }
     }
 }

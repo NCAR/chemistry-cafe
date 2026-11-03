@@ -50,5 +50,13 @@ namespace ChemistryCafeAPI.Tests.Functional
         {
             return await _factory.CreateFamilyAsync(owner, name, description, id, isPublic);
         }
+
+        /// <summary>
+        /// Adds a contributor to a family in the test database.
+        /// </summary>
+        protected async Task<FamilyContributor> AddContributorAsync(Guid familyId, User user, ContributorRole role)
+        {
+            return await _factory.AddContributorAsync(familyId, user, role);
+        }
     }
 }

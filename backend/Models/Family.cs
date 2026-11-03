@@ -50,4 +50,7 @@ public partial class Family
 
     // Collection of mechanisms belonging to this family
     public ICollection<Mechanism> Mechanisms { get; set; } = new List<Mechanism>();
+
+    // Collection of contributors to this family
+    public ICollection<FamilyContributor> Contributors { get; set; } = new List<FamilyContributor>();
 }

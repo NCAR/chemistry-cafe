@@ -119,6 +119,24 @@ namespace ChemistryCafeAPI.Migrations
                     b.ToTable("Families");
                 });
 
+            modelBuilder.Entity("ChemistryCafeAPI.Models.FamilyContributor", b =>
+                {
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("int");
+
+                    b.HasKey("FamilyId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("FamilyContributors");
+                });
+
             modelBuilder.Entity("ChemistryCafeAPI.Models.FamilyVersion", b =>
                 {
                     b.Property<Guid>("Id")
@@ -681,6 +699,25 @@ namespace ChemistryCafeAPI.Migrations
                     b.Navigation("Owner");
                 });
 
+            modelBuilder.Entity("ChemistryCafeAPI.Models.FamilyContributor", b =>
+                {
+                    b.HasOne("ChemistryCafeAPI.Models.Family", "Family")
+                        .WithMany("Contributors")
+                        .HasForeignKey("FamilyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ChemistryCafeAPI.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Family");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("ChemistryCafeAPI.Models.FamilyVersion", b =>
                 {
                     b.HasOne("ChemistryCafeAPI.Models.Family", "Family")
@@ -961,6 +998,8 @@ namespace ChemistryCafeAPI.Migrations
 
             modelBuilder.Entity("ChemistryCafeAPI.Models.Family", b =>
                 {
+                    b.Navigation("Contributors");
+
                     b.Navigation("Mechanisms");
 
                     b.Navigation("Versions");

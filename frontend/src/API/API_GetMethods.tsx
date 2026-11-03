@@ -2,7 +2,7 @@
 
 import axios from "axios";
 
-import { APIFamily, APIUser, APIUserPreferences } from "./API_Interfaces";
+import { APIFamily, APIFamilyContributor, APIUser, APIUserPreferences } from "./API_Interfaces";
 import { BASE_URL } from "./API_config";
 import { UUID } from "crypto";
 
@@ -94,6 +94,19 @@ export async function getAllFamilies(
 export async function getFamily(id: UUID) {
   const response = await axios.get<APIFamily>(
     `${BASE_URL}/families/${id}?expand=true`,
+    {
+      withCredentials: true,
+    },
+  );
+
+  return response.data;
+}
+
+export async function getFamilyContributors(
+  familyId: UUID,
+): Promise<Array<APIFamilyContributor>> {
+  const response = await axios.get<Array<APIFamilyContributor>>(
+    `${BASE_URL}/families/${familyId}/contributors`,
     {
       withCredentials: true,
     },

@@ -9,4 +9,6 @@ public enum Viewer
     Owner,
     OtherUser,
     Admin,
+    ContributorViewer,
+    ContributorEditor,
 }

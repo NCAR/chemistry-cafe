@@ -27,4 +27,6 @@ public enum QueryResult
     ValidationError,
     /// <summary>The specified ID is already in use by another object.</summary>
     DuplicateIdError,
+    /// <summary>The target user was not found.</summary>
+    UserNotFound,
 }

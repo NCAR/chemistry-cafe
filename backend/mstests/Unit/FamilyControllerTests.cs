@@ -396,6 +396,41 @@ namespace ChemistryCafeAPI.Tests
             Assert.IsInstanceOfType(findDeletedResult.Result, typeof(NotFoundResult));
         }
 
+        [TestMethod]
+        public async Task GetContributors_SignedOut_ReturnsUnauthorized()
+        {
+            var controller = await CreateSignedOutController();
+            var result = await controller.GetContributors(Guid.NewGuid());
+            Assert.IsInstanceOfType(result.Result, typeof(UnauthorizedObjectResult));
+        }
+
+        [TestMethod]
+        public async Task AddContributor_SignedOut_ReturnsUnauthorized()
+        {
+            var controller = await CreateSignedOutController();
+            var result = await controller.AddOrUpdateContributor(Guid.NewGuid(), new AddFamilyContributorDto
+            {
+                Email = "test@example.com"
+            });
+            Assert.IsInstanceOfType(result.Result, typeof(UnauthorizedObjectResult));
+        }
+
+        [TestMethod]
+        public async Task AddContributor_EmptyUserAndEmail_ReturnsBadRequest()
+        {
+            var controller = await CreateSignedInController();
+            var result = await controller.AddOrUpdateContributor(Guid.NewGuid(), new AddFamilyContributorDto());
+            Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task DeleteContributor_SignedOut_ReturnsUnauthorized()
+        {
+            var controller = await CreateSignedOutController();
+            var result = await controller.DeleteContributor(Guid.NewGuid(), Guid.NewGuid());
+            Assert.IsInstanceOfType(result, typeof(UnauthorizedObjectResult));
+        }
+
         [ClassCleanup(ClassCleanupBehavior.EndOfClass)]
         public static void ClassCleanup()
         {

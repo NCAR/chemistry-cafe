@@ -2,6 +2,7 @@
 
 import axios from "axios";
 import { BASE_URL } from "./API_config";
+import { UUID } from "crypto";
 
 /**
  * Deletes a given user.
@@ -27,4 +28,19 @@ export async function deleteFamily(id: string) {
       "Content-Type": "application/json",
     },
   });
+}
+
+export async function deleteFamilyContributor(
+  familyId: UUID,
+  userId: UUID,
+): Promise<void> {
+  await axios.delete(
+    `${BASE_URL}/families/${familyId}/contributors/${userId}`,
+    {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    },
+  );
 }

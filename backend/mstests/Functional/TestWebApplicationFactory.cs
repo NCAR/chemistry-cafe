@@ -263,5 +263,20 @@ namespace ChemistryCafeAPI.Tests.Functional
             db.SaveChanges();
             return family;
         }
+
+        public async Task<FamilyContributor> AddContributorAsync(Guid familyId, User user, ContributorRole role)
+        {
+            using var scope = Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ChemistryDbContext>();
+            var contributor = new FamilyContributor
+            {
+                FamilyId = familyId,
+                UserId = user.Id,
+                Role = role
+            };
+            db.FamilyContributors.Add(contributor);
+            await db.SaveChangesAsync();
+            return contributor;
+        }
     }
 }
