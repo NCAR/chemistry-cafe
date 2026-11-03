@@ -2,7 +2,12 @@
 
 import axios from "axios";
 
-import { APIFamily, APIFamilyContributor, APIUser, APIUserPreferences } from "./API_Interfaces";
+import {
+  APIFamily,
+  APIFamilyContributor,
+  APIUser,
+  APIUserPreferences,
+} from "./API_Interfaces";
 import { BASE_URL } from "./API_config";
 import { UUID } from "crypto";
 

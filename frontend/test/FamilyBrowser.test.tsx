@@ -89,4 +89,3 @@ describe("FamilyBrowser Component", () => {
     expect(screen.getByRole("button", { name: /Edit Family/i })).toBeTruthy();
   });
 });
-

@@ -77,7 +77,9 @@ describe("ContributorsView Component", () => {
     (useAuth as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
       user: { id: "other-user" as any, role: "None" },
     });
-    (getFamilyContributors as unknown as ReturnType<typeof vi.fn>).mockResolvedValue([
+    (
+      getFamilyContributors as unknown as ReturnType<typeof vi.fn>
+    ).mockResolvedValue([
       {
         userId: "u-1" as any,
         role: "Editor",
@@ -119,7 +121,9 @@ describe("ContributorsView Component", () => {
     (useAuth as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
       user: mockOwner,
     });
-    (getFamilyContributors as unknown as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (
+      getFamilyContributors as unknown as ReturnType<typeof vi.fn>
+    ).mockResolvedValue([]);
 
     render(
       <CustomThemeProvider>
@@ -139,7 +143,9 @@ describe("ContributorsView Component", () => {
     (useAuth as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
       user: mockOwner,
     });
-    (getFamilyContributors as unknown as ReturnType<typeof vi.fn>).mockResolvedValue([
+    (
+      getFamilyContributors as unknown as ReturnType<typeof vi.fn>
+    ).mockResolvedValue([
       {
         userId: "u-1" as any,
         role: "Editor",
@@ -166,8 +172,12 @@ describe("ContributorsView Component", () => {
     (useAuth as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
       user: mockOwner,
     });
-    (getFamilyContributors as unknown as ReturnType<typeof vi.fn>).mockResolvedValue([]);
-    (addFamilyContributor as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+    (
+      getFamilyContributors as unknown as ReturnType<typeof vi.fn>
+    ).mockResolvedValue([]);
+    (
+      addFamilyContributor as unknown as ReturnType<typeof vi.fn>
+    ).mockResolvedValue({
       userId: "u-2" as any,
       role: "Editor",
       email: "newuser@example.com",
@@ -212,8 +222,12 @@ describe("ContributorsView Component", () => {
     (useAuth as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
       user: mockOwner,
     });
-    (getFamilyContributors as unknown as ReturnType<typeof vi.fn>).mockResolvedValue([]);
-    (addFamilyContributor as unknown as ReturnType<typeof vi.fn>).mockRejectedValue({
+    (
+      getFamilyContributors as unknown as ReturnType<typeof vi.fn>
+    ).mockResolvedValue([]);
+    (
+      addFamilyContributor as unknown as ReturnType<typeof vi.fn>
+    ).mockRejectedValue({
       response: { status: 404 },
     });
 
@@ -245,7 +259,9 @@ describe("ContributorsView Component", () => {
     (useAuth as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
       user: mockOwner,
     });
-    (getFamilyContributors as unknown as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (
+      getFamilyContributors as unknown as ReturnType<typeof vi.fn>
+    ).mockResolvedValue([]);
 
     render(
       <CustomThemeProvider>
@@ -275,7 +291,9 @@ describe("ContributorsView Component", () => {
     (useAuth as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
       user: mockOwner,
     });
-    (getFamilyContributors as unknown as ReturnType<typeof vi.fn>).mockResolvedValue([
+    (
+      getFamilyContributors as unknown as ReturnType<typeof vi.fn>
+    ).mockResolvedValue([
       {
         userId: "u-1" as any,
         role: "Viewer",
@@ -283,7 +301,9 @@ describe("ContributorsView Component", () => {
         username: "RemoveUser",
       },
     ]);
-    (deleteFamilyContributor as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+    (
+      deleteFamilyContributor as unknown as ReturnType<typeof vi.fn>
+    ).mockResolvedValue(undefined);
 
     const updateFamilyMock = vi.fn();
 
@@ -312,4 +332,3 @@ describe("ContributorsView Component", () => {
     expect(updateFamilyMock).not.toHaveBeenCalled();
   });
 });
-
