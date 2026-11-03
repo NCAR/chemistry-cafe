@@ -56,7 +56,13 @@ export function equationMatchesSearch(
   if (query.length === 0) {
     return true;
   }
-  const reactants = speciesNames(reaction.reactants, species);
+  const reactantsList =
+    reaction.reactants.length > 0
+      ? reaction.reactants
+      : reaction.gasPhaseSpeciesId
+        ? [{ speciesId: reaction.gasPhaseSpeciesId, coefficient: 1 }]
+        : [];
+  const reactants = speciesNames(reactantsList, species);
   const products = speciesNames(reaction.products, species);
 
   if (query.includes("->")) {

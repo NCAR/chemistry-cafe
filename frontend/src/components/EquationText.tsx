@@ -69,6 +69,18 @@ const productsByBranch = (reaction: Reaction) => {
     .filter((group) => group.products.length > 0);
 };
 
+export const reactionReactants = (
+  reaction: Reaction,
+): Array<{ speciesId: string; coefficient: number }> => {
+  if (reaction.reactants.length > 0) {
+    return reaction.reactants;
+  }
+  if (reaction.gasPhaseSpeciesId) {
+    return [{ speciesId: reaction.gasPhaseSpeciesId, coefficient: 1 }];
+  }
+  return [];
+};
+
 /**
  * Renders a reaction as a chemical equation, for example OH + NO₂ → HNO₃. A
  * type with more than one product branch shows each branch with its label,
@@ -84,7 +96,7 @@ export const EquationText = ({
   const groups = productsByBranch(reaction);
   return (
     <>
-      <EquationSide entries={reaction.reactants} species={species} />
+      <EquationSide entries={reactionReactants(reaction)} species={species} />
       {" → "}
       {groups && groups.length > 0 ? (
         groups.map((group, index) => (

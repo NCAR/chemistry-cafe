@@ -270,7 +270,7 @@ describe("ReactionEditorModal rate parameter units", () => {
     fireEvent.click(screen.getByRole("option", { name: "Aerosol" }));
 
     expect(
-      screen.getByText(/selected gas phase does not contain OH/),
+      screen.getByText(/selected gas phase "Aerosol" does not contain OH/),
     ).toBeTruthy();
 
     fireEvent.click(screen.getByTestId("cancel-phase-change"));
@@ -437,5 +437,169 @@ describe("ReactionEditorModal rate parameter units", () => {
     expect(onLossUpdate.mock.calls[0][0].reactants).toEqual([
       { speciesId: "111-111-111-111-001", coefficient: 0.5 },
     ]);
+  });
+
+  it("handles equation and gas-phase species for surface reactions", () => {
+    const onSurfaceUpdate = renderEditor({
+      ...makeReaction("SURFACE", { reactionProbability: 0.02 }),
+      reactants: [],
+      gasPhaseSpeciesId: "111-111-111-111-001" as any, // OH
+      products: [
+        {
+          speciesId: "111-111-111-111-002" as any, // NO2
+          coefficient: 2,
+          branch: "gas-phase",
+        },
+      ],
+    });
+    const equation = screen.getByLabelText("Equation") as HTMLInputElement;
+    expect(equation.value).toBe("OH -> 2 NO2");
+
+    // Only one reactant is allowed
+    fireEvent.change(equation, { target: { value: "OH + NO2 -> 2 NO2" } });
+    fireEvent.keyDown(equation, { key: "Enter" });
+    expect(
+      screen.getByText("This reaction type has only one reactant"),
+    ).toBeTruthy();
+
+    // Reactant coefficient must be 1
+    fireEvent.change(equation, { target: { value: "2 OH -> 2 NO2" } });
+    fireEvent.keyDown(equation, { key: "Enter" });
+    expect(
+      screen.getByText("The gas-phase reactant must have a coefficient of 1"),
+    ).toBeTruthy();
+
+    // Valid equation edit updates gasPhaseSpeciesId and keeps reactants empty
+    fireEvent.change(equation, { target: { value: "NO2 -> OH" } });
+    fireEvent.click(screen.getByTestId("save-reaction-changes"));
+    const saved = onSurfaceUpdate.mock.calls[0][0];
+    expect(saved.gasPhaseSpeciesId).toBe("111-111-111-111-002");
+    expect(saved.reactants).toEqual([]);
+    expect(saved.products).toEqual([
+      {
+        speciesId: "111-111-111-111-001",
+        coefficient: 1,
+        branch: "gas-phase",
+      },
+    ]);
+  });
+
+  it("filters gas-phase species by selected gas phase and rejects species outside that phase", () => {
+    const gasPhaseId = "333-333-333-333-001";
+    const familyWithPhases: Family = {
+      ...family,
+      phases: [
+        {
+          id: gasPhaseId as any,
+          name: "Gas Phase",
+          description: null,
+          speciesIds: ["111-111-111-111-001" as any], // Only OH
+        },
+      ],
+    };
+
+    const onUpdate = renderEditor(
+      {
+        ...makeReaction("SURFACE", { reactionProbability: 0.02 }),
+        gasPhaseId: gasPhaseId as any,
+        gasPhaseSpeciesId: "111-111-111-111-001" as any, // OH
+        reactants: [],
+        products: [
+          {
+            speciesId: "111-111-111-111-001" as any,
+            coefficient: 1,
+            branch: "gas-phase",
+          },
+        ],
+      },
+      vi.fn(),
+      familyWithPhases,
+    );
+
+    const equation = screen.getByLabelText("Equation") as HTMLInputElement;
+    expect(equation.value).toBe("OH -> OH");
+
+    // Edit equation with NO2, which is in family.species but NOT in the selected gas phase
+    fireEvent.change(equation, { target: { value: "NO2 -> OH" } });
+    fireEvent.keyDown(equation, { key: "Enter" });
+
+    // Error is displayed under Equation
+    expect(
+      screen.getByText("Species NO2 is not in the selected gas phase"),
+    ).toBeTruthy();
+
+    fireEvent.click(screen.getByTestId("save-reaction-changes"));
+    expect(onUpdate).not.toHaveBeenCalled();
+  });
+
+  it("allows switching gas phase anyways and clearing the gas-phase species", () => {
+    const gasPhase1Id = "333-333-333-333-001";
+    const gasPhase2Id = "333-333-333-333-002";
+    const familyWithPhases: Family = {
+      ...family,
+      phases: [
+        {
+          id: gasPhase1Id as any,
+          name: "Gas Phase 1",
+          description: null,
+          speciesIds: ["111-111-111-111-001" as any], // Only OH
+        },
+        {
+          id: gasPhase2Id as any,
+          name: "Gas Phase 2",
+          description: null,
+          speciesIds: ["111-111-111-111-002" as any], // Only NO2
+        },
+      ],
+    };
+
+    renderEditor(
+      {
+        ...makeReaction("SURFACE", { reactionProbability: 0.02 }),
+        gasPhaseId: gasPhase1Id as any,
+        gasPhaseSpeciesId: "111-111-111-111-001" as any, // OH
+        reactants: [],
+        products: [
+          {
+            speciesId: "111-111-111-111-002" as any, // NO2
+            coefficient: 1,
+            branch: "gas-phase",
+          },
+        ],
+      },
+      vi.fn(),
+      familyWithPhases,
+    );
+
+    const equation = screen.getByLabelText("Equation") as HTMLInputElement;
+    expect(equation.value).toBe("OH -> NO2");
+
+    // Change Gas Phase dropdown to Gas Phase 2
+    fireEvent.mouseDown(screen.getByRole("combobox", { name: "Gas Phase" }));
+    fireEvent.click(screen.getByRole("option", { name: "Gas Phase 2" }));
+
+    // Prompt appears asking to add OH to Gas Phase 2
+    expect(
+      screen.getByText(/selected gas phase "Gas Phase 2" does not contain OH/),
+    ).toBeTruthy();
+
+    // Click "Switch Anyways"
+    const switchAnywaysBtn = screen.getByTestId("switch-anyways-gas-phase");
+    expect(switchAnywaysBtn).toHaveTextContent("Switch Anyways");
+    fireEvent.click(switchAnywaysBtn);
+
+    // Gas Phase is now Gas Phase 2
+    expect(
+      screen
+        .getByTestId("reaction-gas-phase-select")
+        .querySelector(".MuiSelect-select"),
+    ).toHaveTextContent("Gas Phase 2");
+
+    // Gas Phase Species was cleared to None / empty
+    const gasSpeciesInput = screen.getByLabelText("Gas Phase Species") as HTMLInputElement;
+    expect(gasSpeciesInput.value).toBe("");
+
+    // Equation reflects no gas-phase reactant
+    expect(equation.value).toBe("-> NO2");
   });
 });

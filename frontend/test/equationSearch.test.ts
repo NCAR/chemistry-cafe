@@ -38,4 +38,21 @@ describe("equationMatchesSearch", () => {
   ])("matches %s: %s", (search, expected) => {
     expect(equationMatchesSearch(search, reaction, species)).toBe(expected);
   });
+
+  it("matches search on surface reaction gas-phase reactant", () => {
+    const surfaceReaction: Reaction = {
+      id: "5-5-5-5-5",
+      name: "usr_NO2_aer",
+      description: null,
+      type: "SURFACE",
+      gasPhaseSpeciesId: "2-2-2-2-2",
+      reactants: [],
+      products: [{ speciesId: "3-3-3-3-3", coefficient: 1, branch: "gas-phase" }],
+      attributes: {},
+    };
+    expect(equationMatchesSearch("NO2", surfaceReaction, species)).toBe(true);
+    expect(equationMatchesSearch("NO2 ->", surfaceReaction, species)).toBe(true);
+    expect(equationMatchesSearch("NO2 -> HNO3", surfaceReaction, species)).toBe(true);
+    expect(equationMatchesSearch("OH ->", surfaceReaction, species)).toBe(false);
+  });
 });
