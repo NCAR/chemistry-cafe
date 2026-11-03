@@ -8,9 +8,11 @@ import { PhaseCreationModal } from "../modals/PhaseCreationModal";
 import { ConfirmActionModal } from "../modals/ConfirmActionModal";
 import { RowActionsButton } from "../RowActionsButton";
 import { ViewProps } from "./ViewProps";
+import { useFamilyValidation } from "./FamilyValidationContext";
 import { PhaseTable } from "./PhaseTable";
 
 export const PhaseView = ({ family, updateFamily }: ViewProps) => {
+  const { byItem } = useFamilyValidation();
   const [phaseCreationModalOpen, setPhaseCreationModalOpen] = useState(false);
   const [selectedPhase, setSelectedPhase] = useState<Phase>();
   const [pendingPhaseUpdate, setPendingPhaseUpdate] = useState<{
@@ -200,6 +202,7 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
         </Tooltip>
       </Box>
       <PhaseTable
+        issues={byItem}
         phases={family.phases}
         species={family.species}
         getRowActions={(id) => [

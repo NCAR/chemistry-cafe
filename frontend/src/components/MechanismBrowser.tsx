@@ -9,6 +9,8 @@ import {
 import { Family, Mechanism } from "../types/chemistryModels";
 import { DownloadMechanismButton } from "./DownloadMechanismButton";
 import EditIcon from "@mui/icons-material/Edit";
+import { useFamilyValidation } from "./familyEditor/FamilyValidationContext";
+import { ProblemCount } from "./familyEditor/IssueIndicators";
 
 export type MechanismBrowserProps = {
   family: Family;
@@ -22,6 +24,8 @@ export const MechanismBrowser: React.FC<MechanismBrowserProps> = ({
   family,
   onEditButtonClick,
 }) => {
+  const { issues } = useFamilyValidation();
+
   if (family.mechanisms.length == 0) {
     return <Typography>No Mechanisms Found</Typography>;
   }
@@ -38,7 +42,15 @@ export const MechanismBrowser: React.FC<MechanismBrowserProps> = ({
       >
         <CardContent>
           <Box>
-            <Typography color="textPrimary">{mechanism.name}</Typography>
+            <Typography color="textPrimary">
+              {mechanism.name}
+              <ProblemCount
+                count={
+                  issues.filter((issue) => issue.mechanismId === mechanism.id)
+                    .length
+                }
+              />
+            </Typography>
             <Typography color="textSecondary">
               {mechanism.description}
             </Typography>

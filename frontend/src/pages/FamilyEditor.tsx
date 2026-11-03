@@ -42,6 +42,13 @@ import { MechanismsView } from "../components/familyEditor/MechanismsView";
 import { PhaseView } from "../components/familyEditor/PhaseView";
 import { ReactionsView } from "../components/familyEditor/ReactionsView";
 import { SpeciesView } from "../components/familyEditor/SpeciesView";
+import {
+  EditorSection,
+  FamilyValidationProvider,
+  useFamilyIssues,
+} from "../components/familyEditor/FamilyValidationContext";
+import { ProblemCount } from "../components/familyEditor/IssueIndicators";
+import { countItemsWithIssues } from "../helpers/validationIssues";
 
 const FamilyPage = () => {
   enum DataViewSelection {
@@ -62,6 +69,8 @@ const FamilyPage = () => {
   const [openImportMenu, setOpenImportMenu] = useState<boolean>(false); // Used when user attempts to import families
   const { user } = useAuth();
   const currentMenuName = useRef<string>(DataViewSelection.Default);
+  // The tree item of the view that the editor shows.
+  const [selectedTreeItem, setSelectedTreeItem] = useState<string | null>(null);
   const { theme } = useCustomTheme();
 
   const updateFamily = (family: Family): void => {
@@ -337,6 +346,30 @@ const FamilyPage = () => {
     setFamilies(familyList);
   };
 
+  // The editor checks the mechanisms of the selected family after each change,
+  // and marks the items with problems.
+  const selectedFamily = families?.find(
+    (family) => family.id === selectedFamilyId,
+  );
+  const validation = useFamilyIssues(selectedFamily);
+  const problemCounts = countItemsWithIssues(validation.issues);
+  const mechanismsWithProblems = new Set(
+    validation.issues.map((issue) => issue.mechanismId),
+  ).size;
+
+  /** Shows a section of the selected family, for example from a message. */
+  const openSection = (section: EditorSection) => {
+    if (!selectedFamily) {
+      return;
+    }
+    setSelectedTreeItem(`${selectedFamily.id};${section}`);
+    setDataView(getDataViewComponent(section, selectedFamily));
+  };
+
+  /** The count of items with problems in a section of a family. */
+  const sectionProblems = (family: Family, count: number) =>
+    family.id === selectedFamilyId ? <ProblemCount count={count} /> : null;
+
   return (
     <div className="layout-family-editor">
       <header>
@@ -388,6 +421,8 @@ const FamilyPage = () => {
           ) : (
             <SimpleTreeView
               onItemSelectionToggle={handleTreeItemToggle}
+              selectedItems={selectedTreeItem}
+              onSelectedItemsChange={(_, itemId) => setSelectedTreeItem(itemId)}
               sx={{
                 [`& .${treeItemClasses.label}`]: { fontSize: "0.85rem" },
               }}
@@ -447,25 +482,45 @@ const FamilyPage = () => {
                     />
                     <TreeItem
                       itemId={`${family.id};${DataViewSelection.Species}`}
-                      label={`Species (${family.species.length})`}
+                      label={
+                        <>
+                          Species ({family.species.length})
+                          {sectionProblems(family, problemCounts.species)}
+                        </>
+                      }
                       aria-label="Open Species Editor"
                       data-testid={`${family.id}-species-tree-button`}
                     />
                     <TreeItem
                       itemId={`${family.id};${DataViewSelection.Reactions}`}
-                      label={`Reactions (${family.reactions.length})`}
+                      label={
+                        <>
+                          Reactions ({family.reactions.length})
+                          {sectionProblems(family, problemCounts.reaction)}
+                        </>
+                      }
                       aria-label="Open Reactions Editor"
                       data-testid={`${family.id}-reactions-tree-button`}
                     />
                     <TreeItem
                       itemId={`${family.id};${DataViewSelection.Phases}`}
-                      label={`Phases (${family.phases.length})`}
+                      label={
+                        <>
+                          Phases ({family.phases.length})
+                          {sectionProblems(family, problemCounts.phase)}
+                        </>
+                      }
                       aria-label="Open Phase Editor"
                       data-testid={`${family.id}-phases-tree-button`}
                     />
                     <TreeItem
                       itemId={`${family.id};${DataViewSelection.Mechanisms}`}
-                      label={`Mechanisms (${family.mechanisms.length})`}
+                      label={
+                        <>
+                          Mechanisms ({family.mechanisms.length})
+                          {sectionProblems(family, mechanismsWithProblems)}
+                        </>
+                      }
                       data-testid={`${family.id}-mechanisms-tree-button`}
                     />
                   </FamilyTreeItem>
@@ -473,7 +528,11 @@ const FamilyPage = () => {
             </SimpleTreeView>
           )}
         </div>
-        <div className="family-view">{dataView}</div>
+        <div className="family-view">
+          <FamilyValidationProvider value={{ ...validation, openSection }}>
+            {dataView}
+          </FamilyValidationProvider>
+        </div>
       </Paper>
       <footer>
         <Footer />

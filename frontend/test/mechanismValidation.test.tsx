@@ -130,9 +130,9 @@ describe("Validation before a family becomes public", () => {
   it("blocks the change to public when a mechanism is invalid", async () => {
     const onChangeVisibility = renderView(makeFamily(false));
 
-    expect(
-      await screen.findByTestId("validation-errors-modal"),
-    ).toHaveTextContent(`Test Mechanism: ${productMessage}`);
+    const modal = await screen.findByTestId("validation-errors-modal");
+    expect(modal).toHaveTextContent(`${productMessage} (Test Mechanism)`);
+    expect(modal).toHaveTextContent("Reactions: 1 with problems");
     expect(screen.queryByTestId("confirm-action")).toBeNull();
     expect(onChangeVisibility).not.toHaveBeenCalled();
   });

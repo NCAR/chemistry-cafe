@@ -1,4 +1,5 @@
 import { Fragment } from "react";
+import { ProblemText } from "./familyEditor/IssueIndicators";
 import {
   Reaction,
   reactionConfigurations,
@@ -23,15 +24,24 @@ export const SpeciesName = ({ name }: { name: string }) => (
   </>
 );
 
+/** The problems of the species of an equation, by the ID of the species. */
+export type SpeciesProblems = Map<string, string[]>;
+
 type SideProps = {
   entries: Array<{ speciesId: string; coefficient: number }>;
   species: Array<Species>;
+  problems?: SpeciesProblems;
 };
 
-const EquationSide = ({ entries, species }: SideProps) => {
+const EquationSide = ({ entries, species, problems }: SideProps) => {
+  // A species that is not in the family has no name. It shows only when it
+  // has a problem, so that the user can see what to fix.
   const named = entries.flatMap((entry) => {
     const found = species.find((s) => s.id === entry.speciesId);
-    return found ? [{ ...entry, name: found.name }] : [];
+    if (found) return [{ ...entry, name: found.name }];
+    return problems?.has(entry.speciesId)
+      ? [{ ...entry, name: "<unknown>" }]
+      : [];
   });
   if (named.length === 0) {
     return <>&lt;none&gt;</>;
@@ -42,7 +52,13 @@ const EquationSide = ({ entries, species }: SideProps) => {
         <Fragment key={`${entry.speciesId}-${index}`}>
           {index > 0 && " + "}
           {entry.coefficient !== 1 && `${entry.coefficient} `}
-          <SpeciesName name={entry.name} />
+          {problems?.has(entry.speciesId) ? (
+            <ProblemText title={problems.get(entry.speciesId)?.join(" ")}>
+              <SpeciesName name={entry.name} />
+            </ProblemText>
+          ) : (
+            <SpeciesName name={entry.name} />
+          )}
         </Fragment>
       ))}
     </>
@@ -89,25 +105,40 @@ export const reactionReactants = (
 export const EquationText = ({
   reaction,
   species,
+  problems,
 }: {
   reaction: Reaction;
   species: Array<Species>;
+  /** Shows these species in red, with their problems as a tooltip. */
+  problems?: SpeciesProblems;
 }) => {
   const groups = productsByBranch(reaction);
   return (
     <>
-      <EquationSide entries={reactionReactants(reaction)} species={species} />
+      <EquationSide
+        entries={reactionReactants(reaction)}
+        species={species}
+        problems={problems}
+      />
       {" → "}
       {groups && groups.length > 0 ? (
         groups.map((group, index) => (
           <Fragment key={group.branch}>
             {index > 0 && " | "}
-            <EquationSide entries={group.products} species={species} /> (
-            {group.branch})
+            <EquationSide
+              entries={group.products}
+              species={species}
+              problems={problems}
+            />{" "}
+            ({group.branch})
           </Fragment>
         ))
       ) : (
-        <EquationSide entries={reaction.products} species={species} />
+        <EquationSide
+          entries={reaction.products}
+          species={species}
+          problems={problems}
+        />
       )}
     </>
   );

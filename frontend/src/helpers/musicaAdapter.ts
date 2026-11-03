@@ -489,6 +489,25 @@ function phaseToMusica(p: Phase, ctx: ExportCtx) {
  * Build the musica Mechanism for one mechanism of a family.
  * @throws if the mechanism contains a reaction type without a registry entry.
  */
+/**
+ * Gives the items of a family that a mechanism uses, in the order of the
+ * export. The paths of the validator count the items in this order.
+ */
+export function mechanismItems(mech: Mechanism, family: Family) {
+  return {
+    species: family.species.filter((s) => mech.speciesIds.includes(s.id)),
+    // A phase of the family can have species that the mechanism does not
+    // include. The phase of the mechanism has only the species of the mechanism.
+    phases: family.phases
+      .filter((p) => mech.phaseIds.includes(p.id))
+      .map((p) => ({
+        ...p,
+        speciesIds: p.speciesIds.filter((id) => mech.speciesIds.includes(id)),
+      })),
+    reactions: family.reactions.filter((r) => mech.reactionIds.includes(r.id)),
+  };
+}
+
 export function toMusicaMechanism(mech: Mechanism, family: Family) {
   const speciesIdToName = new Map(
     family.species.map((s) => [String(s.id), s.name]),
@@ -501,36 +520,19 @@ export function toMusicaMechanism(mech: Mechanism, family: Family) {
     phaseName: (id) => phaseIdToName.get(id) ?? id,
   };
 
+  const items = mechanismItems(mech, family);
   return new MusicaMechanism({
     name: mech.name,
     version: V1_VERSION,
-    species: family.species
-      .filter((s) => mech.speciesIds.includes(s.id))
-      .map(speciesToMusica),
-    // A phase of the family can have species that the mechanism does not
-    // include. The phase of the mechanism has only the species of the mechanism.
-    phases: family.phases
-      .filter((p) => mech.phaseIds.includes(p.id))
-      .map((p) =>
-        phaseToMusica(
-          {
-            ...p,
-            speciesIds: p.speciesIds.filter((id) =>
-              mech.speciesIds.includes(id),
-            ),
-          },
-          ctx,
-        ),
-      ),
-    reactions: family.reactions
-      .filter((r) => mech.reactionIds.includes(r.id))
-      .map((r) => {
-        const adapter = REACTION_ADAPTERS[r.type];
-        if (!adapter) {
-          throw new Error(`Unsupported reaction type for export: ${r.type}`);
-        }
-        return adapter.toMusica(r, ctx);
-      }),
+    species: items.species.map(speciesToMusica),
+    phases: items.phases.map((p) => phaseToMusica(p, ctx)),
+    reactions: items.reactions.map((r) => {
+      const adapter = REACTION_ADAPTERS[r.type];
+      if (!adapter) {
+        throw new Error(`Unsupported reaction type for export: ${r.type}`);
+      }
+      return adapter.toMusica(r, ctx);
+    }),
   });
 }
 

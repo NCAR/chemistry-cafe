@@ -6,8 +6,11 @@ import {
   serializeMechanismJSON,
   serializeMechanismMusicBox as serializeMusicBoxConfiguration,
   serializeMechanismYAML,
-  validateMechanism,
 } from "../helpers/serialization";
+import {
+  validateMechanism,
+  ValidationIssue,
+} from "../helpers/validationIssues";
 import { ValidationErrorsModal } from "./modals/ValidationErrorsModal";
 
 type RowActionsButtonProps = {
@@ -24,7 +27,9 @@ export const DownloadMechanismButton: React.FC<RowActionsButtonProps> = ({
 }) => {
   const [open, setOpen] = useState<boolean>(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [validationErrors, setValidationErrors] = useState<ValidationIssue[]>(
+    [],
+  );
 
   const handleMenuOpen = (event: MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -172,6 +177,7 @@ export const DownloadMechanismButton: React.FC<RowActionsButtonProps> = ({
         open={validationErrors.length > 0}
         onClose={() => setValidationErrors([])}
         message={`Fix these problems in "${mechanism.name}" before you download it.`}
+        family={family}
         errors={validationErrors}
       />
     </>

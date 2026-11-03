@@ -19,6 +19,12 @@ import { ReactionsTable } from "./familyEditor/ReactionsTable";
 import { PhaseTable } from "./familyEditor/PhaseTable";
 import { MechanismSearchModal } from "./modals/MechanismEditorSearchModal";
 import { reactionToString } from "../helpers/stringify";
+import { useFamilyValidation } from "./familyEditor/FamilyValidationContext";
+import { ProblemCount } from "./familyEditor/IssueIndicators";
+import {
+  countItemsWithIssues,
+  issuesByItem,
+} from "../helpers/validationIssues";
 
 export type MechanismEditorProps = {
   family: Family;
@@ -90,6 +96,18 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
     Phases,
     InitialConditions,
   }
+
+  // The problems of this mechanism. They come from the saved family.
+  const { issues } = useFamilyValidation();
+  const mechanismIssues = useMemo(
+    () => issues.filter((issue) => issue.mechanismId === mechanism.id),
+    [issues, mechanism.id],
+  );
+  const issuesOfItems = useMemo(
+    () => issuesByItem(mechanismIssues),
+    [mechanismIssues],
+  );
+  const problemCounts = countItemsWithIssues(mechanismIssues);
 
   const [changesSaved, setChangesSaved] = useState<boolean>(true);
   const [selectedTab, setSelectedTab] = useState<TabValue>(TabValue.Info);
@@ -198,17 +216,32 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
         <Tab
           data-testid="mechanism-tab"
           value={TabValue.Species}
-          label={"Species"}
+          label={
+            <span>
+              Species
+              <ProblemCount count={problemCounts.species} />
+            </span>
+          }
         ></Tab>
         <Tab
           data-testid="mechanism-tab"
           value={TabValue.Reactions}
-          label={"Reactions"}
+          label={
+            <span>
+              Reactions
+              <ProblemCount count={problemCounts.reaction} />
+            </span>
+          }
         />
         <Tab
           data-testid="mechanism-tab"
           value={TabValue.Phases}
-          label={"Phases"}
+          label={
+            <span>
+              Phases
+              <ProblemCount count={problemCounts.phase} />
+            </span>
+          }
         />
       </Tabs>
       {selectedTab === TabValue.Info && (
@@ -264,6 +297,7 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
             {mechanism.name || "<No Name>"} Species
           </Typography>
           <SpeciesTable
+            issues={issuesOfItems}
             species={mechanismSpecies}
             getRowActions={(id) => [
               <RemoveFromMechanismButton
@@ -300,6 +334,7 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
             {mechanism.name || "<No Name>"} Reactions
           </Typography>
           <ReactionsTable
+            issues={issuesOfItems}
             reactions={mechanismReactions}
             phases={family.phases}
             species={family.species}
@@ -341,6 +376,7 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
             {mechanism.name || "<No Name>"} Phases
           </Typography>
           <PhaseTable
+            issues={issuesOfItems}
             phases={mechanismPhases}
             species={family.species}
             getRowActions={(id) => [

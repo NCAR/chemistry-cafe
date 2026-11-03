@@ -32,6 +32,18 @@ import { UUID } from "crypto";
 import { equationMatchesSearch } from "../../helpers/equationSearch";
 import { DataViewToolbar, useVisibleRows } from "./DataViewToolbar";
 import { EquationText } from "../EquationText";
+import {
+  countRowsWithIssues,
+  issueColumns,
+  issueRowClassName,
+  issueRowSx,
+  ItemIssues,
+  problemsBySpecies,
+  problemsInField,
+  ProblemsFilter,
+  ProblemText,
+  rowsToShow,
+} from "./IssueIndicators";
 import { ReactionTypeInfo } from "./ReactionTypeInfo";
 import { useUserPreferences } from "../UserPreferencesContext";
 import {
@@ -376,6 +388,8 @@ export type ReactionsTableProps = {
    * editable is double-clicked. Without it, a double-click there does nothing.
    */
   onEdit?: (id: UUID) => void;
+  /** The problems of the reactions. The table marks the reactions that have one. */
+  issues?: ItemIssues;
 };
 
 /**
@@ -390,10 +404,13 @@ export const ReactionsTable = ({
   onRowUpdate,
   onAdd,
   onEdit,
+  issues,
 }: ReactionsTableProps) => {
   const { theme } = useCustomTheme();
   // The reaction types that the Type field selects. None means all types.
   const [typeFilter, setTypeFilter] = useState<Array<ReactionTypeName>>([]);
+  // Shows only the reactions with problems.
+  const [onlyProblems, setOnlyProblems] = useState<boolean>(false);
   const { preferences } = useUserPreferences();
   const { activationParameter } = preferences;
   const apiRef = useGridApiRef();
@@ -438,6 +455,7 @@ export const ReactionsTable = ({
         cellClassName: "actions",
         getActions: ({ id }) => getRowActions(id as UUID),
       },
+      ...(issueColumns<Reaction>(issues) as Array<GridColDef<Reaction>>),
       {
         field: "id",
         headerName: "Equation",
@@ -456,7 +474,11 @@ export const ReactionsTable = ({
           ),
         renderCell: (params: GridRenderCellParams<Reaction>) => (
           <Typography variant="body1" noWrap>
-            <EquationText reaction={params.row} species={species} />
+            <EquationText
+              reaction={params.row}
+              species={species}
+              problems={problemsBySpecies(issues?.get(params.row.id))}
+            />
           </Typography>
         ),
       },
@@ -532,22 +554,34 @@ export const ReactionsTable = ({
         valueGetter: (_value, row: Reaction) =>
           phases.find((phase: Phase) => phase.id === row.gasPhaseId)?.name ??
           "",
-        renderCell: (params: GridRenderCellParams<Reaction>) => (
-          <Typography
-            variant="body1"
-            sx={{
-              color: params.value
-                ? theme.palette.text.primary
-                : theme.palette.text.disabled,
-            }}
-            noWrap
-          >
-            {params.value || "<None>"}
-          </Typography>
-        ),
+        renderCell: (params: GridRenderCellParams<Reaction>) => {
+          const problems = problemsInField(
+            issues?.get(params.row.id),
+            "gas phase",
+          );
+          return (
+            <Typography
+              variant="body1"
+              sx={{
+                color: params.value
+                  ? theme.palette.text.primary
+                  : theme.palette.text.disabled,
+              }}
+              noWrap
+            >
+              {problems.length > 0 ? (
+                <ProblemText title={problems.join(" ")}>
+                  {params.value || "<None>"}
+                </ProblemText>
+              ) : (
+                params.value || "<None>"
+              )}
+            </Typography>
+          );
+        },
       },
     ],
-    [editable, getRowActions, phases, reactions, species, theme],
+    [editable, getRowActions, issues, phases, reactions, species, theme],
   );
 
   const typeCounts = useMemo(() => {
@@ -574,12 +608,17 @@ export const ReactionsTable = ({
         .sort((a, b) => a.label.localeCompare(b.label)),
     [typeCounts],
   );
+  const problemCount = countRowsWithIssues(reactions, issues);
   const rows = useMemo(
     () =>
-      activeTypes.length > 0
-        ? reactions.filter((reaction) => activeTypes.includes(reaction.type))
-        : reactions,
-    [activeTypes, reactions],
+      rowsToShow(
+        activeTypes.length > 0
+          ? reactions.filter((reaction) => activeTypes.includes(reaction.type))
+          : reactions,
+        issues,
+        onlyProblems && problemCount > 0,
+      ),
+    [activeTypes, issues, onlyProblems, problemCount, reactions],
   );
 
   // When all visible rows have one type, the table shows the parameters of
@@ -650,6 +689,7 @@ export const ReactionsTable = ({
       onColumnVisibilityModelChange={setColumnVisibility}
       rows={rows}
       columns={columns}
+      getRowClassName={(params) => issueRowClassName(issues, String(params.id))}
       // A double-click opens the reaction editor. An editable cell, for
       // example the name or a parameter, keeps its in-cell edit.
       onCellDoubleClick={(params) => {
@@ -666,6 +706,7 @@ export const ReactionsTable = ({
       disableVirtualization
       sx={{
         flex: 1,
+        ...issueRowSx(theme),
         "& .MuiDataGrid-cell": {
           display: "flex",
           alignItems: "center",
@@ -686,11 +727,18 @@ export const ReactionsTable = ({
           onAdd,
           searchPlaceholder: "Search reactions",
           filters: (
-            <TypeFilter
-              options={typeOptions}
-              selectedTypes={activeTypes}
-              onSelect={setTypeFilter}
-            />
+            <>
+              <TypeFilter
+                options={typeOptions}
+                selectedTypes={activeTypes}
+                onSelect={setTypeFilter}
+              />
+              <ProblemsFilter
+                count={problemCount}
+                selected={onlyProblems}
+                onChange={setOnlyProblems}
+              />
+            </>
           ),
           actions: visibleType && (
             <RateConstantButton

@@ -1,4 +1,4 @@
-import { ReactElement } from "react";
+import { ReactElement, useState } from "react";
 import { Tooltip, Typography } from "@mui/material";
 import {
   DataGrid,
@@ -15,6 +15,16 @@ import { Family, Species } from "../../types/chemistryModels";
 import { speciesExclusiveConflict } from "../../helpers/editorHelpers";
 import { useCustomTheme } from "../CustomThemeContext";
 import { DataViewToolbar, useVisibleRows } from "./DataViewToolbar";
+import {
+  countRowsWithIssues,
+  issueColumns,
+  issueRowClassName,
+  issueRowSx,
+  ItemIssues,
+  ProblemsFilter,
+  ProblemText,
+  rowsToShow,
+} from "./IssueIndicators";
 
 const EXCLUSIVE_OPTION_MESSAGE =
   "Only one of constant concentration, constant mixing ratio, or third body may be set.";
@@ -58,6 +68,8 @@ export type SpeciesTableProps = {
   onRowUpdate?: (species: Species) => void;
   /** Shows the add button of the toolbar, and calls this when it is clicked. */
   onAdd?: () => void;
+  /** The problems of the species. The table marks the species that have one. */
+  issues?: ItemIssues;
 };
 
 /**
@@ -69,12 +81,16 @@ export const SpeciesTable = ({
   getRowActions,
   onRowUpdate,
   onAdd,
+  issues,
 }: SpeciesTableProps) => {
   const { theme } = useCustomTheme();
   const apiRef = useGridApiRef();
   const visibleRows = useVisibleRows(apiRef);
   // Without a way to save an edit, the cells are read-only.
   const editable = onRowUpdate !== undefined;
+  // Shows only the species with problems.
+  const [onlyProblems, setOnlyProblems] = useState<boolean>(false);
+  const problemCount = countRowsWithIssues(species, issues);
 
   const speciesColumns: GridColDef[] = [
     {
@@ -85,24 +101,36 @@ export const SpeciesTable = ({
       disableColumnMenu: true,
       getActions: ({ id }) => getRowActions(id as UUID),
     },
+    ...(issueColumns<Species>(issues) as Array<GridColDef>),
     {
       field: "name",
       headerName: "Name",
       editable,
       type: "string",
       flex: 1,
-      renderCell: (params: GridRenderCellParams<Family>) => (
-        <Typography
-          variant="body1"
-          sx={{
-            color: params.value
-              ? theme.palette.text.primary
-              : theme.palette.text.disabled,
-          }}
-        >
-          {params.value || "<Empty>"}
-        </Typography>
-      ),
+      renderCell: (params: GridRenderCellParams<Species>) => {
+        const problems = issues?.get(params.row.id) ?? [];
+        return (
+          <Typography
+            variant="body1"
+            sx={{
+              color: params.value
+                ? theme.palette.text.primary
+                : theme.palette.text.disabled,
+            }}
+          >
+            {problems.length > 0 ? (
+              <ProblemText
+                title={problems.map((issue) => issue.message).join(" ")}
+              >
+                {params.value || "<Empty>"}
+              </ProblemText>
+            ) : (
+              params.value || "<Empty>"
+            )}
+          </Typography>
+        );
+      },
     },
     {
       field: "description",
@@ -233,13 +261,15 @@ export const SpeciesTable = ({
         pagination: { paginationModel: { pageSize: 20 } },
         sorting: { sortModel: [{ field: "name", sort: "asc" }] },
       }}
-      rows={species}
+      rows={rowsToShow(species, issues, onlyProblems && problemCount > 0)}
       columns={speciesColumns}
+      getRowClassName={(params) => issueRowClassName(issues, String(params.id))}
       pageSizeOptions={[5, 10, 20, 100]}
       disableRowSelectionOnClick
       disableVirtualization // Enables DataGrid to be rendered in testing
       sx={{
         flex: 1,
+        ...issueRowSx(theme),
         "& .MuiDataGrid-cell": {
           display: "flex",
           alignItems: "center",
@@ -259,6 +289,13 @@ export const SpeciesTable = ({
           addTestId: "add-species-button",
           onAdd,
           searchPlaceholder: "Search species",
+          filters: (
+            <ProblemsFilter
+              count={problemCount}
+              selected={onlyProblems}
+              onChange={setOnlyProblems}
+            />
+          ),
           visibleCount: visibleRows.length,
           totalCount: species.length,
         },
