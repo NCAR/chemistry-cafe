@@ -1214,24 +1214,25 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
         </DialogTitle>
         <DialogContent>
           <DialogContentText>
-            {pendingPhaseChange && (() => {
-              const targetPhase = family.phases.find(
-                (p) => p.id === pendingPhaseChange.phaseId,
-              );
-              const targetPhaseName = targetPhase?.name || "<No Name>";
-              const missingSpecies = pendingPhaseChange.missingSpeciesIds
-                .map(
-                  (speciesId) =>
-                    family.species.find((species) => species.id === speciesId)
-                      ?.name ?? "<No Name>",
-                )
-                .join(", ");
-              const countText =
-                pendingPhaseChange.missingSpeciesIds.length === 1
-                  ? "this species"
-                  : "these species";
-              return `The selected gas phase "${targetPhaseName}" does not contain ${missingSpecies}. Add ${countText} to "${targetPhaseName}" to change the reaction phase?`;
-            })()}
+            {pendingPhaseChange &&
+              (() => {
+                const targetPhase = family.phases.find(
+                  (p) => p.id === pendingPhaseChange.phaseId,
+                );
+                const targetPhaseName = targetPhase?.name || "<No Name>";
+                const missingSpecies = pendingPhaseChange.missingSpeciesIds
+                  .map(
+                    (speciesId) =>
+                      family.species.find((species) => species.id === speciesId)
+                        ?.name ?? "<No Name>",
+                  )
+                  .join(", ");
+                const countText =
+                  pendingPhaseChange.missingSpeciesIds.length === 1
+                    ? "this species"
+                    : "these species";
+                return `The selected gas phase "${targetPhaseName}" does not contain ${missingSpecies}. Add ${countText} to "${targetPhaseName}" to change the reaction phase?`;
+              })()}
           </DialogContentText>
         </DialogContent>
         <DialogActions>

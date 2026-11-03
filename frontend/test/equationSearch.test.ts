@@ -47,12 +47,20 @@ describe("equationMatchesSearch", () => {
       type: "SURFACE",
       gasPhaseSpeciesId: "2-2-2-2-2",
       reactants: [],
-      products: [{ speciesId: "3-3-3-3-3", coefficient: 1, branch: "gas-phase" }],
+      products: [
+        { speciesId: "3-3-3-3-3", coefficient: 1, branch: "gas-phase" },
+      ],
       attributes: {},
     };
     expect(equationMatchesSearch("NO2", surfaceReaction, species)).toBe(true);
-    expect(equationMatchesSearch("NO2 ->", surfaceReaction, species)).toBe(true);
-    expect(equationMatchesSearch("NO2 -> HNO3", surfaceReaction, species)).toBe(true);
-    expect(equationMatchesSearch("OH ->", surfaceReaction, species)).toBe(false);
+    expect(equationMatchesSearch("NO2 ->", surfaceReaction, species)).toBe(
+      true,
+    );
+    expect(equationMatchesSearch("NO2 -> HNO3", surfaceReaction, species)).toBe(
+      true,
+    );
+    expect(equationMatchesSearch("OH ->", surfaceReaction, species)).toBe(
+      false,
+    );
   });
 });
