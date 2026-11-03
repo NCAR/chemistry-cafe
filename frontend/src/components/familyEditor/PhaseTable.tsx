@@ -85,8 +85,7 @@ export const PhaseTable = ({
         row.speciesIds
           .map(
             (id) =>
-              species.find((element) => element.id === id)?.name ??
-              "<Unknown>",
+              species.find((element) => element.id === id)?.name ?? "<Unknown>",
           )
           .join(", "),
       renderCell: (params: GridRenderCellParams<Phase>) => (
