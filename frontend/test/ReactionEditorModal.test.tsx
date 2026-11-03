@@ -105,6 +105,14 @@ describe("ReactionEditorModal rate parameter units", () => {
     expect(onUpdate.mock.calls[0][0].reactants).toEqual(twoReactants);
   });
 
+  it("shows the gas phase field when the family has no phases", () => {
+    renderEditor(makeReaction("ARRHENIUS", {}));
+
+    const field = screen.getByTestId("reaction-gas-phase-select");
+    expect(field.querySelector(".Mui-disabled")).toBeTruthy();
+    expect(field).toHaveTextContent("This family has no phases.");
+  });
+
   it("shows Ea with C in parentheses, and stores only the edited Ea", () => {
     const onUpdate = renderEditor(
       makeReaction("ARRHENIUS", { A: { value: 1 }, C: { value: -500 } }),

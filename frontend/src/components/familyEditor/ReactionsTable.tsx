@@ -555,10 +555,14 @@ export const ReactionsTable = ({
           phases.find((phase: Phase) => phase.id === row.gasPhaseId)?.name ??
           "",
         renderCell: (params: GridRenderCellParams<Reaction>) => {
-          const problems = problemsInField(
-            issues?.get(params.row.id),
-            "gas phase",
-          );
+          const rowIssues = issues?.get(params.row.id);
+          // A reaction without a gas phase gives a problem about the whole
+          // reaction, because the key is missing. The empty cell shows it.
+          const problems = params.row.gasPhaseId
+            ? problemsInField(rowIssues, "gas phase")
+            : (rowIssues ?? [])
+                .filter((issue) => !issue.target?.field)
+                .map((issue) => issue.message);
           return (
             <Typography
               variant="body1"
