@@ -4,6 +4,7 @@ import Settings from "./Settings.tsx";
 import Dashboard from "./Dashboard.tsx";
 import FamilyEditor from "./FamilyEditor.tsx";
 import Home from "./Home.tsx";
+import Register from "./Register.tsx";
 import About from "./About.tsx";
 import UserManagement from "./UserManagement.tsx";
 import NoAccess from "./Unauthorized.tsx";
@@ -23,6 +24,7 @@ function App() {
             <Banner />
             <Routes>
               <Route path="/" element={<Home />} />
+              <Route path="/register" element={<Register />} />
               <Route path="/loggedin" element={<Dashboard />} />{" "}
               {/* Legacy Route */}
               <Route path="/dashboard" element={<Dashboard />} />

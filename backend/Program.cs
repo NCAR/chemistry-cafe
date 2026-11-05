@@ -82,11 +82,13 @@ public class Program {
 
         // Add services to the container.
         builder.Services.AddHttpContextAccessor();
+        builder.Services.AddDataProtection();
         builder.Services.AddControllers();
         builder.Services.AddAuthorization();
         builder.Services.AddScoped<UserService>();
         builder.Services.AddScoped<GoogleOAuthService>();
         builder.Services.AddScoped<OrcidOAuthService>();
+        builder.Services.AddScoped<OAuthRegistrationService>();
         builder.Services.AddScoped<FamilyService>();
 
         var authenticationBuilder = builder.Services.AddAuthentication((options) =>

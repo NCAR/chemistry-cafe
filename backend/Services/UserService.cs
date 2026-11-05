@@ -62,6 +62,29 @@ namespace ChemistryCafeAPI.Services
         }
 
         /// <summary>
+        /// Retrieves a user with their ORCID iD
+        /// </summary>
+        /// <param name="id">ORCID ID of the user</param>
+        /// <returns>Tracked user object if found</returns>
+        public async Task<User?> GetUserByOrcidIdAsync(string id)
+        {
+            return await context.Users.SingleOrDefaultAsync(u => u.OrcidId == id);
+        }
+
+        /// <summary>
+        /// Updates a user's email address
+        /// </summary>
+        public async Task UpdateUserEmailAsync(Guid userId, string email)
+        {
+            var u = await context.Users.FindAsync(userId);
+            if (u != null)
+            {
+                u.Email = email;
+                await context.SaveChangesAsync();
+            }
+        }
+
+        /// <summary>
         /// Retrieves a user via their email
         /// </summary>
         /// <param name="email">Email of the user</param>
@@ -277,7 +300,22 @@ namespace ChemistryCafeAPI.Services
             {
                 existingUser.Role = user.Role;
             }
-            existingUser.Username = user.Username;
+
+            if (!OAuthRegistrationService.IsValidUsername(user.Username))
+            {
+                return QueryResult.ValidationError;
+            }
+
+            if (!string.Equals(existingUser.Username, user.Username, StringComparison.OrdinalIgnoreCase))
+            {
+                var duplicateUsername = await context.Users.AnyAsync(u => u.Id != user.Id && u.Username.ToLower() == user.Username.ToLower());
+                if (duplicateUsername)
+                {
+                    return QueryResult.UsernameTaken;
+                }
+            }
+
+            existingUser.Username = user.Username.Trim();
             existingUser.Email = user.Email;
             existingUser.FirstName = user.FirstName;
             existingUser.LastName = user.LastName;

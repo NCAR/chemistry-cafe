@@ -14,6 +14,25 @@ export interface APIUser {
   orcidId?: string | null;
 }
 
+export interface APIPendingRegistration {
+  provider: string;
+  email?: string | null;
+  suggestedUsername?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+}
+
+export interface APIUsernameAvailability {
+  available: boolean;
+  message: string;
+}
+
+export interface APIRegisterUser {
+  username: string;
+  firstName?: string | null;
+  lastName?: string | null;
+}
+
 export interface APIUserPreferences {
   userId?: UUID;
   arrheniusRateUnits: RateUnits;

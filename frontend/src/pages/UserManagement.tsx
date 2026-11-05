@@ -18,20 +18,23 @@ import {
   GridEventListener,
   GridFooterContainer,
   GridFooter,
+  GridPreProcessEditCellProps,
 } from "@mui/x-data-grid";
+import axios from "axios";
 
 import { Header, Footer } from "../components/HeaderFooter";
 
 import "../styles/UserManagement.css";
 //import { useAuth } from "../contexts/AuthContext"; // Import the AuthContext
-import { getAllUsers } from "../API/API_GetMethods";
+import { getAllUsers, checkUsernameAvailability } from "../API/API_GetMethods";
 import { APIUser } from "../API/API_Interfaces";
 import { updateUser } from "../API/API_UpdateMethods";
 import { deleteUser } from "../API/API_DeleteMethods";
+import { validateUsernameFormat } from "../helpers/userValidation";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogActions from "@mui/material/DialogActions";
-import { Button, Paper } from "@mui/material";
+import { Alert, Button, Paper } from "@mui/material";
 
 function RolesToolbar() {
   return (
@@ -68,6 +71,9 @@ const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<APIUser[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [updateErrorMessage, setUpdateErrorMessage] = useState<string | null>(
+    null,
+  );
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const handleDeleteDialogClose = () => setDeleteDialogOpen(false);
@@ -136,16 +142,49 @@ const UserManagement: React.FC = () => {
 
   // This function handles syncing edits with the database
   // Note: this does not handle syncing deleting from DB: see handleDeleteClick
-  const processRowUpdate = async (updatedUser: GridRowModel) => {
+  const processRowUpdate = async (
+    updatedUser: GridRowModel,
+    originalUser: GridRowModel,
+  ) => {
     console.log("Updating row:", updatedUser);
+    const updated = updatedUser as APIUser;
+    const original = originalUser as APIUser;
+
+    if (updated.username !== original.username) {
+      const trimmed = updated.username?.trim() || "";
+      const formatCheck = validateUsernameFormat(trimmed);
+      if (!formatCheck.valid) {
+        const msg = formatCheck.message || "Invalid username format";
+        setUpdateErrorMessage(msg);
+        throw new Error(msg);
+      }
+      const availability = await checkUsernameAvailability(trimmed, updated.id);
+      if (!availability.available) {
+        const msg = availability.message || "Username is already taken";
+        setUpdateErrorMessage(msg);
+        throw new Error(msg);
+      }
+      updated.username = trimmed;
+    }
+
     try {
-      // @ts-ignore
-      // tslint:disable-next-line:no-unused-variable
-      const response = await updateUser(updatedUser as APIUser); // Ensure updatedUser.id is a string
-      // if no error, assume it is fine
-      return updatedUser;
-    } catch (error) {
+      await updateUser(updated);
+      setUpdateErrorMessage(null);
+      setUsers((prevUsers) =>
+        prevUsers.map((u) => (u.id === updated.id ? updated : u)),
+      );
+      return updated;
+    } catch (error: unknown) {
       console.error("Error updating user: ", error);
+      let msg = "Error updating user";
+      if (axios.isAxiosError(error)) {
+        if (typeof error.response?.data === "string") {
+          msg = error.response.data;
+        } else if (error.response?.data?.message) {
+          msg = error.response.data.message;
+        }
+      }
+      setUpdateErrorMessage(msg);
       throw error;
     }
   };
@@ -160,7 +199,26 @@ const UserManagement: React.FC = () => {
       field: "username",
       headerName: "Username",
       width: 200,
-      editable: false,
+      editable: true,
+      preProcessEditCellProps: async (params: GridPreProcessEditCellProps) => {
+        const newUsername = (params.props.value as string)?.trim() || "";
+        const originalUser = users.find((u) => u.id === params.id);
+        if (originalUser && newUsername === originalUser.username) {
+          return { ...params.props, error: false };
+        }
+        const formatCheck = validateUsernameFormat(newUsername);
+        if (!formatCheck.valid) {
+          return { ...params.props, error: formatCheck.message };
+        }
+        const availability = await checkUsernameAvailability(
+          newUsername,
+          params.id as string,
+        );
+        return {
+          ...params.props,
+          error: availability.available ? false : availability.message,
+        };
+      },
     },
     {
       field: "email",
@@ -189,6 +247,7 @@ const UserManagement: React.FC = () => {
         if (isInEditMode) {
           return [
             <GridActionsCellItem
+              key="save"
               icon={<SaveIcon />}
               label="Save"
               sx={{
@@ -197,6 +256,7 @@ const UserManagement: React.FC = () => {
               onClick={handleSaveClick(id)}
             />,
             <GridActionsCellItem
+              key="cancel"
               icon={<CancelIcon />}
               label="Cancel"
               className="textPrimary"
@@ -208,6 +268,7 @@ const UserManagement: React.FC = () => {
 
         return [
           <GridActionsCellItem
+            key="edit"
             icon={<EditIcon />}
             label="Edit"
             className="textPrimary"
@@ -215,6 +276,7 @@ const UserManagement: React.FC = () => {
             color="inherit"
           />,
           <GridActionsCellItem
+            key="delete"
             icon={<DeleteIcon />}
             label="Delete"
             onClick={handleDeleteClick(id)}
@@ -231,6 +293,15 @@ const UserManagement: React.FC = () => {
         <Header />
       </header>
       <Paper square component="main" className="content-user-management">
+        {updateErrorMessage && (
+          <Alert
+            severity="error"
+            onClose={() => setUpdateErrorMessage(null)}
+            sx={{ m: 1 }}
+          >
+            {updateErrorMessage}
+          </Alert>
+        )}
         <DataGrid
           rows={users}
           columns={userColumns}
@@ -242,7 +313,11 @@ const UserManagement: React.FC = () => {
           onRowModesModelChange={handleRowModesModelChange}
           onRowEditStop={handleRowEditStop}
           processRowUpdate={processRowUpdate}
-          onProcessRowUpdateError={(error) => console.log(error)}
+          onProcessRowUpdateError={(err) => {
+            if (err instanceof Error) {
+              setUpdateErrorMessage(err.message);
+            }
+          }}
           slots={{
             toolbar: RolesToolbar,
             footer: CustomDataGridFooter,
