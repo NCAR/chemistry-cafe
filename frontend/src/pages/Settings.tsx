@@ -6,9 +6,12 @@ import {
   ColorModePreference,
 } from "../components/CustomThemeContext";
 import {
+  Alert,
   Box,
+  CircularProgress,
   Container,
   Divider,
+  InputAdornment,
   Paper,
   Slider,
   Stack,
@@ -29,13 +32,18 @@ import {
   Tab,
   Tabs,
 } from "@mui/material";
+import axios from "axios";
 import { ReactNode, useEffect, useState } from "react";
 import SettingsBrightnessIcon from "@mui/icons-material/SettingsBrightness";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import { useAuth } from "../components/AuthContext.tsx";
 import { APIUser } from "../API/API_Interfaces.tsx";
 import { updateUser } from "../API/API_UpdateMethods.tsx";
+import { checkUsernameAvailability } from "../API/API_GetMethods.tsx";
+import { validateUsernameFormat } from "../helpers/userValidation.ts";
 import { AUTH_URL } from "../API/API_config.tsx";
 import GoogleIcon from "@mui/icons-material/Google";
 import OrcidImage from "../assets/ORCID-iD_icon_vector.svg";
@@ -146,17 +154,70 @@ const ProfileMenu = () => {
   const { user: loggedInUser } = useAuth(); // Get logged in user info from AuthContext
   const userCopy = { ...loggedInUser } as APIUser;
   const [user, setUser] = useState(userCopy);
+
+  const [checkingUsername, setCheckingUsername] = useState<boolean>(false);
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(
+    null,
+  );
+  const [usernameHelper, setUsernameHelper] = useState<string>("");
+  const [saveError, setSaveError] = useState<string | null>(null);
+
   useEffect(() => {
     setUser(userCopy);
   }, [loggedInUser]);
+
+  useEffect(() => {
+    if (!loggedInUser || !user.username) {
+      setUsernameAvailable(null);
+      setUsernameHelper("");
+      setCheckingUsername(false);
+      return;
+    }
+
+    const trimmed = user.username.trim();
+    if (trimmed === loggedInUser.username) {
+      setUsernameAvailable(true);
+      setUsernameHelper("");
+      setCheckingUsername(false);
+      return;
+    }
+
+    const formatCheck = validateUsernameFormat(trimmed);
+    if (!formatCheck.valid) {
+      setUsernameAvailable(false);
+      setUsernameHelper(formatCheck.message || "Invalid username format.");
+      setCheckingUsername(false);
+      return;
+    }
+
+    setCheckingUsername(true);
+    const handler = setTimeout(async () => {
+      const res = await checkUsernameAvailability(trimmed, loggedInUser.id);
+      setUsernameAvailable(res.available);
+      setUsernameHelper(res.message);
+      setCheckingUsername(false);
+    }, 300);
+
+    return () => clearTimeout(handler);
+  }, [user.username, loggedInUser]);
 
   if (!loggedInUser) {
     return null;
   }
 
+  const isUnchanged = Object.entries(user).reduce(
+    (prev, [key, val]) => prev && loggedInUser[key as keyof APIUser] === val,
+    true,
+  );
+
   return (
     <Stack divider={<Divider flexItem />}>
       <Box sx={{ py: 1.5 }}>
+        {saveError && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {saveError}
+          </Alert>
+        )}
         <Box
           sx={{
             display: "grid",
@@ -168,10 +229,44 @@ const ProfileMenu = () => {
             size="small"
             label="Username"
             required
-            defaultValue={loggedInUser.username}
-            onChange={(e) =>
-              setUser((p) => ({ ...p, username: e.target.value }))
+            value={user.username || ""}
+            error={usernameAvailable === false}
+            helperText={
+              checkingUsername
+                ? "Checking availability..."
+                : usernameHelper || undefined
             }
+            onChange={(e) => {
+              setSaveError(null);
+              setUser((p) => ({ ...p, username: e.target.value }));
+            }}
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    {checkingUsername ? (
+                      <CircularProgress size={18} />
+                    ) : usernameAvailable === true &&
+                      user.username !== loggedInUser.username ? (
+                      <CheckCircleIcon color="success" fontSize="small" />
+                    ) : usernameAvailable === false ? (
+                      <ErrorOutlineIcon color="error" fontSize="small" />
+                    ) : null}
+                  </InputAdornment>
+                ),
+              },
+              formHelperText: {
+                sx: {
+                  color:
+                    usernameAvailable === true &&
+                    user.username !== loggedInUser.username
+                      ? "success.main"
+                      : usernameAvailable === false
+                        ? "error.main"
+                        : "text.secondary",
+                },
+              },
+            }}
           />
           <TextField
             size="small"
@@ -201,18 +296,27 @@ const ProfileMenu = () => {
         </Box>
         <Button
           sx={{ mt: 2 }}
-          disabled={Object.entries(user).reduce(
-            (prev, [key, val]) =>
-              prev && loggedInUser[key as keyof APIUser] === val,
-            true,
-          )}
+          disabled={
+            isUnchanged || checkingUsername || usernameAvailable === false
+          }
           color="primary"
           variant="contained"
-          onClick={() =>
+          onClick={() => {
+            setSaveError(null);
             updateUser(user)
               .then(() => window.location.reload())
-              .catch(() => window.alert("error updating profile"))
-          }
+              .catch((err: unknown) => {
+                let msg = "Error updating profile";
+                if (axios.isAxiosError(err)) {
+                  if (typeof err.response?.data === "string") {
+                    msg = err.response.data;
+                  } else if (err.response?.data?.message) {
+                    msg = err.response.data.message;
+                  }
+                }
+                setSaveError(msg);
+              });
+          }}
         >
           Save Changes
         </Button>

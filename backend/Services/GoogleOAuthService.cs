@@ -58,5 +58,19 @@ namespace ChemistryCafeAPI.Services
             claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, user.Role.ToString()));
             return new ClaimsPrincipal(claimsIdentity);
         }
+
+        [ExcludeFromCodeCoverage]
+        public ClaimsPrincipal BuildClaimsPrincipal(User user)
+        {
+            ClaimsIdentity claimsIdentity = new ClaimsIdentity("Application");
+            claimsIdentity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
+            if (!string.IsNullOrEmpty(user.Email))
+            {
+                claimsIdentity.AddClaim(new Claim(ClaimTypes.Email, user.Email));
+            }
+            claimsIdentity.AddClaim(new Claim(ClaimTypes.Name, user.Username));
+            claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, user.Role.ToString()));
+            return new ClaimsPrincipal(claimsIdentity);
+        }
     }
 }

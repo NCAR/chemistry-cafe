@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics.CodeAnalysis;
 using ChemistryCafeAPI.Models;
+using ChemistryCafeAPI.Models.Dtos;
 using ChemistryCafeAPI.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -11,7 +12,10 @@ namespace ChemistryCafeAPI.Controllers
 {
     [ApiController]
     [Route("api/users")]
-    public class UsersController(UserService userService, IOptions<UrlOptions>? urlOptions = null) : ControllerBase
+    public class UsersController(
+        UserService userService, 
+        IOptions<UrlOptions>? urlOptions = null,
+        OAuthRegistrationService? registrationService = null) : ControllerBase
     {
         protected readonly UserService UserService = userService;
         private readonly UrlOptions _urls = urlOptions?.Value ?? new UrlOptions();
@@ -82,6 +86,10 @@ namespace ChemistryCafeAPI.Controllers
                     return StatusCode(StatusCodes.Status403Forbidden);
                 case QueryResult.ParseError:
                     return BadRequest("Invalid UUID format for user's name identifier claim");
+                case QueryResult.UsernameTaken:
+                    return Conflict("Username is already in use by another user");
+                case QueryResult.ValidationError:
+                    return BadRequest("Username must be between 3 and 50 characters and can only contain letters, numbers, underscores, and hyphens");
             }
             return NoContent();
         }
@@ -125,6 +133,95 @@ namespace ChemistryCafeAPI.Controllers
                 QueryResult.NotFound => Unauthorized(),
                 _ => Ok(user)
             };
+        }
+
+        /// <summary>
+        /// Checks if a username is available.
+        /// </summary>
+        [AllowAnonymous]
+        [HttpGet("check-username")]
+        public async Task<ActionResult<UsernameAvailabilityDto>> CheckUsername(
+            [FromQuery] string? username,
+            [FromQuery] Guid? userId = null)
+        {
+            if (registrationService == null)
+            {
+                return Ok(new UsernameAvailabilityDto { Available = true, Message = "Username checking is disabled." });
+            }
+
+            Guid? effectiveExcludeUserId = null;
+            string? nameIdentifier = GetNameIdentifier();
+            if (nameIdentifier != null && Guid.TryParse(nameIdentifier, out var currentUserId))
+            {
+                var (_, currentUser) = await UserService.GetCurrentUserAsync(nameIdentifier);
+                if (currentUser != null)
+                {
+                    if (currentUser.Role == Role.Admin && userId.HasValue)
+                    {
+                        effectiveExcludeUserId = userId.Value;
+                    }
+                    else
+                    {
+                        effectiveExcludeUserId = currentUserId;
+                    }
+                }
+            }
+
+            var (available, message) = await registrationService.CheckUsernameAvailabilityAsync(username, effectiveExcludeUserId);
+            return Ok(new UsernameAvailabilityDto { Available = available, Message = message });
+        }
+
+        /// <summary>
+        /// Gets pending registration details from temporary OAuth cookie.
+        /// </summary>
+        [AllowAnonymous]
+        [HttpGet("pending-registration")]
+        public ActionResult<PendingRegistrationDto> GetPendingRegistration()
+        {
+            if (registrationService == null)
+            {
+                return NotFound(new { message = "No pending registration found." });
+            }
+
+            var pending = registrationService.GetPendingRegistration(HttpContext);
+            if (pending == null)
+            {
+                return NotFound(new { message = "No pending registration found." });
+            }
+
+            return Ok(new PendingRegistrationDto
+            {
+                Provider = pending.Provider,
+                Email = pending.Email,
+                SuggestedUsername = pending.SuggestedUsername,
+                FirstName = pending.FirstName,
+                LastName = pending.LastName
+            });
+        }
+
+        /// <summary>
+        /// Completes user registration from OAuth by picking a username.
+        /// </summary>
+        [AllowAnonymous]
+        [HttpPost("register")]
+        public async Task<ActionResult<User>> Register([FromBody] RegisterUserDto dto)
+        {
+            if (registrationService == null)
+            {
+                return BadRequest(new { message = "Registration service is not configured." });
+            }
+
+            var (success, error, user) = await registrationService.RegisterUserAsync(HttpContext, dto);
+            if (!success)
+            {
+                if (error != null && error.Contains("already taken", StringComparison.OrdinalIgnoreCase))
+                {
+                    return Conflict(new { message = error });
+                }
+                return BadRequest(new { message = error });
+            }
+
+            return Ok(user);
         }
         
         /// <summary>

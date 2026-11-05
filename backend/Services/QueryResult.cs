@@ -29,4 +29,6 @@ public enum QueryResult
     DuplicateIdError,
     /// <summary>The target user was not found.</summary>
     UserNotFound,
+    /// <summary>The specified username is already in use by another user.</summary>
+    UsernameTaken,
 }
