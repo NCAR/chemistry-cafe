@@ -87,6 +87,12 @@ public partial class ChemistryDbContext : DbContext
 
         // Configure Reaction Relations
         modelBuilder.Entity<Reaction>()
+            .Property(s => s.OtherProperties)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(v, (JsonSerializerOptions?)null) ?? new Dictionary<string, JsonElement>());
+        
+        modelBuilder.Entity<Reaction>()
             .HasOne(r => r.FamilyVersion)
             .WithMany(fv => fv.Reactions)
             .HasForeignKey(r => r.FamilyVersionId)
@@ -213,6 +219,12 @@ public partial class ChemistryDbContext : DbContext
 
         // Configure Mechanism relationships
         modelBuilder.Entity<Mechanism>()
+            .Property(s => s.OtherProperties)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(v, (JsonSerializerOptions?)null) ?? new Dictionary<string, JsonElement>());
+        
+        modelBuilder.Entity<Mechanism>()
             .HasOne(m => m.Family)
             .WithMany(f => f.Mechanisms)
             .HasForeignKey(m => m.FamilyId)
@@ -240,6 +252,12 @@ public partial class ChemistryDbContext : DbContext
             .UsingEntity<MechanismPhase>();
 
         // Configure Phase relationships
+        modelBuilder.Entity<Phase>()
+            .Property(s => s.OtherProperties)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(v, (JsonSerializerOptions?)null) ?? new Dictionary<string, JsonElement>());
+        
         modelBuilder.Entity<Phase>()
             .HasMany(p => p.Species)
             .WithMany(s => s.Phases)

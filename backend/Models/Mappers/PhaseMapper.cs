@@ -16,6 +16,7 @@ public static class PhaseMapper
             DiffusionCoefficients = phase.PhaseSpecies
                 .Where(ps => ps.DiffusionCoefficient != null)
                 .ToDictionary(ps => ps.SpeciesId, ps => ps.DiffusionCoefficient!.Value),
+            OtherProperties = phase.OtherProperties
         };
     }
 
@@ -39,6 +40,7 @@ public static class PhaseMapper
             Id = phaseDto.Id,
             Name = phaseDto.Name,
             Description = phaseDto.Description,
+            OtherProperties = phaseDto.OtherProperties
         };
     }
 }

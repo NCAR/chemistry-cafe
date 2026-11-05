@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace ChemistryCafeAPI.Models.Dto;
 
 /// <summary>
@@ -13,4 +15,5 @@ public class PhaseDto
     public List<Guid> SpeciesIds { get; set; } = new();
     // Diffusion coefficient [m2 s-1] of each member species, by species id
     public Dictionary<Guid, double> DiffusionCoefficients { get; set; } = new();
+    public Dictionary<string, JsonElement>? OtherProperties { get; set; }
 }

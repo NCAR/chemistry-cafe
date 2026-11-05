@@ -481,6 +481,7 @@ function phaseToMusica(p: Phase, ctx: ExportCtx) {
           diffusion_coefficient: p.diffusionCoefficients?.[id],
         }),
     ),
+    other_properties: p.otherProperties,
   });
 }
 

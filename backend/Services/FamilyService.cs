@@ -538,6 +538,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             existingReaction.GasPhaseId = incomingReaction.GasPhaseId;
             existingReaction.Reactants = incomingReaction.Reactants.Select(r => r.ToEntity()).ToList();
             existingReaction.Products = incomingReaction.Products.Select(p => p.ToEntity()).ToList();
+            existingReaction.OtherProperties = incomingReaction.OtherProperties;
 
             // Arrhenius parameters are a one-to-one row. Update in place when both
             // sides have it, add it when new, and drop it when the incoming
@@ -801,6 +802,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             Phase existingPhase = existing.Phases.Single(p => p.Id == id);
             existingPhase.Name = incomingPhase.Name;
             existingPhase.Description = incomingPhase.Description;
+            existingPhase.OtherProperties = incomingPhase.OtherProperties;
             // Update the join rows in place. A new join row with the same key as
             // a tracked row makes EF throw.
             existingPhase.PhaseSpecies
@@ -850,6 +852,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             existingMechanism.Species = incomingMechanism.SpeciesIds.Select(sid => existing.Species.Single(s => s.Id == sid)).ToList();
             existingMechanism.Reactions = incomingMechanism.ReactionIds.Select(rid => existing.Reactions.Single(r => r.Id == rid)).ToList();
             existingMechanism.Phases = incomingMechanism.PhaseIds.Select(pid => existing.Phases.Single(p => p.Id == pid)).ToList();
+            existingMechanism.OtherProperties = incomingMechanism.OtherProperties;
         });
     }
 

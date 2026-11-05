@@ -102,6 +102,7 @@ public static class DbInitializer
             {
                 Id = Guid.NewGuid(),
                 Name = seedPhase.Name,
+                OtherProperties = seedPhase.OtherProperties,
                 FamilyVersion = version,
             };
             foreach (var speciesName in seedPhase.Species)
@@ -124,6 +125,7 @@ public static class DbInitializer
             {
                 Id = Guid.NewGuid(),
                 Name = seedMechanism.Name,
+                OtherProperties = seedMechanism.OtherProperties,
                 Family = family,
                 FamilyId = family.Id,
                 FamilyVersion = version,
@@ -164,6 +166,7 @@ public static class DbInitializer
                     FirstOrderLoss = seedReaction.FirstOrderLoss?.ToEntity(),
                     Photolysis = seedReaction.Photolysis?.ToEntity(),
                     UserDefined = seedReaction.UserDefined?.ToEntity(),
+                    OtherProperties = seedReaction.OtherProperties,
                 };
 
                 foreach (var reactant in seedReaction.Reactants)

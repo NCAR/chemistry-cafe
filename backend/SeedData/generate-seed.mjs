@@ -2,6 +2,11 @@
 // Plain Node (no deps): reads normalized v1 configs, maps wire keys to the
 // backend seed shape, and merges each family's configs (dedup species/phases
 // by name, one mechanism per config). Run: `node generate-seed.mjs`.
+//
+// Other properties: any key starting with "__" on a species, phase, reaction
+// or mechanism (the config's top-level object) is carried into that entity's
+// seed `otherProperties`, with the "__" prefix removed. Values are copied
+// as-is, so nested objects and arrays are kept, not only scalars.
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -116,20 +121,32 @@ const REACTION_PARAM_FIELDS = {
   },
 };
 
+const OTHER_PROPERTY_PREFIX = "__";
+
+// The "__" keys of a config object, prefix stripped, values untouched.
+function collectOtherProperties(source) {
+  return Object.fromEntries(
+    Object.entries(source)
+      .filter(([key]) => key.startsWith(OTHER_PROPERTY_PREFIX))
+      .map(([key, value]) => [key.slice(OTHER_PROPERTY_PREFIX.length), value]),
+  );
+}
+
+// Sets seed.otherProperties from the source's "__" keys; omitted when none.
+function withOtherProperties(seed, source) {
+  const otherProperties = collectOtherProperties(source);
+  if (Object.keys(otherProperties).length > 0) seed.otherProperties = otherProperties;
+  return seed;
+}
+
 function speciesToSeed(s) {
   const seed = { name: s.name };
-  const otherProperties = {};
   for (const [key, value] of Object.entries(s)) {
     if (key === "name") continue;
     const field = SPECIES_FIELDS[key];
-    if (field) {
-      seed[field] = value;
-    } else if (key.startsWith("__")) {
-      otherProperties[key.replace(/^__/, "")] = value;
-    }
+    if (field) seed[field] = value;
   }
-  if (Object.keys(otherProperties).length) seed.otherProperties = otherProperties;
-  return seed;
+  return withOtherProperties(seed, s);
 }
 
 const componentName = (c) => (typeof c === "string" ? c : c.name);
@@ -156,6 +173,7 @@ function reactionToSeed(r, index) {
   const params = {};
   for (const [key, value] of Object.entries(r)) {
     if (REACTION_STRUCTURAL.has(key)) continue;
+    if (key.startsWith(OTHER_PROPERTY_PREFIX)) continue; // kept as otherProperties below
     const dtoField = paramConfig.fields[key];
     if (!dtoField) {
       throw new Error(`Unhandled reaction attribute "${key}" for type "${r.type}"`);
@@ -172,12 +190,12 @@ function reactionToSeed(r, index) {
   seed.gasPhase = r["gas phase"] ?? "gas";
   if (r["gas-phase species"]) seed.gasPhaseSpecies = componentName(r["gas-phase species"]);
   if (Object.keys(params).length > 0) seed[paramConfig.seedField] = params;
-  return seed;
+  return withOtherProperties(seed, r);
 }
 
 function buildFamily(name, keys) {
   const speciesByName = new Map(); // name -> seed species
-  const phaseByName = new Map(); // name -> { name, species: Set, diffusionCoefficients: Map }
+  const phaseByName = new Map(); // name -> { name, species: Set, diffusionCoefficients: Map, otherProperties: Map }
   const mechanisms = [];
 
   for (const key of keys) {
@@ -190,9 +208,18 @@ function buildFamily(name, keys) {
     const mechPhases = [];
     for (const p of config.phases ?? []) {
       if (!phaseByName.has(p.name)) {
-        phaseByName.set(p.name, { name: p.name, species: new Set(), diffusionCoefficients: new Map() });
+        phaseByName.set(p.name, {
+          name: p.name,
+          species: new Set(),
+          diffusionCoefficients: new Map(),
+          otherProperties: new Map(),
+        });
       }
       const entry = phaseByName.get(p.name);
+      // like diffusion coefficients, the first config to define a key wins
+      for (const [key, value] of Object.entries(collectOtherProperties(p))) {
+        if (!entry.otherProperties.has(key)) entry.otherProperties.set(key, value);
+      }
       for (const member of p.species ?? []) {
         const memberName = componentName(member);
         entry.species.add(memberName);
@@ -206,12 +233,17 @@ function buildFamily(name, keys) {
 
     const reactions = (config.reactions ?? []).map((r, i) => reactionToSeed(r, i));
 
-    mechanisms.push({
-      name: key,
-      species: (config.species ?? []).map((s) => s.name),
-      phases: mechPhases,
-      reactions,
-    });
+    mechanisms.push(
+      withOtherProperties(
+        {
+          name: key,
+          species: (config.species ?? []).map((s) => s.name),
+          phases: mechPhases,
+          reactions,
+        },
+        config,
+      ),
+    );
   }
 
   return {
@@ -222,6 +254,9 @@ function buildFamily(name, keys) {
       species: [...p.species],
       ...(p.diffusionCoefficients.size > 0 && {
         diffusionCoefficients: Object.fromEntries(p.diffusionCoefficients),
+      }),
+      ...(p.otherProperties.size > 0 && {
+        otherProperties: Object.fromEntries(p.otherProperties),
       }),
     })),
     mechanisms,

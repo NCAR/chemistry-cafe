@@ -1892,30 +1892,15 @@ DROP PROCEDURE MigrationsScript;
 
 COMMIT;
 
-
 START TRANSACTION;
 
 DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261104184000_AddIndexToUsers') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261105184647_AddOtherPropertiesToAllObjects') THEN
 
-    ALTER TABLE `Users` MODIFY COLUMN `Username` varchar(255) CHARACTER SET utf8mb4 NOT NULL;
-
-    END IF;
-END //
-DELIMITER ;
-CALL MigrationsScript();
-DROP PROCEDURE MigrationsScript;
-
-DROP PROCEDURE IF EXISTS MigrationsScript;
-DELIMITER //
-CREATE PROCEDURE MigrationsScript()
-BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261104184000_AddIndexToUsers') THEN
-
-    CREATE UNIQUE INDEX `idx_users_username` ON `Users` (`Username`);
+    ALTER TABLE `Reactions` ADD `OtherProperties` json NULL;
 
     END IF;
 END //
@@ -1927,10 +1912,38 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261104184000_AddIndexToUsers') THEN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261105184647_AddOtherPropertiesToAllObjects') THEN
+
+    ALTER TABLE `Phases` ADD `OtherProperties` json NULL;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261105184647_AddOtherPropertiesToAllObjects') THEN
+
+    ALTER TABLE `Mechanisms` ADD `OtherProperties` json NULL;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261105184647_AddOtherPropertiesToAllObjects') THEN
 
     INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
-    VALUES ('20261104184000_AddIndexToUsers', '8.0.10');
+    VALUES ('20261105184647_AddOtherPropertiesToAllObjects', '8.0.10');
 
     END IF;
 END //

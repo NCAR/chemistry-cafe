@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace ChemistryCafeAPI.Models;
 
@@ -15,6 +16,8 @@ public class Reaction
     public string Name { get; set; } = null!;
     public string ReactionType { get; set; } = null!;
     public string? Description { get; set; }
+    [Column(TypeName = "json")]
+    public Dictionary<string, JsonElement>? OtherProperties { get; set; }
 
     // Dedicated parameter table for Arrhenius reactions. Null for other types.
     public ArrheniusParameters? Arrhenius { get; set; }
