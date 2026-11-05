@@ -191,6 +191,9 @@ namespace ChemistryCafeAPI.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<string>("OtherProperties")
+                        .HasColumnType("json");
+
                     b.Property<DateTime>("UpdatedDate")
                         .HasColumnType("datetime(6)");
 
@@ -266,6 +269,9 @@ namespace ChemistryCafeAPI.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<string>("OtherProperties")
+                        .HasColumnType("json");
 
                     b.Property<DateTime>("UpdatedDate")
                         .HasColumnType("datetime(6)");
@@ -371,6 +377,9 @@ namespace ChemistryCafeAPI.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<string>("OtherProperties")
+                        .HasColumnType("json");
 
                     b.Property<string>("ReactionType")
                         .IsRequired()
