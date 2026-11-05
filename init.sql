@@ -1952,4 +1952,3 @@ CALL MigrationsScript();
 DROP PROCEDURE MigrationsScript;
 
 COMMIT;
-
