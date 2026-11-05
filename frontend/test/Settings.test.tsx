@@ -1,5 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  cleanup,
+  waitFor,
+} from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import Settings from "../src/pages/Settings";
 import { AuthProvider } from "../src/components/AuthContext";
@@ -12,7 +18,7 @@ import userEvent from "@testing-library/user-event";
 const mockUserInfo: APIUser = {
   role: "Admin",
   email: "test@email.com",
-  username: "Test Account",
+  username: "TestAccount",
   id: "0000-0000-0000-0000-0000",
   googleId: "0000-0000-0000-0000-0000",
   orcidId: "0000-0000-0000-0000-0000",
@@ -38,7 +44,15 @@ describe("Unauthenticated Settings Page", () => {
       ...originalLocation,
       assign: vi.fn((_: string | URL) => {}),
     } as any;
-    vi.spyOn(axios, "get").mockResolvedValue(createMockUserData());
+    vi.spyOn(axios, "get").mockImplementation((url: string) => {
+      if (url.includes("/users/check-username")) {
+        return Promise.resolve({
+          data: { available: true, message: "Username is available." },
+          status: 200,
+        } as AxiosResponse);
+      }
+      return Promise.resolve(createMockUserData());
+    });
     vi.spyOn(axios, "post").mockResolvedValue(createMockUserData());
 
     render(
@@ -165,7 +179,15 @@ describe("Authenticated Settings Page", () => {
       ...originalLocation,
       assign: vi.fn((_: string | URL) => {}),
     } as any;
-    vi.spyOn(axios, "get").mockResolvedValue(createMockUserData());
+    vi.spyOn(axios, "get").mockImplementation((url: string) => {
+      if (url.includes("/users/check-username")) {
+        return Promise.resolve({
+          data: { available: true, message: "Username is available." },
+          status: 200,
+        } as AxiosResponse);
+      }
+      return Promise.resolve(createMockUserData());
+    });
     vi.spyOn(axios, "post").mockResolvedValue(createMockUserData());
     localStorage.setItem("user", JSON.stringify(mockUserInfo));
     render(
@@ -211,8 +233,8 @@ describe("Authenticated Settings Page", () => {
     expect(nameBox).toBeTruthy();
     expect(nameBox.value).toEqual(profile.username);
 
-    await user.type(nameBox, " 2");
-    expect(nameBox.value).toEqual(`${profile.username} 2`);
+    await user.type(nameBox, "_2");
+    expect(nameBox.value).toEqual(`${profile.username}_2`);
 
     const emailBox = screen.getByLabelText("Email *") as HTMLInputElement;
     expect(emailBox).toBeTruthy();
@@ -241,7 +263,9 @@ describe("Authenticated Settings Page", () => {
 
     submitBox = screen.getByText("Save Changes") as HTMLButtonElement;
     expect(submitBox).toBeTruthy();
-    expect(submitBox.disabled).toBeFalsy();
+    await waitFor(() => {
+      expect(submitBox.disabled).toBeFalsy();
+    });
   });
 
   it("Can switch between system, light, and dark theme", () => {

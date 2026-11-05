@@ -20,7 +20,8 @@ namespace ChemistryCafeAPI.Controllers
     public class GoogleOAuthController(
         GoogleOAuthService googleOAuthService, 
         UserService userService, 
-        IOptions<UrlOptions>? urlOptions = null) 
+        IOptions<UrlOptions>? urlOptions = null,
+        OAuthRegistrationService? registrationService = null) 
         : Controller
     {
         private readonly UrlOptions _urls = urlOptions?.Value ?? new UrlOptions();
@@ -49,32 +50,79 @@ namespace ChemistryCafeAPI.Controllers
         [ExcludeFromCodeCoverage]
         public async Task<IActionResult> GoogleResponse()
         {
-            
             AuthenticateResult result = await HttpContext.AuthenticateAsync("External");
             if (!result.Succeeded)
             {
                 return BadRequest("Google OAuth Http Response did not succeed");
             }
 
-            bool merge=false;
-            if (result.Properties.Items.TryGetValue("merge", out var mergeValue)&&mergeValue=="true")
+            bool merge = false;
+            if (result.Properties.Items.TryGetValue("merge", out var mergeValue) && mergeValue == "true")
             {
                 merge = true;
             }
-            
+
             var (_, user) = await userService.GetCurrentUserAsync();
-            
-            ClaimsPrincipal? claimsIdentity = await googleOAuthService.GetUserClaimsAsync(result, merge, user);
-            if (claimsIdentity == null)
+
+            if (user != null || merge)
+            {
+                ClaimsPrincipal? claimsIdentity = await googleOAuthService.GetUserClaimsAsync(result, merge, user);
+                if (claimsIdentity == null)
+                {
+                    return BadRequest("The account you are trying to link already exists or the credentials passed were invalid. Contact musica-support@ucar.edu for further help.");
+                }
+
+                await HttpContext.SignInAsync("Application", claimsIdentity);
+                string basePath = Path.Combine(_urls.FrontendHost, "settings").Replace('\\', '/');
+                string redirectUrl = QueryHelpers.AddQueryString(basePath, "selectedMenu", "profile");
+                return Redirect(redirectUrl);
+            }
+
+            Claim? googleId = result.Principal?.FindFirst(ClaimTypes.NameIdentifier);
+            Claim? emailClaim = result.Principal?.FindFirst(ClaimTypes.Email);
+
+            if (googleId == null || emailClaim == null)
+            {
+                return BadRequest("Google OAuth response missing required claims.");
+            }
+
+            var existingUser = await userService.GetUserByGoogleIdAsync(googleId.Value);
+            if (existingUser != null)
+            {
+                if (existingUser.Email != emailClaim.Value)
+                {
+                    await userService.UpdateUserEmailAsync(existingUser.Id, emailClaim.Value);
+                }
+                ClaimsPrincipal claimsIdentity = googleOAuthService.BuildClaimsPrincipal(existingUser);
+                await HttpContext.SignInAsync("Application", claimsIdentity);
+                string redirectUrl = Path.Combine(_urls.FrontendHost, "dashboard").Replace('\\', '/');
+                return Redirect(redirectUrl);
+            }
+
+            if (registrationService != null)
+            {
+                var pending = new PendingRegistration
+                {
+                    Provider = "Google",
+                    ProviderId = googleId.Value,
+                    Email = emailClaim.Value,
+                    SuggestedUsername = OAuthRegistrationService.GenerateSuggestedUsername(emailClaim.Value),
+                    FirstName = result.Principal?.FindFirst(ClaimTypes.GivenName)?.Value,
+                    LastName = result.Principal?.FindFirst(ClaimTypes.Surname)?.Value
+                };
+                registrationService.SetPendingRegistration(HttpContext, pending);
+                string registerUrl = Path.Combine(_urls.FrontendHost, "register").Replace('\\', '/');
+                return Redirect(registerUrl);
+            }
+
+            ClaimsPrincipal? fallbackIdentity = await googleOAuthService.GetUserClaimsAsync(result, merge, user);
+            if (fallbackIdentity == null)
             {
                 return BadRequest("The account you are trying to link already exists or the credentials passed were invalid. Contact musica-support@ucar.edu for further help.");
             }
 
-            await HttpContext.SignInAsync("Application", claimsIdentity);
-            string basePath = Path.Combine(_urls.FrontendHost, user == null ? "dashboard" : "settings").Replace('\\', '/');
-            string redirectUrl = user == null ? basePath : QueryHelpers.AddQueryString(basePath, "selectedMenu", "profile");
-            RedirectResult ret = Redirect(redirectUrl);
-            return ret;
+            await HttpContext.SignInAsync("Application", fallbackIdentity);
+            return Redirect(Path.Combine(_urls.FrontendHost, "dashboard").Replace('\\', '/'));
         }
     }
 }

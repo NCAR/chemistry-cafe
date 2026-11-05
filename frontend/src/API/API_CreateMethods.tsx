@@ -3,6 +3,8 @@ import {
   AddFamilyContributorRequest,
   APIFamily,
   APIFamilyContributor,
+  APIRegisterUser,
+  APIUser,
 } from "./API_Interfaces";
 import { BASE_URL } from "./API_config";
 import { UUID } from "crypto";
@@ -35,6 +37,24 @@ export async function addFamilyContributor(
 ): Promise<APIFamilyContributor> {
   const response = await axios.post<APIFamilyContributor>(
     `${BASE_URL}/families/${familyId}/contributors`,
+    request,
+    {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    },
+  );
+
+  return response.data;
+}
+
+/**
+ * Completes OAuth registration by creating a user with the chosen username
+ */
+export async function registerUser(request: APIRegisterUser): Promise<APIUser> {
+  const response = await axios.post<APIUser>(
+    `${BASE_URL}/users/register`,
     request,
     {
       withCredentials: true,

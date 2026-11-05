@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
 
 namespace ChemistryCafeAPI.Models;
 
@@ -14,10 +15,12 @@ public enum Role
     Admin = 2
 }
 
+[Index("Username", Name = "idx_users_username", IsUnique = true)]
 public partial class User
 {
     [Key]
     public Guid Id { get; set; }
+    [MaxLength(255)]
     public string Username { get; set; } = null!;
     public Role Role { get; set; } = Role.None;
     public string? FirstName { get; set; }
