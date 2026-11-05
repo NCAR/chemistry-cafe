@@ -317,6 +317,34 @@ describe("MechanismEditor reactions tab", () => {
     expect(screen.queryByText("Third reaction")).toBeNull();
   });
 
+  it("keeps matches when the search column becomes hidden", async () => {
+    const searchFamily: Family = {
+      ...family,
+      reactions: family.reactions.map((reaction) => ({
+        ...reaction,
+        name: reaction.id === ARRHENIUS_ID ? "reaction-0" : "other",
+      })),
+    };
+    renderEditor(mechanism, searchFamily);
+    openTab("Reactions");
+
+    fireEvent.change(screen.getByPlaceholderText("Search reactions"), {
+      target: { value: "reaction-0" },
+    });
+
+    expect(await screen.findByText("Showing 1 of 2")).toBeTruthy();
+    expect(
+      await screen.findByRole("columnheader", { name: /^A/ }),
+    ).toBeTruthy();
+    expect(
+      within(screen.getByRole("grid")).queryByRole("columnheader", {
+        name: "Name",
+      }),
+    ).toBeNull();
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    expect(screen.getByText("Showing 1 of 2")).toBeTruthy();
+  });
+
   it("removes a reaction from the mechanism", async () => {
     const { updateMechanism } = renderEditor();
     openTab("Reactions");

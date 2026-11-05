@@ -1,4 +1,4 @@
-import { ReactElement, ReactNode, useEffect, useState } from "react";
+import { ReactElement, ReactNode, useEffect, useMemo, useState } from "react";
 import {
   Autocomplete,
   Box,
@@ -424,175 +424,206 @@ export const ReactionsTable = ({
   // Without a way to save an edit, the cells are read-only.
   const editable = onRowUpdate !== undefined;
 
-  const reactionsColumns: GridColDef[] = [
-    {
-      field: "Row Actions",
-      type: "actions",
-      // The column holds one menu button, so it needs no title and little
-      // space. The Columns panel shows its name.
-      headerName: "Actions",
-      renderHeader: () => null,
-      width: 56,
-      headerClassName: "roleDataHeader",
-      cellClassName: "actions",
-      getActions: ({ id }) => getRowActions(id as UUID),
-    },
-    {
-      field: "id",
-      headerName: "Equation",
-      flex: 1,
-      // The parameter columns of a type can be many. These minimum widths
-      // keep the first columns readable, and the grid scrolls to the side.
-      minWidth: 220,
-      // The search compares the species, so spaces and the species order do
-      // not matter. See equationMatchesSearch.
-      getApplyQuickFilterFn: (search: string) => (_: string, row: Reaction) =>
-        equationMatchesSearch(search, row, species),
-      valueGetter: (id: string) =>
-        reactionToString(
-          reactions.find((e) => e.id == id),
-          species,
+  const reactionsColumns = useMemo<Array<GridColDef<Reaction>>>(
+    () => [
+      {
+        field: "Row Actions",
+        type: "actions",
+        // The column holds one menu button, so it needs no title and little
+        // space. The Columns panel shows its name.
+        headerName: "Actions",
+        renderHeader: () => null,
+        width: 56,
+        headerClassName: "roleDataHeader",
+        cellClassName: "actions",
+        getActions: ({ id }) => getRowActions(id as UUID),
+      },
+      {
+        field: "id",
+        headerName: "Equation",
+        flex: 1,
+        // The parameter columns of a type can be many. These minimum widths
+        // keep the first columns readable, and the grid scrolls to the side.
+        minWidth: 220,
+        // The search compares the species, so spaces and the species order do
+        // not matter. See equationMatchesSearch.
+        getApplyQuickFilterFn: (search: string) => (_: string, row: Reaction) =>
+          equationMatchesSearch(search, row, species),
+        valueGetter: (id: string) =>
+          reactionToString(
+            reactions.find((e) => e.id == id),
+            species,
+          ),
+        renderCell: (params: GridRenderCellParams<Reaction>) => (
+          <Typography variant="body1" noWrap>
+            <EquationText reaction={params.row} species={species} />
+          </Typography>
         ),
-      renderCell: (params: GridRenderCellParams<Reaction>) => (
-        <Typography variant="body1" noWrap>
-          <EquationText reaction={params.row} species={species} />
-        </Typography>
-      ),
-    },
-    {
-      field: "name",
-      headerName: "Name",
-      type: "string",
-      editable,
-      flex: 1,
-      minWidth: 140,
-      renderCell: (params: GridRenderCellParams<Reaction>) => (
-        <Typography
-          variant="body1"
-          sx={{
-            color: params.value
-              ? theme.palette.text.primary
-              : theme.palette.text.disabled,
-          }}
-          noWrap
-        >
-          {params.value || "<Empty>"}
-        </Typography>
-      ),
-    },
-    {
-      field: "description",
-      headerName: "Description",
-      type: "string",
-      editable,
-      flex: 1,
-      minWidth: 160,
-      renderCell: (params: GridRenderCellParams<Reaction>) => (
-        <Typography
-          variant="body1"
-          sx={{
-            color: params.value
-              ? theme.palette.text.primary
-              : theme.palette.text.disabled,
-          }}
-          noWrap
-        >
-          {params.value || "<Empty>"}
-        </Typography>
-      ),
-    },
-    {
-      field: "type",
-      headerName: "Reaction Type",
-      flex: 1,
-      // The search uses the readable name, for example "Troe (Fall-Off)".
-      getApplyQuickFilterFn: (search: string) => (value: ReactionTypeName) =>
-        reactionTypeToString(value)
-          .toLowerCase()
-          .includes(search.toLowerCase()),
-      renderCell: (params: GridRenderCellParams<Reaction>) => (
-        <Typography
-          variant="body1"
-          sx={{
-            color: params.value
-              ? theme.palette.text.primary
-              : theme.palette.text.disabled,
-          }}
-          noWrap
-        >
-          {reactionTypeToString(params.value as ReactionTypeName)}
-        </Typography>
-      ),
-    },
-    {
-      field: "gasPhaseId",
-      headerName: "Gas Phase",
-      flex: 0.75,
-      valueGetter: (_value, row: Reaction) =>
-        phases.find((phase: Phase) => phase.id === row.gasPhaseId)?.name ?? "",
-      renderCell: (params: GridRenderCellParams<Reaction>) => (
-        <Typography
-          variant="body1"
-          sx={{
-            color: params.value
-              ? theme.palette.text.primary
-              : theme.palette.text.disabled,
-          }}
-          noWrap
-        >
-          {params.value || "<None>"}
-        </Typography>
-      ),
-    },
-  ];
+      },
+      {
+        field: "name",
+        headerName: "Name",
+        type: "string",
+        editable,
+        flex: 1,
+        minWidth: 140,
+        renderCell: (params: GridRenderCellParams<Reaction>) => (
+          <Typography
+            variant="body1"
+            sx={{
+              color: params.value
+                ? theme.palette.text.primary
+                : theme.palette.text.disabled,
+            }}
+            noWrap
+          >
+            {params.value || "<Empty>"}
+          </Typography>
+        ),
+      },
+      {
+        field: "description",
+        headerName: "Description",
+        type: "string",
+        editable,
+        flex: 1,
+        minWidth: 160,
+        renderCell: (params: GridRenderCellParams<Reaction>) => (
+          <Typography
+            variant="body1"
+            sx={{
+              color: params.value
+                ? theme.palette.text.primary
+                : theme.palette.text.disabled,
+            }}
+            noWrap
+          >
+            {params.value || "<Empty>"}
+          </Typography>
+        ),
+      },
+      {
+        field: "type",
+        headerName: "Reaction Type",
+        flex: 1,
+        // The search uses the readable name, for example "Troe (Fall-Off)".
+        getApplyQuickFilterFn: (search: string) => (value: ReactionTypeName) =>
+          reactionTypeToString(value)
+            .toLowerCase()
+            .includes(search.toLowerCase()),
+        renderCell: (params: GridRenderCellParams<Reaction>) => (
+          <Typography
+            variant="body1"
+            sx={{
+              color: params.value
+                ? theme.palette.text.primary
+                : theme.palette.text.disabled,
+            }}
+            noWrap
+          >
+            {reactionTypeToString(params.value as ReactionTypeName)}
+          </Typography>
+        ),
+      },
+      {
+        field: "gasPhaseId",
+        headerName: "Gas Phase",
+        flex: 0.75,
+        valueGetter: (_value, row: Reaction) =>
+          phases.find((phase: Phase) => phase.id === row.gasPhaseId)?.name ??
+          "",
+        renderCell: (params: GridRenderCellParams<Reaction>) => (
+          <Typography
+            variant="body1"
+            sx={{
+              color: params.value
+                ? theme.palette.text.primary
+                : theme.palette.text.disabled,
+            }}
+            noWrap
+          >
+            {params.value || "<None>"}
+          </Typography>
+        ),
+      },
+    ],
+    [editable, getRowActions, phases, reactions, species, theme],
+  );
 
-  const typeCounts = new Map<ReactionTypeName, number>();
-  for (const reaction of reactions) {
-    typeCounts.set(reaction.type, (typeCounts.get(reaction.type) ?? 0) + 1);
-  }
+  const typeCounts = useMemo(() => {
+    const counts = new Map<ReactionTypeName, number>();
+    for (const reaction of reactions) {
+      counts.set(reaction.type, (counts.get(reaction.type) ?? 0) + 1);
+    }
+    return counts;
+  }, [reactions]);
   // A type with no reactions left goes away from the list, so its filter
   // does too.
-  const activeTypes = typeFilter.filter((type) => typeCounts.has(type));
-  const typeOptions: Array<TypeOption> = [...typeCounts.entries()]
-    .map(([type, count]) => ({
-      type,
-      label: reactionTypeToString(type),
-      count,
-    }))
-    .sort((a, b) => a.label.localeCompare(b.label));
-  const rows =
-    activeTypes.length > 0
-      ? reactions.filter((reaction) => activeTypes.includes(reaction.type))
-      : reactions;
+  const activeTypes = useMemo(
+    () => typeFilter.filter((type) => typeCounts.has(type)),
+    [typeCounts, typeFilter],
+  );
+  const typeOptions = useMemo<Array<TypeOption>>(
+    () =>
+      [...typeCounts.entries()]
+        .map(([type, count]) => ({
+          type,
+          label: reactionTypeToString(type),
+          count,
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label)),
+    [typeCounts],
+  );
+  const rows = useMemo(
+    () =>
+      activeTypes.length > 0
+        ? reactions.filter((reaction) => activeTypes.includes(reaction.type))
+        : reactions,
+    [activeTypes, reactions],
+  );
 
   // When all visible rows have one type, the table shows the parameters of
   // that type in their own columns. Otherwise, it shows a short summary.
-  const columns: Array<GridColDef> = visibleType
-    ? [
-        ...reactionsColumns.filter((column) => column.field !== "type"),
-        ...(parameterColumns(
-          visibleType,
-          rateUnitsFor(preferences.rateUnits, visibleType),
-          activationParameter,
-          editable,
-        ) as Array<GridColDef>),
-      ]
-    : [
-        ...reactionsColumns,
-        {
-          field: "parameters",
-          headerName: "Parameters",
-          flex: 1.5,
-          sortable: false,
-          valueGetter: (_, row: Reaction) =>
-            parameterSummary(row, preferences.rateUnits, activationParameter),
-          renderCell: (params: GridRenderCellParams<Reaction>) => (
-            <Typography variant="body2" color="textSecondary" noWrap>
-              {params.value}
-            </Typography>
-          ),
-        },
-      ];
+  const columns = useMemo<Array<GridColDef>>(
+    () =>
+      visibleType
+        ? [
+            ...reactionsColumns.filter((column) => column.field !== "type"),
+            ...(parameterColumns(
+              visibleType,
+              rateUnitsFor(preferences.rateUnits, visibleType),
+              activationParameter,
+              editable,
+            ) as Array<GridColDef>),
+          ]
+        : [
+            ...reactionsColumns,
+            {
+              field: "parameters",
+              headerName: "Parameters",
+              flex: 1.5,
+              sortable: false,
+              valueGetter: (_, row: Reaction) =>
+                parameterSummary(
+                  row,
+                  preferences.rateUnits,
+                  activationParameter,
+                ),
+              renderCell: (params: GridRenderCellParams<Reaction>) => (
+                <Typography variant="body2" color="textSecondary" noWrap>
+                  {params.value}
+                </Typography>
+              ),
+            },
+          ],
+    [
+      activationParameter,
+      editable,
+      preferences.rateUnits,
+      reactionsColumns,
+      visibleType,
+    ],
+  );
 
   return (
     <DataGrid
@@ -607,6 +638,12 @@ export const ReactionsTable = ({
       columnHeaderHeight={visibleType ? 72 : 56}
       initialState={{
         density: "compact",
+        filter: {
+          filterModel: {
+            items: [],
+            quickFilterExcludeHiddenColumns: false,
+          },
+        },
         pagination: { paginationModel: { pageSize: 20 } },
       }}
       columnVisibilityModel={columnVisibility}
