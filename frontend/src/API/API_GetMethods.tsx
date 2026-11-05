@@ -5,8 +5,10 @@ import axios from "axios";
 import {
   APIFamily,
   APIFamilyContributor,
+  APIPendingRegistration,
   APIUser,
   APIUserPreferences,
+  APIUsernameAvailability,
 } from "./API_Interfaces";
 import { BASE_URL } from "./API_config";
 import { UUID } from "crypto";
@@ -65,6 +67,48 @@ export async function getCurrentUser(): Promise<APIUser | null> {
       `There was an issue fetching the currently logged in user: ${err}`,
     );
     return null;
+  }
+}
+
+/**
+ * Gets pending OAuth registration info from temporary cookie
+ */
+export async function getPendingRegistration(): Promise<APIPendingRegistration | null> {
+  try {
+    const response = await axios.get<APIPendingRegistration>(
+      `${BASE_URL}/users/pending-registration`,
+      { withCredentials: true },
+    );
+    return response.data;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Checks if a username is available
+ */
+export async function checkUsernameAvailability(
+  username: string,
+  userId?: string,
+): Promise<APIUsernameAvailability> {
+  try {
+    const url = userId
+      ? `${BASE_URL}/users/check-username?username=${encodeURIComponent(username)}&userId=${encodeURIComponent(userId)}`
+      : `${BASE_URL}/users/check-username?username=${encodeURIComponent(username)}`;
+    const response = await axios.get<APIUsernameAvailability>(url, {
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (err: unknown) {
+    let message = "Failed to check username availability";
+    if (axios.isAxiosError(err) && err.response?.data?.message) {
+      message = err.response.data.message;
+    }
+    return {
+      available: false,
+      message,
+    };
   }
 }
 
