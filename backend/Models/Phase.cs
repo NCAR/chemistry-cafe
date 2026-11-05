@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
+using System.Text.Json;
 
 namespace ChemistryCafeAPI.Models;
 
@@ -15,6 +16,8 @@ public class Phase
     public DateTime UpdatedDate { get; set; } = DateTime.UtcNow;
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
+    [Column(TypeName = "json")]
+    public Dictionary<string, JsonElement>? OtherProperties { get; set; }
 
     // FamilyVersion this phase is a part of
     [ForeignKey("FamilyVersion")]

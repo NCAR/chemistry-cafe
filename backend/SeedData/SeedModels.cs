@@ -36,6 +36,7 @@ public class SeedPhase
     public List<string> Species { get; set; } = new();
     // Diffusion coefficient [m2 s-1] of each member species, by species name
     public Dictionary<string, double> DiffusionCoefficients { get; set; } = new();
+    public Dictionary<string, JsonElement>? OtherProperties { get; set; }
 }
 
 public class SeedMechanism
@@ -44,6 +45,7 @@ public class SeedMechanism
     public List<string> Species { get; set; } = new();
     public List<string> Phases { get; set; } = new();
     public List<SeedReaction> Reactions { get; set; } = new();
+    public Dictionary<string, JsonElement>? OtherProperties { get; set; }
 }
 
 public class SeedReaction
@@ -67,6 +69,7 @@ public class SeedReaction
     public FirstOrderLossParametersDto? FirstOrderLoss { get; set; }
     public PhotolysisParametersDto? Photolysis { get; set; }
     public UserDefinedParametersDto? UserDefined { get; set; }
+    public Dictionary<string, JsonElement>? OtherProperties { get; set; }
 }
 
 public class SeedComponent

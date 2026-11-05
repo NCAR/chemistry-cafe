@@ -32,6 +32,7 @@ public static class ReactionMapper
             UserDefined = reaction.UserDefined?.ToDto(),
             GasPhaseId = reaction.GasPhaseId,
             GasPhaseSpeciesId = reaction.GasPhaseSpeciesId,
+            OtherProperties = reaction.OtherProperties
         };
     }
 
@@ -63,6 +64,7 @@ public static class ReactionMapper
             UserDefined = reactionDto.UserDefined?.ToEntity(),
             GasPhaseId = reactionDto.GasPhaseId,
             GasPhaseSpeciesId = reactionDto.GasPhaseSpeciesId,
+            OtherProperties = reactionDto.OtherProperties
         };
     }
 

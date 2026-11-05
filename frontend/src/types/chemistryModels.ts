@@ -98,6 +98,9 @@ export type Reaction = {
   attributes: {
     [key: string]: ReactionAttribute;
   };
+
+  /** Optional, additional properties for the reactions which are not defined in the mechanism configuration schema but can be queried for in musica */
+  otherProperties?: Record<string, unknown>;
 };
 
 export type Reactant = {
@@ -133,6 +136,9 @@ export type Phase = {
    * A species without a value has no key.
    */
   diffusionCoefficients?: Record<UUID, number>;
+
+  /** Optional, additional properties for the phases which are not defined in the mechanism configuration schema but can be queried for in musica */
+  otherProperties?: Record<string, unknown>;
 };
 
 /**
@@ -161,6 +167,9 @@ export type Mechanism = {
 
   /** Phase ids associated with the mechanism */
   phaseIds: Array<UUID>;
+
+  /** Optional, additional properties for the mechanisms which are not defined in the mechanism configuration schema but can be queried for in musica */
+  otherProperties?: Record<string, unknown>;
 };
 
 /**

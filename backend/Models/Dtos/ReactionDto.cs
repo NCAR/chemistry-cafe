@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace ChemistryCafeAPI.Models.Dto;
 
 /// <summary>
@@ -30,6 +32,7 @@ public class ReactionDto
 
     public Guid? GasPhaseId { get; set; }
     public Guid? GasPhaseSpeciesId { get; set; }
+    public Dictionary<string, JsonElement>? OtherProperties { get; set; }
 }
 
 public class ReactantDto

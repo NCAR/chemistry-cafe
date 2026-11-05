@@ -160,6 +160,7 @@ export interface APIReaction {
   products: Array<APIProduct>;
   gasPhaseId?: UUID | null;
   gasPhaseSpeciesId?: UUID | null;
+  otherProperties?: Record<string, unknown>;
 }
 
 export interface APIReactant {
@@ -181,6 +182,7 @@ export interface APIPhase {
   description?: string;
   speciesIds: Array<UUID>;
   diffusionCoefficients?: Record<UUID, number>;
+  otherProperties?: Record<string, unknown>;
 }
 
 export interface APIMechanism {
@@ -192,5 +194,6 @@ export interface APIMechanism {
   speciesIds: Array<UUID>;
   reactionIds: Array<UUID>;
   phaseIds: Array<UUID>;
+  otherProperties?: Record<string, unknown>;
   familyId: UUID;
 }

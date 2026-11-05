@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace ChemistryCafeAPI.Models.Dto;
 
 /// <summary>
@@ -15,4 +17,5 @@ public class MechanismDto
     public List<Guid> SpeciesIds { get; set; } = new();
     public List<Guid> ReactionIds { get; set; } = new();
     public List<Guid> PhaseIds { get; set; } = new();
+    public Dictionary<string, JsonElement>? OtherProperties { get; set; }
 }

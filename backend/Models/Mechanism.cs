@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 
 namespace ChemistryCafeAPI.Models;
 
@@ -15,6 +16,9 @@ public class Mechanism
     public DateTime UpdatedDate { get; set; } = DateTime.UtcNow;
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
+
+    [Column(TypeName = "json")]
+    public Dictionary<string, JsonElement>? OtherProperties { get; set; }
 
     // References to species, reactions, and phases from the parent family
     public ICollection<Phase> Phases { get; set; } = new List<Phase>();
