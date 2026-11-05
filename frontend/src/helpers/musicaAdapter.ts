@@ -507,9 +507,21 @@ export function serializeMechanism(mech: Mechanism, family: Family) {
     species: family.species
       .filter((s) => mech.speciesIds.includes(s.id))
       .map(speciesToMusica),
+    // A phase of the family can have species that the mechanism does not
+    // include. The phase of the mechanism has only the species of the mechanism.
     phases: family.phases
       .filter((p) => mech.phaseIds.includes(p.id))
-      .map((p) => phaseToMusica(p, ctx)),
+      .map((p) =>
+        phaseToMusica(
+          {
+            ...p,
+            speciesIds: p.speciesIds.filter((id) =>
+              mech.speciesIds.includes(id),
+            ),
+          },
+          ctx,
+        ),
+      ),
     reactions: family.reactions
       .filter((r) => mech.reactionIds.includes(r.id))
       .map((r) => {

@@ -405,6 +405,14 @@ describe("Phase serialization", () => {
     const phaseNames = serialized.phases.map((p: any) => p.name);
     expect(phaseNames).not.toContain("unreferenced");
   });
+
+  it("omits phase species that the mechanism does not include", () => {
+    const onePlainSpecies = { ...mechanism, speciesIds: [plainSpecies.id] };
+    const gas = serialize(onePlainSpecies).phases.find(
+      (p: any) => p.name === "gas",
+    );
+    expect(gas.species.map((s: any) => s.name)).toEqual([plainSpecies.name]);
+  });
 });
 
 // Guards against a regression to a hardcoded `"gas phase": "gas"`. Every other
