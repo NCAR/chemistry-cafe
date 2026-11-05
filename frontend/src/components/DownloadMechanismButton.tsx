@@ -6,7 +6,9 @@ import {
   serializeMechanismJSON,
   serializeMechanismMusicBox as serializeMusicBoxConfiguration,
   serializeMechanismYAML,
+  validateMechanism,
 } from "../helpers/serialization";
+import { ValidationErrorsModal } from "./modals/ValidationErrorsModal";
 
 type RowActionsButtonProps = {
   mechanism: Mechanism;
@@ -22,6 +24,7 @@ export const DownloadMechanismButton: React.FC<RowActionsButtonProps> = ({
 }) => {
   const [open, setOpen] = useState<boolean>(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   const handleMenuOpen = (event: MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -67,6 +70,23 @@ export const DownloadMechanismButton: React.FC<RowActionsButtonProps> = ({
     }
   };
 
+  /**
+   * Checks the mechanism, then downloads it. If the check fails, shows the
+   * validator messages and does not download.
+   */
+  const validateAndDownload = async (
+    createBlob: () => Blob | Promise<Blob>,
+    variant: "JSON" | "YAML" | "MusicBox",
+  ) => {
+    const errors = await validateMechanism(mechanism, family);
+    if (errors.length > 0) {
+      handleMenuClose();
+      setValidationErrors(errors);
+      return;
+    }
+    downloadBlob(await createBlob(), variant);
+  };
+
   return (
     <>
       <Button
@@ -96,16 +116,15 @@ export const DownloadMechanismButton: React.FC<RowActionsButtonProps> = ({
               sx={{
                 textTransform: "none",
               }}
-              onClick={() => {
-                const serializedMechanism = serializeMechanismJSON(
-                  mechanism,
-                  family,
-                );
-                const blob = new Blob([serializedMechanism], {
-                  type: "octet/stream",
-                });
-                downloadBlob(blob, "JSON");
-              }}
+              onClick={() =>
+                validateAndDownload(
+                  () =>
+                    new Blob([serializeMechanismJSON(mechanism, family)], {
+                      type: "octet/stream",
+                    }),
+                  "JSON",
+                )
+              }
             >
               JSON
             </Button>
@@ -117,16 +136,15 @@ export const DownloadMechanismButton: React.FC<RowActionsButtonProps> = ({
               sx={{
                 textTransform: "none",
               }}
-              onClick={() => {
-                const serializedMechanism = serializeMechanismYAML(
-                  mechanism,
-                  family,
-                );
-                const blob = new Blob([serializedMechanism], {
-                  type: "octet/stream",
-                });
-                downloadBlob(blob, "YAML");
-              }}
+              onClick={() =>
+                validateAndDownload(
+                  () =>
+                    new Blob([serializeMechanismYAML(mechanism, family)], {
+                      type: "octet/stream",
+                    }),
+                  "YAML",
+                )
+              }
             >
               YAML
             </Button>
@@ -138,20 +156,24 @@ export const DownloadMechanismButton: React.FC<RowActionsButtonProps> = ({
               sx={{
                 textTransform: "none",
               }}
-              onClick={() => {
-                serializeMusicBoxConfiguration(mechanism, family).then(
-                  (blob) => {
-                    console.log(blob);
-                    downloadBlob(blob, "MusicBox");
-                  },
-                );
-              }}
+              onClick={() =>
+                validateAndDownload(
+                  () => serializeMusicBoxConfiguration(mechanism, family),
+                  "MusicBox",
+                )
+              }
             >
               MusicBox
             </Button>
           </Tooltip>
         </ButtonGroup>
       </Popover>
+      <ValidationErrorsModal
+        open={validationErrors.length > 0}
+        onClose={() => setValidationErrors([])}
+        message={`Fix these problems in "${mechanism.name}" before you download it.`}
+        errors={validationErrors}
+      />
     </>
   );
 };

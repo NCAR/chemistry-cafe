@@ -1,5 +1,9 @@
 import { Family, Mechanism, Reaction, Species } from "../types/chemistryModels";
-import { serializeMechanism, deserializeMechanism } from "./musicaAdapter";
+import {
+  serializeMechanism,
+  deserializeMechanism,
+  toMusicaMechanism,
+} from "./musicaAdapter";
 import { initModule, mechanismConfiguration } from "@ncar/musica";
 import * as YAML from "yaml";
 import JSZip from "jszip";
@@ -9,50 +13,6 @@ import JSZip from "jszip";
 // concerns: formatting (JSON & YAML) and the separate MusicBox/CAMP-V0 export.
 
 const supportedV1Versions = ["1.0.0"];
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
-
-const validatePhaseSpecies = (parsed: unknown): void => {
-  if (!isRecord(parsed)) {
-    return;
-  }
-
-  const speciesNames = new Set(
-    Array.isArray(parsed.species)
-      ? parsed.species.flatMap((species) =>
-          isRecord(species) && typeof species.name === "string"
-            ? [species.name]
-            : [],
-        )
-      : [],
-  );
-
-  if (!Array.isArray(parsed.phases)) {
-    return;
-  }
-
-  for (const phase of parsed.phases) {
-    if (!isRecord(phase) || !Array.isArray(phase.species)) {
-      continue;
-    }
-
-    const phaseName = typeof phase.name === "string" ? phase.name : "";
-    for (const member of phase.species) {
-      const speciesName =
-        typeof member === "string"
-          ? member
-          : isRecord(member) && typeof member.name === "string"
-            ? member.name
-            : undefined;
-      if (speciesName !== undefined && !speciesNames.has(speciesName)) {
-        throw new Error(
-          `Unknown species name '${speciesName}' found in '${phaseName}' phase`,
-        );
-      }
-    }
-  }
-};
 
 /**
  * Converts a given mechanism to a serialized JSON string which uses the V1 schema
@@ -77,6 +37,30 @@ export const serializeMechanismYAML = (
 ): string => YAML.stringify(serializeMechanism(mechanism, family));
 
 /**
+ * Checks a mechanism with the musica (MechanismConfiguration) validator.
+ * @param mechanism Mechanism to check
+ * @param family Family mechanism is in
+ * @returns The validator messages. The list is empty when the mechanism is valid.
+ */
+export const validateMechanism = async (
+  mechanism: Mechanism,
+  family: Family,
+): Promise<string[]> => {
+  await initModule();
+  try {
+    // The validator checks one line of JSON, so the ":line:column error:"
+    // prefix does not help the user.
+    return toMusicaMechanism(mechanism, family)
+      .validate()
+      .map((error: { message: string }) =>
+        error.message.replace(/^:\d+:\d+ error: /, ""),
+      );
+  } catch (e) {
+    return [e instanceof Error ? e.message : String(e)];
+  }
+};
+
+/**
  * Takes a V1 mechanism string in either JSON or YAML and creates a new Family
  * with one mechanism's worth of data based on the file.
  * @throws Parsing and validation errors from the musica parser
@@ -84,7 +68,6 @@ export const serializeMechanismYAML = (
 export const deserializeV1Mechanism = async (
   fileText: string,
 ): Promise<Family | null> => {
-  validatePhaseSpecies(YAML.parse(fileText));
   // The musica parser validates the file and accepts JSON or YAML.
   await initModule();
   const parsed = mechanismConfiguration.parseMechanismFromString(fileText) as {
