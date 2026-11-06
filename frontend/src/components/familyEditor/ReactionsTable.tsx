@@ -31,16 +31,16 @@ import { useCustomTheme } from "../CustomThemeContext";
 import { UUID } from "crypto";
 import { equationMatchesSearch } from "../../helpers/equationSearch";
 import { DataViewToolbar, useVisibleRows } from "./DataViewToolbar";
-import { EquationText } from "../EquationText";
+import { EquationText, reactionReactants } from "../EquationText";
 import {
   countRowsWithIssues,
-  issueColumns,
   ItemIssues,
   problemsBySpecies,
   problemsInField,
   ProblemsFilter,
   ProblemText,
   rowsToShow,
+  unmarkedProblems,
 } from "./IssueIndicators";
 import { ReactionTypeInfo } from "./ReactionTypeInfo";
 import { useUserPreferences } from "../UserPreferencesContext";
@@ -453,7 +453,6 @@ export const ReactionsTable = ({
         cellClassName: "actions",
         getActions: ({ id }) => getRowActions(id as UUID),
       },
-      ...(issueColumns<Reaction>(issues) as Array<GridColDef<Reaction>>),
       {
         field: "id",
         headerName: "Equation",
@@ -470,15 +469,42 @@ export const ReactionsTable = ({
             reactions.find((e) => e.id == id),
             species,
           ),
-        renderCell: (params: GridRenderCellParams<Reaction>) => (
-          <Typography variant="body1" noWrap>
+        renderCell: (params: GridRenderCellParams<Reaction>) => {
+          const reaction = params.row;
+          const rowIssues = issues?.get(reaction.id);
+          const equation = (
             <EquationText
-              reaction={params.row}
+              reaction={reaction}
               species={species}
-              problems={problemsBySpecies(issues?.get(params.row.id))}
+              problems={problemsBySpecies(rowIssues)}
             />
-          </Typography>
-        ),
+          );
+          // The equation marks its species, and the Gas Phase cell marks the
+          // gas phase. Without a gas phase, that cell also marks the problems
+          // about the whole reaction. The equation shows the other problems.
+          const shown = new Set<string>(
+            [...reactionReactants(reaction), ...reaction.products].map(
+              (entry) => entry.speciesId,
+            ),
+          );
+          const problems = unmarkedProblems(
+            rowIssues,
+            (issue) =>
+              issue.target?.field === "gas phase" ||
+              (issue.target?.speciesId !== undefined &&
+                shown.has(issue.target.speciesId)) ||
+              (!reaction.gasPhaseId && !issue.target?.field),
+          );
+          return (
+            <Typography variant="body1" noWrap>
+              {problems.length > 0 ? (
+                <ProblemText title={problems.join(" ")}>{equation}</ProblemText>
+              ) : (
+                equation
+              )}
+            </Typography>
+          );
+        },
       },
       {
         field: "name",

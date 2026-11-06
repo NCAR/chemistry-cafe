@@ -84,7 +84,7 @@ describe("Validation indicators", () => {
     });
   });
 
-  it("marks the reaction and the product in the table", async () => {
+  it("marks the product of the reaction in the table", async () => {
     const issues = await validateMechanism(mechanism, family);
     render(
       <CustomThemeProvider>
@@ -98,7 +98,8 @@ describe("Validation indicators", () => {
       </CustomThemeProvider>,
     );
 
-    expect(screen.getAllByTestId("issue-icon")).toHaveLength(1);
+    // Only the product has a mark. The equation itself has none.
+    expect(screen.getAllByTestId("problem-text")).toHaveLength(1);
     expect(screen.getByTestId("problem-text")).toHaveTextContent("B");
 
     // The filter leaves only the reaction with the problem.
@@ -106,7 +107,34 @@ describe("Validation indicators", () => {
     fireEvent.click(screen.getByTestId("problems-filter"));
     const rows = document.querySelectorAll(".MuiDataGrid-row");
     expect(rows).toHaveLength(1);
-    expect(rows[0].querySelector('[data-testid="issue-icon"]')).not.toBeNull();
+    expect(within(rows[0] as HTMLElement).getByText("B")).toBeTruthy();
+  });
+
+  it("marks the equation for a problem about the whole reaction", () => {
+    const issues = issuesByItem([
+      {
+        message: "Unknown reaction type",
+        mechanismId: mechanism.id,
+        mechanismName: mechanism.name,
+        target: { kind: "reaction", id: "reaction-bad" },
+      },
+    ]);
+    render(
+      <CustomThemeProvider>
+        <ReactionsTable
+          reactions={family.reactions}
+          species={family.species}
+          phases={family.phases}
+          getRowActions={() => []}
+          issues={issues}
+        />
+      </CustomThemeProvider>,
+    );
+
+    // The reaction has a gas phase, so the equation shows the problem.
+    const marks = screen.getAllByTestId("problem-text");
+    expect(marks).toHaveLength(1);
+    expect(marks[0]).toHaveTextContent("A → B");
   });
 
   it("opens the section of the problems from the messages", async () => {

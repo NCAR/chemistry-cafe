@@ -17,7 +17,6 @@ import { useCustomTheme } from "../CustomThemeContext";
 import { DataViewToolbar, useVisibleRows } from "./DataViewToolbar";
 import {
   countRowsWithIssues,
-  issueColumns,
   ItemIssues,
   ProblemsFilter,
   ProblemText,
@@ -99,7 +98,6 @@ export const SpeciesTable = ({
       disableColumnMenu: true,
       getActions: ({ id }) => getRowActions(id as UUID),
     },
-    ...(issueColumns<Species>(issues) as Array<GridColDef>),
     {
       field: "name",
       headerName: "Name",

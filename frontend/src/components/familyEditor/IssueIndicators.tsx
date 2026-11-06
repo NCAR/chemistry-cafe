@@ -1,7 +1,6 @@
 import { ReactNode } from "react";
 import { Box, Chip, Tooltip, Typography } from "@mui/material";
 import ErrorIcon from "@mui/icons-material/Error";
-import { GridColDef, GridValidRowModel } from "@mui/x-data-grid";
 import { ValidationIssue } from "../../helpers/validationIssues";
 
 /** The problems of the items of a table, by the ID of the item. */
@@ -18,43 +17,6 @@ export const IssueList = ({ issues }: { issues: ValidationIssue[] }) => (
     ))}
   </Box>
 );
-
-/** An error icon. Its tooltip lists the problems of the item. */
-export const IssueIcon = ({ issues }: { issues?: ValidationIssue[] }) =>
-  issues && issues.length > 0 ? (
-    <Tooltip title={<IssueList issues={issues} />} arrow>
-      <ErrorIcon
-        color="error"
-        fontSize="small"
-        aria-label={`${issues.length} problems`}
-        data-testid="issue-icon"
-      />
-    </Tooltip>
-  ) : null;
-
-/**
- * Gives the column that marks the rows with problems. Without problems to
- * show, for example outside the family editor, the table has no column.
- */
-export function issueColumns<Row extends GridValidRowModel & { id: string }>(
-  issues?: ItemIssues,
-): Array<GridColDef<Row>> {
-  if (!issues) return [];
-  return [
-    {
-      field: "issues",
-      headerName: "Problems",
-      width: 48,
-      sortable: false,
-      disableColumnMenu: true,
-      renderHeader: () => <ErrorIcon fontSize="small" color="disabled" />,
-      valueGetter: (_value, row) => issues.get(row.id)?.length ?? 0,
-      // The search does not use this column.
-      getApplyQuickFilterFn: () => null,
-      renderCell: (params) => <IssueIcon issues={issues.get(params.row.id)} />,
-    },
-  ];
-}
 
 /** Shows a part of an item that has a problem, for example a species. */
 export const ProblemText = ({
@@ -178,4 +140,17 @@ export const problemsInField = (
 ): string[] =>
   (issues ?? [])
     .filter((issue) => issue.target?.field === field)
+    .map((issue) => issue.message);
+
+/**
+ * Gives the messages of the problems that no other cell of a row marks, for
+ * example a problem about the whole item. The main cell of the row shows them.
+ * @param isMarked Tells if another cell marks the problem.
+ */
+export const unmarkedProblems = (
+  issues: ValidationIssue[] | undefined,
+  isMarked: (issue: ValidationIssue) => boolean,
+): string[] =>
+  (issues ?? [])
+    .filter((issue) => !isMarked(issue))
     .map((issue) => issue.message);

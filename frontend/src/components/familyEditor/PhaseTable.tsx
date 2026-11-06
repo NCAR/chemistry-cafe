@@ -12,12 +12,12 @@ import { useCustomTheme } from "../CustomThemeContext";
 import { DataViewToolbar, useVisibleRows } from "./DataViewToolbar";
 import {
   countRowsWithIssues,
-  issueColumns,
   ItemIssues,
   problemsBySpecies,
   ProblemsFilter,
   ProblemText,
   rowsToShow,
+  unmarkedProblems,
 } from "./IssueIndicators";
 
 export type PhaseTableProps = {
@@ -74,12 +74,26 @@ export const PhaseTable = ({
       disableColumnMenu: true,
       getActions: ({ id }) => getRowActions(id as UUID),
     },
-    ...(issueColumns<Phase>(issues) as Array<GridColDef>),
     {
       field: "name",
       headerName: "Name",
       editable,
       flex: 1,
+      renderCell: (params: GridRenderCellParams<Phase>) => {
+        // The Species column marks the problems of the species of the phase.
+        const problems = unmarkedProblems(
+          issues?.get(params.row.id),
+          (issue) =>
+            issue.target?.field === "species" &&
+            issue.target.speciesId !== undefined &&
+            params.row.speciesIds.includes(issue.target.speciesId as UUID),
+        );
+        return problems.length > 0 ? (
+          <ProblemText title={problems.join(" ")}>{params.value}</ProblemText>
+        ) : (
+          params.value
+        );
+      },
     },
     {
       field: "description",
