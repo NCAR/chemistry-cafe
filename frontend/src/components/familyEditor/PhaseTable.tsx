@@ -1,4 +1,4 @@
-import { ReactElement } from "react";
+import { Fragment, ReactElement, useState } from "react";
 import { Typography } from "@mui/material";
 import {
   DataGrid,
@@ -10,6 +10,15 @@ import { UUID } from "crypto";
 import { Phase, Species } from "../../types/chemistryModels";
 import { useCustomTheme } from "../CustomThemeContext";
 import { DataViewToolbar, useVisibleRows } from "./DataViewToolbar";
+import {
+  countRowsWithIssues,
+  ItemIssues,
+  problemsBySpecies,
+  ProblemsFilter,
+  ProblemText,
+  rowsToShow,
+  unmarkedProblems,
+} from "./IssueIndicators";
 
 export type PhaseTableProps = {
   /** The phases that the table shows. */
@@ -30,6 +39,8 @@ export type PhaseTableProps = {
    * double-clicked. Without it, a double-click on the cell does nothing.
    */
   onEdit?: (id: UUID) => void;
+  /** The problems of the phases. The table marks the phases that have one. */
+  issues?: ItemIssues;
 };
 
 /**
@@ -43,12 +54,16 @@ export const PhaseTable = ({
   onRowUpdate,
   onAdd,
   onEdit,
+  issues,
 }: PhaseTableProps) => {
   const { theme } = useCustomTheme();
   const apiRef = useGridApiRef();
   const visibleRows = useVisibleRows(apiRef);
   // Without a way to save an edit, the cells are read-only.
   const editable = onRowUpdate !== undefined;
+  // Shows only the phases with problems.
+  const [onlyProblems, setOnlyProblems] = useState<boolean>(false);
+  const problemCount = countRowsWithIssues(phases, issues);
 
   const phaseColumns: GridColDef[] = [
     {
@@ -64,6 +79,21 @@ export const PhaseTable = ({
       headerName: "Name",
       editable,
       flex: 1,
+      renderCell: (params: GridRenderCellParams<Phase>) => {
+        // The Species column marks the problems of the species of the phase.
+        const problems = unmarkedProblems(
+          issues?.get(params.row.id),
+          (issue) =>
+            issue.target?.field === "species" &&
+            issue.target.speciesId !== undefined &&
+            params.row.speciesIds.includes(issue.target.speciesId as UUID),
+        );
+        return problems.length > 0 ? (
+          <ProblemText title={problems.join(" ")}>{params.value}</ProblemText>
+        ) : (
+          params.value
+        );
+      },
     },
     {
       field: "description",
@@ -88,11 +118,37 @@ export const PhaseTable = ({
               species.find((element) => element.id === id)?.name ?? "<Unknown>",
           )
           .join(", "),
-      renderCell: (params: GridRenderCellParams<Phase>) => (
-        <Typography noWrap title={String(params.value || "")}>
-          {params.value || "<None>"}
-        </Typography>
-      ),
+      renderCell: (params: GridRenderCellParams<Phase>) => {
+        const problems = problemsBySpecies(issues?.get(params.row.id), [
+          "species",
+        ]);
+        if (problems.size === 0) {
+          return (
+            <Typography noWrap title={String(params.value || "")}>
+              {params.value || "<None>"}
+            </Typography>
+          );
+        }
+        // The species with a problem show in red, with the problem as a tooltip.
+        return (
+          <Typography noWrap>
+            {params.row.speciesIds.map((id, index) => (
+              <Fragment key={`${id}-${index}`}>
+                {index > 0 && ", "}
+                {problems.has(id) ? (
+                  <ProblemText title={problems.get(id)?.join(" ")}>
+                    {species.find((element) => element.id === id)?.name ??
+                      "<Unknown>"}
+                  </ProblemText>
+                ) : (
+                  (species.find((element) => element.id === id)?.name ??
+                  "<Unknown>")
+                )}
+              </Fragment>
+            ))}
+          </Typography>
+        );
+      },
     },
   ];
 
@@ -107,7 +163,7 @@ export const PhaseTable = ({
         density: "compact",
         pagination: { paginationModel: { pageSize: 20 } },
       }}
-      rows={phases}
+      rows={rowsToShow(phases, issues, onlyProblems && problemCount > 0)}
       columns={phaseColumns}
       processRowUpdate={onRowUpdate}
       // A double-click on the species opens the phase editor. The name and
@@ -141,6 +197,13 @@ export const PhaseTable = ({
           addTestId: "add-phase-button",
           onAdd,
           searchPlaceholder: "Search phases",
+          filters: (
+            <ProblemsFilter
+              count={problemCount}
+              selected={onlyProblems}
+              onChange={setOnlyProblems}
+            />
+          ),
           visibleCount: visibleRows.length,
           totalCount: phases.length,
         },

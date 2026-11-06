@@ -8,9 +8,11 @@ import { RowActionsButton } from "../RowActionsButton";
 import { UUID } from "crypto";
 import { generateID } from "../../helpers/localFamilies";
 import { ViewProps } from "./ViewProps";
+import { useFamilyValidation } from "./FamilyValidationContext";
 import { SpeciesTable } from "./SpeciesTable";
 
 export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
+  const { byItem } = useFamilyValidation();
   const [speciesEditorOpen, setSpeciesEditorOpen] = useState<boolean>(false);
   const [selectedSpecies, setSelectedSpecies] = useState<Species>();
 
@@ -114,6 +116,7 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
         </Tooltip>
       </Box>
       <SpeciesTable
+        issues={byItem}
         species={family.species}
         getRowActions={(id) => [
           <RowActionsButton

@@ -31,7 +31,17 @@ import { useCustomTheme } from "../CustomThemeContext";
 import { UUID } from "crypto";
 import { equationMatchesSearch } from "../../helpers/equationSearch";
 import { DataViewToolbar, useVisibleRows } from "./DataViewToolbar";
-import { EquationText } from "../EquationText";
+import { EquationText, reactionReactants } from "../EquationText";
+import {
+  countRowsWithIssues,
+  ItemIssues,
+  problemsBySpecies,
+  problemsInField,
+  ProblemsFilter,
+  ProblemText,
+  rowsToShow,
+  unmarkedProblems,
+} from "./IssueIndicators";
 import { ReactionTypeInfo } from "./ReactionTypeInfo";
 import { useUserPreferences } from "../UserPreferencesContext";
 import {
@@ -376,6 +386,8 @@ export type ReactionsTableProps = {
    * editable is double-clicked. Without it, a double-click there does nothing.
    */
   onEdit?: (id: UUID) => void;
+  /** The problems of the reactions. The table marks the reactions that have one. */
+  issues?: ItemIssues;
 };
 
 /**
@@ -390,10 +402,13 @@ export const ReactionsTable = ({
   onRowUpdate,
   onAdd,
   onEdit,
+  issues,
 }: ReactionsTableProps) => {
   const { theme } = useCustomTheme();
   // The reaction types that the Type field selects. None means all types.
   const [typeFilter, setTypeFilter] = useState<Array<ReactionTypeName>>([]);
+  // Shows only the reactions with problems.
+  const [onlyProblems, setOnlyProblems] = useState<boolean>(false);
   const { preferences } = useUserPreferences();
   const { activationParameter } = preferences;
   const apiRef = useGridApiRef();
@@ -454,11 +469,42 @@ export const ReactionsTable = ({
             reactions.find((e) => e.id == id),
             species,
           ),
-        renderCell: (params: GridRenderCellParams<Reaction>) => (
-          <Typography variant="body1" noWrap>
-            <EquationText reaction={params.row} species={species} />
-          </Typography>
-        ),
+        renderCell: (params: GridRenderCellParams<Reaction>) => {
+          const reaction = params.row;
+          const rowIssues = issues?.get(reaction.id);
+          const equation = (
+            <EquationText
+              reaction={reaction}
+              species={species}
+              problems={problemsBySpecies(rowIssues)}
+            />
+          );
+          // The equation marks its species, and the Gas Phase cell marks the
+          // gas phase. Without a gas phase, that cell also marks the problems
+          // about the whole reaction. The equation shows the other problems.
+          const shown = new Set<string>(
+            [...reactionReactants(reaction), ...reaction.products].map(
+              (entry) => entry.speciesId,
+            ),
+          );
+          const problems = unmarkedProblems(
+            rowIssues,
+            (issue) =>
+              issue.target?.field === "gas phase" ||
+              (issue.target?.speciesId !== undefined &&
+                shown.has(issue.target.speciesId)) ||
+              (!reaction.gasPhaseId && !issue.target?.field),
+          );
+          return (
+            <Typography variant="body1" noWrap>
+              {problems.length > 0 ? (
+                <ProblemText title={problems.join(" ")}>{equation}</ProblemText>
+              ) : (
+                equation
+              )}
+            </Typography>
+          );
+        },
       },
       {
         field: "name",
@@ -532,22 +578,38 @@ export const ReactionsTable = ({
         valueGetter: (_value, row: Reaction) =>
           phases.find((phase: Phase) => phase.id === row.gasPhaseId)?.name ??
           "",
-        renderCell: (params: GridRenderCellParams<Reaction>) => (
-          <Typography
-            variant="body1"
-            sx={{
-              color: params.value
-                ? theme.palette.text.primary
-                : theme.palette.text.disabled,
-            }}
-            noWrap
-          >
-            {params.value || "<None>"}
-          </Typography>
-        ),
+        renderCell: (params: GridRenderCellParams<Reaction>) => {
+          const rowIssues = issues?.get(params.row.id);
+          // A reaction without a gas phase gives a problem about the whole
+          // reaction, because the key is missing. The empty cell shows it.
+          const problems = params.row.gasPhaseId
+            ? problemsInField(rowIssues, "gas phase")
+            : (rowIssues ?? [])
+                .filter((issue) => !issue.target?.field)
+                .map((issue) => issue.message);
+          return (
+            <Typography
+              variant="body1"
+              sx={{
+                color: params.value
+                  ? theme.palette.text.primary
+                  : theme.palette.text.disabled,
+              }}
+              noWrap
+            >
+              {problems.length > 0 ? (
+                <ProblemText title={problems.join(" ")}>
+                  {params.value || "<None>"}
+                </ProblemText>
+              ) : (
+                params.value || "<None>"
+              )}
+            </Typography>
+          );
+        },
       },
     ],
-    [editable, getRowActions, phases, reactions, species, theme],
+    [editable, getRowActions, issues, phases, reactions, species, theme],
   );
 
   const typeCounts = useMemo(() => {
@@ -574,12 +636,17 @@ export const ReactionsTable = ({
         .sort((a, b) => a.label.localeCompare(b.label)),
     [typeCounts],
   );
+  const problemCount = countRowsWithIssues(reactions, issues);
   const rows = useMemo(
     () =>
-      activeTypes.length > 0
-        ? reactions.filter((reaction) => activeTypes.includes(reaction.type))
-        : reactions,
-    [activeTypes, reactions],
+      rowsToShow(
+        activeTypes.length > 0
+          ? reactions.filter((reaction) => activeTypes.includes(reaction.type))
+          : reactions,
+        issues,
+        onlyProblems && problemCount > 0,
+      ),
+    [activeTypes, issues, onlyProblems, problemCount, reactions],
   );
 
   // When all visible rows have one type, the table shows the parameters of
@@ -686,11 +753,18 @@ export const ReactionsTable = ({
           onAdd,
           searchPlaceholder: "Search reactions",
           filters: (
-            <TypeFilter
-              options={typeOptions}
-              selectedTypes={activeTypes}
-              onSelect={setTypeFilter}
-            />
+            <>
+              <TypeFilter
+                options={typeOptions}
+                selectedTypes={activeTypes}
+                onSelect={setTypeFilter}
+              />
+              <ProblemsFilter
+                count={problemCount}
+                selected={onlyProblems}
+                onChange={setOnlyProblems}
+              />
+            </>
           ),
           actions: visibleType && (
             <RateConstantButton

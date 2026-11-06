@@ -1016,63 +1016,68 @@ export const ReactionEditorModal: React.FC<ReactionEditorModalProps> = ({
               });
             }}
           />
-          {family.phases.length > 0 && (
-            <TextField
-              select
-              size="small"
-              fullWidth
-              data-testid="reaction-gas-phase-select"
-              required
-              label="Gas Phase"
-              value={modifiedReaction?.gasPhaseId ?? ""}
-              helperText="Reactants and products must belong to this gas phase."
-              onChange={(event) => {
-                const phaseId = event.target.value as UUID;
-                const phase = family.phases.find(
-                  (option) => option.id === phaseId,
-                );
-                if (!phase) {
-                  return;
-                }
-                const targetSpecies = new Set([
-                  ...phase.speciesIds,
-                  ...phaseSpeciesAdditions
-                    .filter((addition) => addition.phaseId === phase.id)
-                    .flatMap((addition) => addition.speciesIds),
-                ]);
-                const reactionSpecies = new Set([
-                  ...(modifiedReaction?.reactants ?? []).map(
-                    (entry) => entry.speciesId,
-                  ),
-                  ...(modifiedReaction?.products ?? []).map(
-                    (entry) => entry.speciesId,
-                  ),
-                  ...(modifiedReaction?.gasPhaseSpeciesId
-                    ? [modifiedReaction.gasPhaseSpeciesId]
-                    : []),
-                ]);
-                const missingSpeciesIds = [...reactionSpecies].filter(
-                  (speciesId) => !targetSpecies.has(speciesId),
-                );
+          {/* The field shows also when the family has no phases, so that the
+              user can see that the reaction needs one. */}
+          <TextField
+            select
+            size="small"
+            fullWidth
+            data-testid="reaction-gas-phase-select"
+            required
+            disabled={family.phases.length === 0}
+            label="Gas Phase"
+            value={modifiedReaction?.gasPhaseId ?? ""}
+            helperText={
+              family.phases.length === 0
+                ? "This family has no phases. Add a phase in the Phases section first."
+                : "Reactants and products must belong to this gas phase."
+            }
+            onChange={(event) => {
+              const phaseId = event.target.value as UUID;
+              const phase = family.phases.find(
+                (option) => option.id === phaseId,
+              );
+              if (!phase) {
+                return;
+              }
+              const targetSpecies = new Set([
+                ...phase.speciesIds,
+                ...phaseSpeciesAdditions
+                  .filter((addition) => addition.phaseId === phase.id)
+                  .flatMap((addition) => addition.speciesIds),
+              ]);
+              const reactionSpecies = new Set([
+                ...(modifiedReaction?.reactants ?? []).map(
+                  (entry) => entry.speciesId,
+                ),
+                ...(modifiedReaction?.products ?? []).map(
+                  (entry) => entry.speciesId,
+                ),
+                ...(modifiedReaction?.gasPhaseSpeciesId
+                  ? [modifiedReaction.gasPhaseSpeciesId]
+                  : []),
+              ]);
+              const missingSpeciesIds = [...reactionSpecies].filter(
+                (speciesId) => !targetSpecies.has(speciesId),
+              );
 
-                if (missingSpeciesIds.length > 0) {
-                  setPendingPhaseChange({ phaseId, missingSpeciesIds });
-                  return;
-                }
+              if (missingSpeciesIds.length > 0) {
+                setPendingPhaseChange({ phaseId, missingSpeciesIds });
+                return;
+              }
 
-                setPhaseSpeciesAdditions((additions) =>
-                  additions.filter((addition) => addition.phaseId === phaseId),
-                );
-                changeReactionPhase(phaseId);
-              }}
-            >
-              {family.phases.map((phase) => (
-                <MenuItem key={phase.id} value={phase.id}>
-                  {phase.name || "<No Name>"}
-                </MenuItem>
-              ))}
-            </TextField>
-          )}
+              setPhaseSpeciesAdditions((additions) =>
+                additions.filter((addition) => addition.phaseId === phaseId),
+              );
+              changeReactionPhase(phaseId);
+            }}
+          >
+            {family.phases.map((phase) => (
+              <MenuItem key={phase.id} value={phase.id}>
+                {phase.name || "<No Name>"}
+              </MenuItem>
+            ))}
+          </TextField>
           {currentConfiguration.hasGasPhaseSpecies && (
             <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5 }}>
               <Box sx={{ flex: "1 1 14em" }}>

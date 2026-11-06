@@ -1,9 +1,5 @@
 import { Family, Mechanism, Reaction, Species } from "../types/chemistryModels";
-import {
-  serializeMechanism,
-  deserializeMechanism,
-  toMusicaMechanism,
-} from "./musicaAdapter";
+import { serializeMechanism, deserializeMechanism } from "./musicaAdapter";
 import { initModule, mechanismConfiguration } from "@ncar/musica";
 import * as YAML from "yaml";
 import JSZip from "jszip";
@@ -35,30 +31,6 @@ export const serializeMechanismYAML = (
   mechanism: Mechanism,
   family: Family,
 ): string => YAML.stringify(serializeMechanism(mechanism, family));
-
-/**
- * Checks a mechanism with the musica (MechanismConfiguration) validator.
- * @param mechanism Mechanism to check
- * @param family Family mechanism is in
- * @returns The validator messages. The list is empty when the mechanism is valid.
- */
-export const validateMechanism = async (
-  mechanism: Mechanism,
-  family: Family,
-): Promise<string[]> => {
-  await initModule();
-  try {
-    // The validator checks one line of JSON, so the ":line:column error:"
-    // prefix does not help the user.
-    return toMusicaMechanism(mechanism, family)
-      .validate()
-      .map((error: { message: string }) =>
-        error.message.replace(/^:\d+:\d+ error: /, ""),
-      );
-  } catch (e) {
-    return [e instanceof Error ? e.message : String(e)];
-  }
-};
 
 /**
  * Takes a V1 mechanism string in either JSON or YAML and creates a new Family

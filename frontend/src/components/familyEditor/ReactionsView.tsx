@@ -10,9 +10,11 @@ import { RowActionsButton } from "../RowActionsButton";
 import { UUID } from "crypto";
 import { generateID } from "../../helpers/localFamilies";
 import { ViewProps } from "./ViewProps";
+import { useFamilyValidation } from "./FamilyValidationContext";
 import { ReactionsTable } from "./ReactionsTable";
 
 export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
+  const { byItem } = useFamilyValidation();
   const [reactionsEditorOpen, setReactionsEditorOpen] =
     useState<boolean>(false);
   const [selectedReaction, setSelectedReaction] = useState<Reaction>();
@@ -120,6 +122,7 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
         </Tooltip>
       </Box>
       <ReactionsTable
+        issues={byItem}
         reactions={family.reactions}
         phases={family.phases}
         species={family.species}
