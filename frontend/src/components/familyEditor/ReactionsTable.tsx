@@ -14,6 +14,7 @@ import {
   GridColDef,
   GridColumnVisibilityModel,
   GridRenderCellParams,
+  GridRowId,
   useGridApiRef,
 } from "@mui/x-data-grid";
 import {
@@ -30,7 +31,12 @@ import {
 import { useCustomTheme } from "../CustomThemeContext";
 import { UUID } from "crypto";
 import { equationMatchesSearch } from "../../helpers/equationSearch";
-import { DataViewToolbar, useVisibleRows } from "./DataViewToolbar";
+import {
+  DataViewToolbar,
+  SelectionActions,
+  useRowSelection,
+  useVisibleRows,
+} from "./DataViewToolbar";
 import { EquationText, reactionReactants } from "../EquationText";
 import {
   countRowsWithIssues,
@@ -376,7 +382,11 @@ export type ReactionsTableProps = {
   /** The phases of the family, for the giving the gas phase. */
   phases: Phase[];
   /** Gives the buttons of the Row Actions column for the row with this ID. */
-  getRowActions: (id: UUID) => Array<ReactElement>;
+  /**
+   * Gives the buttons of the Row Actions column for the row with this ID.
+   * Without it, the table has no Row Actions column.
+   */
+  getRowActions?: (id: UUID) => Array<ReactElement>;
   /** Saves a cell edit. Without it, the cells are read-only. */
   onRowUpdate?: (reaction: Reaction) => void;
   /** Shows the add button of the toolbar, and calls this when it is clicked. */
@@ -388,6 +398,11 @@ export type ReactionsTableProps = {
   onEdit?: (id: UUID) => void;
   /** The problems of the reactions. The table marks the reactions that have one. */
   issues?: ItemIssues;
+  /**
+   * Gives the actions on the selected reactions, for example to set their gas
+   * phase. With it, the table shows a checkbox on each row.
+   */
+  selectionActions?: SelectionActions;
 };
 
 /**
@@ -403,6 +418,7 @@ export const ReactionsTable = ({
   onAdd,
   onEdit,
   issues,
+  selectionActions,
 }: ReactionsTableProps) => {
   const { theme } = useCustomTheme();
   // The reaction types that the Type field selects. None means all types.
@@ -414,6 +430,9 @@ export const ReactionsTable = ({
   const apiRef = useGridApiRef();
   // The reaction that the user clicked in the table.
   const [selectedRowId, setSelectedRowId] = useState<UUID | null>(null);
+  // The reactions that the checkboxes select.
+  const { checkboxSelection, selection, setSelection, toolbarActions } =
+    useRowSelection(selectionActions);
   const visibleRows = useVisibleRows<Reaction>(apiRef);
   // The reaction type of all rows that the search leaves, or null if the rows
   // have more than one type.
@@ -441,18 +460,23 @@ export const ReactionsTable = ({
 
   const reactionsColumns = useMemo<Array<GridColDef<Reaction>>>(
     () => [
-      {
-        field: "Row Actions",
-        type: "actions",
-        // The column holds one menu button, so it needs no title and little
-        // space. The Columns panel shows its name.
-        headerName: "Actions",
-        renderHeader: () => null,
-        width: 56,
-        headerClassName: "roleDataHeader",
-        cellClassName: "actions",
-        getActions: ({ id }) => getRowActions(id as UUID),
-      },
+      ...(getRowActions
+        ? [
+            {
+              field: "Row Actions",
+              type: "actions" as const,
+              // The column holds one menu button, so it needs no title and
+              // little space. The Columns panel shows its name.
+              headerName: "Actions",
+              renderHeader: () => null,
+              width: 56,
+              headerClassName: "roleDataHeader",
+              cellClassName: "actions",
+              getActions: ({ id }: { id: GridRowId }) =>
+                getRowActions(id as UUID),
+            },
+          ]
+        : []),
       {
         field: "id",
         headerName: "Equation",
@@ -695,9 +719,15 @@ export const ReactionsTable = ({
   return (
     <DataGrid
       apiRef={apiRef}
-      onRowSelectionModelChange={(model) =>
-        setSelectedRowId((model[0] as UUID | undefined) ?? null)
-      }
+      checkboxSelection={checkboxSelection}
+      rowSelectionModel={selection}
+      onRowSelectionModelChange={(model) => {
+        setSelection(model);
+        // The information about the rate constant uses one selected reaction.
+        setSelectedRowId(
+          model.length === 1 ? ((model[0] as UUID | undefined) ?? null) : null,
+        );
+      }}
       // The search and the Type menu replace the filter panel. The free
       // DataGrid allows only one filter condition at a time.
       disableColumnFilter
@@ -766,6 +796,7 @@ export const ReactionsTable = ({
               />
             </>
           ),
+          selectionActions: toolbarActions,
           actions: visibleType && (
             <RateConstantButton
               info={

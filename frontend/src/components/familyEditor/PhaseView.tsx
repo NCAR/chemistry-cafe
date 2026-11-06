@@ -6,10 +6,14 @@ import { generateID } from "../../helpers/localFamilies";
 import { Phase } from "../../types/chemistryModels";
 import { PhaseCreationModal } from "../modals/PhaseCreationModal";
 import { ConfirmActionModal } from "../modals/ConfirmActionModal";
-import { RowActionsButton } from "../RowActionsButton";
 import { ViewProps } from "./ViewProps";
 import { useFamilyValidation } from "./FamilyValidationContext";
 import { PhaseTable } from "./PhaseTable";
+import {
+  countOf,
+  DeleteSelectedButton,
+  EditSelectedButton,
+} from "./SelectionButtons";
 
 export const PhaseView = ({ family, updateFamily }: ViewProps) => {
   const { byItem } = useFamilyValidation();
@@ -19,9 +23,6 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
     phase: Phase;
     reactionIds: UUID[];
   } | null>(null);
-  const [pendingPhaseDelete, setPendingPhaseDelete] = useState<Phase | null>(
-    null,
-  );
 
   const updatePhase = (
     name: string,
@@ -128,51 +129,37 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
     return phase;
   };
 
-  const deletePhase = (phase: Phase) => {
+  // The reactions of a deleted phase keep their reactants and products, and
+  // have no gas phase.
+  const deletePhases = (phaseIds: Array<UUID>) => {
+    const ids = new Set<string>(phaseIds);
     updateFamily({
       ...family,
-      phases: family.phases.filter((existing) => existing.id !== phase.id),
+      phases: family.phases.filter((existing) => !ids.has(existing.id)),
       reactions: family.reactions.map((reaction) =>
-        reaction.gasPhaseId === phase.id
-          ? {
-              ...reaction,
-              gasPhaseId:
-                reaction.gasPhaseId === phase.id
-                  ? undefined
-                  : reaction.gasPhaseId,
-            }
+        reaction.gasPhaseId && ids.has(reaction.gasPhaseId)
+          ? { ...reaction, gasPhaseId: undefined }
           : reaction,
       ),
       mechanisms: family.mechanisms.map((mechanism) => ({
         ...mechanism,
-        phaseIds: mechanism.phaseIds.filter((phaseId) => phaseId !== phase.id),
+        phaseIds: mechanism.phaseIds.filter((phaseId) => !ids.has(phaseId)),
       })),
       isModified: true,
     });
   };
 
-  const removePhase = (id: UUID) => {
-    const phase = family.phases.find((existing) => existing.id === id);
-    if (!phase) {
-      return;
-    }
-
-    const phaseIsUsedByReaction = family.reactions.some(
-      (reaction) => reaction.gasPhaseId === id,
-    );
-    if (phaseIsUsedByReaction) {
-      setPendingPhaseDelete(phase);
-      return;
-    }
-
-    deletePhase(phase);
+  /** Tells the user what the deletion of the phases changes. */
+  const deleteMessage = (phaseIds: Array<UUID>) => {
+    const ids = new Set<string>(phaseIds);
+    const reactionCount = family.reactions.filter(
+      (reaction) => reaction.gasPhaseId && ids.has(reaction.gasPhaseId),
+    ).length;
+    const phases = countOf(phaseIds.length, "phase", "phases");
+    return reactionCount === 0
+      ? `This deletes ${phases} from the family and from all its mechanisms.`
+      : `This deletes ${phases}. ${countOf(reactionCount, "reaction uses", "reactions use")} them. Those reactions keep their reactants and products, and have no gas phase.`;
   };
-
-  const pendingPhaseReactionCount = pendingPhaseDelete
-    ? family.reactions.filter(
-        (reaction) => reaction.gasPhaseId === pendingPhaseDelete.id,
-      ).length
-    : 0;
 
   const editPhase = (id: UUID) => {
     setSelectedPhase(family.phases.find((phase) => phase.id === id));
@@ -205,13 +192,24 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
         issues={byItem}
         phases={family.phases}
         species={family.species}
-        getRowActions={(id) => [
-          <RowActionsButton
-            key={id}
-            handleDeleteButtonClick={() => removePhase(id)}
-            handleEditButtonClick={() => editPhase(id)}
-          />,
-        ]}
+        selectionActions={(ids, clearSelection) => (
+          <>
+            {ids.length === 1 && (
+              <EditSelectedButton
+                testId="edit-phase-button"
+                onClick={() => editPhase(ids[0])}
+              />
+            )}
+            <DeleteSelectedButton
+              testId="delete-phases-button"
+              message={deleteMessage(ids)}
+              onDelete={() => {
+                deletePhases(ids);
+                clearSelection();
+              }}
+            />
+          </>
+        )}
         onRowUpdate={handlePhaseRowUpdate}
         onAdd={() => {
           setSelectedPhase(undefined);
@@ -237,22 +235,6 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
         subtitle={`Saving this phase change will remove ${pendingPhaseUpdate?.reactionIds.length ?? 0} affected reaction${pendingPhaseUpdate?.reactionIds.length === 1 ? "" : "s"} from the family and any mechanisms that reference them.`}
         confirmColor="error"
         confirmLabel="Remove reactions and save phase"
-      />
-      <ConfirmActionModal
-        open={pendingPhaseDelete !== null}
-        onClose={() => setPendingPhaseDelete(null)}
-        onAction={() => {
-          if (pendingPhaseDelete) {
-            deletePhase(pendingPhaseDelete);
-            setPendingPhaseDelete(null);
-          }
-        }}
-        message={`This phase is used by ${pendingPhaseReactionCount} reaction${
-          pendingPhaseReactionCount === 1 ? "" : "s"
-        }.`}
-        subtitle="Deleting it will clear the phase assignment from those reactions. Their reactants and products will be kept."
-        confirmColor="error"
-        confirmLabel="Delete phase"
       />
     </Box>
   );

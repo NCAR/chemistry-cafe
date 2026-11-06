@@ -4,12 +4,16 @@ import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import { Species } from "../../types/chemistryModels";
 import { applySpeciesRowUpdate } from "../../helpers/editorHelpers";
 import { SpeciesEditorModal } from "../modals/SpeciesEditorModal";
-import { RowActionsButton } from "../RowActionsButton";
 import { UUID } from "crypto";
 import { generateID } from "../../helpers/localFamilies";
 import { ViewProps } from "./ViewProps";
 import { useFamilyValidation } from "./FamilyValidationContext";
 import { SpeciesTable } from "./SpeciesTable";
+import {
+  countOf,
+  DeleteSelectedButton,
+  EditSelectedButton,
+} from "./SelectionButtons";
 
 export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
   const { byItem } = useFamilyValidation();
@@ -32,37 +36,31 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
     setSpeciesEditorOpen(true);
   };
 
-  const removeSpecies = (id: UUID) => {
-    const originalSpecies: Species | undefined = family.species.find(
-      (value) => value.id === id,
-    );
-    if (!originalSpecies) {
-      return;
-    }
-
+  const removeSpecies = (speciesIds: Array<UUID>) => {
+    const ids = new Set<string>(speciesIds);
     updateFamily({
       ...family,
-      species: family.species.filter((element) => element.id !== id),
+      species: family.species.filter((element) => !ids.has(element.id)),
       // Strip every reference to the removed species so the graph stays valid.
       phases: family.phases.map((phase) => ({
         ...phase,
-        speciesIds: phase.speciesIds.filter((sid) => sid !== id),
+        speciesIds: phase.speciesIds.filter((sid) => !ids.has(sid)),
         diffusionCoefficients: Object.fromEntries(
           Object.entries(phase.diffusionCoefficients ?? {}).filter(
-            ([sid]) => sid !== id,
+            ([sid]) => !ids.has(sid),
           ),
         ),
       })),
       mechanisms: family.mechanisms.map((mechanism) => ({
         ...mechanism,
-        speciesIds: mechanism.speciesIds.filter((sid) => sid !== id),
+        speciesIds: mechanism.speciesIds.filter((sid) => !ids.has(sid)),
       })),
       reactions: family.reactions.map((reaction) => ({
         ...reaction,
-        reactants: reaction.reactants.filter((r) => r.speciesId !== id),
-        products: reaction.products.filter((p) => p.speciesId !== id),
+        reactants: reaction.reactants.filter((r) => !ids.has(r.speciesId)),
+        products: reaction.products.filter((p) => !ids.has(p.speciesId)),
         gasPhaseSpeciesId:
-          reaction.gasPhaseSpeciesId === id
+          reaction.gasPhaseSpeciesId && ids.has(reaction.gasPhaseSpeciesId)
             ? undefined
             : reaction.gasPhaseSpeciesId,
       })),
@@ -118,20 +116,29 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
       <SpeciesTable
         issues={byItem}
         species={family.species}
-        getRowActions={(id) => [
-          <RowActionsButton
-            key={id}
-            handleDeleteButtonClick={() => {
-              removeSpecies(id);
-            }}
-            handleEditButtonClick={() => {
-              setSelectedSpecies(
-                family.species.find((element) => element.id === id),
-              );
-              setSpeciesEditorOpen(true);
-            }}
-          />,
-        ]}
+        selectionActions={(ids, clearSelection) => (
+          <>
+            {ids.length === 1 && (
+              <EditSelectedButton
+                testId="edit-species-button"
+                onClick={() => {
+                  setSelectedSpecies(
+                    family.species.find((element) => element.id === ids[0]),
+                  );
+                  setSpeciesEditorOpen(true);
+                }}
+              />
+            )}
+            <DeleteSelectedButton
+              testId="delete-species-button"
+              message={`This deletes ${countOf(ids.length, "species", "species")} from the family, its phases, its mechanisms, and its reactions.`}
+              onDelete={() => {
+                removeSpecies(ids);
+                clearSelection();
+              }}
+            />
+          </>
+        )}
         onRowUpdate={handleSpeciesRowUpdate}
         onAdd={createSpecies}
       />

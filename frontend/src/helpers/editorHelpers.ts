@@ -1,3 +1,4 @@
+import { UUID } from "crypto";
 import { Family, Species } from "../types/chemistryModels";
 
 export const applySpeciesRowUpdate = (
@@ -40,3 +41,20 @@ export const speciesExclusiveConflict = (species: Species): boolean => {
     1
   );
 };
+
+/** Deletes reactions from a family and from each mechanism that has them. */
+export function removeReactions(
+  family: Family,
+  reactionIds: Array<UUID>,
+): Family {
+  const ids = new Set<string>(reactionIds);
+  return {
+    ...family,
+    reactions: family.reactions.filter((reaction) => !ids.has(reaction.id)),
+    mechanisms: family.mechanisms.map((mechanism) => ({
+      ...mechanism,
+      reactionIds: mechanism.reactionIds.filter((id) => !ids.has(id)),
+    })),
+    isModified: true,
+  };
+}
