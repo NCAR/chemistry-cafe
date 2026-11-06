@@ -14,6 +14,7 @@ import {
   GridColDef,
   GridColumnVisibilityModel,
   GridRenderCellParams,
+  GridRowId,
   GridRowSelectionModel,
   useGridApiRef,
 } from "@mui/x-data-grid";
@@ -377,7 +378,11 @@ export type ReactionsTableProps = {
   /** The phases of the family, for the giving the gas phase. */
   phases: Phase[];
   /** Gives the buttons of the Row Actions column for the row with this ID. */
-  getRowActions: (id: UUID) => Array<ReactElement>;
+  /**
+   * Gives the buttons of the Row Actions column for the row with this ID.
+   * Without it, the table has no Row Actions column.
+   */
+  getRowActions?: (id: UUID) => Array<ReactElement>;
   /** Saves a cell edit. Without it, the cells are read-only. */
   onRowUpdate?: (reaction: Reaction) => void;
   /** Shows the add button of the toolbar, and calls this when it is clicked. */
@@ -453,18 +458,23 @@ export const ReactionsTable = ({
 
   const reactionsColumns = useMemo<Array<GridColDef<Reaction>>>(
     () => [
-      {
-        field: "Row Actions",
-        type: "actions",
-        // The column holds one menu button, so it needs no title and little
-        // space. The Columns panel shows its name.
-        headerName: "Actions",
-        renderHeader: () => null,
-        width: 56,
-        headerClassName: "roleDataHeader",
-        cellClassName: "actions",
-        getActions: ({ id }) => getRowActions(id as UUID),
-      },
+      ...(getRowActions
+        ? [
+            {
+              field: "Row Actions",
+              type: "actions" as const,
+              // The column holds one menu button, so it needs no title and
+              // little space. The Columns panel shows its name.
+              headerName: "Actions",
+              renderHeader: () => null,
+              width: 56,
+              headerClassName: "roleDataHeader",
+              cellClassName: "actions",
+              getActions: ({ id }: { id: GridRowId }) =>
+                getRowActions(id as UUID),
+            },
+          ]
+        : []),
       {
         field: "id",
         headerName: "Equation",

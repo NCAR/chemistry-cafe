@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { Box, Tooltip, Typography } from "@mui/material";
+import { Box, Button, Tooltip, Typography } from "@mui/material";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import EditIcon from "@mui/icons-material/Edit";
 import { Reaction } from "../../types/chemistryModels";
 import {
   ReactionEditorModal,
   type PhaseSpeciesAddition,
 } from "../modals/ReactionEditorModal";
-import { RowActionsButton } from "../RowActionsButton";
 import { UUID } from "crypto";
 import { generateID } from "../../helpers/localFamilies";
 import { ViewProps } from "./ViewProps";
@@ -37,17 +37,6 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
     };
     setSelectedReaction(reaction);
     setReactionsEditorOpen(true);
-  };
-
-  const removeReaction = (id: UUID) => {
-    const originalReaction: Reaction | undefined = family.reactions.find(
-      (value) => value.id === id,
-    );
-    if (!originalReaction) {
-      return;
-    }
-
-    updateFamily(removeReactions(family, [id]));
   };
 
   const updateReaction = (
@@ -119,8 +108,21 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
       </Box>
       <ReactionsTable
         issues={byItem}
+        // The checkboxes select the reactions for these actions. A
+        // double-click on a row also opens its editor.
         selectionActions={(ids, clearSelection) => (
           <>
+            {ids.length === 1 && (
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<EditIcon />}
+                data-testid="edit-reaction-button"
+                onClick={() => editReaction(ids[0])}
+              >
+                Edit
+              </Button>
+            )}
             <SetGasPhaseButton
               family={family}
               reactionIds={ids}
@@ -143,15 +145,6 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
         reactions={family.reactions}
         phases={family.phases}
         species={family.species}
-        getRowActions={(id) => [
-          <RowActionsButton
-            key={id}
-            handleDeleteButtonClick={() => {
-              removeReaction(id);
-            }}
-            handleEditButtonClick={() => editReaction(id)}
-          />,
-        ]}
         onRowUpdate={updateReaction}
         onAdd={createReaction}
         onEdit={editReaction}

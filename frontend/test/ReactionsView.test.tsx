@@ -334,6 +334,25 @@ describe("ReactionsView gas phase of many reactions", () => {
     ]);
   });
 
+  it("edits one selected reaction, and has no row menu", () => {
+    renderView(vi.fn(), family);
+
+    // The checkboxes replace the row menu.
+    expect(screen.queryByTestId("row-actions-button")).toBeNull();
+
+    const rowCheckboxes = screen.getAllByRole("checkbox", {
+      name: "Select row",
+    });
+    fireEvent.click(rowCheckboxes[0]);
+    fireEvent.click(rowCheckboxes[1]);
+    // Edit is for one reaction only.
+    expect(screen.queryByTestId("edit-reaction-button")).toBeNull();
+
+    fireEvent.click(rowCheckboxes[1]);
+    fireEvent.click(screen.getByTestId("edit-reaction-button"));
+    expect(screen.getByTestId("save-reaction-changes")).toBeTruthy();
+  });
+
   it("deletes the selected reactions from the family and its mechanisms", () => {
     const updateFamily = vi.fn();
     renderView(updateFamily, {

@@ -961,20 +961,16 @@ describe("ReactionsView", () => {
   });
 
   it("Can remove reactions", async () => {
-    const actionsButton = screen.getAllByTestId("row-actions-button")[0];
-    fireEvent.click(actionsButton);
-
-    const deleteButton = screen.getByTestId("delete-row");
-    fireEvent.click(deleteButton);
+    fireEvent.click(screen.getAllByRole("checkbox", { name: "Select row" })[0]);
+    fireEvent.click(screen.getByTestId("delete-reactions-button"));
+    fireEvent.click(screen.getByTestId("confirm-action"));
     expect(updateFamily).toHaveBeenCalled();
   });
 
   it("Can edit reactions", async () => {
-    const actionsButton = screen.getAllByTestId("row-actions-button")[0];
-    fireEvent.click(actionsButton);
-
-    const deleteButton = screen.getByTestId("edit-row");
-    fireEvent.click(deleteButton);
+    fireEvent.click(screen.getAllByRole("checkbox", { name: "Select row" })[0]);
+    fireEvent.click(screen.getByTestId("edit-reaction-button"));
+    expect(screen.getByTestId("save-reaction-changes")).toBeTruthy();
   });
 });
 
