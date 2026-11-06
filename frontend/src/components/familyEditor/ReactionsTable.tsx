@@ -15,7 +15,6 @@ import {
   GridColumnVisibilityModel,
   GridRenderCellParams,
   GridRowId,
-  GridRowSelectionModel,
   useGridApiRef,
 } from "@mui/x-data-grid";
 import {
@@ -32,7 +31,12 @@ import {
 import { useCustomTheme } from "../CustomThemeContext";
 import { UUID } from "crypto";
 import { equationMatchesSearch } from "../../helpers/equationSearch";
-import { DataViewToolbar, useVisibleRows } from "./DataViewToolbar";
+import {
+  DataViewToolbar,
+  SelectionActions,
+  useRowSelection,
+  useVisibleRows,
+} from "./DataViewToolbar";
 import { EquationText, reactionReactants } from "../EquationText";
 import {
   countRowsWithIssues,
@@ -398,10 +402,7 @@ export type ReactionsTableProps = {
    * Gives the actions on the selected reactions, for example to set their gas
    * phase. With it, the table shows a checkbox on each row.
    */
-  selectionActions?: (
-    ids: Array<UUID>,
-    clearSelection: () => void,
-  ) => ReactNode;
+  selectionActions?: SelectionActions;
 };
 
 /**
@@ -430,7 +431,8 @@ export const ReactionsTable = ({
   // The reaction that the user clicked in the table.
   const [selectedRowId, setSelectedRowId] = useState<UUID | null>(null);
   // The reactions that the checkboxes select.
-  const [selection, setSelection] = useState<GridRowSelectionModel>([]);
+  const { checkboxSelection, selection, setSelection, toolbarActions } =
+    useRowSelection(selectionActions);
   const visibleRows = useVisibleRows<Reaction>(apiRef);
   // The reaction type of all rows that the search leaves, or null if the rows
   // have more than one type.
@@ -717,7 +719,7 @@ export const ReactionsTable = ({
   return (
     <DataGrid
       apiRef={apiRef}
-      checkboxSelection={selectionActions !== undefined}
+      checkboxSelection={checkboxSelection}
       rowSelectionModel={selection}
       onRowSelectionModelChange={(model) => {
         setSelection(model);
@@ -794,16 +796,7 @@ export const ReactionsTable = ({
               />
             </>
           ),
-          selectionActions: selectionActions && selection.length > 0 && (
-            <>
-              <Typography variant="body2" data-testid="selection-count">
-                {selection.length} selected
-              </Typography>
-              {selectionActions(selection as Array<UUID>, () =>
-                setSelection([]),
-              )}
-            </>
-          ),
+          selectionActions: toolbarActions,
           actions: visibleType && (
             <RateConstantButton
               info={

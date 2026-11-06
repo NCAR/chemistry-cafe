@@ -409,8 +409,8 @@ describe("PhaseView", () => {
 
   it("edits a phase name and description", async () => {
     const user = userEvent.setup();
-    fireEvent.click(screen.getByTestId("row-actions-button"));
-    fireEvent.click(screen.getByTestId("edit-row"));
+    fireEvent.click(screen.getAllByRole("checkbox", { name: "Select row" })[0]);
+    fireEvent.click(screen.getByTestId("edit-phase-button"));
     await screen.findByText("Edit Phase");
 
     await user.clear(screen.getByLabelText("Name"));
@@ -434,10 +434,10 @@ describe("PhaseView", () => {
   });
 
   it("deletes a phase and removes its mechanism and reaction references", async () => {
-    fireEvent.click(screen.getByTestId("row-actions-button"));
-    fireEvent.click(screen.getByTestId("delete-row"));
+    fireEvent.click(screen.getAllByRole("checkbox", { name: "Select row" })[0]);
+    fireEvent.click(screen.getByTestId("delete-phases-button"));
 
-    expect(screen.getByText("This phase is used by 2 reactions.")).toBeTruthy();
+    expect(screen.getByText(/2 reactions use them/)).toBeTruthy();
     expect(updateFamily).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByTestId("confirm-action"));
@@ -462,8 +462,8 @@ describe("PhaseView", () => {
   });
 
   it("cancels phase deletion when a reaction uses it", () => {
-    fireEvent.click(screen.getByTestId("row-actions-button"));
-    fireEvent.click(screen.getByTestId("delete-row"));
+    fireEvent.click(screen.getAllByRole("checkbox", { name: "Select row" })[0]);
+    fireEvent.click(screen.getByTestId("delete-phases-button"));
     fireEvent.click(screen.getByLabelText("Cancel Irreversable Action"));
 
     expect(updateFamily).not.toHaveBeenCalled();
@@ -577,8 +577,8 @@ describe("PhaseView", () => {
       </CustomThemeProvider>,
     );
 
-    fireEvent.click(screen.getByTestId("row-actions-button"));
-    fireEvent.click(screen.getByTestId("edit-row"));
+    fireEvent.click(screen.getAllByRole("checkbox", { name: "Select row" })[0]);
+    fireEvent.click(screen.getByTestId("edit-phase-button"));
     fireEvent.click(screen.getAllByRole("checkbox")[0]);
     fireEvent.click(screen.getByTestId("save-phase-button"));
     return updateFamily;
@@ -845,11 +845,10 @@ describe("SpeciesView", () => {
   });
 
   it("Can remove species", async () => {
-    const actionsButton = screen.getByTestId("row-actions-button");
-    fireEvent.click(actionsButton);
-
-    const deleteButton = screen.getByTestId("delete-row");
-    fireEvent.click(deleteButton);
+    fireEvent.click(screen.getAllByRole("checkbox", { name: "Select row" })[0]);
+    fireEvent.click(screen.getByTestId("delete-species-button"));
+    expect(updateFamily).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByTestId("confirm-action"));
     expect(updateFamily).toHaveBeenCalled();
   });
 });

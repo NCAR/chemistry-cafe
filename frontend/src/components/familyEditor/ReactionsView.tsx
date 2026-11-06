@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { Box, Button, Tooltip, Typography } from "@mui/material";
+import { Box, Tooltip, Typography } from "@mui/material";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import EditIcon from "@mui/icons-material/Edit";
 import { Reaction } from "../../types/chemistryModels";
 import {
   ReactionEditorModal,
@@ -14,9 +13,11 @@ import { useFamilyValidation } from "./FamilyValidationContext";
 import { ReactionsTable } from "./ReactionsTable";
 import { setGasPhase, SetGasPhaseButton } from "./SetGasPhaseButton";
 import {
-  DeleteReactionsButton,
-  removeReactions,
-} from "./DeleteReactionsButton";
+  countOf,
+  DeleteSelectedButton,
+  EditSelectedButton,
+} from "./SelectionButtons";
+import { removeReactions } from "../../helpers/editorHelpers";
 
 export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
   const { byItem } = useFamilyValidation();
@@ -113,15 +114,10 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
         selectionActions={(ids, clearSelection) => (
           <>
             {ids.length === 1 && (
-              <Button
-                size="small"
-                variant="outlined"
-                startIcon={<EditIcon />}
-                data-testid="edit-reaction-button"
+              <EditSelectedButton
+                testId="edit-reaction-button"
                 onClick={() => editReaction(ids[0])}
-              >
-                Edit
-              </Button>
+              />
             )}
             <SetGasPhaseButton
               family={family}
@@ -133,8 +129,9 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
                 clearSelection();
               }}
             />
-            <DeleteReactionsButton
-              reactionIds={ids}
+            <DeleteSelectedButton
+              testId="delete-reactions-button"
+              message={`This deletes ${countOf(ids.length, "reaction", "reactions")} from the family and from all its mechanisms.`}
               onDelete={() => {
                 updateFamily(removeReactions(family, ids));
                 clearSelection();

@@ -7,6 +7,7 @@ import {
   GridEditInputCell,
   GridPreProcessEditCellProps,
   GridRenderCellParams,
+  GridRowId,
   GridRenderEditCellParams,
   useGridApiRef,
 } from "@mui/x-data-grid";
@@ -14,7 +15,12 @@ import { UUID } from "crypto";
 import { Family, Species } from "../../types/chemistryModels";
 import { speciesExclusiveConflict } from "../../helpers/editorHelpers";
 import { useCustomTheme } from "../CustomThemeContext";
-import { DataViewToolbar, useVisibleRows } from "./DataViewToolbar";
+import {
+  DataViewToolbar,
+  SelectionActions,
+  useRowSelection,
+  useVisibleRows,
+} from "./DataViewToolbar";
 import {
   countRowsWithIssues,
   ItemIssues,
@@ -59,14 +65,22 @@ const ExclusiveBooleanEditCell = (props: GridRenderEditCellParams) => {
 export type SpeciesTableProps = {
   /** The species that the table shows. */
   species: Array<Species>;
-  /** Gives the buttons of the Row Actions column for the row with this ID. */
-  getRowActions: (id: UUID) => Array<ReactElement>;
+  /**
+   * Gives the buttons of the Row Actions column for the row with this ID.
+   * Without it, the table has no Row Actions column.
+   */
+  getRowActions?: (id: UUID) => Array<ReactElement>;
   /** Saves a cell edit. Without it, the cells are read-only. */
   onRowUpdate?: (species: Species) => void;
   /** Shows the add button of the toolbar, and calls this when it is clicked. */
   onAdd?: () => void;
   /** The problems of the species. The table marks the species that have one. */
   issues?: ItemIssues;
+  /**
+   * Gives the actions on the selected species. With it, the table shows a
+   * checkbox on each row.
+   */
+  selectionActions?: SelectionActions;
 };
 
 /**
@@ -79,9 +93,12 @@ export const SpeciesTable = ({
   onRowUpdate,
   onAdd,
   issues,
+  selectionActions,
 }: SpeciesTableProps) => {
   const { theme } = useCustomTheme();
   const apiRef = useGridApiRef();
+  const { checkboxSelection, selection, setSelection, toolbarActions } =
+    useRowSelection(selectionActions);
   const visibleRows = useVisibleRows(apiRef);
   // Without a way to save an edit, the cells are read-only.
   const editable = onRowUpdate !== undefined;
@@ -90,14 +107,19 @@ export const SpeciesTable = ({
   const problemCount = countRowsWithIssues(species, issues);
 
   const speciesColumns: GridColDef[] = [
-    {
-      field: "Row Actions",
-      type: "actions",
-      headerClassName: "roleDataHeader",
-      cellClassName: "actions",
-      disableColumnMenu: true,
-      getActions: ({ id }) => getRowActions(id as UUID),
-    },
+    ...(getRowActions
+      ? [
+          {
+            field: "Row Actions",
+            type: "actions" as const,
+            headerClassName: "roleDataHeader",
+            cellClassName: "actions",
+            disableColumnMenu: true,
+            getActions: ({ id }: { id: GridRowId }) =>
+              getRowActions(id as UUID),
+          },
+        ]
+      : []),
     {
       field: "name",
       headerName: "Name",
@@ -261,6 +283,9 @@ export const SpeciesTable = ({
       columns={speciesColumns}
       pageSizeOptions={[5, 10, 20, 100]}
       disableRowSelectionOnClick
+      checkboxSelection={checkboxSelection}
+      rowSelectionModel={selection}
+      onRowSelectionModelChange={setSelection}
       disableVirtualization // Enables DataGrid to be rendered in testing
       sx={{
         flex: 1,
@@ -290,6 +315,7 @@ export const SpeciesTable = ({
               onChange={setOnlyProblems}
             />
           ),
+          selectionActions: toolbarActions,
           visibleCount: visibleRows.length,
           totalCount: species.length,
         },

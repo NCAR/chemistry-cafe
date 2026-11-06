@@ -129,7 +129,7 @@ export const SetGasPhaseButton = ({
         <DialogTitle>Add the missing species?</DialogTitle>
         <DialogContent>
           <Typography>
-            The phase "{pending?.phase.name}" does not contain{" "}
+            The phase &ldquo;{pending?.phase.name}&rdquo; does not contain{" "}
             {pending?.missingNames.join(", ")}. The reactants and products of a
             reaction must be in its gas phase.
           </Typography>
