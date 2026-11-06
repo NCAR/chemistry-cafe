@@ -13,8 +13,6 @@ import { DataViewToolbar, useVisibleRows } from "./DataViewToolbar";
 import {
   countRowsWithIssues,
   issueColumns,
-  issueRowClassName,
-  issueRowSx,
   ItemIssues,
   problemsBySpecies,
   ProblemsFilter,
@@ -153,7 +151,6 @@ export const PhaseTable = ({
       }}
       rows={rowsToShow(phases, issues, onlyProblems && problemCount > 0)}
       columns={phaseColumns}
-      getRowClassName={(params) => issueRowClassName(issues, String(params.id))}
       processRowUpdate={onRowUpdate}
       // A double-click on the species opens the phase editor. The name and
       // the description use the in-cell edit.
@@ -167,7 +164,6 @@ export const PhaseTable = ({
       disableVirtualization
       sx={{
         flex: 1,
-        ...issueRowSx(theme),
         "& .MuiDataGrid-cell": {
           display: "flex",
           alignItems: "center",

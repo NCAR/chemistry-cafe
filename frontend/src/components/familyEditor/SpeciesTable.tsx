@@ -18,8 +18,6 @@ import { DataViewToolbar, useVisibleRows } from "./DataViewToolbar";
 import {
   countRowsWithIssues,
   issueColumns,
-  issueRowClassName,
-  issueRowSx,
   ItemIssues,
   ProblemsFilter,
   ProblemText,
@@ -263,13 +261,11 @@ export const SpeciesTable = ({
       }}
       rows={rowsToShow(species, issues, onlyProblems && problemCount > 0)}
       columns={speciesColumns}
-      getRowClassName={(params) => issueRowClassName(issues, String(params.id))}
       pageSizeOptions={[5, 10, 20, 100]}
       disableRowSelectionOnClick
       disableVirtualization // Enables DataGrid to be rendered in testing
       sx={{
         flex: 1,
-        ...issueRowSx(theme),
         "& .MuiDataGrid-cell": {
           display: "flex",
           alignItems: "center",

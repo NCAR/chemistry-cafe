@@ -106,7 +106,7 @@ describe("Validation indicators", () => {
     fireEvent.click(screen.getByTestId("problems-filter"));
     const rows = document.querySelectorAll(".MuiDataGrid-row");
     expect(rows).toHaveLength(1);
-    expect(rows[0]).toHaveClass("has-issue");
+    expect(rows[0].querySelector('[data-testid="issue-icon"]')).not.toBeNull();
   });
 
   it("opens the section of the problems from the messages", async () => {

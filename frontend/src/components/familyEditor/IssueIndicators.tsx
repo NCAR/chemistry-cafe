@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { alpha, Box, Chip, Theme, Tooltip, Typography } from "@mui/material";
+import { Box, Chip, Tooltip, Typography } from "@mui/material";
 import ErrorIcon from "@mui/icons-material/Error";
 import { GridColDef, GridValidRowModel } from "@mui/x-data-grid";
 import { ValidationIssue } from "../../helpers/validationIssues";
@@ -56,20 +56,6 @@ export function issueColumns<Row extends GridValidRowModel & { id: string }>(
   ];
 }
 
-/** The class name of a row with problems. See issueRowSx. */
-export const issueRowClassName = (
-  issues: ItemIssues | undefined,
-  id: string,
-) => (issues?.has(id) ? "has-issue" : "");
-
-/** Tints the rows with problems. */
-export const issueRowSx = (theme: Theme) => ({
-  "& .has-issue": { backgroundColor: alpha(theme.palette.error.main, 0.08) },
-  "& .has-issue:hover": {
-    backgroundColor: alpha(theme.palette.error.main, 0.14),
-  },
-});
-
 /** Shows a part of an item that has a problem, for example a species. */
 export const ProblemText = ({
   children,
@@ -84,7 +70,6 @@ export const ProblemText = ({
       data-testid="problem-text"
       sx={{
         color: "error.main",
-        fontWeight: 600,
         textDecoration: "underline wavy",
         textUnderlineOffset: "3px",
       }}

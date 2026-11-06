@@ -35,8 +35,6 @@ import { EquationText } from "../EquationText";
 import {
   countRowsWithIssues,
   issueColumns,
-  issueRowClassName,
-  issueRowSx,
   ItemIssues,
   problemsBySpecies,
   problemsInField,
@@ -693,7 +691,6 @@ export const ReactionsTable = ({
       onColumnVisibilityModelChange={setColumnVisibility}
       rows={rows}
       columns={columns}
-      getRowClassName={(params) => issueRowClassName(issues, String(params.id))}
       // A double-click opens the reaction editor. An editable cell, for
       // example the name or a parameter, keeps its in-cell edit.
       onCellDoubleClick={(params) => {
@@ -710,7 +707,6 @@ export const ReactionsTable = ({
       disableVirtualization
       sx={{
         flex: 1,
-        ...issueRowSx(theme),
         "& .MuiDataGrid-cell": {
           display: "flex",
           alignItems: "center",
