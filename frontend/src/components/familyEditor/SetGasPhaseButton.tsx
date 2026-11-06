@@ -112,7 +112,7 @@ export const SetGasPhaseButton = ({
         }
         onClick={(event) => setAnchorEl(event.currentTarget)}
       >
-        Set gas phase
+        Set phase
       </Button>
       <Menu
         open={anchorEl !== null}
