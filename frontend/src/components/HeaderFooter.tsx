@@ -90,7 +90,7 @@ export const Header = () => {
         </Button>
         {!isNarrow && (
           <>
-            <Button component={Link} to="/dashboard">
+            <Button component={Link} to="/">
               Browse
             </Button>
             <Button component={Link} to="/familyeditor">
@@ -113,11 +113,7 @@ export const Header = () => {
             open={Boolean(mobileMenuAnchor)}
             onClose={closeMobileMenu}
           >
-            <MenuItem
-              component={Link}
-              to="/dashboard"
-              onClick={closeMobileMenu}
-            >
+            <MenuItem component={Link} to="/" onClick={closeMobileMenu}>
               <ListItemIcon>
                 <TravelExploreIcon fontSize="small" />
               </ListItemIcon>

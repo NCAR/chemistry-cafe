@@ -207,6 +207,23 @@ const getThemeOptions = (settings: AppearanceSettings): ThemeOptionsType => {
           },
         ],
       },
+      MuiCssBaseline: {
+        defaultProps: {
+          enableColorScheme: true,
+        },
+      },
+      MuiOutlinedInput: {
+        styleOverrides: {
+          input: {
+            "&[type='date']": {
+              colorScheme: isDark ? "dark" : "light",
+            },
+            "&[type='date']::-webkit-calendar-picker-indicator": {
+              cursor: "pointer",
+            },
+          },
+        },
+      },
       MuiSwitch: {
         styleOverrides: {
           // The default white thumb has almost no edge on a white page, and
@@ -337,7 +354,7 @@ export const CustomThemeProvider = ({ children }: { children: ReactNode }) => {
       value={{ theme, appearanceSettings, setAppearanceSettings }}
     >
       <ThemeProvider theme={theme}>
-        <CssBaseline />
+        <CssBaseline enableColorScheme />
         {children}
       </ThemeProvider>
     </CustomThemeContext.Provider>

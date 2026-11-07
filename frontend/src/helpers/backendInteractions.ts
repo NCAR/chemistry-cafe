@@ -481,6 +481,7 @@ export function apiToFrontendMechanism(apiMechanism: APIMechanism): Mechanism {
     speciesIds: apiMechanism.speciesIds,
     reactionIds: apiMechanism.reactionIds,
     phaseIds: apiMechanism.phaseIds,
+    otherProperties: apiMechanism.otherProperties,
   };
 
   return formattedMechanism;

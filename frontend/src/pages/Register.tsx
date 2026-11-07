@@ -113,7 +113,7 @@ const Register: React.FC = () => {
         lastName: lastName.trim() || undefined,
       });
       setUser(createdUser);
-      navigate("/dashboard");
+      navigate("/");
     } catch (err: unknown) {
       let msg =
         "An error occurred while creating your account. Please try again.";

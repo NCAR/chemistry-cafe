@@ -1,19 +1,19 @@
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import FamilyBrowser from "../src/components/FamilyBrowser";
 import { useAuth } from "../src/components/AuthContext";
-import { APIFamily } from "../src/API/API_Interfaces";
+import { Family } from "../types/chemistryModels";
 import { CustomThemeProvider } from "../src/components/CustomThemeContext";
 
 vi.mock("../src/components/AuthContext", () => ({
   useAuth: vi.fn(),
 }));
 
-const mockFamily: APIFamily = {
+const mockFamily: Family = {
   id: "fam-1" as any,
   name: "Shared Family",
-  description: "A shared family",
+  description: "A shared family description",
   isPublic: false,
   owner: {
     id: "owner-1" as any,
@@ -21,14 +21,45 @@ const mockFamily: APIFamily = {
     role: "None",
   },
   contributorIds: ["contributor-1" as any],
-  species: [],
-  reactions: [],
+  species: [
+    {
+      id: "spec-1" as any,
+      name: "NO2",
+      description: null,
+    },
+  ],
+  reactions: [
+    {
+      id: "rxn-1" as any,
+      name: "NO2 photolysis",
+      type: "PHOTOLYSIS",
+      description: "NO2 + hv -> NO + O",
+      reactants: [],
+      products: [],
+      attributes: {},
+    },
+  ],
   phases: [],
-  mechanisms: [],
+  mechanisms: [
+    {
+      id: "mech-1" as any,
+      name: "Tropospheric Mechanism",
+      description: "Standard tropospheric chemistry",
+      familyId: "fam-1" as any,
+      speciesIds: ["spec-1" as any],
+      reactionIds: ["rxn-1" as any],
+      phaseIds: [],
+      otherProperties: {
+        verified: true,
+        verifiedDate: "2026-11-04T12:00:00Z",
+      },
+    },
+  ],
+  isInDatabase: true,
 };
 
 describe("FamilyBrowser Component", () => {
-  it("Shows Contributor chip and Edit Family button for contributor", () => {
+  it("Shows Contributor chip and Open button for contributor", () => {
     (useAuth as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
       user: { id: "contributor-1", role: "None" },
     });
@@ -37,18 +68,21 @@ describe("FamilyBrowser Component", () => {
       <CustomThemeProvider>
         <FamilyBrowser
           families={[mockFamily]}
-          handleEditButtonClick={vi.fn()}
-          handleCloneButtonClick={vi.fn()}
+          onOpenFamily={vi.fn()}
+          onCloneFamily={vi.fn()}
         />
       </CustomThemeProvider>,
     );
 
     expect(screen.getByText("Shared Family")).toBeTruthy();
     expect(screen.getByText("Contributor")).toBeTruthy();
-    expect(screen.getByRole("button", { name: /Edit Family/i })).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: /Open Shared Family/i }),
+    ).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /Edit a copy/i })).toBeFalsy();
   });
 
-  it("Does not show Edit Family button for non-contributor non-owner", () => {
+  it("Shows Edit a copy button for non-contributor non-owner", () => {
     (useAuth as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
       user: { id: "stranger-1", role: "None" },
     });
@@ -57,19 +91,23 @@ describe("FamilyBrowser Component", () => {
       <CustomThemeProvider>
         <FamilyBrowser
           families={[mockFamily]}
-          handleEditButtonClick={vi.fn()}
-          handleCloneButtonClick={vi.fn()}
+          onOpenFamily={vi.fn()}
+          onCloneFamily={vi.fn()}
         />
       </CustomThemeProvider>,
     );
 
     expect(screen.getByText("Shared Family")).toBeTruthy();
     expect(screen.queryByText("Contributor")).toBeFalsy();
-    expect(screen.queryByRole("button", { name: /Edit Family/i })).toBeFalsy();
-    expect(screen.getByRole("button", { name: /Clone Family/i })).toBeTruthy();
+    expect(
+      screen.queryByRole("button", { name: /Open Shared Family/i }),
+    ).toBeFalsy();
+    expect(
+      screen.getByRole("button", { name: /Edit a copy of Shared Family/i }),
+    ).toBeTruthy();
   });
 
-  it("Shows Edit Family button without Contributor chip for owner", () => {
+  it("Shows Open button without Contributor chip for owner", () => {
     (useAuth as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
       user: { id: "owner-1", role: "None" },
     });
@@ -78,14 +116,49 @@ describe("FamilyBrowser Component", () => {
       <CustomThemeProvider>
         <FamilyBrowser
           families={[mockFamily]}
-          handleEditButtonClick={vi.fn()}
-          handleCloneButtonClick={vi.fn()}
+          onOpenFamily={vi.fn()}
+          onCloneFamily={vi.fn()}
         />
       </CustomThemeProvider>,
     );
 
     expect(screen.getByText("Shared Family")).toBeTruthy();
     expect(screen.queryByText("Contributor")).toBeFalsy();
-    expect(screen.getByRole("button", { name: /Edit Family/i })).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: /Open Shared Family/i }),
+    ).toBeTruthy();
+  });
+
+  it("Toggles family expansion and renders mechanism row with verified date, Download, and Edit", () => {
+    (useAuth as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+      user: { id: "owner-1", role: "None" },
+    });
+
+    render(
+      <CustomThemeProvider>
+        <FamilyBrowser
+          families={[mockFamily]}
+          onOpenFamily={vi.fn()}
+          onCloneFamily={vi.fn()}
+        />
+      </CustomThemeProvider>,
+    );
+
+    // Click on row to open
+    const card = screen.getByRole("button", {
+      name: /Open family Shared Family/i,
+    });
+    fireEvent.click(card);
+
+    // Verify mechanism row details
+    expect(screen.getByText("Tropospheric Mechanism")).toBeTruthy();
+    expect(screen.getByText("1 reaction")).toBeTruthy();
+    expect(screen.getByText(/Verified Nov 4, 2026/i)).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: /Download Mechanism Configuration/i }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: /Edit Tropospheric Mechanism/i }),
+    ).toBeTruthy();
   });
 });

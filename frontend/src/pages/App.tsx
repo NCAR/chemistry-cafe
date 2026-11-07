@@ -1,9 +1,8 @@
 import "../styles/App.css";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import Settings from "./Settings.tsx";
 import Dashboard from "./Dashboard.tsx";
 import FamilyEditor from "./FamilyEditor.tsx";
-import Home from "./Home.tsx";
 import Register from "./Register.tsx";
 import About from "./About.tsx";
 import UserManagement from "./UserManagement.tsx";
@@ -23,11 +22,10 @@ function App() {
           <UserPreferencesProvider>
             <Banner />
             <Routes>
-              <Route path="/" element={<Home />} />
+              <Route path="/" element={<Dashboard />} />
               <Route path="/register" element={<Register />} />
-              <Route path="/loggedin" element={<Dashboard />} />{" "}
-              {/* Legacy Route */}
-              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/loggedin" element={<Navigate to="/" replace />} />
+              <Route path="/dashboard" element={<Navigate to="/" replace />} />
               <Route path="/familyeditor" element={<FamilyEditor />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/about" element={<About />} />
