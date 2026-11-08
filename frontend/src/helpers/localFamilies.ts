@@ -24,6 +24,7 @@ export const cloneFamily = (family: Family): Family => {
     isInDatabase: false,
     isPublic: false,
     contributorIds: [],
+    contributors: [],
   };
   const idMappings: Map<UUID, UUID> = new Map();
 
@@ -186,6 +187,30 @@ export const addFamilyLocally = (family: Family): void => {
 export const clearFamiliesLocally = () => {
   localStorage.removeItem("localFamilies");
   localStorage.removeItem("uploadedFamilyIds");
+};
+
+/**
+ * Removes a family from local storage (both draft and uploaded id)
+ */
+export const removeFamilyLocally = (family: Family): void => {
+  try {
+    const localFamilies: Family[] = JSON.parse(
+      localStorage.getItem("localFamilies") || "[]",
+    );
+    localStorage.setItem(
+      "localFamilies",
+      JSON.stringify(localFamilies.filter((f) => f.id !== family.id)),
+    );
+    const uploadedFamilyIds: string[] = JSON.parse(
+      localStorage.getItem("uploadedFamilyIds") || "[]",
+    );
+    localStorage.setItem(
+      "uploadedFamilyIds",
+      JSON.stringify(uploadedFamilyIds.filter((id) => id !== family.id)),
+    );
+  } catch (err) {
+    console.error("Issue removing family from localStorage: ", err);
+  }
 };
 
 /**

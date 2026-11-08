@@ -220,6 +220,7 @@ const getThemeOptions = (settings: AppearanceSettings): ThemeOptionsType => {
             },
             "&[type='date']::-webkit-calendar-picker-indicator": {
               cursor: "pointer",
+              filter: isDark ? "invert(1)" : "none",
             },
           },
         },

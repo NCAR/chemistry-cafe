@@ -15,7 +15,7 @@ import {
   EditSelectedButton,
 } from "./SelectionButtons";
 
-export const PhaseView = ({ family, updateFamily }: ViewProps) => {
+export const PhaseView = ({ family, updateFamily, readOnly }: ViewProps) => {
   const { byItem } = useFamilyValidation();
   const [phaseCreationModalOpen, setPhaseCreationModalOpen] = useState(false);
   const [selectedPhase, setSelectedPhase] = useState<Phase>();
@@ -192,30 +192,38 @@ export const PhaseView = ({ family, updateFamily }: ViewProps) => {
         issues={byItem}
         phases={family.phases}
         species={family.species}
-        selectionActions={(ids, clearSelection) => (
-          <>
-            {ids.length === 1 && (
-              <EditSelectedButton
-                testId="edit-phase-button"
-                onClick={() => editPhase(ids[0])}
-              />
-            )}
-            <DeleteSelectedButton
-              testId="delete-phases-button"
-              message={deleteMessage(ids)}
-              onDelete={() => {
-                deletePhases(ids);
-                clearSelection();
-              }}
-            />
-          </>
-        )}
-        onRowUpdate={handlePhaseRowUpdate}
-        onAdd={() => {
-          setSelectedPhase(undefined);
-          setPhaseCreationModalOpen(true);
-        }}
-        onEdit={editPhase}
+        selectionActions={
+          readOnly
+            ? undefined
+            : (ids, clearSelection) => (
+                <>
+                  {ids.length === 1 && (
+                    <EditSelectedButton
+                      testId="edit-phase-button"
+                      onClick={() => editPhase(ids[0])}
+                    />
+                  )}
+                  <DeleteSelectedButton
+                    testId="delete-phases-button"
+                    message={deleteMessage(ids)}
+                    onDelete={() => {
+                      deletePhases(ids);
+                      clearSelection();
+                    }}
+                  />
+                </>
+              )
+        }
+        onRowUpdate={readOnly ? undefined : handlePhaseRowUpdate}
+        onAdd={
+          readOnly
+            ? undefined
+            : () => {
+                setSelectedPhase(undefined);
+                setPhaseCreationModalOpen(true);
+              }
+        }
+        onEdit={readOnly ? undefined : editPhase}
       />
       <PhaseCreationModal
         open={phaseCreationModalOpen}

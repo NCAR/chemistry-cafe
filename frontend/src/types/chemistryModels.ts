@@ -1,5 +1,5 @@
 import { UUID } from "crypto";
-import { APIUser } from "../API/API_Interfaces";
+import { APIFamilyContributor, APIUser } from "../API/API_Interfaces";
 import { mechanismConfiguration } from "@ncar/musica";
 const { reactionTypes, Mechanism } = mechanismConfiguration;
 
@@ -195,6 +195,9 @@ export type Family = {
 
   /** SQL ids of the contributors to the family */
   contributorIds?: Array<UUID>;
+
+  /** Contributors to the family with their roles */
+  contributors?: Array<APIFamilyContributor>;
 
   /** Mechanisms inside the family */
   mechanisms: Array<Mechanism>;

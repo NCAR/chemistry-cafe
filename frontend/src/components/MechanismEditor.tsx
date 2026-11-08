@@ -21,6 +21,7 @@ import { MechanismSearchModal } from "./modals/MechanismEditorSearchModal";
 import { reactionToString } from "../helpers/stringify";
 import { useFamilyValidation } from "./familyEditor/FamilyValidationContext";
 import { ProblemCount } from "./familyEditor/IssueIndicators";
+import { DownloadMechanismButton } from "./DownloadMechanismButton";
 import {
   countItemsWithIssues,
   issuesByItem,
@@ -30,7 +31,9 @@ export type MechanismEditorProps = {
   family: Family;
   mechanism: Mechanism;
   updateMechanism: (mechanism: Mechanism) => void;
-  navigateBack: () => void;
+  navigateBack?: () => void;
+  onDeleteMechanism?: (id: string) => void;
+  readOnly?: boolean;
 };
 
 /**
@@ -88,6 +91,8 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
   mechanism,
   updateMechanism,
   navigateBack,
+  onDeleteMechanism,
+  readOnly,
 }) => {
   enum TabValue {
     Info,
@@ -189,27 +194,53 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
         sx={{
           display: "flex",
           flexDirection: "row",
-          columnGap: "1em",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: 1,
+          mb: 1,
         }}
       >
-        <Button
-          color="primary"
-          aria-label="Back to mechanism list"
-          startIcon={<ArrowBackIcon />}
-          onClick={navigateBack}
-        >
-          Back
-        </Button>
-        <Button
-          color="success"
-          aria-label="Back to mechanism list"
-          startIcon={<EditNoteIcon />}
-          onClick={handleSave}
-          disabled={changesSaved}
-          variant="contained"
-        >
-          Apply Changes
-        </Button>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          {navigateBack && (
+            <Button
+              color="primary"
+              aria-label="Back to mechanism list"
+              startIcon={<ArrowBackIcon />}
+              onClick={navigateBack}
+              size="small"
+            >
+              Back
+            </Button>
+          )}
+          {!readOnly && (
+            <Button
+              color="success"
+              aria-label="Apply mechanism changes"
+              startIcon={<EditNoteIcon />}
+              onClick={handleSave}
+              disabled={changesSaved}
+              variant="contained"
+              size="small"
+            >
+              Apply Changes
+            </Button>
+          )}
+          <DownloadMechanismButton
+            mechanism={modifiedMechanism}
+            family={family}
+          />
+        </Box>
+        {onDeleteMechanism && !readOnly && (
+          <Button
+            color="error"
+            startIcon={<DeleteIcon />}
+            onClick={() => onDeleteMechanism(mechanism.id)}
+            size="small"
+          >
+            Delete Mechanism
+          </Button>
+        )}
       </Box>
       <Tabs value={selectedTab} onChange={(_, value) => setSelectedTab(value)}>
         <Tab data-testid="mechanism-tab" value={TabValue.Info} label={"Info"} />
@@ -268,6 +299,7 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
             <TextField
               id="edit-mechanism-name"
               label="Name"
+              disabled={readOnly}
               defaultValue={mechanism.name}
               onChange={(event) => {
                 changeMechanismProperties({
@@ -278,6 +310,7 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
             <TextField
               id="edit-mechanism-description"
               label="Description"
+              disabled={readOnly}
               defaultValue={mechanism.description}
               multiline
               minRows={3}
@@ -299,20 +332,24 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
           <SpeciesTable
             issues={issuesOfItems}
             species={mechanismSpecies}
-            getRowActions={(id) => [
-              <RemoveFromMechanismButton
-                key={id}
-                label="Remove species from mechanism"
-                onClick={() =>
-                  changeMechanismProperties({
-                    speciesIds: modifiedMechanism.speciesIds.filter(
-                      (speciesId) => speciesId !== id,
-                    ),
-                  })
-                }
-              />,
-            ]}
-            onAdd={() => setSpeciesOpen(true)}
+            getRowActions={
+              readOnly
+                ? () => []
+                : (id) => [
+                    <RemoveFromMechanismButton
+                      key={id}
+                      label="Remove species from mechanism"
+                      onClick={() =>
+                        changeMechanismProperties({
+                          speciesIds: modifiedMechanism.speciesIds.filter(
+                            (speciesId) => speciesId !== id,
+                          ),
+                        })
+                      }
+                    />,
+                  ]
+            }
+            onAdd={readOnly ? undefined : () => setSpeciesOpen(true)}
           />
           <MechanismSearchModal
             open={speciesOpen}
@@ -338,20 +375,24 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
             reactions={mechanismReactions}
             phases={family.phases}
             species={family.species}
-            getRowActions={(id) => [
-              <RemoveFromMechanismButton
-                key={id}
-                label="Remove reaction from mechanism"
-                onClick={() =>
-                  changeMechanismProperties({
-                    reactionIds: modifiedMechanism.reactionIds.filter(
-                      (reactionId) => reactionId !== id,
-                    ),
-                  })
-                }
-              />,
-            ]}
-            onAdd={() => setReactionsOpen(true)}
+            getRowActions={
+              readOnly
+                ? () => []
+                : (id) => [
+                    <RemoveFromMechanismButton
+                      key={id}
+                      label="Remove reaction from mechanism"
+                      onClick={() =>
+                        changeMechanismProperties({
+                          reactionIds: modifiedMechanism.reactionIds.filter(
+                            (reactionId) => reactionId !== id,
+                          ),
+                        })
+                      }
+                    />,
+                  ]
+            }
+            onAdd={readOnly ? undefined : () => setReactionsOpen(true)}
           />
           <MechanismSearchModal
             open={reactionsOpen}
@@ -379,20 +420,24 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
             issues={issuesOfItems}
             phases={mechanismPhases}
             species={family.species}
-            getRowActions={(id) => [
-              <RemoveFromMechanismButton
-                key={id}
-                label="Remove phase from mechanism"
-                onClick={() =>
-                  changeMechanismProperties({
-                    phaseIds: modifiedMechanism.phaseIds.filter(
-                      (phaseId) => phaseId !== id,
-                    ),
-                  })
-                }
-              />,
-            ]}
-            onAdd={() => setPhasesOpen(true)}
+            getRowActions={
+              readOnly
+                ? () => []
+                : (id) => [
+                    <RemoveFromMechanismButton
+                      key={id}
+                      label="Remove phase from mechanism"
+                      onClick={() =>
+                        changeMechanismProperties({
+                          phaseIds: modifiedMechanism.phaseIds.filter(
+                            (phaseId) => phaseId !== id,
+                          ),
+                        })
+                      }
+                    />,
+                  ]
+            }
+            onAdd={readOnly ? undefined : () => setPhasesOpen(true)}
           />
           <MechanismSearchModal
             open={phasesOpen}

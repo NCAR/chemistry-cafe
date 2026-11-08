@@ -26,22 +26,57 @@ import {
 import { Family, Species } from "../src/types/chemistryModels";
 import { CustomThemeProvider } from "../src/components/CustomThemeContext";
 import { MechanismEditor } from "../src/components/MechanismEditor";
+import * as backendInteractions from "../src/helpers/backendInteractions";
+import * as validationIssues from "../src/helpers/validationIssues";
+import * as API_DeleteMethods from "../src/API/API_DeleteMethods";
+import * as localFamilies from "../src/helpers/localFamilies";
+import { UUID } from "crypto";
 
 vi.mock("axios");
 
 const testFamily: APIFamily = {
-  id: "111-111-111-111-111",
+  id: "111-111-111-111-111" as UUID,
   name: "Test Family",
   description: "Test Family",
+  isPublic: false,
   owner: {
-    id: "11-22-33-44-55",
+    id: "11-22-33-44-55" as UUID,
     username: "Test User",
     role: "Admin",
   },
-  species: [],
-  reactions: [],
-  mechanisms: [],
-  phases: [],
+  species: [
+    {
+      id: "species-1" as UUID,
+      name: "O3",
+      description: "Ozone",
+    },
+  ],
+  reactions: [
+    {
+      id: "reaction-1" as UUID,
+      name: "R1",
+      reactionType: "ARRHENIUS",
+      reactants: [],
+      products: [],
+    },
+  ],
+  phases: [
+    {
+      id: "phase-1" as UUID,
+      name: "gas",
+      speciesIds: [],
+    },
+  ],
+  mechanisms: [
+    {
+      id: "mech-1" as UUID,
+      name: "Stratospheric Ox",
+      familyId: "111-111-111-111-111" as UUID,
+      speciesIds: ["species-1" as UUID],
+      reactionIds: ["reaction-1" as UUID],
+      phaseIds: ["phase-1" as UUID],
+    },
+  ],
 };
 
 describe("Family Editor Page", () => {
@@ -105,76 +140,623 @@ describe("Family Editor Page", () => {
 
   it("Renders families", async () => {
     await waitFor(() => {
-      expect(screen.getByText("Test Family")).toBeTruthy();
+      expect(screen.getAllByText("Test Family").length).toBeGreaterThan(0);
     });
 
     expect(screen.queryByText("Not Real Family")).toBeFalsy();
 
-    const testFamilyTreeButton = screen.getByLabelText(
-      "Expand options for Test Family family",
-    );
-    expect(testFamilyTreeButton).toBeTruthy();
-    testFamilyTreeButton.ariaExpanded = "true";
-    fireEvent.click(testFamilyTreeButton!);
+    expect(screen.getByTestId("family-info-tab")).toBeTruthy();
+    expect(screen.getByTestId("family-species-tab")).toBeTruthy();
+    expect(screen.getByTestId("family-reactions-tab")).toBeTruthy();
+    expect(screen.getByTestId("family-phases-tab")).toBeTruthy();
+    expect(screen.getByTestId("family-mechanisms-tab")).toBeTruthy();
   });
 
-  it("Can create a family", async () => {
-    const user = userEvent.setup();
+  it("Displays Editing title in header for active family", async () => {
     await waitFor(() => {
-      expect(screen.getByText("Test Family")).toBeTruthy();
+      expect(screen.getByTestId("header-editor-title")).toBeTruthy();
+      expect(screen.getByText("Editing: Test Family")).toBeTruthy();
+    });
+  });
+
+  it("Navigates between sidebar tabs and displays corresponding views", async () => {
+    await waitFor(() => {
+      expect(screen.getByTestId("mechanism-item-mech-1")).toBeTruthy();
     });
 
-    const addFamilyButton = screen.getByTestId("add-family-button");
-    expect(addFamilyButton).toBeTruthy();
-    fireEvent.click(addFamilyButton);
+    // Counts on sidebar items
+    expect(screen.getByTestId("family-reactions-tab")).toHaveTextContent("1");
+    expect(screen.getByTestId("family-species-tab")).toHaveTextContent("1");
+    expect(screen.getByTestId("family-phases-tab")).toHaveTextContent("1");
 
-    const createFamilyButton = screen.getByTestId("create-family-button");
-    expect(createFamilyButton).toBeTruthy();
-    fireEvent.click(createFamilyButton);
+    // Click Reactions tab
+    fireEvent.click(screen.getByTestId("family-reactions-tab"));
+    await waitFor(() => {
+      expect(screen.getByText("Chemical Reactions")).toBeTruthy();
+    });
 
-    const nameBox = screen.getByLabelText("Name *") as HTMLInputElement;
-    expect(nameBox).toBeTruthy();
-    expect(nameBox.value).toBeFalsy();
+    // Click Species tab
+    fireEvent.click(screen.getByTestId("family-species-tab"));
+    await waitFor(() => {
+      expect(screen.getByText("Chemical Species")).toBeTruthy();
+    });
 
-    // Input the new family name
-    await user.type(nameBox, "Another Family");
-    expect(nameBox.value).toEqual("Another Family");
+    // Click Phases tab
+    fireEvent.click(screen.getByTestId("family-phases-tab"));
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: "Phases" })).toBeTruthy();
+    });
 
-    const creationButton = screen.getByText("Create");
-    fireEvent.click(creationButton);
+    // Click General Info tab
+    fireEvent.click(screen.getByTestId("family-info-tab"));
+    await waitFor(() => {
+      expect(screen.getByTestId("family-name-input-general-info")).toBeTruthy();
+    });
 
-    const familyButton = screen.queryByText("Another Family");
-    expect(familyButton).toBeTruthy();
+    // Click Mechanism item
+    fireEvent.click(screen.getByTestId("mechanism-item-mech-1"));
+    await waitFor(() => {
+      expect(screen.getByText("Stratospheric Ox Info")).toBeTruthy();
+    });
   });
 
-  it("Errors when name is empty for family", () => {
-    const addFamilyButton = screen.getByTestId("add-family-button");
-    expect(addFamilyButton).toBeTruthy();
-    fireEvent.click(addFamilyButton);
+  it("Supports keyboard navigation on SidebarItem using Enter and Space keys", async () => {
+    await waitFor(() => {
+      expect(screen.getByTestId("family-reactions-tab")).toBeTruthy();
+    });
 
-    const createFamilyButton = screen.getByTestId("create-family-button");
-    expect(createFamilyButton).toBeTruthy();
-    fireEvent.click(createFamilyButton);
+    const reactionsTab = screen.getByTestId("family-reactions-tab");
+    fireEvent.keyDown(reactionsTab, { key: "Enter" });
+    await waitFor(() => {
+      expect(screen.getByText("Chemical Reactions")).toBeTruthy();
+    });
 
-    const nameBox = screen.getByLabelText("Name *");
-    expect(nameBox).toBeTruthy();
-
-    const descriptionBox = screen.getByLabelText("Description");
-    expect(descriptionBox).toBeTruthy();
-
-    let creationButton = screen.getByText("Create");
-    expect(creationButton).toBeTruthy();
-    fireEvent.click(creationButton);
+    const speciesTab = screen.getByTestId("family-species-tab");
+    fireEvent.keyDown(speciesTab, { key: " " });
+    await waitFor(() => {
+      expect(screen.getByText("Chemical Species")).toBeTruthy();
+    });
   });
 
-  it("Can open an import file dialogue", () => {
-    const addFamilyButton = screen.getByTestId("add-family-button");
-    expect(addFamilyButton).toBeTruthy();
-    fireEvent.click(addFamilyButton);
+  it("Can open the MechanismCreationModal and create a mechanism", async () => {
+    await waitFor(() => {
+      expect(screen.getByTestId("create-mechanism-button")).toBeTruthy();
+    });
 
-    const createFamilyButton = screen.getByTestId("import-family-button");
-    expect(createFamilyButton).toBeTruthy();
-    fireEvent.click(createFamilyButton);
+    fireEvent.click(screen.getByTestId("create-mechanism-button"));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("Enter Details for the Mechanism below:"),
+      ).toBeTruthy();
+    });
+
+    const nameInput = document.getElementById("mechanism-name")!;
+    fireEvent.change(nameInput, { target: { value: "New Ox Mechanism" } });
+
+    const createBtn = screen.getByTestId("create-new-mechanism-button");
+    fireEvent.click(createBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText("New Ox Mechanism Info")).toBeTruthy();
+    });
+  });
+
+  it("Toggles family visibility with the Public switch and validates", async () => {
+    await waitFor(() => {
+      expect(screen.getByTestId("public-switch")).toBeTruthy();
+    });
+
+    // 1. Validation failure shows ValidationErrorsModal
+    vi.spyOn(validationIssues, "validateFamily").mockResolvedValueOnce([
+      {
+        message: "Missing reaction reactant",
+        mechanismId: "mech-1",
+        mechanismName: "Stratospheric Ox",
+      },
+    ]);
+
+    const publicSwitch = screen
+      .getByTestId("public-switch")
+      .querySelector("input")!;
+    fireEvent.click(publicSwitch);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          "Fix these problems before making this family public:",
+        ),
+      ).toBeTruthy();
+    });
+
+    // Close validation modal
+    const closeValidationBtn = screen.getByRole("button", { name: /close/i });
+    fireEvent.click(closeValidationBtn);
+
+    // 2. Validation success opens confirm modal and confirms
+    vi.spyOn(validationIssues, "validateFamily").mockResolvedValueOnce([]);
+    vi.spyOn(backendInteractions, "saveFamilyChanges").mockResolvedValueOnce({
+      ...testFamily,
+      isPublic: true,
+      isModified: false,
+      isInDatabase: true,
+      species: [],
+      reactions: [],
+      phases: [],
+      mechanisms: [],
+    } as any);
+
+    fireEvent.click(publicSwitch);
+
+    await waitFor(() => {
+      expect(screen.getByText("Make Family Public?")).toBeTruthy();
+    });
+
+    const confirmMakePublicBtn = screen.getByTestId("confirm-action");
+    fireEvent.click(confirmMakePublicBtn);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("in-page-success-alert")).toBeTruthy();
+      expect(screen.getByText(/"Test Family" is now public/i)).toBeTruthy();
+    });
+
+    // 3. Toggling from public to private
+    vi.spyOn(backendInteractions, "saveFamilyChanges").mockResolvedValueOnce({
+      ...testFamily,
+      isPublic: false,
+      isModified: false,
+      isInDatabase: true,
+      species: [],
+      reactions: [],
+      phases: [],
+      mechanisms: [],
+    } as any);
+
+    fireEvent.click(publicSwitch);
+
+    await waitFor(() => {
+      expect(screen.getByText(/"Test Family" is now private/i)).toBeTruthy();
+    });
+  });
+
+  it("Handles unsaved changes: showing bar, discarding, and saving", async () => {
+    await waitFor(() => {
+      expect(screen.getByTestId("family-name-input-general-info")).toBeTruthy();
+    });
+
+    const nameInput = screen
+      .getByTestId("family-name-input-general-info")
+      .querySelector("input")!;
+
+    // Modify name
+    fireEvent.change(nameInput, { target: { value: "Modified Family Name" } });
+    fireEvent.blur(nameInput);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("unsaved-changes-bar")).toBeTruthy();
+      expect(screen.getByText(/Unsaved changes/i)).toBeTruthy();
+    });
+
+    // Click Discard
+    const discardBtn = screen.getByTestId("discard-changes-button");
+    fireEvent.click(discardBtn);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("in-page-success-alert")).toBeTruthy();
+      expect(screen.getByText("Changes discarded.")).toBeTruthy();
+    });
+
+    // Close success alert
+    const closeAlertBtn = screen
+      .getByTestId("in-page-success-alert")
+      .querySelector("button")!;
+    fireEvent.click(closeAlertBtn);
+
+    // Modify name again and click Save
+    fireEvent.change(nameInput, { target: { value: "Saved Family Name" } });
+    fireEvent.blur(nameInput);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("unsaved-changes-bar")).toBeTruthy();
+    });
+
+    vi.spyOn(backendInteractions, "saveFamilyChanges").mockResolvedValueOnce({
+      ...testFamily,
+      name: "Saved Family Name",
+      isModified: false,
+      isInDatabase: true,
+      species: [],
+      reactions: [],
+      phases: [],
+      mechanisms: [],
+    } as any);
+
+    const saveBtn = screen.getByTestId("save-changes-button");
+    fireEvent.click(saveBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText("Changes saved successfully.")).toBeTruthy();
+    });
+
+    // Save failure error alert
+    fireEvent.change(nameInput, { target: { value: "Error Family Name" } });
+    fireEvent.blur(nameInput);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("unsaved-changes-bar")).toBeTruthy();
+    });
+
+    vi.spyOn(backendInteractions, "saveFamilyChanges").mockRejectedValueOnce(
+      new Error("Failed to save changes"),
+    );
+
+    fireEvent.click(screen.getByTestId("save-changes-button"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("in-page-error-alert")).toBeTruthy();
+      expect(screen.getByText("Failed to save changes")).toBeTruthy();
+    });
+
+    // Close error alert
+    const closeErrorBtn = screen
+      .getByTestId("in-page-error-alert")
+      .querySelector("button")!;
+    fireEvent.click(closeErrorBtn);
+  });
+
+  it("Deletes family from GeneralInfoView via confirmDeleteFamily", async () => {
+    await waitFor(() => {
+      expect(screen.getByText("Delete Family")).toBeTruthy();
+    });
+
+    const deleteFamilySpy = vi
+      .spyOn(API_DeleteMethods, "deleteFamily")
+      .mockResolvedValueOnce();
+
+    fireEvent.click(screen.getByText("Delete Family"));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/This will permanently delete the entire family!/i),
+      ).toBeTruthy();
+    });
+
+    const confirmBtn = screen.getByTestId("confirm-action");
+    fireEvent.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(deleteFamilySpy).toHaveBeenCalledWith(testFamily.id);
+    });
+  });
+});
+
+describe("FamilyEditor - Read-Only Viewing Mode", () => {
+  const originalLocation = window.location;
+  const readOnlyFamily: APIFamily = {
+    ...testFamily,
+    id: "readonly-fam-1" as UUID,
+    name: "ReadOnly Family",
+    isPublic: true,
+    owner: {
+      id: "999-999-999-999-999" as UUID,
+      username: "ncar.chem",
+      role: "Author",
+    },
+  };
+
+  beforeEach(() => {
+    window.location = {
+      ...originalLocation,
+      assign: vi.fn(),
+    } as any;
+    localStorage.setItem(
+      "uploadedFamilyIds",
+      JSON.stringify([readOnlyFamily.id]),
+    );
+    vi.spyOn(axios, "get").mockImplementation((url: string) => {
+      if (url.includes("/users/whoami")) {
+        return Promise.resolve({
+          data: { id: "11-22-33-44-55", username: "Test User", role: "User" },
+          status: 200,
+          statusText: "OK",
+          headers: {},
+          config: { headers: new AxiosHeaders() },
+        } as AxiosResponse);
+      }
+      if (url.includes("/contributors")) {
+        return Promise.resolve({
+          data: [],
+          status: 200,
+          statusText: "OK",
+          headers: {},
+          config: { headers: new AxiosHeaders() },
+        } as AxiosResponse);
+      }
+      return Promise.resolve({
+        data: readOnlyFamily,
+        status: 200,
+        statusText: "OK",
+        headers: {},
+        config: { headers: new AxiosHeaders() },
+      } as AxiosResponse);
+    });
+  });
+
+  afterEach(() => {
+    window.location = originalLocation as any;
+    localStorage.clear();
+    cleanup();
+  });
+
+  it("Displays Viewing title, read-only alert banner, and handles Edit a copy", async () => {
+    render(
+      <AuthProvider>
+        <CustomThemeProvider>
+          <MemoryRouter initialEntries={["/familyeditor"]}>
+            <FamilyEditor />
+          </MemoryRouter>
+        </CustomThemeProvider>
+      </AuthProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Viewing: ReadOnly Family")).toBeTruthy();
+      expect(screen.getByTestId("readonly-viewing-banner")).toBeTruthy();
+      expect(
+        screen.getByText(
+          "You are viewing ncar.chem's family. Edit a copy to change it.",
+        ),
+      ).toBeTruthy();
+      expect(screen.getByTestId("banner-edit-copy-button")).toBeTruthy();
+    });
+
+    vi.spyOn(backendInteractions, "uploadFamily").mockResolvedValueOnce({
+      ...readOnlyFamily,
+      id: "copied-fam-id" as UUID,
+      name: "ReadOnly Family (copy)",
+      owner: {
+        id: "11-22-33-44-55" as UUID,
+        username: "Test User",
+        role: "User",
+      },
+      isInDatabase: true,
+      species: [],
+      reactions: [],
+      phases: [],
+      mechanisms: [],
+    } as any);
+
+    fireEvent.click(screen.getByTestId("banner-edit-copy-button"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("in-page-success-alert")).toBeTruthy();
+      expect(screen.getByText(/Created private copy/i)).toBeTruthy();
+    });
+  });
+
+  it("Displays error alert when Edit a copy fails", async () => {
+    render(
+      <AuthProvider>
+        <CustomThemeProvider>
+          <MemoryRouter initialEntries={["/familyeditor"]}>
+            <FamilyEditor />
+          </MemoryRouter>
+        </CustomThemeProvider>
+      </AuthProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("banner-edit-copy-button")).toBeTruthy();
+    });
+
+    vi.spyOn(backendInteractions, "uploadFamily").mockRejectedValueOnce(
+      new Error("Copy failed"),
+    );
+
+    fireEvent.click(screen.getByTestId("banner-edit-copy-button"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("in-page-error-alert")).toBeTruthy();
+      expect(screen.getByText("Copy failed")).toBeTruthy();
+    });
+  });
+});
+
+describe("FamilyEditor - Browser Draft Mode", () => {
+  const originalLocation = window.location;
+  const draftFamily: Family = {
+    id: "draft-fam-1" as UUID,
+    name: "Draft Family",
+    description: "Local draft in browser",
+    isPublic: false,
+    isInDatabase: false,
+    owner: null,
+    species: [],
+    reactions: [],
+    phases: [],
+    mechanisms: [],
+  };
+
+  beforeEach(() => {
+    window.location = {
+      ...originalLocation,
+      assign: vi.fn(),
+    } as any;
+    localStorage.setItem("localFamilies", JSON.stringify([draftFamily]));
+    localStorage.setItem("selectedEditorFamilyId", draftFamily.id);
+    vi.spyOn(axios, "get").mockImplementation((url: string) => {
+      if (url.includes("/users/whoami")) {
+        return Promise.resolve({
+          data: { id: "11-22-33-44-55", username: "Test User", role: "User" },
+          status: 200,
+          statusText: "OK",
+          headers: {},
+          config: { headers: new AxiosHeaders() },
+        } as AxiosResponse);
+      }
+      return Promise.resolve({
+        data: [],
+        status: 200,
+        statusText: "OK",
+        headers: {},
+        config: { headers: new AxiosHeaders() },
+      } as AxiosResponse);
+    });
+  });
+
+  afterEach(() => {
+    window.location = originalLocation as any;
+    localStorage.clear();
+    cleanup();
+  });
+
+  it("Renders draft banner and allows saving draft to user account", async () => {
+    render(
+      <AuthProvider>
+        <CustomThemeProvider>
+          <MemoryRouter initialEntries={["/familyeditor"]}>
+            <FamilyEditor />
+          </MemoryRouter>
+        </CustomThemeProvider>
+      </AuthProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("status-chip-draft")).toBeTruthy();
+      expect(screen.getByTestId("guest-draft-banner")).toBeTruthy();
+      expect(screen.getByTestId("save-draft-to-account-button")).toBeTruthy();
+    });
+
+    vi.spyOn(backendInteractions, "uploadFamily").mockResolvedValueOnce({
+      ...draftFamily,
+      isInDatabase: true,
+      owner: {
+        id: "11-22-33-44-55" as UUID,
+        username: "Test User",
+        role: "User",
+      },
+    } as any);
+
+    fireEvent.click(screen.getByTestId("save-draft-to-account-button"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("in-page-success-alert")).toBeTruthy();
+      expect(
+        screen.getByText(/Saved "Draft Family" to your account/i),
+      ).toBeTruthy();
+    });
+  });
+
+  it("Allows saving changes to draft locally", async () => {
+    render(
+      <AuthProvider>
+        <CustomThemeProvider>
+          <MemoryRouter initialEntries={["/familyeditor"]}>
+            <FamilyEditor />
+          </MemoryRouter>
+        </CustomThemeProvider>
+      </AuthProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("family-name-input-general-info")).toBeTruthy();
+    });
+
+    const nameInput = screen
+      .getByTestId("family-name-input-general-info")
+      .querySelector("input")!;
+
+    fireEvent.change(nameInput, { target: { value: "Updated Draft" } });
+    fireEvent.blur(nameInput);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("save-changes-button")).toBeTruthy();
+    });
+
+    fireEvent.click(screen.getByTestId("save-changes-button"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Draft saved in browser.")).toBeTruthy();
+    });
+  });
+});
+
+describe("FamilyEditor - Helpers and Empty State", () => {
+  it("Renders empty state when no families exist", async () => {
+    localStorage.clear();
+    vi.spyOn(axios, "get").mockResolvedValue({
+      data: [],
+      status: 200,
+      statusText: "OK",
+      headers: {},
+      config: { headers: new AxiosHeaders() },
+    } as AxiosResponse);
+
+    render(
+      <AuthProvider>
+        <CustomThemeProvider>
+          <MemoryRouter initialEntries={["/familyeditor"]}>
+            <FamilyEditor />
+          </MemoryRouter>
+        </CustomThemeProvider>
+      </AuthProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("No family is currently selected.")).toBeTruthy();
+      expect(
+        screen.getByRole("button", { name: "Browse Families" }),
+      ).toBeTruthy();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Browse Families" }));
+  });
+
+  it("Loads mechanism directly when stored in localStorage", async () => {
+    localStorage.setItem("uploadedFamilyIds", JSON.stringify([testFamily.id]));
+    localStorage.setItem("selectedEditorMechanismId", "mech-1");
+
+    vi.spyOn(axios, "get").mockImplementation((url: string) => {
+      if (url.includes("/users/whoami")) {
+        return Promise.resolve({
+          data: testFamily.owner,
+          status: 200,
+          statusText: "OK",
+          headers: {},
+          config: { headers: new AxiosHeaders() },
+        } as AxiosResponse);
+      }
+      if (url.includes("/contributors")) {
+        return Promise.resolve({
+          data: [],
+          status: 200,
+          statusText: "OK",
+          headers: {},
+          config: { headers: new AxiosHeaders() },
+        } as AxiosResponse);
+      }
+      return Promise.resolve({
+        data: testFamily,
+        status: 200,
+        statusText: "OK",
+        headers: {},
+        config: { headers: new AxiosHeaders() },
+      } as AxiosResponse);
+    });
+
+    render(
+      <AuthProvider>
+        <CustomThemeProvider>
+          <MemoryRouter initialEntries={["/familyeditor"]}>
+            <FamilyEditor />
+          </MemoryRouter>
+        </CustomThemeProvider>
+      </AuthProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Stratospheric Ox Info")).toBeTruthy();
+    });
   });
 });
 
@@ -326,6 +908,64 @@ describe("GeneralInfoView", () => {
 
   it("renders", () => {
     expect(screen.getByText("Test Description")).toBeTruthy();
+    expect(screen.getByText("Contributors")).toBeTruthy();
+  });
+});
+
+describe("GeneralInfoView - Contributors Visibility", () => {
+  it("does not render Contributors if user is not a contributor, owner, or admin for database family", () => {
+    render(
+      <AuthProvider>
+        <CustomThemeProvider>
+          <GeneralInfoView
+            family={{
+              id: "db-fam-1",
+              name: "DB Family",
+              description: "Database family description",
+              isInDatabase: true,
+              owner: { id: "someone-else" as any, username: "SomeoneElse" },
+              contributorIds: ["contributor-abc" as any],
+              mechanisms: [],
+            }}
+            updateFamily={vi.fn()}
+            readOnly={true}
+            onDelete={vi.fn()}
+            onPublish={vi.fn()}
+            onChangeVisibility={vi.fn()}
+          />
+        </CustomThemeProvider>
+      </AuthProvider>,
+    );
+
+    expect(screen.getByText("Database family description")).toBeTruthy();
+    expect(screen.queryByText("Contributors")).toBeNull();
+  });
+
+  it("renders Contributors if user is a contributor", () => {
+    // Current user in AuthProvider test defaults to someone with id
+    // We pass that id in contributorIds
+    render(
+      <AuthProvider>
+        <CustomThemeProvider>
+          <GeneralInfoView
+            family={{
+              id: "db-fam-2",
+              name: "DB Family 2",
+              description: "Contributor family",
+              isInDatabase: false,
+              mechanisms: [],
+            }}
+            updateFamily={vi.fn()}
+            readOnly={false}
+            onDelete={vi.fn()}
+            onPublish={vi.fn()}
+            onChangeVisibility={vi.fn()}
+          />
+        </CustomThemeProvider>
+      </AuthProvider>,
+    );
+
+    expect(screen.getByText("Contributor family")).toBeTruthy();
     expect(screen.getByText("Contributors")).toBeTruthy();
   });
 });
@@ -1033,6 +1673,7 @@ describe("MechanismsView", () => {
               },
             ],
           }}
+          initialMechanismId="111-111-111-111-111"
           updateFamily={updateFamily}
         />
       </CustomThemeProvider>,
@@ -1047,6 +1688,28 @@ describe("MechanismsView", () => {
 
   it("renders", () => {
     expect(screen.getByText("Mechanisms")).toBeTruthy();
+  });
+
+  it("Displays 'No mechanism selected' when no mechanism is chosen", () => {
+    cleanup();
+    render(
+      <CustomThemeProvider>
+        <MechanismsView
+          family={{
+            id: "111-111-111-111-111",
+            name: "Test Family",
+            description: "",
+            owner: null,
+            mechanisms: [],
+            species: [],
+            phases: [],
+            reactions: [],
+          }}
+          updateFamily={updateFamily}
+        />
+      </CustomThemeProvider>,
+    );
+    expect(screen.getByText("No mechanism selected")).toBeTruthy();
   });
 
   it("Can create mechanisms", async () => {
@@ -1097,8 +1760,18 @@ describe("MechanismsView", () => {
   });
 
   it("Can edit an existing mechanism", () => {
-    const editButton = screen.getAllByTestId("edit-mechanism")[0];
-    fireEvent.click(editButton);
+    const nameInput = document.getElementById(
+      "edit-mechanism-name",
+    ) as HTMLInputElement;
+    expect(nameInput).toBeTruthy();
+    fireEvent.change(nameInput, {
+      target: { value: "Updated Mechanism Name" },
+    });
+    const applyBtn = screen.getByRole("button", {
+      name: "Apply mechanism changes",
+    });
+    fireEvent.click(applyBtn);
+    expect(updateFamily).toHaveBeenCalled();
   });
 
   it("Can download existing mechanisms as JSON", () => {

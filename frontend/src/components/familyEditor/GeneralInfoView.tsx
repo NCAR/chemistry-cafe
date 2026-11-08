@@ -25,14 +25,15 @@ import {
 import { ContributorsView } from "./ContributorsView";
 
 type ExtraGeneralInfoViewProps = {
-  onDelete: () => any;
-  onPublish: () => any;
-  onChangeVisibility: (isPublic: boolean) => any;
+  onDelete: () => void;
+  onPublish: () => void;
+  onChangeVisibility: (isPublic: boolean) => void;
 };
 
 export const GeneralInfoView = ({
   family,
   updateFamily,
+  readOnly,
   onDelete,
   onPublish,
   onChangeVisibility,
@@ -52,14 +53,19 @@ export const GeneralInfoView = ({
 
   const { user } = useAuth();
 
+  const isOwner = Boolean(user?.id && family.owner?.id === user.id);
+  const isAdmin = user?.role?.toLowerCase() === "admin";
+  const isContributor = Boolean(
+    user?.id && family.contributorIds?.includes(user.id),
+  );
+  const canSeeContributors =
+    !family.isInDatabase || isOwner || isAdmin || isContributor;
+
   const canChangeVisibility =
-    (family.isInDatabase && user?.id === family.owner?.id) ||
-    user?.role?.toLowerCase() === "admin";
+    !readOnly && ((family.isInDatabase && isOwner) || isAdmin);
 
   const isOwnerOrAdmin =
-    !family.isInDatabase ||
-    user?.id === family.owner?.id ||
-    user?.role?.toLowerCase() === "admin";
+    !readOnly && (!family.isInDatabase || isOwner || isAdmin);
 
   /**
    * Checks each mechanism of the family. If all are valid, asks the user to
@@ -129,6 +135,7 @@ export const GeneralInfoView = ({
         <TextField
           label="Name"
           required
+          disabled={readOnly}
           data-testid="family-name-input-general-info"
           defaultValue={family.name}
           error={name.length === 0}
@@ -140,6 +147,7 @@ export const GeneralInfoView = ({
         <TextField
           label="Description"
           required
+          disabled={readOnly}
           data-testid="family-description-input-general-info"
           defaultValue={family.description}
           multiline
@@ -203,10 +211,14 @@ export const GeneralInfoView = ({
           )}
         </Box>
       </Box>
-      <Divider sx={{ my: 3, maxWidth: "60em" }} />
-      <Box sx={{ maxWidth: "60em" }}>
-        <ContributorsView family={family} updateFamily={updateFamily} />
-      </Box>
+      {canSeeContributors && (
+        <>
+          <Divider sx={{ my: 3, maxWidth: "60em" }} />
+          <Box sx={{ maxWidth: "60em" }}>
+            <ContributorsView family={family} updateFamily={updateFamily} />
+          </Box>
+        </>
+      )}
       <Snackbar
         open={showAlert}
         autoHideDuration={5000}

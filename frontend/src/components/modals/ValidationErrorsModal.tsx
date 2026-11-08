@@ -17,6 +17,7 @@ type ValidationErrorsModalProps = {
   message: string;
   family: Family;
   errors: ValidationIssue[];
+  onDownloadAnyway?: () => void;
 };
 
 const sections: Array<{
@@ -75,6 +76,7 @@ export const ValidationErrorsModal: React.FC<ValidationErrorsModalProps> = ({
   message,
   family,
   errors,
+  onDownloadAnyway,
 }) => {
   const { openSection } = useFamilyValidation();
   const other = errors.filter((error) => !error.target);
@@ -159,9 +161,24 @@ export const ValidationErrorsModal: React.FC<ValidationErrorsModalProps> = ({
             <IssueList issues={other} />
           </Box>
         )}
-        <Button variant="contained" color="primary" onClick={onClose}>
-          Close
-        </Button>
+        <Box sx={{ mt: 2, display: "flex", alignItems: "center", gap: 2 }}>
+          <Button variant="contained" color="primary" onClick={onClose}>
+            Close
+          </Button>
+          {onDownloadAnyway && (
+            <Button
+              variant="text"
+              color="secondary"
+              sx={{ textTransform: "none" }}
+              onClick={() => {
+                onClose();
+                onDownloadAnyway();
+              }}
+            >
+              Download current, unverified state
+            </Button>
+          )}
+        </Box>
       </Box>
     </Modal>
   );

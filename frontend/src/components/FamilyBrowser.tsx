@@ -16,6 +16,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import LockIcon from "@mui/icons-material/Lock";
 import EditIcon from "@mui/icons-material/Edit";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import { Family, Mechanism } from "../types/chemistryModels";
 import { APIFamily } from "../API/API_Interfaces";
 import { UUID } from "crypto";
@@ -291,8 +292,8 @@ const FamilyInfoCard = memo(function FamilyInfoCard({
               </Box>
             </Box>
 
-            {/* Exactly one button on the family row: Open for your families, or Edit a copy for other families */}
-            <Box sx={{ mt: 0.5 }}>
+            {/* Action buttons: Open for editable families; View + Edit a copy for other families */}
+            <Box sx={{ mt: 0.5, display: "flex", gap: 1 }}>
               {canEdit ? (
                 <Button
                   variant="outlined"
@@ -304,15 +305,26 @@ const FamilyInfoCard = memo(function FamilyInfoCard({
                   Open
                 </Button>
               ) : (
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  size="small"
-                  onClick={handleCloneClick}
-                  aria-label={`Edit a copy of ${family.name}`}
-                >
-                  Edit a copy
-                </Button>
+                <>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    size="small"
+                    onClick={handleOpenClick}
+                    aria-label={`View ${family.name}`}
+                  >
+                    View
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    size="small"
+                    onClick={handleCloneClick}
+                    aria-label={`Edit a copy of ${family.name}`}
+                  >
+                    Edit a copy
+                  </Button>
+                </>
               )}
             </Box>
           </Box>
@@ -446,23 +458,42 @@ const FamilyInfoCard = memo(function FamilyInfoCard({
                               Edit
                             </Button>
                           ) : (
-                            <Button
-                              size="small"
-                              variant="contained"
-                              color="primary"
-                              startIcon={<ContentCopyIcon />}
-                              sx={{ textTransform: "none" }}
-                              onClick={() => {
-                                if (onCloneMechanism) {
-                                  onCloneMechanism(family, mechanism);
-                                } else {
-                                  handleCloneClick({} as React.MouseEvent);
-                                }
-                              }}
-                              aria-label={`Edit a copy of ${mechanism.name}`}
-                            >
-                              Edit a copy
-                            </Button>
+                            <>
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                color="primary"
+                                startIcon={<VisibilityIcon />}
+                                sx={{ textTransform: "none" }}
+                                onClick={() => {
+                                  if (onEditMechanism) {
+                                    onEditMechanism(family, mechanism);
+                                  } else {
+                                    handleOpenClick({} as React.MouseEvent);
+                                  }
+                                }}
+                                aria-label={`View ${mechanism.name}`}
+                              >
+                                View
+                              </Button>
+                              <Button
+                                size="small"
+                                variant="contained"
+                                color="primary"
+                                startIcon={<ContentCopyIcon />}
+                                sx={{ textTransform: "none" }}
+                                onClick={() => {
+                                  if (onCloneMechanism) {
+                                    onCloneMechanism(family, mechanism);
+                                  } else {
+                                    handleCloneClick({} as React.MouseEvent);
+                                  }
+                                }}
+                                aria-label={`Edit a copy of ${mechanism.name}`}
+                              >
+                                Edit a copy
+                              </Button>
+                            </>
                           )}
                         </Box>
                       </ListItem>

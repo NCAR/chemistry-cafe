@@ -351,4 +351,49 @@ describe("Dashboard / Browse Page", () => {
     fireEvent.click(screen.getByText("Show archived versions"));
     expect(screen.getByText("Archived Versions")).toBeTruthy();
   });
+
+  it("Can open New family modal from the toolbar", async () => {
+    render(
+      <AuthProvider>
+        <CustomThemeProvider>
+          <MemoryRouter initialEntries={["/"]}>
+            <Dashboard />
+          </MemoryRouter>
+        </CustomThemeProvider>
+      </AuthProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("New family")).toBeTruthy();
+    });
+
+    fireEvent.click(screen.getByText("New family"));
+    await waitFor(() => {
+      expect(
+        screen.getByText("Enter Details for the Family below:"),
+      ).toBeTruthy();
+      expect(document.getElementById("family-name")).toBeTruthy();
+    });
+  });
+
+  it("Can open Import a file modal from the toolbar", async () => {
+    render(
+      <AuthProvider>
+        <CustomThemeProvider>
+          <MemoryRouter initialEntries={["/"]}>
+            <Dashboard />
+          </MemoryRouter>
+        </CustomThemeProvider>
+      </AuthProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Import a file")).toBeTruthy();
+    });
+
+    fireEvent.click(screen.getByText("Import a file"));
+    await waitFor(() => {
+      expect(screen.getByText("Upload V1 Data:")).toBeTruthy();
+    });
+  });
 });

@@ -82,7 +82,9 @@ describe("FamilyBrowser Component", () => {
     expect(screen.queryByRole("button", { name: /Edit a copy/i })).toBeFalsy();
   });
 
-  it("Shows Edit a copy button for non-contributor non-owner", () => {
+  it("Shows View and Edit a copy buttons for non-contributor non-owner, and View opens family", () => {
+    const onOpen = vi.fn();
+    const onClone = vi.fn();
     (useAuth as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
       user: { id: "stranger-1", role: "None" },
     });
@@ -91,8 +93,8 @@ describe("FamilyBrowser Component", () => {
       <CustomThemeProvider>
         <FamilyBrowser
           families={[mockFamily]}
-          onOpenFamily={vi.fn()}
-          onCloneFamily={vi.fn()}
+          onOpenFamily={onOpen}
+          onCloneFamily={onClone}
         />
       </CustomThemeProvider>,
     );
@@ -102,9 +104,55 @@ describe("FamilyBrowser Component", () => {
     expect(
       screen.queryByRole("button", { name: /Open Shared Family/i }),
     ).toBeFalsy();
+
+    const viewButton = screen.getByRole("button", {
+      name: /View Shared Family/i,
+    });
+    expect(viewButton).toBeTruthy();
     expect(
       screen.getByRole("button", { name: /Edit a copy of Shared Family/i }),
     ).toBeTruthy();
+
+    fireEvent.click(viewButton);
+    expect(onOpen).toHaveBeenCalledWith(mockFamily);
+  });
+
+  it("Renders View and Edit a copy for mechanisms when viewing a non-owned family", () => {
+    const onEditMechanism = vi.fn();
+    (useAuth as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+      user: { id: "stranger-1", role: "None" },
+    });
+
+    render(
+      <CustomThemeProvider>
+        <FamilyBrowser
+          families={[mockFamily]}
+          onEditMechanism={onEditMechanism}
+        />
+      </CustomThemeProvider>,
+    );
+
+    // Expand family
+    const card = screen.getByRole("button", {
+      name: /Open family Shared Family/i,
+    });
+    fireEvent.click(card);
+
+    const viewMechButton = screen.getByRole("button", {
+      name: /View Tropospheric Mechanism/i,
+    });
+    expect(viewMechButton).toBeTruthy();
+    expect(
+      screen.getByRole("button", {
+        name: /Edit a copy of Tropospheric Mechanism/i,
+      }),
+    ).toBeTruthy();
+
+    fireEvent.click(viewMechButton);
+    expect(onEditMechanism).toHaveBeenCalledWith(
+      mockFamily,
+      mockFamily.mechanisms[0],
+    );
   });
 
   it("Shows Open button without Contributor chip for owner", () => {

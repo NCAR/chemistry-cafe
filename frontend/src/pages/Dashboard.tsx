@@ -35,7 +35,7 @@ import ClearIcon from "@mui/icons-material/Clear";
 import { Header, Footer } from "../components/HeaderFooter";
 import "../styles/Dashboard.css";
 import { APIFamily } from "../API/API_Interfaces";
-import { Family } from "../types/chemistryModels";
+import { Family, Mechanism } from "../types/chemistryModels";
 import { getAllFamilies } from "../API/API_GetMethods";
 import FamilyBrowser, {
   getMechanismVerification,
@@ -45,7 +45,10 @@ import {
   addUploadedFamilyIdLocally,
   cloneFamily,
 } from "../helpers/localFamilies";
-import { apiToFrontendFamily } from "../helpers/backendInteractions";
+import {
+  apiToFrontendFamily,
+  uploadFamily,
+} from "../helpers/backendInteractions";
 import { useAuth } from "../components/AuthContext";
 import { FamilyCreationModal } from "../components/modals/FamilyCreationModal";
 import { ImportFamilyModal } from "../components/modals/ImportFamilyModal";
@@ -327,17 +330,67 @@ export const Dashboard: React.FC = () => {
   };
 
   // Open Family in editor
-  const handleOpenFamily = (family: Family) => {
+  const handleOpenFamily = (family: Family, mechanism?: Mechanism) => {
     if (family.isInDatabase) {
       addUploadedFamilyIdLocally(family.id);
     }
+    localStorage.setItem("selectedEditorFamilyId", family.id);
+    if (mechanism) {
+      localStorage.setItem("selectedEditorMechanismId", mechanism.id);
+    } else {
+      localStorage.removeItem("selectedEditorMechanismId");
+    }
+    const isOwner = Boolean(user && family.owner?.id === user.id);
+    const isAdmin = user?.role?.toLowerCase() === "admin";
+    const isContributor = Boolean(
+      user?.id && family.contributorIds?.includes(user.id),
+    );
+    const canEdit = !family.isInDatabase || isOwner || isAdmin || isContributor;
+    localStorage.setItem(
+      "activeEditorFamily",
+      JSON.stringify({
+        id: family.id,
+        name: family.name,
+        mode: canEdit ? "editing" : "viewing",
+      }),
+    );
     navigate("/familyeditor");
   };
 
   // Clone Family into draft and open in editor
-  const handleCloneFamily = (family: Family) => {
+  const handleCloneFamily = async (family: Family) => {
     const cloned = cloneFamily(family);
+    if (user) {
+      try {
+        const uploaded = await uploadFamily(cloned, user);
+        addUploadedFamilyIdLocally(uploaded.id);
+        localStorage.setItem("selectedEditorFamilyId", uploaded.id);
+        localStorage.removeItem("selectedEditorMechanismId");
+        localStorage.setItem(
+          "activeEditorFamily",
+          JSON.stringify({
+            id: uploaded.id,
+            name: uploaded.name,
+            mode: "editing",
+          }),
+        );
+        navigate("/familyeditor");
+        return;
+      } catch (err) {
+        console.error("Failed to upload cloned family:", err);
+      }
+    }
     addFamilyLocally(cloned);
+    localStorage.setItem("selectedEditorFamilyId", cloned.id);
+    localStorage.removeItem("selectedEditorMechanismId");
+    localStorage.setItem(
+      "activeEditorFamily",
+      JSON.stringify({
+        id: cloned.id,
+        name: cloned.name,
+        mode: "editing",
+      }),
+    );
     navigate("/familyeditor");
   };
 
@@ -625,6 +678,10 @@ export const Dashboard: React.FC = () => {
                       "& input[type='date']::-webkit-calendar-picker-indicator":
                         {
                           cursor: "pointer",
+                          filter: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? "invert(1)"
+                              : "none",
                         },
                     }}
                   />
@@ -696,7 +753,9 @@ export const Dashboard: React.FC = () => {
             onToggleExpand={handleToggleExpand}
             onOpenFamily={handleOpenFamily}
             onCloneFamily={handleCloneFamily}
-            onEditMechanism={(family) => handleOpenFamily(family)}
+            onEditMechanism={(family, mechanism) =>
+              handleOpenFamily(family, mechanism)
+            }
             onCloneMechanism={(family) => handleCloneFamily(family)}
           />
         )}
@@ -721,7 +780,18 @@ export const Dashboard: React.FC = () => {
         open={familyCreationModalOpen}
         onClose={() => setFamilyCreationModalOpen(false)}
         onSubmit={(newFamily) => {
+          setFamilyCreationModalOpen(false);
           addFamilyLocally(newFamily);
+          localStorage.setItem("selectedEditorFamilyId", newFamily.id);
+          localStorage.removeItem("selectedEditorMechanismId");
+          localStorage.setItem(
+            "activeEditorFamily",
+            JSON.stringify({
+              id: newFamily.id,
+              name: newFamily.name,
+              mode: "editing",
+            }),
+          );
           navigate("/familyeditor");
         }}
       />
@@ -731,7 +801,18 @@ export const Dashboard: React.FC = () => {
         open={importModalOpen}
         onClose={() => setImportModalOpen(false)}
         onSubmit={(importedFamily) => {
+          setImportModalOpen(false);
           addFamilyLocally(importedFamily);
+          localStorage.setItem("selectedEditorFamilyId", importedFamily.id);
+          localStorage.removeItem("selectedEditorMechanismId");
+          localStorage.setItem(
+            "activeEditorFamily",
+            JSON.stringify({
+              id: importedFamily.id,
+              name: importedFamily.name,
+              mode: "editing",
+            }),
+          );
           navigate("/familyeditor");
         }}
       />

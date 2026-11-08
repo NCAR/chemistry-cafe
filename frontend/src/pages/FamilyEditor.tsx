@@ -1,699 +1,1218 @@
-import { useEffect, useRef, useState, MouseEvent } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Header, Footer } from "../components/HeaderFooter";
 import "../styles/FamilyEditor.css";
 import {
+  Alert,
   alpha,
   Box,
+  Button,
+  Chip,
   CircularProgress,
+  FormControlLabel,
   IconButton,
-  ListItemIcon,
-  Menu,
-  MenuItem,
   Paper,
-  styled,
+  Switch,
   Tooltip,
   Typography,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import CloseIcon from "@mui/icons-material/Close";
-import CircleIcon from "@mui/icons-material/Circle";
-import CloudOffIcon from "@mui/icons-material/CloudOff";
-import FileUploadIcon from "@mui/icons-material/FileUpload";
-import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
-import { TreeItem, treeItemClasses } from "@mui/x-tree-view/TreeItem";
-import { Family } from "../types/chemistryModels";
-import { useCustomTheme } from "../components/CustomThemeContext";
-import { FamilyCreationModal } from "../components/modals/FamilyCreationModal";
-import { ImportFamilyModal } from "../components/modals/ImportFamilyModal";
+import LockIcon from "@mui/icons-material/Lock";
+import { Family, Mechanism } from "../types/chemistryModels";
+import { MechanismCreationModal } from "../components/modals/MechanismCreationModal";
+import { ValidationErrorsModal } from "../components/modals/ValidationErrorsModal";
+import { ConfirmActionModal } from "../components/modals/ConfirmActionModal";
 import { UUID } from "crypto";
-import { getFamily } from "../API/API_GetMethods";
+import { getAllFamilies, getFamily } from "../API/API_GetMethods";
+import { deleteFamily } from "../API/API_DeleteMethods";
 import {
   apiToFrontendFamily,
   saveFamilyChanges,
   uploadFamily,
 } from "../helpers/backendInteractions";
-import SaveIcon from "@mui/icons-material/Save";
 import { useAuth } from "../components/AuthContext";
-import { deleteFamily } from "../API/API_DeleteMethods";
-import { APIFamily } from "../API/API_Interfaces";
-import { updateLocalStorageFamilyInfo } from "../helpers/localFamilies";
+import {
+  addFamilyLocally,
+  addUploadedFamilyIdLocally,
+  cloneFamily,
+  removeFamilyLocally,
+  updateLocalStorageFamilyInfo,
+} from "../helpers/localFamilies";
 import { GeneralInfoView } from "../components/familyEditor/GeneralInfoView";
 import { MechanismsView } from "../components/familyEditor/MechanismsView";
+import { MechanismEditor } from "../components/MechanismEditor";
 import { PhaseView } from "../components/familyEditor/PhaseView";
 import { ReactionsView } from "../components/familyEditor/ReactionsView";
 import { SpeciesView } from "../components/familyEditor/SpeciesView";
+import { ContributorsView } from "../components/familyEditor/ContributorsView";
 import {
   EditorSection,
   FamilyValidationProvider,
   useFamilyIssues,
 } from "../components/familyEditor/FamilyValidationContext";
 import { ProblemCount } from "../components/familyEditor/IssueIndicators";
-import { countItemsWithIssues } from "../helpers/validationIssues";
+import {
+  countItemsWithIssues,
+  validateFamily,
+  ValidationIssue,
+} from "../helpers/validationIssues";
+import { AUTH_URL } from "../API/API_config";
 
-const FamilyPage = () => {
-  enum DataViewSelection {
-    GeneralInfo = "general",
-    Species = "species",
-    Reactions = "reactions",
-    Mechanisms = "mechanisms",
-    Phases = "phases",
-    Default = "default",
-  }
+export type ActiveView =
+  | { type: "general" }
+  | { type: "reactions" }
+  | { type: "species" }
+  | { type: "phases" }
+  | { type: "mechanism"; mechanismId: UUID };
+
+const FamilyEditor = () => {
+  const { familyId } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [loading, setLoading] = useState<boolean>(true);
-  const [families, setFamilies] = useState<Array<Family>>();
-  const [dataView, setDataView] = useState<React.JSX.Element>(<DefaultView />);
-  const [familyCreationModalOpen, setFamilyCreationModalOpen] =
+  const [family, setFamily] = useState<Family | null>(null);
+  const [originalFamily, setOriginalFamily] = useState<Family | null>(null);
+
+  const [selectedView, setSelectedView] = useState<ActiveView>({
+    type: "general",
+  });
+
+  // In-page feedback messages (no alert())
+  const [inPageError, setInPageError] = useState<string | null>(null);
+  const [inPageSuccess, setInPageSuccess] = useState<string | null>(null);
+
+  // Modals state
+  const [mechanismCreationModalOpen, setMechanismCreationModalOpen] =
     useState<boolean>(false);
-  const [selectedFamilyId, setSelectedFamilyId] = useState<string>("");
-  const [openImportMenu, setOpenImportMenu] = useState<boolean>(false); // Used when user attempts to import families
-  const { user } = useAuth();
-  const currentMenuName = useRef<string>(DataViewSelection.Default);
-  // The tree item of the view that the editor shows.
-  const [selectedTreeItem, setSelectedTreeItem] = useState<string | null>(null);
-  const { theme } = useCustomTheme();
+  const [validationErrors, setValidationErrors] = useState<ValidationIssue[]>(
+    [],
+  );
+  const [openMakePublicModal, setOpenMakePublicModal] =
+    useState<boolean>(false);
 
-  const updateFamily = (family: Family): void => {
-    setFamilies((families) => {
-      if (!families) {
-        return families;
-      }
-      return families.map((element) => {
-        if (family.id === element.id) {
-          return {
-            ...family,
-            isModified: family.isInDatabase?.valueOf(),
-          };
-        }
-        return element;
-      });
-    });
+  // Permissions
+  const isOwner = Boolean(user?.id && family?.owner?.id === user.id);
+  const isAdmin = user?.role?.toLowerCase() === "admin";
+  const isContributor = Boolean(
+    user?.id && family?.contributorIds?.includes(user.id as UUID),
+  );
+  const isDraft = !family?.isInDatabase;
+  const canEdit = isDraft || isOwner || isAdmin || isContributor;
+  const canChangeVisibility =
+    canEdit && Boolean(family?.isInDatabase) && (isOwner || isAdmin);
 
-    setSelectedFamilyId(family.id);
-    setDataView(
-      getDataViewComponent(currentMenuName.current, {
-        ...family,
-        isModified: true,
-      }),
+  const editorMode = family ? (canEdit ? "editing" : "viewing") : undefined;
+
+  // Load target family based on URL parameters or local storage
+  const loadFamilyFromSource = useCallback(async () => {
+    setLoading(true);
+    setInPageError(null);
+
+    const searchParams = new URLSearchParams(location.search);
+    const queryId = searchParams.get("id");
+    const selectedEditorFamilyId = localStorage.getItem(
+      "selectedEditorFamilyId",
     );
-    window.onbeforeunload = () => true; // Sets "are you sure you want to leave" popup
-  };
+    const targetIdentifier = queryId || familyId || selectedEditorFamilyId;
 
-  useEffect(() => {
-    if (families) {
-      updateLocalStorageFamilyInfo(families);
-    }
-  }, [families]);
-
-  /**
-   * Creates a selected menu for a specific family
-   * @param menuName Menu to be selected. This is usually encoded in the id of a treeitem
-   * @param family Family object to view
-   * @returns Editor Component
-   */
-  const getDataViewComponent = (
-    menuName: string,
-    family?: Family,
-  ): React.JSX.Element => {
-    if (!family) {
-      return <DefaultView />;
-    }
-
-    currentMenuName.current = menuName;
-    switch (menuName) {
-      case DataViewSelection.Species:
-        return <SpeciesView family={family} updateFamily={updateFamily} />;
-      case DataViewSelection.Reactions:
-        return <ReactionsView family={family} updateFamily={updateFamily} />;
-      case DataViewSelection.Mechanisms:
-        return <MechanismsView family={family} updateFamily={updateFamily} />;
-      case DataViewSelection.GeneralInfo:
-        return (
-          <GeneralInfoView
-            family={family}
-            updateFamily={updateFamily}
-            onPublish={async () => {
-              if (!user) {
-                alert("Please log in to upload a family");
-                return;
-              }
-              setLoading(true);
-              await uploadFamily(family, user)
-                .then((databaseFamily) => {
-                  setFamilies((families) => {
-                    if (!families) {
-                      return families;
-                    }
-                    return families.map((element) => {
-                      if (family.id === element.id) {
-                        return {
-                          ...databaseFamily,
-                        };
-                      }
-                      return element;
-                    });
-                  });
-                  setSelectedFamilyId(databaseFamily.id);
-                  setDataView(
-                    getDataViewComponent(
-                      DataViewSelection.GeneralInfo,
-                      databaseFamily,
-                    ),
-                  );
-                })
-                .catch((e) => {
-                  console.error(e);
-                  alert("An issue occurred while uploading the family");
-                })
-                .finally(() => setLoading(false));
-            }}
-            onDelete={() => {
-              setLoading(true);
-              if (family.isInDatabase) {
-                deleteFamily(family.id)
-                  .then(() => removeFamilyLocally(family))
-                  .catch((e) => {
-                    console.error(e);
-                    alert("An error occurred while deleting this family");
-                  })
-                  .finally(() => {
-                    setDataView(
-                      getDataViewComponent(DataViewSelection.Default),
-                    );
-                    setLoading(false);
-                  });
-              } else {
-                removeFamilyLocally(family);
-              }
-            }}
-            onChangeVisibility={async (isPublic: boolean) => {
-              setLoading(true);
-              await saveFamilyChanges({ ...family, isPublic, isModified: true })
-                .then((savedFamily) => {
-                  setFamilies((families) =>
-                    families?.map((element) =>
-                      element.id === savedFamily.id ? savedFamily : element,
-                    ),
-                  );
-                  setDataView(
-                    getDataViewComponent(
-                      DataViewSelection.GeneralInfo,
-                      savedFamily,
-                    ),
-                  );
-                })
-                .catch((e) => {
-                  console.error(e);
-                  alert(
-                    "An issue occurred while changing the family visibility",
-                  );
-                })
-                .finally(() => setLoading(false));
-            }}
-          />
-        );
-      case DataViewSelection.Phases:
-        return <PhaseView family={family} updateFamily={updateFamily} />;
-      default:
-        currentMenuName.current = DataViewSelection.Default;
-        return <DefaultView />;
-    }
-  };
-
-  /**
-   * Callback when a tree item is selected.
-   * @param _
-   * @param itemId
-   * @param isSelected
-   * @returns
-   */
-  const handleTreeItemToggle = (
-    _: React.SyntheticEvent,
-    itemId: string,
-    isSelected: boolean,
-  ) => {
-    if (!isSelected) {
-      return;
-    }
-
-    const [familyId, menuName] = itemId.split(";");
-    const family = families?.find((element) => element.id == familyId);
-
-    // This happens if a treeitem that expands a selection is chosen.
-    if (!family) {
-      return;
-    }
-
-    setSelectedFamilyId(family.id);
-    setDataView(getDataViewComponent(menuName, family));
-  };
-
-  useEffect(() => {
-    const abortController = new AbortController();
-    const fetchFamilyData = async () => {
-      try {
-        let queryParameters = "?expand=true";
-        if (user) {
-          queryParameters += `&userId=${user.id}`;
+    const selectMechanismIfStored = (fam: Family) => {
+      const selectedMechId = localStorage.getItem("selectedEditorMechanismId");
+      if (selectedMechId && fam.mechanisms) {
+        const match = fam.mechanisms.find((m) => m.id === selectedMechId);
+        if (match) {
+          setSelectedView({ type: "mechanism", mechanismId: match.id });
         }
-        let allFamilies: Family[] = [];
-
-        const localFamilies: unknown = JSON.parse(
-          localStorage.getItem("localFamilies") || "[]",
-        );
-        if (Array.isArray(localFamilies)) {
-          // TODO Check if these actually follow family schema
-          allFamilies = allFamilies.concat(localFamilies);
-        }
-
-        const uploadedFamilyIds: unknown = JSON.parse(
-          localStorage.getItem("uploadedFamilyIds") || "[]",
-        );
-        if (Array.isArray(uploadedFamilyIds)) {
-          for (const familyId of uploadedFamilyIds) {
-            if (typeof familyId == "string") {
-              const family: APIFamily | null = await getFamily(
-                familyId as UUID,
-              ).catch((err) => {
-                console.error(
-                  `Issue finding local family with id '${familyId}':`,
-                  err,
-                );
-                return null;
-              });
-              if (family) {
-                allFamilies.push(apiToFrontendFamily(family));
-              }
-            }
-          }
-        }
-
-        setFamilies(allFamilies);
-      } catch (err) {
-        if (!abortController.signal.aborted) {
-          console.error(err);
-        }
-        setFamilies([]);
-      } finally {
-        setLoading(false);
       }
     };
 
-    fetchFamilyData();
+    const localFamilies: Family[] = JSON.parse(
+      localStorage.getItem("localFamilies") || "[]",
+    );
 
-    return () => abortController.abort();
-  }, []);
-
-  const createFamily = (family: Family): void => {
-    if (families) {
-      setFamilies([family, ...families]);
-    } else {
-      setFamilies([family]);
-    }
-    setFamilyCreationModalOpen(false);
-    window.onbeforeunload = () => true; // Sets "are you sure you want to leave" popup
-  };
-
-  const removeFamilyLocally = (family: Family): void => {
-    if (selectedFamilyId === family.id) {
-      setDataView(<DefaultView />);
-    }
-    setFamilies(families?.filter((element) => element.id != family.id));
-  };
-
-  const saveFamilies = async (): Promise<void> => {
-    if (!families) {
-      return;
-    }
-
-    setLoading(true);
-
-    const familyList: Family[] = [];
-    for (const family of families) {
-      if (family.isModified && family.isInDatabase) {
-        await saveFamilyChanges(family)
-          .then((family) => familyList.push(family))
-          .catch((e) => {
-            console.error(e);
-            alert("An error ocurred while saving families");
-          });
-      } else {
-        familyList.push(family);
+    // 1. If target matches a local draft
+    if (targetIdentifier) {
+      const draftMatch = localFamilies.find((f) => f.id === targetIdentifier);
+      if (draftMatch) {
+        setFamily(draftMatch);
+        setOriginalFamily(structuredClone(draftMatch));
+        selectMechanismIfStored(draftMatch);
+        setLoading(false);
+        return;
       }
     }
 
-    setLoading(false);
-    setFamilies(familyList);
-  };
-
-  // The editor checks the mechanisms of the selected family after each change,
-  // and marks the items with problems.
-  const selectedFamily = families?.find(
-    (family) => family.id === selectedFamilyId,
-  );
-  const validation = useFamilyIssues(selectedFamily);
-  const problemCounts = countItemsWithIssues(validation.issues);
-  const mechanismsWithProblems = new Set(
-    validation.issues.map((issue) => issue.mechanismId),
-  ).size;
-
-  /** Shows a section of the selected family, for example from a message. */
-  const openSection = (section: EditorSection) => {
-    if (!selectedFamily) {
-      return;
+    // 2. If targetIdentifier is a valid UUID, attempt direct getFamily
+    const isUuid =
+      targetIdentifier &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        targetIdentifier,
+      );
+    if (isUuid) {
+      try {
+        const apiFam = await getFamily(targetIdentifier as UUID);
+        if (apiFam) {
+          const frontFam = apiToFrontendFamily(apiFam);
+          setFamily(frontFam);
+          setOriginalFamily(structuredClone(frontFam));
+          selectMechanismIfStored(frontFam);
+          setLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.error("Direct fetch by UUID failed:", err);
+      }
     }
-    setSelectedTreeItem(`${selectedFamily.id};${section}`);
-    setDataView(getDataViewComponent(section, selectedFamily));
+
+    // 3. Fallback: Query all families
+    try {
+      const allDbFamilies = await getAllFamilies("?expand=true");
+      if (targetIdentifier) {
+        const match = allDbFamilies.find((f) => f.id === targetIdentifier);
+        if (match) {
+          const frontFam = apiToFrontendFamily(match);
+          setFamily(frontFam);
+          setOriginalFamily(structuredClone(frontFam));
+          selectMechanismIfStored(frontFam);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // If no identifier specified, pick first local draft or first uploaded family
+      if (!targetIdentifier) {
+        if (localFamilies.length > 0) {
+          setFamily(localFamilies[0]);
+          setOriginalFamily(structuredClone(localFamilies[0]));
+          selectMechanismIfStored(localFamilies[0]);
+          setLoading(false);
+          return;
+        }
+
+        const uploadedFamilyIds: string[] = JSON.parse(
+          localStorage.getItem("uploadedFamilyIds") || "[]",
+        );
+        if (uploadedFamilyIds.length > 0) {
+          try {
+            const apiFam = await getFamily(uploadedFamilyIds[0] as UUID);
+            if (apiFam) {
+              const frontFam = apiToFrontendFamily(apiFam);
+              setFamily(frontFam);
+              setOriginalFamily(structuredClone(frontFam));
+              selectMechanismIfStored(frontFam);
+              setLoading(false);
+              return;
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        }
+
+        if (allDbFamilies.length > 0) {
+          const frontFam = apiToFrontendFamily(allDbFamilies[0]);
+          setFamily(frontFam);
+          setOriginalFamily(structuredClone(frontFam));
+          selectMechanismIfStored(frontFam);
+          setLoading(false);
+          return;
+        }
+      }
+    } catch (err) {
+      console.error("Failed to query families:", err);
+    }
+
+    // Default: local draft if exists, else null
+    if (localFamilies.length > 0) {
+      setFamily(localFamilies[0]);
+      setOriginalFamily(structuredClone(localFamilies[0]));
+      selectMechanismIfStored(localFamilies[0]);
+    } else {
+      setFamily(null);
+      setOriginalFamily(null);
+    }
+    setLoading(false);
+  }, [familyId, location.search]);
+
+  useEffect(() => {
+    if (family) {
+      localStorage.setItem(
+        "activeEditorFamily",
+        JSON.stringify({
+          id: family.id,
+          name: family.name,
+          mode: canEdit ? "editing" : "viewing",
+        }),
+      );
+    } else {
+      localStorage.removeItem("activeEditorFamily");
+    }
+  }, [family, canEdit]);
+
+  useEffect(() => {
+    loadFamilyFromSource();
+  }, [loadFamilyFromSource]);
+
+  // Window unload confirmation when unsaved changes exist
+  useEffect(() => {
+    if (family?.isModified) {
+      window.onbeforeunload = () => true;
+    } else {
+      window.onbeforeunload = null;
+    }
+    return () => {
+      window.onbeforeunload = null;
+    };
+  }, [family?.isModified]);
+
+  // Family update handler from subviews
+  const updateFamily = (updated: Family) => {
+    const isModified = true;
+    const modifiedFamily = {
+      ...updated,
+      isModified,
+    };
+    setFamily(modifiedFamily);
   };
 
-  /** The count of items with problems in a section of a family. */
-  const sectionProblems = (family: Family, count: number) =>
-    family.id === selectedFamilyId ? <ProblemCount count={count} /> : null;
+  // Discard changes: revert back to original pristine copy
+  const handleDiscardChanges = () => {
+    if (originalFamily) {
+      setFamily(structuredClone(originalFamily));
+      setInPageSuccess("Changes discarded.");
+    }
+  };
+
+  // Save changes for current family
+  const handleSaveChanges = async (): Promise<Family | null> => {
+    if (!family) return null;
+    setLoading(true);
+    setInPageError(null);
+    try {
+      if (family.isInDatabase) {
+        const saved = await saveFamilyChanges(family);
+        setFamily(saved);
+        setOriginalFamily(structuredClone(saved));
+        setInPageSuccess("Changes saved successfully.");
+        return saved;
+      } else {
+        const updatedDraft = { ...family, isModified: false };
+        updateLocalStorageFamilyInfo([updatedDraft]);
+        setFamily(updatedDraft);
+        setOriginalFamily(structuredClone(updatedDraft));
+        setInPageSuccess("Draft saved in browser.");
+        return updatedDraft;
+      }
+    } catch (err) {
+      console.error(err);
+      setInPageError(
+        err instanceof Error
+          ? err.message
+          : "An error occurred while saving family.",
+      );
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Edit a copy one-click action
+  const handleEditCopy = async () => {
+    if (!family) return;
+    setLoading(true);
+    setInPageError(null);
+    try {
+      const copy = cloneFamily(family);
+      if (user) {
+        // Signed in user: save copy as private family in database
+        const uploaded = await uploadFamily(copy, user);
+        addUploadedFamilyIdLocally(uploaded.id);
+        localStorage.setItem("selectedEditorFamilyId", uploaded.id);
+        setFamily(uploaded);
+        setOriginalFamily(structuredClone(uploaded));
+        setSelectedView({ type: "general" });
+        setInPageSuccess(`Created private copy "${uploaded.name}".`);
+      } else {
+        // Guest: save copy as draft in browser
+        addFamilyLocally(copy);
+        localStorage.setItem("selectedEditorFamilyId", copy.id);
+        setFamily(copy);
+        setOriginalFamily(structuredClone(copy));
+        setSelectedView({ type: "general" });
+        setInPageSuccess(`Created browser draft copy "${copy.name}".`);
+      }
+    } catch (err) {
+      console.error(err);
+      setInPageError(
+        err instanceof Error
+          ? err.message
+          : "Failed to create a copy of this family.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Save guest draft to signed-in account
+  const handleSaveDraftToAccount = async () => {
+    if (!user || !family) return;
+    setLoading(true);
+    setInPageError(null);
+    try {
+      const uploaded = await uploadFamily(family, user);
+      removeFamilyLocally(family);
+      addUploadedFamilyIdLocally(uploaded.id);
+      localStorage.setItem("selectedEditorFamilyId", uploaded.id);
+      setFamily(uploaded);
+      setOriginalFamily(structuredClone(uploaded));
+      setInPageSuccess(`Saved "${uploaded.name}" to your account.`);
+    } catch (err) {
+      console.error(err);
+      setInPageError(
+        err instanceof Error
+          ? err.message
+          : "Failed to save draft to your account.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Toggle Public / Private switch
+  const handleTogglePublicSwitch = async () => {
+    if (!family || family.isModified) return;
+
+    if (!family.isPublic) {
+      // Validate all mechanisms before making public
+      const issues = await validateFamily(family);
+      if (issues.length > 0) {
+        setValidationErrors(issues);
+        return;
+      }
+      setOpenMakePublicModal(true);
+    } else {
+      // Toggle to private
+      setLoading(true);
+      try {
+        const saved = await saveFamilyChanges({
+          ...family,
+          isPublic: false,
+          isModified: true,
+        });
+        setFamily(saved);
+        setOriginalFamily(structuredClone(saved));
+        setInPageSuccess(`"${saved.name}" is now private.`);
+      } catch (err) {
+        console.error(err);
+        setInPageError(
+          err instanceof Error ? err.message : "Failed to update visibility.",
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const confirmMakePublic = async () => {
+    if (!family) return;
+    setOpenMakePublicModal(false);
+    setLoading(true);
+    try {
+      const saved = await saveFamilyChanges({
+        ...family,
+        isPublic: true,
+        isModified: true,
+      });
+      setFamily(saved);
+      setOriginalFamily(structuredClone(saved));
+      setInPageSuccess(`"${saved.name}" is now public.`);
+    } catch (err) {
+      console.error(err);
+      setInPageError(
+        err instanceof Error ? err.message : "Failed to make family public.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Delete family
+  const confirmDeleteFamily = async () => {
+    if (!family) return;
+    setLoading(true);
+    try {
+      if (family.isInDatabase) {
+        await deleteFamily(family.id);
+      }
+      removeFamilyLocally(family);
+      setInPageSuccess(`Deleted family "${family.name}".`);
+      setFamily(null);
+      setOriginalFamily(null);
+      navigate("/");
+    } catch (err) {
+      console.error(err);
+      setInPageError(
+        err instanceof Error ? err.message : "Failed to delete family.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Mechanism management inside the family
+  const handleCreateMechanism = (newMech: Mechanism) => {
+    if (!family) return;
+    const mechWithFamilyId: Mechanism = {
+      ...newMech,
+      familyId: family.id,
+    };
+    updateFamily({
+      ...family,
+      mechanisms: [mechWithFamilyId, ...family.mechanisms],
+    });
+    setMechanismCreationModalOpen(false);
+    setSelectedView({
+      type: "mechanism",
+      mechanismId: mechWithFamilyId.id as UUID,
+    });
+  };
+
+  const handleUpdateMechanism = (updatedMechanism: Mechanism) => {
+    if (!family) return;
+    updateFamily({
+      ...family,
+      mechanisms: family.mechanisms.map((m) =>
+        m.id === updatedMechanism.id ? updatedMechanism : m,
+      ),
+    });
+  };
+
+  const handleDeleteMechanism = (mechanismId: string) => {
+    if (!family) return;
+    updateFamily({
+      ...family,
+      mechanisms: family.mechanisms.filter((m) => m.id !== mechanismId),
+    });
+    setSelectedView({ type: "general" });
+  };
+
+  // Validation
+  const validation = useFamilyIssues(family ?? undefined);
+  const problemCounts = countItemsWithIssues(validation.issues);
+
+  const openSection = (section: EditorSection) => {
+    switch (section) {
+      case "species":
+        setSelectedView({ type: "species" });
+        break;
+      case "reactions":
+        setSelectedView({ type: "reactions" });
+        break;
+      case "phases":
+        setSelectedView({ type: "phases" });
+        break;
+      case "mechanisms":
+        if (family && family.mechanisms.length > 0) {
+          setSelectedView({
+            type: "mechanism",
+            mechanismId: family.mechanisms[0].id as UUID,
+          });
+        }
+        break;
+      default:
+        setSelectedView({ type: "general" });
+        break;
+    }
+  };
+
+  // Current selected mechanism
+  const currentMechanism = useMemo(() => {
+    if (!family || selectedView.type !== "mechanism") return null;
+    return (
+      family.mechanisms.find((m) => m.id === selectedView.mechanismId) || null
+    );
+  }, [family, selectedView]);
 
   return (
     <div className="layout-family-editor">
       <header>
-        <Header />
+        <Header editorMode={editorMode} familyName={family?.name} />
       </header>
-      <Paper
-        square
-        component="main"
-        className="content-family-editor main-content"
-      >
-        <div className="family-selector">
-          <Paper
-            component="div"
+
+      <Paper square component="main" className="content-family-editor">
+        {/* Top Header Bar spanning the whole editor */}
+        <Box
+          className="family-editor-topbar"
+          sx={{
+            px: { xs: 2, sm: 3 },
+            pt: 2,
+            pb: 1.5,
+            borderBottom: "1px solid",
+            borderColor: "divider",
+          }}
+        >
+          <Box
             sx={{
               display: "flex",
-              justifyContent: "space-between",
               alignItems: "center",
-              padding: "10px",
-              backgroundColor: theme.palette.action.hover,
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: 2,
             }}
-            square
-            variant="outlined"
           >
-            <Typography variant="h6">Families</Typography>
+            {/* Left: Family Name, Visibility Chip, Owner, Public Switch */}
             <Box
               sx={{
-                justifyContent: "right",
+                display: "flex",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: 1.5,
               }}
             >
-              <Tooltip title="Save changes to all families">
-                <IconButton
-                  aria-label="Save changes to all families"
-                  id="save-family-button"
-                  color="primary"
-                  data-testid="save-family-button"
-                  onClick={saveFamilies}
-                >
-                  <SaveIcon sx={{ fontSize: 32, fontWeight: "bold" }} />
-                </IconButton>
-              </Tooltip>
-              <AddFamilyButton
-                handleCreateButtonClick={() => setFamilyCreationModalOpen(true)}
-                handleImportButtonClick={async () => setOpenImportMenu(true)}
-              />
-            </Box>
-          </Paper>
-          {families?.length === 0 ? (
-            <Typography color="">No families to edit</Typography>
-          ) : (
-            <SimpleTreeView
-              onItemSelectionToggle={handleTreeItemToggle}
-              selectedItems={selectedTreeItem}
-              onSelectedItemsChange={(_, itemId) => setSelectedTreeItem(itemId)}
-              sx={{
-                [`& .${treeItemClasses.label}`]: { fontSize: "0.85rem" },
-              }}
-            >
-              {families &&
-                families.map((family, index) => (
-                  <FamilyTreeItem
-                    aria-label={`Expand options for ${family.name || "No name"} family`}
-                    key={`${family.id}-${index}`}
-                    itemId={`${family.id}-${index}`}
-                    data-testid={`${family.id}-tree-item`}
-                    label={
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          columnGap: "0.8em",
+              <Typography
+                variant="h5"
+                sx={{
+                  fontWeight: 600,
+                  fontSize: { xs: "1.25rem", sm: "1.5rem" },
+                  color: "text.primary",
+                }}
+              >
+                {family ? family.name : "Families"}
+              </Typography>
+
+              {family && (
+                <>
+                  {/* Status chip */}
+                  {!family.isInDatabase ? (
+                    <Chip
+                      size="small"
+                      label="Draft in this browser"
+                      color="warning"
+                      variant="outlined"
+                      data-testid="status-chip-draft"
+                      sx={{
+                        height: 24,
+                        fontSize: "0.8rem",
+                        borderRadius: "6px",
+                      }}
+                    />
+                  ) : family.isPublic ? (
+                    <Chip
+                      size="small"
+                      label="Public"
+                      variant="outlined"
+                      data-testid="status-chip-public"
+                      sx={{
+                        height: 24,
+                        fontSize: "0.8rem",
+                        borderRadius: "6px",
+                      }}
+                    />
+                  ) : (
+                    <Tooltip title="Private: only the owner, contributors, and admins can view">
+                      <Chip
+                        size="small"
+                        icon={<LockIcon sx={{ fontSize: 14 }} />}
+                        label="Private"
+                        variant="outlined"
+                        data-testid="status-chip-private"
+                        sx={{
+                          height: 24,
+                          fontSize: "0.8rem",
+                          borderRadius: "6px",
                         }}
-                      >
-                        <Tooltip
-                          title={family.name}
-                          placement="bottom-start"
-                          arrow
-                          disableInteractive
-                        >
-                          <Typography
-                            noWrap
-                            sx={{
-                              flex: 1,
-                              fontSize: "1rem",
-                              fontWeight: 600,
-                            }}
-                          >
-                            {family.name}
-                          </Typography>
-                        </Tooltip>
-                        {!family.isInDatabase && (
-                          <Tooltip title="Only saved in this browser" arrow>
-                            <CloudOffIcon />
-                          </Tooltip>
-                        )}
-                        <RemoveFamilyButton
-                          changesMade={family.isModified ?? false}
-                          onClick={() => {
-                            removeFamilyLocally(family);
-                          }}
+                      />
+                    </Tooltip>
+                  )}
+
+                  {/* Owner name shown when viewing someone else's family */}
+                  {!canEdit && family.owner?.username && (
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ ml: 0.5, fontSize: "0.875rem" }}
+                    >
+                      {family.owner.username}
+                    </Typography>
+                  )}
+
+                  {/* Owner / admin Public switch */}
+                  {canChangeVisibility && (
+                    <Tooltip
+                      title={
+                        family.isModified
+                          ? "The switch is disabled when changes are not saved."
+                          : ""
+                      }
+                    >
+                      <span>
+                        <FormControlLabel
+                          labelPlacement="start"
+                          sx={{ ml: 1, mr: 0 }}
+                          label={
+                            <Typography
+                              variant="body2"
+                              sx={{ fontSize: "0.875rem" }}
+                            >
+                              Public
+                            </Typography>
+                          }
+                          control={
+                            <Switch
+                              size="small"
+                              checked={Boolean(family.isPublic)}
+                              disabled={Boolean(family.isModified)}
+                              onChange={handleTogglePublicSwitch}
+                              data-testid="public-switch"
+                            />
+                          }
                         />
-                      </div>
-                    }
+                      </span>
+                    </Tooltip>
+                  )}
+                </>
+              )}
+            </Box>
+
+            {/* Right: Actions (Unsaved changes / Save / Discard OR Edit a copy, and AddFamilyButton) */}
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: 1.5,
+              }}
+            >
+              {family && canEdit && family.isModified && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                  }}
+                  data-testid="unsaved-changes-bar"
+                >
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: "error.main",
+                      fontWeight: 500,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 0.5,
+                    }}
                   >
-                    <TreeItem
-                      itemId={`${family.id};${DataViewSelection.GeneralInfo}`}
-                      label={`General Info`}
-                      aria-label="Edit General Family Information"
-                      data-testid={`${family.id}-info-tree-button`}
-                    />
-                    <TreeItem
-                      itemId={`${family.id};${DataViewSelection.Species}`}
-                      label={
-                        <>
-                          Species ({family.species.length})
-                          {sectionProblems(family, problemCounts.species)}
-                        </>
-                      }
-                      aria-label="Open Species Editor"
-                      data-testid={`${family.id}-species-tree-button`}
-                    />
-                    <TreeItem
-                      itemId={`${family.id};${DataViewSelection.Reactions}`}
-                      label={
-                        <>
-                          Reactions ({family.reactions.length})
-                          {sectionProblems(family, problemCounts.reaction)}
-                        </>
-                      }
-                      aria-label="Open Reactions Editor"
-                      data-testid={`${family.id}-reactions-tree-button`}
-                    />
-                    <TreeItem
-                      itemId={`${family.id};${DataViewSelection.Phases}`}
-                      label={
-                        <>
-                          Phases ({family.phases.length})
-                          {sectionProblems(family, problemCounts.phase)}
-                        </>
-                      }
-                      aria-label="Open Phase Editor"
-                      data-testid={`${family.id}-phases-tree-button`}
-                    />
-                    <TreeItem
-                      itemId={`${family.id};${DataViewSelection.Mechanisms}`}
-                      label={
-                        <>
-                          Mechanisms ({family.mechanisms.length})
-                          {sectionProblems(family, mechanismsWithProblems)}
-                        </>
-                      }
-                      data-testid={`${family.id}-mechanisms-tree-button`}
-                    />
-                  </FamilyTreeItem>
-                ))}
-            </SimpleTreeView>
+                    <Box
+                      component="span"
+                      sx={{ fontSize: "1.2rem", lineHeight: 0 }}
+                    >
+                      •
+                    </Box>{" "}
+                    Unsaved changes
+                  </Typography>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    color="inherit"
+                    onClick={handleDiscardChanges}
+                    data-testid="discard-changes-button"
+                    sx={{ textTransform: "none", minWidth: 70 }}
+                  >
+                    Discard
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="contained"
+                    color="primary"
+                    onClick={() => void handleSaveChanges()}
+                    data-testid="save-changes-button"
+                    sx={{ textTransform: "none", minWidth: 70 }}
+                  >
+                    Save
+                  </Button>
+                </Box>
+              )}
+
+              {family && !canEdit && (
+                <Button
+                  color="primary"
+                  variant="contained"
+                  size="small"
+                  onClick={handleEditCopy}
+                  data-testid="banner-edit-copy-button"
+                  sx={{ textTransform: "none", fontWeight: 600 }}
+                >
+                  Edit a copy
+                </Button>
+              )}
+            </Box>
+          </Box>
+
+          {/* Read-Only Viewing Banner across the top if !canEdit */}
+          {family && !canEdit && (
+            <Alert
+              severity="info"
+              sx={{
+                mt: 1.5,
+                bgcolor: (theme) => alpha(theme.palette.info.main, 0.1),
+                color: "text.primary",
+                py: 0.5,
+                px: 2,
+                "& .MuiAlert-icon": { display: "none" },
+              }}
+              data-testid="readonly-viewing-banner"
+            >
+              You are viewing {family.owner?.username || "another user"}&apos;s
+              family. Edit a copy to change it.
+            </Alert>
           )}
-        </div>
-        <div className="family-view">
-          <FamilyValidationProvider value={{ ...validation, openSection }}>
-            {dataView}
-          </FamilyValidationProvider>
-        </div>
+
+          {/* Guest Draft Banner across the top if !family.isInDatabase */}
+          {family && !family.isInDatabase && (
+            <Alert
+              severity="warning"
+              sx={{
+                mt: 1.5,
+                py: 0.5,
+                px: 2,
+              }}
+              action={
+                user ? (
+                  <Button
+                    color="primary"
+                    variant="contained"
+                    size="small"
+                    onClick={handleSaveDraftToAccount}
+                    data-testid="save-draft-to-account-button"
+                    sx={{ textTransform: "none" }}
+                  >
+                    Save to account
+                  </Button>
+                ) : (
+                  <Button
+                    color="inherit"
+                    size="small"
+                    onClick={() => {
+                      localStorage.removeItem("user");
+                      window.location.assign(`${AUTH_URL}/google/login`);
+                    }}
+                    sx={{ textTransform: "none" }}
+                  >
+                    Sign in
+                  </Button>
+                )
+              }
+              data-testid="guest-draft-banner"
+            >
+              {user
+                ? "This draft stays only in this browser. Save it to your account to keep it permanently."
+                : "This draft stays only in this browser. After sign-in, one click saves the draft to your account."}
+            </Alert>
+          )}
+
+          {/* In-page Error and Success Alerts */}
+          {inPageError && (
+            <Alert
+              severity="error"
+              onClose={() => setInPageError(null)}
+              sx={{ mt: 1.5 }}
+              data-testid="in-page-error-alert"
+            >
+              {inPageError}
+            </Alert>
+          )}
+          {inPageSuccess && (
+            <Alert
+              severity="success"
+              onClose={() => setInPageSuccess(null)}
+              sx={{ mt: 1.5 }}
+              data-testid="in-page-success-alert"
+            >
+              {inPageSuccess}
+            </Alert>
+          )}
+        </Box>
+
+        {/* Lower Body: Left Sidebar + Main Content */}
+        {!family ? (
+          <Box sx={{ textAlign: "center", py: 8, flex: 1 }}>
+            <Typography variant="h5" color="text.secondary" sx={{ mb: 2 }}>
+              No family is currently selected.
+            </Typography>
+            <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => navigate("/")}
+              >
+                Browse Families
+              </Button>
+            </Box>
+          </Box>
+        ) : (
+          <Box className="family-editor-body">
+            {/* Left Sidebar */}
+            <Box
+              className="family-editor-sidebar"
+              sx={{
+                borderColor: "divider",
+                bgcolor: "background.paper",
+              }}
+            >
+              <Box sx={{ flex: 1, minHeight: 0 }}>
+                {/* FAMILY Section Header */}
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: "text.secondary",
+                    fontWeight: 700,
+                    fontSize: "0.75rem",
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    px: 1,
+                    mb: 0.5,
+                    display: "block",
+                  }}
+                >
+                  FAMILY
+                </Typography>
+
+                {/* General Info */}
+                <SidebarItem
+                  label="General Info"
+                  isSelected={selectedView.type === "general"}
+                  onClick={() => {
+                    setSelectedView({ type: "general" });
+                  }}
+                  testId="family-info-tab"
+                />
+
+                {/* Reactions */}
+                <SidebarItem
+                  label="Reactions"
+                  count={family.reactions.length}
+                  problemCount={problemCounts.reaction}
+                  isSelected={selectedView.type === "reactions"}
+                  onClick={() => {
+                    setSelectedView({ type: "reactions" });
+                  }}
+                  testId="family-reactions-tab"
+                />
+
+                {/* Species */}
+                <SidebarItem
+                  label="Species"
+                  count={family.species.length}
+                  problemCount={problemCounts.species}
+                  isSelected={selectedView.type === "species"}
+                  onClick={() => {
+                    setSelectedView({ type: "species" });
+                  }}
+                  testId="family-species-tab"
+                />
+
+                {/* Phases */}
+                <SidebarItem
+                  label="Phases"
+                  count={family.phases.length}
+                  problemCount={problemCounts.phase}
+                  isSelected={selectedView.type === "phases"}
+                  onClick={() => {
+                    setSelectedView({ type: "phases" });
+                  }}
+                  testId="family-phases-tab"
+                />
+
+                {/* MECHANISM Section Header */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    mt: 3,
+                    mb: 0.5,
+                    px: 1,
+                  }}
+                  data-testid="family-mechanisms-tab"
+                >
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: "text.secondary",
+                      fontWeight: 700,
+                      fontSize: "0.75rem",
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    MECHANISM
+                  </Typography>
+                  {!canEdit ? null : (
+                    <Tooltip title="Create a new mechanism">
+                      <IconButton
+                        size="small"
+                        aria-label="Create a new mechanism"
+                        data-testid="create-mechanism-button"
+                        onClick={() => setMechanismCreationModalOpen(true)}
+                        sx={{ p: 0.25 }}
+                      >
+                        <AddIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                </Box>
+
+                {/* Mechanisms list */}
+                {family.mechanisms.length === 0 ? (
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ px: 1, py: 1, display: "block" }}
+                  >
+                    No mechanisms yet
+                  </Typography>
+                ) : (
+                  family.mechanisms.map((mech) => {
+                    const reactionCount = mech.reactionIds?.length ?? 0;
+                    const issuesForMech = validation.issues.filter(
+                      (i) => i.mechanismId === mech.id,
+                    ).length;
+                    const isSelected =
+                      selectedView.type === "mechanism" &&
+                      selectedView.mechanismId === mech.id;
+
+                    return (
+                      <SidebarItem
+                        key={mech.id}
+                        label={mech.name || "<No Name>"}
+                        count={reactionCount}
+                        problemCount={issuesForMech}
+                        isSelected={isSelected}
+                        onClick={() => {
+                          setSelectedView({
+                            type: "mechanism",
+                            mechanismId: mech.id as UUID,
+                          });
+                        }}
+                        testId={`mechanism-item-${mech.id}`}
+                      />
+                    );
+                  })
+                )}
+              </Box>
+            </Box>
+
+            {/* Main Content Area */}
+            <Box className="family-editor-main">
+              <FamilyValidationProvider value={{ ...validation, openSection }}>
+                {selectedView.type === "general" && (
+                  <GeneralInfoView
+                    family={family}
+                    updateFamily={updateFamily}
+                    readOnly={!canEdit}
+                    onPublish={handleSaveDraftToAccount}
+                    onDelete={confirmDeleteFamily}
+                    onChangeVisibility={(isPublic) => {
+                      if (isPublic) {
+                        handleTogglePublicSwitch();
+                      } else {
+                        saveFamilyChanges({
+                          ...family,
+                          isPublic: false,
+                          isModified: true,
+                        }).then((saved) => {
+                          setFamily(saved);
+                          setOriginalFamily(structuredClone(saved));
+                        });
+                      }
+                    }}
+                  />
+                )}
+                {selectedView.type === "reactions" && (
+                  <ReactionsView
+                    family={family}
+                    updateFamily={updateFamily}
+                    readOnly={!canEdit}
+                  />
+                )}
+                {selectedView.type === "species" && (
+                  <SpeciesView
+                    family={family}
+                    updateFamily={updateFamily}
+                    readOnly={!canEdit}
+                  />
+                )}
+                {selectedView.type === "phases" && (
+                  <PhaseView
+                    family={family}
+                    updateFamily={updateFamily}
+                    readOnly={!canEdit}
+                  />
+                )}
+                {selectedView.type === "mechanism" &&
+                  (currentMechanism ? (
+                    <MechanismEditor
+                      family={family}
+                      mechanism={currentMechanism}
+                      updateMechanism={handleUpdateMechanism}
+                      onDeleteMechanism={handleDeleteMechanism}
+                      readOnly={!canEdit}
+                    />
+                  ) : (
+                    <Box sx={{ py: 4, textAlign: "center" }}>
+                      <Typography color="text.secondary">
+                        Mechanism not found.
+                      </Typography>
+                    </Box>
+                  ))}
+              </FamilyValidationProvider>
+            </Box>
+          </Box>
+        )}
       </Paper>
+
       <footer>
         <Footer />
       </footer>
-      <FamilyCreationModal
-        open={familyCreationModalOpen}
-        onClose={() => setFamilyCreationModalOpen(false)}
-        onSubmit={createFamily}
+
+      {/* Modals */}
+      <MechanismCreationModal
+        open={mechanismCreationModalOpen}
+        familyId={family?.id ?? ("" as UUID)}
+        onClose={() => setMechanismCreationModalOpen(false)}
+        onSubmit={handleCreateMechanism}
       />
-      <ImportFamilyModal
-        open={openImportMenu}
-        onClose={() => setOpenImportMenu(false)}
-        onSubmit={createFamily}
+
+      <ValidationErrorsModal
+        open={validationErrors.length > 0}
+        onClose={() => setValidationErrors([])}
+        message="Fix these problems before making this family public:"
+        family={family ?? ({} as Family)}
+        errors={validationErrors}
       />
+
+      <ConfirmActionModal
+        open={openMakePublicModal}
+        message="Make Family Public?"
+        subtitle="Making this family public allows anyone to view and clone it. Are you sure you want to proceed?"
+        onClose={() => setOpenMakePublicModal(false)}
+        onAction={() => void confirmMakePublic()}
+        confirmLabel="Make Public"
+        confirmColor="primary"
+      />
+
       {loading && (
         <CircularProgress
           sx={{
-            position: "absolute",
-            top: "50vh",
+            position: "fixed",
+            top: "50%",
             left: "50%",
+            transform: "translate(-50%, -50%)",
+            zIndex: 9999,
           }}
-          size="5em"
+          size="4rem"
         />
       )}
     </div>
   );
 };
 
-type AddFamilyButtonProps = {
-  handleCreateButtonClick: () => void;
-  handleImportButtonClick: () => void;
-};
+interface SidebarItemProps {
+  label: string;
+  count?: number;
+  problemCount?: number;
+  isSelected: boolean;
+  onClick: () => void;
+  testId?: string;
+  ariaLabel?: string;
+}
 
-export const AddFamilyButton: React.FC<AddFamilyButtonProps> = ({
-  handleCreateButtonClick,
-  handleImportButtonClick,
-}) => {
-  const [open, setOpen] = useState<boolean>(false);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-
-  const handleMenuOpen = (event: MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
-    setOpen(true);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-    setOpen(false);
-  };
-
-  return (
-    <>
-      <Tooltip title="Add Family">
-        <IconButton
-          aria-label="Add a family to the editor"
-          id="add-family-button"
-          data-testid="add-family-button"
-          onClick={handleMenuOpen}
-        >
-          <AddIcon color="primary" sx={{ fontSize: 32, fontWeight: "bold" }} />
-        </IconButton>
-      </Tooltip>
-      <Menu open={open} anchorEl={anchorEl} onClose={handleMenuClose}>
-        <MenuItem
-          aria-label="Create a new family"
-          data-testid="create-family-button"
-          onClick={() => {
-            handleCreateButtonClick();
-            setOpen(false);
-          }}
-        >
-          <ListItemIcon>
-            <AddIcon color="primary" />
-          </ListItemIcon>
-          <Typography>New</Typography>
-        </MenuItem>
-        <MenuItem
-          aria-label="Import a family from a file"
-          data-testid="import-family-button"
-          onClick={() => {
-            handleImportButtonClick();
-            setOpen(false);
-          }}
-        >
-          <ListItemIcon>
-            <FileUploadIcon color="secondary" />
-          </ListItemIcon>
-          <Typography>Import</Typography>
-        </MenuItem>
-      </Menu>
-    </>
-  );
-};
-
-type RemoveFamilyButtonProps = {
-  changesMade: boolean;
-  onClick: () => any;
-  "aria-label"?: string;
-};
-
-/**
- * Used for removing a family from the editor. Also displays when family has been edited
- */
-const RemoveFamilyButton: React.FC<RemoveFamilyButtonProps> = ({
-  changesMade,
+const SidebarItem: React.FC<SidebarItemProps> = ({
+  label,
+  count,
+  problemCount,
+  isSelected,
   onClick,
-  "aria-label": ariaLabel,
+  testId,
+  ariaLabel,
 }) => {
-  const [hovering, setHovering] = useState<boolean>(false);
-
-  return (
-    <Tooltip
-      title={"Remove this family from the editor"}
-      placement="bottom-start"
-      arrow
-      disableInteractive
-    >
-      <IconButton
-        onClick={onClick}
-        onMouseEnter={() => setHovering(true)}
-        onMouseLeave={() => setHovering(false)}
-        aria-label={ariaLabel}
-      >
-        {changesMade && !hovering ? <CircleIcon /> : <CloseIcon />}
-      </IconButton>
-    </Tooltip>
-  );
-};
-
-const FamilyTreeItem = styled(TreeItem)(({ theme }) => ({
-  [`& .${treeItemClasses.content}`]: {
-    padding: theme.spacing(1.0, 1),
-    margin: theme.spacing(0.2, 0),
-  },
-  [`& .${treeItemClasses.iconContainer}`]: {
-    "& .close": {
-      opacity: 0.3,
-    },
-  },
-  [`& .${treeItemClasses.groupTransition}`]: {
-    marginLeft: 15,
-    paddingLeft: 18,
-    borderLeft: `2px solid ${alpha(theme.palette.primary.main, 0.4)}`,
-  },
-}));
-
-const DefaultView = function DefaultView() {
   return (
     <Box
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      data-testid={testId}
+      aria-label={ariaLabel || label}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
       sx={{
         display: "flex",
-        flexDirection: "column",
-        height: "100%",
+        alignItems: "center",
+        justifyContent: "space-between",
+        py: 0.75,
+        px: 1.5,
+        my: 0.35,
+        borderRadius: "8px",
+        cursor: "pointer",
+        border: "1px solid",
+        borderColor: (theme) =>
+          isSelected
+            ? theme.palette.mode === "dark"
+              ? "grey.500"
+              : "grey.800"
+            : "transparent",
+        bgcolor: isSelected
+          ? (theme) => alpha(theme.palette.text.primary, 0.06)
+          : "transparent",
+        "&:hover": {
+          bgcolor: isSelected
+            ? (theme) => alpha(theme.palette.text.primary, 0.1)
+            : "action.hover",
+        },
+        transition: "all 0.15s ease",
       }}
     >
-      <Typography sx={{ paddingTop: "0.5em" }} color="textPrimary" variant="h4">
-        No Family Selected
-      </Typography>
-      <Typography color="textSecondary" variant="h6">
-        Select or Create a family to get started
-      </Typography>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 0.75,
+          minWidth: 0,
+          pr: 1,
+        }}
+      >
+        <Typography
+          variant="body2"
+          noWrap
+          sx={{
+            fontWeight: isSelected ? 600 : 400,
+            color: "text.primary",
+            fontSize: "0.92rem",
+          }}
+        >
+          {label}
+        </Typography>
+        {Boolean(problemCount && problemCount > 0) && (
+          <ProblemCount count={problemCount!} />
+        )}
+      </Box>
+      {count !== undefined && (
+        <Typography
+          variant="body2"
+          sx={{
+            color: "text.secondary",
+            fontSize: "0.9rem",
+            fontWeight: 500,
+            flexShrink: 0,
+          }}
+        >
+          {count}
+        </Typography>
+      )}
     </Box>
   );
 };
@@ -704,6 +1223,7 @@ export {
   PhaseView,
   ReactionsView,
   SpeciesView,
+  ContributorsView,
 };
 
-export default FamilyPage;
+export default FamilyEditor;
