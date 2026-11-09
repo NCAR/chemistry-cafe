@@ -354,7 +354,7 @@ export const Dashboard: React.FC = () => {
         mode: canEdit ? "editing" : "viewing",
       }),
     );
-    navigate("/familyeditor");
+    navigate("/editor");
   };
 
   // Clone Family into draft and open in editor
@@ -374,7 +374,7 @@ export const Dashboard: React.FC = () => {
             mode: "editing",
           }),
         );
-        navigate("/familyeditor");
+        navigate("/editor");
         return;
       } catch (err) {
         console.error("Failed to upload cloned family:", err);
@@ -391,7 +391,7 @@ export const Dashboard: React.FC = () => {
         mode: "editing",
       }),
     );
-    navigate("/familyeditor");
+    navigate("/editor");
   };
 
   // Active filters count and list for chips
@@ -792,7 +792,7 @@ export const Dashboard: React.FC = () => {
               mode: "editing",
             }),
           );
-          navigate("/familyeditor");
+          navigate("/editor");
         }}
       />
 
@@ -813,7 +813,7 @@ export const Dashboard: React.FC = () => {
               mode: "editing",
             }),
           );
-          navigate("/familyeditor");
+          navigate("/editor");
         }}
       />
 

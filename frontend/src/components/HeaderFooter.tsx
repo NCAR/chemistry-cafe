@@ -75,7 +75,7 @@ export const Header: React.FC<HeaderProps> = ({ editorMode, familyName }) => {
   const location = useLocation();
   const isBrowseActive =
     location.pathname === "/" || location.pathname === "/dashboard";
-  const isEditorActive = location.pathname.startsWith("/familyeditor");
+  const isEditorActive = location.pathname.startsWith("/editor");
 
   const navButtonSx = (isActive: boolean) => ({
     textTransform: "none",
@@ -154,7 +154,7 @@ export const Header: React.FC<HeaderProps> = ({ editorMode, familyName }) => {
             {hasActiveFamilyInEditor ? (
               <Button
                 component={Link}
-                to="/familyeditor"
+                to="/editor"
                 data-testid="header-editor-title"
                 sx={{
                   ...navButtonSx(isEditorActive),
@@ -213,7 +213,7 @@ export const Header: React.FC<HeaderProps> = ({ editorMode, familyName }) => {
             {hasActiveFamilyInEditor ? (
               <MenuItem
                 component={Link}
-                to="/familyeditor"
+                to="/editor"
                 onClick={closeMobileMenu}
                 selected={isEditorActive}
               >

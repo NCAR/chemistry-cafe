@@ -56,7 +56,6 @@ import {
   validateFamily,
   ValidationIssue,
 } from "../helpers/validationIssues";
-import { AUTH_URL } from "../API/API_config";
 
 export type ActiveView =
   | { type: "general" }
@@ -764,49 +763,6 @@ const FamilyEditor = () => {
             >
               You are viewing {family.owner?.username || "another user"}&apos;s
               family. Edit a copy to change it.
-            </Alert>
-          )}
-
-          {/* Guest Draft Banner across the top if !family.isInDatabase */}
-          {family && !family.isInDatabase && (
-            <Alert
-              severity="warning"
-              sx={{
-                mt: 1.5,
-                py: 0.5,
-                px: 2,
-              }}
-              action={
-                user ? (
-                  <Button
-                    color="primary"
-                    variant="contained"
-                    size="small"
-                    onClick={handleSaveDraftToAccount}
-                    data-testid="save-draft-to-account-button"
-                    sx={{ textTransform: "none" }}
-                  >
-                    Save to account
-                  </Button>
-                ) : (
-                  <Button
-                    color="inherit"
-                    size="small"
-                    onClick={() => {
-                      localStorage.removeItem("user");
-                      window.location.assign(`${AUTH_URL}/google/login`);
-                    }}
-                    sx={{ textTransform: "none" }}
-                  >
-                    Sign in
-                  </Button>
-                )
-              }
-              data-testid="guest-draft-banner"
-            >
-              {user
-                ? "This draft stays only in this browser. Save it to your account to keep it permanently."
-                : "This draft stays only in this browser. After sign-in, one click saves the draft to your account."}
             </Alert>
           )}
 

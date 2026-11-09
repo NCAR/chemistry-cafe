@@ -492,7 +492,7 @@ describe("FamilyEditor - Read-Only Viewing Mode", () => {
     render(
       <AuthProvider>
         <CustomThemeProvider>
-          <MemoryRouter initialEntries={["/familyeditor"]}>
+          <MemoryRouter initialEntries={["/editor"]}>
             <FamilyEditor />
           </MemoryRouter>
         </CustomThemeProvider>
@@ -538,7 +538,7 @@ describe("FamilyEditor - Read-Only Viewing Mode", () => {
     render(
       <AuthProvider>
         <CustomThemeProvider>
-          <MemoryRouter initialEntries={["/familyeditor"]}>
+          <MemoryRouter initialEntries={["/editor"]}>
             <FamilyEditor />
           </MemoryRouter>
         </CustomThemeProvider>
@@ -610,11 +610,11 @@ describe("FamilyEditor - Browser Draft Mode", () => {
     cleanup();
   });
 
-  it("Renders draft banner and allows saving draft to user account", async () => {
+  it("Renders draft status chip without redundant banner and allows saving draft to user account", async () => {
     render(
       <AuthProvider>
         <CustomThemeProvider>
-          <MemoryRouter initialEntries={["/familyeditor"]}>
+          <MemoryRouter initialEntries={["/editor"]}>
             <FamilyEditor />
           </MemoryRouter>
         </CustomThemeProvider>
@@ -623,8 +623,8 @@ describe("FamilyEditor - Browser Draft Mode", () => {
 
     await waitFor(() => {
       expect(screen.getByTestId("status-chip-draft")).toBeTruthy();
-      expect(screen.getByTestId("guest-draft-banner")).toBeTruthy();
-      expect(screen.getByTestId("save-draft-to-account-button")).toBeTruthy();
+      expect(screen.queryByTestId("guest-draft-banner")).toBeNull();
+      expect(screen.getByText("Upload Family")).toBeTruthy();
     });
 
     vi.spyOn(backendInteractions, "uploadFamily").mockResolvedValueOnce({
@@ -637,7 +637,13 @@ describe("FamilyEditor - Browser Draft Mode", () => {
       },
     } as any);
 
-    fireEvent.click(screen.getByTestId("save-draft-to-account-button"));
+    fireEvent.click(screen.getByText("Upload Family"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("confirm-action")).toBeTruthy();
+    });
+
+    fireEvent.click(screen.getByTestId("confirm-action"));
 
     await waitFor(() => {
       expect(screen.getByTestId("in-page-success-alert")).toBeTruthy();
@@ -651,7 +657,7 @@ describe("FamilyEditor - Browser Draft Mode", () => {
     render(
       <AuthProvider>
         <CustomThemeProvider>
-          <MemoryRouter initialEntries={["/familyeditor"]}>
+          <MemoryRouter initialEntries={["/editor"]}>
             <FamilyEditor />
           </MemoryRouter>
         </CustomThemeProvider>
@@ -695,7 +701,7 @@ describe("FamilyEditor - Helpers and Empty State", () => {
     render(
       <AuthProvider>
         <CustomThemeProvider>
-          <MemoryRouter initialEntries={["/familyeditor"]}>
+          <MemoryRouter initialEntries={["/editor"]}>
             <FamilyEditor />
           </MemoryRouter>
         </CustomThemeProvider>
@@ -747,7 +753,7 @@ describe("FamilyEditor - Helpers and Empty State", () => {
     render(
       <AuthProvider>
         <CustomThemeProvider>
-          <MemoryRouter initialEntries={["/familyeditor"]}>
+          <MemoryRouter initialEntries={["/editor"]}>
             <FamilyEditor />
           </MemoryRouter>
         </CustomThemeProvider>

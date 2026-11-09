@@ -9,7 +9,7 @@ describe("App Component", () => {
   const routes = [
     ["/", "Browse Families & Mechanisms"],
     ["/dashboard", "Browse Families & Mechanisms"],
-    ["/familyeditor", "Families"],
+    ["/editor", "Families"],
     ["/settings", "Appearance"],
   ];
   it.each(routes)(
