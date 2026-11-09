@@ -170,6 +170,15 @@ export type Mechanism = {
 
   /** Optional, additional properties for the mechanisms which are not defined in the mechanism configuration schema but can be queried for in musica */
   otherProperties?: Record<string, unknown>;
+
+  /** Indicates whether the mechanism is verified */
+  verified?: boolean;
+
+  /** Date when the mechanism was verified (ISO string) */
+  verifiedDate?: string | null;
+
+  /** Name or username of the verifier */
+  verifiedBy?: string | null;
 };
 
 /**

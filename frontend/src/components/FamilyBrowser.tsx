@@ -42,24 +42,9 @@ export function getMechanismVerification(mechanism: Mechanism): {
   verifiedDate?: string;
   verifiedBy?: string;
 } {
-  const props = mechanism.otherProperties as
-    | Record<string, unknown>
-    | undefined;
-  if (!props) {
-    return { isVerified: false };
-  }
-  const isVerified = Boolean(
-    props.verified ||
-      props.isVerified ||
-      props.verifiedDate ||
-      props.verifiedBy,
-  );
-  const verifiedDate = (props.verifiedDate ||
-    props.verified_at ||
-    props.date) as string | undefined;
-  const verifiedBy = (props.verifiedBy ||
-    props.verifier ||
-    props.verified_by) as string | undefined;
+  const isVerified = mechanism.verified ?? false
+  const verifiedDate = mechanism.verifiedDate ?? undefined;
+  const verifiedBy = mechanism.verifiedBy ?? undefined;
   return { isVerified, verifiedDate, verifiedBy };
 }
 

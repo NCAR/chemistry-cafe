@@ -49,10 +49,9 @@ const mockFamily: Family = {
       speciesIds: ["spec-1" as any],
       reactionIds: ["rxn-1" as any],
       phaseIds: [],
-      otherProperties: {
-        verified: true,
-        verifiedDate: "2026-11-04T12:00:00Z",
-      },
+      verified: true,
+      verifiedDate: "2026-11-04T12:00:00Z",
+      otherProperties: {},
     },
   ],
   isInDatabase: true,

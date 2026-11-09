@@ -60,11 +60,10 @@ const mockFamily1: APIFamily = {
       speciesIds: ["spec-1" as any, "spec-2" as any],
       reactionIds: ["rxn-1" as any],
       phaseIds: [],
-      otherProperties: {
-        verified: true,
-        verifiedDate: "2026-11-04T12:00:00Z",
-        verifiedBy: "DrVerifier",
-      },
+      verified: true,
+      verifiedDate: "2026-11-04T12:00:00Z",
+      verifiedBy: "DrVerifier",
+      otherProperties: {},
     },
   ],
 };
@@ -107,6 +106,7 @@ const mockFamily2: APIFamily = {
       speciesIds: ["spec-3" as any],
       reactionIds: ["rxn-2" as any],
       phaseIds: [],
+      verified: false,
       otherProperties: {},
     },
   ],
