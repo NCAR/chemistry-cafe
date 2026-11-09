@@ -481,7 +481,6 @@ export function apiToFrontendMechanism(apiMechanism: APIMechanism): Mechanism {
     speciesIds: apiMechanism.speciesIds,
     reactionIds: apiMechanism.reactionIds,
     phaseIds: apiMechanism.phaseIds,
-    otherProperties: apiMechanism.otherProperties,
   };
 
   return formattedMechanism;
@@ -534,7 +533,6 @@ export function apiToFrontendFamily(apiFamily: APIFamily): Family {
     isPublic: apiFamily.isPublic,
     owner: apiFamily.owner,
     contributorIds: apiFamily.contributorIds ?? [],
-    contributors: apiFamily.contributors ?? [],
     mechanisms: apiFamily.mechanisms.map((e) => apiToFrontendMechanism(e)),
     species: apiFamily.species.map((e) => apiToFrontendSpecies(e)),
     reactions: apiFamily.reactions.map((e) => apiToFrontendReaction(e)),
@@ -569,7 +567,6 @@ export function frontendToAPIFamily(
     isPublic: family.isPublic ?? false,
     owner: family.owner,
     contributorIds: family.contributorIds ?? [],
-    contributors: family.contributors ?? [],
     species: expand ? family.species.map((e) => frontendToAPISpecies(e)) : [],
     reactions: expand
       ? family.reactions.map((e) => frontendToAPIReaction(e))
