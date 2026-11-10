@@ -26,6 +26,8 @@ public partial class ChemistryDbContext : DbContext
     public virtual DbSet<Product> Products { get; set; }
     public virtual DbSet<FamilyContributor> FamilyContributors { get; set; }
     public virtual DbSet<VerifiedMechanismVersion> VerifiedMechanismVersions { get; set; }
+    public virtual DbSet<ChangeSet> ChangeSets { get; set; }
+    public virtual DbSet<ChangeEntry> ChangeEntries { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -316,6 +318,40 @@ public partial class ChemistryDbContext : DbContext
             .WithMany()
             .HasForeignKey(v => v.ArchivedById)
             .OnDelete(DeleteBehavior.SetNull);
+
+        // Configure ChangeSet
+        modelBuilder.Entity<ChangeSet>()
+            .HasOne(cs => cs.Family)
+            .WithMany()
+            .HasForeignKey(cs => cs.FamilyId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ChangeSet>()
+            .HasOne(cs => cs.User)
+            .WithMany()
+            .HasForeignKey(cs => cs.UserId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<ChangeSet>()
+            .HasIndex(cs => new { cs.FamilyId, cs.Timestamp });
+
+        // Configure ChangeEntry
+        modelBuilder.Entity<ChangeEntry>()
+            .HasOne(ce => ce.ChangeSet)
+            .WithMany(cs => cs.Entries)
+            .HasForeignKey(ce => ce.ChangeSetId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ChangeEntry>()
+            .Property(ce => ce.TargetType)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<ChangeEntry>()
+            .Property(ce => ce.Action)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<ChangeEntry>()
+            .HasIndex(ce => new { ce.TargetType, ce.TargetId });
     }
 
     /// <summary>

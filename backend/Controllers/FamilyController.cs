@@ -355,5 +355,48 @@ namespace ChemistryCafeAPI.Controllers
                 _ => Ok(result),
             };
         }
+
+        [HttpGet("{id}/history")]
+        public async Task<ActionResult<IEnumerable<ChangeSetDto>>> GetFamilyHistory(
+            Guid id,
+            [FromQuery] ChangeTargetType? targetType = null,
+            [FromQuery] Guid? targetId = null)
+        {
+            string? nameIdentifier = GetNameIdentifier();
+            if (nameIdentifier == null)
+            {
+                return Unauthorized("User is not authenticated");
+            }
+
+            var (code, history) = await familyService.GetFamilyHistoryAsync(id, nameIdentifier, targetType, targetId);
+            return code switch
+            {
+                QueryResult.NotFound => NotFound("Family not found"),
+                QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden, "Only the owner, contributors, and admins can view family history."),
+                _ => Ok(history)
+            };
+        }
+
+        [HttpGet("history")]
+        public async Task<ActionResult<IEnumerable<ChangeSetDto>>> GetGlobalHistory(
+            [FromQuery] Guid? familyId = null,
+            [FromQuery] Guid? userId = null,
+            [FromQuery] ChangeTargetType? targetType = null,
+            [FromQuery] Guid? targetId = null,
+            [FromQuery] int limit = 100)
+        {
+            string? nameIdentifier = GetNameIdentifier();
+            if (nameIdentifier == null)
+            {
+                return Unauthorized("User is not authenticated");
+            }
+
+            var (code, history) = await familyService.GetGlobalHistoryAsync(nameIdentifier, familyId, userId, targetType, targetId, limit);
+            return code switch
+            {
+                QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden, "Only admins can view global history."),
+                _ => Ok(history)
+            };
+        }
     }
 }

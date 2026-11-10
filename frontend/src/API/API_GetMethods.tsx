@@ -13,6 +13,7 @@ import {
 } from "./API_Interfaces";
 import { BASE_URL } from "./API_config";
 import { UUID } from "crypto";
+import { ChangeSet } from "../types/chemistryModels";
 
 // Get all users
 export async function getAllUsers(): Promise<APIUser[]> {
@@ -133,6 +134,51 @@ export async function getAllFamilies(
 ): Promise<Array<APIFamily>> {
   const response = await axios.get<Array<APIFamily>>(
     encodeURI(`${BASE_URL}/families${urlParameters ?? ""}`),
+    {
+      withCredentials: true,
+    },
+  );
+
+  return response.data;
+}
+
+export async function getFamilyHistory(
+  familyId: UUID,
+  targetType?: string,
+  targetId?: UUID,
+): Promise<Array<ChangeSet>> {
+  const params = new URLSearchParams();
+  if (targetType) params.append("targetType", targetType);
+  if (targetId) params.append("targetId", targetId);
+
+  const query = params.toString() ? `?${params.toString()}` : "";
+  const response = await axios.get<Array<ChangeSet>>(
+    `${BASE_URL}/families/${familyId}/history${query}`,
+    {
+      withCredentials: true,
+    },
+  );
+
+  return response.data;
+}
+
+export async function getGlobalHistory(
+  familyId?: UUID,
+  userId?: UUID,
+  targetType?: string,
+  targetId?: UUID,
+  limit: number = 100,
+): Promise<Array<ChangeSet>> {
+  const params = new URLSearchParams();
+  if (familyId) params.append("familyId", familyId);
+  if (userId) params.append("userId", userId);
+  if (targetType) params.append("targetType", targetType);
+  if (targetId) params.append("targetId", targetId);
+  if (limit) params.append("limit", limit.toString());
+
+  const query = params.toString() ? `?${params.toString()}` : "";
+  const response = await axios.get<Array<ChangeSet>>(
+    `${BASE_URL}/families/history${query}`,
     {
       withCredentials: true,
     },

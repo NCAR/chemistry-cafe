@@ -2203,3 +2203,126 @@ DROP PROCEDURE MigrationsScript;
 
 COMMIT;
 
+START TRANSACTION;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261110214337_AddChangeTracking') THEN
+
+    CREATE TABLE `ChangeSets` (
+        `Id` char(36) COLLATE ascii_general_ci NOT NULL,
+        `FamilyId` char(36) COLLATE ascii_general_ci NOT NULL,
+        `UserId` char(36) COLLATE ascii_general_ci NULL,
+        `Timestamp` datetime(6) NOT NULL,
+        `Note` longtext CHARACTER SET utf8mb4 NULL,
+        CONSTRAINT `PK_ChangeSets` PRIMARY KEY (`Id`),
+        CONSTRAINT `FK_ChangeSets_Families_FamilyId` FOREIGN KEY (`FamilyId`) REFERENCES `Families` (`Id`) ON DELETE CASCADE,
+        CONSTRAINT `FK_ChangeSets_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE SET NULL
+    ) CHARACTER SET=utf8mb4;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261110214337_AddChangeTracking') THEN
+
+    CREATE TABLE `ChangeEntries` (
+        `Id` char(36) COLLATE ascii_general_ci NOT NULL,
+        `ChangeSetId` char(36) COLLATE ascii_general_ci NOT NULL,
+        `TargetType` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+        `TargetId` char(36) COLLATE ascii_general_ci NOT NULL,
+        `TargetName` longtext CHARACTER SET utf8mb4 NOT NULL,
+        `Action` longtext CHARACTER SET utf8mb4 NOT NULL,
+        `Before` longtext CHARACTER SET utf8mb4 NULL,
+        `After` longtext CHARACTER SET utf8mb4 NULL,
+        CONSTRAINT `PK_ChangeEntries` PRIMARY KEY (`Id`),
+        CONSTRAINT `FK_ChangeEntries_ChangeSets_ChangeSetId` FOREIGN KEY (`ChangeSetId`) REFERENCES `ChangeSets` (`Id`) ON DELETE CASCADE
+    ) CHARACTER SET=utf8mb4;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261110214337_AddChangeTracking') THEN
+
+    CREATE INDEX `IX_ChangeEntries_ChangeSetId` ON `ChangeEntries` (`ChangeSetId`);
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261110214337_AddChangeTracking') THEN
+
+    CREATE INDEX `IX_ChangeEntries_TargetType_TargetId` ON `ChangeEntries` (`TargetType`, `TargetId`);
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261110214337_AddChangeTracking') THEN
+
+    CREATE INDEX `IX_ChangeSets_FamilyId_Timestamp` ON `ChangeSets` (`FamilyId`, `Timestamp`);
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261110214337_AddChangeTracking') THEN
+
+    CREATE INDEX `IX_ChangeSets_UserId` ON `ChangeSets` (`UserId`);
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261110214337_AddChangeTracking') THEN
+
+    INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+    VALUES ('20261110214337_AddChangeTracking', '8.0.10');
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+COMMIT;
+

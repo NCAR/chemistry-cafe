@@ -328,6 +328,36 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             return QueryResult.NoAccess;
         }
 
+        bool familyPropsChanged = existingFamily.Name != family.Name
+            || existingFamily.Description != family.Description
+            || ((isOwner || isAdmin) && existingFamily.IsPublic != family.IsPublic);
+
+        var changeEntries = new List<ChangeEntry>();
+
+        if (familyPropsChanged)
+        {
+            changeEntries.Add(new ChangeEntry
+            {
+                Id = Guid.NewGuid(),
+                TargetType = ChangeTargetType.Family,
+                TargetId = existingFamily.Id,
+                TargetName = existingFamily.Name,
+                Action = ChangeAction.Updated,
+                Before = JsonSerializer.Serialize(new
+                {
+                    name = existingFamily.Name,
+                    description = existingFamily.Description,
+                    isPublic = existingFamily.IsPublic
+                }),
+                After = JsonSerializer.Serialize(new
+                {
+                    name = family.Name,
+                    description = family.Description,
+                    isPublic = (isOwner || isAdmin) ? family.IsPublic : existingFamily.IsPublic
+                })
+            });
+        }
+
         // Update the easy fields
         existingFamily.Name = family.Name;
         existingFamily.Description = family.Description;
@@ -337,7 +367,21 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         }
 
         // reconcile all of the changes in all child objects
-        TrackChangesToFamily(family, existingFamily);
+        changeEntries.AddRange(TrackChangesToFamily(family, existingFamily));
+
+        if (changeEntries.Count > 0)
+        {
+            var changeSet = new ChangeSet
+            {
+                Id = Guid.NewGuid(),
+                FamilyId = existingFamily.Id,
+                UserId = userId,
+                Timestamp = DateTime.UtcNow,
+                Note = string.IsNullOrWhiteSpace(family.SaveNote) ? null : family.SaveNote.Trim(),
+                Entries = changeEntries
+            };
+            context.ChangeSets.Add(changeSet);
+        }
 
         await context.SaveChangesAsync();
         return QueryResult.Success;
@@ -516,8 +560,9 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
     /// Find the difference between the incoming and existing family graphs
     /// Do this for each child object and make any deletionts, additions, or updates to the existing family graph
     /// </summary>
-    private void TrackChangesToFamily(FamilyDto incoming, Family existing)
+    private List<ChangeEntry> TrackChangesToFamily(FamilyDto incoming, Family existing)
     {
+        var changeEntries = new List<ChangeEntry>();
         FamilyVersion version = existing.CurrentVersion;
 
         HashSet<Guid> incomingSpeciesIds = incoming.Species.Select(s => s.Id).ToHashSet();
@@ -538,12 +583,33 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         deletedSpeciesIds.ToList().ForEach(id =>
         {
             Species s = existing.Species.Single(s => s.Id == id);
+            changeEntries.Add(new ChangeEntry
+            {
+                Id = Guid.NewGuid(),
+                TargetType = ChangeTargetType.Species,
+                TargetId = s.Id,
+                TargetName = s.Name,
+                Action = ChangeAction.Deleted,
+                Before = JsonSerializer.Serialize(s.ToDto()),
+                After = null
+            });
             context.Species.Remove(s);
             existing.Species.Remove(s);
         });
         newSpeciesIds.ToList().ForEach(id => {
-            Species added = incoming.Species.Single(s => s.Id == id).ToEntity();
+            SpeciesDto incomingSpecies = incoming.Species.Single(s => s.Id == id);
+            Species added = incomingSpecies.ToEntity();
             added.FamilyVersionId = version.Id;
+            changeEntries.Add(new ChangeEntry
+            {
+                Id = Guid.NewGuid(),
+                TargetType = ChangeTargetType.Species,
+                TargetId = added.Id,
+                TargetName = added.Name,
+                Action = ChangeAction.Added,
+                Before = null,
+                After = JsonSerializer.Serialize(incomingSpecies)
+            });
             context.Species.Add(added);
             if (!existing.Species.Contains(added))
             {
@@ -557,6 +623,16 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             if (existingSpecies.IsDifferent(incomingSpecies))
             {
                 changedSpeciesIds.Add(id);
+                changeEntries.Add(new ChangeEntry
+                {
+                    Id = Guid.NewGuid(),
+                    TargetType = ChangeTargetType.Species,
+                    TargetId = id,
+                    TargetName = incomingSpecies.Name,
+                    Action = ChangeAction.Updated,
+                    Before = JsonSerializer.Serialize(existingSpecies.ToDto()),
+                    After = JsonSerializer.Serialize(incomingSpecies)
+                });
             }
             existingSpecies.UpdateFrom(incomingSpecies);
         });
@@ -569,12 +645,33 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         deletedReactionIds.ToList().ForEach(id =>
         {
             Reaction r = existing.Reactions.Single(r => r.Id == id);
+            changeEntries.Add(new ChangeEntry
+            {
+                Id = Guid.NewGuid(),
+                TargetType = ChangeTargetType.Reaction,
+                TargetId = r.Id,
+                TargetName = !string.IsNullOrWhiteSpace(r.Name) ? r.Name : r.Id.ToString(),
+                Action = ChangeAction.Deleted,
+                Before = JsonSerializer.Serialize(r.ToDto()),
+                After = null
+            });
             context.Reactions.Remove(r);
             existing.Reactions.Remove(r);
         });
         newReactionIds.ToList().ForEach(id => {
-            Reaction added = incoming.Reactions.Single(r => r.Id == id).ToEntity();
+            ReactionDto incomingReaction = incoming.Reactions.Single(r => r.Id == id);
+            Reaction added = incomingReaction.ToEntity();
             added.FamilyVersionId = version.Id;
+            changeEntries.Add(new ChangeEntry
+            {
+                Id = Guid.NewGuid(),
+                TargetType = ChangeTargetType.Reaction,
+                TargetId = added.Id,
+                TargetName = !string.IsNullOrWhiteSpace(incomingReaction.Name) ? incomingReaction.Name : added.Id.ToString(),
+                Action = ChangeAction.Added,
+                Before = null,
+                After = JsonSerializer.Serialize(incomingReaction)
+            });
             context.Reactions.Add(added);
             if (!existing.Reactions.Contains(added))
             {
@@ -588,6 +685,16 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             if (existingReaction.IsDifferent(incomingReaction))
             {
                 changedReactionIds.Add(id);
+                changeEntries.Add(new ChangeEntry
+                {
+                    Id = Guid.NewGuid(),
+                    TargetType = ChangeTargetType.Reaction,
+                    TargetId = id,
+                    TargetName = !string.IsNullOrWhiteSpace(incomingReaction.Name) ? incomingReaction.Name : (!string.IsNullOrWhiteSpace(existingReaction.Name) ? existingReaction.Name : id.ToString()),
+                    Action = ChangeAction.Updated,
+                    Before = JsonSerializer.Serialize(existingReaction.ToDto()),
+                    After = JsonSerializer.Serialize(incomingReaction)
+                });
             }
             existingReaction.UpdateFrom(incomingReaction);
         });
@@ -600,6 +707,16 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         deletedPhaseIds.ToList().ForEach(id =>
         {
             Phase p = existing.Phases.Single(p => p.Id == id);
+            changeEntries.Add(new ChangeEntry
+            {
+                Id = Guid.NewGuid(),
+                TargetType = ChangeTargetType.Phase,
+                TargetId = p.Id,
+                TargetName = p.Name,
+                Action = ChangeAction.Deleted,
+                Before = JsonSerializer.Serialize(p.ToDto()),
+                After = null
+            });
             context.Phases.Remove(p);
             existing.Phases.Remove(p);
         });
@@ -614,6 +731,16 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
                     DiffusionCoefficient = incomingPhase.DiffusionCoefficientOf(sid),
                 })
                 .ToList();
+            changeEntries.Add(new ChangeEntry
+            {
+                Id = Guid.NewGuid(),
+                TargetType = ChangeTargetType.Phase,
+                TargetId = added.Id,
+                TargetName = incomingPhase.Name,
+                Action = ChangeAction.Added,
+                Before = null,
+                After = JsonSerializer.Serialize(incomingPhase)
+            });
             context.Phases.Add(added);
             if (!existing.Phases.Contains(added))
             {
@@ -627,6 +754,16 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             if (existingPhase.IsDifferent(incomingPhase))
             {
                 changedPhaseIds.Add(id);
+                changeEntries.Add(new ChangeEntry
+                {
+                    Id = Guid.NewGuid(),
+                    TargetType = ChangeTargetType.Phase,
+                    TargetId = id,
+                    TargetName = incomingPhase.Name,
+                    Action = ChangeAction.Updated,
+                    Before = JsonSerializer.Serialize(existingPhase.ToDto()),
+                    After = JsonSerializer.Serialize(incomingPhase)
+                });
             }
             existingPhase.UpdateFrom(incomingPhase, existing.Species, ps => context.Remove(ps));
         });
@@ -651,6 +788,16 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         HashSet<Guid> maybeUpdatedMechanismIds = existingEditableMechanismIds.Intersect(incomingEditableMechanismIds).ToHashSet();
         deletedMechanismIds.ToList().ForEach(id => {
             Mechanism m = existing.Mechanisms.Single(m => m.Id == id);
+            changeEntries.Add(new ChangeEntry
+            {
+                Id = Guid.NewGuid(),
+                TargetType = ChangeTargetType.Mechanism,
+                TargetId = m.Id,
+                TargetName = m.Name,
+                Action = ChangeAction.Deleted,
+                Before = JsonSerializer.Serialize(m.ToDto()),
+                After = null
+            });
             context.Mechanisms.Remove(m);
             existing.Mechanisms.Remove(m);
         });
@@ -665,6 +812,16 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             added.Phases = incomingMechanism.PhaseIds.Select(pid => existing.Phases.Single(p => p.Id == pid)).ToList();
             added.CreatedDate = DateTime.UtcNow;
             added.UpdatedDate = DateTime.UtcNow;
+            changeEntries.Add(new ChangeEntry
+            {
+                Id = Guid.NewGuid(),
+                TargetType = ChangeTargetType.Mechanism,
+                TargetId = added.Id,
+                TargetName = incomingMechanism.Name,
+                Action = ChangeAction.Added,
+                Before = null,
+                After = JsonSerializer.Serialize(incomingMechanism)
+            });
             context.Mechanisms.Add(added);
             if (!existing.Mechanisms.Contains(added))
             {
@@ -676,11 +833,28 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             MechanismDto incomingMechanism = incoming.Mechanisms.Single(m => m.Id == id);
             Mechanism existingMechanism = existing.Mechanisms.Single(m => m.Id == id);
 
-            bool changed = existingMechanism.IsDifferent(incomingMechanism)
+            bool isDiff = existingMechanism.IsDifferent(incomingMechanism);
+            bool changed = isDiff
                 || existingMechanism.HasDependencyChanges(incomingMechanism, changedSpeciesIds, changedReactionIds, changedPhaseIds);
+
+            if (isDiff)
+            {
+                changeEntries.Add(new ChangeEntry
+                {
+                    Id = Guid.NewGuid(),
+                    TargetType = ChangeTargetType.Mechanism,
+                    TargetId = id,
+                    TargetName = incomingMechanism.Name,
+                    Action = ChangeAction.Updated,
+                    Before = JsonSerializer.Serialize(existingMechanism.ToDto()),
+                    After = JsonSerializer.Serialize(incomingMechanism)
+                });
+            }
 
             existingMechanism.UpdateFrom(incomingMechanism, existing, changed);
         });
+
+        return changeEntries;
     }
 
     /// <summary>
@@ -1279,5 +1453,192 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         }).ToList();
 
         return (QueryResult.Success, result);
+    }
+
+    /// <summary>
+    /// Gets the audit history (change sets and entries) for a family.
+    /// Only the owner, contributors, and admins can view family history.
+    /// </summary>
+    public async Task<(QueryResult Code, List<ChangeSetDto>? History)> GetFamilyHistoryAsync(
+        Guid familyId,
+        string? nameIdentifier,
+        ChangeTargetType? targetType = null,
+        Guid? targetId = null)
+    {
+        var (userResult, viewer) = await _userService.GetCurrentUserAsync(nameIdentifier);
+        if (viewer == null)
+        {
+            return (QueryResult.NoAccess, null);
+        }
+
+        var family = await context.Families
+            .Include(f => f.Owner)
+            .Include(f => f.Contributors)
+            .FirstOrDefaultAsync(f => f.Id == familyId);
+
+        if (family == null)
+        {
+            return (QueryResult.NotFound, null);
+        }
+
+        bool isOwner = family.OwnerId == viewer.Id;
+        bool isContributor = family.Contributors.Any(c => c.UserId == viewer.Id);
+        bool isAdmin = viewer.Role == Role.Admin;
+
+        if (!isOwner && !isContributor && !isAdmin)
+        {
+            return (QueryResult.NoAccess, null);
+        }
+
+        IQueryable<ChangeSet> query = context.ChangeSets
+            .Include(cs => cs.User)
+            .Include(cs => cs.Entries)
+            .Where(cs => cs.FamilyId == familyId);
+
+        if (targetType.HasValue)
+        {
+            query = query.Where(cs => cs.Entries.Any(e => e.TargetType == targetType.Value));
+        }
+
+        if (targetId.HasValue)
+        {
+            query = query.Where(cs => cs.Entries.Any(e => e.TargetId == targetId.Value));
+        }
+
+        var changeSets = await query
+            .OrderByDescending(cs => cs.Timestamp)
+            .ToListAsync();
+
+        var dtos = changeSets.Select(cs => new ChangeSetDto
+        {
+            Id = cs.Id,
+            FamilyId = cs.FamilyId,
+            UserId = cs.UserId,
+            User = cs.User == null ? null : new OwnerDto
+            {
+                Id = cs.User.Id,
+                Username = cs.User.Username,
+                Role = cs.User.Role,
+            },
+            Timestamp = DateTime.SpecifyKind(cs.Timestamp, DateTimeKind.Utc),
+            Note = cs.Note,
+            Entries = cs.Entries
+                .Where(e => (!targetType.HasValue || e.TargetType == targetType.Value)
+                         && (!targetId.HasValue || e.TargetId == targetId.Value))
+                .Select(e => new ChangeEntryDto
+                {
+                    Id = e.Id,
+                    ChangeSetId = e.ChangeSetId,
+                    TargetType = e.TargetType.ToString(),
+                    TargetId = e.TargetId,
+                    TargetName = e.TargetName,
+                    Action = e.Action.ToString(),
+                    Before = e.Before,
+                    After = e.After
+                }).ToList()
+        }).ToList();
+
+        return (QueryResult.Success, dtos);
+    }
+
+    /// <summary>
+    /// Gets global audit history across all families. Admin only.
+    /// </summary>
+    public async Task<(QueryResult Code, List<ChangeSetDto>? History)> GetGlobalHistoryAsync(
+        string? nameIdentifier,
+        Guid? familyId = null,
+        Guid? userId = null,
+        ChangeTargetType? targetType = null,
+        Guid? targetId = null,
+        int limit = 100)
+    {
+        var (userResult, viewer) = await _userService.GetCurrentUserAsync(nameIdentifier);
+        if (viewer == null || viewer.Role != Role.Admin)
+        {
+            return (QueryResult.NoAccess, null);
+        }
+
+        IQueryable<ChangeSet> query = context.ChangeSets
+            .Include(cs => cs.User)
+            .Include(cs => cs.Entries)
+            .AsQueryable();
+
+        if (familyId.HasValue)
+        {
+            query = query.Where(cs => cs.FamilyId == familyId.Value);
+        }
+
+        if (userId.HasValue)
+        {
+            query = query.Where(cs => cs.UserId == userId.Value);
+        }
+
+        if (targetType.HasValue)
+        {
+            query = query.Where(cs => cs.Entries.Any(e => e.TargetType == targetType.Value));
+        }
+
+        if (targetId.HasValue)
+        {
+            query = query.Where(cs => cs.Entries.Any(e => e.TargetId == targetId.Value));
+        }
+
+        var changeSets = await query
+            .OrderByDescending(cs => cs.Timestamp)
+            .Take(limit)
+            .ToListAsync();
+
+        var dtos = changeSets.Select(cs => new ChangeSetDto
+        {
+            Id = cs.Id,
+            FamilyId = cs.FamilyId,
+            UserId = cs.UserId,
+            User = cs.User == null ? null : new OwnerDto
+            {
+                Id = cs.User.Id,
+                Username = cs.User.Username,
+                Role = cs.User.Role,
+            },
+            Timestamp = DateTime.SpecifyKind(cs.Timestamp, DateTimeKind.Utc),
+            Note = cs.Note,
+            Entries = cs.Entries
+                .Where(e => (!targetType.HasValue || e.TargetType == targetType.Value)
+                         && (!targetId.HasValue || e.TargetId == targetId.Value))
+                .Select(e => new ChangeEntryDto
+                {
+                    Id = e.Id,
+                    ChangeSetId = e.ChangeSetId,
+                    TargetType = e.TargetType.ToString(),
+                    TargetId = e.TargetId,
+                    TargetName = e.TargetName,
+                    Action = e.Action.ToString(),
+                    Before = e.Before,
+                    After = e.After
+                }).ToList()
+        }).ToList();
+
+        return (QueryResult.Success, dtos);
+    }
+
+    /// <summary>
+    /// Records a group change entry into a change set (supporting Issue #351).
+    /// </summary>
+    public static ChangeEntry CreateGroupChangeEntry(
+        Guid groupId,
+        string groupName,
+        ChangeAction action,
+        object? before = null,
+        object? after = null)
+    {
+        return new ChangeEntry
+        {
+            Id = Guid.NewGuid(),
+            TargetType = ChangeTargetType.Group,
+            TargetId = groupId,
+            TargetName = groupName,
+            Action = action,
+            Before = before == null ? null : JsonSerializer.Serialize(before),
+            After = after == null ? null : JsonSerializer.Serialize(after)
+        };
     }
 }

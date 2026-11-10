@@ -26,6 +26,11 @@ public class FamilyDto
     public List<PhaseDto> Phases { get; set; } = new();
     public List<MechanismDto> Mechanisms { get; set; } = new();
     public List<VerifiedMechanismVersionDto> VerifiedVersions { get; set; } = new();
+
+    /// <summary>
+    /// Optional note/comment for this save to be recorded in the change tracking audit log.
+    /// </summary>
+    public string? SaveNote { get; set; }
 }
 
 public class VerifiedMechanismVersionDto

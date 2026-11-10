@@ -112,6 +112,7 @@ export interface APIFamily {
   phases: Array<APIPhase>;
   mechanisms: Array<APIMechanism>;
   verifiedVersions?: Array<APIVerifiedMechanismVersion>;
+  saveNote?: string;
 }
 
 export type ContributorRole = "Viewer" | "Editor" | "Owner";

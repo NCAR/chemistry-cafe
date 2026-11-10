@@ -118,6 +118,15 @@ describe("Family Editor Page", () => {
           config: { headers: new AxiosHeaders() },
         } as AxiosResponse);
       }
+      if (url.includes("/history")) {
+        return Promise.resolve({
+          data: [],
+          status: 200,
+          statusText: "OK",
+          headers: {},
+          config: { headers: new AxiosHeaders() },
+        } as AxiosResponse);
+      }
       return Promise.resolve(createMockData());
     });
 
@@ -564,6 +573,62 @@ describe("Family Editor Page", () => {
       .getByTestId("in-page-error-alert")
       .querySelector("button")!;
     fireEvent.click(closeErrorBtn);
+  });
+
+  it("Allows entering an optional save note and passes it to saveFamilyChanges", async () => {
+    await waitFor(() => {
+      expect(screen.getByTestId("family-name-input-general-info")).toBeTruthy();
+    });
+
+    const nameInput = screen
+      .getByTestId("family-name-input-general-info")
+      .querySelector("input")!;
+
+    fireEvent.change(nameInput, { target: { value: "Updated With Note" } });
+    fireEvent.blur(nameInput);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("unsaved-changes-bar")).toBeTruthy();
+      expect(screen.getByTestId("save-note-input")).toBeTruthy();
+    });
+
+    const noteInput = screen.getByTestId("save-note-input");
+    fireEvent.change(noteInput, { target: { value: "Added reaction parameters" } });
+
+    const saveSpy = vi
+      .spyOn(backendInteractions, "saveFamilyChanges")
+      .mockResolvedValueOnce({
+        ...testFamily,
+        name: "Updated With Note",
+        isModified: false,
+        isInDatabase: true,
+        species: [],
+        reactions: [],
+        phases: [],
+        mechanisms: [],
+      } as any);
+
+    fireEvent.click(screen.getByTestId("save-changes-button"));
+
+    await waitFor(() => {
+      expect(saveSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ name: "Updated With Note" }),
+        "Added reaction parameters",
+      );
+      expect(screen.getByText("Changes saved successfully.")).toBeTruthy();
+    });
+  });
+
+  it("Renders the History tab in the sidebar and navigates to HistoryView", async () => {
+    await waitFor(() => {
+      expect(screen.getByTestId("family-history-tab")).toBeTruthy();
+    });
+
+    fireEvent.click(screen.getByTestId("family-history-tab"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Audit History")).toBeTruthy();
+    });
   });
 
   it("Deletes family from GeneralInfoView via confirmDeleteFamily", async () => {

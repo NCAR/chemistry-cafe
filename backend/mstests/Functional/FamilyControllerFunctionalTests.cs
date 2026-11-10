@@ -473,5 +473,81 @@ namespace ChemistryCafeAPI.Tests.Functional
             var response = await client.DeleteAsync($"/api/families/{family.Id}");
             Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
         }
+
+        [TestMethod]
+        public async Task GetFamilyHistory_AppliesAccessControl()
+        {
+            var owner = await CreateUserAsync(Role.None);
+            var family = await CreateFamilyAsync(owner);
+
+            var ownerClient = CreateClient(true, owner);
+            var ownerResp = await ownerClient.GetAsync($"/api/families/{family.Id}/history");
+            Assert.AreEqual(HttpStatusCode.OK, ownerResp.StatusCode);
+
+            var contribUser = await CreateUserAsync(Role.None);
+            await AddContributorAsync(family.Id, contribUser, ContributorRole.Viewer);
+            var contribClient = CreateClient(true, contribUser);
+            var contribResp = await contribClient.GetAsync($"/api/families/{family.Id}/history");
+            Assert.AreEqual(HttpStatusCode.OK, contribResp.StatusCode);
+
+            var adminUser = await CreateUserAsync(Role.Admin);
+            var adminClient = CreateClient(true, adminUser);
+            var adminResp = await adminClient.GetAsync($"/api/families/{family.Id}/history");
+            Assert.AreEqual(HttpStatusCode.OK, adminResp.StatusCode);
+
+            var otherUser = await CreateUserAsync(Role.None);
+            var otherClient = CreateClient(true, otherUser);
+            var otherResp = await otherClient.GetAsync($"/api/families/{family.Id}/history");
+            Assert.AreEqual(HttpStatusCode.Forbidden, otherResp.StatusCode);
+
+            var anonResp = await AnonymousClient.GetAsync($"/api/families/{family.Id}/history");
+            Assert.AreEqual(HttpStatusCode.Unauthorized, anonResp.StatusCode);
+        }
+
+        [TestMethod]
+        public async Task SaveFamily_RecordsChangeSetWithNote_AndHistoryReturnsEntries()
+        {
+            var owner = await CreateUserAsync(Role.None);
+            var family = await CreateFamilyAsync(owner);
+            var client = CreateClient(true, owner);
+
+            // Fetch current family dto
+            var currentDto = await client.GetFromJsonAsync<FamilyDto>($"/api/families/{family.Id}");
+            Assert.IsNotNull(currentDto);
+
+            // Update with SaveNote
+            currentDto.Name = "New Name Via Functional Test";
+            currentDto.SaveNote = "Functional test save note";
+
+            var patchResp = await client.PatchAsJsonAsync($"/api/families/{family.Id}", currentDto);
+            Assert.AreEqual(HttpStatusCode.NoContent, patchResp.StatusCode);
+
+            // Query history
+            var histResp = await client.GetAsync($"/api/families/{family.Id}/history");
+            Assert.AreEqual(HttpStatusCode.OK, histResp.StatusCode);
+
+            var changeSets = await histResp.Content.ReadFromJsonAsync<List<ChangeSetDto>>();
+            Assert.IsNotNull(changeSets);
+            Assert.IsTrue(changeSets.Count > 0);
+
+            var latest = changeSets.First();
+            Assert.AreEqual("Functional test save note", latest.Note);
+            Assert.AreEqual(owner.Id, latest.UserId);
+            Assert.IsTrue(latest.Entries.Any(e => e.TargetType == "Family" && e.Action == "Updated"));
+        }
+
+        [TestMethod]
+        public async Task GetGlobalHistory_AdminOnly()
+        {
+            var admin = await CreateUserAsync(Role.Admin);
+            var adminClient = CreateClient(true, admin);
+            var adminResp = await adminClient.GetAsync("/api/families/history");
+            Assert.AreEqual(HttpStatusCode.OK, adminResp.StatusCode);
+
+            var regular = await CreateUserAsync(Role.None);
+            var regClient = CreateClient(true, regular);
+            var regResp = await regClient.GetAsync("/api/families/history");
+            Assert.AreEqual(HttpStatusCode.Forbidden, regResp.StatusCode);
+        }
     }
 }

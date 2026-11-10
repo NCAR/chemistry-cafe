@@ -72,6 +72,72 @@ namespace ChemistryCafeAPI.Migrations
                     b.ToTable("BranchedParameters");
                 });
 
+            modelBuilder.Entity("ChemistryCafeAPI.Models.ChangeEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("After")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Before")
+                        .HasColumnType("longtext");
+
+                    b.Property<Guid>("ChangeSetId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("TargetId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("TargetName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("TargetType")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChangeSetId");
+
+                    b.HasIndex("TargetType", "TargetId");
+
+                    b.ToTable("ChangeEntries");
+                });
+
+            modelBuilder.Entity("ChemistryCafeAPI.Models.ChangeSet", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("FamilyId", "Timestamp");
+
+                    b.ToTable("ChangeSets");
+                });
+
             modelBuilder.Entity("ChemistryCafeAPI.Models.EmissionParameters", b =>
                 {
                     b.Property<Guid>("ReactionId")
@@ -785,6 +851,35 @@ namespace ChemistryCafeAPI.Migrations
                     b.Navigation("Reaction");
                 });
 
+            modelBuilder.Entity("ChemistryCafeAPI.Models.ChangeEntry", b =>
+                {
+                    b.HasOne("ChemistryCafeAPI.Models.ChangeSet", "ChangeSet")
+                        .WithMany("Entries")
+                        .HasForeignKey("ChangeSetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ChangeSet");
+                });
+
+            modelBuilder.Entity("ChemistryCafeAPI.Models.ChangeSet", b =>
+                {
+                    b.HasOne("ChemistryCafeAPI.Models.Family", "Family")
+                        .WithMany()
+                        .HasForeignKey("FamilyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ChemistryCafeAPI.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Family");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("ChemistryCafeAPI.Models.EmissionParameters", b =>
                 {
                     b.HasOne("ChemistryCafeAPI.Models.Reaction", "Reaction")
@@ -1158,6 +1253,11 @@ namespace ChemistryCafeAPI.Migrations
                     b.Navigation("Mechanism");
 
                     b.Navigation("Verifier");
+                });
+
+            modelBuilder.Entity("ChemistryCafeAPI.Models.ChangeSet", b =>
+                {
+                    b.Navigation("Entries");
                 });
 
             modelBuilder.Entity("ChemistryCafeAPI.Models.Family", b =>

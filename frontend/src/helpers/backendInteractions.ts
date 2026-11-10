@@ -596,6 +596,7 @@ export function frontendToAPIFamily(
     mechanisms: expand
       ? family.mechanisms.map((e) => frontendToAPIMechanism(e, family))
       : [],
+    saveNote: family.saveNote,
   };
 
   return formattedFamily;
@@ -619,10 +620,14 @@ export async function uploadFamily(
 /**
  * Saves any changes made to the family to the backend
  * @param family
+ * @param saveNote Optional note/comment for this save to record in audit history
  * @throws HTTP errors
  * @returns Family with updated UUIDs of objects
  */
-export async function saveFamilyChanges(family: Family): Promise<Family> {
+export async function saveFamilyChanges(
+  family: Family,
+  saveNote?: string,
+): Promise<Family> {
   // Don't make a network request if the family has not been modified
   if (!family.isModified) {
     return family;
@@ -634,6 +639,10 @@ export async function saveFamilyChanges(family: Family): Promise<Family> {
     );
   }
 
-  await updateFamily(frontendToAPIFamily(family, true));
+  const payload = frontendToAPIFamily(family, true);
+  if (saveNote !== undefined) {
+    payload.saveNote = saveNote;
+  }
+  await updateFamily(payload);
   return apiToFrontendFamily(await getFamily(family.id as UUID));
 }

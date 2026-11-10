@@ -13,6 +13,7 @@ import {
   IconButton,
   Paper,
   Switch,
+  TextField,
   Tooltip,
   Typography,
 } from "@mui/material";
@@ -46,6 +47,7 @@ import { PhaseView } from "../components/familyEditor/PhaseView";
 import { ReactionsView } from "../components/familyEditor/ReactionsView";
 import { SpeciesView } from "../components/familyEditor/SpeciesView";
 import { ContributorsView } from "../components/familyEditor/ContributorsView";
+import { HistoryView } from "../components/familyEditor/HistoryView";
 import {
   EditorSection,
   FamilyValidationProvider,
@@ -63,6 +65,7 @@ export type ActiveView =
   | { type: "reactions" }
   | { type: "species" }
   | { type: "phases" }
+  | { type: "history" }
   | { type: "mechanism"; mechanismId: UUID };
 
 const FamilyEditor = () => {
@@ -74,6 +77,7 @@ const FamilyEditor = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [family, setFamily] = useState<Family | null>(null);
   const [originalFamily, setOriginalFamily] = useState<Family | null>(null);
+  const [saveNote, setSaveNote] = useState<string>("");
 
   const [selectedView, setSelectedView] = useState<ActiveView>({
     type: "general",
@@ -382,6 +386,7 @@ const FamilyEditor = () => {
   const handleDiscardChanges = () => {
     if (originalFamily) {
       setFamily(structuredClone(originalFamily));
+      setSaveNote("");
       setInPageSuccess("Changes discarded.");
     }
   };
@@ -393,9 +398,10 @@ const FamilyEditor = () => {
     setInPageError(null);
     try {
       if (family.isInDatabase) {
-        const saved = await saveFamilyChanges(family);
+        const saved = await saveFamilyChanges(family, saveNote);
         setFamily(saved);
         setOriginalFamily(structuredClone(saved));
+        setSaveNote("");
         setInPageSuccess("Changes saved successfully.");
         return saved;
       } else {
@@ -403,6 +409,7 @@ const FamilyEditor = () => {
         saveFamilyLocally(updatedDraft);
         setFamily(updatedDraft);
         setOriginalFamily(structuredClone(updatedDraft));
+        setSaveNote("");
         setInPageSuccess("Draft saved in browser.");
         return updatedDraft;
       }
@@ -885,6 +892,26 @@ const FamilyEditor = () => {
                     </Box>{" "}
                     Unsaved changes
                   </Typography>
+                  {family.isInDatabase && (
+                    <TextField
+                      size="small"
+                      placeholder="Optional change note..."
+                      value={saveNote}
+                      onChange={(e) => setSaveNote(e.target.value)}
+                      variant="outlined"
+                      sx={{
+                        width: 220,
+                        "& .MuiInputBase-input": {
+                          py: 0.5,
+                          px: 1,
+                          fontSize: "0.85rem",
+                        },
+                      }}
+                      inputProps={{
+                        "data-testid": "save-note-input",
+                      }}
+                    />
+                  )}
                   <Button
                     size="small"
                     variant="outlined"
@@ -1122,6 +1149,18 @@ const FamilyEditor = () => {
                   testId="family-phases-tab"
                 />
 
+                {/* History */}
+                {family.isInDatabase && (isOwner || isContributor || isAdmin) && (
+                  <SidebarItem
+                    label="History"
+                    isSelected={selectedView.type === "history"}
+                    onClick={() => {
+                      setSelectedView({ type: "history" });
+                    }}
+                    testId="family-history-tab"
+                  />
+                )}
+
                 {/* MECHANISM Section Header */}
                 <Box
                   sx={{
@@ -1248,6 +1287,9 @@ const FamilyEditor = () => {
                     updateFamily={updateFamily}
                     readOnly={!canEdit}
                   />
+                )}
+                {selectedView.type === "history" && (
+                  <HistoryView family={family} />
                 )}
                 {selectedView.type === "mechanism" &&
                   (currentMechanism ? (
@@ -1427,6 +1469,7 @@ export {
   ReactionsView,
   SpeciesView,
   ContributorsView,
+  HistoryView,
 };
 
 export default FamilyEditor;

@@ -270,6 +270,9 @@ export type Family = {
 
   /** Determines if the family is in the database */
   isInDatabase?: boolean;
+
+  /** Optional save note for audit history */
+  saveNote?: string;
 };
 
 /**
@@ -456,3 +459,33 @@ export const reactionConfigurations: {
     hasGasPhaseSpecies: false,
   },
 });
+
+export type ChangeAction = "Added" | "Updated" | "Deleted";
+export type ChangeTargetType =
+  | "Family"
+  | "Species"
+  | "Reaction"
+  | "Phase"
+  | "Mechanism"
+  | "Group";
+
+export type ChangeEntry = {
+  id: UUID;
+  changeSetId: UUID;
+  targetType: ChangeTargetType;
+  targetId: UUID;
+  targetName: string;
+  action: ChangeAction;
+  before?: string | null;
+  after?: string | null;
+};
+
+export type ChangeSet = {
+  id: UUID;
+  familyId: UUID;
+  userId?: UUID | null;
+  user?: APIUser | null;
+  timestamp: string;
+  note?: string | null;
+  entries: Array<ChangeEntry>;
+};
