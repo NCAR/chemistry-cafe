@@ -582,6 +582,18 @@ export function deserializeMechanism(parsed: Record<string, any>): Family {
     nameToId.set(s.name, id);
     family.species.push(speciesFromJSON(s, id));
   }
+  // A configuration with errors can use a species that it does not define.
+  // The import adds a species for each of these names, so that the phases and
+  // the reactions keep all their species.
+  const speciesIdOf = (name: string): UUID => {
+    let id = nameToId.get(name);
+    if (id === undefined) {
+      id = generateID();
+      nameToId.set(name, id);
+      family.species.push(speciesFromJSON({ name }, id));
+    }
+    return id;
+  };
 
   // 2. phases — resolve member species names back to ids.
   const phaseToId = new Map<string, UUID>();
@@ -595,10 +607,7 @@ export function deserializeMechanism(parsed: Record<string, any>): Family {
     for (const s of (p.species ?? []) as Array<
       string | { name: string; "diffusion coefficient [m2 s-1]"?: unknown }
     >) {
-      const speciesId = nameToId.get(typeof s === "string" ? s : s.name);
-      if (speciesId === undefined) {
-        continue;
-      }
+      const speciesId = speciesIdOf(typeof s === "string" ? s : s.name);
       speciesIds.push(speciesId);
       const coefficient =
         typeof s === "string" ? undefined : s["diffusion coefficient [m2 s-1]"];
@@ -623,6 +632,7 @@ export function deserializeMechanism(parsed: Record<string, any>): Family {
       continue;
     }
     let reaction = adapter.fromMusica(r);
+    componentNames(reaction).forEach(speciesIdOf);
     reaction = linkPhaseIds(reaction, phaseToId);
     reaction = linkComponentIds(reaction, nameToId);
     family.reactions.push(reaction);
@@ -661,6 +671,19 @@ function speciesFromJSON(s: Record<string, unknown>, id: UUID): Species {
       : undefined,
   };
   return species;
+}
+
+/** The species names that linkComponentIds changes to ids. */
+function componentNames(r: Reaction): Array<string> {
+  if (r.type === reactionTypes.Surface.type) {
+    return [
+      ...(r.gasPhaseSpeciesId ? [String(r.gasPhaseSpeciesId)] : []),
+      ...r.products
+        .filter((c) => c.branch === "gas-phase")
+        .map((c) => String(c.speciesId)),
+    ];
+  }
+  return [...r.reactants, ...r.products].map((c) => String(c.speciesId));
 }
 
 /** fromMusica stores species *names* in component.speciesId; rewrite to ids. */

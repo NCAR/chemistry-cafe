@@ -42,7 +42,12 @@ export const deserializeV1Mechanism = async (
 ): Promise<Family | null> => {
   // The musica parser validates the file and accepts JSON or YAML.
   await initModule();
-  const parsed = mechanismConfiguration.parseMechanismFromString(fileText) as {
+  const { mechanism, errors } =
+    mechanismConfiguration.parseMechanismFromString(fileText);
+  if (errors.length > 0 || !mechanism) {
+    throw new Error(errors.map((error) => error.message).join("\n"));
+  }
+  const parsed = mechanism as {
     version?: string;
   } & Record<string, unknown>;
   if (parsed?.version && !supportedV1Versions.includes(parsed.version)) {
@@ -51,6 +56,129 @@ export const deserializeV1Mechanism = async (
     );
   }
   return deserializeMechanism(parsed);
+};
+
+/** A problem that the parser found in an imported configuration. */
+export type ImportError = mechanismConfiguration.ParseError;
+
+/** The result of an import. */
+export type ImportResult = {
+  /**
+   * The imported family. It is null when the parser cannot read the
+   * configuration. When there are errors, the family does not have the items
+   * that the parser left out.
+   */
+  family: Family | null;
+  /** The problems in the configuration. */
+  errors: Array<ImportError>;
+  /**
+   * The species names that the configuration uses but does not define. The
+   * import adds a species for each one.
+   */
+  addedSpecies: Array<string>;
+};
+
+/** Files that an archive program adds, which are not part of a configuration. */
+const isArchiveMetadata = (path: string): boolean =>
+  path.startsWith("__MACOSX/") || path.split("/").pop() === ".DS_Store";
+
+/**
+ * Reads the uploaded files into a map of path to contents. A .zip file gives
+ * each file in it, with its path in the archive.
+ */
+export const readUploadedFiles = async (
+  files: Array<File>,
+): Promise<Record<string, string>> => {
+  const contents: Record<string, string> = {};
+  for (const file of files) {
+    if (!file.name.toLowerCase().endsWith(".zip")) {
+      contents[file.name] = await file.text();
+      continue;
+    }
+    const zip = await JSZip.loadAsync(await file.arrayBuffer());
+    for (const entry of Object.values(zip.files)) {
+      if (entry.dir || isArchiveMetadata(entry.name)) continue;
+      contents[entry.name] = await entry.async("string");
+    }
+  }
+  return contents;
+};
+
+/**
+ * Finds the entry point of a configuration: the one file with a top-level
+ * `version` key (v1) or `camp-files` key (v0).
+ * @throws if no file or more than one file has one of these keys
+ */
+export const findEntryPoint = (files: Record<string, string>): string => {
+  const entryPoints = Object.keys(files).filter((path) => {
+    try {
+      const document = YAML.parse(files[path]);
+      return (
+        typeof document === "object" &&
+        document !== null &&
+        ("version" in document || "camp-files" in document)
+      );
+    } catch {
+      return false;
+    }
+  });
+  if (entryPoints.length === 0) {
+    throw new Error(
+      "No file has a 'version' or 'camp-files' key, so the configuration has no entry point.",
+    );
+  }
+  if (entryPoints.length > 1) {
+    throw new Error(
+      `More than one file has a 'version' or 'camp-files' key: ${entryPoints.join(", ")}. Upload one configuration at a time.`,
+    );
+  }
+  return entryPoints[0];
+};
+
+/**
+ * Imports a mechanism configuration from uploaded files: one JSON or YAML
+ * file, the files of a configuration, or a .zip file. The configuration can
+ * be v1 or v0. The parser builds as much of the mechanism as it can, and the
+ * result lists the problems that it found.
+ * @throws if the files have no entry point, or more than one
+ */
+export const importMechanismFiles = async (
+  files: Array<File>,
+): Promise<ImportResult> => {
+  const contents = await readUploadedFiles(files);
+  const entryPoint = findEntryPoint(contents);
+  await initModule();
+  const { mechanism, errors } = mechanismConfiguration.parseMechanismFromFiles(
+    contents,
+    entryPoint,
+  );
+  if (!mechanism) {
+    return { family: null, errors, addedSpecies: [] };
+  }
+  const parsed = mechanism as {
+    version?: string;
+    species?: Array<{ name: string }>;
+  } & Record<string, unknown>;
+  // The family does not keep the version. The export always writes v1, so a
+  // v0 configuration becomes v1.
+  if (
+    parsed.version &&
+    !parsed.version.startsWith("0.") &&
+    !supportedV1Versions.includes(parsed.version)
+  ) {
+    console.warn(
+      `Errors may occur due to an unsupported V1 mechanism version: ${parsed.version}`,
+    );
+  }
+  const family = deserializeMechanism(parsed);
+  const defined = new Set((parsed.species ?? []).map((s) => s.name));
+  return {
+    family,
+    errors,
+    addedSpecies: family.species
+      .map((s) => s.name)
+      .filter((name) => !defined.has(name)),
+  };
 };
 
 /////////////////////////////////

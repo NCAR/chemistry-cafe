@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 import React, { useState } from "react";
 import { Family } from "../../types/chemistryModels";
+import { ImportResult } from "../../helpers/serialization";
 import FileUpload from "../FileUpload";
 import { modalStyle } from "./modalStyle";
 
@@ -23,13 +24,19 @@ export const ImportFamilyModal: React.FC<ImportFamilyModalProps> = ({
   onClose,
   onSubmit,
 }) => {
-  const [family, setFamily] = useState<Family | null>(null);
+  const [result, setResult] = useState<ImportResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const family: Family | null = result?.family ?? null;
+  const problems = result?.errors ?? [];
 
-  const onFileParse = (uploadedFamily: Family | null, parseError?: string) => {
-    setFamily(uploadedFamily);
+  const onFileParse = (imported: ImportResult | null, parseError?: string) => {
+    setResult(imported);
     setError(
-      uploadedFamily ? null : (parseError ?? "Could not parse input file"),
+      imported?.family
+        ? null
+        : (parseError ??
+            (imported?.errors.map((e) => e.message).join("\n") ||
+              "Could not parse input file")),
     );
   };
 
@@ -37,7 +44,7 @@ export const ImportFamilyModal: React.FC<ImportFamilyModalProps> = ({
     <Modal
       open={open}
       onClose={() => {
-        setFamily(null);
+        setResult(null);
         setError(null);
         onClose();
       }}
@@ -81,6 +88,30 @@ export const ImportFamilyModal: React.FC<ImportFamilyModalProps> = ({
                 </Typography>
               </ListItem>
             </List>
+            {problems.length > 0 && (
+              <Alert severity="warning" data-testid="import-problems">
+                <Typography>
+                  The configuration has {problems.length}{" "}
+                  {problems.length === 1 ? "problem" : "problems"}. The family
+                  has the items that the parser could read. Fix the problems in
+                  the editor.
+                </Typography>
+                <List dense sx={{ maxHeight: "12em", overflowY: "auto" }}>
+                  {problems.map((problem, index) => (
+                    <ListItem key={index} sx={{ whiteSpace: "pre-wrap" }}>
+                      {problem.message}
+                    </ListItem>
+                  ))}
+                </List>
+              </Alert>
+            )}
+            {result && result.addedSpecies.length > 0 && (
+              <Alert severity="info" data-testid="import-added-species">
+                The configuration uses species that it does not define. The
+                family gets a species for each one:{" "}
+                {result.addedSpecies.join(", ")}.
+              </Alert>
+            )}
           </Box>
         )}
         <Box
@@ -104,7 +135,7 @@ export const ImportFamilyModal: React.FC<ImportFamilyModalProps> = ({
                 return;
               }
               onSubmit(family);
-              setFamily(null);
+              setResult(null);
               onClose();
             }}
           >

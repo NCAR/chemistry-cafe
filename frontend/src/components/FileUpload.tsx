@@ -1,11 +1,10 @@
 import { Box, FormLabel, Input, SxProps, Theme } from "@mui/material";
 import React from "react";
-import { Family } from "../types/chemistryModels";
-import { deserializeV1Mechanism } from "../helpers/serialization";
+import { ImportResult, importMechanismFiles } from "../helpers/serialization";
 
 type FileUploadProps = {
-  /** Called with the parsed family, or with null and the parser error message */
-  onFileParse: (family: Family | null, error?: string) => any;
+  /** Called with the import result, or with null and the error message */
+  onFileParse: (result: ImportResult | null, error?: string) => any;
   sx?: SxProps<Theme>;
 };
 
@@ -13,16 +12,14 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileParse, sx }) => {
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>,
   ): Promise<void> => {
-    if (!event.target.files) {
+    if (!event.target.files || event.target.files.length === 0) {
       console.info("Cancelled file upload");
       return;
     }
-    const file: File = event.target.files[0];
-    const fileText = await file.text();
+    const files = Array.from(event.target.files);
 
     try {
-      const parsedFamily = await deserializeV1Mechanism(fileText);
-      onFileParse(parsedFamily);
+      onFileParse(await importMechanismFiles(files));
     } catch (err) {
       console.error(err);
       onFileParse(null, err instanceof Error ? err.message : String(err));
@@ -38,14 +35,26 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileParse, sx }) => {
         ...sx,
       }}
     >
-      <FormLabel id="file-upload-label">Upload V1 Data:</FormLabel>
+      <FormLabel id="file-upload-label">
+        Upload a mechanism configuration: one JSON or YAML file, all the files
+        of the configuration, or a .zip file
+      </FormLabel>
       <Input
         aria-labelledby="file-upload-label"
         aria-label="Upload mechanism file"
         type="file"
         slotProps={{
           input: {
-            accept: "application/json, application/yaml, .yml, .yaml",
+            accept: [
+              ".json",
+              ".yml",
+              ".yaml",
+              ".zip",
+              "application/json",
+              "application/yaml",
+              "application/zip",
+            ].join(","),
+            multiple: true,
           },
         }}
         onChange={handleFileUpload}
