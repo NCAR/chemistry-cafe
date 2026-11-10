@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
+import HistoryIcon from "@mui/icons-material/History";
 import { ConfirmActionModal } from "../modals/ConfirmActionModal";
 
 /** Opens the editor of the one selected row. */
@@ -20,6 +21,25 @@ export const EditSelectedButton = ({
     onClick={onClick}
   >
     Edit
+  </Button>
+);
+
+/** Opens the history modal of the one selected row. */
+export const HistorySelectedButton = ({
+  onClick,
+  testId,
+}: {
+  onClick: () => void;
+  testId?: string;
+}) => (
+  <Button
+    size="small"
+    variant="outlined"
+    startIcon={<HistoryIcon />}
+    data-testid={testId ?? "history-selected-button"}
+    onClick={onClick}
+  >
+    History
   </Button>
 );
 
