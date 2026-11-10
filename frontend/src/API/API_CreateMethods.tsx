@@ -5,6 +5,10 @@ import {
   APIFamilyContributor,
   APIRegisterUser,
   APIUser,
+  APIVerifiedMechanismVersion,
+  ArchiveMechanismRequest,
+  DeprecateMechanismRequest,
+  VerifyMechanismRequest,
 } from "./API_Interfaces";
 import { BASE_URL } from "./API_config";
 import { UUID } from "crypto";
@@ -64,5 +68,59 @@ export async function registerUser(request: APIRegisterUser): Promise<APIUser> {
     },
   );
 
+  return response.data;
+}
+
+export async function verifyMechanism(
+  familyId: UUID,
+  mechanismId: UUID,
+  request: VerifyMechanismRequest,
+): Promise<APIVerifiedMechanismVersion> {
+  const response = await axios.post<APIVerifiedMechanismVersion>(
+    `${BASE_URL}/families/${familyId}/mechanisms/${mechanismId}/verify`,
+    request,
+    {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    },
+  );
+  return response.data;
+}
+
+export async function deprecateMechanism(
+  familyId: UUID,
+  mechanismId: UUID,
+  request: DeprecateMechanismRequest,
+): Promise<APIVerifiedMechanismVersion> {
+  const response = await axios.post<APIVerifiedMechanismVersion>(
+    `${BASE_URL}/families/${familyId}/mechanisms/${mechanismId}/deprecate`,
+    request,
+    {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    },
+  );
+  return response.data;
+}
+
+export async function archiveMechanism(
+  familyId: UUID,
+  mechanismId: UUID,
+  request: ArchiveMechanismRequest,
+): Promise<APIVerifiedMechanismVersion> {
+  const response = await axios.post<APIVerifiedMechanismVersion>(
+    `${BASE_URL}/families/${familyId}/mechanisms/${mechanismId}/archive`,
+    request,
+    {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    },
+  );
   return response.data;
 }

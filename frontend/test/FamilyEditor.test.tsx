@@ -200,6 +200,175 @@ describe("Family Editor Page", () => {
     });
   });
 
+  it("Displays editable mechanism in sidebar and excludes frozen snapshot copies", async () => {
+    const verifiedFamily: APIFamily = {
+      ...testFamily,
+      mechanisms: [
+        ...testFamily.mechanisms,
+        {
+          id: "mech-copy-frozen" as UUID,
+          name: "Test-Verified-V1",
+          description: "Frozen copy",
+          species: [],
+          reactions: [],
+          phases: [],
+        },
+      ],
+      verifiedVersions: [
+        {
+          id: "ver-1" as UUID,
+          familyId: testFamily.id,
+          familyVersionId: "fv-1" as UUID,
+          sourceMechanismId: "mech-1" as UUID,
+          mechanismId: "mech-copy-frozen" as UUID,
+          name: "Test-Verified-V1",
+          verifiedDate: "2026-11-09T12:00:00Z",
+          verifierId: "verifier-1" as UUID,
+          verifierUsername: "b.okafor",
+          isDeprecated: false,
+          isArchived: false,
+        },
+      ],
+    };
+
+    localStorage.setItem("uploadedFamilyIds", JSON.stringify([verifiedFamily.id]));
+    localStorage.setItem("selectedEditorMechanismId", "mech-1");
+
+    vi.spyOn(axios, "get").mockImplementation((url: string) => {
+      if (url.includes("/users/whoami")) {
+        return Promise.resolve({
+          data: testFamily.owner,
+          status: 200,
+          statusText: "OK",
+          headers: {},
+          config: { headers: new AxiosHeaders() },
+        } as AxiosResponse);
+      }
+      if (url.includes("/contributors")) {
+        return Promise.resolve({
+          data: [],
+          status: 200,
+          statusText: "OK",
+          headers: {},
+          config: { headers: new AxiosHeaders() },
+        } as AxiosResponse);
+      }
+      return Promise.resolve({
+        data: verifiedFamily,
+        status: 200,
+        statusText: "OK",
+        headers: {},
+        config: { headers: new AxiosHeaders() },
+      } as AxiosResponse);
+    });
+
+    render(
+      <AuthProvider>
+        <CustomThemeProvider>
+          <MemoryRouter initialEntries={["/familyeditor"]}>
+            <FamilyEditor />
+          </MemoryRouter>
+        </CustomThemeProvider>
+      </AuthProvider>,
+    );
+
+    // The editable mechanism should be rendered in the sidebar
+    await waitFor(() => {
+      expect(screen.getByText("Stratospheric Ox")).toBeTruthy();
+    });
+
+    // The duplicate frozen copy mechanism should NOT appear in the sidebar list
+    expect(screen.queryByTestId("mechanism-item-mech-copy-frozen")).toBeNull();
+  });
+
+  it("Displays mechanism in sidebar and editor when viewing a verified version snapshot", async () => {
+    const versionSnapshotFamily: APIFamily = {
+      ...testFamily,
+      currentVersionId: "fv-1" as UUID,
+      mechanisms: [
+        {
+          id: "mech-copy-frozen" as UUID,
+          name: "Test-Verified-V1",
+          description: "Frozen copy",
+          sourceObjectId: "mech-1" as UUID,
+          speciesIds: [],
+          reactionIds: [],
+          phaseIds: [],
+          species: [],
+          reactions: [],
+          phases: [],
+        },
+      ],
+      verifiedVersions: [
+        {
+          id: "ver-1" as UUID,
+          familyId: testFamily.id,
+          familyVersionId: "fv-1" as UUID,
+          sourceMechanismId: "mech-1" as UUID,
+          mechanismId: "mech-copy-frozen" as UUID,
+          name: "Test-Verified-V1",
+          verifiedDate: "2026-11-09T12:00:00Z",
+          verifierId: "verifier-1" as UUID,
+          verifierUsername: "b.okafor",
+          isDeprecated: false,
+          isArchived: false,
+        },
+      ],
+    };
+
+    vi.spyOn(axios, "get").mockImplementation((url: string) => {
+      if (url.includes("/users/whoami")) {
+        return Promise.resolve({
+          data: testFamily.owner,
+          status: 200,
+          statusText: "OK",
+          headers: {},
+          config: { headers: new AxiosHeaders() },
+        } as AxiosResponse);
+      }
+      if (url.includes("/contributors")) {
+        return Promise.resolve({
+          data: [],
+          status: 200,
+          statusText: "OK",
+          headers: {},
+          config: { headers: new AxiosHeaders() },
+        } as AxiosResponse);
+      }
+      return Promise.resolve({
+        data: versionSnapshotFamily,
+        status: 200,
+        statusText: "OK",
+        headers: {},
+        config: { headers: new AxiosHeaders() },
+      } as AxiosResponse);
+    });
+
+    render(
+      <AuthProvider>
+        <CustomThemeProvider>
+          <MemoryRouter initialEntries={[`/familyeditor?id=${testFamily.id}&versionId=fv-1`]}>
+            <FamilyEditor />
+          </MemoryRouter>
+        </CustomThemeProvider>
+      </AuthProvider>,
+    );
+
+    // The mechanism should be rendered in the sidebar
+    await waitFor(() => {
+      expect(screen.getByText("Test-Verified-V1")).toBeTruthy();
+    });
+
+    // And clicking the mechanism should display its editor view, not "Mechanism not found."
+    const mechSidebarItem = screen.getByTestId("mechanism-item-mech-copy-frozen");
+    fireEvent.click(mechSidebarItem);
+
+    await waitFor(() => {
+      expect(screen.getByText("Test-Verified-V1 Info")).toBeTruthy();
+    });
+    expect(screen.queryByText("Mechanism not found.")).toBeNull();
+  });
+
   it("Supports keyboard navigation on SidebarItem using Enter and Space keys", async () => {
     await waitFor(() => {
       expect(screen.getByTestId("family-reactions-tab")).toBeTruthy();

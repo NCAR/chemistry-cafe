@@ -151,6 +151,17 @@ export async function getFamily(id: UUID) {
   return response.data;
 }
 
+export async function getFamilyVersion(familyId: UUID, versionId: UUID) {
+  const response = await axios.get<APIFamily>(
+    `${BASE_URL}/families/${familyId}/versions/${versionId}`,
+    {
+      withCredentials: true,
+    },
+  );
+
+  return response.data;
+}
+
 export async function getFamilyContributors(
   familyId: UUID,
 ): Promise<Array<APIFamilyContributor>> {

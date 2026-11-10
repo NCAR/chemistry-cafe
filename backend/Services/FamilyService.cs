@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using ChemistryCafeAPI.Models;
@@ -18,67 +19,25 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
     /// <returns>List of families</returns>
     public async Task<IEnumerable<Family>> GetFamiliesAsync(bool expand, User? viewer = null)
     {
-        IQueryable<Family> query = VisibleTo(context.Families, viewer);
-
-        // Always include Owner
-        query = query.AsSplitQuery().Include(f => f.Owner).Include(f => f.Contributors);
+        IQueryable<Family> query = VisibleTo(context.Families, viewer)
+            .IncludeMetadataAndVerifiedVersions();
 
         if (expand)
         {
-            query = query
-                .Include(f => f.CurrentVersion)
-                        .ThenInclude(v => v.Species)
-                .Include(f => f.CurrentVersion)
-                        .ThenInclude(v => v.Reactions)
-                        .ThenInclude(r => r.Reactants)
-                .Include(f => f.CurrentVersion)
-                        .ThenInclude(v => v.Reactions)
-                        .ThenInclude(r => r.Products)
-                .Include(f => f.CurrentVersion)
-                        .ThenInclude(v => v.Reactions)
-                        .ThenInclude(r => r.Arrhenius)
-                .Include(f => f.CurrentVersion)
-                        .ThenInclude(v => v.Reactions)
-                        .ThenInclude(r => r.Tunneling)
-                .Include(f => f.CurrentVersion)
-                        .ThenInclude(v => v.Reactions)
-                        .ThenInclude(r => r.Troe)
-                .Include(f => f.CurrentVersion)
-                        .ThenInclude(v => v.Reactions)
-                        .ThenInclude(r => r.TernaryChemicalActivation)
-                .Include(f => f.CurrentVersion)
-                        .ThenInclude(v => v.Reactions)
-                        .ThenInclude(r => r.Branched)
-                .Include(f => f.CurrentVersion)
-                        .ThenInclude(v => v.Reactions)
-                        .ThenInclude(r => r.TaylorSeries)
-                .Include(f => f.CurrentVersion)
-                        .ThenInclude(v => v.Reactions)
-                        .ThenInclude(r => r.Surface)
-                .Include(f => f.CurrentVersion)
-                        .ThenInclude(v => v.Reactions)
-                        .ThenInclude(r => r.Emission)
-                .Include(f => f.CurrentVersion)
-                        .ThenInclude(v => v.Reactions)
-                        .ThenInclude(r => r.FirstOrderLoss)
-                .Include(f => f.CurrentVersion)
-                        .ThenInclude(v => v.Reactions)
-                        .ThenInclude(r => r.Photolysis)
-                .Include(f => f.CurrentVersion)
-                        .ThenInclude(v => v.Reactions)
-                        .ThenInclude(r => r.UserDefined)
-                .Include(f => f.CurrentVersion)
-                        .ThenInclude(v => v.Phases)
-                        .ThenInclude(p => p.PhaseSpecies)
-                .Include(f => f.Mechanisms)
-                    .ThenInclude(m => m.Species)
-                .Include(f => f.Mechanisms)
-                    .ThenInclude(m => m.Reactions)
-                .Include(f => f.Mechanisms)
-                    .ThenInclude(m => m.Phases);
+            query = query.IncludeFullCurrentVersion();
         }
 
         var families = await query.ToListAsync();
+
+        bool isVerifierOrAdmin = viewer?.Role == Role.Verifier || viewer?.Role == Role.Admin;
+        if (!isVerifierOrAdmin)
+        {
+            foreach (var fam in families)
+            {
+                fam.VerifiedVersions = fam.VerifiedVersions.Where(v => !v.IsArchived).ToList();
+                fam.Mechanisms = fam.Mechanisms.Where(m => !m.IsArchived).ToList();
+            }
+        }
 
         return families;
     }
@@ -90,67 +49,92 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
     /// <returns>Family or null if not found</returns>
     public async Task<Family?> GetFamilyAsync(Guid id, User? viewer = null)
     {
-        IQueryable<Family> query = VisibleTo(context.Families, viewer);
-
-        // Always include Owner
-        query = query.AsSplitQuery().Include(f => f.Owner).Include(f => f.Contributors);
-
-        var family = await query
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Species)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Reactions)
-                .ThenInclude(r => r.Reactants)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Reactions)
-                .ThenInclude(r => r.Products)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Reactions)
-                .ThenInclude(r => r.Arrhenius)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Reactions)
-                .ThenInclude(r => r.Tunneling)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Reactions)
-                .ThenInclude(r => r.Troe)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Reactions)
-                .ThenInclude(r => r.TernaryChemicalActivation)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Reactions)
-                .ThenInclude(r => r.Branched)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Reactions)
-                .ThenInclude(r => r.TaylorSeries)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Reactions)
-                .ThenInclude(r => r.Surface)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Reactions)
-                .ThenInclude(r => r.Emission)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Reactions)
-                .ThenInclude(r => r.FirstOrderLoss)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Reactions)
-                .ThenInclude(r => r.Photolysis)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Reactions)
-                .ThenInclude(r => r.UserDefined)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Phases)
-                .ThenInclude(p => p.Species)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Phases)
-                .ThenInclude(p => p.PhaseSpecies)
-            .Include(f => f.Mechanisms)
-                .ThenInclude(m => m.Species)
-            .Include(f => f.Mechanisms)
-                .ThenInclude(m => m.Reactions)
-            .Include(f => f.Mechanisms)
-                .ThenInclude(m => m.Phases)
+        var family = await VisibleTo(context.Families, viewer)
+            .IncludeMetadataAndVerifiedVersions()
+            .IncludeFullCurrentVersion()
             .SingleOrDefaultAsync(f => f.Id == id);
+
+        if (family != null)
+        {
+            bool isVerifierOrAdmin = viewer?.Role == Role.Verifier || viewer?.Role == Role.Admin;
+            if (!isVerifierOrAdmin)
+            {
+                family.VerifiedVersions = family.VerifiedVersions.Where(v => !v.IsArchived).ToList();
+                family.Mechanisms = family.Mechanisms.Where(m => !m.IsArchived).ToList();
+            }
+        }
+
         return family;
+    }
+
+    /// <summary>
+    /// Gets a specific family version snapshot from the database with its species, reactions, phases, and mechanisms.
+    /// </summary>
+    public async Task<FamilyDto?> GetFamilyVersionAsync(Guid familyId, Guid versionId, User? viewer = null)
+    {
+        IQueryable<Family> query = VisibleTo(context.Families, viewer);
+        var family = await query
+            .AsSplitQuery()
+            .Include(f => f.Owner)
+            .Include(f => f.Contributors)
+            .FirstOrDefaultAsync(f => f.Id == familyId);
+
+        if (family == null)
+        {
+            return null;
+        }
+
+        var version = await context.FamilyVersions
+            .IncludeFullVersionGraph()
+            .FirstOrDefaultAsync(v => v.Id == versionId && v.FamilyId == familyId);
+
+        if (version == null)
+        {
+            return null;
+        }
+
+        var mechanisms = await context.Mechanisms
+            .AsSplitQuery()
+            .Include(m => m.Species)
+            .Include(m => m.Reactions)
+            .Include(m => m.Phases)
+            .Where(m => m.FamilyId == familyId && m.FamilyVersionId == versionId)
+            .ToListAsync();
+
+        bool isVerifierOrAdmin = viewer?.Role == Role.Verifier || viewer?.Role == Role.Admin;
+        if (!isVerifierOrAdmin)
+        {
+            mechanisms = mechanisms.Where(m => !m.IsArchived).ToList();
+        }
+
+        var verifiedVersions = await context.VerifiedMechanismVersions
+            .Include(v => v.Verifier)
+            .Include(v => v.DeprecatedBy)
+            .Include(v => v.ArchivedBy)
+            .Where(v => v.FamilyId == familyId && (isVerifierOrAdmin || !v.IsArchived))
+            .ToListAsync();
+
+        return new FamilyDto
+        {
+            Id = family.Id,
+            OwnerId = family.Owner?.Id ?? Guid.Empty,
+            Owner = family.Owner == null ? null : new OwnerDto
+            {
+                Id = family.Owner.Id,
+                Username = family.Owner.Username,
+                Role = family.Owner.Role,
+            },
+            ContributorIds = family.Contributors?.Select(c => c.UserId).ToList() ?? new(),
+            Name = family.Name,
+            Description = family.Description,
+            IsPublic = family.IsPublic,
+            CurrentVersionId = version.Id,
+            Species = version.Species.Select(s => s.ToDto()).ToList(),
+            Reactions = version.Reactions.Select(r => r.ToDto()).ToList(),
+            Phases = version.Phases.Select(p => p.ToDto()).ToList(),
+            Mechanisms = mechanisms.Select(m => m.ToDto()).ToList(),
+            VerifiedVersions = verifiedVersions.Select(v => v.ToDto()).ToList(),
+        };
     }
 
     /// <summary>
@@ -268,44 +252,9 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         }
 
         var existingFamily = await context.Families
-            .AsSplitQuery()
             .Include(f => f.Owner)
             .Include(f => f.Contributors)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Species)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Reactions).ThenInclude(r => r.Reactants)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Reactions).ThenInclude(r => r.Products)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Reactions).ThenInclude(r => r.Arrhenius)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Reactions).ThenInclude(r => r.Tunneling)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Reactions).ThenInclude(r => r.Troe)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Reactions).ThenInclude(r => r.TernaryChemicalActivation)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Reactions).ThenInclude(r => r.Branched)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Reactions).ThenInclude(r => r.TaylorSeries)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Reactions).ThenInclude(r => r.Surface)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Reactions).ThenInclude(r => r.Emission)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Reactions).ThenInclude(r => r.FirstOrderLoss)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Reactions).ThenInclude(r => r.Photolysis)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Reactions).ThenInclude(r => r.UserDefined)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Phases).ThenInclude(p => p.Species)
-            .Include(f => f.CurrentVersion)
-                .ThenInclude(v => v.Phases).ThenInclude(p => p.PhaseSpecies)
-            .Include(f => f.Mechanisms).ThenInclude(m => m.Species)
-            .Include(f => f.Mechanisms).ThenInclude(m => m.Reactions)
-            .Include(f => f.Mechanisms).ThenInclude(m => m.Phases)
+            .IncludeFullCurrentVersion()
             .SingleOrDefaultAsync(f => f.Id == id);
 
         if (existingFamily == null)
@@ -339,6 +288,38 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         if (FindUnresolvedReferences(family).Count > 0)
         {
             return QueryResult.ValidationError;
+        }
+
+        // Nobody can edit frozen data, and editable mechanisms cannot use it.
+        var frozenFamilyVersionIds = await context.FamilyVersions
+            .Where(v => v.FamilyId == existingFamily.Id && v.Id != existingFamily.CurrentVersionId)
+            .Select(v => v.Id)
+            .ToListAsync();
+
+        if (frozenFamilyVersionIds.Count > 0)
+        {
+            var frozenSpeciesIds = (await context.Species
+                .Where(s => frozenFamilyVersionIds.Contains(s.FamilyVersionId))
+                .Select(s => s.Id)
+                .ToListAsync()).ToHashSet();
+            var frozenReactionIds = (await context.Reactions
+                .Where(r => frozenFamilyVersionIds.Contains(r.FamilyVersionId))
+                .Select(r => r.Id)
+                .ToListAsync()).ToHashSet();
+            var frozenPhaseIds = (await context.Phases
+                .Where(p => frozenFamilyVersionIds.Contains(p.FamilyVersionId))
+                .Select(p => p.Id)
+                .ToListAsync()).ToHashSet();
+
+            foreach (var mech in family.Mechanisms)
+            {
+                if (mech.SpeciesIds.Any(id => frozenSpeciesIds.Contains(id)) ||
+                    mech.ReactionIds.Any(id => frozenReactionIds.Contains(id)) ||
+                    mech.PhaseIds.Any(id => frozenPhaseIds.Contains(id)))
+                {
+                    return QueryResult.ValidationError;
+                }
+            }
         }
 
         // Only the owner or an admin can change family visibility (IsPublic)
@@ -379,6 +360,8 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
 
         var family = await context.Families
             .Include(f => f.Owner)
+            .Include(f => f.Mechanisms)
+            .Include(f => f.Versions)
             .FirstOrDefaultAsync(f => f.Id == id);
 
         if (family == null)
@@ -393,6 +376,61 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             {
                 return QueryResult.NoAccess;
             }
+        }
+
+        var verifiedVersions = await context.VerifiedMechanismVersions
+            .Include(v => v.Family)
+                .ThenInclude(f => f.Owner)
+            .Include(v => v.Mechanism)
+            .Include(v => v.FamilyVersion)
+            .Where(v => v.FamilyId == id)
+            .ToListAsync();
+
+        if (verifiedVersions.Count > 0)
+        {
+            var ncarUser = await context.Users.FirstOrDefaultAsync(u => u.Username == "NCAR")
+                ?? await context.Users.FirstOrDefaultAsync(u => u.Role == Role.Admin)
+                ?? family.Owner;
+
+            var archivedFamily = new Family
+            {
+                Id = Guid.NewGuid(),
+                Name = $"[Archived] {family.Name}",
+                Description = $"Archived verified versions from deleted family '{family.Name}', originally owned by {family.Owner.Username}.\n{family.Description}",
+                OwnerId = ncarUser.Id,
+                Owner = ncarUser,
+                IsPublic = true,
+                CreatedDate = DateTime.UtcNow,
+            };
+            context.Families.Add(archivedFamily);
+
+            foreach (var ver in verifiedVersions)
+            {
+                ver.OriginalFamilyId = family.Id;
+                ver.OriginalFamilyName = family.Name;
+                ver.OriginalOwnerId = family.Owner.Id;
+                ver.OriginalOwnerUsername = family.Owner.Username;
+                ver.IsArchived = true;
+                ver.FamilyId = archivedFamily.Id;
+                ver.Family = archivedFamily;
+
+                if (ver.Mechanism != null)
+                {
+                    ver.Mechanism.FamilyId = archivedFamily.Id;
+                    ver.Mechanism.Family = archivedFamily;
+                }
+
+                if (ver.FamilyVersion != null)
+                {
+                    ver.FamilyVersion.FamilyId = archivedFamily.Id;
+                    ver.FamilyVersion.Family = archivedFamily;
+                    archivedFamily.Versions.Add(ver.FamilyVersion);
+                }
+            }
+
+            archivedFamily.CurrentVersion = archivedFamily.Versions.FirstOrDefault();
+            archivedFamily.CurrentVersionId = archivedFamily.CurrentVersion?.Id;
+            await context.SaveChangesAsync();
         }
 
         await context.ExecuteDeleteAsync(context.Families.Where(f => f.Id == id));
@@ -496,295 +534,78 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         HashSet<Guid> deletedSpeciesIds = existingSpeciesIds.Except(incomingSpeciesIds).ToHashSet();
         HashSet<Guid> newSpeciesIds = incomingSpeciesIds.Except(existingSpeciesIds).ToHashSet();
         HashSet<Guid> maybeUpdatedSpeciesIds = existingSpeciesIds.Intersect(incomingSpeciesIds).ToHashSet();
-        deletedSpeciesIds.ToList().ForEach(id => context.Species.Remove(existing.Species.Single(s => s.Id == id)));
+        HashSet<Guid> changedSpeciesIds = new(deletedSpeciesIds);
+        deletedSpeciesIds.ToList().ForEach(id =>
+        {
+            Species s = existing.Species.Single(s => s.Id == id);
+            context.Species.Remove(s);
+            existing.Species.Remove(s);
+        });
         newSpeciesIds.ToList().ForEach(id => {
             Species added = incoming.Species.Single(s => s.Id == id).ToEntity();
             added.FamilyVersionId = version.Id;
             context.Species.Add(added);
-            existing.Species.Add(added);
+            if (!existing.Species.Contains(added))
+            {
+                existing.Species.Add(added);
+            }
         });
         maybeUpdatedSpeciesIds.ToList().ForEach(id =>
         {
             SpeciesDto incomingSpecies = incoming.Species.Single(s => s.Id == id);
             Species existingSpecies = existing.Species.Single(s => s.Id == id);
-            existingSpecies.Name = incomingSpecies.Name;
-            existingSpecies.Description = incomingSpecies.Description;
-            existingSpecies.MolecularWeight = incomingSpecies.MolecularWeight;
-            existingSpecies.IsThirdBody = incomingSpecies.IsThirdBody;
-            existingSpecies.ConstantConcentration = incomingSpecies.ConstantConcentration;
-            existingSpecies.ConstantMixingRatio = incomingSpecies.ConstantMixingRatio;
-            existingSpecies.AbsoluteTolerance = incomingSpecies.AbsoluteTolerance;
-            existingSpecies.OtherProperties = incomingSpecies.OtherProperties;
+            if (existingSpecies.IsDifferent(incomingSpecies))
+            {
+                changedSpeciesIds.Add(id);
+            }
+            existingSpecies.UpdateFrom(incomingSpecies);
         });
 
         // Reaction changes
         HashSet<Guid> deletedReactionIds = existingReactionIds.Except(incomingReactionIds).ToHashSet();
         HashSet<Guid> newReactionIds = incomingReactionIds.Except(existingReactionIds).ToHashSet();
         HashSet<Guid> maybeUpdatedReactionIds = existingReactionIds.Intersect(incomingReactionIds).ToHashSet();
-        deletedReactionIds.ToList().ForEach(id => context.Reactions.Remove(existing.Reactions.Single(r => r.Id == id)));
+        HashSet<Guid> changedReactionIds = new(deletedReactionIds);
+        deletedReactionIds.ToList().ForEach(id =>
+        {
+            Reaction r = existing.Reactions.Single(r => r.Id == id);
+            context.Reactions.Remove(r);
+            existing.Reactions.Remove(r);
+        });
         newReactionIds.ToList().ForEach(id => {
             Reaction added = incoming.Reactions.Single(r => r.Id == id).ToEntity();
             added.FamilyVersionId = version.Id;
             context.Reactions.Add(added);
-            existing.Reactions.Add(added);
+            if (!existing.Reactions.Contains(added))
+            {
+                existing.Reactions.Add(added);
+            }
         });
         maybeUpdatedReactionIds.ToList().ForEach(id =>
         {
             ReactionDto incomingReaction = incoming.Reactions.Single(r => r.Id == id);
             Reaction existingReaction = existing.Reactions.Single(r => r.Id == id);
-            existingReaction.Name = incomingReaction.Name;
-            existingReaction.Description = incomingReaction.Description;
-            existingReaction.GasPhaseSpeciesId = incomingReaction.GasPhaseSpeciesId;
-            existingReaction.GasPhaseId = incomingReaction.GasPhaseId;
-            existingReaction.Reactants = incomingReaction.Reactants.Select(r => r.ToEntity()).ToList();
-            existingReaction.Products = incomingReaction.Products.Select(p => p.ToEntity()).ToList();
-            existingReaction.OtherProperties = incomingReaction.OtherProperties;
-
-            // Arrhenius parameters are a one-to-one row. Update in place when both
-            // sides have it, add it when new, and drop it when the incoming
-            // reaction no longer carries it (EF cascade deletes the orphan).
-            if (incomingReaction.Arrhenius == null)
+            if (existingReaction.IsDifferent(incomingReaction))
             {
-                existingReaction.Arrhenius = null;
+                changedReactionIds.Add(id);
             }
-            else if (existingReaction.Arrhenius == null)
-            {
-                existingReaction.Arrhenius = incomingReaction.Arrhenius.ToEntity();
-            }
-            else
-            {
-                ArrheniusParameters existingArrhenius = existingReaction.Arrhenius;
-                ArrheniusParametersDto incomingArrhenius = incomingReaction.Arrhenius;
-                existingArrhenius.A = incomingArrhenius.A;
-                existingArrhenius.B = incomingArrhenius.B;
-                existingArrhenius.C = incomingArrhenius.C;
-                existingArrhenius.Ea = incomingArrhenius.Ea;
-                existingArrhenius.D = incomingArrhenius.D;
-                existingArrhenius.E = incomingArrhenius.E;
-            }
-
-            // Tunneling parameters are a one-to-one row. Update in place when both
-            // sides have it, add it when new, and drop it when the incoming
-            // reaction no longer carries it (EF cascade deletes the orphan).
-            if (incomingReaction.Tunneling == null)
-            {
-                existingReaction.Tunneling = null;
-            }
-            else if (existingReaction.Tunneling == null)
-            {
-                existingReaction.Tunneling = incomingReaction.Tunneling.ToEntity();
-            }
-            else
-            {
-                TunnelingParameters existingTunneling = existingReaction.Tunneling;
-                TunnelingParametersDto incomingTunneling = incomingReaction.Tunneling;
-                existingTunneling.A = incomingTunneling.A;
-                existingTunneling.B = incomingTunneling.B;
-                existingTunneling.C = incomingTunneling.C;
-            }
-
-            // Troe parameters are a one-to-one row. Update in place when both
-            // sides have it, add it when new, and drop it when the incoming
-            // reaction no longer carries it (EF cascade deletes the orphan).
-            if (incomingReaction.Troe == null)
-            {
-                existingReaction.Troe = null;
-            }
-            else if (existingReaction.Troe == null)
-            {
-                existingReaction.Troe = incomingReaction.Troe.ToEntity();
-            }
-            else
-            {
-                TroeParameters existingTroe = existingReaction.Troe;
-                TroeParametersDto incomingTroe = incomingReaction.Troe;
-                existingTroe.K0A = incomingTroe.K0A;
-                existingTroe.K0B = incomingTroe.K0B;
-                existingTroe.K0C = incomingTroe.K0C;
-                existingTroe.KinfA = incomingTroe.KinfA;
-                existingTroe.KinfB = incomingTroe.KinfB;
-                existingTroe.KinfC = incomingTroe.KinfC;
-                existingTroe.Fc = incomingTroe.Fc;
-                existingTroe.N = incomingTroe.N;
-            }
-
-            // Ternary Chemical Activation parameters are a one-to-one row.
-            // Update in place when both sides have it, add it when new, and
-            // drop it when the incoming reaction no longer carries it (EF
-            // cascade deletes the orphan).
-            if (incomingReaction.TernaryChemicalActivation == null)
-            {
-                existingReaction.TernaryChemicalActivation = null;
-            }
-            else if (existingReaction.TernaryChemicalActivation == null)
-            {
-                existingReaction.TernaryChemicalActivation = incomingReaction.TernaryChemicalActivation.ToEntity();
-            }
-            else
-            {
-                TernaryChemicalActivationParameters existingTca = existingReaction.TernaryChemicalActivation;
-                TernaryChemicalActivationParametersDto incomingTca = incomingReaction.TernaryChemicalActivation;
-                existingTca.K0A = incomingTca.K0A;
-                existingTca.K0B = incomingTca.K0B;
-                existingTca.K0C = incomingTca.K0C;
-                existingTca.KinfA = incomingTca.KinfA;
-                existingTca.KinfB = incomingTca.KinfB;
-                existingTca.KinfC = incomingTca.KinfC;
-                existingTca.Fc = incomingTca.Fc;
-                existingTca.N = incomingTca.N;
-            }
-
-            // Branched (no RO2) parameters are a one-to-one row. Update in
-            // place when both sides have it, add it when new, and drop it
-            // when the incoming reaction no longer carries it (EF cascade
-            // deletes the orphan).
-            if (incomingReaction.Branched == null)
-            {
-                existingReaction.Branched = null;
-            }
-            else if (existingReaction.Branched == null)
-            {
-                existingReaction.Branched = incomingReaction.Branched.ToEntity();
-            }
-            else
-            {
-                BranchedParameters existingBranched = existingReaction.Branched;
-                BranchedParametersDto incomingBranched = incomingReaction.Branched;
-                existingBranched.X = incomingBranched.X;
-                existingBranched.Y = incomingBranched.Y;
-                existingBranched.A0 = incomingBranched.A0;
-                existingBranched.N = incomingBranched.N;
-            }
-
-            // Taylor Series parameters are a one-to-one row. Update in place
-            // when both sides have it, add it when new, and drop it when the
-            // incoming reaction no longer carries it (EF cascade deletes the
-            // orphan).
-            if (incomingReaction.TaylorSeries == null)
-            {
-                existingReaction.TaylorSeries = null;
-            }
-            else if (existingReaction.TaylorSeries == null)
-            {
-                existingReaction.TaylorSeries = incomingReaction.TaylorSeries.ToEntity();
-            }
-            else
-            {
-                TaylorSeriesParameters existingTaylorSeries = existingReaction.TaylorSeries;
-                TaylorSeriesParametersDto incomingTaylorSeries = incomingReaction.TaylorSeries;
-                existingTaylorSeries.A = incomingTaylorSeries.A;
-                existingTaylorSeries.B = incomingTaylorSeries.B;
-                existingTaylorSeries.C = incomingTaylorSeries.C;
-                existingTaylorSeries.Ea = incomingTaylorSeries.Ea;
-                existingTaylorSeries.D = incomingTaylorSeries.D;
-                existingTaylorSeries.E = incomingTaylorSeries.E;
-                existingTaylorSeries.TaylorCoefficients = incomingTaylorSeries.TaylorCoefficients;
-            }
-
-            // Surface parameters are a one-to-one row. Update in place when
-            // both sides have it, add it when new, and drop it when the
-            // incoming reaction no longer carries it (EF cascade deletes the
-            // orphan).
-            if (incomingReaction.Surface == null)
-            {
-                existingReaction.Surface = null;
-            }
-            else if (existingReaction.Surface == null)
-            {
-                existingReaction.Surface = incomingReaction.Surface.ToEntity();
-            }
-            else
-            {
-                SurfaceParameters existingSurface = existingReaction.Surface;
-                SurfaceParametersDto incomingSurface = incomingReaction.Surface;
-                existingSurface.ReactionProbability = incomingSurface.ReactionProbability;
-            }
-
-            // Emission parameters are a one-to-one row. Update in place when
-            // both sides have it, add it when new, and drop it when the
-            // incoming reaction no longer carries it (EF cascade deletes the
-            // orphan).
-            if (incomingReaction.Emission == null)
-            {
-                existingReaction.Emission = null;
-            }
-            else if (existingReaction.Emission == null)
-            {
-                existingReaction.Emission = incomingReaction.Emission.ToEntity();
-            }
-            else
-            {
-                EmissionParameters existingEmission = existingReaction.Emission;
-                EmissionParametersDto incomingEmission = incomingReaction.Emission;
-                existingEmission.ScalingFactor = incomingEmission.ScalingFactor;
-            }
-
-            // First Order Loss parameters are a one-to-one row. Update in
-            // place when both sides have it, add it when new, and drop it
-            // when the incoming reaction no longer carries it (EF cascade
-            // deletes the orphan).
-            if (incomingReaction.FirstOrderLoss == null)
-            {
-                existingReaction.FirstOrderLoss = null;
-            }
-            else if (existingReaction.FirstOrderLoss == null)
-            {
-                existingReaction.FirstOrderLoss = incomingReaction.FirstOrderLoss.ToEntity();
-            }
-            else
-            {
-                FirstOrderLossParameters existingFirstOrderLoss = existingReaction.FirstOrderLoss;
-                FirstOrderLossParametersDto incomingFirstOrderLoss = incomingReaction.FirstOrderLoss;
-                existingFirstOrderLoss.ScalingFactor = incomingFirstOrderLoss.ScalingFactor;
-            }
-
-            // Photolysis parameters are a one-to-one row. Update in place
-            // when both sides have it, add it when new, and drop it when
-            // the incoming reaction no longer carries it (EF cascade
-            // deletes the orphan).
-            if (incomingReaction.Photolysis == null)
-            {
-                existingReaction.Photolysis = null;
-            }
-            else if (existingReaction.Photolysis == null)
-            {
-                existingReaction.Photolysis = incomingReaction.Photolysis.ToEntity();
-            }
-            else
-            {
-                PhotolysisParameters existingPhotolysis = existingReaction.Photolysis;
-                PhotolysisParametersDto incomingPhotolysis = incomingReaction.Photolysis;
-                existingPhotolysis.ScalingFactor = incomingPhotolysis.ScalingFactor;
-            }
-
-            // User Defined parameters are a one-to-one row. Update in place
-            // when both sides have it, add it when new, and drop it when
-            // the incoming reaction no longer carries it (EF cascade
-            // deletes the orphan).
-            if (incomingReaction.UserDefined == null)
-            {
-                existingReaction.UserDefined = null;
-            }
-            else if (existingReaction.UserDefined == null)
-            {
-                existingReaction.UserDefined = incomingReaction.UserDefined.ToEntity();
-            }
-            else
-            {
-                UserDefinedParameters existingUserDefined = existingReaction.UserDefined;
-                UserDefinedParametersDto incomingUserDefined = incomingReaction.UserDefined;
-                existingUserDefined.ScalingFactor = incomingUserDefined.ScalingFactor;
-            }
+            existingReaction.UpdateFrom(incomingReaction);
         });
 
         // Phase changes
         HashSet<Guid> deletedPhaseIds = existingPhaseIds.Except(incomingPhaseIds).ToHashSet();
         HashSet<Guid> newPhaseIds = incomingPhaseIds.Except(existingPhaseIds).ToHashSet();
         HashSet<Guid> maybeUpdatedPhaseIds = existingPhaseIds.Intersect(incomingPhaseIds).ToHashSet();
-        deletedPhaseIds.ToList().ForEach(id => context.Phases.Remove(existing.Phases.Single(p => p.Id == id)));
+        HashSet<Guid> changedPhaseIds = new(deletedPhaseIds);
+        deletedPhaseIds.ToList().ForEach(id =>
+        {
+            Phase p = existing.Phases.Single(p => p.Id == id);
+            context.Phases.Remove(p);
+            existing.Phases.Remove(p);
+        });
         newPhaseIds.ToList().ForEach(id => {
             PhaseDto incomingPhase = incoming.Phases.Single(p => p.Id == id);
-            Phase added = incoming.Phases.Single(p => p.Id == id).ToEntity();
+            Phase added = incomingPhase.ToEntity();
             added.FamilyVersionId = version.Id;
             added.PhaseSpecies = incomingPhase.SpeciesIds
                 .Select(sid => new PhaseSpecies
@@ -794,37 +615,40 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
                 })
                 .ToList();
             context.Phases.Add(added);
-            existing.Phases.Add(added);
+            if (!existing.Phases.Contains(added))
+            {
+                existing.Phases.Add(added);
+            }
         });
         maybeUpdatedPhaseIds.ToList().ForEach(id =>
         {
             PhaseDto incomingPhase = incoming.Phases.Single(p => p.Id == id);
             Phase existingPhase = existing.Phases.Single(p => p.Id == id);
-            existingPhase.Name = incomingPhase.Name;
-            existingPhase.Description = incomingPhase.Description;
-            existingPhase.OtherProperties = incomingPhase.OtherProperties;
-            // Update the join rows in place. A new join row with the same key as
-            // a tracked row makes EF throw.
-            existingPhase.PhaseSpecies
-                .Where(ps => !incomingPhase.SpeciesIds.Contains(ps.SpeciesId))
-                .ToList()
-                .ForEach(ps => context.Remove(ps));
-            foreach (Guid sid in incomingPhase.SpeciesIds)
+            if (existingPhase.IsDifferent(incomingPhase))
             {
-                PhaseSpecies? member = existingPhase.PhaseSpecies.SingleOrDefault(ps => ps.SpeciesId == sid);
-                if (member == null)
-                {
-                    member = new PhaseSpecies { Species = existing.Species.Single(s => s.Id == sid) };
-                    existingPhase.PhaseSpecies.Add(member);
-                }
-                member.DiffusionCoefficient = incomingPhase.DiffusionCoefficientOf(sid);
+                changedPhaseIds.Add(id);
             }
+            existingPhase.UpdateFrom(incomingPhase, existing.Species, ps => context.Remove(ps));
         });
 
-        // Mechanism changes
-        HashSet<Guid> deletedMechanismIds = existingMechanismIds.Except(incomingMechanismIds).ToHashSet();
-        HashSet<Guid> newMechanismIds = incomingMechanismIds.Except(existingMechanismIds).ToHashSet();
-        HashSet<Guid> maybeUpdatedMechanismIds = existingMechanismIds.Intersect(incomingMechanismIds).ToHashSet();
+        // Mechanism changes: only operate on editable (unverified) mechanisms in the current version
+        var verifiedMechanismIds = context.VerifiedMechanismVersions
+            .Where(v => v.FamilyId == existing.Id)
+            .Select(v => v.MechanismId)
+            .ToHashSet();
+
+        HashSet<Guid> existingEditableMechanismIds = existing.Mechanisms
+            .Where(m => !verifiedMechanismIds.Contains(m.Id) && m.FamilyVersionId == version.Id)
+            .Select(m => m.Id)
+            .ToHashSet();
+        HashSet<Guid> incomingEditableMechanismIds = incoming.Mechanisms
+            .Where(m => !verifiedMechanismIds.Contains(m.Id))
+            .Select(m => m.Id)
+            .ToHashSet();
+
+        HashSet<Guid> deletedMechanismIds = existingEditableMechanismIds.Except(incomingEditableMechanismIds).ToHashSet();
+        HashSet<Guid> newMechanismIds = incomingEditableMechanismIds.Except(existingEditableMechanismIds).ToHashSet();
+        HashSet<Guid> maybeUpdatedMechanismIds = existingEditableMechanismIds.Intersect(incomingEditableMechanismIds).ToHashSet();
         deletedMechanismIds.ToList().ForEach(id => {
             Mechanism m = existing.Mechanisms.Single(m => m.Id == id);
             context.Mechanisms.Remove(m);
@@ -839,20 +663,23 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             added.Species = incomingMechanism.SpeciesIds.Select(sid => existing.Species.Single(s => s.Id == sid)).ToList();
             added.Reactions = incomingMechanism.ReactionIds.Select(rid => existing.Reactions.Single(r => r.Id == rid)).ToList();
             added.Phases = incomingMechanism.PhaseIds.Select(pid => existing.Phases.Single(p => p.Id == pid)).ToList();
+            added.CreatedDate = DateTime.UtcNow;
+            added.UpdatedDate = DateTime.UtcNow;
             context.Mechanisms.Add(added);
-            existing.Mechanisms.Add(added);
+            if (!existing.Mechanisms.Contains(added))
+            {
+                existing.Mechanisms.Add(added);
+            }
         });
         maybeUpdatedMechanismIds.ToList().ForEach(id =>
         {
             MechanismDto incomingMechanism = incoming.Mechanisms.Single(m => m.Id == id);
             Mechanism existingMechanism = existing.Mechanisms.Single(m => m.Id == id);
-            existingMechanism.Name = incomingMechanism.Name;
-            existingMechanism.Description = incomingMechanism.Description;
-            existingMechanism.FamilyId = existing.Id;
-            existingMechanism.Species = incomingMechanism.SpeciesIds.Select(sid => existing.Species.Single(s => s.Id == sid)).ToList();
-            existingMechanism.Reactions = incomingMechanism.ReactionIds.Select(rid => existing.Reactions.Single(r => r.Id == rid)).ToList();
-            existingMechanism.Phases = incomingMechanism.PhaseIds.Select(pid => existing.Phases.Single(p => p.Id == pid)).ToList();
-            existingMechanism.OtherProperties = incomingMechanism.OtherProperties;
+
+            bool changed = existingMechanism.IsDifferent(incomingMechanism)
+                || existingMechanism.HasDependencyChanges(incomingMechanism, changedSpeciesIds, changedReactionIds, changedPhaseIds);
+
+            existingMechanism.UpdateFrom(incomingMechanism, existing, changed);
         });
     }
 
@@ -1068,5 +895,389 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         await context.SaveChangesAsync();
 
         return QueryResult.Success;
+    }
+
+    /// <summary>
+    /// Deep-copies an entire FamilyVersion into a new FamilyVersion snapshot, preserving internal relationships
+    /// (PhaseSpecies, Reactants, Products, Reaction parameters) and recording SourceObjectId on each cloned object.
+    /// </summary>
+    public static (FamilyVersion NewVersion,
+                   Dictionary<Guid, Species> SpeciesMap,
+                   Dictionary<Guid, Phase> PhaseMap,
+                   Dictionary<Guid, Reaction> ReactionMap)
+        CopyFamilyVersion(FamilyVersion sourceVersion, string? versionName = null, DateTime? timestamp = null)
+        => sourceVersion.CloneSnapshot(timestamp);
+
+    /// <summary>
+    /// Verifies a mechanism in a public family. Only Verifiers and Admins can verify mechanisms.
+    /// Creates a frozen FamilyVersion containing copies of the whole family and the verified mechanism.
+    /// </summary>
+    public async Task<(QueryResult Code, VerifiedMechanismVersionDto? Result)> VerifyMechanismAsync(
+        Guid familyId,
+        Guid mechanismId,
+        VerifyMechanismRequest request,
+        string nameIdentifier)
+    {
+        if (!Guid.TryParse(nameIdentifier, out Guid userId))
+        {
+            return (QueryResult.ParseError, null);
+        }
+
+        var user = await _userService.GetUserByIdAsync(userId);
+        if (user == null)
+        {
+            return (QueryResult.OwnerNotFound, null);
+        }
+
+        if (user.Role != Role.Verifier && user.Role != Role.Admin)
+        {
+            return (QueryResult.NoAccess, null);
+        }
+
+        // Lightweight check for family existence, visibility, and CurrentVersionId
+        var family = await context.Families
+            .AsNoTracking()
+            .Where(f => f.Id == familyId)
+            .Select(f => new { f.Id, f.Name, f.IsPublic, f.CurrentVersionId })
+            .FirstOrDefaultAsync();
+
+        if (family == null)
+        {
+            return (QueryResult.NotFound, null);
+        }
+
+        if (!family.IsPublic)
+        {
+            return (QueryResult.ValidationError, null);
+        }
+
+        // Query targeted mechanism to verify existence and get its referenced entity IDs
+        var mechanism = await context.Mechanisms
+            .Include(m => m.Species)
+            .Include(m => m.Phases)
+            .Include(m => m.Reactions)
+            .FirstOrDefaultAsync(m => m.Id == mechanismId && m.FamilyId == familyId);
+
+        if (mechanism == null)
+        {
+            return (QueryResult.NotFound, null);
+        }
+
+        // Load the family's CurrentVersion to deep-copy the entire family snapshot
+        var currentVersion = await context.FamilyVersions
+            .AsNoTracking()
+            .AsSplitQuery()
+            .IncludeFullVersionGraph()
+            .FirstOrDefaultAsync(v => v.Id == family.CurrentVersionId && v.FamilyId == familyId);
+
+        if (currentVersion == null)
+        {
+            return (QueryResult.NotFound, null);
+        }
+
+        var now = DateTime.UtcNow;
+        string dateStr = now.ToString("yyyy-MM-dd");
+        string verifiedName = !string.IsNullOrWhiteSpace(request?.Name)
+            ? request.Name.Trim()
+            : $"{family.Name}-{mechanism.Name}-{dateStr}";
+
+        // Deep-copy the entire family version into the new FamilyVersion snapshot
+        var (frozenVersion, speciesMap, phaseMap, reactionMap) = currentVersion.CloneSnapshot(now);
+
+        string verifierDisplayName = user.GetDisplayName();
+
+        var verifiedMechanism = mechanism.CloneForSnapshot(
+            frozenVersion,
+            verifiedName,
+            now,
+            verifierDisplayName,
+            speciesMap,
+            phaseMap,
+            reactionMap);
+
+        var verifiedVersion = new VerifiedMechanismVersion
+        {
+            Id = Guid.NewGuid(),
+            FamilyId = family.Id,
+            FamilyVersionId = frozenVersion.Id,
+            FamilyVersion = frozenVersion,
+            SourceMechanismId = mechanism.Id,
+            MechanismId = verifiedMechanism.Id,
+            Mechanism = verifiedMechanism,
+            Name = verifiedName,
+            Notes = request?.Note,
+            VerifiedDate = now,
+            VerifierId = user.Id,
+            Verifier = user,
+            IsDeprecated = false,
+            IsArchived = false,
+        };
+
+        mechanism.UpdatedDate = now;
+        mechanism.Verified = true;
+        mechanism.VerifiedDate = now;
+        mechanism.VerifiedBy = verifierDisplayName;
+
+        context.FamilyVersions.Add(frozenVersion);
+        context.Mechanisms.Add(verifiedMechanism);
+        context.VerifiedMechanismVersions.Add(verifiedVersion);
+
+        await context.SaveChangesAsync();
+
+        return (QueryResult.Success, verifiedVersion.ToDto());
+    }
+
+    /// <summary>
+    /// Deprecates a verified mechanism. Only Verifiers and Admins can deprecate.
+    /// </summary>
+    public async Task<(QueryResult Code, VerifiedMechanismVersionDto? Result)> DeprecateMechanismAsync(
+        Guid familyId,
+        Guid mechanismId,
+        DeprecateMechanismRequest request,
+        string nameIdentifier)
+    {
+        if (!Guid.TryParse(nameIdentifier, out Guid userId))
+        {
+            return (QueryResult.ParseError, null);
+        }
+
+        var user = await _userService.GetUserByIdAsync(userId);
+        if (user == null)
+        {
+            return (QueryResult.OwnerNotFound, null);
+        }
+
+        if (user.Role != Role.Verifier && user.Role != Role.Admin)
+        {
+            return (QueryResult.NoAccess, null);
+        }
+
+        var verifiedVersion = await context.VerifiedMechanismVersions
+            .Include(v => v.Verifier)
+            .Include(v => v.DeprecatedBy)
+            .Include(v => v.ArchivedBy)
+            .Include(v => v.Mechanism)
+            .FirstOrDefaultAsync(v => v.FamilyId == familyId && (v.MechanismId == mechanismId || v.Id == mechanismId));
+
+        if (verifiedVersion == null)
+        {
+            return (QueryResult.NotFound, null);
+        }
+
+        var now = DateTime.UtcNow;
+        verifiedVersion.IsDeprecated = true;
+        verifiedVersion.DeprecationReason = request.Reason;
+        verifiedVersion.DeprecatedDate = now;
+        verifiedVersion.DeprecatedById = user.Id;
+        verifiedVersion.DeprecatedBy = user;
+        verifiedVersion.BetterVersionId = request.BetterVersionId;
+        verifiedVersion.AppendDeprecationHistory("deprecated", user, now, request.Reason, request.BetterVersionId);
+
+        await context.SaveChangesAsync();
+        return (QueryResult.Success, verifiedVersion.ToDto());
+    }
+
+    /// <summary>
+    /// Removes deprecation from a verified mechanism. Only Verifiers and Admins can remove deprecation.
+    /// </summary>
+    public async Task<(QueryResult Code, VerifiedMechanismVersionDto? Result)> UndeprecateMechanismAsync(
+        Guid familyId,
+        Guid mechanismId,
+        string nameIdentifier)
+    {
+        if (!Guid.TryParse(nameIdentifier, out Guid userId))
+        {
+            return (QueryResult.ParseError, null);
+        }
+
+        var user = await _userService.GetUserByIdAsync(userId);
+        if (user == null)
+        {
+            return (QueryResult.OwnerNotFound, null);
+        }
+
+        if (user.Role != Role.Verifier && user.Role != Role.Admin)
+        {
+            return (QueryResult.NoAccess, null);
+        }
+
+        var verifiedVersion = await context.VerifiedMechanismVersions
+            .Include(v => v.Verifier)
+            .Include(v => v.DeprecatedBy)
+            .Include(v => v.ArchivedBy)
+            .Include(v => v.Mechanism)
+            .FirstOrDefaultAsync(v => v.FamilyId == familyId && (v.MechanismId == mechanismId || v.Id == mechanismId));
+
+        if (verifiedVersion == null)
+        {
+            return (QueryResult.NotFound, null);
+        }
+
+        if (!verifiedVersion.IsDeprecated)
+        {
+            return (QueryResult.ValidationError, null);
+        }
+
+        var now = DateTime.UtcNow;
+        verifiedVersion.IsDeprecated = false;
+        verifiedVersion.DeprecationReason = null;
+        verifiedVersion.DeprecatedDate = null;
+        verifiedVersion.DeprecatedById = null;
+        verifiedVersion.DeprecatedBy = null;
+        verifiedVersion.AppendDeprecationHistory("undeprecated", user, now, "Deprecation removed");
+
+        await context.SaveChangesAsync();
+        return (QueryResult.Success, verifiedVersion.ToDto());
+    }
+
+    /// <summary>
+    /// Archives or unarchives a verified mechanism. Only Verifiers and Admins can archive/unarchive.
+    /// </summary>
+    public async Task<(QueryResult Code, VerifiedMechanismVersionDto? Result)> ArchiveMechanismAsync(
+        Guid familyId,
+        Guid mechanismId,
+        ArchiveMechanismRequest request,
+        string nameIdentifier)
+    {
+        if (!Guid.TryParse(nameIdentifier, out Guid userId))
+        {
+            return (QueryResult.ParseError, null);
+        }
+
+        var user = await _userService.GetUserByIdAsync(userId);
+        if (user == null)
+        {
+            return (QueryResult.OwnerNotFound, null);
+        }
+
+        if (user.Role != Role.Verifier && user.Role != Role.Admin)
+        {
+            return (QueryResult.NoAccess, null);
+        }
+
+        var verifiedVersion = await context.VerifiedMechanismVersions
+            .Include(v => v.Verifier)
+            .Include(v => v.DeprecatedBy)
+            .Include(v => v.ArchivedBy)
+            .Include(v => v.Mechanism)
+            .FirstOrDefaultAsync(v => v.FamilyId == familyId && (v.MechanismId == mechanismId || v.Id == mechanismId));
+
+        if (verifiedVersion == null)
+        {
+            return (QueryResult.NotFound, null);
+        }
+
+        var now = DateTime.UtcNow;
+        verifiedVersion.IsArchived = request.IsArchived;
+        verifiedVersion.ArchivedDate = request.IsArchived ? now : null;
+        verifiedVersion.ArchivedById = request.IsArchived ? user.Id : null;
+        verifiedVersion.ArchivedBy = request.IsArchived ? user : null;
+
+        await context.SaveChangesAsync();
+        return (QueryResult.Success, verifiedVersion.ToDto());
+    }
+
+    /// <summary>
+    /// Permanently deletes a verified mechanism and its frozen FamilyVersion.
+    /// Only Verifiers and Admins can permanently delete verified mechanisms.
+    /// </summary>
+    public async Task<QueryResult> DeleteVerifiedMechanismAsync(
+        Guid familyId,
+        Guid mechanismId,
+        string nameIdentifier)
+    {
+        if (!Guid.TryParse(nameIdentifier, out Guid userId))
+        {
+            return QueryResult.ParseError;
+        }
+
+        var user = await _userService.GetUserByIdAsync(userId);
+        if (user == null)
+        {
+            return QueryResult.OwnerNotFound;
+        }
+
+        if (user.Role != Role.Verifier && user.Role != Role.Admin)
+        {
+            return QueryResult.NoAccess;
+        }
+
+        var verifiedVersion = await context.VerifiedMechanismVersions
+            .Include(v => v.Mechanism)
+            .FirstOrDefaultAsync(v => v.FamilyId == familyId && (v.MechanismId == mechanismId || v.Id == mechanismId));
+
+        if (verifiedVersion == null)
+        {
+            return QueryResult.NotFound;
+        }
+
+        var versionId = verifiedVersion.FamilyVersionId;
+        var mech = verifiedVersion.Mechanism;
+
+        context.VerifiedMechanismVersions.Remove(verifiedVersion);
+
+        if (mech != null)
+        {
+            context.Mechanisms.Remove(mech);
+        }
+
+        var version = await context.FamilyVersions.FirstOrDefaultAsync(v => v.Id == versionId);
+        if (version != null)
+        {
+            context.FamilyVersions.Remove(version);
+        }
+
+        await context.SaveChangesAsync();
+        return QueryResult.Success;
+    }
+
+    /// <summary>
+    /// Lists all archived verified mechanisms across all families (including NCAR archive).
+    /// Accessible only to Verifiers and Admins.
+    /// </summary>
+    public async Task<(QueryResult Code, List<ArchivedVerifiedVersionDto>? Result)> GetArchivedVerifiedVersionsAsync(string nameIdentifier)
+    {
+        if (!Guid.TryParse(nameIdentifier, out Guid userId))
+        {
+            return (QueryResult.ParseError, null);
+        }
+
+        var user = await _userService.GetUserByIdAsync(userId);
+        if (user == null)
+        {
+            return (QueryResult.OwnerNotFound, null);
+        }
+
+        if (user.Role != Role.Verifier && user.Role != Role.Admin)
+        {
+            return (QueryResult.NoAccess, null);
+        }
+
+        var verifiedVersions = await context.VerifiedMechanismVersions
+            .Include(v => v.Family)
+                .ThenInclude(f => f.Owner)
+            .Include(v => v.Verifier)
+            .Include(v => v.Mechanism)
+            .Where(v => v.IsArchived || v.Family.Name.StartsWith("[Archived]"))
+            .ToListAsync();
+
+        var result = verifiedVersions.Select(v => new ArchivedVerifiedVersionDto
+        {
+            MechanismId = v.MechanismId,
+            FamilyId = v.FamilyId,
+            FamilyVersionId = v.FamilyVersionId,
+            Name = v.Name,
+            Description = v.Mechanism?.Description,
+            OriginalFamilyName = v.OriginalFamilyName ?? v.Family?.Name ?? "",
+            OriginalOwnerUsername = v.OriginalOwnerUsername ?? v.Family?.Owner?.Username ?? "",
+            VerifierUsername = v.Verifier?.Username ?? "",
+            VerifiedDate = v.VerifiedDate.ToString("o"),
+            Notes = v.Notes ?? "",
+            IsDeprecated = v.IsDeprecated,
+            DeprecationReason = v.DeprecationReason ?? "",
+            BetterVersionId = v.BetterVersionId?.ToString() ?? "",
+        }).ToList();
+
+        return (QueryResult.Success, result);
     }
 }

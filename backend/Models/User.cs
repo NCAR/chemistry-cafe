@@ -29,4 +29,12 @@ public partial class User
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
     public string? GoogleId { get; set; } 
     public string? OrcidId { get; set; }
+
+    /// <summary>
+    /// Returns the user's full name if available, otherwise their username.
+    /// </summary>
+    public string GetDisplayName() =>
+        !string.IsNullOrWhiteSpace(FirstName) || !string.IsNullOrWhiteSpace(LastName)
+            ? $"{FirstName ?? ""} {LastName ?? ""}".Trim()
+            : Username;
 }

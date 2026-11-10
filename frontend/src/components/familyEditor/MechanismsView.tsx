@@ -136,6 +136,7 @@ export const MechanismsView = ({
           mechanism={selectedMechanism}
           readOnly={readOnly}
           updateMechanism={updateMechanism}
+          onUpdateFamily={updateFamily}
           navigateBack={() => {
             setSelectedMechanism(null);
             onSelectMechanism?.(null);

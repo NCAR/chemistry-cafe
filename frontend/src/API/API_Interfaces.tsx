@@ -44,6 +44,44 @@ export interface APIUserPreferences {
   activationParameter: ActivationParameter;
 }
 
+export interface APIVerifiedMechanismVersion {
+  id: UUID;
+  familyId: UUID;
+  familyVersionId: UUID;
+  sourceMechanismId?: UUID | null;
+  mechanismId: UUID;
+  name: string;
+  notes?: string | null;
+  verifiedDate: string;
+  verifierId: UUID;
+  verifierUsername: string;
+  verifierName?: string | null;
+  isDeprecated: boolean;
+  deprecationReason?: string | null;
+  deprecatedDate?: string | null;
+  deprecatedByUsername?: string | null;
+  betterVersionId?: UUID | null;
+  isArchived: boolean;
+  archivedDate?: string | null;
+  archivedByUsername?: string | null;
+  originalFamilyName?: string | null;
+  originalOwnerUsername?: string | null;
+}
+
+export interface VerifyMechanismRequest {
+  name?: string;
+  note?: string;
+}
+
+export interface DeprecateMechanismRequest {
+  reason?: string;
+  betterVersionId?: UUID;
+}
+
+export interface ArchiveMechanismRequest {
+  isArchived: boolean;
+}
+
 export interface APIFamily {
   id: UUID;
   createdDate?: string;
@@ -52,10 +90,12 @@ export interface APIFamily {
   isPublic: boolean;
   owner: APIUser;
   contributorIds?: Array<UUID>;
+  contributors?: Array<APIFamilyContributor>;
   species: Array<APISpecies>;
   reactions: Array<APIReaction>;
   phases: Array<APIPhase>;
   mechanisms: Array<APIMechanism>;
+  verifiedVersions?: Array<APIVerifiedMechanismVersion>;
 }
 
 export type ContributorRole = "Viewer" | "Editor" | "Owner";
@@ -82,6 +122,7 @@ export interface APISpecies {
   createdDate?: string;
   description?: string | null;
   id: UUID;
+  sourceObjectId?: UUID | null;
   isThirdBody?: boolean;
   molecularWeight?: number;
   otherProperties?: Record<string, unknown>;
@@ -91,6 +132,7 @@ export interface APISpecies {
 
 export interface APIReaction {
   id: UUID;
+  sourceObjectId?: UUID | null;
   createdDate?: string;
   updatedDate?: string;
   name: string;
@@ -195,6 +237,7 @@ export interface APIProduct {
 
 export interface APIPhase {
   id: UUID;
+  sourceObjectId?: UUID | null;
   createdDate?: string;
   updatedDate?: string;
   name: string;
@@ -206,6 +249,7 @@ export interface APIPhase {
 
 export interface APIMechanism {
   id: UUID;
+  sourceObjectId?: UUID | null;
   createdDate?: string;
   updatedDate?: string;
   name: string;
