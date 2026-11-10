@@ -273,7 +273,7 @@ describe("Family Editor Page", () => {
     const closeValidationBtn = screen.getByRole("button", { name: /close/i });
     fireEvent.click(closeValidationBtn);
 
-    // 2. Validation success opens confirm modal and confirms
+    // 2. Validation success directly makes public
     vi.spyOn(validationIssues, "validateFamily").mockResolvedValueOnce([]);
     vi.spyOn(backendInteractions, "saveFamilyChanges").mockResolvedValueOnce({
       ...testFamily,
@@ -287,13 +287,6 @@ describe("Family Editor Page", () => {
     } as any);
 
     fireEvent.click(publicSwitch);
-
-    await waitFor(() => {
-      expect(screen.getByText("Make Family Public?")).toBeTruthy();
-    });
-
-    const confirmMakePublicBtn = screen.getByTestId("confirm-action");
-    fireEvent.click(confirmMakePublicBtn);
 
     await waitFor(() => {
       expect(screen.getByTestId("in-page-success-alert")).toBeTruthy();

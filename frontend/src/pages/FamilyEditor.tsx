@@ -21,7 +21,6 @@ import LockIcon from "@mui/icons-material/Lock";
 import { Family, Mechanism } from "../types/chemistryModels";
 import { MechanismCreationModal } from "../components/modals/MechanismCreationModal";
 import { ValidationErrorsModal } from "../components/modals/ValidationErrorsModal";
-import { ConfirmActionModal } from "../components/modals/ConfirmActionModal";
 import { UUID } from "crypto";
 import { getAllFamilies, getFamily } from "../API/API_GetMethods";
 import { deleteFamily } from "../API/API_DeleteMethods";
@@ -88,8 +87,6 @@ const FamilyEditor = () => {
   const [validationErrors, setValidationErrors] = useState<ValidationIssue[]>(
     [],
   );
-  const [openMakePublicModal, setOpenMakePublicModal] =
-    useState<boolean>(false);
 
   // Permissions
   const isOwner = Boolean(user?.id && family?.owner?.id === user.id);
@@ -388,7 +385,7 @@ const FamilyEditor = () => {
         setValidationErrors(issues);
         return;
       }
-      setOpenMakePublicModal(true);
+      await makeFamilyPublic();
     } else {
       // Toggle to private
       setLoading(true);
@@ -412,9 +409,8 @@ const FamilyEditor = () => {
     }
   };
 
-  const confirmMakePublic = async () => {
+  const makeFamilyPublic = async () => {
     if (!family) return;
-    setOpenMakePublicModal(false);
     setLoading(true);
     try {
       const saved = await saveFamilyChanges({
@@ -1045,16 +1041,6 @@ const FamilyEditor = () => {
         message="Fix these problems before making this family public:"
         family={family ?? ({} as Family)}
         errors={validationErrors}
-      />
-
-      <ConfirmActionModal
-        open={openMakePublicModal}
-        message="Make Family Public?"
-        subtitle="Making this family public allows anyone to view and clone it. Are you sure you want to proceed?"
-        onClose={() => setOpenMakePublicModal(false)}
-        onAction={() => void confirmMakePublic()}
-        confirmLabel="Make Public"
-        confirmColor="primary"
       />
 
       {loading && (
