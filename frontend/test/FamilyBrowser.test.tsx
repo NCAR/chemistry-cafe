@@ -208,4 +208,59 @@ describe("FamilyBrowser Component", () => {
       screen.getByRole("button", { name: /Edit Tropospheric Mechanism/i }),
     ).toBeTruthy();
   });
+
+  it("Displays verified badge on mechanism when verified without replacing mechanism name", () => {
+    (useAuth as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+      user: { id: "stranger-1", role: "None" },
+    });
+
+    const familyWithVerifiedVersion: Family = {
+      ...mockFamily,
+      mechanisms: [
+        {
+          id: "mech-draft-id" as any,
+          name: "Tropospheric Mechanism",
+          description: "Tropospheric chemistry",
+          familyId: "fam-1" as any,
+          speciesIds: ["spec-1" as any],
+          reactionIds: ["rxn-1" as any],
+          phaseIds: [],
+          verified: true,
+          verifiedDate: "2026-11-08T12:00:00Z",
+          verifiedBy: "b.okafor",
+        },
+      ],
+      verifiedVersions: [
+        {
+          id: "ver-1" as any,
+          familyId: "fam-1" as any,
+          familyVersionId: "fver-1" as any,
+          sourceMechanismId: "mech-draft-id" as any,
+          mechanismId: "mech-verified-copy-id" as any,
+          name: "Verified-Tropospheric-v1",
+          notes: "Scientifically vetted",
+          verifiedDate: "2026-11-08T12:00:00Z",
+          verifierId: "verifier-1" as any,
+          verifierUsername: "b.okafor",
+          isDeprecated: false,
+          isArchived: false,
+        },
+      ],
+    };
+
+    render(
+      <CustomThemeProvider>
+        <FamilyBrowser families={[familyWithVerifiedVersion]} />
+      </CustomThemeProvider>,
+    );
+
+    // Expand family dropdown
+    fireEvent.click(
+      screen.getByRole("button", { name: /Open family Shared Family/i }),
+    );
+
+    // The mechanism maintains its own identity and shows the verified badge
+    expect(screen.getByText("Tropospheric Mechanism")).toBeTruthy();
+    expect(screen.getByText(/Verified Nov 8, 2026/i)).toBeTruthy();
+  });
 });

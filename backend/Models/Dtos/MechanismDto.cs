@@ -9,6 +9,7 @@ namespace ChemistryCafeAPI.Models.Dto;
 public class MechanismDto
 {
     public Guid Id { get; set; }
+    public Guid? SourceObjectId { get; set; }
     public Guid FamilyId { get; set; }
     public Guid FamilyVersionId { get; set; }
     public bool IsReadOnly { get; set; }

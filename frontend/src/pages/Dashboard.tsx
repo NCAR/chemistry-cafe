@@ -375,14 +375,23 @@ export const Dashboard: React.FC = () => {
   };
 
   // Clone Family into draft and open in editor
-  const handleCloneFamily = async (family: Family) => {
+  const handleCloneFamily = async (family: Family, mechanism?: Mechanism) => {
     const cloned = cloneFamily(family);
     if (user) {
       try {
         const uploaded = await uploadFamily(cloned, user);
         addUploadedFamilyIdLocally(uploaded.id);
         localStorage.setItem("selectedEditorFamilyId", uploaded.id);
-        localStorage.removeItem("selectedEditorMechanismId");
+        if (mechanism) {
+          const match = uploaded.mechanisms.find((m) => m.name === mechanism.name);
+          if (match) {
+            localStorage.setItem("selectedEditorMechanismId", match.id);
+          } else {
+            localStorage.removeItem("selectedEditorMechanismId");
+          }
+        } else {
+          localStorage.removeItem("selectedEditorMechanismId");
+        }
         localStorage.setItem(
           "activeEditorFamily",
           JSON.stringify({
@@ -399,7 +408,16 @@ export const Dashboard: React.FC = () => {
     }
     addFamilyLocally(cloned);
     localStorage.setItem("selectedEditorFamilyId", cloned.id);
-    localStorage.removeItem("selectedEditorMechanismId");
+    if (mechanism) {
+      const match = cloned.mechanisms.find((m) => m.name === mechanism.name);
+      if (match) {
+        localStorage.setItem("selectedEditorMechanismId", match.id);
+      } else {
+        localStorage.removeItem("selectedEditorMechanismId");
+      }
+    } else {
+      localStorage.removeItem("selectedEditorMechanismId");
+    }
     localStorage.setItem(
       "activeEditorFamily",
       JSON.stringify({
@@ -773,7 +791,9 @@ export const Dashboard: React.FC = () => {
             onEditMechanism={(family, mechanism) =>
               handleOpenFamily(family, mechanism)
             }
-            onCloneMechanism={(family) => handleCloneFamily(family)}
+            onCloneMechanism={(family, mechanism) =>
+              handleCloneFamily(family, mechanism)
+            }
           />
         )}
 

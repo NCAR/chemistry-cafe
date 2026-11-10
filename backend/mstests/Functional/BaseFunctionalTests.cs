@@ -8,6 +8,7 @@ namespace ChemistryCafeAPI.Tests.Functional
     public abstract class BaseFunctionalTests
     {
         private static readonly TestWebApplicationFactory _factory = new();
+        protected static TestWebApplicationFactory Factory => _factory;
 
         /// <summary>
         /// Mock HTTP client configured without authentication (anonymous).

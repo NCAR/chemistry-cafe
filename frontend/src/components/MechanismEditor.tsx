@@ -3,6 +3,7 @@ import { Family, Mechanism, Phase, Reaction } from "../types/chemistryModels";
 import {
   Box,
   Button,
+  Chip,
   Tab,
   Tabs,
   TextField,
@@ -22,6 +23,7 @@ import { reactionToString } from "../helpers/stringify";
 import { useFamilyValidation } from "./familyEditor/FamilyValidationContext";
 import { ProblemCount } from "./familyEditor/IssueIndicators";
 import { DownloadMechanismButton } from "./DownloadMechanismButton";
+import { VerifiedVersionsList } from "./familyEditor/VerifiedVersionsList";
 import {
   countItemsWithIssues,
   issuesByItem,
@@ -31,6 +33,7 @@ export type MechanismEditorProps = {
   family: Family;
   mechanism: Mechanism;
   updateMechanism: (mechanism: Mechanism) => void;
+  onUpdateFamily?: (family: Family) => void;
   navigateBack?: () => void;
   onDeleteMechanism?: (id: string) => void;
   readOnly?: boolean;
@@ -90,6 +93,7 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
   family,
   mechanism,
   updateMechanism,
+  onUpdateFamily,
   navigateBack,
   onDeleteMechanism,
   readOnly,
@@ -121,6 +125,31 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
   const [speciesOpen, setSpeciesOpen] = useState<boolean>(false);
   const [reactionsOpen, setReactionsOpen] = useState<boolean>(false);
   const [phasesOpen, setPhasesOpen] = useState<boolean>(false);
+
+  const { isVerified, formattedDate } = useMemo(() => {
+    const matchingVersion = family.verifiedVersions?.find(
+      (v) =>
+        (v.mechanismId === mechanism.id ||
+          (mechanism.verified && v.sourceMechanismId === mechanism.id)) &&
+        !v.isArchived &&
+        !v.isDeprecated,
+    );
+    const verified =
+      Boolean(mechanism.verified) ||
+      Boolean(matchingVersion && mechanism.id === matchingVersion.mechanismId);
+    const date = mechanism.verifiedDate || matchingVersion?.verifiedDate;
+    const formatted = date
+      ? new Date(
+          date.includes("T") ? date : `${date}T00:00:00Z`,
+        ).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+          timeZone: "UTC",
+        })
+      : null;
+    return { isVerified: verified, formattedDate: formatted };
+  }, [mechanism.verified, mechanism.verifiedDate, mechanism.id, family.verifiedVersions]);
 
   useLayoutEffect(() => {
     setModifiedMechanism(mechanism);
@@ -306,9 +335,29 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
             rowGap: "1em",
           }}
         >
-          <Typography color="textPrimary" variant="h5">
-            {mechanism.name || "<No Name>"} Info
-          </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1.5,
+              flexWrap: "wrap",
+            }}
+          >
+            <Typography color="textPrimary" variant="h5">
+              {mechanism.name || "<No Name>"} Info
+            </Typography>
+            {isVerified && (
+              <Chip
+                data-testid="mechanism-verified-chip"
+                size="small"
+                color="success"
+                variant="outlined"
+                label={
+                  formattedDate ? `Verified ${formattedDate}` : "Verified"
+                }
+              />
+            )}
+          </Box>
           <Box
             sx={{
               display: "flex",
@@ -344,6 +393,12 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
               }}
             />
           </Box>
+          <VerifiedVersionsList
+            family={family}
+            mechanism={modifiedMechanism}
+            onUpdateFamily={onUpdateFamily}
+            readOnly={readOnly}
+          />
         </Box>
       )}
       {selectedTab === TabValue.Species && (

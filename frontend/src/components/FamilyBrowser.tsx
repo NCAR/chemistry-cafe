@@ -337,7 +337,8 @@ const FamilyInfoCard = memo(function FamilyInfoCard({
               ) : (
                 <List dense disablePadding>
                   {family.mechanisms.map((mechanism) => {
-                    const reactionCount = mechanism.reactionIds?.length ?? 0;
+                    const reactionCount =
+                      mechanism.reactionIds?.length ?? 0;
                     const { isVerified, verifiedDate } =
                       getMechanismVerification(mechanism);
                     const formattedDate = verifiedDate

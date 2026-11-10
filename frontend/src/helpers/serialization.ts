@@ -19,7 +19,14 @@ const supportedV1Versions = ["1.0.0"];
 export const serializeMechanismJSON = (
   mechanism: Mechanism,
   family: Family,
-): string => JSON.stringify(serializeMechanism(mechanism, family), null, 2);
+  metadata?: Record<string, unknown>,
+): string => {
+  const result = serializeMechanism(mechanism, family) as Record<string, unknown>;
+  if (metadata) {
+    result.verification = metadata;
+  }
+  return JSON.stringify(result, null, 2);
+};
 
 /**
  * Converts a given mechanism to a serialized YAML string which uses the V1 schema
@@ -30,7 +37,14 @@ export const serializeMechanismJSON = (
 export const serializeMechanismYAML = (
   mechanism: Mechanism,
   family: Family,
-): string => YAML.stringify(serializeMechanism(mechanism, family));
+  metadata?: Record<string, unknown>,
+): string => {
+  const result = serializeMechanism(mechanism, family) as Record<string, unknown>;
+  if (metadata) {
+    result.verification = metadata;
+  }
+  return YAML.stringify(result);
+};
 
 /**
  * Takes a V1 mechanism string in either JSON or YAML and creates a new Family

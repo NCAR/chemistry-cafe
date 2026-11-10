@@ -253,6 +253,28 @@ describe("MechanismEditor info tab", () => {
     expect(applyButton().disabled).toBe(true);
     expect(screen.getByRole("heading", { name: "Renamed Info" })).toBeTruthy();
   });
+
+  it("displays the verified chip with date after the title when verified", () => {
+    const verifiedMech: Mechanism = {
+      ...mechanism,
+      verified: true,
+      verifiedDate: "2026-11-08T12:00:00Z",
+    };
+    renderEditor(verifiedMech);
+
+    const heading = screen.getByRole("heading", { name: "Test Mechanism Info" });
+    expect(heading).toBeTruthy();
+
+    const chip = screen.getByTestId("mechanism-verified-chip");
+    expect(chip).toBeInTheDocument();
+    expect(chip).toHaveTextContent(/Verified Nov 8, 2026/i);
+  });
+
+  it("does not show the verified chip when mechanism is unverified", () => {
+    renderEditor({ ...mechanism, verified: false });
+
+    expect(screen.queryByTestId("mechanism-verified-chip")).not.toBeInTheDocument();
+  });
 });
 
 describe("MechanismEditor species tab", () => {

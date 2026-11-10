@@ -1898,6 +1898,53 @@ DROP PROCEDURE IF EXISTS MigrationsScript;
 DELIMITER //
 CREATE PROCEDURE MigrationsScript()
 BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261104184000_AddIndexToUsers') THEN
+
+    ALTER TABLE `Users` MODIFY COLUMN `Username` varchar(255) CHARACTER SET utf8mb4 NOT NULL;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261104184000_AddIndexToUsers') THEN
+
+    CREATE UNIQUE INDEX `idx_users_username` ON `Users` (`Username`);
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261104184000_AddIndexToUsers') THEN
+
+    INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+    VALUES ('20261104184000_AddIndexToUsers', '8.0.10');
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+COMMIT;
+
+START TRANSACTION;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
     IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261105184647_AddOtherPropertiesToAllObjects') THEN
 
     ALTER TABLE `Reactions` ADD `OtherProperties` json NULL;
@@ -1952,3 +1999,207 @@ CALL MigrationsScript();
 DROP PROCEDURE MigrationsScript;
 
 COMMIT;
+
+START TRANSACTION;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261109000025_AddVerifiedMechanismVersions') THEN
+
+    ALTER TABLE `Species` ADD `SourceObjectId` char(36) COLLATE ascii_general_ci NULL;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261109000025_AddVerifiedMechanismVersions') THEN
+
+    ALTER TABLE `Reactions` ADD `SourceObjectId` char(36) COLLATE ascii_general_ci NULL;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261109000025_AddVerifiedMechanismVersions') THEN
+
+    ALTER TABLE `Phases` ADD `SourceObjectId` char(36) COLLATE ascii_general_ci NULL;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261109000025_AddVerifiedMechanismVersions') THEN
+
+    ALTER TABLE `Mechanisms` ADD `SourceObjectId` char(36) COLLATE ascii_general_ci NULL;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261109000025_AddVerifiedMechanismVersions') THEN
+
+    CREATE TABLE `VerifiedMechanismVersions` (
+        `Id` char(36) COLLATE ascii_general_ci NOT NULL,
+        `FamilyId` char(36) COLLATE ascii_general_ci NOT NULL,
+        `FamilyVersionId` char(36) COLLATE ascii_general_ci NOT NULL,
+        `SourceMechanismId` char(36) COLLATE ascii_general_ci NULL,
+        `MechanismId` char(36) COLLATE ascii_general_ci NOT NULL,
+        `Name` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+        `Notes` longtext CHARACTER SET utf8mb4 NULL,
+        `VerifiedDate` datetime(6) NOT NULL,
+        `VerifierId` char(36) COLLATE ascii_general_ci NOT NULL,
+        `IsDeprecated` tinyint(1) NOT NULL,
+        `DeprecationReason` longtext CHARACTER SET utf8mb4 NULL,
+        `DeprecatedDate` datetime(6) NULL,
+        `DeprecatedById` char(36) COLLATE ascii_general_ci NULL,
+        `BetterVersionId` char(36) COLLATE ascii_general_ci NULL,
+        `DeprecationHistoryJson` json NULL,
+        `IsArchived` tinyint(1) NOT NULL,
+        `ArchivedDate` datetime(6) NULL,
+        `ArchivedById` char(36) COLLATE ascii_general_ci NULL,
+        `OriginalFamilyId` char(36) COLLATE ascii_general_ci NULL,
+        `OriginalFamilyName` varchar(255) CHARACTER SET utf8mb4 NULL,
+        `OriginalOwnerId` char(36) COLLATE ascii_general_ci NULL,
+        `OriginalOwnerUsername` varchar(255) CHARACTER SET utf8mb4 NULL,
+        CONSTRAINT `PK_VerifiedMechanismVersions` PRIMARY KEY (`Id`),
+        CONSTRAINT `FK_VerifiedMechanismVersions_Families_FamilyId` FOREIGN KEY (`FamilyId`) REFERENCES `Families` (`Id`) ON DELETE CASCADE,
+        CONSTRAINT `FK_VerifiedMechanismVersions_FamilyVersions_FamilyVersionId` FOREIGN KEY (`FamilyVersionId`) REFERENCES `FamilyVersions` (`Id`) ON DELETE CASCADE,
+        CONSTRAINT `FK_VerifiedMechanismVersions_Mechanisms_MechanismId` FOREIGN KEY (`MechanismId`) REFERENCES `Mechanisms` (`Id`) ON DELETE CASCADE,
+        CONSTRAINT `FK_VerifiedMechanismVersions_Users_ArchivedById` FOREIGN KEY (`ArchivedById`) REFERENCES `Users` (`Id`) ON DELETE SET NULL,
+        CONSTRAINT `FK_VerifiedMechanismVersions_Users_DeprecatedById` FOREIGN KEY (`DeprecatedById`) REFERENCES `Users` (`Id`) ON DELETE SET NULL,
+        CONSTRAINT `FK_VerifiedMechanismVersions_Users_VerifierId` FOREIGN KEY (`VerifierId`) REFERENCES `Users` (`Id`) ON DELETE RESTRICT
+    ) CHARACTER SET=utf8mb4;
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261109000025_AddVerifiedMechanismVersions') THEN
+
+    CREATE INDEX `IX_VerifiedMechanismVersions_ArchivedById` ON `VerifiedMechanismVersions` (`ArchivedById`);
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261109000025_AddVerifiedMechanismVersions') THEN
+
+    CREATE INDEX `IX_VerifiedMechanismVersions_DeprecatedById` ON `VerifiedMechanismVersions` (`DeprecatedById`);
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261109000025_AddVerifiedMechanismVersions') THEN
+
+    CREATE INDEX `IX_VerifiedMechanismVersions_FamilyId` ON `VerifiedMechanismVersions` (`FamilyId`);
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261109000025_AddVerifiedMechanismVersions') THEN
+
+    CREATE INDEX `IX_VerifiedMechanismVersions_FamilyVersionId` ON `VerifiedMechanismVersions` (`FamilyVersionId`);
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261109000025_AddVerifiedMechanismVersions') THEN
+
+    CREATE INDEX `IX_VerifiedMechanismVersions_MechanismId` ON `VerifiedMechanismVersions` (`MechanismId`);
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261109000025_AddVerifiedMechanismVersions') THEN
+
+    CREATE INDEX `IX_VerifiedMechanismVersions_VerifierId` ON `VerifiedMechanismVersions` (`VerifierId`);
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+DROP PROCEDURE IF EXISTS MigrationsScript;
+DELIMITER //
+CREATE PROCEDURE MigrationsScript()
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261109000025_AddVerifiedMechanismVersions') THEN
+
+    INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+    VALUES ('20261109000025_AddVerifiedMechanismVersions', '8.0.10');
+
+    END IF;
+END //
+DELIMITER ;
+CALL MigrationsScript();
+DROP PROCEDURE MigrationsScript;
+
+COMMIT;
+
