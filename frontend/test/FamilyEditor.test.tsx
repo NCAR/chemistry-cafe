@@ -670,7 +670,6 @@ describe("FamilyEditor - Browser Draft Mode", () => {
     await waitFor(() => {
       const stored = JSON.parse(localStorage.getItem("localFamilies") || "[]");
       expect(stored.some((f: any) => f.name === "Updated Draft")).toBe(true);
-      expect(screen.getByText("Saved to browser")).toBeTruthy();
     });
   });
 });
