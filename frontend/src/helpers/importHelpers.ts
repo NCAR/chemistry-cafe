@@ -1,8 +1,8 @@
 ﻿interface TypeMapHelper{
-    [key:string]:"string"|"number"|"object"
+    [key:string]:"string"|"number"|"object"|"boolean"
 }
 type CSVImport<T extends TypeMapHelper>=T extends TypeMapHelper?{
-    [K in keyof T]:T[K] extends "string" ?string:T[K] extends "number"?number:T[K] extends "object"?object: never
+    [K in keyof T]:T[K] extends "string" ?string:T[K] extends "number"?number:T[K] extends "boolean"?boolean:T[K] extends "object"?object: never
 }[]:never;
 export function importCSVArray(){
     return new Promise<string[][]>((resolve,reject) => {
