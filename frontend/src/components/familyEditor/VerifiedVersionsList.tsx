@@ -235,11 +235,11 @@ export const VerifiedVersionsList: React.FC<VerifiedVersionsListProps> = ({
       localStorage.setItem("selectedEditorMechanismId", sourceMechId);
     }
     const returnUrl = sourceMechId
-      ? `/familyeditor?id=${family.id}&mechanismId=${sourceMechId}`
-      : `/familyeditor?id=${family.id}`;
+      ? `/editor?id=${family.id}&mechanismId=${sourceMechId}`
+      : `/editor?id=${family.id}`;
     const returnTo = encodeURIComponent(returnUrl);
     window.location.assign(
-      `/familyeditor?id=${family.id}&versionId=${v.familyVersionId}&mechanismId=${v.mechanismId}&returnTo=${returnTo}`,
+      `/editor?id=${family.id}&versionId=${v.familyVersionId}&mechanismId=${v.mechanismId}&returnTo=${returnTo}`,
     );
   };
 
@@ -262,7 +262,7 @@ export const VerifiedVersionsList: React.FC<VerifiedVersionsListProps> = ({
           cloned.mechanisms[0].id,
         );
       }
-      window.location.assign(`/familyeditor?id=${cloned.id}`);
+      window.location.assign(`/editor?id=${cloned.id}`);
     } catch (err) {
       console.error("Failed to start from version snapshot:", err);
     }

@@ -68,6 +68,22 @@ export interface APIVerifiedMechanismVersion {
   originalOwnerUsername?: string | null;
 }
 
+export interface APIArchivedVerifiedVersion {
+  mechanismId: UUID;
+  familyId: UUID;
+  familyVersionId: UUID;
+  name: string;
+  description?: string | null;
+  originalFamilyName: string;
+  originalOwnerUsername?: string | null;
+  verifierUsername?: string | null;
+  verifiedDate?: string | null;
+  notes?: string | null;
+  isDeprecated: boolean;
+  deprecationReason?: string | null;
+  betterVersionId?: string | null;
+}
+
 export interface VerifyMechanismRequest {
   name?: string;
   note?: string;
