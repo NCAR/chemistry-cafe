@@ -147,7 +147,11 @@ describe("ReactionsView reaction type filter", () => {
     await selectType("Troe");
     // A selected reaction shows the units for its own order.
     const row = screen.getAllByRole("row")[1];
-    fireEvent.click(within(row).getAllByRole("gridcell")[1]);
+    fireEvent.click(
+      within(row)
+        .getAllByRole("gridcell")
+        .find((cell) => cell.getAttribute("data-field") === "id")!,
+    );
     fireEvent.click(screen.getByRole("button", { name: /Rate constant/ }));
 
     const info = screen.getByRole("region", {
@@ -282,5 +286,97 @@ describe("ReactionsView reaction type filter", () => {
     const attributes = updateFamily.mock.calls[0][0].reactions[0].attributes;
     expect(attributes.C.value).toBe(-250);
     expect(attributes.Ea).toBeUndefined();
+  });
+});
+
+describe("ReactionsView gas phase of many reactions", () => {
+  afterEach(() => {
+    localStorage.clear();
+    cleanup();
+    vi.restoreAllMocks();
+  });
+
+  it("sets the gas phase of the selected reactions and adds the missing species", () => {
+    const gasPhaseId = "333-333-333-333-001";
+    const updateFamily = vi.fn();
+    renderView(updateFamily, {
+      ...family,
+      phases: [
+        {
+          id: gasPhaseId,
+          name: "gas",
+          description: null,
+          speciesIds: ["111-111-111-111-001"],
+        },
+      ],
+    });
+
+    fireEvent.click(screen.getByRole("checkbox", { name: "Select all rows" }));
+    expect(screen.getByTestId("selection-count")).toHaveTextContent(
+      "2 selected",
+    );
+    fireEvent.click(screen.getByTestId("set-gas-phase-button"));
+    fireEvent.click(screen.getByRole("menuitem", { name: "gas" }));
+    // The phase does not have NO2, so the user selects to add it.
+    expect(screen.getByRole("dialog")).toHaveTextContent(
+      "does not contain NO2",
+    );
+    fireEvent.click(screen.getByTestId("set-gas-phase-add-species"));
+
+    const updated: Family = updateFamily.mock.calls[0][0];
+    expect(updated.reactions.map((reaction) => reaction.gasPhaseId)).toEqual([
+      gasPhaseId,
+      gasPhaseId,
+    ]);
+    expect(updated.phases[0].speciesIds).toEqual([
+      "111-111-111-111-001",
+      "111-111-111-111-002",
+    ]);
+  });
+
+  it("edits one selected reaction, and has no row menu", () => {
+    renderView(vi.fn(), family);
+
+    // The checkboxes replace the row menu.
+    expect(screen.queryByTestId("row-actions-button")).toBeNull();
+
+    const rowCheckboxes = screen.getAllByRole("checkbox", {
+      name: "Select row",
+    });
+    fireEvent.click(rowCheckboxes[0]);
+    fireEvent.click(rowCheckboxes[1]);
+    // Edit is for one reaction only.
+    expect(screen.queryByTestId("edit-reaction-button")).toBeNull();
+
+    fireEvent.click(rowCheckboxes[1]);
+    fireEvent.click(screen.getByTestId("edit-reaction-button"));
+    expect(screen.getByTestId("save-reaction-changes")).toBeTruthy();
+  });
+
+  it("deletes the selected reactions from the family and its mechanisms", () => {
+    const updateFamily = vi.fn();
+    renderView(updateFamily, {
+      ...family,
+      mechanisms: [
+        {
+          id: "444-444-444-444-001",
+          name: "Mechanism",
+          description: null,
+          familyId: family.id,
+          speciesIds: [],
+          phaseIds: [],
+          reactionIds: ["222-222-222-222-001", "222-222-222-222-002"],
+        },
+      ],
+    });
+
+    fireEvent.click(screen.getByRole("checkbox", { name: "Select all rows" }));
+    fireEvent.click(screen.getByTestId("delete-reactions-button"));
+    expect(updateFamily).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByTestId("confirm-action"));
+
+    const updated: Family = updateFamily.mock.calls[0][0];
+    expect(updated.reactions).toEqual([]);
+    expect(updated.mechanisms[0].reactionIds).toEqual([]);
   });
 });

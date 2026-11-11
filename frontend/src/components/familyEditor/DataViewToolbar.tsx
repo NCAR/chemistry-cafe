@@ -7,11 +7,13 @@ import {
   GridToolbarContainer,
   GridToolbarDensitySelector,
   GridToolbarProps,
+  GridRowSelectionModel,
   GridToolbarQuickFilter,
   GridValidRowModel,
   ToolbarPropsOverrides,
   useGridApiRef,
 } from "@mui/x-data-grid";
+import { UUID } from "crypto";
 
 declare module "@mui/x-data-grid" {
   interface ToolbarPropsOverrides {
@@ -28,6 +30,8 @@ declare module "@mui/x-data-grid" {
     filters?: ReactNode;
     /** More buttons before the Columns button */
     actions?: ReactNode;
+    /** The actions on the selected rows. They show after the filters. */
+    selectionActions?: ReactNode;
     /** The number of rows that the search and the filters leave */
     visibleCount?: number;
     /** The number of rows before the search and the filters */
@@ -59,6 +63,7 @@ export const DataViewToolbar = ({
   searchPlaceholder,
   filters,
   actions,
+  selectionActions,
   visibleCount,
   totalCount,
   quickFilterProps,
@@ -76,6 +81,7 @@ export const DataViewToolbar = ({
       {...quickFilterProps}
     />
     {filters}
+    {selectionActions}
     {visibleCount !== undefined &&
       totalCount !== undefined &&
       visibleCount < totalCount && (
@@ -142,4 +148,38 @@ export function useVisibleRows<Row extends GridValidRowModel>(
   }, [apiRef]);
 
   return visibleRows;
+}
+
+/**
+ * Gives the actions on the selected rows of a table. Call `clearSelection`
+ * after an action that changes the rows.
+ */
+export type SelectionActions = (
+  ids: Array<UUID>,
+  clearSelection: () => void,
+) => ReactNode;
+
+/**
+ * Keeps the rows that the checkboxes of a table select. Give `checkboxSelection`
+ * and the selection to the grid, and `toolbarActions` to the toolbar. The
+ * toolbar then shows the count and the actions when rows are selected.
+ * @param actions The actions on the selected rows. Without them, the table
+ *   has no checkboxes.
+ */
+export function useRowSelection(actions?: SelectionActions) {
+  const [selection, setSelection] = useState<GridRowSelectionModel>([]);
+  const toolbarActions = actions && selection.length > 0 && (
+    <>
+      <Typography variant="body2" data-testid="selection-count">
+        {selection.length} selected
+      </Typography>
+      {actions(selection as Array<UUID>, () => setSelection([]))}
+    </>
+  );
+  return {
+    checkboxSelection: actions !== undefined,
+    selection,
+    setSelection,
+    toolbarActions,
+  };
 }
