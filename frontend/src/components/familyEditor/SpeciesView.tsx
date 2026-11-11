@@ -38,6 +38,56 @@ export const SpeciesView = ({ family, updateFamily, readOnly }: ViewProps) => {
     setSelectedSpecies(species);
     setSpeciesEditorOpen(true);
   };
+  const importSpecies = () => {
+    new Promise<string[][]>((resolve,reject) => {
+      const fileInput = document.createElement("input");
+      fileInput.type = "file";
+      fileInput.accept = ".csv";
+      fileInput.addEventListener("change", (e) => {
+        const file = (e.target as HTMLInputElement).files?.[0];
+        file?.text().then((csvText) => {
+          resolve([...csvText.trimEnd().matchAll(/(?:^|,)(?:"((?:[^"]|"")*)"|([^",\r\n]*))(\n)?/gm)]
+              .reduce((out, curr) => {
+                out[out.length - 1].push(curr[1] ?? curr[2])
+                if (curr[3]) {
+                  out.push([]);
+                }
+                return out;
+              }, [[]] as string[][]));
+        }).catch(reject);
+      });
+      fileInput.click();
+    }).then((raw)=>{
+      const [header,...data] = raw;
+      /*const headerChecker = new Set<string>(["id","name","absoluteTolerance","description","constantMixingRatio","constantConcentration","isThirdBody","molecularWeight","otherProperties"] as (keyof Species)[]);
+      if(headerChecker.size!==header.length){
+        throw new Error("too many headers");
+      }
+      header.forEach((value)=>{
+        if(!headerChecker.has(value)){
+          throw new Error(`${value} is duplicated or is not an attribute of species`);
+        }
+        headerChecker.delete(value)
+      });
+      if(headerChecker.size!==0){
+        throw new Error("not enough headers");
+      }*/
+      return data.map((data)=>{
+        if(data.length!==header.length){
+          throw new Error("column length does not match headers");
+        }
+        return Object.fromEntries(data.map((v,i)=>{
+          try {
+            return [header[i], JSON.parse(v)]
+          }catch (e){
+            return [header[i], v]
+          }
+        }));
+      });
+    }).then((data)=>{
+      console.log(data);
+    }).catch((e)=>console.error(e));
+  }
 
   const removeSpecies = (speciesIds: Array<UUID>) => {
     const ids = new Set<string>(speciesIds);
@@ -168,6 +218,7 @@ export const SpeciesView = ({ family, updateFamily, readOnly }: ViewProps) => {
         }
         onRowUpdate={readOnly ? undefined : handleSpeciesRowUpdate}
         onAdd={readOnly ? undefined : createSpecies}
+        onBulkAdd={importSpecies}
       />
       <SpeciesEditorModal
         open={speciesEditorOpen}

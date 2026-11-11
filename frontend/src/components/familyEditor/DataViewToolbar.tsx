@@ -19,11 +19,18 @@ declare module "@mui/x-data-grid" {
   interface ToolbarPropsOverrides {
     /** Text of the add button, for example "Add Species" */
     addLabel?: string;
+    /** Text of the add button, for example "import species" */
+    addBulkLabel?: string;
     /** Tooltip of the add button */
     addTooltip?: string;
+    /** Tooltip of the bulk add button */
+    addBulkTooltip?: string;
     /** Test ID of the add button */
     addTestId?: string;
+    /** Test ID of the bulk add button */
+    addBulkTestId?: string;
     onAdd?: () => void;
+    onBulkAdd?: () => void;
     /** Placeholder of the search field */
     searchPlaceholder?: string;
     /** More filters after the search field */
@@ -57,9 +64,13 @@ const parseSearch = (search: string) =>
  */
 export const DataViewToolbar = ({
   addLabel,
+  addBulkLabel,  
   addTooltip,
+  addBulkTooltip,  
   addTestId,
+  addBulkTestId,  
   onAdd,
+  onBulkAdd,  
   searchPlaceholder,
   filters,
   actions,
@@ -110,6 +121,19 @@ export const DataViewToolbar = ({
           </Button>
         </Tooltip>
       </>
+    )}
+    {onBulkAdd && (
+        <Tooltip title={addBulkTooltip ?? ""}>
+          <Button
+              aria-label={addBulkLabel}
+              data-testid={addBulkTestId}
+              onClick={onBulkAdd}
+              color="primary"
+          >
+            <AddIcon />
+            <Typography variant="caption">{addBulkLabel}</Typography>
+          </Button>
+        </Tooltip>
     )}
   </GridToolbarContainer>
 );
