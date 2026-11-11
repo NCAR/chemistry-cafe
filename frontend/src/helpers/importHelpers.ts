@@ -12,7 +12,7 @@ export function importCSVArray(){
         fileInput.addEventListener("change", (e) => {
             const file = (e.target as HTMLInputElement).files?.[0];
             file?.text().then((csvText) => {
-                resolve([...csvText.trimEnd().matchAll(/(?:^|,)(?:"((?:[^"]|"")*)"|([^",\r\n]*))(\n)?/gm)]
+                resolve([...csvText.trimEnd().matchAll(/(?:^|,)(?:"((?:[^"]|"")*)"|([^",\r\n]*))(\r?\n)?/gm)]
                     .reduce((out, curr) => {
                         out[out.length - 1].push(curr[1] ?? curr[2])
                         if (curr[3]) {
@@ -30,11 +30,11 @@ export async function importCSV<T extends TypeMapHelper>(typeMap:T){
     const [header,...data] = raw;
     const headerChecker = new Set(Object.keys(typeMap));
     if(headerChecker.size!==header.length){
-        throw new Error("too many headers");
+        throw new Error(`${JSON.stringify(header)} headers does not match ${JSON.stringify([...headerChecker.values()])}`);
     }
     header.forEach((value)=>{
         if(!headerChecker.has(value)){
-            throw new Error(`${value} is duplicated or is not an attribute of species`);
+            throw new Error(`"${value}" is duplicated or is not in the remaining ${JSON.stringify([...headerChecker.values()])} headers`);
         }
         headerChecker.delete(value)
     });
@@ -46,11 +46,13 @@ export async function importCSV<T extends TypeMapHelper>(typeMap:T){
             throw new Error("column length does not match headers");
         }
         return Object.fromEntries(data.map((v,i)=>{
-            let val;
-            try {
-                val = JSON.parse(v);
-            }catch (e){
-                val = v;
+            let val=v;
+            if(typeMap[header[i]]!=="string") {
+                try {
+                    val = JSON.parse(v);
+                } catch (e) {
+                    // be sad it's still a string
+                }
             }
             if(typeof val !== typeMap[header[i]]){
                 throw new Error(`${JSON.stringify(val)} is not of type ${typeMap[header[i]]}`);
