@@ -6,6 +6,7 @@ import FamilyEditor from "./FamilyEditor.tsx";
 import Register from "./Register.tsx";
 import About from "./About.tsx";
 import UserManagement from "./UserManagement.tsx";
+import ArchivedVersions from "./ArchivedVersions.tsx";
 import NoAccess from "./Unauthorized.tsx";
 import { AuthProvider } from "../components/AuthContext";
 import ProtectedRoute from "../components/ProtectedRoute";
@@ -38,6 +39,19 @@ function App() {
                     <UserManagement />
                   </ProtectedRoute>
                 }
+              />
+              {/* Protected route for Archived Versions (#358) */}
+              <Route
+                path="/archived-versions"
+                element={
+                  <ProtectedRoute requiredRole={["Verifier", "Admin"]}>
+                    <ArchivedVersions />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/archivedversions"
+                element={<Navigate to="/archived-versions" replace />}
               />
             </Routes>
           </UserPreferencesProvider>

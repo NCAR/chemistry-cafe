@@ -959,8 +959,8 @@ const FamilyEditor = () => {
                         const storedMechId =
                           localStorage.getItem("selectedEditorMechanismId");
                         const targetUrl = storedMechId
-                          ? `/familyeditor?id=${family?.id}&mechanismId=${storedMechId}`
-                          : `/familyeditor?id=${family?.id}`;
+                          ? `/editor?id=${family?.id}&mechanismId=${storedMechId}`
+                          : `/editor?id=${family?.id}`;
                         navigate(targetUrl);
                       }
                     }}
@@ -975,8 +975,8 @@ const FamilyEditor = () => {
                       const storedMechId =
                         localStorage.getItem("selectedEditorMechanismId");
                       const targetUrl = storedMechId
-                        ? `/familyeditor?id=${family?.id}&mechanismId=${storedMechId}`
-                        : `/familyeditor?id=${family?.id}`;
+                        ? `/editor?id=${family?.id}&mechanismId=${storedMechId}`
+                        : `/editor?id=${family?.id}`;
                       navigate(targetUrl);
                     }}
                     sx={{ textTransform: "none" }}
@@ -994,7 +994,7 @@ const FamilyEditor = () => {
                         addFamilyLocally(cloned);
                         addUploadedFamilyIdLocally(cloned.id);
                         localStorage.setItem("selectedEditorFamilyId", cloned.id);
-                        navigate(`/familyeditor?id=${cloned.id}`);
+                        navigate(`/editor?id=${cloned.id}`);
                         setInPageSuccess("Created new editable draft from verified version!");
                       }
                     }}

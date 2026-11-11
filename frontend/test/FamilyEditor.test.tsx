@@ -265,7 +265,7 @@ describe("Family Editor Page", () => {
     render(
       <AuthProvider>
         <CustomThemeProvider>
-          <MemoryRouter initialEntries={["/familyeditor"]}>
+          <MemoryRouter initialEntries={["/editor"]}>
             <FamilyEditor />
           </MemoryRouter>
         </CustomThemeProvider>
@@ -347,7 +347,7 @@ describe("Family Editor Page", () => {
     render(
       <AuthProvider>
         <CustomThemeProvider>
-          <MemoryRouter initialEntries={[`/familyeditor?id=${testFamily.id}&versionId=fv-1`]}>
+          <MemoryRouter initialEntries={[`/editor?id=${testFamily.id}&versionId=fv-1`]}>
             <FamilyEditor />
           </MemoryRouter>
         </CustomThemeProvider>

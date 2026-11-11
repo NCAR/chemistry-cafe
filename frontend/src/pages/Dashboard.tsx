@@ -92,7 +92,6 @@ export const Dashboard: React.FC = () => {
   const [familyCreationModalOpen, setFamilyCreationModalOpen] =
     useState<boolean>(false);
   const [importModalOpen, setImportModalOpen] = useState<boolean>(false);
-  const [archivedModalOpen, setArchivedModalOpen] = useState<boolean>(false);
 
   // Helper to update URL params while preserving existing ones
   const updateUrlParams = (
@@ -800,7 +799,7 @@ export const Dashboard: React.FC = () => {
             <Link
               component="button"
               variant="body2"
-              onClick={() => setArchivedModalOpen(true)}
+              onClick={() => navigate("/archived-versions")}
               sx={{ cursor: "pointer", fontWeight: "bold" }}
             >
               Show archived versions
@@ -850,27 +849,6 @@ export const Dashboard: React.FC = () => {
           navigate("/editor");
         }}
       />
-
-      {/* Archived Versions Dialog (#358) */}
-      <Dialog
-        open={archivedModalOpen}
-        onClose={() => setArchivedModalOpen(false)}
-      >
-        <DialogTitle>Archived Versions</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" sx={{ mb: 1 }}>
-            Mechanism verification and archived version history are tracked in
-            Mechanism verification (#358).
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            No archived versions are currently stored for the selected
-            mechanisms.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setArchivedModalOpen(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
 
       <footer>
         <Footer />

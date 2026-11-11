@@ -356,7 +356,13 @@ describe("Dashboard / Browse Page", () => {
       <AuthProvider>
         <CustomThemeProvider>
           <MemoryRouter initialEntries={["/?view=all"]}>
-            <Dashboard />
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route
+                path="/archived-versions"
+                element={<div>Archived Versions</div>}
+              />
+            </Routes>
           </MemoryRouter>
         </CustomThemeProvider>
       </AuthProvider>,

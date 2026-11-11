@@ -3,6 +3,7 @@
 import axios from "axios";
 
 import {
+  APIArchivedVerifiedVersion,
   APIFamily,
   APIFamilyContributor,
   APIPendingRegistration,
@@ -167,6 +168,19 @@ export async function getFamilyContributors(
 ): Promise<Array<APIFamilyContributor>> {
   const response = await axios.get<Array<APIFamilyContributor>>(
     `${BASE_URL}/families/${familyId}/contributors`,
+    {
+      withCredentials: true,
+    },
+  );
+
+  return response.data;
+}
+
+export async function getArchivedVerifiedVersions(): Promise<
+  Array<APIArchivedVerifiedVersion>
+> {
+  const response = await axios.get<Array<APIArchivedVerifiedVersion>>(
+    `${BASE_URL}/families/archived-versions`,
     {
       withCredentials: true,
     },
