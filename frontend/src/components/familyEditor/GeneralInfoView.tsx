@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   Box,
@@ -11,7 +11,6 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import { ConfirmActionModal } from "../modals/ConfirmActionModal";
@@ -35,16 +34,20 @@ export const GeneralInfoView = ({
   updateFamily,
   readOnly,
   onDelete,
-  onPublish,
+  onPublish: _onPublish,
   onChangeVisibility,
-}: ViewProps & ExtraGeneralInfoViewProps) => {
+}: ViewProps & Partial<ExtraGeneralInfoViewProps>) => {
   const [name, setName] = useState<string>(family.name);
   const [showAlert, setShowAlert] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>();
   const [description, setDescription] = useState<string>(family.description);
 
+  useEffect(() => {
+    setName(family.name);
+    setDescription(family.description ?? "");
+  }, [family.id, family.name, family.description]);
+
   const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false);
-  const [openPublishModal, setOpenPublishModal] = useState<boolean>(false);
   const [openMakePublicModal, setOpenMakePublicModal] =
     useState<boolean>(false);
   const [validationErrors, setValidationErrors] = useState<ValidationIssue[]>(
@@ -137,24 +140,38 @@ export const GeneralInfoView = ({
           required
           disabled={readOnly}
           data-testid="family-name-input-general-info"
-          defaultValue={family.name}
-          error={name.length === 0}
+          value={name}
+          error={name.trim().length === 0}
+          helperText={
+            name.trim().length === 0 ? "Name must not be empty" : undefined
+          }
           onChange={(event) => {
-            setName(event.target.value);
+            const newName = event.target.value;
+            setName(newName);
+            if (newName.trim().length > 0) {
+              updateFamily({
+                ...family,
+                name: newName,
+              });
+            }
           }}
           onBlur={handleSave}
         />
         <TextField
           label="Description"
-          required
           disabled={readOnly}
           data-testid="family-description-input-general-info"
-          defaultValue={family.description}
+          value={description}
           multiline
           minRows={3}
           maxRows={5}
           onChange={(event) => {
-            setDescription(event.target.value);
+            const newDesc = event.target.value;
+            setDescription(newDesc);
+            updateFamily({
+              ...family,
+              description: newDesc,
+            });
           }}
           onBlur={handleSave}
         />
@@ -188,16 +205,6 @@ export const GeneralInfoView = ({
                 }
               />
             </Tooltip>
-          )}
-          {!family.isInDatabase && (
-            <Button
-              startIcon={<CloudUploadIcon />}
-              color="secondary"
-              variant="contained"
-              onClick={() => setOpenPublishModal(true)}
-            >
-              Upload Family
-            </Button>
           )}
           {isOwnerOrAdmin && (
             <Button
@@ -237,23 +244,12 @@ export const GeneralInfoView = ({
         open={openDeleteModal}
         onClose={() => setOpenDeleteModal(false)}
         onAction={() => {
-          onDelete();
+          onDelete?.();
           setOpenDeleteModal(false);
         }}
         message="This will permanently delete the entire family! This includes any Species, Reactions, Phases, and Mechanisms associated with this family."
         subtitle="Are you sure you want to continue?"
         confirmColor="error"
-      />
-      <ConfirmActionModal
-        open={openPublishModal}
-        onClose={() => setOpenPublishModal(false)}
-        onAction={() => {
-          onPublish();
-          setOpenPublishModal(false);
-        }}
-        message="This saves the family to the server as a private family. Only you can see it until you make it public."
-        subtitle="Are you sure you want to continue?"
-        confirmColor="secondary"
       />
       <ConfirmActionModal
         open={openMakePublicModal}

@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useState } from "react";
 import { Family, Mechanism, Phase, Reaction } from "../types/chemistryModels";
 import {
   Box,
@@ -143,25 +143,47 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
 
   // Sorts text in alphabetical order. Numbers in the text sort by value, so
   // "P2" comes before "P10". This is the same rule as bySpeciesName.
-  const byText = (a: string, b: string) =>
-    a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" });
+  const collator = useMemo(
+    () => new Intl.Collator(undefined, { numeric: true, sensitivity: "base" }),
+    [],
+  );
+  const byText = useCallback(
+    (a: string, b: string) => collator.compare(a, b),
+    [collator],
+  );
 
   // The choices of the add dialogs: the family items that the mechanism does
   // not contain yet. The species are in alphabetical order.
-  const availableSpecies = family.species
-    .filter((species) => !modifiedMechanism.speciesIds.includes(species.id))
-    .sort(bySpeciesName);
-  const availableReactions = family.reactions
-    .filter((reaction) => !modifiedMechanism.reactionIds.includes(reaction.id))
-    .sort((a: Reaction, b: Reaction) =>
-      byText(
-        reactionToString(a, family.species),
-        reactionToString(b, family.species),
-      ),
-    );
-  const availablePhases = family.phases
-    .filter((phase) => !modifiedMechanism.phaseIds.includes(phase.id))
-    .sort((a: Phase, b: Phase) => byText(a.name, b.name));
+  const availableSpecies = useMemo(
+    () =>
+      family.species
+        .filter((species) => !modifiedMechanism.speciesIds.includes(species.id))
+        .sort(bySpeciesName),
+    [family.species, modifiedMechanism.speciesIds],
+  );
+
+  const availableReactions = useMemo(
+    () =>
+      family.reactions
+        .filter(
+          (reaction) => !modifiedMechanism.reactionIds.includes(reaction.id),
+        )
+        .sort((a: Reaction, b: Reaction) =>
+          byText(
+            reactionToString(a, family.species),
+            reactionToString(b, family.species),
+          ),
+        ),
+    [family.reactions, family.species, modifiedMechanism.reactionIds, byText],
+  );
+
+  const availablePhases = useMemo(
+    () =>
+      family.phases
+        .filter((phase) => !modifiedMechanism.phaseIds.includes(phase.id))
+        .sort((a: Phase, b: Phase) => byText(a.name, b.name)),
+    [family.phases, modifiedMechanism.phaseIds, byText],
+  );
 
   const changeMechanismProperties = (properties: Partial<Mechanism>) => {
     setModifiedMechanism({
@@ -300,7 +322,7 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
               id="edit-mechanism-name"
               label="Name"
               disabled={readOnly}
-              defaultValue={mechanism.name}
+              value={modifiedMechanism.name ?? ""}
               onChange={(event) => {
                 changeMechanismProperties({
                   name: event.target.value,
@@ -311,7 +333,7 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
               id="edit-mechanism-description"
               label="Description"
               disabled={readOnly}
-              defaultValue={mechanism.description}
+              value={modifiedMechanism.description ?? ""}
               multiline
               minRows={3}
               maxRows={6}

@@ -646,7 +646,7 @@ describe("FamilyEditor - Browser Draft Mode", () => {
     });
   });
 
-  it("Allows saving changes to draft locally", async () => {
+  it("Saves changes to draft in browser immediately without requiring manual save", async () => {
     render(
       <AuthProvider>
         <CustomThemeProvider>
@@ -666,16 +666,11 @@ describe("FamilyEditor - Browser Draft Mode", () => {
       .querySelector("input")!;
 
     fireEvent.change(nameInput, { target: { value: "Updated Draft" } });
-    fireEvent.blur(nameInput);
 
     await waitFor(() => {
-      expect(screen.getByTestId("save-changes-button")).toBeTruthy();
-    });
-
-    fireEvent.click(screen.getByTestId("save-changes-button"));
-
-    await waitFor(() => {
-      expect(screen.getByText("Draft saved in browser.")).toBeTruthy();
+      const stored = JSON.parse(localStorage.getItem("localFamilies") || "[]");
+      expect(stored.some((f: any) => f.name === "Updated Draft")).toBe(true);
+      expect(screen.getByText("Saved to browser")).toBeTruthy();
     });
   });
 });

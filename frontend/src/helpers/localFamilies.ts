@@ -181,6 +181,38 @@ export const addFamilyLocally = (family: Family): void => {
 };
 
 /**
+ * Saves or updates a family in localStorage for immediate persistence.
+ * If the family already exists in localFamilies, updates it in place; otherwise prepends it.
+ * @param family Family to save locally
+ */
+export const saveFamilyLocally = (family: Family): void => {
+  let localFamilies: Array<Family> = [];
+  try {
+    const stored = localStorage.getItem("localFamilies");
+    if (stored) {
+      localFamilies = JSON.parse(stored);
+      if (!Array.isArray(localFamilies)) {
+        localFamilies = [];
+      }
+    }
+  } catch (err) {
+    console.error("Issue reading families from localStorage: ", err);
+    localFamilies = [];
+  }
+  const index = localFamilies.findIndex((f) => f.id === family.id);
+  if (index >= 0) {
+    localFamilies[index] = family;
+  } else {
+    localFamilies.unshift(family);
+  }
+  try {
+    localStorage.setItem("localFamilies", JSON.stringify(localFamilies));
+  } catch (err) {
+    console.error("Issue saving family to localStorage: ", err);
+  }
+};
+
+/**
  * Clears localStorage families and ids
  */
 export const clearFamiliesLocally = () => {
@@ -209,25 +241,5 @@ export const removeFamilyLocally = (family: Family): void => {
     );
   } catch (err) {
     console.error("Issue removing family from localStorage: ", err);
-  }
-};
-
-/**
- * Updates all locally stored families in localStorage
- * @param families List of families to put in localStorage
- */
-export const updateLocalStorageFamilyInfo = (families: Family[]): void => {
-  const localFamilies = families.filter((e) => !e.isInDatabase);
-  const uploadedFamilyIds = families
-    .filter((e) => e.isInDatabase)
-    .map((e) => e.id);
-  try {
-    localStorage.setItem("localFamilies", JSON.stringify(localFamilies));
-    localStorage.setItem(
-      "uploadedFamilyIds",
-      JSON.stringify(uploadedFamilyIds),
-    );
-  } catch (e) {
-    console.error("There was an issue storing families locally:", e);
   }
 };

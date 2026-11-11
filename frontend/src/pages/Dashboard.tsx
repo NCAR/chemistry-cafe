@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Alert,
@@ -88,9 +88,7 @@ export const Dashboard: React.FC = () => {
 
   // UI state
   const [filtersOpen, setFiltersOpen] = useState<boolean>(false);
-  const [manuallyOpenedFamilyIds, setManuallyOpenedFamilyIds] = useState<
-    Set<string>
-  >(new Set());
+  const [openFamilyIds, setOpenFamilyIds] = useState<Set<string>>(new Set());
   const [familyCreationModalOpen, setFamilyCreationModalOpen] =
     useState<boolean>(false);
   const [importModalOpen, setImportModalOpen] = useState<boolean>(false);
@@ -103,7 +101,15 @@ export const Dashboard: React.FC = () => {
     const nextParams = new URLSearchParams(searchParams);
 
     for (const [key, value] of Object.entries(updates)) {
-      if (value === null || value === undefined || value.trim() === "") {
+      if (value === null || value === undefined) {
+        nextParams.delete(key);
+      } else if (key === "q") {
+        if (value === "") {
+          nextParams.delete(key);
+        } else {
+          nextParams.set(key, value);
+        }
+      } else if (value.trim() === "") {
         nextParams.delete(key);
       } else {
         nextParams.set(key, value.trim());
@@ -237,8 +243,8 @@ export const Dashboard: React.FC = () => {
         }
 
         // Step 3: Search Box (finds text in family names, owners, descriptions, mechanism names, species, and reactions)
-        if (queryParam) {
-          const q = queryParam.toLowerCase();
+        if (queryParam.trim()) {
+          const q = queryParam.trim().toLowerCase();
           const nameMatch = family.name.toLowerCase().includes(q);
           const descMatch = Boolean(
             family.description?.toLowerCase().includes(q),
@@ -305,22 +311,30 @@ export const Dashboard: React.FC = () => {
     user,
   ]);
 
-  // Families that match search open automatically
-  const openFamilyIds = useMemo(() => {
-    if (queryParam.trim().length > 0) {
-      // Auto-open all matching families when search text is active
-      const matchingIds = new Set<string>();
-      filteredFamilies.forEach((f) => matchingIds.add(f.id));
-      return matchingIds;
+  // Auto-open matching families when search is entered/updated, but allow user to collapse or expand them
+  const autoOpenedForRef = useRef<string>("");
+
+  useEffect(() => {
+    const trimmedQuery = queryParam.trim();
+    if (trimmedQuery.length > 0) {
+      if (autoOpenedForRef.current !== queryParam && filteredFamilies.length > 0) {
+        autoOpenedForRef.current = queryParam;
+        const matchingIds = new Set<string>();
+        filteredFamilies.forEach((f) => matchingIds.add(f.id));
+        setOpenFamilyIds(matchingIds);
+      }
+    } else {
+      if (autoOpenedForRef.current !== "") {
+        autoOpenedForRef.current = "";
+        setOpenFamilyIds(new Set());
+      }
     }
-    // Otherwise respect manual clicks (closed by default in All view)
-    return manuallyOpenedFamilyIds;
-  }, [queryParam, filteredFamilies, manuallyOpenedFamilyIds]);
+  }, [queryParam, filteredFamilies]);
 
   const handleToggleExpand = (familyId: string) => {
-    setManuallyOpenedFamilyIds((prev) => {
+    setOpenFamilyIds((prev) => {
       const next = new Set(prev);
-      if (openFamilyIds.has(familyId)) {
+      if (next.has(familyId)) {
         next.delete(familyId);
       } else {
         next.add(familyId);

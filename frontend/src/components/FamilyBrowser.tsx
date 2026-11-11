@@ -157,6 +157,9 @@ const FamilyInfoCard = memo(function FamilyInfoCard({
           role="button"
           tabIndex={0}
           onKeyDown={(e) => {
+            if (e.target !== e.currentTarget) {
+              return;
+            }
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
               toggleOpen();
@@ -285,6 +288,7 @@ const FamilyInfoCard = memo(function FamilyInfoCard({
                   color="primary"
                   size="small"
                   onClick={handleOpenClick}
+                  onKeyDown={(e) => e.stopPropagation()}
                   aria-label={`Open ${family.name}`}
                 >
                   Open
@@ -296,6 +300,7 @@ const FamilyInfoCard = memo(function FamilyInfoCard({
                     color="primary"
                     size="small"
                     onClick={handleOpenClick}
+                    onKeyDown={(e) => e.stopPropagation()}
                     aria-label={`View ${family.name}`}
                   >
                     View
@@ -305,6 +310,7 @@ const FamilyInfoCard = memo(function FamilyInfoCard({
                     color="primary"
                     size="small"
                     onClick={handleCloneClick}
+                    onKeyDown={(e) => e.stopPropagation()}
                     aria-label={`Edit a copy of ${family.name}`}
                   >
                     Edit a copy

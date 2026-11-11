@@ -17,8 +17,10 @@ import {
   Typography,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import LockIcon from "@mui/icons-material/Lock";
 import { Family, Mechanism } from "../types/chemistryModels";
+import { ConfirmActionModal } from "../components/modals/ConfirmActionModal";
 import { MechanismCreationModal } from "../components/modals/MechanismCreationModal";
 import { ValidationErrorsModal } from "../components/modals/ValidationErrorsModal";
 import { UUID } from "crypto";
@@ -35,7 +37,7 @@ import {
   addUploadedFamilyIdLocally,
   cloneFamily,
   removeFamilyLocally,
-  updateLocalStorageFamilyInfo,
+  saveFamilyLocally,
 } from "../helpers/localFamilies";
 import { GeneralInfoView } from "../components/familyEditor/GeneralInfoView";
 import { MechanismsView } from "../components/familyEditor/MechanismsView";
@@ -84,6 +86,7 @@ const FamilyEditor = () => {
   // Modals state
   const [mechanismCreationModalOpen, setMechanismCreationModalOpen] =
     useState<boolean>(false);
+  const [openPublishModal, setOpenPublishModal] = useState<boolean>(false);
   const [validationErrors, setValidationErrors] = useState<ValidationIssue[]>(
     [],
   );
@@ -249,9 +252,9 @@ const FamilyEditor = () => {
     loadFamilyFromSource();
   }, [loadFamilyFromSource]);
 
-  // Window unload confirmation when unsaved changes exist
+  // Window unload confirmation when unsaved changes exist on database families
   useEffect(() => {
-    if (family?.isModified) {
+    if (family?.isInDatabase && family?.isModified) {
       window.onbeforeunload = () => true;
     } else {
       window.onbeforeunload = null;
@@ -259,16 +262,21 @@ const FamilyEditor = () => {
     return () => {
       window.onbeforeunload = null;
     };
-  }, [family?.isModified]);
+  }, [family?.isInDatabase, family?.isModified]);
 
   // Family update handler from subviews
   const updateFamily = (updated: Family) => {
-    const isModified = true;
-    const modifiedFamily = {
-      ...updated,
-      isModified,
-    };
-    setFamily(modifiedFamily);
+    if (!updated.isInDatabase) {
+      saveFamilyLocally(updated);
+      setFamily(updated);
+    } else {
+      const isModified = true;
+      const modifiedFamily = {
+        ...updated,
+        isModified,
+      };
+      setFamily(modifiedFamily);
+    }
   };
 
   // Discard changes: revert back to original pristine copy
@@ -293,7 +301,7 @@ const FamilyEditor = () => {
         return saved;
       } else {
         const updatedDraft = { ...family, isModified: false };
-        updateLocalStorageFamilyInfo([updatedDraft]);
+        saveFamilyLocally(updatedDraft);
         setFamily(updatedDraft);
         setOriginalFamily(structuredClone(updatedDraft));
         setInPageSuccess("Draft saved in browser.");
@@ -350,6 +358,16 @@ const FamilyEditor = () => {
   };
 
   // Save guest draft to signed-in account
+  const handleUploadClick = () => {
+    if (!user) {
+      setInPageError(
+        "Please sign in or create an account to upload families to the server.",
+      );
+      return;
+    }
+    setOpenPublishModal(true);
+  };
+
   const handleSaveDraftToAccount = async () => {
     if (!user || !family) return;
     setLoading(true);
@@ -678,7 +696,30 @@ const FamilyEditor = () => {
                 gap: 1.5,
               }}
             >
-              {family && canEdit && family.isModified && (
+              {family && canEdit && !family.isInDatabase && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                  }}
+                  data-testid="draft-actions-bar"
+                >
+                  <Button
+                    size="small"
+                    variant="contained"
+                    color="primary"
+                    startIcon={<CloudUploadIcon />}
+                    onClick={handleUploadClick}
+                    data-testid="upload-family-button"
+                    sx={{ textTransform: "none", fontWeight: 600 }}
+                  >
+                    Upload Family
+                  </Button>
+                </Box>
+              )}
+
+              {family && canEdit && family.isInDatabase && family.isModified && (
                 <Box
                   sx={{
                     display: "flex",
@@ -1041,6 +1082,18 @@ const FamilyEditor = () => {
         message="Fix these problems before making this family public:"
         family={family ?? ({} as Family)}
         errors={validationErrors}
+      />
+
+      <ConfirmActionModal
+        open={openPublishModal}
+        onClose={() => setOpenPublishModal(false)}
+        onAction={() => {
+          handleSaveDraftToAccount();
+          setOpenPublishModal(false);
+        }}
+        message="This saves the family to the server as a private family. Only you can see it until you make it public."
+        subtitle="Are you sure you want to continue?"
+        confirmColor="secondary"
       />
 
       {loading && (
