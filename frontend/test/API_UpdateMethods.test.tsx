@@ -5,6 +5,7 @@ import {
   updateUser,
   updateFamily,
   updateUserPreferences,
+  updateFamilyContributor,
 } from "../src/API/API_UpdateMethods";
 import {
   APIFamily,
@@ -123,6 +124,34 @@ describe("updateUserPreferences function", () => {
     expect(mockedPut).toHaveBeenCalledWith(
       `http://localhost:8080/api/users/me/preferences`,
       preferences,
+      {
+        withCredentials: true,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+  });
+});
+
+describe("updateFamilyContributor function", () => {
+  it("Calls put endpoint for contributor role update by user GUID", async () => {
+    const mockContributor = {
+      userId: "u-1",
+      role: "Viewer",
+      username: "testuser",
+    };
+    const mockedPut = vi
+      .spyOn(axios, "put")
+      .mockResolvedValue({ data: mockContributor, status: 200 } as any);
+
+    const result = await updateFamilyContributor(
+      "f-1" as any,
+      "u-1" as any,
+      "Viewer",
+    );
+    expect(result).toEqual(mockContributor);
+    expect(mockedPut).toHaveBeenCalledWith(
+      `http://localhost:8080/api/families/f-1/contributors/u-1`,
+      { role: "Viewer" },
       {
         withCredentials: true,
         headers: { "Content-Type": "application/json" },

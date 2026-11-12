@@ -74,6 +74,7 @@ describe("addFamilyContributor function", () => {
       userId: "u-1" as any,
       role: "Editor",
       email: "colleague@example.com",
+      username: "colleague",
     };
 
     vi.spyOn(axios, "post").mockResolvedValue({
@@ -82,7 +83,7 @@ describe("addFamilyContributor function", () => {
     });
 
     const result = await addFamilyContributor("f-1" as any, {
-      email: "colleague@example.com",
+      username: "colleague",
       role: "Editor",
     });
 

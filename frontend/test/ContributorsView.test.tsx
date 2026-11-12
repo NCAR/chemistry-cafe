@@ -6,6 +6,7 @@ import { ContributorsView } from "../src/components/familyEditor/ContributorsVie
 import { useAuth } from "../src/components/AuthContext";
 import { getFamilyContributors } from "../src/API/API_GetMethods";
 import { addFamilyContributor } from "../src/API/API_CreateMethods";
+import { updateFamilyContributor } from "../src/API/API_UpdateMethods";
 import { deleteFamilyContributor } from "../src/API/API_DeleteMethods";
 import { Family } from "../src/types/chemistryModels";
 import { CustomThemeProvider } from "../src/components/CustomThemeContext";
@@ -20,6 +21,10 @@ vi.mock("../src/API/API_GetMethods", () => ({
 
 vi.mock("../src/API/API_CreateMethods", () => ({
   addFamilyContributor: vi.fn(),
+}));
+
+vi.mock("../src/API/API_UpdateMethods", () => ({
+  updateFamilyContributor: vi.fn(),
 }));
 
 vi.mock("../src/API/API_DeleteMethods", () => ({
@@ -110,7 +115,7 @@ describe("ContributorsView Component", () => {
 
     // Add contributor form is not present
     expect(screen.queryByTestId("add-contributor-button")).toBeNull();
-    expect(screen.queryByTestId("contributor-email-input")).toBeNull();
+    expect(screen.queryByTestId("contributor-username-input")).toBeNull();
 
     // Role select dropdown and remove button are not present
     expect(screen.queryByTestId("role-select-u-1")).toBeNull();
@@ -135,7 +140,7 @@ describe("ContributorsView Component", () => {
       expect(screen.getByText(/No contributors yet/i)).toBeTruthy();
     });
 
-    expect(screen.getByTestId("contributor-email-input")).toBeTruthy();
+    expect(screen.getByTestId("contributor-username-input")).toBeTruthy();
     expect(screen.getByTestId("add-contributor-button")).toBeTruthy();
   });
 
@@ -167,7 +172,7 @@ describe("ContributorsView Component", () => {
     });
   });
 
-  it("Allows owner to add contributor by email", async () => {
+  it("Allows owner to add contributor by username", async () => {
     const user = userEvent.setup();
     (useAuth as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
       user: mockOwner,
@@ -199,15 +204,15 @@ describe("ContributorsView Component", () => {
       expect(screen.getByText(/No contributors yet/i)).toBeTruthy();
     });
 
-    const emailInput = screen.getByTestId("contributor-email-input");
-    await user.type(emailInput, "newuser@example.com");
+    const usernameInput = screen.getByTestId("contributor-username-input");
+    await user.type(usernameInput, "NewUser");
 
     const addButton = screen.getByTestId("add-contributor-button");
     fireEvent.click(addButton);
 
     await waitFor(() => {
       expect(addFamilyContributor).toHaveBeenCalledWith("fam-1", {
-        email: "newuser@example.com",
+        username: "NewUser",
         role: "Editor",
       });
       expect(screen.getByText("newuser@example.com")).toBeTruthy();
@@ -241,8 +246,8 @@ describe("ContributorsView Component", () => {
       expect(screen.getByText(/No contributors yet/i)).toBeTruthy();
     });
 
-    const emailInput = screen.getByTestId("contributor-email-input");
-    await user.type(emailInput, "notfound@example.com");
+    const usernameInput = screen.getByTestId("contributor-username-input");
+    await user.type(usernameInput, "notfound_user");
 
     const addButton = screen.getByTestId("add-contributor-button");
     fireEvent.click(addButton);
@@ -273,8 +278,8 @@ describe("ContributorsView Component", () => {
       expect(screen.getByText(/No contributors yet/i)).toBeTruthy();
     });
 
-    const emailInput = screen.getByTestId("contributor-email-input");
-    await user.type(emailInput, "owner@example.com");
+    const usernameInput = screen.getByTestId("contributor-username-input");
+    await user.type(usernameInput, "OwnerUser");
 
     const addButton = screen.getByTestId("add-contributor-button");
     fireEvent.click(addButton);
@@ -285,6 +290,54 @@ describe("ContributorsView Component", () => {
       ).toBeTruthy();
     });
     expect(addFamilyContributor).not.toHaveBeenCalled();
+  });
+
+  it("Allows owner to update contributor role by user GUID", async () => {
+    (useAuth as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+      user: mockOwner,
+    });
+    (
+      getFamilyContributors as unknown as ReturnType<typeof vi.fn>
+    ).mockResolvedValue([
+      {
+        userId: "u-1" as any,
+        role: "Editor",
+        email: "colleague@example.com",
+        username: "ColleagueUser",
+      },
+    ]);
+    (
+      updateFamilyContributor as unknown as ReturnType<typeof vi.fn>
+    ).mockResolvedValue({
+      userId: "u-1" as any,
+      role: "Viewer",
+      email: "colleague@example.com",
+      username: "ColleagueUser",
+    });
+
+    render(
+      <CustomThemeProvider>
+        <ContributorsView family={mockDatabaseFamily} />
+      </CustomThemeProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("role-select-u-1")).toBeTruthy();
+    });
+
+    const roleSelect = screen
+      .getByTestId("role-select-u-1")
+      .querySelector("input")!;
+    fireEvent.change(roleSelect, { target: { value: "Viewer" } });
+
+    await waitFor(() => {
+      expect(updateFamilyContributor).toHaveBeenCalledWith(
+        "fam-1",
+        "u-1",
+        "Viewer",
+      );
+      expect(screen.getByText(/Contributor role updated/i)).toBeTruthy();
+    });
   });
 
   it("Allows owner to remove a contributor", async () => {

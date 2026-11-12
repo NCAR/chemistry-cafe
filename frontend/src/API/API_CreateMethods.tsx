@@ -27,7 +27,7 @@ export async function createFamily(familyData: APIFamily): Promise<APIFamily> {
 }
 
 /**
- * Adds or updates a contributor for a family.
+ * Adds a contributor for a family by username.
  * @param familyId
  * @param request
  */

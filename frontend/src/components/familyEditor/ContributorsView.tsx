@@ -33,6 +33,7 @@ import {
 } from "../../API/API_Interfaces";
 import { getFamilyContributors } from "../../API/API_GetMethods";
 import { addFamilyContributor } from "../../API/API_CreateMethods";
+import { updateFamilyContributor } from "../../API/API_UpdateMethods";
 import { deleteFamilyContributor } from "../../API/API_DeleteMethods";
 
 export const ContributorsView: React.FC<ViewProps> = ({ family }) => {
@@ -41,7 +42,7 @@ export const ContributorsView: React.FC<ViewProps> = ({ family }) => {
     [],
   );
   const [loading, setLoading] = useState<boolean>(true);
-  const [searchEmail, setSearchEmail] = useState<string>("");
+  const [searchUsername, setSearchUsername] = useState<string>("");
   const [selectedRole, setSelectedRole] = useState<ContributorRole>("Editor");
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -89,15 +90,15 @@ export const ContributorsView: React.FC<ViewProps> = ({ family }) => {
     if (e) {
       e.preventDefault();
     }
-    const trimmedEmail = searchEmail.trim();
-    if (!trimmedEmail) {
-      setErrorMessage("Please enter an email address.");
+    const trimmedUsername = searchUsername.trim();
+    if (!trimmedUsername) {
+      setErrorMessage("Please enter a username.");
       return;
     }
 
     if (
-      family.owner?.email &&
-      family.owner.email.toLowerCase() === trimmedEmail.toLowerCase()
+      family.owner?.username &&
+      family.owner.username.toLowerCase() === trimmedUsername.toLowerCase()
     ) {
       setErrorMessage("The owner cannot be added as a contributor.");
       return;
@@ -108,7 +109,7 @@ export const ContributorsView: React.FC<ViewProps> = ({ family }) => {
 
     try {
       const added = await addFamilyContributor(family.id, {
-        email: trimmedEmail,
+        username: trimmedUsername,
         role: selectedRole,
       });
 
@@ -125,7 +126,7 @@ export const ContributorsView: React.FC<ViewProps> = ({ family }) => {
         family.contributorIds.push(added.userId);
       }
 
-      setSearchEmail("");
+      setSearchUsername("");
       setSuccessMessage(
         `Contributor added successfully with ${selectedRole} role.`,
       );
@@ -158,10 +159,7 @@ export const ContributorsView: React.FC<ViewProps> = ({ family }) => {
     newRole: ContributorRole,
   ) => {
     try {
-      const updated = await addFamilyContributor(family.id, {
-        userId,
-        role: newRole,
-      });
+      const updated = await updateFamilyContributor(family.id, userId, newRole);
 
       setContributors((prev) =>
         prev.map((c) =>
@@ -248,7 +246,7 @@ export const ContributorsView: React.FC<ViewProps> = ({ family }) => {
       </Box>
       <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
         {isOwnerOrAdmin
-          ? "Manage who has access to collaborate on this family. Search for users by their email address."
+          ? "Manage who has access to collaborate on this family. Search for users by their username."
           : "List of contributors with access to collaborate on this family."}
       </Typography>
 
@@ -267,16 +265,15 @@ export const ContributorsView: React.FC<ViewProps> = ({ family }) => {
           }}
         >
           <TextField
-            label="Add by email"
-            type="email"
+            label="Add by username"
             size="small"
-            value={searchEmail}
-            onChange={(e) => setSearchEmail(e.target.value)}
-            placeholder="colleague@example.com"
+            value={searchUsername}
+            onChange={(e) => setSearchUsername(e.target.value)}
+            placeholder="username"
             sx={{ flexGrow: 1, minWidth: "220px" }}
             inputProps={{
-              "aria-label": "Contributor email",
-              "data-testid": "contributor-email-input",
+              "aria-label": "Contributor username",
+              "data-testid": "contributor-username-input",
             }}
           />
           <FormControl size="small" sx={{ minWidth: "130px" }}>
@@ -302,7 +299,7 @@ export const ContributorsView: React.FC<ViewProps> = ({ family }) => {
             type="submit"
             variant="contained"
             color="primary"
-            disabled={submitting || !searchEmail.trim()}
+            disabled={submitting || !searchUsername.trim()}
             startIcon={<PersonAddIcon />}
             data-testid="add-contributor-button"
           >
@@ -454,7 +451,7 @@ export const ContributorsView: React.FC<ViewProps> = ({ family }) => {
             <Typography variant="body2" color="textSecondary" sx={{ mt: 1.5 }}>
               No contributors yet.
               {isOwnerOrAdmin
-                ? " Add collaborators by their email address to share access."
+                ? " Add collaborators by their username to share access."
                 : ""}
             </Typography>
           )}

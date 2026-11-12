@@ -933,18 +933,22 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
     }
 
     /// <summary>
-    /// Adds or updates a contributor for a family. Caller must be the family owner or an admin.
+    /// Adds a contributor for a family by username. Caller must be the family owner or an admin.
     /// </summary>
-    public async Task<(QueryResult, FamilyContributorDto?)> AddOrUpdateContributorAsync(
+    public async Task<(QueryResult, FamilyContributorDto?)> AddContributorAsync(
         Guid familyId,
-        Guid? targetUserId,
-        string? targetEmail,
+        string username,
         ContributorRole role,
         string nameIdentifier)
     {
         if (!Guid.TryParse(nameIdentifier, out Guid userId))
         {
             return (QueryResult.ParseError, null);
+        }
+
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            return (QueryResult.ValidationError, null);
         }
 
         var family = await context.Families
@@ -967,20 +971,13 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             }
         }
 
-        User? targetUser = null;
-        if (targetUserId.HasValue && targetUserId.Value != Guid.Empty)
-        {
-            targetUser = await context.Users.FirstOrDefaultAsync(u => u.Id == targetUserId.Value);
-        }
-        else if (!string.IsNullOrWhiteSpace(targetEmail))
-        {
-            targetUser = await context.Users.FirstOrDefaultAsync(u => u.Email == targetEmail);
-        }
-
         if (role == ContributorRole.Owner)
         {
             return (QueryResult.ValidationError, null);
         }
+
+        var targetUser = await context.Users.FirstOrDefaultAsync(
+            u => u.Username.ToLower() == username.Trim().ToLower());
 
         if (targetUser == null)
         {
@@ -1016,16 +1013,81 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
     }
 
     /// <summary>
-    /// Removes a contributor from a family. Caller must be the family owner or an admin.
+    /// Updates a contributor's role for a family by user GUID. Caller must be the family owner or an admin.
+    /// </summary>
+    public async Task<(QueryResult, FamilyContributorDto?)> UpdateContributorAsync(
+        Guid familyId,
+        Guid targetUserId,
+        ContributorRole role,
+        string nameIdentifier)
+    {
+        if (!Guid.TryParse(nameIdentifier, out Guid userId))
+        {
+            return (QueryResult.ParseError, null);
+        }
+
+        if (targetUserId == Guid.Empty)
+        {
+            return (QueryResult.ValidationError, null);
+        }
+
+        var family = await context.Families
+            .Include(f => f.Owner)
+            .Include(f => f.Contributors)
+                .ThenInclude(c => c.User)
+            .FirstOrDefaultAsync(f => f.Id == familyId);
+
+        if (family == null)
+        {
+            return (QueryResult.NotFound, null);
+        }
+
+        if (family.OwnerId != userId)
+        {
+            var loggedInUser = await _userService.GetUserByIdAsync(userId);
+            if (loggedInUser == null || loggedInUser.Role != Role.Admin)
+            {
+                return (QueryResult.NoAccess, null);
+            }
+        }
+
+        if (role == ContributorRole.Owner)
+        {
+            return (QueryResult.ValidationError, null);
+        }
+
+        if (targetUserId == family.OwnerId)
+        {
+            return (QueryResult.ValidationError, null);
+        }
+
+        var existingContributor = family.Contributors.FirstOrDefault(c => c.UserId == targetUserId);
+        if (existingContributor == null)
+        {
+            return (QueryResult.NotFound, null);
+        }
+
+        existingContributor.Role = role;
+        await context.SaveChangesAsync();
+        return (QueryResult.Success, existingContributor.ToDto());
+    }
+
+    /// <summary>
+    /// Removes a contributor from a family by user GUID. Caller must be the family owner or an admin.
     /// </summary>
     public async Task<QueryResult> RemoveContributorAsync(
         Guid familyId,
-        Guid? targetUserId,
+        Guid targetUserId,
         string nameIdentifier)
     {
         if (!Guid.TryParse(nameIdentifier, out Guid userId))
         {
             return QueryResult.ParseError;
+        }
+
+        if (targetUserId == Guid.Empty)
+        {
+            return QueryResult.ValidationError;
         }
 
         var family = await context.Families
@@ -1048,16 +1110,12 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             }
         }
 
-        if (targetUserId.HasValue && targetUserId.Value == family.OwnerId)
+        if (targetUserId == family.OwnerId)
         {
             return QueryResult.ValidationError;
         }
 
-        FamilyContributor? contributor = null;
-        if (targetUserId.HasValue && targetUserId.Value != Guid.Empty)
-        {
-            contributor = family.Contributors.FirstOrDefault(c => c.UserId == targetUserId.Value);
-        }
+        var contributor = family.Contributors.FirstOrDefault(c => c.UserId == targetUserId);
 
         if (contributor == null)
         {
