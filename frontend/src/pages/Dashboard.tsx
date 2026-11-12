@@ -317,7 +317,10 @@ export const Dashboard: React.FC = () => {
   useEffect(() => {
     const trimmedQuery = queryParam.trim();
     if (trimmedQuery.length > 0) {
-      if (autoOpenedForRef.current !== queryParam && filteredFamilies.length > 0) {
+      if (
+        autoOpenedForRef.current !== queryParam &&
+        filteredFamilies.length > 0
+      ) {
         autoOpenedForRef.current = queryParam;
         const matchingIds = new Set<string>();
         filteredFamilies.forEach((f) => matchingIds.add(f.id));
