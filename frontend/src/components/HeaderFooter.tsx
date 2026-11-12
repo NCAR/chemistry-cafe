@@ -29,7 +29,6 @@ import ACOMlockupVerticalColor from "../assets/branding/acom-lockup-vertical-col
 import ACOMlockupVerticalWhite from "../assets/branding/acom-lockup-vertical-white.png";
 import OrcidImage from "../assets/ORCID-iD_icon_vector.svg";
 import { BASE_URL, AUTH_URL } from "../API/API_config";
-import { clearFamiliesLocally } from "../helpers/localFamilies";
 
 const CHEMISTRY_CAFE_REPO = "https://github.com/NCAR/chemistry-cafe";
 
@@ -102,7 +101,6 @@ export const Header: React.FC<HeaderProps> = ({ editorMode, familyName }) => {
   };
 
   const goLogOut = () => {
-    clearFamiliesLocally();
     setUser(null);
     localStorage.removeItem("user");
     localStorage.removeItem("activeEditorFamily");

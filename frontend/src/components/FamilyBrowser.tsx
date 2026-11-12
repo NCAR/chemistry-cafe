@@ -305,18 +305,18 @@ const FamilyInfoCard = memo(function FamilyInfoCard({
                   >
                     View
                   </Button>
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    size="small"
-                    onClick={handleCloneClick}
-                    onKeyDown={(e) => e.stopPropagation()}
-                    aria-label={`Edit a copy of ${family.name}`}
-                  >
-                    Edit a copy
-                  </Button>
                 </>
               )}
+              <Button
+                variant="outlined"
+                color="primary"
+                size="small"
+                onClick={handleCloneClick}
+                onKeyDown={(e) => e.stopPropagation()}
+                aria-label={`Edit a copy of ${family.name}`}
+              >
+                Edit a copy
+              </Button>
             </Box>
           </Box>
 

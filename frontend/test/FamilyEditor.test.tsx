@@ -643,6 +643,9 @@ describe("FamilyEditor - Browser Draft Mode", () => {
       expect(
         screen.getByText(/Saved "Draft Family" to your account/i),
       ).toBeTruthy();
+      // Browser draft is preserved and not automatically deleted
+      const stored = JSON.parse(localStorage.getItem("localFamilies") || "[]");
+      expect(stored.some((f: any) => f.id === draftFamily.id)).toBe(true);
     });
   });
 

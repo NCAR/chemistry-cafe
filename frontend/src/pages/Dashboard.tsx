@@ -169,13 +169,13 @@ export const Dashboard: React.FC = () => {
     return () => abortController.abort();
   }, []);
 
-  // Determine if a family belongs to the current user (owner, contributor, admin, or browser draft)
+  // Determine if a family belongs to the current user (owner, contributor, or browser draft)
   const isUserFamily = (family: Family): boolean => {
     if (!family.isInDatabase) return true; // Browser draft belongs to current browser session
     if (!user) return false;
     if (user.id === family.owner?.id) return true;
     if (family.contributorIds?.includes(user.id)) return true;
-    if (user.role?.toLowerCase() === "admin") return true;
+    if (family.contributors?.some((c) => c.userId === user.id)) return true;
     return false;
   };
 

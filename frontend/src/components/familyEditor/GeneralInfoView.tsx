@@ -198,7 +198,7 @@ export const GeneralInfoView = ({
                       if (checked) {
                         handleMakePublic();
                       } else {
-                        onChangeVisibility(false);
+                        onChangeVisibility?.(false);
                       }
                     }}
                   />
@@ -255,7 +255,7 @@ export const GeneralInfoView = ({
         open={openMakePublicModal}
         onClose={() => setOpenMakePublicModal(false)}
         onAction={() => {
-          onChangeVisibility(true);
+          onChangeVisibility?.(true);
           setOpenMakePublicModal(false);
         }}
         message="All users can see and clone a public family."

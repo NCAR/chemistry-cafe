@@ -78,7 +78,7 @@ describe("FamilyBrowser Component", () => {
     expect(
       screen.getByRole("button", { name: /Open Shared Family/i }),
     ).toBeTruthy();
-    expect(screen.queryByRole("button", { name: /Edit a copy/i })).toBeFalsy();
+    expect(screen.queryByRole("button", { name: /Edit a copy/i })).toBeTruthy();
   });
 
   it("Shows View and Edit a copy buttons for non-contributor non-owner, and View opens family", () => {
