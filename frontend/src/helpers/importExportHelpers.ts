@@ -112,9 +112,9 @@ export async function importCSV<const T extends TypeMapHelper>(typeMap:T){
         }));
     }) as CSVImport<T>;
 }
-export function exportCSV<T extends TypeMapHelper>(data:CSVImport<T>,typeMap:T){
+export function exportCSV<T extends TypeMapHelper>(data:CSVImport<T>,typeMap:T,filename:string="download"){
     const keys = Object.keys(typeMap);
     const headerRows = Object.fromEntries(keys.map((v,i)=>[v,i]))
-    exportCSVArray([keys,...data.map((val)=>Object.entries(val).reduce((row,[k,v])=>(typeMap[k] && (row[headerRows[k]]=(typeMap[k].has("string")&&typeof v==="string")?v:JSON.stringify(v)),row),Array(keys.length).fill("")))]);
+    exportCSVArray([keys,...data.map((val)=>Object.entries(val).reduce((row,[k,v])=>(typeMap[k] && (row[headerRows[k]]=(typeMap[k].has("string")&&typeof v==="string")?v:JSON.stringify(v)),row),Array(keys.length).fill("")))],filename);
     
 }

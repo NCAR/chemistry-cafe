@@ -49,7 +49,7 @@ export const SpeciesView = ({ family, updateFamily, readOnly }: ViewProps) => {
   }
   const exportSpecies = () => {
     console.log(family.species)
-    exportCSV(family.species,SpeciesTypeMap)
+    exportCSV(family.species,SpeciesTypeMap,`${family.name.replace(/[^a-zA-Z]/g,"_")}_species`)
   }
 
   const removeSpecies = (speciesIds: Array<UUID>) => {
