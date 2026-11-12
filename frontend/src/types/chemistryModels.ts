@@ -120,6 +120,18 @@ export type Reaction = {
   /** Optional, additional properties for the reactions which are not defined in the mechanism configuration schema but can be queried for in musica */
   otherProperties?: Record<string, unknown>;
 };
+export const ReactionTypeMap=CreateTypeMap<Reaction>({
+  id: ["string"],
+  name: ["string"],
+  description:["string","null"],
+  type: ["string"],
+  gasPhaseId:["string","undefined"],
+  gasPhaseSpeciesId:["string","undefined"],
+  reactants:["object"],
+  products:["object"],
+  attributes:["object"],
+  otherProperties:["object","undefined"]
+});
 
 export type Reactant = {
   speciesId: UUID;
