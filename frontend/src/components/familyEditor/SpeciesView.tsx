@@ -15,7 +15,7 @@ import {
   EditSelectedButton,
 } from "./SelectionButtons";
 
-export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
+export const SpeciesView = ({ family, updateFamily, readOnly }: ViewProps) => {
   const { byItem } = useFamilyValidation();
   const [speciesEditorOpen, setSpeciesEditorOpen] = useState<boolean>(false);
   const [selectedSpecies, setSelectedSpecies] = useState<Species>();
@@ -116,31 +116,35 @@ export const SpeciesView = ({ family, updateFamily }: ViewProps) => {
       <SpeciesTable
         issues={byItem}
         species={family.species}
-        selectionActions={(ids, clearSelection) => (
-          <>
-            {ids.length === 1 && (
-              <EditSelectedButton
-                testId="edit-species-button"
-                onClick={() => {
-                  setSelectedSpecies(
-                    family.species.find((element) => element.id === ids[0]),
-                  );
-                  setSpeciesEditorOpen(true);
-                }}
-              />
-            )}
-            <DeleteSelectedButton
-              testId="delete-species-button"
-              message={`This deletes ${countOf(ids.length, "species", "species")} from the family, its phases, its mechanisms, and its reactions.`}
-              onDelete={() => {
-                removeSpecies(ids);
-                clearSelection();
-              }}
-            />
-          </>
-        )}
-        onRowUpdate={handleSpeciesRowUpdate}
-        onAdd={createSpecies}
+        selectionActions={
+          readOnly
+            ? undefined
+            : (ids, clearSelection) => (
+                <>
+                  {ids.length === 1 && (
+                    <EditSelectedButton
+                      testId="edit-species-button"
+                      onClick={() => {
+                        setSelectedSpecies(
+                          family.species.find((element) => element.id === ids[0]),
+                        );
+                        setSpeciesEditorOpen(true);
+                      }}
+                    />
+                  )}
+                  <DeleteSelectedButton
+                    testId="delete-species-button"
+                    message={`This deletes ${countOf(ids.length, "species", "species")} from the family, its phases, its mechanisms, and its reactions.`}
+                    onDelete={() => {
+                      removeSpecies(ids);
+                      clearSelection();
+                    }}
+                  />
+                </>
+              )
+        }
+        onRowUpdate={readOnly ? undefined : handleSpeciesRowUpdate}
+        onAdd={readOnly ? undefined : createSpecies}
       />
       <SpeciesEditorModal
         open={speciesEditorOpen}

@@ -336,11 +336,13 @@ describe("MechanismEditor reactions tab", () => {
     expect(
       await screen.findByRole("columnheader", { name: /^A/ }),
     ).toBeTruthy();
-    expect(
-      within(screen.getByRole("grid")).queryByRole("columnheader", {
-        name: "Name",
-      }),
-    ).toBeNull();
+    await waitFor(() => {
+      expect(
+        within(screen.getByRole("grid")).queryByRole("columnheader", {
+          name: "Name",
+        }),
+      ).toBeNull();
+    });
     await new Promise((resolve) => setTimeout(resolve, 400));
     expect(screen.getByText("Showing 1 of 2")).toBeTruthy();
   });

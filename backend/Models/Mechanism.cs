@@ -27,6 +27,15 @@ public class Mechanism
 
     public bool IsReadOnly => false;
 
+    [NotMapped]
+    public bool Verified { get; set; } = false;
+
+    [NotMapped]
+    public DateTime? VerifiedDate { get; set; } = null;
+
+    [NotMapped]
+    public string? VerifiedBy { get; set; } = null;
+
     // Family relationship (Mechanism belongs to Family)
     [ForeignKey("Family")]
     public Guid FamilyId { get; set; }

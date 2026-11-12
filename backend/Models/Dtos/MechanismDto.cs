@@ -18,4 +18,7 @@ public class MechanismDto
     public List<Guid> ReactionIds { get; set; } = new();
     public List<Guid> PhaseIds { get; set; } = new();
     public Dictionary<string, JsonElement>? OtherProperties { get; set; }
+    public bool Verified { get; set; } = false;
+    public DateTime? VerifiedDate { get; set; }
+    public string? VerifiedBy { get; set; }
 }

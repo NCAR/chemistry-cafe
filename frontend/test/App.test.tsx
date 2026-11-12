@@ -7,9 +7,9 @@ import App from "../src/pages/App";
 // Define the routes and expected texts
 describe("App Component", () => {
   const routes = [
-    ["/", "Chemical Mechanism Management Software"],
+    ["/", "Browse Families & Mechanisms"],
     ["/dashboard", "Browse Families & Mechanisms"],
-    ["/familyeditor", "Families"],
+    ["/editor", "Families"],
     ["/settings", "Appearance"],
   ];
   it.each(routes)(

@@ -19,7 +19,11 @@ import {
 } from "./SelectionButtons";
 import { removeReactions } from "../../helpers/editorHelpers";
 
-export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
+export const ReactionsView = ({
+  family,
+  updateFamily,
+  readOnly,
+}: ViewProps) => {
   const { byItem } = useFamilyValidation();
   const [reactionsEditorOpen, setReactionsEditorOpen] =
     useState<boolean>(false);
@@ -111,40 +115,44 @@ export const ReactionsView = ({ family, updateFamily }: ViewProps) => {
         issues={byItem}
         // The checkboxes select the reactions for these actions. A
         // double-click on a row also opens its editor.
-        selectionActions={(ids, clearSelection) => (
-          <>
-            {ids.length === 1 && (
-              <EditSelectedButton
-                testId="edit-reaction-button"
-                onClick={() => editReaction(ids[0])}
-              />
-            )}
-            <SetGasPhaseButton
-              family={family}
-              reactionIds={ids}
-              onSet={(phaseId, addMissingSpecies) => {
-                updateFamily(
-                  setGasPhase(family, ids, phaseId, addMissingSpecies),
-                );
-                clearSelection();
-              }}
-            />
-            <DeleteSelectedButton
-              testId="delete-reactions-button"
-              message={`This deletes ${countOf(ids.length, "reaction", "reactions")} from the family and from all its mechanisms.`}
-              onDelete={() => {
-                updateFamily(removeReactions(family, ids));
-                clearSelection();
-              }}
-            />
-          </>
-        )}
+        selectionActions={
+          readOnly
+            ? undefined
+            : (ids, clearSelection) => (
+                <>
+                  {ids.length === 1 && (
+                    <EditSelectedButton
+                      testId="edit-reaction-button"
+                      onClick={() => editReaction(ids[0])}
+                    />
+                  )}
+                  <SetGasPhaseButton
+                    family={family}
+                    reactionIds={ids}
+                    onSet={(phaseId, addMissingSpecies) => {
+                      updateFamily(
+                        setGasPhase(family, ids, phaseId, addMissingSpecies),
+                      );
+                      clearSelection();
+                    }}
+                  />
+                  <DeleteSelectedButton
+                    testId="delete-reactions-button"
+                    message={`This deletes ${countOf(ids.length, "reaction", "reactions")} from the family and from all its mechanisms.`}
+                    onDelete={() => {
+                      updateFamily(removeReactions(family, ids));
+                      clearSelection();
+                    }}
+                  />
+                </>
+              )
+        }
         reactions={family.reactions}
         phases={family.phases}
         species={family.species}
-        onRowUpdate={updateReaction}
-        onAdd={createReaction}
-        onEdit={editReaction}
+        onRowUpdate={readOnly ? undefined : updateReaction}
+        onAdd={readOnly ? undefined : createReaction}
+        onEdit={readOnly ? undefined : editReaction}
       />
       <ReactionEditorModal
         open={reactionsEditorOpen}

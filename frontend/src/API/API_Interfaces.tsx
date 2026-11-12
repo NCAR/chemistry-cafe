@@ -214,5 +214,8 @@ export interface APIMechanism {
   reactionIds: Array<UUID>;
   phaseIds: Array<UUID>;
   otherProperties?: Record<string, unknown>;
+  verified?: boolean;
+  verifiedDate?: string | null;
+  verifiedBy?: string | null;
   familyId: UUID;
 }

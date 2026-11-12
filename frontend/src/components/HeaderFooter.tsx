@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
-import { Divider, ListItemIcon, Menu, MenuItem } from "@mui/material";
+import { alpha, Divider, ListItemIcon, Menu, MenuItem } from "@mui/material";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Paper from "@mui/material/Paper";
 import Container from "@mui/material/Container";
@@ -29,11 +29,15 @@ import ACOMlockupVerticalColor from "../assets/branding/acom-lockup-vertical-col
 import ACOMlockupVerticalWhite from "../assets/branding/acom-lockup-vertical-white.png";
 import OrcidImage from "../assets/ORCID-iD_icon_vector.svg";
 import { BASE_URL, AUTH_URL } from "../API/API_config";
-import { clearFamiliesLocally } from "../helpers/localFamilies";
 
 const CHEMISTRY_CAFE_REPO = "https://github.com/NCAR/chemistry-cafe";
 
-export const Header = () => {
+export interface HeaderProps {
+  editorMode?: "editing" | "viewing";
+  familyName?: string;
+}
+
+export const Header: React.FC<HeaderProps> = ({ editorMode, familyName }) => {
   const { user: loggedInUser, setUser } = useAuth(); // Get logged in user info from AuthContext
   const { theme } = useCustomTheme();
   const isNarrow = useMediaQuery(theme.breakpoints.down("md"));
@@ -41,6 +45,51 @@ export const Header = () => {
     null,
   );
   const closeMobileMenu = () => setMobileMenuAnchor(null);
+
+  const [storedActiveFamily, setStoredActiveFamily] = useState<{
+    mode?: "editing" | "viewing";
+    name?: string;
+  } | null>(() => {
+    try {
+      const stored = localStorage.getItem("activeEditorFamily");
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("activeEditorFamily");
+      setStoredActiveFamily(stored ? JSON.parse(stored) : null);
+    } catch {
+      setStoredActiveFamily(null);
+    }
+  }, [editorMode, familyName]);
+
+  const effectiveMode = editorMode ?? storedActiveFamily?.mode;
+  const effectiveFamilyName = familyName ?? storedActiveFamily?.name;
+  const hasActiveFamilyInEditor = Boolean(effectiveMode && effectiveFamilyName);
+
+  const location = useLocation();
+  const isBrowseActive =
+    location.pathname === "/" || location.pathname === "/dashboard";
+  const isEditorActive = location.pathname.startsWith("/editor");
+
+  const navButtonSx = (isActive: boolean) => ({
+    textTransform: "none",
+    fontWeight: isActive ? 700 : 500,
+    color: isActive ? "primary.main" : "text.primary",
+    bgcolor: isActive ? alpha(theme.palette.primary.main, 0.12) : "transparent",
+    borderRadius: "6px",
+    px: 1.5,
+    py: 0.5,
+    "&:hover": {
+      bgcolor: isActive
+        ? alpha(theme.palette.primary.main, 0.2)
+        : alpha(theme.palette.action.hover, 0.08),
+    },
+  });
 
   const loginGoogle = () => {
     localStorage.removeItem("user");
@@ -52,9 +101,11 @@ export const Header = () => {
   };
 
   const goLogOut = () => {
-    clearFamiliesLocally();
     setUser(null);
     localStorage.removeItem("user");
+    localStorage.removeItem("activeEditorFamily");
+    localStorage.removeItem("selectedEditorFamilyId");
+    localStorage.removeItem("selectedEditorMechanismId");
     window.location.assign(`${BASE_URL}/users/logout`);
   };
 
@@ -90,12 +141,42 @@ export const Header = () => {
         </Button>
         {!isNarrow && (
           <>
-            <Button component={Link} to="/dashboard">
+            <Button
+              component={Link}
+              to="/"
+              sx={navButtonSx(isBrowseActive)}
+              data-testid="header-browse-button"
+            >
               Browse
             </Button>
-            <Button component={Link} to="/familyeditor">
-              My Families
-            </Button>
+            {hasActiveFamilyInEditor ? (
+              <Button
+                component={Link}
+                to="/editor"
+                data-testid="header-editor-title"
+                sx={{
+                  ...navButtonSx(isEditorActive),
+                  maxWidth: { sm: 260, md: 450 },
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {effectiveMode === "editing"
+                  ? `Editing: ${effectiveFamilyName}`
+                  : `Viewing: ${effectiveFamilyName}`}
+              </Button>
+            ) : (
+              <Button
+                disabled
+                sx={{
+                  ...navButtonSx(isEditorActive),
+                  color: isEditorActive ? "primary.main" : "text.disabled",
+                }}
+              >
+                Editor
+              </Button>
+            )}
           </>
         )}
       </Box>
@@ -115,24 +196,43 @@ export const Header = () => {
           >
             <MenuItem
               component={Link}
-              to="/dashboard"
+              to="/"
               onClick={closeMobileMenu}
+              selected={isBrowseActive}
             >
               <ListItemIcon>
-                <TravelExploreIcon fontSize="small" />
+                <TravelExploreIcon
+                  fontSize="small"
+                  color={isBrowseActive ? "primary" : "inherit"}
+                />
               </ListItemIcon>
               Browse
             </MenuItem>
-            <MenuItem
-              component={Link}
-              to="/familyeditor"
-              onClick={closeMobileMenu}
-            >
-              <ListItemIcon>
-                <FolderSpecialIcon fontSize="small" />
-              </ListItemIcon>
-              My Families
-            </MenuItem>
+            {hasActiveFamilyInEditor ? (
+              <MenuItem
+                component={Link}
+                to="/editor"
+                onClick={closeMobileMenu}
+                selected={isEditorActive}
+              >
+                <ListItemIcon>
+                  <FolderSpecialIcon
+                    fontSize="small"
+                    color={isEditorActive ? "primary" : "inherit"}
+                  />
+                </ListItemIcon>
+                {effectiveMode === "editing"
+                  ? `Editing: ${effectiveFamilyName}`
+                  : `Viewing: ${effectiveFamilyName}`}
+              </MenuItem>
+            ) : (
+              <MenuItem disabled selected={isEditorActive}>
+                <ListItemIcon>
+                  <FolderSpecialIcon fontSize="small" />
+                </ListItemIcon>
+                Editor
+              </MenuItem>
+            )}
             <MenuItem component={Link} to="/settings" onClick={closeMobileMenu}>
               <ListItemIcon>
                 <SettingsIcon fontSize="small" />

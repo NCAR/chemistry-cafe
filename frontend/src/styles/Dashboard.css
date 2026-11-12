@@ -9,3 +9,20 @@
   flex: 1;
   padding: 2rem 4vw;
 }
+
+/* Mechanism actions: show on hover and focus-within, always show on touch devices */
+.mechanism-actions {
+  opacity: 0;
+  transition: opacity 0.15s ease-in-out;
+}
+
+.mechanism-row:hover .mechanism-actions,
+.mechanism-row:focus-within .mechanism-actions {
+  opacity: 1;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .mechanism-actions {
+    opacity: 1;
+  }
+}

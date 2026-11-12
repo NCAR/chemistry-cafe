@@ -1,4 +1,11 @@
-import { Button, ButtonGroup, Popover, Tooltip } from "@mui/material";
+import {
+  Box,
+  Button,
+  ButtonGroup,
+  Link,
+  Popover,
+  Tooltip,
+} from "@mui/material";
 import { useState, MouseEvent } from "react";
 import DownloadIcon from "@mui/icons-material/Download";
 import { Family, Mechanism } from "../types/chemistryModels";
@@ -30,6 +37,10 @@ export const DownloadMechanismButton: React.FC<RowActionsButtonProps> = ({
   const [validationErrors, setValidationErrors] = useState<ValidationIssue[]>(
     [],
   );
+  const [pendingDownload, setPendingDownload] = useState<{
+    createBlob: () => Blob | Promise<Blob>;
+    variant: "JSON" | "YAML" | "MusicBox";
+  } | null>(null);
 
   const handleMenuOpen = (event: MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -86,10 +97,21 @@ export const DownloadMechanismButton: React.FC<RowActionsButtonProps> = ({
     const errors = await validateMechanism(mechanism, family);
     if (errors.length > 0) {
       handleMenuClose();
+      setPendingDownload({ createBlob, variant });
       setValidationErrors(errors);
       return;
     }
     downloadBlob(await createBlob(), variant);
+  };
+
+  const handleDownloadUnverified = () => {
+    handleMenuClose();
+    downloadBlob(
+      new Blob([serializeMechanismJSON(mechanism, family)], {
+        type: "octet/stream",
+      }),
+      "JSON",
+    );
   };
 
   return (
@@ -171,14 +193,51 @@ export const DownloadMechanismButton: React.FC<RowActionsButtonProps> = ({
               MusicBox
             </Button>
           </Tooltip>
+          <Tooltip title="KPP export (coming soon)" arrow>
+            <span>
+              <Button
+                aria-label="Download as a KPP file"
+                data-testid="download-kpp"
+                disabled
+                sx={{
+                  textTransform: "none",
+                }}
+              >
+                KPP
+              </Button>
+            </span>
+          </Tooltip>
         </ButtonGroup>
+        <Box sx={{ pt: 1, pb: 0.5, textAlign: "center" }}>
+          <Link
+            component="button"
+            variant="caption"
+            color="text.secondary"
+            onClick={handleDownloadUnverified}
+            sx={{ cursor: "pointer", textDecoration: "underline" }}
+          >
+            Download current, unverified state
+          </Link>
+        </Box>
       </Popover>
       <ValidationErrorsModal
         open={validationErrors.length > 0}
-        onClose={() => setValidationErrors([])}
+        onClose={() => {
+          setValidationErrors([]);
+          setPendingDownload(null);
+        }}
         message={`Fix these problems in "${mechanism.name}" before you download it.`}
         family={family}
         errors={validationErrors}
+        onDownloadAnyway={
+          pendingDownload
+            ? async () => {
+                const blob = await pendingDownload.createBlob();
+                downloadBlob(blob, pendingDownload.variant);
+                setPendingDownload(null);
+              }
+            : undefined
+        }
       />
     </>
   );

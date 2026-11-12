@@ -18,7 +18,10 @@ public static class MechanismMapper
             SpeciesIds = mechanism.Species.Select(s => s.Id).ToList(),
             ReactionIds = mechanism.Reactions.Select(r => r.Id).ToList(),
             PhaseIds = mechanism.Phases.Select(p => p.Id).ToList(),
-            OtherProperties = mechanism.OtherProperties
+            OtherProperties = mechanism.OtherProperties,
+            Verified = mechanism.Verified,
+            VerifiedDate = mechanism.VerifiedDate,
+            VerifiedBy = mechanism.VerifiedBy
         };
     }
 
@@ -35,7 +38,10 @@ public static class MechanismMapper
             FamilyVersionId = mechanismDto.FamilyVersionId,
             Name = mechanismDto.Name,
             Description = mechanismDto.Description,
-            OtherProperties = mechanismDto.OtherProperties
+            OtherProperties = mechanismDto.OtherProperties,
+            Verified = mechanismDto.Verified,
+            VerifiedDate = mechanismDto.VerifiedDate,
+            VerifiedBy = mechanismDto.VerifiedBy
         };
     }
 }

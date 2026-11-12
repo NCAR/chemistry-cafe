@@ -1,5 +1,5 @@
 import { UUID } from "crypto";
-import { APIUser } from "../API/API_Interfaces";
+import { APIFamilyContributor, APIUser } from "../API/API_Interfaces";
 import { mechanismConfiguration } from "@ncar/musica";
 const { reactionTypes, Mechanism } = mechanismConfiguration;
 
@@ -170,6 +170,15 @@ export type Mechanism = {
 
   /** Optional, additional properties for the mechanisms which are not defined in the mechanism configuration schema but can be queried for in musica */
   otherProperties?: Record<string, unknown>;
+
+  /** Indicates whether the mechanism is verified */
+  verified?: boolean;
+
+  /** Date when the mechanism was verified (ISO string) */
+  verifiedDate?: string | null;
+
+  /** Name or username of the verifier */
+  verifiedBy?: string | null;
 };
 
 /**
@@ -195,6 +204,9 @@ export type Family = {
 
   /** SQL ids of the contributors to the family */
   contributorIds?: Array<UUID>;
+
+  /** Contributors to the family with their roles */
+  contributors?: Array<APIFamilyContributor>;
 
   /** Mechanisms inside the family */
   mechanisms: Array<Mechanism>;
