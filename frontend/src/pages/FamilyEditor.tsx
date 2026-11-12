@@ -718,55 +718,58 @@ const FamilyEditor = () => {
                 </Box>
               )}
 
-              {family && canEdit && family.isInDatabase && family.isModified && (
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1.5,
-                  }}
-                  data-testid="unsaved-changes-bar"
-                >
-                  <Typography
-                    variant="body2"
+              {family &&
+                canEdit &&
+                family.isInDatabase &&
+                family.isModified && (
+                  <Box
                     sx={{
-                      color: "error.main",
-                      fontWeight: 500,
                       display: "flex",
                       alignItems: "center",
-                      gap: 0.5,
+                      gap: 1.5,
                     }}
+                    data-testid="unsaved-changes-bar"
                   >
-                    <Box
-                      component="span"
-                      sx={{ fontSize: "1.2rem", lineHeight: 0 }}
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: "error.main",
+                        fontWeight: 500,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 0.5,
+                      }}
                     >
-                      •
-                    </Box>{" "}
-                    Unsaved changes
-                  </Typography>
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    color="inherit"
-                    onClick={handleDiscardChanges}
-                    data-testid="discard-changes-button"
-                    sx={{ textTransform: "none", minWidth: 70 }}
-                  >
-                    Discard
-                  </Button>
-                  <Button
-                    size="small"
-                    variant="contained"
-                    color="primary"
-                    onClick={() => void handleSaveChanges()}
-                    data-testid="save-changes-button"
-                    sx={{ textTransform: "none", minWidth: 70 }}
-                  >
-                    Save
-                  </Button>
-                </Box>
-              )}
+                      <Box
+                        component="span"
+                        sx={{ fontSize: "1.2rem", lineHeight: 0 }}
+                      >
+                        •
+                      </Box>{" "}
+                      Unsaved changes
+                    </Typography>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="inherit"
+                      onClick={handleDiscardChanges}
+                      data-testid="discard-changes-button"
+                      sx={{ textTransform: "none", minWidth: 70 }}
+                    >
+                      Discard
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      color="primary"
+                      onClick={() => void handleSaveChanges()}
+                      data-testid="save-changes-button"
+                      sx={{ textTransform: "none", minWidth: 70 }}
+                    >
+                      Save
+                    </Button>
+                  </Box>
+                )}
 
               {family && !canEdit && (
                 <Button

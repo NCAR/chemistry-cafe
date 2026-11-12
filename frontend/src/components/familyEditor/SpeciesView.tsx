@@ -126,7 +126,9 @@ export const SpeciesView = ({ family, updateFamily, readOnly }: ViewProps) => {
                       testId="edit-species-button"
                       onClick={() => {
                         setSelectedSpecies(
-                          family.species.find((element) => element.id === ids[0]),
+                          family.species.find(
+                            (element) => element.id === ids[0],
+                          ),
                         );
                         setSpeciesEditorOpen(true);
                       }}

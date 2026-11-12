@@ -42,7 +42,7 @@ export function getMechanismVerification(mechanism: Mechanism): {
   verifiedDate?: string;
   verifiedBy?: string;
 } {
-  const isVerified = mechanism.verified ?? false
+  const isVerified = mechanism.verified ?? false;
   const verifiedDate = mechanism.verifiedDate ?? undefined;
   const verifiedBy = mechanism.verifiedBy ?? undefined;
   return { isVerified, verifiedDate, verifiedBy };
