@@ -118,6 +118,15 @@ describe("Family Editor Page", () => {
           config: { headers: new AxiosHeaders() },
         } as AxiosResponse);
       }
+      if (url.includes("/history")) {
+        return Promise.resolve({
+          data: [],
+          status: 200,
+          statusText: "OK",
+          headers: {},
+          config: { headers: new AxiosHeaders() },
+        } as AxiosResponse);
+      }
       return Promise.resolve(createMockData());
     });
 
@@ -198,6 +207,175 @@ describe("Family Editor Page", () => {
     await waitFor(() => {
       expect(screen.getByText("Stratospheric Ox Info")).toBeTruthy();
     });
+  });
+
+  it("Displays editable mechanism in sidebar and excludes frozen snapshot copies", async () => {
+    const verifiedFamily: APIFamily = {
+      ...testFamily,
+      mechanisms: [
+        ...testFamily.mechanisms,
+        {
+          id: "mech-copy-frozen" as UUID,
+          name: "Test-Verified-V1",
+          description: "Frozen copy",
+          species: [],
+          reactions: [],
+          phases: [],
+        },
+      ],
+      verifiedVersions: [
+        {
+          id: "ver-1" as UUID,
+          familyId: testFamily.id,
+          familyVersionId: "fv-1" as UUID,
+          sourceMechanismId: "mech-1" as UUID,
+          mechanismId: "mech-copy-frozen" as UUID,
+          name: "Test-Verified-V1",
+          verifiedDate: "2026-11-09T12:00:00Z",
+          verifierId: "verifier-1" as UUID,
+          verifierUsername: "b.okafor",
+          isDeprecated: false,
+          isArchived: false,
+        },
+      ],
+    };
+
+    localStorage.setItem("uploadedFamilyIds", JSON.stringify([verifiedFamily.id]));
+    localStorage.setItem("selectedEditorMechanismId", "mech-1");
+
+    vi.spyOn(axios, "get").mockImplementation((url: string) => {
+      if (url.includes("/users/whoami")) {
+        return Promise.resolve({
+          data: testFamily.owner,
+          status: 200,
+          statusText: "OK",
+          headers: {},
+          config: { headers: new AxiosHeaders() },
+        } as AxiosResponse);
+      }
+      if (url.includes("/contributors")) {
+        return Promise.resolve({
+          data: [],
+          status: 200,
+          statusText: "OK",
+          headers: {},
+          config: { headers: new AxiosHeaders() },
+        } as AxiosResponse);
+      }
+      return Promise.resolve({
+        data: verifiedFamily,
+        status: 200,
+        statusText: "OK",
+        headers: {},
+        config: { headers: new AxiosHeaders() },
+      } as AxiosResponse);
+    });
+
+    render(
+      <AuthProvider>
+        <CustomThemeProvider>
+          <MemoryRouter initialEntries={["/editor"]}>
+            <FamilyEditor />
+          </MemoryRouter>
+        </CustomThemeProvider>
+      </AuthProvider>,
+    );
+
+    // The editable mechanism should be rendered in the sidebar
+    await waitFor(() => {
+      expect(screen.getByText("Stratospheric Ox")).toBeTruthy();
+    });
+
+    // The duplicate frozen copy mechanism should NOT appear in the sidebar list
+    expect(screen.queryByTestId("mechanism-item-mech-copy-frozen")).toBeNull();
+  });
+
+  it("Displays mechanism in sidebar and editor when viewing a verified version snapshot", async () => {
+    const versionSnapshotFamily: APIFamily = {
+      ...testFamily,
+      currentVersionId: "fv-1" as UUID,
+      mechanisms: [
+        {
+          id: "mech-copy-frozen" as UUID,
+          name: "Test-Verified-V1",
+          description: "Frozen copy",
+          sourceObjectId: "mech-1" as UUID,
+          speciesIds: [],
+          reactionIds: [],
+          phaseIds: [],
+          species: [],
+          reactions: [],
+          phases: [],
+        },
+      ],
+      verifiedVersions: [
+        {
+          id: "ver-1" as UUID,
+          familyId: testFamily.id,
+          familyVersionId: "fv-1" as UUID,
+          sourceMechanismId: "mech-1" as UUID,
+          mechanismId: "mech-copy-frozen" as UUID,
+          name: "Test-Verified-V1",
+          verifiedDate: "2026-11-09T12:00:00Z",
+          verifierId: "verifier-1" as UUID,
+          verifierUsername: "b.okafor",
+          isDeprecated: false,
+          isArchived: false,
+        },
+      ],
+    };
+
+    vi.spyOn(axios, "get").mockImplementation((url: string) => {
+      if (url.includes("/users/whoami")) {
+        return Promise.resolve({
+          data: testFamily.owner,
+          status: 200,
+          statusText: "OK",
+          headers: {},
+          config: { headers: new AxiosHeaders() },
+        } as AxiosResponse);
+      }
+      if (url.includes("/contributors")) {
+        return Promise.resolve({
+          data: [],
+          status: 200,
+          statusText: "OK",
+          headers: {},
+          config: { headers: new AxiosHeaders() },
+        } as AxiosResponse);
+      }
+      return Promise.resolve({
+        data: versionSnapshotFamily,
+        status: 200,
+        statusText: "OK",
+        headers: {},
+        config: { headers: new AxiosHeaders() },
+      } as AxiosResponse);
+    });
+
+    render(
+      <AuthProvider>
+        <CustomThemeProvider>
+          <MemoryRouter initialEntries={[`/editor?id=${testFamily.id}&versionId=fv-1`]}>
+            <FamilyEditor />
+          </MemoryRouter>
+        </CustomThemeProvider>
+      </AuthProvider>,
+    );
+
+    // The mechanism should be rendered in the sidebar
+    await waitFor(() => {
+      expect(screen.getByText("Test-Verified-V1")).toBeTruthy();
+    });
+
+    // And clicking the mechanism should display its editor view, not "Mechanism not found."
+    const mechSidebarItem = screen.getByTestId("mechanism-item-mech-copy-frozen");
+    fireEvent.click(mechSidebarItem);
+
+    await waitFor(() => {
+      expect(screen.getByText("Test-Verified-V1 Info")).toBeTruthy();
+    });
+    expect(screen.queryByText("Mechanism not found.")).toBeNull();
   });
 
   it("Supports keyboard navigation on SidebarItem using Enter and Space keys", async () => {
@@ -395,6 +573,62 @@ describe("Family Editor Page", () => {
       .getByTestId("in-page-error-alert")
       .querySelector("button")!;
     fireEvent.click(closeErrorBtn);
+  });
+
+  it("Allows entering an optional save note and passes it to saveFamilyChanges", async () => {
+    await waitFor(() => {
+      expect(screen.getByTestId("family-name-input-general-info")).toBeTruthy();
+    });
+
+    const nameInput = screen
+      .getByTestId("family-name-input-general-info")
+      .querySelector("input")!;
+
+    fireEvent.change(nameInput, { target: { value: "Updated With Note" } });
+    fireEvent.blur(nameInput);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("unsaved-changes-bar")).toBeTruthy();
+      expect(screen.getByTestId("save-note-input")).toBeTruthy();
+    });
+
+    const noteInput = screen.getByTestId("save-note-input");
+    fireEvent.change(noteInput, { target: { value: "Added reaction parameters" } });
+
+    const saveSpy = vi
+      .spyOn(backendInteractions, "saveFamilyChanges")
+      .mockResolvedValueOnce({
+        ...testFamily,
+        name: "Updated With Note",
+        isModified: false,
+        isInDatabase: true,
+        species: [],
+        reactions: [],
+        phases: [],
+        mechanisms: [],
+      } as any);
+
+    fireEvent.click(screen.getByTestId("save-changes-button"));
+
+    await waitFor(() => {
+      expect(saveSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ name: "Updated With Note" }),
+        "Added reaction parameters",
+      );
+      expect(screen.getByText("Changes saved successfully.")).toBeTruthy();
+    });
+  });
+
+  it("Renders the History tab in the sidebar and navigates to HistoryView", async () => {
+    await waitFor(() => {
+      expect(screen.getByTestId("family-history-tab")).toBeTruthy();
+    });
+
+    fireEvent.click(screen.getByTestId("family-history-tab"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Audit History")).toBeTruthy();
+    });
   });
 
   it("Deletes family from GeneralInfoView via confirmDeleteFamily", async () => {

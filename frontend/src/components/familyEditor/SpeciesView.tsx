@@ -13,12 +13,15 @@ import {
   countOf,
   DeleteSelectedButton,
   EditSelectedButton,
+  HistorySelectedButton,
 } from "./SelectionButtons";
+import { EntityHistoryModal } from "../modals/EntityHistoryModal";
 
 export const SpeciesView = ({ family, updateFamily, readOnly }: ViewProps) => {
   const { byItem } = useFamilyValidation();
   const [speciesEditorOpen, setSpeciesEditorOpen] = useState<boolean>(false);
   const [selectedSpecies, setSelectedSpecies] = useState<Species>();
+  const [historySpecies, setHistorySpecies] = useState<Species | null>(null);
 
   const handleSpeciesRowUpdate = (updatedSpecies: Species) => {
     updateFamily(applySpeciesRowUpdate(family, updatedSpecies));
@@ -117,11 +120,11 @@ export const SpeciesView = ({ family, updateFamily, readOnly }: ViewProps) => {
         issues={byItem}
         species={family.species}
         selectionActions={
-          readOnly
+          readOnly && !family.isInDatabase
             ? undefined
             : (ids, clearSelection) => (
                 <>
-                  {ids.length === 1 && (
+                  {!readOnly && ids.length === 1 && (
                     <EditSelectedButton
                       testId="edit-species-button"
                       onClick={() => {
@@ -132,14 +135,27 @@ export const SpeciesView = ({ family, updateFamily, readOnly }: ViewProps) => {
                       }}
                     />
                   )}
-                  <DeleteSelectedButton
-                    testId="delete-species-button"
-                    message={`This deletes ${countOf(ids.length, "species", "species")} from the family, its phases, its mechanisms, and its reactions.`}
-                    onDelete={() => {
-                      removeSpecies(ids);
-                      clearSelection();
-                    }}
-                  />
+                  {family.isInDatabase && ids.length === 1 && (
+                    <HistorySelectedButton
+                      testId="history-species-button"
+                      onClick={() => {
+                        const sp = family.species.find(
+                          (element) => element.id === ids[0],
+                        );
+                        if (sp) setHistorySpecies(sp);
+                      }}
+                    />
+                  )}
+                  {!readOnly && (
+                    <DeleteSelectedButton
+                      testId="delete-species-button"
+                      message={`This deletes ${countOf(ids.length, "species", "species")} from the family, its phases, its mechanisms, and its reactions.`}
+                      onDelete={() => {
+                        removeSpecies(ids);
+                        clearSelection();
+                      }}
+                    />
+                  )}
                 </>
               )
         }
@@ -155,6 +171,17 @@ export const SpeciesView = ({ family, updateFamily, readOnly }: ViewProps) => {
         onUpdate={updateSpecies}
         species={selectedSpecies}
       />
+      {historySpecies && (
+        <EntityHistoryModal
+          open={Boolean(historySpecies)}
+          onClose={() => setHistorySpecies(null)}
+          familyId={family.id}
+          targetType="Species"
+          targetId={historySpecies.id}
+          targetName={historySpecies.name}
+          family={family}
+        />
+      )}
     </Box>
   );
 };

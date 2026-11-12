@@ -92,7 +92,6 @@ export const Dashboard: React.FC = () => {
   const [familyCreationModalOpen, setFamilyCreationModalOpen] =
     useState<boolean>(false);
   const [importModalOpen, setImportModalOpen] = useState<boolean>(false);
-  const [archivedModalOpen, setArchivedModalOpen] = useState<boolean>(false);
 
   // Helper to update URL params while preserving existing ones
   const updateUrlParams = (
@@ -372,14 +371,23 @@ export const Dashboard: React.FC = () => {
   };
 
   // Clone Family into draft and open in editor
-  const handleCloneFamily = async (family: Family) => {
+  const handleCloneFamily = async (family: Family, mechanism?: Mechanism) => {
     const cloned = cloneFamily(family);
     if (user) {
       try {
         const uploaded = await uploadFamily(cloned, user);
         addUploadedFamilyIdLocally(uploaded.id);
         localStorage.setItem("selectedEditorFamilyId", uploaded.id);
-        localStorage.removeItem("selectedEditorMechanismId");
+        if (mechanism) {
+          const match = uploaded.mechanisms.find((m) => m.name === mechanism.name);
+          if (match) {
+            localStorage.setItem("selectedEditorMechanismId", match.id);
+          } else {
+            localStorage.removeItem("selectedEditorMechanismId");
+          }
+        } else {
+          localStorage.removeItem("selectedEditorMechanismId");
+        }
         localStorage.setItem(
           "activeEditorFamily",
           JSON.stringify({
@@ -396,7 +404,16 @@ export const Dashboard: React.FC = () => {
     }
     addFamilyLocally(cloned);
     localStorage.setItem("selectedEditorFamilyId", cloned.id);
-    localStorage.removeItem("selectedEditorMechanismId");
+    if (mechanism) {
+      const match = cloned.mechanisms.find((m) => m.name === mechanism.name);
+      if (match) {
+        localStorage.setItem("selectedEditorMechanismId", match.id);
+      } else {
+        localStorage.removeItem("selectedEditorMechanismId");
+      }
+    } else {
+      localStorage.removeItem("selectedEditorMechanismId");
+    }
     localStorage.setItem(
       "activeEditorFamily",
       JSON.stringify({
@@ -770,7 +787,9 @@ export const Dashboard: React.FC = () => {
             onEditMechanism={(family, mechanism) =>
               handleOpenFamily(family, mechanism)
             }
-            onCloneMechanism={(family) => handleCloneFamily(family)}
+            onCloneMechanism={(family, mechanism) =>
+              handleCloneFamily(family, mechanism)
+            }
           />
         )}
 
@@ -780,7 +799,7 @@ export const Dashboard: React.FC = () => {
             <Link
               component="button"
               variant="body2"
-              onClick={() => setArchivedModalOpen(true)}
+              onClick={() => navigate("/archived-versions")}
               sx={{ cursor: "pointer", fontWeight: "bold" }}
             >
               Show archived versions
@@ -830,27 +849,6 @@ export const Dashboard: React.FC = () => {
           navigate("/editor");
         }}
       />
-
-      {/* Archived Versions Dialog (#358) */}
-      <Dialog
-        open={archivedModalOpen}
-        onClose={() => setArchivedModalOpen(false)}
-      >
-        <DialogTitle>Archived Versions</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" sx={{ mb: 1 }}>
-            Mechanism verification and archived version history are tracked in
-            Mechanism verification (#358).
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            No archived versions are currently stored for the selected
-            mechanisms.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setArchivedModalOpen(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
 
       <footer>
         <Footer />

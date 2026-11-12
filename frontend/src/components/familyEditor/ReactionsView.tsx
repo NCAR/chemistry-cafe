@@ -6,6 +6,7 @@ import {
   ReactionEditorModal,
   type PhaseSpeciesAddition,
 } from "../modals/ReactionEditorModal";
+import { EntityHistoryModal } from "../modals/EntityHistoryModal";
 import { UUID } from "crypto";
 import { generateID } from "../../helpers/localFamilies";
 import { ViewProps } from "./ViewProps";
@@ -16,6 +17,7 @@ import {
   countOf,
   DeleteSelectedButton,
   EditSelectedButton,
+  HistorySelectedButton,
 } from "./SelectionButtons";
 import { removeReactions } from "../../helpers/editorHelpers";
 
@@ -28,6 +30,7 @@ export const ReactionsView = ({
   const [reactionsEditorOpen, setReactionsEditorOpen] =
     useState<boolean>(false);
   const [selectedReaction, setSelectedReaction] = useState<Reaction>();
+  const [historyReaction, setHistoryReaction] = useState<Reaction | null>(null);
 
   const createReaction = () => {
     const frontendId: UUID = generateID();
@@ -116,34 +119,49 @@ export const ReactionsView = ({
         // The checkboxes select the reactions for these actions. A
         // double-click on a row also opens its editor.
         selectionActions={
-          readOnly
+          readOnly && !family.isInDatabase
             ? undefined
             : (ids, clearSelection) => (
                 <>
-                  {ids.length === 1 && (
+                  {!readOnly && ids.length === 1 && (
                     <EditSelectedButton
                       testId="edit-reaction-button"
                       onClick={() => editReaction(ids[0])}
                     />
                   )}
-                  <SetGasPhaseButton
-                    family={family}
-                    reactionIds={ids}
-                    onSet={(phaseId, addMissingSpecies) => {
-                      updateFamily(
-                        setGasPhase(family, ids, phaseId, addMissingSpecies),
-                      );
-                      clearSelection();
-                    }}
-                  />
-                  <DeleteSelectedButton
-                    testId="delete-reactions-button"
-                    message={`This deletes ${countOf(ids.length, "reaction", "reactions")} from the family and from all its mechanisms.`}
-                    onDelete={() => {
-                      updateFamily(removeReactions(family, ids));
-                      clearSelection();
-                    }}
-                  />
+                  {family.isInDatabase && ids.length === 1 && (
+                    <HistorySelectedButton
+                      testId="history-reaction-button"
+                      onClick={() => {
+                        const rx = family.reactions.find(
+                          (element) => element.id === ids[0],
+                        );
+                        if (rx) setHistoryReaction(rx);
+                      }}
+                    />
+                  )}
+                  {!readOnly && (
+                    <>
+                      <SetGasPhaseButton
+                        family={family}
+                        reactionIds={ids}
+                        onSet={(phaseId, addMissingSpecies) => {
+                          updateFamily(
+                            setGasPhase(family, ids, phaseId, addMissingSpecies),
+                          );
+                          clearSelection();
+                        }}
+                      />
+                      <DeleteSelectedButton
+                        testId="delete-reactions-button"
+                        message={`This deletes ${countOf(ids.length, "reaction", "reactions")} from the family and from all its mechanisms.`}
+                        onDelete={() => {
+                          updateFamily(removeReactions(family, ids));
+                          clearSelection();
+                        }}
+                      />
+                    </>
+                  )}
                 </>
               )
         }
@@ -164,6 +182,17 @@ export const ReactionsView = ({
         reaction={selectedReaction}
         family={family}
       />
+      {historyReaction && (
+        <EntityHistoryModal
+          open={Boolean(historyReaction)}
+          onClose={() => setHistoryReaction(null)}
+          familyId={family.id}
+          targetType="Reaction"
+          targetId={historyReaction.id}
+          targetName={historyReaction.name}
+          family={family}
+        />
+      )}
     </Box>
   );
 };

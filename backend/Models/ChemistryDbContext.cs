@@ -25,6 +25,9 @@ public partial class ChemistryDbContext : DbContext
     public virtual DbSet<Reactant> Reactants { get; set; }
     public virtual DbSet<Product> Products { get; set; }
     public virtual DbSet<FamilyContributor> FamilyContributors { get; set; }
+    public virtual DbSet<VerifiedMechanismVersion> VerifiedMechanismVersions { get; set; }
+    public virtual DbSet<ChangeSet> ChangeSets { get; set; }
+    public virtual DbSet<ChangeEntry> ChangeEntries { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -278,6 +281,77 @@ public partial class ChemistryDbContext : DbContext
 
         modelBuilder.Entity<Product>()
             .HasKey(r => new { r.ReactionId, r.SpeciesId });
+
+        // Configure VerifiedMechanismVersion relationships
+        modelBuilder.Entity<VerifiedMechanismVersion>()
+            .HasOne(v => v.Family)
+            .WithMany(f => f.VerifiedVersions)
+            .HasForeignKey(v => v.FamilyId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<VerifiedMechanismVersion>()
+            .HasOne(v => v.FamilyVersion)
+            .WithMany()
+            .HasForeignKey(v => v.FamilyVersionId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<VerifiedMechanismVersion>()
+            .HasOne(v => v.Mechanism)
+            .WithMany(m => m.VerifiedVersions)
+            .HasForeignKey(v => v.MechanismId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<VerifiedMechanismVersion>()
+            .HasOne(v => v.Verifier)
+            .WithMany()
+            .HasForeignKey(v => v.VerifierId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<VerifiedMechanismVersion>()
+            .HasOne(v => v.DeprecatedBy)
+            .WithMany()
+            .HasForeignKey(v => v.DeprecatedById)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<VerifiedMechanismVersion>()
+            .HasOne(v => v.ArchivedBy)
+            .WithMany()
+            .HasForeignKey(v => v.ArchivedById)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // Configure ChangeSet
+        modelBuilder.Entity<ChangeSet>()
+            .HasOne(cs => cs.Family)
+            .WithMany()
+            .HasForeignKey(cs => cs.FamilyId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ChangeSet>()
+            .HasOne(cs => cs.User)
+            .WithMany()
+            .HasForeignKey(cs => cs.UserId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<ChangeSet>()
+            .HasIndex(cs => new { cs.FamilyId, cs.Timestamp });
+
+        // Configure ChangeEntry
+        modelBuilder.Entity<ChangeEntry>()
+            .HasOne(ce => ce.ChangeSet)
+            .WithMany(cs => cs.Entries)
+            .HasForeignKey(ce => ce.ChangeSetId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ChangeEntry>()
+            .Property(ce => ce.TargetType)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<ChangeEntry>()
+            .Property(ce => ce.Action)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<ChangeEntry>()
+            .HasIndex(ce => new { ce.TargetType, ce.TargetId });
     }
 
     /// <summary>

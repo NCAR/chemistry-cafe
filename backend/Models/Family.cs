@@ -53,4 +53,7 @@ public partial class Family
 
     // Collection of contributors to this family
     public ICollection<FamilyContributor> Contributors { get; set; } = new List<FamilyContributor>();
+
+    // Collection of verified mechanism versions in this family
+    public ICollection<VerifiedMechanismVersion> VerifiedVersions { get; set; } = new List<VerifiedMechanismVersion>();
 }

@@ -3,6 +3,7 @@
 import axios from "axios";
 
 import {
+  APIArchivedVerifiedVersion,
   APIFamily,
   APIFamilyContributor,
   APIPendingRegistration,
@@ -12,6 +13,7 @@ import {
 } from "./API_Interfaces";
 import { BASE_URL } from "./API_config";
 import { UUID } from "crypto";
+import { ChangeSet } from "../types/chemistryModels";
 
 // Get all users
 export async function getAllUsers(): Promise<APIUser[]> {
@@ -140,9 +142,65 @@ export async function getAllFamilies(
   return response.data;
 }
 
+export async function getFamilyHistory(
+  familyId: UUID,
+  targetType?: string,
+  targetId?: UUID,
+): Promise<Array<ChangeSet>> {
+  const params = new URLSearchParams();
+  if (targetType) params.append("targetType", targetType);
+  if (targetId) params.append("targetId", targetId);
+
+  const query = params.toString() ? `?${params.toString()}` : "";
+  const response = await axios.get<Array<ChangeSet>>(
+    `${BASE_URL}/families/${familyId}/history${query}`,
+    {
+      withCredentials: true,
+    },
+  );
+
+  return response.data;
+}
+
+export async function getGlobalHistory(
+  familyId?: UUID,
+  userId?: UUID,
+  targetType?: string,
+  targetId?: UUID,
+  limit: number = 100,
+): Promise<Array<ChangeSet>> {
+  const params = new URLSearchParams();
+  if (familyId) params.append("familyId", familyId);
+  if (userId) params.append("userId", userId);
+  if (targetType) params.append("targetType", targetType);
+  if (targetId) params.append("targetId", targetId);
+  if (limit) params.append("limit", limit.toString());
+
+  const query = params.toString() ? `?${params.toString()}` : "";
+  const response = await axios.get<Array<ChangeSet>>(
+    `${BASE_URL}/families/history${query}`,
+    {
+      withCredentials: true,
+    },
+  );
+
+  return response.data;
+}
+
 export async function getFamily(id: UUID) {
   const response = await axios.get<APIFamily>(
     `${BASE_URL}/families/${id}?expand=true`,
+    {
+      withCredentials: true,
+    },
+  );
+
+  return response.data;
+}
+
+export async function getFamilyVersion(familyId: UUID, versionId: UUID) {
+  const response = await axios.get<APIFamily>(
+    `${BASE_URL}/families/${familyId}/versions/${versionId}`,
     {
       withCredentials: true,
     },
@@ -156,6 +214,19 @@ export async function getFamilyContributors(
 ): Promise<Array<APIFamilyContributor>> {
   const response = await axios.get<Array<APIFamilyContributor>>(
     `${BASE_URL}/families/${familyId}/contributors`,
+    {
+      withCredentials: true,
+    },
+  );
+
+  return response.data;
+}
+
+export async function getArchivedVerifiedVersions(): Promise<
+  Array<APIArchivedVerifiedVersion>
+> {
+  const response = await axios.get<Array<APIArchivedVerifiedVersion>>(
+    `${BASE_URL}/families/archived-versions`,
     {
       withCredentials: true,
     },

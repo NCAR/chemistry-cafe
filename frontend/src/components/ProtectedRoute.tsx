@@ -3,7 +3,7 @@ import { useAuth } from "../components/AuthContext";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole: string;
+  requiredRole: string | string[];
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
@@ -12,10 +12,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 }) => {
   const { user: loggedInUser } = useAuth();
 
-  // Check if the user is logged in and has the correct role
+  const allowedRoles = (
+    Array.isArray(requiredRole) ? requiredRole : [requiredRole]
+  ).map((r) => r.toLowerCase());
+
+  // Check if the user is logged in and has an allowed role
   if (
     !loggedInUser ||
-    loggedInUser.role?.toLowerCase() !== requiredRole.toLowerCase()
+    !allowedRoles.includes(loggedInUser.role?.toLowerCase() || "")
   ) {
     // Redirect to a different page if the user is not authorized
     return <Navigate to="/unauthorized" replace />;
