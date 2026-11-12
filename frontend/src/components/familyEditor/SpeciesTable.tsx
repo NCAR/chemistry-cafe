@@ -74,8 +74,10 @@ export type SpeciesTableProps = {
   onRowUpdate?: (species: Species) => void;
   /** Shows the add button of the toolbar, and calls this when it is clicked. */
   onAdd?: () => void;
-  /** Shows the bulk add button of the toolbar, and calls this when it is clicked. */
-  onBulkAdd?: () => void;
+  /** Shows the import button of the toolbar, and calls this when it is clicked. */
+  onImport?: () => void;
+  /** Shows the import button of the toolbar, and calls this when it is clicked. */
+  onExport?: () => void;
   /** The problems of the species. The table marks the species that have one. */
   issues?: ItemIssues;
   /**
@@ -94,7 +96,8 @@ export const SpeciesTable = ({
   getRowActions,
   onRowUpdate,
   onAdd,
-  onBulkAdd,  
+  onImport,  
+  onExport,  
   issues,
   selectionActions,
 }: SpeciesTableProps) => {
@@ -307,13 +310,17 @@ export const SpeciesTable = ({
       slotProps={{
         toolbar: {
           addLabel: "Add Species",
-          addBulkLabel: "Import Species",
           addTooltip: "Add species to family",
-          addBulkTooltip: "Import species into a family",
           addTestId: "add-species-button",
-          addBulkTestId:"add-bulk-species-button",
           onAdd,
-          onBulkAdd,
+          importLabel: "Import Species",
+          importTooltip: "Import species into a family",
+          importTestId:"import-species-button",
+          onImport,
+          exportLabel: "Export Species",
+          exportTooltip: "Export species",
+          exportTestId:"export-species-button",
+          onExport,
           searchPlaceholder: "Search species",
           filters: (
             <ProblemsFilter

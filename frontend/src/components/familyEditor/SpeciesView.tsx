@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Box, Tooltip, Typography } from "@mui/material";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import { Species } from "../../types/chemistryModels";
+import {Species, SpeciesTypeMap} from "../../types/chemistryModels";
 import { applySpeciesRowUpdate } from "../../helpers/editorHelpers";
 import { SpeciesEditorModal } from "../modals/SpeciesEditorModal";
 import { UUID } from "crypto";
@@ -16,7 +16,8 @@ import {
   HistorySelectedButton,
 } from "./SelectionButtons";
 import { EntityHistoryModal } from "../modals/EntityHistoryModal";
-import {importCSV} from "../../helpers/importHelpers.ts";
+import { exportCSV, importCSV} from "../../helpers/importExportHelpers.ts";
+
 
 export const SpeciesView = ({ family, updateFamily, readOnly }: ViewProps) => {
   const { byItem } = useFamilyValidation();
@@ -40,19 +41,15 @@ export const SpeciesView = ({ family, updateFamily, readOnly }: ViewProps) => {
     setSpeciesEditorOpen(true);
   };
   const importSpecies = () => {
-    importCSV({
-      "Ref#":"number",
-      Files:"string",
-      Author:"string",
-      Year:"string",
-      "Title ":"string",
-      Journal:"string",
-      "Vol:Pg":"string"
-    }).then((data)=>{
+    importCSV(SpeciesTypeMap).then((data)=>{
       console.log(data);
     }).catch((err)=>{
       console.log(err);
     })
+  }
+  const exportSpecies = () => {
+    console.log(family.species)
+    exportCSV(family.species,SpeciesTypeMap)
   }
 
   const removeSpecies = (speciesIds: Array<UUID>) => {
@@ -184,7 +181,9 @@ export const SpeciesView = ({ family, updateFamily, readOnly }: ViewProps) => {
         }
         onRowUpdate={readOnly ? undefined : handleSpeciesRowUpdate}
         onAdd={readOnly ? undefined : createSpecies}
-        onBulkAdd={importSpecies}
+        onImport={importSpecies}
+        onExport={exportSpecies}
+        
       />
       <SpeciesEditorModal
         open={speciesEditorOpen}

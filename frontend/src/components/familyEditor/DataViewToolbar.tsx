@@ -19,18 +19,25 @@ declare module "@mui/x-data-grid" {
   interface ToolbarPropsOverrides {
     /** Text of the add button, for example "Add Species" */
     addLabel?: string;
-    /** Text of the add button, for example "import species" */
-    addBulkLabel?: string;
     /** Tooltip of the add button */
     addTooltip?: string;
-    /** Tooltip of the bulk add button */
-    addBulkTooltip?: string;
     /** Test ID of the add button */
     addTestId?: string;
-    /** Test ID of the bulk add button */
-    addBulkTestId?: string;
     onAdd?: () => void;
-    onBulkAdd?: () => void;
+    /** Text of the import button, for example "import species" */
+    importLabel?: string;
+    /** Tooltip of the import button */
+    importTooltip?: string;
+    /** Test ID of the import button */
+    importTestId?: string;
+    onImport?: () => void;
+    /** Text of the export button, for example "export species" */
+    exportLabel?: string;
+    /** Tooltip of the export button */
+    exportTooltip?: string;
+    /** Test ID of the export button */
+    exportTestId?: string;
+    onExport?: () => void;
     /** Placeholder of the search field */
     searchPlaceholder?: string;
     /** More filters after the search field */
@@ -64,13 +71,17 @@ const parseSearch = (search: string) =>
  */
 export const DataViewToolbar = ({
   addLabel,
-  addBulkLabel,  
   addTooltip,
-  addBulkTooltip,  
   addTestId,
-  addBulkTestId,  
-  onAdd,
-  onBulkAdd,  
+  onAdd, 
+  importLabel,
+  importTooltip,
+  importTestId,
+  onImport, 
+  exportLabel,
+  exportTooltip,
+  exportTestId,
+  onExport,  
   searchPlaceholder,
   filters,
   actions,
@@ -122,16 +133,29 @@ export const DataViewToolbar = ({
         </Tooltip>
       </>
     )}
-    {onBulkAdd && (
-        <Tooltip title={addBulkTooltip ?? ""}>
+    {onImport && (
+        <Tooltip title={importTooltip ?? ""}>
           <Button
-              aria-label={addBulkLabel}
-              data-testid={addBulkTestId}
-              onClick={onBulkAdd}
+              aria-label={importLabel}
+              data-testid={importTestId}
+              onClick={onImport}
               color="primary"
           >
             <AddIcon />
-            <Typography variant="caption">{addBulkLabel}</Typography>
+            <Typography variant="caption">{importLabel}</Typography>
+          </Button>
+        </Tooltip>
+    )}
+    {onExport && (
+        <Tooltip title={exportTooltip ?? ""}>
+          <Button
+              aria-label={exportLabel}
+              data-testid={exportTestId}
+              onClick={onExport}
+              color="primary"
+          >
+            <AddIcon />
+            <Typography variant="caption">{exportLabel}</Typography>
           </Button>
         </Tooltip>
     )}

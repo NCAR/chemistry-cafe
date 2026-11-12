@@ -1,6 +1,7 @@
 import { UUID } from "crypto";
 import { APIFamilyContributor, APIUser } from "../API/API_Interfaces";
 import { mechanismConfiguration } from "@ncar/musica";
+import {CreateTypeMap} from "../helpers/importExportHelpers.ts";
 const { reactionTypes, Mechanism } = mechanismConfiguration;
 
 /**
@@ -37,6 +38,17 @@ export type Species = {
   /** Optional, additional properties for the species which are not defined in the mechanism configuration schema but can be queried for in musica */
   otherProperties?: Record<string, unknown>;
 };
+export const SpeciesTypeMap=CreateTypeMap<Species>({
+  absoluteTolerance:["number","undefined"],
+  constantConcentration:["number","undefined"],
+  constantMixingRatio:["number","undefined"],
+  description:["string","null"],
+  id: ["string"],
+  isThirdBody: ["boolean","undefined"],
+  molecularWeight:["number","undefined"],
+  name: ["string"],
+  otherProperties:["object","undefined"]
+});
 
 /**
  * Represents a value that the reaction may have.
