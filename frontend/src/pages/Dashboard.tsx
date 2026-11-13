@@ -10,10 +10,6 @@ import {
   Chip,
   CircularProgress,
   Collapse,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   FormControl,
   Grid,
   InputAdornment,
@@ -490,10 +486,6 @@ export const Dashboard: React.FC = () => {
       verifiedAfter: null,
     });
   };
-
-  const isVerifierOrAdmin =
-    user?.role?.toLowerCase() === "admin" ||
-    user?.role?.toLowerCase() === "verifier";
 
   return (
     <div className="layout-dashboard">
