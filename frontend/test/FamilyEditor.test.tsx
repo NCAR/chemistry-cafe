@@ -231,7 +231,10 @@ describe("Family Editor Page", () => {
       ],
     };
 
-    localStorage.setItem("uploadedFamilyIds", JSON.stringify([verifiedFamily.id]));
+    localStorage.setItem(
+      "uploadedFamilyIds",
+      JSON.stringify([verifiedFamily.id]),
+    );
     localStorage.setItem("selectedEditorMechanismId", "mech-1");
 
     vi.spyOn(axios, "get").mockImplementation((url: string) => {
@@ -347,7 +350,9 @@ describe("Family Editor Page", () => {
     render(
       <AuthProvider>
         <CustomThemeProvider>
-          <MemoryRouter initialEntries={[`/editor?id=${testFamily.id}&versionId=fv-1`]}>
+          <MemoryRouter
+            initialEntries={[`/editor?id=${testFamily.id}&versionId=fv-1`]}
+          >
             <FamilyEditor />
           </MemoryRouter>
         </CustomThemeProvider>
@@ -360,7 +365,9 @@ describe("Family Editor Page", () => {
     });
 
     // And clicking the mechanism should display its editor view, not "Mechanism not found."
-    const mechSidebarItem = screen.getByTestId("mechanism-item-mech-copy-frozen");
+    const mechSidebarItem = screen.getByTestId(
+      "mechanism-item-mech-copy-frozen",
+    );
     fireEvent.click(mechSidebarItem);
 
     await waitFor(() => {

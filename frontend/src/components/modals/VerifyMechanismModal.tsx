@@ -47,7 +47,11 @@ export const VerifyMechanismModal: React.FC<VerifyMechanismModalProps> = ({
   };
 
   return (
-    <Modal open={open} onClose={loading ? undefined : onClose} aria-labelledby="verify-mechanism-modal-title">
+    <Modal
+      open={open}
+      onClose={loading ? undefined : onClose}
+      aria-labelledby="verify-mechanism-modal-title"
+    >
       <Box sx={{ ...modalStyle, maxWidth: 500 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
           <VerifiedIcon color="success" />
@@ -56,7 +60,9 @@ export const VerifyMechanismModal: React.FC<VerifyMechanismModalProps> = ({
           </Typography>
         </Box>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Mark this mechanism as scientifically valid. This creates a frozen snapshot of the mechanism and its referenced species, phases, and reactions.
+          Mark this mechanism as scientifically valid. This creates a frozen
+          snapshot of the mechanism and its referenced species, phases, and
+          reactions.
         </Typography>
 
         <TextField
@@ -95,7 +101,13 @@ export const VerifyMechanismModal: React.FC<VerifyMechanismModalProps> = ({
             color="success"
             onClick={handleVerify}
             disabled={loading}
-            startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <VerifiedIcon />}
+            startIcon={
+              loading ? (
+                <CircularProgress size={18} color="inherit" />
+              ) : (
+                <VerifiedIcon />
+              )
+            }
           >
             {loading ? "Verifying..." : "Verify"}
           </Button>
@@ -104,4 +116,3 @@ export const VerifyMechanismModal: React.FC<VerifyMechanismModalProps> = ({
     </Modal>
   );
 };
-

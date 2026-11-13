@@ -149,7 +149,12 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
         })
       : null;
     return { isVerified: verified, formattedDate: formatted };
-  }, [mechanism.verified, mechanism.verifiedDate, mechanism.id, family.verifiedVersions]);
+  }, [
+    mechanism.verified,
+    mechanism.verifiedDate,
+    mechanism.id,
+    family.verifiedVersions,
+  ]);
 
   useLayoutEffect(() => {
     setModifiedMechanism(mechanism);
@@ -352,9 +357,7 @@ export const MechanismEditor: React.FC<MechanismEditorProps> = ({
                 size="small"
                 color="success"
                 variant="outlined"
-                label={
-                  formattedDate ? `Verified ${formattedDate}` : "Verified"
-                }
+                label={formattedDate ? `Verified ${formattedDate}` : "Verified"}
               />
             )}
           </Box>

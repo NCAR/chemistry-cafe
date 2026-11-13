@@ -28,7 +28,10 @@ function App() {
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/loggedin" element={<Navigate to="/" replace />} />
-                <Route path="/dashboard" element={<Navigate to="/" replace />} />
+                <Route
+                  path="/dashboard"
+                  element={<Navigate to="/" replace />}
+                />
                 <Route path="/editor" element={<FamilyEditor />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/about" element={<About />} />

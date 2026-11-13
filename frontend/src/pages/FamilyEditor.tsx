@@ -24,7 +24,11 @@ import { ConfirmActionModal } from "../components/modals/ConfirmActionModal";
 import { MechanismCreationModal } from "../components/modals/MechanismCreationModal";
 import { ValidationErrorsModal } from "../components/modals/ValidationErrorsModal";
 import { UUID } from "crypto";
-import { getAllFamilies, getFamily, getFamilyVersion } from "../API/API_GetMethods";
+import {
+  getAllFamilies,
+  getFamily,
+  getFamilyVersion,
+} from "../API/API_GetMethods";
 import { deleteFamily } from "../API/API_DeleteMethods";
 import {
   apiToFrontendFamily,
@@ -104,9 +108,7 @@ const FamilyEditor = () => {
     user?.id && family?.contributorIds?.includes(user.id as UUID),
   );
   const isDraft = !family?.isInDatabase;
-  const isArchivedFamily = Boolean(
-    family?.isInDatabase && family.isArchived,
-  );
+  const isArchivedFamily = Boolean(family?.isInDatabase && family.isArchived);
   const canEdit =
     !isVersionSnapshot &&
     !isArchivedFamily &&
@@ -163,7 +165,10 @@ const FamilyEditor = () => {
         }
       }
       if (fam.mechanisms && fam.mechanisms.length > 0 && queryVersionId) {
-        setSelectedView({ type: "mechanism", mechanismId: fam.mechanisms[0].id });
+        setSelectedView({
+          type: "mechanism",
+          mechanismId: fam.mechanisms[0].id,
+        });
         return;
       }
       // If we are currently in mechanism view, but the selected mechanism is missing from this family:
@@ -966,8 +971,9 @@ const FamilyEditor = () => {
                       if (returnToParam) {
                         navigate(returnToParam);
                       } else {
-                        const storedMechId =
-                          localStorage.getItem("selectedEditorMechanismId");
+                        const storedMechId = localStorage.getItem(
+                          "selectedEditorMechanismId",
+                        );
                         const targetUrl = storedMechId
                           ? `/editor?id=${family?.id}&mechanismId=${storedMechId}`
                           : `/editor?id=${family?.id}`;
@@ -982,8 +988,9 @@ const FamilyEditor = () => {
                     size="small"
                     variant="outlined"
                     onClick={() => {
-                      const storedMechId =
-                        localStorage.getItem("selectedEditorMechanismId");
+                      const storedMechId = localStorage.getItem(
+                        "selectedEditorMechanismId",
+                      );
                       const targetUrl = storedMechId
                         ? `/editor?id=${family?.id}&mechanismId=${storedMechId}`
                         : `/editor?id=${family?.id}`;
@@ -1003,9 +1010,14 @@ const FamilyEditor = () => {
                         cloned.name = `${family.name} (Draft)`;
                         addFamilyLocally(cloned);
                         addUploadedFamilyIdLocally(cloned.id);
-                        localStorage.setItem("selectedEditorFamilyId", cloned.id);
+                        localStorage.setItem(
+                          "selectedEditorFamilyId",
+                          cloned.id,
+                        );
                         navigate(`/editor?id=${cloned.id}`);
-                        setInPageSuccess("Created new editable draft from verified version!");
+                        setInPageSuccess(
+                          "Created new editable draft from verified version!",
+                        );
                       }
                     }}
                   >
@@ -1198,7 +1210,10 @@ const FamilyEditor = () => {
                         problemCount={issuesForMech}
                         isSelected={isSelected}
                         onClick={() => {
-                          localStorage.setItem("selectedEditorMechanismId", mech.id);
+                          localStorage.setItem(
+                            "selectedEditorMechanismId",
+                            mech.id,
+                          );
                           setSelectedView({
                             type: "mechanism",
                             mechanismId: mech.id as UUID,

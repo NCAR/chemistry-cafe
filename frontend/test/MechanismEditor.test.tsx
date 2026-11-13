@@ -262,7 +262,9 @@ describe("MechanismEditor info tab", () => {
     };
     renderEditor(verifiedMech);
 
-    const heading = screen.getByRole("heading", { name: "Test Mechanism Info" });
+    const heading = screen.getByRole("heading", {
+      name: "Test Mechanism Info",
+    });
     expect(heading).toBeTruthy();
 
     const chip = screen.getByTestId("mechanism-verified-chip");
@@ -273,7 +275,9 @@ describe("MechanismEditor info tab", () => {
   it("does not show the verified chip when mechanism is unverified", () => {
     renderEditor({ ...mechanism, verified: false });
 
-    expect(screen.queryByTestId("mechanism-verified-chip")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("mechanism-verified-chip"),
+    ).not.toBeInTheDocument();
   });
 });
 
