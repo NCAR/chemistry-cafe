@@ -15,7 +15,7 @@ interface AuthContextProps {
 }
 
 // Create the context
-const AuthContext = createContext<AuthContextProps | undefined>(undefined);
+export const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
 // Provider component
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -49,8 +49,5 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 // Hook to use the AuthContext
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
+  return context ?? { user: null, setUser: () => {} };
 };

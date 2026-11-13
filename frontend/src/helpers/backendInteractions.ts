@@ -40,6 +40,7 @@ export function apiToFrontendSpecies(apiSpecies: APISpecies): Species {
     isThirdBody: apiSpecies.isThirdBody ?? undefined,
     molecularWeight: apiSpecies.molecularWeight ?? undefined,
     name: apiSpecies.name ?? "<Empty>",
+    sourceObjectId: apiSpecies.sourceObjectId,
     otherProperties: apiSpecies.otherProperties ?? undefined,
   };
   return formattedSpecies;
@@ -65,6 +66,7 @@ export function frontendToAPISpecies(species: Species): APISpecies {
     isThirdBody: species.isThirdBody,
     molecularWeight: species.molecularWeight,
     name: species.name,
+    sourceObjectId: species.sourceObjectId,
     otherProperties: species.otherProperties,
   };
   return formattedSpecies;
@@ -87,6 +89,8 @@ export function apiToFrontendReaction(apiReaction: APIReaction): Reaction {
     products: apiReaction.products,
     gasPhaseId: apiReaction.gasPhaseId as UUID | undefined,
     gasPhaseSpeciesId: apiReaction.gasPhaseSpeciesId as UUID | undefined,
+    sourceObjectId: apiReaction.sourceObjectId,
+    otherProperties: apiReaction.otherProperties ?? undefined,
     attributes: {},
   };
 
@@ -333,6 +337,8 @@ export function frontendToAPIReaction(reaction: Reaction): APIReaction {
     products: reaction.products as Array<APIProduct>,
     gasPhaseId: reaction.gasPhaseId as UUID,
     gasPhaseSpeciesId: reaction.gasPhaseSpeciesId as UUID,
+    sourceObjectId: reaction.sourceObjectId,
+    otherProperties: reaction.otherProperties,
     reactionType: reaction.type,
   };
 
@@ -439,6 +445,7 @@ export function apiToFrontendPhase(phase: APIPhase): Phase {
     speciesIds: phase.speciesIds,
     diffusionCoefficients: phase.diffusionCoefficients ?? {},
     otherProperties: phase.otherProperties ?? undefined,
+    sourceObjectId: phase.sourceObjectId,
   };
   return formattedPhase;
 }
@@ -464,6 +471,7 @@ export function frontendToAPIPhase(phase: Phase): APIPhase {
     speciesIds: phase.speciesIds as UUID[],
     diffusionCoefficients: phase.diffusionCoefficients ?? {},
     otherProperties: phase.otherProperties,
+    sourceObjectId: phase.sourceObjectId,
   };
   return formattedPhase;
 }
@@ -485,6 +493,7 @@ export function apiToFrontendMechanism(apiMechanism: APIMechanism): Mechanism {
     reactionIds: apiMechanism.reactionIds,
     phaseIds: apiMechanism.phaseIds,
     otherProperties: apiMechanism.otherProperties ?? undefined,
+    sourceObjectId: apiMechanism.sourceObjectId,
     verified: apiMechanism.verified ?? false,
     verifiedDate: apiMechanism.verifiedDate ?? undefined,
     verifiedBy: apiMechanism.verifiedBy ?? undefined,
@@ -517,6 +526,7 @@ export function frontendToAPIMechanism(
     speciesIds: mechanism.speciesIds as UUID[],
     reactionIds: mechanism.reactionIds as UUID[],
     phaseIds: mechanism.phaseIds as UUID[],
+    sourceObjectId: mechanism.sourceObjectId,
     familyId: family.id as UUID,
     otherProperties: mechanism.otherProperties,
     verified: mechanism.verified ?? false,
@@ -542,9 +552,11 @@ export function apiToFrontendFamily(apiFamily: APIFamily): Family {
     name: apiFamily.name,
     description: apiFamily.description ?? "",
     isPublic: apiFamily.isPublic,
+    isArchived: Boolean(apiFamily.isArchived),
     owner: apiFamily.owner,
     contributorIds: apiFamily.contributorIds ?? [],
     mechanisms: apiFamily.mechanisms.map((e) => apiToFrontendMechanism(e)),
+    verifiedVersions: apiFamily.verifiedVersions ?? [],
     species: apiFamily.species.map((e) => apiToFrontendSpecies(e)),
     reactions: apiFamily.reactions.map((e) => apiToFrontendReaction(e)),
     phases: apiFamily.phases.map((e) => apiToFrontendPhase(e)),

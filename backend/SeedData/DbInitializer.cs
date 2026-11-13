@@ -34,8 +34,14 @@ public static class DbInitializer
             return;
         }
 
-        var owner = context.Users.FirstOrDefault(u => u.Username == "seed")
-            ?? new User { Id = Guid.NewGuid(), Username = "seed", Role = Role.Admin };
+        var owner = context.Users.FirstOrDefault(u => u.Username == "NCAR")
+            ?? context.Users.FirstOrDefault(u => u.Username == "seed")
+            ?? new User { Id = Guid.NewGuid(), Username = "NCAR", FirstName = "NCAR", Role = Role.Admin };
+        if (owner.Username == "seed")
+        {
+            owner.Username = "NCAR";
+            owner.FirstName = "NCAR";
+        }
 
         foreach (var seedFamily in root.Families)
         {

@@ -21,6 +21,7 @@ export const cloneFamily = (family: Family): Family => {
     phases: [],
     reactions: [],
     mechanisms: [],
+    verifiedVersions: [],
     isInDatabase: false,
     isPublic: false,
     contributorIds: [],

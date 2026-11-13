@@ -3,6 +3,7 @@
 import axios from "axios";
 import { BASE_URL } from "./API_config";
 import { UUID } from "crypto";
+import { APIVerifiedMechanismVersion } from "./API_Interfaces";
 
 /**
  * Deletes a given user.
@@ -36,6 +37,37 @@ export async function deleteFamilyContributor(
 ): Promise<void> {
   await axios.delete(
     `${BASE_URL}/families/${familyId}/contributors/${userId}`,
+    {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    },
+  );
+}
+
+export async function undeprecateMechanism(
+  familyId: UUID,
+  mechanismId: UUID,
+): Promise<APIVerifiedMechanismVersion> {
+  const response = await axios.delete<APIVerifiedMechanismVersion>(
+    `${BASE_URL}/families/${familyId}/mechanisms/${mechanismId}/deprecate`,
+    {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    },
+  );
+  return response.data;
+}
+
+export async function deleteVerifiedMechanism(
+  familyId: UUID,
+  mechanismId: UUID,
+): Promise<void> {
+  await axios.delete(
+    `${BASE_URL}/families/${familyId}/mechanisms/${mechanismId}/verified`,
     {
       withCredentials: true,
       headers: {

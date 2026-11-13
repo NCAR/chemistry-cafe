@@ -1,3 +1,4 @@
+using System.Text.Json;
 using ChemistryCafeAPI.Models;
 using ChemistryCafeAPI.Models.Dto;
 
@@ -7,9 +8,36 @@ public static class MechanismMapper
 {
     public static MechanismDto ToDto(this Mechanism mechanism)
     {
+        bool isVerified = mechanism.Verified;
+        DateTime? verifiedDate = mechanism.VerifiedDate;
+        string? verifiedBy = mechanism.VerifiedBy;
+
+        var latestVerified = mechanism.VerifiedVersions?
+            .Where(v => !v.IsArchived && !v.IsDeprecated)
+            .OrderByDescending(v => v.VerifiedDate)
+            .FirstOrDefault();
+
+        if (latestVerified != null)
+        {
+            // A regular mechanism in a family is marked and linked to a verified version
+            // if it has not changed since it was last verified.
+            bool unchanged = mechanism.UpdatedDate <= latestVerified.VerifiedDate;
+            if (unchanged)
+            {
+                isVerified = true;
+                verifiedDate ??= latestVerified.VerifiedDate;
+                verifiedBy ??= latestVerified.Verifier?.GetDisplayName();
+            }
+            else
+            {
+                isVerified = false;
+            }
+        }
+
         return new MechanismDto
         {
             Id = mechanism.Id,
+            SourceObjectId = mechanism.SourceObjectId,
             FamilyVersionId = mechanism.FamilyVersionId,
             FamilyId = mechanism.FamilyId,
             IsReadOnly = mechanism.IsReadOnly,
@@ -19,9 +47,9 @@ public static class MechanismMapper
             ReactionIds = mechanism.Reactions.Select(r => r.Id).ToList(),
             PhaseIds = mechanism.Phases.Select(p => p.Id).ToList(),
             OtherProperties = mechanism.OtherProperties,
-            Verified = mechanism.Verified,
-            VerifiedDate = mechanism.VerifiedDate,
-            VerifiedBy = mechanism.VerifiedBy
+            Verified = isVerified,
+            VerifiedDate = isVerified ? verifiedDate : null,
+            VerifiedBy = isVerified ? verifiedBy : null
         };
     }
 
@@ -34,6 +62,7 @@ public static class MechanismMapper
         return new Mechanism
         {
             Id = mechanismDto.Id,
+            SourceObjectId = mechanismDto.SourceObjectId,
             FamilyId = mechanismDto.FamilyId,
             FamilyVersionId = mechanismDto.FamilyVersionId,
             Name = mechanismDto.Name,

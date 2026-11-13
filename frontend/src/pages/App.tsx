@@ -6,6 +6,7 @@ import FamilyEditor from "./FamilyEditor.tsx";
 import Register from "./Register.tsx";
 import About from "./About.tsx";
 import UserManagement from "./UserManagement.tsx";
+import ArchivedVersions from "./ArchivedVersions.tsx";
 import NoAccess from "./Unauthorized.tsx";
 import { AuthProvider } from "../components/AuthContext";
 import ProtectedRoute from "../components/ProtectedRoute";
@@ -27,10 +28,7 @@ function App() {
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/loggedin" element={<Navigate to="/" replace />} />
-                <Route
-                  path="/dashboard"
-                  element={<Navigate to="/" replace />}
-                />
+                <Route path="/dashboard" element={<Navigate to="/" replace />} />
                 <Route path="/editor" element={<FamilyEditor />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/about" element={<About />} />
@@ -43,6 +41,14 @@ function App() {
                       <UserManagement />
                     </ProtectedRoute>
                   }
+                />
+                <Route
+                  path="/archived-versions"
+                  element={<ArchivedVersions />}
+                />
+                <Route
+                  path="/archivedversions"
+                  element={<Navigate to="/archived-versions" replace />}
                 />
               </Routes>
             </UserPreferencesProvider>

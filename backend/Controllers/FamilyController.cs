@@ -29,11 +29,25 @@ namespace ChemistryCafeAPI.Controllers
 
         [AllowAnonymous]
         [HttpGet("{id}")]
-        public async Task<ActionResult<FamilyDto>> GetFamily(Guid id)
+        public async Task<ActionResult<FamilyDto>> GetFamily(Guid id, [FromQuery] Guid? versionId = null)
         {
             var (_, viewer) = await userService.GetCurrentUserAsync(GetNameIdentifier());
+            if (versionId.HasValue)
+            {
+                var versionDto = await familyService.GetFamilyVersionAsync(id, versionId.Value, viewer);
+                return versionDto == null ? NotFound() : Ok(versionDto);
+            }
             var family = await familyService.GetFamilyAsync(id, viewer);
             return family == null ? NotFound() : Ok(family.ToDto());
+        }
+
+        [AllowAnonymous]
+        [HttpGet("{id}/versions/{versionId}")]
+        public async Task<ActionResult<FamilyDto>> GetFamilyVersion(Guid id, Guid versionId)
+        {
+            var (_, viewer) = await userService.GetCurrentUserAsync(GetNameIdentifier());
+            var versionDto = await familyService.GetFamilyVersionAsync(id, versionId, viewer);
+            return versionDto == null ? NotFound() : Ok(versionDto);
         }
 
         /// <summary>
@@ -256,6 +270,124 @@ namespace ChemistryCafeAPI.Controllers
                 QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier claim"),
                 _ => NoContent(),
             };
+        }
+
+        [Authorize]
+        [HttpPost("{id}/mechanisms/{mechanismId}/verify")]
+        public async Task<ActionResult<VerifiedMechanismVersionDto>> VerifyMechanism(Guid id, Guid mechanismId, [FromBody] VerifyMechanismRequest request)
+        {
+            string? nameIdentifier = GetNameIdentifier();
+            if (nameIdentifier == null)
+            {
+                return Unauthorized("User is not authenticated");
+            }
+
+            var (code, result) = await familyService.VerifyMechanismAsync(id, mechanismId, request, nameIdentifier);
+            return code switch
+            {
+                QueryResult.NotFound => NotFound("Family or mechanism not found"),
+                QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden, "Only Verifiers and Admins can verify mechanisms."),
+                QueryResult.ValidationError => BadRequest("Only mechanisms in public families can be verified."),
+                QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier claim"),
+                QueryResult.OwnerNotFound => Unauthorized("User does not exist"),
+                _ => Ok(result),
+            };
+        }
+
+        [Authorize]
+        [HttpPost("{id}/mechanisms/{mechanismId}/deprecate")]
+        public async Task<ActionResult<VerifiedMechanismVersionDto>> DeprecateMechanism(Guid id, Guid mechanismId, [FromBody] DeprecateMechanismRequest request)
+        {
+            string? nameIdentifier = GetNameIdentifier();
+            if (nameIdentifier == null)
+            {
+                return Unauthorized("User is not authenticated");
+            }
+
+            var (code, result) = await familyService.DeprecateMechanismAsync(id, mechanismId, request, nameIdentifier);
+            return code switch
+            {
+                QueryResult.NotFound => NotFound("Family or mechanism not found"),
+                QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden, "Only Verifiers and Admins can deprecate mechanisms."),
+                QueryResult.ValidationError => BadRequest("Only verified mechanisms can be deprecated."),
+                QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier claim"),
+                QueryResult.OwnerNotFound => Unauthorized("User does not exist"),
+                _ => Ok(result),
+            };
+        }
+
+        [Authorize]
+        [HttpDelete("{id}/mechanisms/{mechanismId}/deprecate")]
+        public async Task<ActionResult<VerifiedMechanismVersionDto>> UndeprecateMechanism(Guid id, Guid mechanismId)
+        {
+            string? nameIdentifier = GetNameIdentifier();
+            if (nameIdentifier == null)
+            {
+                return Unauthorized("User is not authenticated");
+            }
+
+            var (code, result) = await familyService.UndeprecateMechanismAsync(id, mechanismId, nameIdentifier);
+            return code switch
+            {
+                QueryResult.NotFound => NotFound("Family or mechanism not found"),
+                QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden, "Only Verifiers and Admins can remove mechanism deprecation."),
+                QueryResult.ValidationError => BadRequest("Only verified mechanisms can be undeprecated."),
+                QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier claim"),
+                QueryResult.OwnerNotFound => Unauthorized("User does not exist"),
+                _ => Ok(result),
+            };
+        }
+
+        [Authorize]
+        [HttpPost("{id}/mechanisms/{mechanismId}/archive")]
+        public async Task<ActionResult<VerifiedMechanismVersionDto>> ArchiveMechanism(Guid id, Guid mechanismId, [FromBody] ArchiveMechanismRequest request)
+        {
+            string? nameIdentifier = GetNameIdentifier();
+            if (nameIdentifier == null)
+            {
+                return Unauthorized("User is not authenticated");
+            }
+
+            var (code, result) = await familyService.ArchiveMechanismAsync(id, mechanismId, request, nameIdentifier);
+            return code switch
+            {
+                QueryResult.NotFound => NotFound("Family or mechanism not found"),
+                QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden, "Only Verifiers and Admins can archive mechanisms."),
+                QueryResult.ValidationError => BadRequest("Only verified mechanisms can be archived."),
+                QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier claim"),
+                QueryResult.OwnerNotFound => Unauthorized("User does not exist"),
+                _ => Ok(result),
+            };
+        }
+
+        [Authorize]
+        [HttpDelete("{id}/mechanisms/{mechanismId}/verified")]
+        public async Task<IActionResult> DeleteVerifiedMechanism(Guid id, Guid mechanismId)
+        {
+            string? nameIdentifier = GetNameIdentifier();
+            if (nameIdentifier == null)
+            {
+                return Unauthorized("User is not authenticated");
+            }
+
+            var code = await familyService.DeleteVerifiedMechanismAsync(id, mechanismId, nameIdentifier);
+            return code switch
+            {
+                QueryResult.NotFound => NotFound("Family or mechanism not found"),
+                QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden, "Only Verifiers and Admins can delete verified mechanisms."),
+                QueryResult.ValidationError => BadRequest("Only verified mechanisms can be deleted via this endpoint."),
+                QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier claim"),
+                QueryResult.OwnerNotFound => Unauthorized("User does not exist"),
+                _ => NoContent(),
+            };
+        }
+
+        [AllowAnonymous]
+        [HttpGet("archived-versions")]
+        public async Task<ActionResult<IEnumerable<ArchivedVerifiedVersionDto>>> GetArchivedVerifiedVersions()
+        {
+            var result = await familyService.GetArchivedVerifiedVersionsAsync();
+            return Ok(result);
         }
     }
 }

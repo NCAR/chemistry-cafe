@@ -10,10 +10,6 @@ import {
   Chip,
   CircularProgress,
   Collapse,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   FormControl,
   Grid,
   InputAdornment,
@@ -92,7 +88,6 @@ export const Dashboard: React.FC = () => {
   const [familyCreationModalOpen, setFamilyCreationModalOpen] =
     useState<boolean>(false);
   const [importModalOpen, setImportModalOpen] = useState<boolean>(false);
-  const [archivedModalOpen, setArchivedModalOpen] = useState<boolean>(false);
 
   // Helper to update URL params while preserving existing ones
   const updateUrlParams = (
@@ -375,14 +370,23 @@ export const Dashboard: React.FC = () => {
   };
 
   // Clone Family into draft and open in editor
-  const handleCloneFamily = async (family: Family) => {
+  const handleCloneFamily = async (family: Family, mechanism?: Mechanism) => {
     const cloned = cloneFamily(family);
     if (user) {
       try {
         const uploaded = await uploadFamily(cloned, user);
         addUploadedFamilyIdLocally(uploaded.id);
         localStorage.setItem("selectedEditorFamilyId", uploaded.id);
-        localStorage.removeItem("selectedEditorMechanismId");
+        if (mechanism) {
+          const match = uploaded.mechanisms.find((m) => m.name === mechanism.name);
+          if (match) {
+            localStorage.setItem("selectedEditorMechanismId", match.id);
+          } else {
+            localStorage.removeItem("selectedEditorMechanismId");
+          }
+        } else {
+          localStorage.removeItem("selectedEditorMechanismId");
+        }
         localStorage.setItem(
           "activeEditorFamily",
           JSON.stringify({
@@ -399,7 +403,16 @@ export const Dashboard: React.FC = () => {
     }
     addFamilyLocally(cloned);
     localStorage.setItem("selectedEditorFamilyId", cloned.id);
-    localStorage.removeItem("selectedEditorMechanismId");
+    if (mechanism) {
+      const match = cloned.mechanisms.find((m) => m.name === mechanism.name);
+      if (match) {
+        localStorage.setItem("selectedEditorMechanismId", match.id);
+      } else {
+        localStorage.removeItem("selectedEditorMechanismId");
+      }
+    } else {
+      localStorage.removeItem("selectedEditorMechanismId");
+    }
     localStorage.setItem(
       "activeEditorFamily",
       JSON.stringify({
@@ -473,10 +486,6 @@ export const Dashboard: React.FC = () => {
       verifiedAfter: null,
     });
   };
-
-  const isVerifierOrAdmin =
-    user?.role?.toLowerCase() === "admin" ||
-    user?.role?.toLowerCase() === "verifier";
 
   return (
     <div className="layout-dashboard">
@@ -773,23 +782,23 @@ export const Dashboard: React.FC = () => {
             onEditMechanism={(family, mechanism) =>
               handleOpenFamily(family, mechanism)
             }
-            onCloneMechanism={(family) => handleCloneFamily(family)}
+            onCloneMechanism={(family, mechanism) =>
+              handleCloneFamily(family, mechanism)
+            }
           />
         )}
 
-        {/* Verifiers and admins see "Show archived versions" link under the list (#358) */}
-        {isVerifierOrAdmin && (
-          <Box sx={{ mt: 4, mb: 2, textAlign: "center" }}>
-            <Link
-              component="button"
-              variant="body2"
-              onClick={() => setArchivedModalOpen(true)}
-              sx={{ cursor: "pointer", fontWeight: "bold" }}
-            >
-              Show archived versions
-            </Link>
-          </Box>
-        )}
+        {/* Link to Archived Versions page for all users */}
+        <Box sx={{ mt: 4, mb: 2, textAlign: "center" }}>
+          <Link
+            component="button"
+            variant="body2"
+            onClick={() => navigate("/archived-versions")}
+            sx={{ cursor: "pointer", fontWeight: "bold" }}
+          >
+            Show archived versions
+          </Link>
+        </Box>
       </Paper>
 
       {/* New Family Modal */}
@@ -833,27 +842,6 @@ export const Dashboard: React.FC = () => {
           navigate("/editor");
         }}
       />
-
-      {/* Archived Versions Dialog (#358) */}
-      <Dialog
-        open={archivedModalOpen}
-        onClose={() => setArchivedModalOpen(false)}
-      >
-        <DialogTitle>Archived Versions</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" sx={{ mb: 1 }}>
-            Mechanism verification and archived version history are tracked in
-            Mechanism verification (#358).
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            No archived versions are currently stored for the selected
-            mechanisms.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setArchivedModalOpen(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
 
       <footer>
         <Footer />

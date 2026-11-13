@@ -20,11 +20,38 @@ public class FamilyDto
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
     public bool IsPublic { get; set; }
+    public bool IsArchived { get; set; }
     public Guid? CurrentVersionId { get; set; }
     public List<SpeciesDto> Species { get; set; } = new();
     public List<ReactionDto> Reactions { get; set; } = new();
     public List<PhaseDto> Phases { get; set; } = new();
     public List<MechanismDto> Mechanisms { get; set; } = new();
+    public List<VerifiedMechanismVersionDto> VerifiedVersions { get; set; } = new();
+}
+
+public class VerifiedMechanismVersionDto
+{
+    public Guid Id { get; set; }
+    public Guid FamilyId { get; set; }
+    public Guid FamilyVersionId { get; set; }
+    public Guid? SourceMechanismId { get; set; }
+    public Guid MechanismId { get; set; }
+    public string Name { get; set; } = null!;
+    public string? Notes { get; set; }
+    public DateTime VerifiedDate { get; set; }
+    public Guid VerifierId { get; set; }
+    public string VerifierUsername { get; set; } = null!;
+    public string? VerifierName { get; set; }
+    public bool IsDeprecated { get; set; }
+    public string? DeprecationReason { get; set; }
+    public DateTime? DeprecatedDate { get; set; }
+    public string? DeprecatedByUsername { get; set; }
+    public Guid? BetterVersionId { get; set; }
+    public bool IsArchived { get; set; }
+    public DateTime? ArchivedDate { get; set; }
+    public string? ArchivedByUsername { get; set; }
+    public string? OriginalFamilyName { get; set; }
+    public string? OriginalOwnerUsername { get; set; }
 }
 
 public class OwnerDto
@@ -54,4 +81,38 @@ public class UpdateFamilyContributorDto
 {
     public Guid? UserId { get; set; }
     public ContributorRole Role { get; set; } = ContributorRole.Viewer;
+}
+
+public class VerifyMechanismRequest
+{
+    public string? Name { get; set; }
+    public string? Note { get; set; }
+}
+
+public class DeprecateMechanismRequest
+{
+    public string Reason { get; set; } = null!;
+    public Guid? BetterVersionId { get; set; }
+}
+
+public class ArchiveMechanismRequest
+{
+    public bool IsArchived { get; set; } = true;
+}
+
+public class ArchivedVerifiedVersionDto
+{
+    public Guid MechanismId { get; set; }
+    public Guid FamilyId { get; set; }
+    public Guid FamilyVersionId { get; set; }
+    public string Name { get; set; } = null!;
+    public string? Description { get; set; }
+    public string OriginalFamilyName { get; set; } = null!;
+    public string? OriginalOwnerUsername { get; set; }
+    public string? VerifierUsername { get; set; }
+    public string? VerifiedDate { get; set; }
+    public string? Notes { get; set; }
+    public bool IsDeprecated { get; set; }
+    public string? DeprecationReason { get; set; }
+    public string? BetterVersionId { get; set; }
 }

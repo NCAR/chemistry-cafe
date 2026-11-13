@@ -24,7 +24,7 @@ import { ConfirmActionModal } from "../components/modals/ConfirmActionModal";
 import { MechanismCreationModal } from "../components/modals/MechanismCreationModal";
 import { ValidationErrorsModal } from "../components/modals/ValidationErrorsModal";
 import { UUID } from "crypto";
-import { getAllFamilies, getFamily } from "../API/API_GetMethods";
+import { getAllFamilies, getFamily, getFamilyVersion } from "../API/API_GetMethods";
 import { deleteFamily } from "../API/API_DeleteMethods";
 import {
   apiToFrontendFamily,
@@ -91,6 +91,12 @@ const FamilyEditor = () => {
     [],
   );
 
+  // Query parameters
+  const searchParams = new URLSearchParams(location.search);
+  const versionIdParam = searchParams.get("versionId");
+  const returnToParam = searchParams.get("returnTo");
+  const isVersionSnapshot = Boolean(versionIdParam);
+
   // Permissions
   const isOwner = Boolean(user?.id && family?.owner?.id === user.id);
   const isAdmin = user?.role?.toLowerCase() === "admin";
@@ -98,7 +104,13 @@ const FamilyEditor = () => {
     user?.id && family?.contributorIds?.includes(user.id as UUID),
   );
   const isDraft = !family?.isInDatabase;
-  const canEdit = isDraft || isOwner || isAdmin || isContributor;
+  const isArchivedFamily = Boolean(
+    family?.isInDatabase && family.isArchived,
+  );
+  const canEdit =
+    !isVersionSnapshot &&
+    !isArchivedFamily &&
+    (isDraft || isOwner || isAdmin || isContributor);
   const canChangeVisibility =
     canEdit && Boolean(family?.isInDatabase) && (isOwner || isAdmin);
 
@@ -109,22 +121,88 @@ const FamilyEditor = () => {
     setLoading(true);
     setInPageError(null);
 
-    const searchParams = new URLSearchParams(location.search);
-    const queryId = searchParams.get("id");
+    const params = new URLSearchParams(location.search);
+    const queryId = params.get("id");
+    const queryVersionId = params.get("versionId");
+    const queryMechanismId = params.get("mechanismId");
     const selectedEditorFamilyId = localStorage.getItem(
       "selectedEditorFamilyId",
     );
     const targetIdentifier = queryId || familyId || selectedEditorFamilyId;
 
     const selectMechanismIfStored = (fam: Family) => {
-      const selectedMechId = localStorage.getItem("selectedEditorMechanismId");
-      if (selectedMechId && fam.mechanisms) {
-        const match = fam.mechanisms.find((m) => m.id === selectedMechId);
+      const targetMechId =
+        queryMechanismId || localStorage.getItem("selectedEditorMechanismId");
+      if (targetMechId && fam.mechanisms) {
+        let match = fam.mechanisms.find(
+          (m) =>
+            m.id === targetMechId ||
+            (m.sourceObjectId && m.sourceObjectId === targetMechId),
+        );
+        if (!match && fam.verifiedVersions) {
+          const vMatch = fam.verifiedVersions.find(
+            (v) =>
+              v.mechanismId === targetMechId ||
+              v.sourceMechanismId === targetMechId,
+          );
+          if (vMatch) {
+            match = fam.mechanisms.find(
+              (m) =>
+                m.id === vMatch.sourceMechanismId ||
+                m.id === vMatch.mechanismId ||
+                (m.sourceObjectId &&
+                  (m.sourceObjectId === vMatch.sourceMechanismId ||
+                    m.sourceObjectId === vMatch.mechanismId)),
+            );
+          }
+        }
         if (match) {
+          localStorage.setItem("selectedEditorMechanismId", match.id);
           setSelectedView({ type: "mechanism", mechanismId: match.id });
+          return;
+        }
+      }
+      if (fam.mechanisms && fam.mechanisms.length > 0 && queryVersionId) {
+        setSelectedView({ type: "mechanism", mechanismId: fam.mechanisms[0].id });
+        return;
+      }
+      // If we are currently in mechanism view, but the selected mechanism is missing from this family:
+      if (selectedView.type === "mechanism" && fam.mechanisms) {
+        const stillExists = fam.mechanisms.some(
+          (m) => m.id === selectedView.mechanismId,
+        );
+        if (!stillExists) {
+          if (fam.mechanisms.length > 0) {
+            setSelectedView({
+              type: "mechanism",
+              mechanismId: fam.mechanisms[0].id,
+            });
+          } else {
+            setSelectedView({ type: "general" });
+          }
         }
       }
     };
+
+    // If viewing a frozen version snapshot
+    if (targetIdentifier && queryVersionId) {
+      try {
+        const apiFam = await getFamilyVersion(
+          targetIdentifier as UUID,
+          queryVersionId as UUID,
+        );
+        if (apiFam) {
+          const frontFam = apiToFrontendFamily(apiFam);
+          setFamily(frontFam);
+          setOriginalFamily(structuredClone(frontFam));
+          selectMechanismIfStored(frontFam);
+          setLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.error("Direct fetch of family version failed:", err);
+      }
+    }
 
     const localFamilies: Family[] = JSON.parse(
       localStorage.getItem("localFamilies") || "[]",
@@ -276,6 +354,33 @@ const FamilyEditor = () => {
         isModified,
       };
       setFamily(modifiedFamily);
+    }
+  };
+
+  // Sync server-persisted verification updates without marking the family as having unsaved local edits
+  const syncVerifiedVersionsFromServer = (updated: Family) => {
+    setFamily({
+      ...updated,
+      isModified: family?.isModified ?? false,
+    });
+    if (originalFamily) {
+      setOriginalFamily({
+        ...structuredClone(originalFamily),
+        verifiedVersions: structuredClone(updated.verifiedVersions),
+        mechanisms: originalFamily.mechanisms.map((origMech) => {
+          const updatedMech = updated.mechanisms?.find(
+            (m) => m.id === origMech.id,
+          );
+          return updatedMech
+            ? {
+                ...origMech,
+                verified: updatedMech.verified,
+                verifiedDate: updatedMech.verifiedDate,
+                verifiedBy: updatedMech.verifiedBy,
+              }
+            : origMech;
+        }),
+      });
     }
   };
 
@@ -538,13 +643,54 @@ const FamilyEditor = () => {
     }
   };
 
+  // Exclude snapshot copy mechanisms from the editable mechanisms list when viewing the editable family
+  const verifiedCopyIds = useMemo(() => {
+    return new Set((family?.verifiedVersions || []).map((v) => v.mechanismId));
+  }, [family?.verifiedVersions]);
+
+  const editableMechanisms = useMemo(() => {
+    if (!family?.mechanisms) return [];
+    if (isVersionSnapshot) {
+      return family.mechanisms;
+    }
+    return family.mechanisms.filter((m) => !verifiedCopyIds.has(m.id));
+  }, [family?.mechanisms, verifiedCopyIds, isVersionSnapshot]);
+
   // Current selected mechanism
   const currentMechanism = useMemo(() => {
     if (!family || selectedView.type !== "mechanism") return null;
-    return (
-      family.mechanisms.find((m) => m.id === selectedView.mechanismId) || null
+    const match = editableMechanisms.find(
+      (m) =>
+        m.id === selectedView.mechanismId ||
+        (m.sourceObjectId && m.sourceObjectId === selectedView.mechanismId),
     );
-  }, [family, selectedView]);
+    if (match) return match;
+    const queryMechId = new URLSearchParams(location.search).get("mechanismId");
+    const storedMechId =
+      queryMechId || localStorage.getItem("selectedEditorMechanismId");
+    if (storedMechId) {
+      const storedMatch = editableMechanisms.find(
+        (m) =>
+          m.id === storedMechId ||
+          (m.sourceObjectId && m.sourceObjectId === storedMechId),
+      );
+      if (storedMatch) return storedMatch;
+    }
+    return editableMechanisms.length > 0 ? editableMechanisms[0] : null;
+  }, [family, selectedView, editableMechanisms, location.search]);
+
+  useEffect(() => {
+    if (
+      selectedView.type === "mechanism" &&
+      currentMechanism &&
+      selectedView.mechanismId !== currentMechanism.id
+    ) {
+      setSelectedView({
+        type: "mechanism",
+        mechanismId: currentMechanism.id as UUID,
+      });
+    }
+  }, [selectedView, currentMechanism]);
 
   return (
     <div className="layout-family-editor">
@@ -806,6 +952,73 @@ const FamilyEditor = () => {
             </Alert>
           )}
 
+          {/* Version Snapshot Read-Only Banner with Back and Start From Version buttons */}
+          {isVersionSnapshot && (
+            <Alert
+              severity="info"
+              icon={<LockIcon />}
+              action={
+                <Box sx={{ display: "flex", gap: 1 }}>
+                  <Button
+                    color="inherit"
+                    size="small"
+                    onClick={() => {
+                      if (returnToParam) {
+                        navigate(returnToParam);
+                      } else {
+                        const storedMechId =
+                          localStorage.getItem("selectedEditorMechanismId");
+                        const targetUrl = storedMechId
+                          ? `/editor?id=${family?.id}&mechanismId=${storedMechId}`
+                          : `/editor?id=${family?.id}`;
+                        navigate(targetUrl);
+                      }
+                    }}
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    color="inherit"
+                    size="small"
+                    variant="outlined"
+                    onClick={() => {
+                      const storedMechId =
+                        localStorage.getItem("selectedEditorMechanismId");
+                      const targetUrl = storedMechId
+                        ? `/editor?id=${family?.id}&mechanismId=${storedMechId}`
+                        : `/editor?id=${family?.id}`;
+                      navigate(targetUrl);
+                    }}
+                    sx={{ textTransform: "none" }}
+                  >
+                    View latest editable version
+                  </Button>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    color="primary"
+                    onClick={() => {
+                      if (family) {
+                        const cloned = cloneFamily(family);
+                        cloned.name = `${family.name} (Draft)`;
+                        addFamilyLocally(cloned);
+                        addUploadedFamilyIdLocally(cloned.id);
+                        localStorage.setItem("selectedEditorFamilyId", cloned.id);
+                        navigate(`/editor?id=${cloned.id}`);
+                        setInPageSuccess("Created new editable draft from verified version!");
+                      }
+                    }}
+                  >
+                    Start from this version
+                  </Button>
+                </Box>
+              }
+              sx={{ mt: 1.5 }}
+            >
+              Viewing verified version snapshot (Read-only).
+            </Alert>
+          )}
+
           {/* In-page Error and Success Alerts */}
           {inPageError && (
             <Alert
@@ -959,7 +1172,7 @@ const FamilyEditor = () => {
                 </Box>
 
                 {/* Mechanisms list */}
-                {family.mechanisms.length === 0 ? (
+                {editableMechanisms.length === 0 ? (
                   <Typography
                     variant="caption"
                     color="text.secondary"
@@ -968,7 +1181,7 @@ const FamilyEditor = () => {
                     No mechanisms yet
                   </Typography>
                 ) : (
-                  family.mechanisms.map((mech) => {
+                  editableMechanisms.map((mech) => {
                     const reactionCount = mech.reactionIds?.length ?? 0;
                     const issuesForMech = validation.issues.filter(
                       (i) => i.mechanismId === mech.id,
@@ -985,6 +1198,7 @@ const FamilyEditor = () => {
                         problemCount={issuesForMech}
                         isSelected={isSelected}
                         onClick={() => {
+                          localStorage.setItem("selectedEditorMechanismId", mech.id);
                           setSelectedView({
                             type: "mechanism",
                             mechanismId: mech.id as UUID,
@@ -1051,6 +1265,7 @@ const FamilyEditor = () => {
                       family={family}
                       mechanism={currentMechanism}
                       updateMechanism={handleUpdateMechanism}
+                      onUpdateFamily={syncVerifiedVersionsFromServer}
                       onDeleteMechanism={handleDeleteMechanism}
                       readOnly={!canEdit}
                     />

@@ -872,5 +872,52 @@ namespace ChemistryCafeAPI.Tests
             Assert.IsNotNull(userDefined);
             Assert.AreEqual(5.0, userDefined!.ScalingFactor);
         }
+
+        [TestMethod]
+        public async Task Update_AddsSpeciesReactionPhaseAndMechanismTogether()
+        {
+            FamilyDto dto = await CreateBaseFamilyAsync(BuildBaseFamily());
+
+            Guid newSpeciesId = Guid.NewGuid();
+            Guid newReactionId = Guid.NewGuid();
+            Guid newPhaseId = Guid.NewGuid();
+            Guid newMechanismId = Guid.NewGuid();
+
+            dto.Species.Add(new SpeciesDto { Id = newSpeciesId, Name = "NewSpecies" });
+            dto.Phases.Add(new PhaseDto
+            {
+                Id = newPhaseId,
+                Name = "NewPhase",
+                SpeciesIds = new List<Guid> { newSpeciesId },
+            });
+            dto.Reactions.Add(new ReactionDto
+            {
+                Id = newReactionId,
+                Name = "NewReaction",
+                ReactionType = "ARRHENIUS",
+                GasPhaseId = newPhaseId,
+                Reactants = new List<ReactantDto> { new ReactantDto { SpeciesId = newSpeciesId, Coefficient = 1.0 } },
+                Products = new List<ProductDto> { new ProductDto { SpeciesId = newSpeciesId, Coefficient = 1.0 } },
+            });
+            dto.Mechanisms.Add(new MechanismDto
+            {
+                Id = newMechanismId,
+                Name = "NewMechanism",
+                SpeciesIds = new List<Guid> { newSpeciesId },
+                ReactionIds = new List<Guid> { newReactionId },
+                PhaseIds = new List<Guid> { newPhaseId },
+            });
+
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            Family reloaded = await ReloadAsync(dto.Id);
+            Mechanism added = reloaded.Mechanisms.Single(m => m.Id == newMechanismId);
+            Assert.AreEqual(1, added.Species.Count);
+            Assert.AreEqual(newSpeciesId, added.Species.Single().Id);
+            Assert.AreEqual(1, added.Reactions.Count);
+            Assert.AreEqual(newReactionId, added.Reactions.Single().Id);
+            Assert.AreEqual(1, added.Phases.Count);
+            Assert.AreEqual(newPhaseId, added.Phases.Single().Id);
+        }
     }
 }

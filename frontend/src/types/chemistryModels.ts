@@ -31,6 +31,9 @@ export type Species = {
   /** Name of the species */
   name: string;
 
+  /** Source object ID if this species was copied from another species (e.g. for a verified version snapshot) */
+  sourceObjectId?: UUID | null;
+
   /** Optional, additional properties for the species which are not defined in the mechanism configuration schema but can be queried for in musica */
   otherProperties?: Record<string, unknown>;
 };
@@ -99,6 +102,9 @@ export type Reaction = {
     [key: string]: ReactionAttribute;
   };
 
+  /** Source object ID if this reaction was copied from another reaction */
+  sourceObjectId?: UUID | null;
+
   /** Optional, additional properties for the reactions which are not defined in the mechanism configuration schema but can be queried for in musica */
   otherProperties?: Record<string, unknown>;
 };
@@ -137,8 +143,38 @@ export type Phase = {
    */
   diffusionCoefficients?: Record<UUID, number>;
 
+  /** Source object ID if this phase was copied from another phase */
+  sourceObjectId?: UUID | null;
+
   /** Optional, additional properties for the phases which are not defined in the mechanism configuration schema but can be queried for in musica */
   otherProperties?: Record<string, unknown>;
+};
+
+/**
+ * Represents a verified mechanism version snapshot.
+ */
+export type VerifiedMechanismVersion = {
+  id: UUID;
+  familyId: UUID;
+  familyVersionId: UUID;
+  sourceMechanismId?: UUID | null;
+  mechanismId: UUID;
+  name: string;
+  notes?: string | null;
+  verifiedDate: string;
+  verifierId: UUID;
+  verifierUsername: string;
+  verifierName?: string | null;
+  isDeprecated: boolean;
+  deprecationReason?: string | null;
+  deprecatedDate?: string | null;
+  deprecatedByUsername?: string | null;
+  betterVersionId?: UUID | null;
+  isArchived: boolean;
+  archivedDate?: string | null;
+  archivedByUsername?: string | null;
+  originalFamilyName?: string | null;
+  originalOwnerUsername?: string | null;
 };
 
 /**
@@ -167,6 +203,9 @@ export type Mechanism = {
 
   /** Phase ids associated with the mechanism */
   phaseIds: Array<UUID>;
+
+  /** Source object ID if this mechanism was copied from another mechanism */
+  sourceObjectId?: UUID | null;
 
   /** Optional, additional properties for the mechanisms which are not defined in the mechanism configuration schema but can be queried for in musica */
   otherProperties?: Record<string, unknown>;
@@ -199,6 +238,9 @@ export type Family = {
   /** If the family is public */
   isPublic: boolean;
 
+  /** If the family is an archived container for deleted families' verified versions */
+  isArchived?: boolean;
+
   /** API definition of the owner of the family */
   owner: APIUser | null;
 
@@ -210,6 +252,9 @@ export type Family = {
 
   /** Mechanisms inside the family */
   mechanisms: Array<Mechanism>;
+
+  /** Verified mechanism versions associated with the family */
+  verifiedVersions?: Array<VerifiedMechanismVersion>;
 
   /** Species inside the family */
   species: Array<Species>;
