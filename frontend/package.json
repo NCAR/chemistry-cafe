@@ -20,7 +20,7 @@
     "@mui/styled-engine-sc": "^6.1.7",
     "@mui/x-data-grid": "^7.22.2",
     "@mui/x-tree-view": "^7.22.1",
-    "@ncar/musica": "github:NCAR/musica#479eba740882c9e57611fe6ba90869d251fdc7ba",
+    "@ncar/musica": "github:NCAR/musica#ece7bd6d235204cb5405b5d104fb8c951b0db243",
     "@react-oauth/google": "^0.12.1",
     "@types/styled-components": "^5.1.34",
     "axios": "^1.7.7",

@@ -411,7 +411,7 @@ describe("Dashboard / Browse Page", () => {
 
     fireEvent.click(screen.getByText("Import a file"));
     await waitFor(() => {
-      expect(screen.getByText("Upload V1 Data:")).toBeTruthy();
+      expect(screen.getByText(/Upload a mechanism configuration/)).toBeTruthy();
     });
   });
 
