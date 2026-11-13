@@ -20,6 +20,12 @@ ARG VITE_BASE_URL=""
 ENV VITE_AUTH_URL=${VITE_BASE_URL}/auth \
     VITE_BASE_URL=${VITE_BASE_URL}/api
 
+# VITE_GA_MEASUREMENT_ID is the Google Analytics measurement ID (#316). Leave
+# it empty to turn off analytics. The app loads analytics only after the user
+# gives consent in the cookie banner.
+ARG VITE_GA_MEASUREMENT_ID=""
+ENV VITE_GA_MEASUREMENT_ID=${VITE_GA_MEASUREMENT_ID}
+
 # Create a production build
 RUN npm run build
 

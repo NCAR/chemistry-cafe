@@ -59,6 +59,7 @@ jobs:
         tags: ghcr.io/ncar/chemistry-cafe-frontend:${{ env.SHORT_SHA }},ghcr.io/ncar/chemistry-cafe-frontend:latest
         build-args: |
           VITE_BASE_URL=${{ secrets.DEV_VITE_BASE_URL }}
+          VITE_GA_MEASUREMENT_ID=G-SLLK166L4N
 
     - name: Build and push frontend Docker image (tagged)
       if: startsWith(github.ref, 'refs/tags/')
@@ -70,6 +71,7 @@ jobs:
         tags: ghcr.io/ncar/chemistry-cafe-frontend:${{ github.ref_name }}
         build-args: |
           VITE_BASE_URL=${{ secrets.DEV_VITE_BASE_URL }}
+          VITE_GA_MEASUREMENT_ID=G-0D515G5YWQ
 
   update-dev-deployment:
     if: github.ref == 'refs/heads/main'
