@@ -19,7 +19,11 @@ import ArchiveIcon from "@mui/icons-material/Archive";
 import UnarchiveIcon from "@mui/icons-material/Unarchive";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import AddIcon from "@mui/icons-material/Add";
-import { Family, Mechanism, VerifiedMechanismVersion } from "../../types/chemistryModels";
+import {
+  Family,
+  Mechanism,
+  VerifiedMechanismVersion,
+} from "../../types/chemistryModels";
 import { useAuth } from "../AuthContext";
 import { getFamilyVersion } from "../../API/API_GetMethods";
 import {
@@ -31,9 +35,7 @@ import {
   deleteVerifiedMechanism,
   undeprecateMechanism,
 } from "../../API/API_DeleteMethods";
-import {
-  apiToFrontendFamily,
-} from "../../helpers/backendInteractions";
+import { apiToFrontendFamily } from "../../helpers/backendInteractions";
 import {
   cloneFamily,
   addFamilyLocally,
@@ -371,7 +373,11 @@ export const VerifiedVersionsList: React.FC<VerifiedVersionsListProps> = ({
       <Collapse in={expanded}>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, mt: 1 }}>
           {mechanismVersions.length === 0 ? (
-            <Typography variant="body2" color="text.secondary" sx={{ pl: 3, py: 1 }}>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ pl: 3, py: 1 }}
+            >
               No verified versions recorded yet.
             </Typography>
           ) : (
@@ -503,7 +509,14 @@ export const VerifiedVersionsList: React.FC<VerifiedVersionsListProps> = ({
 
                     {/* Verifier / Admin Management Controls */}
                     {isVerifierOrAdmin && (
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, ml: 1 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 0.5,
+                          ml: 1,
+                        }}
+                      >
                         {v.isDeprecated ? (
                           <Tooltip title="Remove deprecation" arrow>
                             <Button
@@ -548,7 +561,9 @@ export const VerifiedVersionsList: React.FC<VerifiedVersionsListProps> = ({
                                     : "Unarchive version"
                                   : "Archive version"
                               }
-                              disabled={Boolean(v.isArchived && family.isArchived)}
+                              disabled={Boolean(
+                                v.isArchived && family.isArchived,
+                              )}
                               onClick={() => handleToggleArchive(v)}
                               color={v.isArchived ? "primary" : "default"}
                             >

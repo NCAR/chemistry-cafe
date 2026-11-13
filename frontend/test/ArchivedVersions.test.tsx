@@ -1,7 +1,13 @@
 import React from "react";
 import axios, { AxiosHeaders, AxiosResponse } from "axios";
 import { describe, afterEach, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import ArchivedVersions from "../src/pages/ArchivedVersions";
@@ -87,12 +93,16 @@ describe("ArchivedVersions Page", () => {
 
     renderComponent();
 
-    expect(screen.getByRole("heading", { name: "Archived Versions" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Archived Versions" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("Back to Browse")).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText("Preserved-Tropospheric-V1")).toBeInTheDocument();
-      expect(screen.getByText("Deleted Troposphere Family")).toBeInTheDocument();
+      expect(
+        screen.getByText("Deleted Troposphere Family"),
+      ).toBeInTheDocument();
       expect(screen.getByText("ProfAtmosphere")).toBeInTheDocument();
       expect(screen.getByText("VerifierAdmin")).toBeInTheDocument();
       expect(screen.getByText("Preserved-Halogen-V1")).toBeInTheDocument();
@@ -101,7 +111,9 @@ describe("ArchivedVersions Page", () => {
     });
 
     expect(screen.getByText("Deprecated")).toBeInTheDocument();
-    expect(screen.getByText(/Updated rate constants in V2/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Updated rate constants in V2/),
+    ).toBeInTheDocument();
     expect(screen.getByText("Total archived versions: 2")).toBeInTheDocument();
   });
 
@@ -136,9 +148,13 @@ describe("ArchivedVersions Page", () => {
 
     // Search by halogen
     await user.type(searchInput, "halogen");
-    expect(screen.queryByText("Preserved-Tropospheric-V1")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Preserved-Tropospheric-V1"),
+    ).not.toBeInTheDocument();
     expect(screen.getByText("Preserved-Halogen-V1")).toBeInTheDocument();
-    expect(screen.getByText("Showing 1 of 2 archived versions")).toBeInTheDocument();
+    expect(
+      screen.getByText("Showing 1 of 2 archived versions"),
+    ).toBeInTheDocument();
 
     // Clear search
     const clearBtn = screen.getByTestId("clear-search-icon-button");
@@ -149,7 +165,9 @@ describe("ArchivedVersions Page", () => {
 
     // Search for non-existent term
     await user.type(searchInput, "nonexistent-xyz");
-    expect(screen.getByText("No matching archived versions")).toBeInTheDocument();
+    expect(
+      screen.getByText("No matching archived versions"),
+    ).toBeInTheDocument();
     expect(screen.getByText(/No archived versions match/)).toBeInTheDocument();
   });
 
@@ -176,8 +194,14 @@ describe("ArchivedVersions Page", () => {
     renderComponent();
 
     await waitFor(() => {
-      expect(screen.getByText("No archived versions found")).toBeInTheDocument();
-      expect(screen.getByText("No verified mechanism versions have been archived yet.")).toBeInTheDocument();
+      expect(
+        screen.getByText("No archived versions found"),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          "No verified mechanism versions have been archived yet.",
+        ),
+      ).toBeInTheDocument();
     });
   });
 
@@ -198,7 +222,9 @@ describe("ArchivedVersions Page", () => {
     renderComponent();
 
     await waitFor(() => {
-      expect(screen.getByText("Failed to load archived versions. Please try again.")).toBeInTheDocument();
+      expect(
+        screen.getByText("Failed to load archived versions. Please try again."),
+      ).toBeInTheDocument();
     });
   });
 

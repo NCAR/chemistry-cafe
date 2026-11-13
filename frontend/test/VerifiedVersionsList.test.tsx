@@ -1,7 +1,11 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { VerifiedVersionsList } from "../src/components/familyEditor/VerifiedVersionsList";
-import { Family, Mechanism, VerifiedMechanismVersion } from "../src/types/chemistryModels";
+import {
+  Family,
+  Mechanism,
+  VerifiedMechanismVersion,
+} from "../src/types/chemistryModels";
 import { AuthContext } from "../src/components/AuthContext";
 import * as CreateMethods from "../src/API/API_CreateMethods";
 import * as DeleteMethods from "../src/API/API_DeleteMethods";
@@ -48,7 +52,11 @@ describe("VerifiedVersionsList", () => {
     name: "Atmospheric Chemistry",
     description: "Test family",
     isPublic: true,
-    owner: { id: "00000000-0000-0000-0000-000000000010" as UUID, username: "owner", role: "none" },
+    owner: {
+      id: "00000000-0000-0000-0000-000000000010" as UUID,
+      username: "owner",
+      role: "none",
+    },
     mechanisms: [mockMechanism],
     species: [],
     reactions: [],
@@ -79,10 +87,7 @@ describe("VerifiedVersionsList", () => {
 
   it("renders the verified versions list matching wireframe (date, badge, verifier, buttons)", () => {
     renderWithAuth(
-      <VerifiedVersionsList
-        family={mockFamily}
-        mechanism={mockMechanism}
-      />,
+      <VerifiedVersionsList family={mockFamily} mechanism={mockMechanism} />,
       "none",
     );
 
@@ -90,13 +95,21 @@ describe("VerifiedVersionsList", () => {
     expect(screen.getByText("2026-08-01")).toBeInTheDocument();
     expect(screen.getByText("Verified")).toBeInTheDocument();
     expect(screen.getByText("b.okafor")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Download/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Download/i }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "View" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Start from this version" })).toBeInTheDocument();
-    expect(screen.getByText("Peer reviewed by atmospheric scientists")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Start from this version" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Peer reviewed by atmospheric scientists"),
+    ).toBeInTheDocument();
 
     // Regular users cannot see management buttons
-    expect(screen.queryByText(/Verify this mechanism/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Verify this mechanism/i),
+    ).not.toBeInTheDocument();
     expect(screen.queryByText(/Deprecate/i)).not.toBeInTheDocument();
   });
 
@@ -112,10 +125,7 @@ describe("VerifiedVersionsList", () => {
     };
 
     renderWithAuth(
-      <VerifiedVersionsList
-        family={familyWithDep}
-        mechanism={mockMechanism}
-      />,
+      <VerifiedVersionsList family={familyWithDep} mechanism={mockMechanism} />,
       "none",
     );
 
@@ -148,7 +158,9 @@ describe("VerifiedVersionsList", () => {
       "none",
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Start from this version" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Start from this version" }),
+    );
     expect(onStartMock).toHaveBeenCalledWith(mockVerifiedVersion);
   });
 
@@ -159,7 +171,9 @@ describe("VerifiedVersionsList", () => {
       id: "00000000-0000-0000-0000-000000000099" as UUID,
       name: "New-Verified-V2",
     };
-    vi.mocked(CreateMethods.verifyMechanism).mockResolvedValue(createdVersion as any);
+    vi.mocked(CreateMethods.verifyMechanism).mockResolvedValue(
+      createdVersion as any,
+    );
 
     renderWithAuth(
       <VerifiedVersionsList
@@ -171,7 +185,9 @@ describe("VerifiedVersionsList", () => {
     );
 
     // Verifier sees the verify button
-    const verifyBtn = screen.getByRole("button", { name: /Verify this mechanism/i });
+    const verifyBtn = screen.getByRole("button", {
+      name: /Verify this mechanism/i,
+    });
     expect(verifyBtn).toBeInTheDocument();
 
     fireEvent.click(verifyBtn);
@@ -206,15 +222,21 @@ describe("VerifiedVersionsList", () => {
       "Admin",
     );
 
-    const deprecateBtn = screen.getByRole("button", { name: /Deprecate this version/i });
+    const deprecateBtn = screen.getByRole("button", {
+      name: /Deprecate this version/i,
+    });
     fireEvent.click(deprecateBtn);
 
     // Modal opens
-    expect(screen.getByText("Deprecate Verified Mechanism")).toBeInTheDocument();
+    expect(
+      screen.getByText("Deprecate Verified Mechanism"),
+    ).toBeInTheDocument();
 
     // Type reason
     const reasonInput = screen.getByLabelText(/Deprecation Reason/i);
-    fireEvent.change(reasonInput, { target: { value: "Updated rate coefficients" } });
+    fireEvent.change(reasonInput, {
+      target: { value: "Updated rate coefficients" },
+    });
 
     const submitBtn = screen.getByRole("button", { name: "Deprecate" });
     fireEvent.click(submitBtn);
@@ -234,7 +256,9 @@ describe("VerifiedVersionsList", () => {
       "Verifier",
     );
 
-    const verifyBtn = screen.getByRole("button", { name: /Verify this mechanism/i });
+    const verifyBtn = screen.getByRole("button", {
+      name: /Verify this mechanism/i,
+    });
     expect(verifyBtn).toBeDisabled();
   });
 

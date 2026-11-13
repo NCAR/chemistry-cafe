@@ -378,7 +378,9 @@ export const Dashboard: React.FC = () => {
         addUploadedFamilyIdLocally(uploaded.id);
         localStorage.setItem("selectedEditorFamilyId", uploaded.id);
         if (mechanism) {
-          const match = uploaded.mechanisms.find((m) => m.name === mechanism.name);
+          const match = uploaded.mechanisms.find(
+            (m) => m.name === mechanism.name,
+          );
           if (match) {
             localStorage.setItem("selectedEditorMechanismId", match.id);
           } else {

@@ -222,7 +222,11 @@ export const ArchivedVersions: React.FC = () => {
               <Typography variant="h6" color="text.secondary">
                 No matching archived versions
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 2 }}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mt: 1, mb: 2 }}
+              >
                 No archived versions match &ldquo;{searchQuery}&rdquo;.
               </Typography>
               <Button

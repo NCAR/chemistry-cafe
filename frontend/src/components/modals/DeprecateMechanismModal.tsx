@@ -23,7 +23,9 @@ type DeprecateMechanismModalProps = {
   loading?: boolean;
 };
 
-export const DeprecateMechanismModal: React.FC<DeprecateMechanismModalProps> = ({
+export const DeprecateMechanismModal: React.FC<
+  DeprecateMechanismModalProps
+> = ({
   open,
   versionName,
   otherVersions = [],
@@ -49,11 +51,18 @@ export const DeprecateMechanismModal: React.FC<DeprecateMechanismModalProps> = (
       return;
     }
     setError(null);
-    await onSubmit(reason.trim(), betterVersionId ? betterVersionId : undefined);
+    await onSubmit(
+      reason.trim(),
+      betterVersionId ? betterVersionId : undefined,
+    );
   };
 
   return (
-    <Modal open={open} onClose={loading ? undefined : onClose} aria-labelledby="deprecate-mechanism-modal-title">
+    <Modal
+      open={open}
+      onClose={loading ? undefined : onClose}
+      aria-labelledby="deprecate-mechanism-modal-title"
+    >
       <Box sx={{ ...modalStyle, maxWidth: 500 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
           <WarningAmberIcon color="warning" />
@@ -62,7 +71,8 @@ export const DeprecateMechanismModal: React.FC<DeprecateMechanismModalProps> = (
           </Typography>
         </Box>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Mark &quot;{versionName}&quot; as deprecated. The version remains visible and downloadable, but users will be warned.
+          Mark &quot;{versionName}&quot; as deprecated. The version remains
+          visible and downloadable, but users will be warned.
         </Typography>
 
         <TextField
@@ -85,7 +95,9 @@ export const DeprecateMechanismModal: React.FC<DeprecateMechanismModalProps> = (
 
         {otherVersions.length > 0 && (
           <FormControl fullWidth sx={{ mb: 3 }} disabled={loading}>
-            <InputLabel id="better-version-select-label">Recommended Successor Version (Optional)</InputLabel>
+            <InputLabel id="better-version-select-label">
+              Recommended Successor Version (Optional)
+            </InputLabel>
             <Select
               labelId="better-version-select-label"
               value={betterVersionId}
@@ -113,7 +125,13 @@ export const DeprecateMechanismModal: React.FC<DeprecateMechanismModalProps> = (
             color="warning"
             onClick={handleDeprecate}
             disabled={loading}
-            startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <WarningAmberIcon />}
+            startIcon={
+              loading ? (
+                <CircularProgress size={18} color="inherit" />
+              ) : (
+                <WarningAmberIcon />
+              )
+            }
           >
             {loading ? "Deprecating..." : "Deprecate"}
           </Button>
@@ -122,4 +140,3 @@ export const DeprecateMechanismModal: React.FC<DeprecateMechanismModalProps> = (
     </Modal>
   );
 };
-

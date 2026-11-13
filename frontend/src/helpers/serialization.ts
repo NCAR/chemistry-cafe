@@ -21,7 +21,10 @@ export const serializeMechanismJSON = (
   family: Family,
   metadata?: Record<string, unknown>,
 ): string => {
-  const result = serializeMechanism(mechanism, family) as Record<string, unknown>;
+  const result = serializeMechanism(mechanism, family) as Record<
+    string,
+    unknown
+  >;
   if (metadata) {
     result.verification = metadata;
   }
@@ -39,7 +42,10 @@ export const serializeMechanismYAML = (
   family: Family,
   metadata?: Record<string, unknown>,
 ): string => {
-  const result = serializeMechanism(mechanism, family) as Record<string, unknown>;
+  const result = serializeMechanism(mechanism, family) as Record<
+    string,
+    unknown
+  >;
   if (metadata) {
     result.verification = metadata;
   }
