@@ -787,10 +787,7 @@ describe("Uploading a family", () => {
   });
 
   test("Removes localstorage version of family when uploaded", async () => {
-    localStorage.setItem(
-      "localFamilies",
-      JSON.stringify([frontendFamily]),
-    );
+    localStorage.setItem("localFamilies", JSON.stringify([frontendFamily]));
 
     vi.spyOn(axios, "post").mockResolvedValue(createMockData(apiFamily));
     vi.spyOn(axios, "get").mockResolvedValue(createMockData(apiFamily));
