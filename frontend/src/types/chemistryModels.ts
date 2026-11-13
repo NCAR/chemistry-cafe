@@ -238,6 +238,9 @@ export type Family = {
   /** If the family is public */
   isPublic: boolean;
 
+  /** If the family is an archived container for deleted families' verified versions */
+  isArchived?: boolean;
+
   /** API definition of the owner of the family */
   owner: APIUser | null;
 

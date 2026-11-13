@@ -104,6 +104,7 @@ export interface APIFamily {
   name: string;
   description: string | null;
   isPublic: boolean;
+  isArchived?: boolean;
   owner: APIUser;
   contributorIds?: Array<UUID>;
   contributors?: Array<APIFamilyContributor>;

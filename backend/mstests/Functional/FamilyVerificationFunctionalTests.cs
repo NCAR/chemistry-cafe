@@ -625,5 +625,134 @@ namespace ChemistryCafeAPI.Tests.Functional
             Assert.IsTrue(famAfterSave.Mechanisms.First(m => m.Id == mech1.Id).Verified,
                 "Saving a family after frontend normalization without semantic changes must retain Verified status.");
         }
+
+        [TestMethod]
+        public async Task UpdateFamily_ArchivedFamily_IsRejected()
+        {
+            var owner = await CreateUserAsync(Role.None);
+            var admin = await CreateUserAsync(Role.Admin);
+            var (family, mechanism, _) = await CreatePublicFamilyWithMechanismAsync(owner);
+
+            var adminClient = CreateClient(true, admin);
+            var verifyResp = await adminClient.PostAsJsonAsync(
+                $"/api/families/{family.Id}/mechanisms/{mechanism.Id}/verify",
+                new VerifyMechanismRequest { Name = "Archived-V1" });
+            Assert.AreEqual(HttpStatusCode.OK, verifyResp.StatusCode);
+
+            var ownerClient = CreateClient(true, owner);
+            var deleteResp = await ownerClient.DeleteAsync($"/api/families/{family.Id}");
+            Assert.AreEqual(HttpStatusCode.NoContent, deleteResp.StatusCode);
+
+            var archivedResp = await adminClient.GetFromJsonAsync<List<ArchivedVerifiedVersionDto>>("/api/families/archived-versions");
+            Assert.IsNotNull(archivedResp);
+            var archived = archivedResp.FirstOrDefault(v => v.Name == "Archived-V1" && v.OriginalFamilyName == family.Name);
+            Assert.IsNotNull(archived);
+
+            var archivedFamilyDto = await adminClient.GetFromJsonAsync<FamilyDto>($"/api/families/{archived.FamilyId}");
+            Assert.IsNotNull(archivedFamilyDto);
+            archivedFamilyDto.Description = "Attempted edit on archived family";
+
+            var patchResp = await adminClient.PatchAsJsonAsync($"/api/families/{archived.FamilyId}", archivedFamilyDto);
+            Assert.AreEqual(HttpStatusCode.Forbidden, patchResp.StatusCode);
+        }
+
+        [TestMethod]
+        public async Task DeleteUser_WhoVerifiedMechanism_SucceedsAndReassignsVerifier()
+        {
+            var admin = await CreateUserAsync(Role.Admin);
+            var verifier = await CreateUserAsync(Role.Verifier);
+            var (family, mechanism, _) = await CreatePublicFamilyWithMechanismAsync(admin);
+
+            var verifierClient = CreateClient(true, verifier);
+            var verifyResp = await verifierClient.PostAsJsonAsync(
+                $"/api/families/{family.Id}/mechanisms/{mechanism.Id}/verify",
+                new VerifyMechanismRequest { Name = "Verified-By-Deleted-User" });
+            Assert.AreEqual(HttpStatusCode.OK, verifyResp.StatusCode);
+            var verifiedDto = await verifyResp.Content.ReadFromJsonAsync<VerifiedMechanismVersionDto>();
+            Assert.IsNotNull(verifiedDto);
+
+            var adminClient = CreateClient(true, admin);
+            var deleteUserResp = await adminClient.DeleteAsync($"/api/users/{verifier.Id}");
+            Assert.AreEqual(HttpStatusCode.NoContent, deleteUserResp.StatusCode);
+
+            var famAfter = await adminClient.GetFromJsonAsync<FamilyDto>($"/api/families/{family.Id}");
+            Assert.IsNotNull(famAfter);
+            var preservedVersion = famAfter.VerifiedVersions.FirstOrDefault(v => v.Id == verifiedDto.Id);
+            Assert.IsNotNull(preservedVersion);
+            Assert.AreNotEqual(verifier.Id, preservedVersion.VerifierId);
+            Assert.AreNotEqual(Guid.Empty, preservedVersion.VerifierId);
+        }
+
+        [TestMethod]
+        public async Task DeleteUser_WhoOwnsFamilyWithVerifiedVersion_ArchivesVerifiedVersion()
+        {
+            var admin = await CreateUserAsync(Role.Admin);
+            var userB = await CreateUserAsync(Role.None);
+            var (familyB, mechanismB, _) = await CreatePublicFamilyWithMechanismAsync(userB);
+
+            var adminClient = CreateClient(true, admin);
+            var verifyResp = await adminClient.PostAsJsonAsync(
+                $"/api/families/{familyB.Id}/mechanisms/{mechanismB.Id}/verify",
+                new VerifyMechanismRequest { Name = "Verified-In-UserB-Family" });
+            Assert.AreEqual(HttpStatusCode.OK, verifyResp.StatusCode);
+
+            var deleteUserResp = await adminClient.DeleteAsync($"/api/users/{userB.Id}");
+            Assert.AreEqual(HttpStatusCode.NoContent, deleteUserResp.StatusCode);
+
+            var archivedResp = await adminClient.GetFromJsonAsync<List<ArchivedVerifiedVersionDto>>("/api/families/archived-versions");
+            Assert.IsNotNull(archivedResp);
+            var archived = archivedResp.FirstOrDefault(v => v.Name == "Verified-In-UserB-Family" && v.OriginalFamilyName == familyB.Name);
+            Assert.IsNotNull(archived, "Deleting User B must archive verified versions in User B's family rather than losing them.");
+            Assert.AreEqual(familyB.Name, archived.OriginalFamilyName);
+
+            // Archived container family must have IsArchived=true and be hidden from Browse (/api/families)
+            var browseFamilies = await adminClient.GetFromJsonAsync<List<FamilyDto>>("/api/families");
+            Assert.IsNotNull(browseFamilies);
+            Assert.IsFalse(browseFamilies.Any(f => f.Id == archived.FamilyId),
+                "Archived container families must be hidden from Browse.");
+
+            var archivedFamily = await adminClient.GetFromJsonAsync<FamilyDto>($"/api/families/{archived.FamilyId}");
+            Assert.IsNotNull(archivedFamily);
+            Assert.IsTrue(archivedFamily.IsArchived);
+
+            // Anonymous users can view archived-versions and the archived version snapshot
+            var anonClient = CreateClient(false, admin);
+            var anonArchived = await anonClient.GetFromJsonAsync<List<ArchivedVerifiedVersionDto>>("/api/families/archived-versions");
+            Assert.IsNotNull(anonArchived);
+            Assert.IsTrue(anonArchived.Any(v => v.FamilyVersionId == archived.FamilyVersionId));
+
+            var anonVersion = await anonClient.GetFromJsonAsync<FamilyDto>(
+                $"/api/families/{archived.FamilyId}/versions/{archived.FamilyVersionId}");
+            Assert.IsNotNull(anonVersion);
+            Assert.AreEqual(1, anonVersion.Mechanisms.Count);
+
+            // Unarchiving a version in an archived container family is rejected
+            var unarchiveResp = await adminClient.PostAsJsonAsync(
+                $"/api/families/{archived.FamilyId}/mechanisms/{archived.MechanismId}/archive",
+                new ArchiveMechanismRequest { IsArchived = false });
+            Assert.AreEqual(HttpStatusCode.BadRequest, unarchiveResp.StatusCode);
+        }
+
+        [TestMethod]
+        public async Task VerifyMechanism_FrozenSnapshotMechanism_IsRejected()
+        {
+            var owner = await CreateUserAsync(Role.None);
+            var verifier = await CreateUserAsync(Role.Verifier);
+            var (family, mechanism, _) = await CreatePublicFamilyWithMechanismAsync(owner);
+
+            var verifierClient = CreateClient(true, verifier);
+            var verifyResp = await verifierClient.PostAsJsonAsync(
+                $"/api/families/{family.Id}/mechanisms/{mechanism.Id}/verify",
+                new VerifyMechanismRequest { Name = "V1" });
+            Assert.AreEqual(HttpStatusCode.OK, verifyResp.StatusCode);
+            var verifiedDto = await verifyResp.Content.ReadFromJsonAsync<VerifiedMechanismVersionDto>();
+            Assert.IsNotNull(verifiedDto);
+
+            // Attempt to verify the frozen snapshot MechanismId instead of the editable CurrentVersion mechanism
+            var reverifyFrozenResp = await verifierClient.PostAsJsonAsync(
+                $"/api/families/{family.Id}/mechanisms/{verifiedDto.MechanismId}/verify",
+                new VerifyMechanismRequest { Name = "V2-From-Frozen" });
+            Assert.AreEqual(HttpStatusCode.NotFound, reverifyFrozenResp.StatusCode);
+        }
     }
 }

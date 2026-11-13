@@ -104,7 +104,13 @@ const FamilyEditor = () => {
     user?.id && family?.contributorIds?.includes(user.id as UUID),
   );
   const isDraft = !family?.isInDatabase;
-  const canEdit = !isVersionSnapshot && (isDraft || isOwner || isAdmin || isContributor);
+  const isArchivedFamily = Boolean(
+    family?.isInDatabase && family.isArchived,
+  );
+  const canEdit =
+    !isVersionSnapshot &&
+    !isArchivedFamily &&
+    (isDraft || isOwner || isAdmin || isContributor);
   const canChangeVisibility =
     canEdit && Boolean(family?.isInDatabase) && (isOwner || isAdmin);
 

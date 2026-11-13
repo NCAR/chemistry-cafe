@@ -31,6 +31,7 @@ public static class FamilyMapper
             Name = family.Name,
             Description = family.Description,
             IsPublic = family.IsPublic,
+            IsArchived = family.IsArchived,
             CurrentVersionId = family.CurrentVersionId,
             Species = family.Species.Select(s => s.ToDto()).ToList(),
             Reactions = family.Reactions.Select(r => r.ToDto()).ToList(),

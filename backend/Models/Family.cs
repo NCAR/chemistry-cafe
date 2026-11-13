@@ -13,6 +13,7 @@ public partial class Family
     public string? Description { get; set; }
 
     public bool IsPublic { get; set; } = false;
+    public bool IsArchived { get; set; } = false;
 
     [ForeignKey("Owner")]
     public Guid OwnerId { get; set; }

@@ -20,6 +20,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
     public async Task<IEnumerable<Family>> GetFamiliesAsync(bool expand, User? viewer = null)
     {
         IQueryable<Family> query = VisibleTo(context.Families, viewer)
+            .Where(f => !f.IsArchived)
             .IncludeMetadataAndVerifiedVersions();
 
         if (expand)
@@ -101,17 +102,11 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             .Where(m => m.FamilyId == familyId && m.FamilyVersionId == versionId)
             .ToListAsync();
 
-        bool isVerifierOrAdmin = viewer?.Role == Role.Verifier || viewer?.Role == Role.Admin;
-        if (!isVerifierOrAdmin)
-        {
-            mechanisms = mechanisms.Where(m => !m.IsArchived).ToList();
-        }
-
         var verifiedVersions = await context.VerifiedMechanismVersions
             .Include(v => v.Verifier)
             .Include(v => v.DeprecatedBy)
             .Include(v => v.ArchivedBy)
-            .Where(v => v.FamilyId == familyId && (isVerifierOrAdmin || !v.IsArchived))
+            .Where(v => v.FamilyId == familyId)
             .ToListAsync();
 
         return new FamilyDto
@@ -128,6 +123,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             Name = family.Name,
             Description = family.Description,
             IsPublic = family.IsPublic,
+            IsArchived = family.IsArchived,
             CurrentVersionId = version.Id,
             Species = version.Species.Select(s => s.ToDto()).ToList(),
             Reactions = version.Reactions.Select(r => r.ToDto()).ToList(),
@@ -280,6 +276,14 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             isAdmin = loggedInUser?.Role == Role.Admin;
         }
 
+        // Archived/frozen families are read-only.
+        if (existingFamily.IsArchived ||
+            (existingFamily.CurrentVersionId.HasValue &&
+            await context.VerifiedMechanismVersions.AnyAsync(v => v.FamilyVersionId == existingFamily.CurrentVersionId.Value)))
+        {
+            return QueryResult.NoAccess;
+        }
+
         if (HasDuplicateChildIds(family))
         {
             return QueryResult.ValidationError;
@@ -388,48 +392,10 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
 
         if (verifiedVersions.Count > 0)
         {
-            var ncarUser = await context.Users.FirstOrDefaultAsync(u => u.Username == "NCAR")
-                ?? await context.Users.FirstOrDefaultAsync(u => u.Role == Role.Admin)
+            var ncarUser = await FamilyArchiveHelper.ResolveArchiveOwnerAsync(context)
                 ?? family.Owner;
 
-            var archivedFamily = new Family
-            {
-                Id = Guid.NewGuid(),
-                Name = $"[Archived] {family.Name}",
-                Description = $"Archived verified versions from deleted family '{family.Name}', originally owned by {family.Owner.Username}.\n{family.Description}",
-                OwnerId = ncarUser.Id,
-                Owner = ncarUser,
-                IsPublic = true,
-                CreatedDate = DateTime.UtcNow,
-            };
-            context.Families.Add(archivedFamily);
-
-            foreach (var ver in verifiedVersions)
-            {
-                ver.OriginalFamilyId = family.Id;
-                ver.OriginalFamilyName = family.Name;
-                ver.OriginalOwnerId = family.Owner.Id;
-                ver.OriginalOwnerUsername = family.Owner.Username;
-                ver.IsArchived = true;
-                ver.FamilyId = archivedFamily.Id;
-                ver.Family = archivedFamily;
-
-                if (ver.Mechanism != null)
-                {
-                    ver.Mechanism.FamilyId = archivedFamily.Id;
-                    ver.Mechanism.Family = archivedFamily;
-                }
-
-                if (ver.FamilyVersion != null)
-                {
-                    ver.FamilyVersion.FamilyId = archivedFamily.Id;
-                    ver.FamilyVersion.Family = archivedFamily;
-                    archivedFamily.Versions.Add(ver.FamilyVersion);
-                }
-            }
-
-            archivedFamily.CurrentVersion = archivedFamily.Versions.FirstOrDefault();
-            archivedFamily.CurrentVersionId = archivedFamily.CurrentVersion?.Id;
+            FamilyArchiveHelper.ArchiveFamilyVerifiedVersions(context, family, ncarUser, verifiedVersions);
             await context.SaveChangesAsync();
         }
 
@@ -1009,12 +975,14 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             return (QueryResult.ValidationError, null);
         }
 
-        // Query targeted mechanism to verify existence and get its referenced entity IDs
+        // Query targeted mechanism to verify existence and ensure it belongs to the editable CurrentVersion
         var mechanism = await context.Mechanisms
             .Include(m => m.Species)
             .Include(m => m.Phases)
             .Include(m => m.Reactions)
-            .FirstOrDefaultAsync(m => m.Id == mechanismId && m.FamilyId == familyId);
+            .FirstOrDefaultAsync(m => m.Id == mechanismId
+                && m.FamilyId == familyId
+                && m.FamilyVersionId == family.CurrentVersionId);
 
         if (mechanism == null)
         {
@@ -1111,6 +1079,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         }
 
         var verifiedVersion = await context.VerifiedMechanismVersions
+            .Include(v => v.Family)
             .Include(v => v.Verifier)
             .Include(v => v.DeprecatedBy)
             .Include(v => v.ArchivedBy)
@@ -1160,6 +1129,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         }
 
         var verifiedVersion = await context.VerifiedMechanismVersions
+            .Include(v => v.Family)
             .Include(v => v.Verifier)
             .Include(v => v.DeprecatedBy)
             .Include(v => v.ArchivedBy)
@@ -1214,6 +1184,7 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         }
 
         var verifiedVersion = await context.VerifiedMechanismVersions
+            .Include(v => v.Family)
             .Include(v => v.Verifier)
             .Include(v => v.DeprecatedBy)
             .Include(v => v.ArchivedBy)
@@ -1223,6 +1194,11 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         if (verifiedVersion == null)
         {
             return (QueryResult.NotFound, null);
+        }
+
+        if (!request.IsArchived && verifiedVersion.Family.IsArchived)
+        {
+            return (QueryResult.ValidationError, null);
         }
 
         var now = DateTime.UtcNow;
@@ -1286,40 +1262,37 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
         }
 
         await context.SaveChangesAsync();
+
+        // If this was an archived container family with no remaining verified versions, remove it.
+        var family = await context.Families.FirstOrDefaultAsync(f => f.Id == familyId);
+        if (family != null && family.IsArchived)
+        {
+            bool hasRemaining = await context.VerifiedMechanismVersions.AnyAsync(v => v.FamilyId == familyId);
+            if (!hasRemaining)
+            {
+                context.Families.Remove(family);
+                await context.SaveChangesAsync();
+            }
+        }
+
         return QueryResult.Success;
     }
 
     /// <summary>
-    /// Lists all archived verified mechanisms across all families (including NCAR archive).
-    /// Accessible only to Verifiers and Admins.
+    /// Lists all archived verified mechanisms across all public/archived families.
+    /// Publicly accessible so anyone can view or copy archived mechanisms.
     /// </summary>
-    public async Task<(QueryResult Code, List<ArchivedVerifiedVersionDto>? Result)> GetArchivedVerifiedVersionsAsync(string nameIdentifier)
+    public async Task<List<ArchivedVerifiedVersionDto>> GetArchivedVerifiedVersionsAsync()
     {
-        if (!Guid.TryParse(nameIdentifier, out Guid userId))
-        {
-            return (QueryResult.ParseError, null);
-        }
-
-        var user = await _userService.GetUserByIdAsync(userId);
-        if (user == null)
-        {
-            return (QueryResult.OwnerNotFound, null);
-        }
-
-        if (user.Role != Role.Verifier && user.Role != Role.Admin)
-        {
-            return (QueryResult.NoAccess, null);
-        }
-
         var verifiedVersions = await context.VerifiedMechanismVersions
             .Include(v => v.Family)
                 .ThenInclude(f => f.Owner)
             .Include(v => v.Verifier)
             .Include(v => v.Mechanism)
-            .Where(v => v.IsArchived || v.Family.Name.StartsWith("[Archived]"))
+            .Where(v => (v.IsArchived || v.Family.IsArchived) && v.Family.IsPublic)
             .ToListAsync();
 
-        var result = verifiedVersions.Select(v => new ArchivedVerifiedVersionDto
+        return verifiedVersions.Select(v => new ArchivedVerifiedVersionDto
         {
             MechanismId = v.MechanismId,
             FamilyId = v.FamilyId,
@@ -1335,7 +1308,5 @@ public class FamilyService(ChemistryDbContext context, UserService? userService 
             DeprecationReason = v.DeprecationReason ?? "",
             BetterVersionId = v.BetterVersionId?.ToString() ?? "",
         }).ToList();
-
-        return (QueryResult.Success, result);
     }
 }

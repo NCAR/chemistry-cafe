@@ -401,6 +401,78 @@ namespace ChemistryCafeAPI.Services
                 return QueryResult.NoAccess;
             }
 
+            bool hasPendingChanges = false;
+            var verifiedByUser = await context.VerifiedMechanismVersions
+                .Where(v => v.VerifierId == id)
+                .ToListAsync();
+
+            var ownedFamilies = await context.Families
+                .Include(f => f.Owner)
+                .Where(f => f.OwnerId == id)
+                .ToListAsync();
+
+            var ownedFamilyIds = ownedFamilies.Select(f => f.Id).ToList();
+            var verifiedInOwnedFamilies = ownedFamilyIds.Count > 0
+                ? await context.VerifiedMechanismVersions
+                    .Include(v => v.Family)
+                        .ThenInclude(f => f.Owner)
+                    .Include(v => v.Mechanism)
+                    .Include(v => v.FamilyVersion)
+                    .Where(v => ownedFamilyIds.Contains(v.FamilyId))
+                    .ToListAsync()
+                : new List<VerifiedMechanismVersion>();
+
+            if (verifiedByUser.Count > 0 || verifiedInOwnedFamilies.Count > 0)
+            {
+                var archiveOwner = await FamilyArchiveHelper.ResolveArchiveOwnerAsync(context, excludedUserId: id);
+                if (archiveOwner == null)
+                {
+                    return QueryResult.NoAccess;
+                }
+
+                foreach (var ver in verifiedByUser)
+                {
+                    ver.VerifierId = archiveOwner.Id;
+                    ver.Verifier = archiveOwner;
+                    hasPendingChanges = true;
+                }
+
+                foreach (var family in ownedFamilies)
+                {
+                    var familyVersions = verifiedInOwnedFamilies
+                        .Where(v => v.FamilyId == family.Id)
+                        .ToList();
+                    if (familyVersions.Count > 0)
+                    {
+                        FamilyArchiveHelper.ArchiveFamilyVerifiedVersions(context, family, archiveOwner, familyVersions);
+                        hasPendingChanges = true;
+                    }
+                }
+            }
+
+            var deprecatedOrArchivedByUser = await context.VerifiedMechanismVersions
+                .Where(v => v.DeprecatedById == id || v.ArchivedById == id)
+                .ToListAsync();
+            foreach (var ver in deprecatedOrArchivedByUser)
+            {
+                if (ver.DeprecatedById == id)
+                {
+                    ver.DeprecatedById = null;
+                    ver.DeprecatedBy = null;
+                }
+                if (ver.ArchivedById == id)
+                {
+                    ver.ArchivedById = null;
+                    ver.ArchivedBy = null;
+                }
+                hasPendingChanges = true;
+            }
+
+            if (hasPendingChanges)
+            {
+                await context.SaveChangesAsync();
+            }
+
             await context.ExecuteDeleteAsync(context.Users.Where(u => u.Id == id));
             return QueryResult.Success;
         }

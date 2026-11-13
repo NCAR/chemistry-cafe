@@ -552,6 +552,7 @@ export function apiToFrontendFamily(apiFamily: APIFamily): Family {
     name: apiFamily.name,
     description: apiFamily.description ?? "",
     isPublic: apiFamily.isPublic,
+    isArchived: Boolean(apiFamily.isArchived),
     owner: apiFamily.owner,
     contributorIds: apiFamily.contributorIds ?? [],
     mechanisms: apiFamily.mechanisms.map((e) => apiToFrontendMechanism(e)),

@@ -347,18 +347,23 @@ export const VerifiedVersionsList: React.FC<VerifiedVersionsListProps> = ({
         </Box>
 
         {isVerifierOrAdmin && family.isPublic && !readOnly && (
-          <Button
-            size="small"
-            variant="outlined"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={(e) => {
-              e.stopPropagation();
-              setVerifyModalOpen(true);
-            }}
-          >
-            Verify this mechanism
-          </Button>
+          <Tooltip title={family.isModified ? "Save your changes first" : ""}>
+            <span onClick={(e) => e.stopPropagation()}>
+              <Button
+                size="small"
+                variant="outlined"
+                color="primary"
+                startIcon={<AddIcon />}
+                disabled={Boolean(family.isModified)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setVerifyModalOpen(true);
+                }}
+              >
+                Verify this mechanism
+              </Button>
+            </span>
+          </Tooltip>
         )}
       </Box>
 
@@ -524,20 +529,36 @@ export const VerifiedVersionsList: React.FC<VerifiedVersionsListProps> = ({
                         )}
 
                         <Tooltip
-                          title={v.isArchived ? "Unarchive version" : "Archive version"}
+                          title={
+                            v.isArchived
+                              ? family.isArchived
+                                ? "Cannot unarchive a version in an archived family"
+                                : "Unarchive version"
+                              : "Archive version"
+                          }
                           arrow
                         >
-                          <IconButton
-                            size="small"
-                            onClick={() => handleToggleArchive(v)}
-                            color={v.isArchived ? "primary" : "default"}
-                          >
-                            {v.isArchived ? (
-                              <UnarchiveIcon fontSize="small" />
-                            ) : (
-                              <ArchiveIcon fontSize="small" />
-                            )}
-                          </IconButton>
+                          <span>
+                            <IconButton
+                              size="small"
+                              aria-label={
+                                v.isArchived
+                                  ? family.isArchived
+                                    ? "Cannot unarchive a version in an archived family"
+                                    : "Unarchive version"
+                                  : "Archive version"
+                              }
+                              disabled={Boolean(v.isArchived && family.isArchived)}
+                              onClick={() => handleToggleArchive(v)}
+                              color={v.isArchived ? "primary" : "default"}
+                            >
+                              {v.isArchived ? (
+                                <UnarchiveIcon fontSize="small" />
+                              ) : (
+                                <ArchiveIcon fontSize="small" />
+                              )}
+                            </IconButton>
+                          </span>
                         </Tooltip>
 
                         <Tooltip title="Permanently delete version" arrow>

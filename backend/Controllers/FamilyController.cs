@@ -382,24 +382,12 @@ namespace ChemistryCafeAPI.Controllers
             };
         }
 
-        [Authorize]
+        [AllowAnonymous]
         [HttpGet("archived-versions")]
         public async Task<ActionResult<IEnumerable<ArchivedVerifiedVersionDto>>> GetArchivedVerifiedVersions()
         {
-            string? nameIdentifier = GetNameIdentifier();
-            if (nameIdentifier == null)
-            {
-                return Unauthorized("User is not authenticated");
-            }
-
-            var (code, result) = await familyService.GetArchivedVerifiedVersionsAsync(nameIdentifier);
-            return code switch
-            {
-                QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden, "Only Verifiers and Admins can view archived versions."),
-                QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier claim"),
-                QueryResult.OwnerNotFound => Unauthorized("User does not exist"),
-                _ => Ok(result),
-            };
+            var result = await familyService.GetArchivedVerifiedVersionsAsync();
+            return Ok(result);
         }
     }
 }

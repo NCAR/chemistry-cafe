@@ -100,6 +100,9 @@ namespace ChemistryCafeAPI.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("longtext");
 
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<bool>("IsPublic")
                         .HasColumnType("tinyint(1)");
 

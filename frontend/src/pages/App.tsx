@@ -42,14 +42,9 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-                {/* Protected route for Archived Versions (#358) */}
                 <Route
                   path="/archived-versions"
-                  element={
-                    <ProtectedRoute requiredRole={["Verifier", "Admin"]}>
-                      <ArchivedVersions />
-                    </ProtectedRoute>
-                  }
+                  element={<ArchivedVersions />}
                 />
                 <Route
                   path="/archivedversions"

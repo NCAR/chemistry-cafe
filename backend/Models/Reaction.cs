@@ -129,6 +129,7 @@ public class Reaction
     public void UpdateFrom(ReactionDto other)
     {
         Name = other.Name;
+        ReactionType = other.ReactionType;
         Description = other.Description;
         GasPhaseSpeciesId = other.GasPhaseSpeciesId;
         GasPhaseId = other.GasPhaseId;

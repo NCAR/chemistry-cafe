@@ -796,19 +796,17 @@ export const Dashboard: React.FC = () => {
           />
         )}
 
-        {/* Verifiers and admins see "Show archived versions" link under the list (#358) */}
-        {isVerifierOrAdmin && (
-          <Box sx={{ mt: 4, mb: 2, textAlign: "center" }}>
-            <Link
-              component="button"
-              variant="body2"
-              onClick={() => navigate("/archived-versions")}
-              sx={{ cursor: "pointer", fontWeight: "bold" }}
-            >
-              Show archived versions
-            </Link>
-          </Box>
-        )}
+        {/* Link to Archived Versions page for all users */}
+        <Box sx={{ mt: 4, mb: 2, textAlign: "center" }}>
+          <Link
+            component="button"
+            variant="body2"
+            onClick={() => navigate("/archived-versions")}
+            sx={{ cursor: "pointer", fontWeight: "bold" }}
+          >
+            Show archived versions
+          </Link>
+        </Box>
       </Paper>
 
       {/* New Family Modal */}

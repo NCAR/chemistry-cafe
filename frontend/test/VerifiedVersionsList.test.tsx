@@ -224,4 +224,41 @@ describe("VerifiedVersionsList", () => {
       expect(onUpdateMock).toHaveBeenCalled();
     });
   });
+
+  it("disables Verify this mechanism when family has unsaved changes", () => {
+    renderWithAuth(
+      <VerifiedVersionsList
+        family={{ ...mockFamily, isModified: true }}
+        mechanism={mockMechanism}
+      />,
+      "Verifier",
+    );
+
+    const verifyBtn = screen.getByRole("button", { name: /Verify this mechanism/i });
+    expect(verifyBtn).toBeDisabled();
+  });
+
+  it("disables unarchive button when version is in an archived family", () => {
+    const archivedVersion: VerifiedMechanismVersion = {
+      ...mockVerifiedVersion,
+      isArchived: true,
+    };
+
+    renderWithAuth(
+      <VerifiedVersionsList
+        family={{
+          ...mockFamily,
+          isArchived: true,
+          verifiedVersions: [archivedVersion],
+        }}
+        mechanism={mockMechanism}
+      />,
+      "Admin",
+    );
+
+    const unarchiveBtn = screen.getByRole("button", {
+      name: /Cannot unarchive a version in an archived family/i,
+    });
+    expect(unarchiveBtn).toBeDisabled();
+  });
 });

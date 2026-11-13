@@ -125,6 +125,29 @@ namespace ChemistryCafeAPI.Tests
 
             reaction.UpdateFrom(dto);
             Assert.IsFalse(reaction.IsDifferent(dto));
+
+            // Changing reaction type from ARRHENIUS to TROE updates ReactionType and swaps parameters
+            dto.ReactionType = "TROE";
+            dto.Arrhenius = null;
+            dto.Troe = new TroeParametersDto
+            {
+                K0A = 1.1,
+                K0B = -2.0,
+                K0C = 0.0,
+                KinfA = 3.3,
+                KinfB = 0.0,
+                KinfC = 0.0,
+                Fc = 0.6,
+                N = 1.0,
+            };
+            Assert.IsTrue(reaction.IsDifferent(dto));
+
+            reaction.UpdateFrom(dto);
+            Assert.AreEqual("TROE", reaction.ReactionType);
+            Assert.IsNull(reaction.Arrhenius);
+            Assert.IsNotNull(reaction.Troe);
+            Assert.AreEqual(1.1, reaction.Troe.K0A);
+            Assert.IsFalse(reaction.IsDifferent(dto));
         }
 
         [TestMethod]
