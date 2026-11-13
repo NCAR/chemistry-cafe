@@ -65,11 +65,17 @@ namespace ChemistryCafeAPI.Tests
                 Description = "gas phase",
                 PhaseSpecies = new List<PhaseSpecies>
                 {
-                    new PhaseSpecies { SpeciesId = s1.Id, Species = s1, DiffusionCoefficient = 1e-5 },
+                    new PhaseSpecies { SpeciesId = s1.Id, Species = s1, DiffusionCoefficient = 1e-5, Density = 1000.0 },
                 },
             };
 
             var dto = phase.ToDto();
+            Assert.IsFalse(phase.IsDifferent(dto));
+
+            // A change to the density alone is a difference.
+            dto.Densities[s1.Id] = 1100.0;
+            Assert.IsTrue(phase.IsDifferent(dto));
+            dto.Densities[s1.Id] = 1000.0;
             Assert.IsFalse(phase.IsDifferent(dto));
 
             dto.SpeciesIds.Add(s2.Id);
@@ -85,6 +91,22 @@ namespace ChemistryCafeAPI.Tests
             Assert.AreEqual(0, removed.Count);
             Assert.AreEqual(2, phase.PhaseSpecies.Count);
             Assert.IsFalse(phase.IsDifferent(dto));
+            Assert.AreEqual(1000.0, phase.PhaseSpecies.Single(ps => ps.SpeciesId == s1.Id).Density);
+
+            // Remove the density of s1 and give s2 a density.
+            dto.Densities = new Dictionary<Guid, double> { [s2.Id] = 1800.0 };
+            phase.UpdateFrom(dto, new List<Species> { s1, s2 }, ps => removed.Add(ps));
+            Assert.IsNull(phase.PhaseSpecies.Single(ps => ps.SpeciesId == s1.Id).Density);
+            Assert.AreEqual(1800.0, phase.PhaseSpecies.Single(ps => ps.SpeciesId == s2.Id).Density);
+
+            var speciesMap = new Dictionary<Guid, Species>
+            {
+                [s1.Id] = new Species { Id = Guid.NewGuid(), Name = "A" },
+                [s2.Id] = new Species { Id = Guid.NewGuid(), Name = "B" },
+            };
+            var cloned = phase.Clone(new FamilyVersion { Id = Guid.NewGuid() }, speciesMap);
+            Assert.AreEqual(1800.0, cloned.PhaseSpecies.Single(ps => ps.SpeciesId == speciesMap[s2.Id].Id).Density);
+            Assert.AreEqual(3e-5, cloned.PhaseSpecies.Single(ps => ps.SpeciesId == speciesMap[s2.Id].Id).DiffusionCoefficient);
         }
 
         [TestMethod]

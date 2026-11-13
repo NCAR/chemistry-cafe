@@ -1,15 +1,11 @@
 import { useEffect, useState } from "react";
-import {
-  Box,
-  Button,
-  Checkbox,
-  FormControlLabel,
-  Modal,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Modal, TextField, Typography } from "@mui/material";
 import { UUID } from "crypto";
 import { Phase, Species } from "../../types/chemistryModels";
+import {
+  PhaseSpeciesTable,
+  PhaseSpeciesValues,
+} from "../familyEditor/PhaseSpeciesTable";
 import { modalStyle } from "./modalStyle";
 
 type PhaseCreationModalProps = {
@@ -20,10 +16,17 @@ type PhaseCreationModalProps = {
     description: string | null,
     speciesIds: UUID[],
     diffusionCoefficients: Record<UUID, number>,
+    densities: Record<UUID, number>,
   ) => void;
   phase?: Phase;
   species: Species[];
 };
+
+/** Keeps only the values of the given species. */
+const valuesOf = (values: Record<UUID, number>, speciesIds: Set<UUID>) =>
+  Object.fromEntries(
+    Object.entries(values).filter(([id]) => speciesIds.has(id as UUID)),
+  ) as Record<UUID, number>;
 
 export const PhaseCreationModal = ({
   open,
@@ -35,38 +38,24 @@ export const PhaseCreationModal = ({
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [selectedSpeciesIds, setSelectedSpeciesIds] = useState<UUID[]>([]);
-  const [speciesSearch, setSpeciesSearch] = useState("");
   const [nameError, setNameError] = useState(false);
-  // The text in each diffusion coefficient field, by species id. An empty
-  // field means that the species has no value.
-  const [diffusionCoefficients, setDiffusionCoefficients] = useState<
-    Record<UUID, string>
-  >({});
-  const [invalidCoefficientIds, setInvalidCoefficientIds] = useState<UUID[]>(
-    [],
-  );
-
-  const filteredSpecies = species.filter((option) =>
-    option.name.toLowerCase().includes(speciesSearch.trim().toLowerCase()),
-  );
-  const allFilteredSpeciesSelected =
-    filteredSpecies.length > 0 &&
-    filteredSpecies.every((option) => selectedSpeciesIds.includes(option.id));
+  // The values of the species in this phase. A species that leaves the phase
+  // keeps its values here until the save, so that they come back when the
+  // species comes back.
+  const [values, setValues] = useState<PhaseSpeciesValues>({
+    diffusionCoefficients: {},
+    densities: {},
+  });
 
   useEffect(() => {
     if (open) {
       setName(phase?.name ?? "");
       setDescription(phase?.description ?? "");
       setSelectedSpeciesIds(phase?.speciesIds ?? []);
-      setDiffusionCoefficients(
-        Object.fromEntries(
-          Object.entries(phase?.diffusionCoefficients ?? {}).map(
-            ([id, value]) => [id, String(value)],
-          ),
-        ),
-      );
-      setInvalidCoefficientIds([]);
-      setSpeciesSearch("");
+      setValues({
+        diffusionCoefficients: { ...phase?.diffusionCoefficients },
+        densities: { ...phase?.densities },
+      });
       setNameError(false);
     }
   }, [open, phase]);
@@ -78,40 +67,16 @@ export const PhaseCreationModal = ({
       return;
     }
 
-    // Only a selected species keeps its diffusion coefficient.
-    const coefficients: Record<UUID, number> = {};
-    const invalidIds: UUID[] = [];
-    for (const id of selectedSpeciesIds) {
-      const text = diffusionCoefficients[id]?.trim();
-      if (!text) {
-        continue;
-      }
-      const value = Number(text);
-      if (Number.isFinite(value) && value > 0) {
-        coefficients[id] = value;
-      } else {
-        invalidIds.push(id);
-      }
-    }
-    if (invalidIds.length > 0) {
-      setInvalidCoefficientIds(invalidIds);
-      // Clear the search, so that the search does not hide an invalid field.
-      setSpeciesSearch("");
-      return;
-    }
-
+    // Only a species in the phase keeps its values.
+    const members = new Set(selectedSpeciesIds);
     onSubmit(
       phaseName,
       description.trim() || null,
       selectedSpeciesIds,
-      coefficients,
+      valuesOf(values.diffusionCoefficients, members),
+      valuesOf(values.densities, members),
     );
   };
-
-  // The species search also filters the diffusion coefficient fields.
-  const filteredSelectedSpecies = filteredSpecies.filter((option) =>
-    selectedSpeciesIds.includes(option.id),
-  );
 
   return (
     <Modal open={open} onClose={onClose}>
@@ -144,151 +109,40 @@ export const PhaseCreationModal = ({
           value={description}
           onChange={(event) => setDescription(event.target.value)}
         />
-        <Typography
-          component="label"
-          id="add-species-label"
-          color="textPrimary"
-          variant="subtitle1"
-        >
+        <Typography color="textPrimary" variant="subtitle1">
           Species
         </Typography>
-        <TextField
-          color="primary"
-          id="phase-species-search"
-          label="Search Species..."
-          value={speciesSearch}
-          onChange={(event) => setSpeciesSearch(event.target.value)}
-        />
-        <Button
-          disabled={filteredSpecies.length === 0}
-          onClick={() => {
-            const filteredSpeciesIds = filteredSpecies.map(
-              (option) => option.id,
-            );
-            setSelectedSpeciesIds((current) =>
-              allFilteredSpeciesSelected
-                ? current.filter((id) => !filteredSpeciesIds.includes(id))
-                : [
-                    ...current,
-                    ...filteredSpeciesIds.filter((id) => !current.includes(id)),
-                  ],
-            );
-          }}
-        >
-          {allFilteredSpeciesSelected ? "Deselect All" : "Select All"}
-        </Button>
-        <Box
-          role="group"
-          aria-label="Select species for phase"
-          sx={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
-            gap: "0.5em",
-            maxHeight: "16em",
-            overflowY: "auto",
-          }}
-        >
-          {filteredSpecies.length > 0 ? (
-            filteredSpecies.map((option) => {
-              const checked = selectedSpeciesIds.includes(option.id);
-
-              return (
-                <FormControlLabel
-                  key={option.id}
-                  control={
-                    <Checkbox
-                      checked={checked}
-                      onChange={(event) => {
-                        setSelectedSpeciesIds((current) =>
-                          event.target.checked
-                            ? [...current, option.id]
-                            : current.filter((id) => id !== option.id),
-                        );
-                      }}
-                    />
-                  }
-                  label={
-                    <Typography noWrap title={option.name}>
-                      {option.name}
-                    </Typography>
-                  }
-                  sx={{
-                    m: 0,
-                    px: 1,
-                    border: 1,
-                    borderColor: "divider",
-                    borderRadius: 1,
-                  }}
-                />
-              );
-            })
-          ) : (
-            <Typography color="text.secondary" sx={{ gridColumn: "1 / -1" }}>
-              {species.length > 0
-                ? "No matching species."
-                : "No species available."}
-            </Typography>
-          )}
+        {/* The modal is a flex column. Without flexShrink, the modal makes
+            the table shorter than its rows. */}
+        <Box sx={{ height: "32em", flexShrink: 0, display: "flex" }}>
+          <PhaseSpeciesTable
+            species={species}
+            memberIds={selectedSpeciesIds}
+            onMembersChange={setSelectedSpeciesIds}
+            values={values}
+            onValuesChange={(speciesId, diffusionCoefficient, density) => {
+              const set = (
+                current: Record<UUID, number>,
+                value: number | null,
+              ) => {
+                const next = { ...current };
+                if (value === null) {
+                  delete next[speciesId];
+                } else {
+                  next[speciesId] = value;
+                }
+                return next;
+              };
+              setValues((current) => ({
+                diffusionCoefficients: set(
+                  current.diffusionCoefficients,
+                  diffusionCoefficient,
+                ),
+                densities: set(current.densities, density),
+              }));
+            }}
+          />
         </Box>
-        {selectedSpeciesIds.length > 0 && (
-          <>
-            <Typography
-              component="label"
-              id="diffusion-coefficients-label"
-              color="textPrimary"
-              variant="subtitle1"
-            >
-              Diffusion coefficients [m² s⁻¹]
-            </Typography>
-            <Box
-              role="group"
-              aria-labelledby="diffusion-coefficients-label"
-              sx={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
-                gap: "0.5em",
-                maxHeight: "16em",
-                overflowY: "auto",
-                pt: 1,
-              }}
-            >
-              {filteredSelectedSpecies.length === 0 && (
-                <Typography
-                  color="text.secondary"
-                  sx={{ gridColumn: "1 / -1" }}
-                >
-                  No matching species.
-                </Typography>
-              )}
-              {filteredSelectedSpecies.map((option) => {
-                const invalid = invalidCoefficientIds.includes(option.id);
-                return (
-                  <TextField
-                    key={option.id}
-                    size="small"
-                    color="primary"
-                    label={option.name}
-                    placeholder="None"
-                    error={invalid}
-                    helperText={
-                      invalid ? "Enter a positive number." : undefined
-                    }
-                    value={diffusionCoefficients[option.id] ?? ""}
-                    onChange={(event) => {
-                      setDiffusionCoefficients((current) => ({
-                        ...current,
-                        [option.id]: event.target.value,
-                      }));
-                      setInvalidCoefficientIds((current) =>
-                        current.filter((id) => id !== option.id),
-                      );
-                    }}
-                  />
-                );
-              })}
-            </Box>
-          </>
-        )}
         <Box
           sx={{
             display: "flex",

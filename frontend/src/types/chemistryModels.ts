@@ -143,6 +143,12 @@ export type Phase = {
    */
   diffusionCoefficients?: Record<UUID, number>;
 
+  /**
+   * Density [kg m-3] of each member species, by species id.
+   * A species without a value has no key.
+   */
+  densities?: Record<UUID, number>;
+
   /** Source object ID if this phase was copied from another phase */
   sourceObjectId?: UUID | null;
 

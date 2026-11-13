@@ -34,7 +34,7 @@ public class Phase
 
     // The join rows for the species in this phase. Each row holds the values
     // that belong to one species in this phase, for example the diffusion
-    // coefficient.
+    // coefficient and the density.
     [JsonIgnore]
     public ICollection<PhaseSpecies> PhaseSpecies { get; set; } = new List<PhaseSpecies>();
 
@@ -64,6 +64,7 @@ public class Phase
         foreach (var ps in PhaseSpecies)
         {
             if (ps.DiffusionCoefficient != other.DiffusionCoefficientOf(ps.SpeciesId)) return true;
+            if (ps.Density != other.DensityOf(ps.SpeciesId)) return true;
         }
 
         return false;
@@ -97,6 +98,7 @@ public class Phase
                 PhaseSpecies.Add(member);
             }
             member.DiffusionCoefficient = other.DiffusionCoefficientOf(sid);
+            member.Density = other.DensityOf(sid);
         }
     }
 
@@ -127,6 +129,7 @@ public class Phase
                     SpeciesId = speciesMap[ps.SpeciesId].Id,
                     Species = speciesMap[ps.SpeciesId],
                     DiffusionCoefficient = ps.DiffusionCoefficient,
+                    Density = ps.Density,
                 })
                 .ToList();
         }
@@ -136,8 +139,8 @@ public class Phase
 }
 
 /// <summary>
-/// Joins a phase and a species. The diffusion coefficient is on this join,
-/// because one species can have a different value in each phase.
+/// Joins a phase and a species. The diffusion coefficient and the density are
+/// on this join, because one species can have a different value in each phase.
 /// </summary>
 public class PhaseSpecies
 {
@@ -151,4 +154,7 @@ public class PhaseSpecies
 
     // Diffusion coefficient [m2 s-1]
     public double? DiffusionCoefficient { get; set; }
+
+    // Density [kg m-3]
+    public double? Density { get; set; }
 }

@@ -265,6 +265,7 @@ export interface APIPhase {
   description?: string;
   speciesIds: Array<UUID>;
   diffusionCoefficients?: Record<UUID, number>;
+  densities?: Record<UUID, number>;
   otherProperties?: Record<string, unknown>;
 }
 

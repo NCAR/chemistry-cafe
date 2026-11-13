@@ -300,6 +300,9 @@ namespace ChemistryCafeAPI.Migrations
                     b.Property<Guid>("SpeciesId")
                         .HasColumnType("char(36)");
 
+                    b.Property<double?>("Density")
+                        .HasColumnType("double");
+
                     b.Property<double?>("DiffusionCoefficient")
                         .HasColumnType("double");
 

@@ -50,6 +50,11 @@ export const SpeciesView = ({ family, updateFamily, readOnly }: ViewProps) => {
             ([sid]) => !ids.has(sid),
           ),
         ),
+        densities: Object.fromEntries(
+          Object.entries(phase.densities ?? {}).filter(
+            ([sid]) => !ids.has(sid),
+          ),
+        ),
       })),
       mechanisms: family.mechanisms.map((mechanism) => ({
         ...mechanism,

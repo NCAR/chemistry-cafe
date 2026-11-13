@@ -61,6 +61,12 @@ export const cloneFamily = (family: Family): Family => {
           },
         ),
       ),
+      densities: Object.fromEntries(
+        Object.entries(phase.densities ?? {}).flatMap(([id, value]) => {
+          const mappedId = idMappings.get(id as UUID);
+          return mappedId ? [[mappedId, value]] : [];
+        }),
+      ),
     });
   }
 

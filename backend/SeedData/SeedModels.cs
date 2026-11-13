@@ -36,6 +36,8 @@ public class SeedPhase
     public List<string> Species { get; set; } = new();
     // Diffusion coefficient [m2 s-1] of each member species, by species name
     public Dictionary<string, double> DiffusionCoefficients { get; set; } = new();
+    // Density [kg m-3] of each member species, by species name
+    public Dictionary<string, double> Densities { get; set; } = new();
     public Dictionary<string, JsonElement>? OtherProperties { get; set; }
 }
 

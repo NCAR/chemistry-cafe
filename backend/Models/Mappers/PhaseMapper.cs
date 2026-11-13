@@ -17,6 +17,9 @@ public static class PhaseMapper
             DiffusionCoefficients = phase.PhaseSpecies
                 .Where(ps => ps.DiffusionCoefficient != null)
                 .ToDictionary(ps => ps.SpeciesId, ps => ps.DiffusionCoefficient!.Value),
+            Densities = phase.PhaseSpecies
+                .Where(ps => ps.Density != null)
+                .ToDictionary(ps => ps.SpeciesId, ps => ps.Density!.Value),
             OtherProperties = phase.OtherProperties
         };
     }
@@ -28,6 +31,15 @@ public static class PhaseMapper
     public static double? DiffusionCoefficientOf(this PhaseDto phaseDto, Guid speciesId)
     {
         return phaseDto.DiffusionCoefficients.TryGetValue(speciesId, out double value) ? value : null;
+    }
+
+    /// <summary>
+    /// Gives the density of a member species, or null when the phase has no
+    /// value for that species.
+    /// </summary>
+    public static double? DensityOf(this PhaseDto phaseDto, Guid speciesId)
+    {
+        return phaseDto.Densities.TryGetValue(speciesId, out double value) ? value : null;
     }
 
     /// <summary>

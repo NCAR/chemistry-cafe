@@ -117,6 +117,27 @@ describe("cloneFamily", () => {
     );
   });
 
+  it("Keeps the diffusion coefficients and densities of phase species", () => {
+    const result = cloneFamily({
+      ...family,
+      phases: [
+        {
+          ...phase,
+          diffusionCoefficients: { [species.id]: 1e-5 },
+          densities: { [species.id]: 1800 },
+        },
+      ],
+    });
+
+    const clonedSpeciesId = result.species.at(0)!.id;
+    expect(result.phases.at(0)?.diffusionCoefficients).toEqual({
+      [clonedSpeciesId]: 1e-5,
+    });
+    expect(result.phases.at(0)?.densities).toEqual({
+      [clonedSpeciesId]: 1800,
+    });
+  });
+
   it("Makes a clone of a public family private", () => {
     const result = cloneFamily({ ...family, isPublic: true });
 
