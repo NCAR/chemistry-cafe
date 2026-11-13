@@ -7,6 +7,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import axios, { AxiosHeaders, AxiosResponse } from "axios";
@@ -1239,7 +1240,50 @@ describe("PhaseView", () => {
             description: "Liquid phase",
             speciesIds: [],
             diffusionCoefficients: {},
+            densities: {},
           },
+        ],
+      }),
+    );
+  });
+
+  it("sets the diffusion coefficient and density of a species in a phase", async () => {
+    fireEvent.click(screen.getAllByRole("checkbox", { name: "Select row" })[0]);
+    fireEvent.click(screen.getByTestId("edit-phase-button"));
+    await screen.findByText("Edit Phase");
+    const row = within(screen.getByRole("menu"))
+      .getByText("Test Species")
+      .closest('[role="row"]') as HTMLElement;
+
+    fireEvent.click(within(row).getByRole("checkbox"));
+    for (const [field, value] of [
+      ["diffusionCoefficient", "1e-5"],
+      ["density", "1800"],
+    ]) {
+      const cell = row.querySelector(
+        `[role="gridcell"][data-field="${field}"]`,
+      ) as HTMLElement;
+      fireEvent.doubleClick(cell);
+      const input = within(cell).getByRole("spinbutton");
+      fireEvent.change(input, { target: { value } });
+      // A browser sends each key in its own task. Wait one task, so that the
+      // grid can check the value before the Enter.
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      fireEvent.keyDown(input, { key: "Enter" });
+      await waitFor(() =>
+        expect(within(cell).queryByRole("spinbutton")).toBeNull(),
+      );
+    }
+    fireEvent.click(screen.getByTestId("save-phase-button"));
+
+    expect(updateFamily).toHaveBeenCalledWith(
+      expect.objectContaining({
+        phases: [
+          expect.objectContaining({
+            speciesIds: ["111-111-111-111-333"],
+            diffusionCoefficients: { "111-111-111-111-333": 1e-5 },
+            densities: { "111-111-111-111-333": 1800 },
+          }),
         ],
       }),
     );
@@ -1391,7 +1435,13 @@ describe("PhaseView", () => {
 
     fireEvent.click(screen.getAllByRole("checkbox", { name: "Select row" })[0]);
     fireEvent.click(screen.getByTestId("edit-phase-button"));
-    fireEvent.click(screen.getAllByRole("checkbox")[0]);
+    fireEvent.click(
+      within(
+        within(screen.getByRole("menu"))
+          .getByText("Test Species")
+          .closest('[role="row"]') as HTMLElement,
+      ).getByRole("checkbox"),
+    );
     fireEvent.click(screen.getByTestId("save-phase-button"));
     return updateFamily;
   };

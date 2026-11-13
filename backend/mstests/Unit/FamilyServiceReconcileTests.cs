@@ -222,6 +222,36 @@ namespace ChemistryCafeAPI.Tests
         }
 
         [TestMethod]
+        public async Task Update_ChangesPhaseDensities()
+        {
+            FamilyDto dto = BuildBaseFamily();
+            PhaseDto phase = dto.Phases.Single();
+            Guid a = dto.Species.Single(s => s.Name == "A").Id;
+            Guid b = dto.Species.Single(s => s.Name == "B").Id;
+            phase.Densities = new Dictionary<Guid, double> { [a] = 1000.0 };
+            await CreateBaseFamilyAsync(dto);
+
+            Phase reloadedPhase = (await ReloadAsync(dto.Id)).Phases.Single(p => p.Id == phase.Id);
+            Assert.AreEqual(1000.0, reloadedPhase.PhaseSpecies.Single(ps => ps.SpeciesId == a).Density);
+
+            // Change the value of A and give B a value.
+            phase.Densities = new Dictionary<Guid, double> { [a] = 1200.0, [b] = 1800.0 };
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            reloadedPhase = (await ReloadAsync(dto.Id)).Phases.Single(p => p.Id == phase.Id);
+            Assert.AreEqual(1200.0, reloadedPhase.PhaseSpecies.Single(ps => ps.SpeciesId == a).Density);
+            Assert.AreEqual(1800.0, reloadedPhase.PhaseSpecies.Single(ps => ps.SpeciesId == b).Density);
+
+            // Clear the value of A. A stays in the phase.
+            phase.Densities.Remove(a);
+            Assert.AreEqual(QueryResult.Success, await UpdateAsync(dto, _nameIdentifier));
+
+            reloadedPhase = (await ReloadAsync(dto.Id)).Phases.Single(p => p.Id == phase.Id);
+            Assert.AreEqual(2, reloadedPhase.PhaseSpecies.Count);
+            Assert.IsNull(reloadedPhase.PhaseSpecies.Single(ps => ps.SpeciesId == a).Density);
+        }
+
+        [TestMethod]
         public async Task Update_DeletesMechanism()
         {
             FamilyDto dto = await CreateBaseFamilyAsync(BuildBaseFamily());

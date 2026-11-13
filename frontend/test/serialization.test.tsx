@@ -96,6 +96,10 @@ const aerosolPhase: Phase = {
   name: "aerosol",
   description: null,
   speciesIds: [molecularWeightSpecies.id, plainSpecies.id],
+  // Only the aerosol phase gives plainSpecies a diffusion coefficient and a
+  // density, so the values are specific to the phase.
+  diffusionCoefficients: { [plainSpecies.id]: 1e-5 },
+  densities: { [plainSpecies.id]: 1800 },
 };
 
 // present in the family but NOT referenced by the mechanism (filtering case)
@@ -399,6 +403,35 @@ describe("Phase serialization", () => {
     expect(aerosol.species.map((s: any) => s.name).sort()).toEqual(
       [molecularWeightSpecies.name, plainSpecies.name].sort(),
     );
+  });
+
+  it("serializes the diffusion coefficient and density of each phase species", () => {
+    const aerosol = serialized.phases.find((p: any) => p.name === "aerosol");
+    const aerosolPlain = aerosol.species.find(
+      (s: any) => s.name === plainSpecies.name,
+    );
+    expect(aerosolPlain["diffusion coefficient [m2 s-1]"]).toBe(1e-5);
+    expect(aerosolPlain["density [kg m-3]"]).toBe(1800);
+
+    // A species without a value has no key.
+    const aerosolOther = aerosol.species.find(
+      (s: any) => s.name === molecularWeightSpecies.name,
+    );
+    expect(aerosolOther).not.toHaveProperty("density [kg m-3]");
+    const gas = serialized.phases.find((p: any) => p.name === "gas");
+    const gasPlain = gas.species.find((s: any) => s.name === plainSpecies.name);
+    expect(gasPlain).not.toHaveProperty("density [kg m-3]");
+    expect(gasPlain).not.toHaveProperty("diffusion coefficient [m2 s-1]");
+  });
+
+  it("imports the diffusion coefficient and density of each phase species", () => {
+    const plainId = imported.species.find(
+      (s) => s.name === plainSpecies.name,
+    )!.id;
+    const aerosol = imported.phases.find((p) => p.name === "aerosol")!;
+    expect(aerosol.diffusionCoefficients).toEqual({ [plainId]: 1e-5 });
+    expect(aerosol.densities).toEqual({ [plainId]: 1800 });
+    expect(importedGasPhase()!.densities).toEqual({});
   });
 
   it("omits phases the mechanism does not reference", () => {

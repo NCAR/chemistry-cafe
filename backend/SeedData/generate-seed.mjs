@@ -195,7 +195,7 @@ function reactionToSeed(r, index) {
 
 function buildFamily(name, keys) {
   const speciesByName = new Map(); // name -> seed species
-  const phaseByName = new Map(); // name -> { name, species: Set, diffusionCoefficients: Map, otherProperties: Map }
+  const phaseByName = new Map(); // name -> { name, species: Set, diffusionCoefficients: Map, densities: Map, otherProperties: Map }
   const mechanisms = [];
 
   for (const key of keys) {
@@ -212,11 +212,12 @@ function buildFamily(name, keys) {
           name: p.name,
           species: new Set(),
           diffusionCoefficients: new Map(),
+          densities: new Map(),
           otherProperties: new Map(),
         });
       }
       const entry = phaseByName.get(p.name);
-      // like diffusion coefficients, the first config to define a key wins
+      // like diffusion coefficients and densities, the first config to define a key wins
       for (const [key, value] of Object.entries(collectOtherProperties(p))) {
         if (!entry.otherProperties.has(key)) entry.otherProperties.set(key, value);
       }
@@ -226,6 +227,10 @@ function buildFamily(name, keys) {
         const coefficient = member["diffusion coefficient [m2 s-1]"];
         if (coefficient !== undefined && !entry.diffusionCoefficients.has(memberName)) {
           entry.diffusionCoefficients.set(memberName, coefficient);
+        }
+        const density = member["density [kg m-3]"];
+        if (density !== undefined && !entry.densities.has(memberName)) {
+          entry.densities.set(memberName, density);
         }
       }
       mechPhases.push(p.name);
@@ -254,6 +259,9 @@ function buildFamily(name, keys) {
       species: [...p.species],
       ...(p.diffusionCoefficients.size > 0 && {
         diffusionCoefficients: Object.fromEntries(p.diffusionCoefficients),
+      }),
+      ...(p.densities.size > 0 && {
+        densities: Object.fromEntries(p.densities),
       }),
       ...(p.otherProperties.size > 0 && {
         otherProperties: Object.fromEntries(p.otherProperties),

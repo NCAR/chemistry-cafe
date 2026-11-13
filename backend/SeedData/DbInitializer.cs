@@ -116,8 +116,11 @@ public static class DbInitializer
                 phase.PhaseSpecies.Add(new PhaseSpecies
                 {
                     Species = speciesByName[speciesName],
-                    DiffusionCoefficient = seedPhase.DiffusionCoefficients.TryGetValue(speciesName, out double value)
-                        ? value
+                    DiffusionCoefficient = seedPhase.DiffusionCoefficients.TryGetValue(speciesName, out double coefficient)
+                        ? coefficient
+                        : null,
+                    Density = seedPhase.Densities.TryGetValue(speciesName, out double density)
+                        ? density
                         : null,
                 });
             }

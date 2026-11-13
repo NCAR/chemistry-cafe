@@ -473,12 +473,14 @@ function phaseToMusica(p: Phase, ctx: ExportCtx) {
   return new types.Phase({
     name: p.name,
     // musica's Phase holds PhaseSpecies objects (each serializes to
-    // { name, "diffusion coefficient [m2 s-1]" }), not bare name strings.
+    // { name, "diffusion coefficient [m2 s-1]", "density [kg m-3]" }), not
+    // bare name strings.
     species: p.speciesIds.map(
       (id) =>
         new types.PhaseSpecies({
           name: ctx.speciesName(String(id)),
           diffusion_coefficient: p.diffusionCoefficients?.[id],
+          density: p.densities?.[id],
         }),
     ),
     other_properties: p.otherProperties,
@@ -602,17 +604,29 @@ export function deserializeMechanism(parsed: Record<string, any>): Family {
     phaseToId.set(p.name, id);
     const speciesIds: UUID[] = [];
     const diffusionCoefficients: Record<UUID, number> = {};
+    const densities: Record<UUID, number> = {};
     // musica emits phase species as { name, … } objects; older v1 configs
     // used bare name strings. Accept either.
     for (const s of (p.species ?? []) as Array<
-      string | { name: string; "diffusion coefficient [m2 s-1]"?: unknown }
+      | string
+      | {
+          name: string;
+          "diffusion coefficient [m2 s-1]"?: unknown;
+          "density [kg m-3]"?: unknown;
+        }
     >) {
       const speciesId = speciesIdOf(typeof s === "string" ? s : s.name);
       speciesIds.push(speciesId);
-      const coefficient =
-        typeof s === "string" ? undefined : s["diffusion coefficient [m2 s-1]"];
+      if (typeof s === "string") {
+        continue;
+      }
+      const coefficient = s["diffusion coefficient [m2 s-1]"];
       if (typeof coefficient === "number") {
         diffusionCoefficients[speciesId] = coefficient;
+      }
+      const density = s["density [kg m-3]"];
+      if (typeof density === "number") {
+        densities[speciesId] = density;
       }
     }
     family.phases.push({
@@ -621,6 +635,7 @@ export function deserializeMechanism(parsed: Record<string, any>): Family {
       description: null,
       speciesIds,
       diffusionCoefficients,
+      densities,
     });
   }
 
