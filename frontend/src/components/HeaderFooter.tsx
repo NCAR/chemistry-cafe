@@ -16,12 +16,14 @@ import GoogleIcon from "@mui/icons-material/Google";
 import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
+import CookieIcon from "@mui/icons-material/Cookie";
 import MenuIcon from "@mui/icons-material/Menu";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import TravelExploreIcon from "@mui/icons-material/TravelExplore";
 import FolderSpecialIcon from "@mui/icons-material/FolderSpecial";
 import { useAuth } from "../components/AuthContext";
 import { useCustomTheme } from "../components/CustomThemeContext";
+import { useAnalyticsConsent } from "../components/AnalyticsConsentContext";
 import Typography from "@mui/material/Typography";
 import ACOMlockupHorizontalColor from "../assets/branding/acom-lockup-horizontal-color.png";
 import ACOMlockupHorizontalWhite from "../assets/branding/acom-lockup-horizontal-white.png";
@@ -392,6 +394,7 @@ export const Footer = () => {
     null,
   );
   const closeLinksMenu = () => setLinksMenuAnchor(null);
+  const { openSettings: openCookieSettings } = useAnalyticsConsent();
 
   const handleAccessibilityClick = () => {
     window.open("https://www.ucar.edu/accessibility", "_blank");
@@ -468,6 +471,9 @@ export const Footer = () => {
           <Button onClick={handleAccessibilityClick} startIcon={<PersonIcon />}>
             Accessibility
           </Button>
+          <Button onClick={openCookieSettings} startIcon={<CookieIcon />}>
+            Cookie Settings
+          </Button>
         </Box>
 
         {/* Same links, collapsed into a "more" menu on narrow screens. A
@@ -525,6 +531,17 @@ export const Footer = () => {
                 <PersonIcon fontSize="small" />
               </ListItemIcon>
               Accessibility
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                closeLinksMenu();
+                openCookieSettings();
+              }}
+            >
+              <ListItemIcon>
+                <CookieIcon fontSize="small" />
+              </ListItemIcon>
+              Cookie Settings
             </MenuItem>
           </Menu>
         </Box>

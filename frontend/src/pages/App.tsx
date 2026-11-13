@@ -12,37 +12,43 @@ import ProtectedRoute from "../components/ProtectedRoute";
 import Banner from "../components/CookieBanner";
 import { CustomThemeProvider } from "../components/CustomThemeContext.tsx";
 import { UserPreferencesProvider } from "../components/UserPreferencesContext.tsx";
+import { AnalyticsConsentProvider } from "../components/AnalyticsConsentContext.tsx";
 
 function App() {
   return (
     <>
       {/* <AccessibilityWidget /> */}
-      <AuthProvider>
-        <CustomThemeProvider>
-          <UserPreferencesProvider>
-            <Banner />
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/loggedin" element={<Navigate to="/" replace />} />
-              <Route path="/dashboard" element={<Navigate to="/" replace />} />
-              <Route path="/editor" element={<FamilyEditor />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/unauthorized" element={<NoAccess />} />
-              {/* Protected route for the Roles page */}
-              <Route
-                path="/usermanagement"
-                element={
-                  <ProtectedRoute requiredRole="Admin">
-                    <UserManagement />
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
-          </UserPreferencesProvider>
-        </CustomThemeProvider>
-      </AuthProvider>
+      <AnalyticsConsentProvider>
+        <AuthProvider>
+          <CustomThemeProvider>
+            <UserPreferencesProvider>
+              <Banner />
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/loggedin" element={<Navigate to="/" replace />} />
+                <Route
+                  path="/dashboard"
+                  element={<Navigate to="/" replace />}
+                />
+                <Route path="/editor" element={<FamilyEditor />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/unauthorized" element={<NoAccess />} />
+                {/* Protected route for the Roles page */}
+                <Route
+                  path="/usermanagement"
+                  element={
+                    <ProtectedRoute requiredRole="Admin">
+                      <UserManagement />
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
+            </UserPreferencesProvider>
+          </CustomThemeProvider>
+        </AuthProvider>
+      </AnalyticsConsentProvider>
     </>
   );
 }
