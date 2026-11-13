@@ -408,19 +408,30 @@ namespace ChemistryCafeAPI.Tests
         public async Task AddContributor_SignedOut_ReturnsUnauthorized()
         {
             var controller = await CreateSignedOutController();
-            var result = await controller.AddOrUpdateContributor(Guid.NewGuid(), new AddFamilyContributorDto
+            var result = await controller.AddContributor(Guid.NewGuid(), new AddFamilyContributorDto
             {
-                Email = "test@example.com"
+                Username = "test_user"
             });
             Assert.IsInstanceOfType(result.Result, typeof(UnauthorizedObjectResult));
         }
 
         [TestMethod]
-        public async Task AddContributor_EmptyUserAndEmail_ReturnsBadRequest()
+        public async Task AddContributor_EmptyUsername_ReturnsBadRequest()
         {
             var controller = await CreateSignedInController();
-            var result = await controller.AddOrUpdateContributor(Guid.NewGuid(), new AddFamilyContributorDto());
+            var result = await controller.AddContributor(Guid.NewGuid(), new AddFamilyContributorDto());
             Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task UpdateContributor_SignedOut_ReturnsUnauthorized()
+        {
+            var controller = await CreateSignedOutController();
+            var result = await controller.UpdateContributor(Guid.NewGuid(), Guid.NewGuid(), new UpdateFamilyContributorDto
+            {
+                Role = ContributorRole.Editor
+            });
+            Assert.IsInstanceOfType(result.Result, typeof(UnauthorizedObjectResult));
         }
 
         [TestMethod]

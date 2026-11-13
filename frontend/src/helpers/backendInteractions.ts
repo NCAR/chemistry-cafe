@@ -21,6 +21,7 @@ import {
 import { updateFamily } from "../API/API_UpdateMethods";
 import { getFamily } from "../API/API_GetMethods";
 import { createFamily } from "../API/API_CreateMethods";
+import { removeFamilyLocally } from "./localFamilies";
 
 /**
  * Converts a species as defined by the backend to a species as defined by the frontend.
@@ -602,6 +603,7 @@ export async function uploadFamily(
   const created = await createFamily(
     frontendToAPIFamily({ ...family, owner }, true),
   );
+  removeFamilyLocally(family);
   return apiToFrontendFamily(await getFamily(created.id as UUID));
 }
 

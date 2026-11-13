@@ -36,10 +36,10 @@ namespace ChemistryCafeAPI.Tests
             _privateId = CreateFamily("VisibilityPrivate", isPublic: false);
 
             var familyService = new FamilyService(ctx, userService);
-            familyService.AddOrUpdateContributorAsync(_privateId, _contributorViewer.Id, null, ContributorRole.Viewer, _owner.Id.ToString()).Wait();
-            familyService.AddOrUpdateContributorAsync(_privateId, _contributorEditor.Id, null, ContributorRole.Editor, _owner.Id.ToString()).Wait();
-            familyService.AddOrUpdateContributorAsync(_publicId, _contributorViewer.Id, null, ContributorRole.Viewer, _owner.Id.ToString()).Wait();
-            familyService.AddOrUpdateContributorAsync(_publicId, _contributorEditor.Id, null, ContributorRole.Editor, _owner.Id.ToString()).Wait();
+            familyService.AddContributorAsync(_privateId, _contributorViewer.Username, ContributorRole.Viewer, _owner.Id.ToString()).Wait();
+            familyService.AddContributorAsync(_privateId, _contributorEditor.Username, ContributorRole.Editor, _owner.Id.ToString()).Wait();
+            familyService.AddContributorAsync(_publicId, _contributorViewer.Username, ContributorRole.Viewer, _owner.Id.ToString()).Wait();
+            familyService.AddContributorAsync(_publicId, _contributorEditor.Username, ContributorRole.Editor, _owner.Id.ToString()).Wait();
         }
 
         [ClassCleanup]

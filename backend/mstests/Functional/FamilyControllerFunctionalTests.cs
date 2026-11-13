@@ -263,7 +263,7 @@ namespace ChemistryCafeAPI.Tests.Functional
         {
             var response = await AnonymousClient.PostAsJsonAsync($"/api/families/{Guid.NewGuid()}/contributors", new AddFamilyContributorDto
             {
-                Email = "someone@example.com",
+                Username = "someone",
                 Role = ContributorRole.Viewer
             });
             Assert.AreEqual(HttpStatusCode.Unauthorized, response.StatusCode);
@@ -279,14 +279,14 @@ namespace ChemistryCafeAPI.Tests.Functional
 
             var response = await client.PostAsJsonAsync($"/api/families/{family.Id}/contributors", new AddFamilyContributorDto
             {
-                Email = "someone@example.com",
+                Username = "someone",
                 Role = ContributorRole.Viewer
             });
             Assert.AreEqual(HttpStatusCode.Forbidden, response.StatusCode);
         }
 
         [TestMethod]
-        public async Task AddContributor_ByEmail_Success()
+        public async Task AddContributor_ByUsername_Success()
         {
             var owner = await CreateUserAsync(Role.None);
             var family = await CreateFamilyAsync(owner);
@@ -295,7 +295,7 @@ namespace ChemistryCafeAPI.Tests.Functional
             var client = CreateClient(true, owner);
             var response = await client.PostAsJsonAsync($"/api/families/{family.Id}/contributors", new AddFamilyContributorDto
             {
-                Email = "user_to_add@example.com",
+                Username = "user_to_add",
                 Role = ContributorRole.Editor
             });
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
@@ -304,32 +304,11 @@ namespace ChemistryCafeAPI.Tests.Functional
             Assert.IsNotNull(created);
             Assert.AreEqual(contributorUser.Id, created.UserId);
             Assert.AreEqual(ContributorRole.Editor, created.Role);
-            Assert.AreEqual("user_to_add@example.com", created.Email);
+            Assert.AreEqual("user_to_add", created.Username);
         }
 
         [TestMethod]
-        public async Task AddContributor_ByUserId_Success()
-        {
-            var owner = await CreateUserAsync(Role.None);
-            var family = await CreateFamilyAsync(owner);
-            var contributorUser = await CreateUserAsync(Role.None, "user_by_id", "user_by_id@example.com");
-
-            var client = CreateClient(true, owner);
-            var response = await client.PostAsJsonAsync($"/api/families/{family.Id}/contributors", new AddFamilyContributorDto
-            {
-                UserId = contributorUser.Id,
-                Role = ContributorRole.Viewer
-            });
-            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-
-            var created = await response.Content.ReadFromJsonAsync<FamilyContributorDto>();
-            Assert.IsNotNull(created);
-            Assert.AreEqual(contributorUser.Id, created.UserId);
-            Assert.AreEqual(ContributorRole.Viewer, created.Role);
-        }
-
-        [TestMethod]
-        public async Task AddContributor_UpdatesExistingRole_Success()
+        public async Task UpdateContributor_ByUserId_Success()
         {
             var owner = await CreateUserAsync(Role.None);
             var family = await CreateFamilyAsync(owner);
@@ -337,9 +316,8 @@ namespace ChemistryCafeAPI.Tests.Functional
             await AddContributorAsync(family.Id, contributorUser, ContributorRole.Viewer);
 
             var client = CreateClient(true, owner);
-            var response = await client.PostAsJsonAsync($"/api/families/{family.Id}/contributors", new AddFamilyContributorDto
+            var response = await client.PutAsJsonAsync($"/api/families/{family.Id}/contributors/{contributorUser.Id}", new UpdateFamilyContributorDto
             {
-                UserId = contributorUser.Id,
                 Role = ContributorRole.Editor
             });
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
@@ -347,6 +325,20 @@ namespace ChemistryCafeAPI.Tests.Functional
             var updated = await response.Content.ReadFromJsonAsync<FamilyContributorDto>();
             Assert.IsNotNull(updated);
             Assert.AreEqual(ContributorRole.Editor, updated.Role);
+        }
+
+        [TestMethod]
+        public async Task UpdateContributor_NotFound_ReturnsNotFound()
+        {
+            var owner = await CreateUserAsync(Role.None);
+            var family = await CreateFamilyAsync(owner);
+
+            var client = CreateClient(true, owner);
+            var response = await client.PutAsJsonAsync($"/api/families/{family.Id}/contributors/{Guid.NewGuid()}", new UpdateFamilyContributorDto
+            {
+                Role = ContributorRole.Editor
+            });
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [TestMethod]
@@ -358,7 +350,7 @@ namespace ChemistryCafeAPI.Tests.Functional
             var client = CreateClient(true, owner);
             var response = await client.PostAsJsonAsync($"/api/families/{family.Id}/contributors", new AddFamilyContributorDto
             {
-                UserId = owner.Id,
+                Username = "self_owner",
                 Role = ContributorRole.Editor
             });
             Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
@@ -373,7 +365,7 @@ namespace ChemistryCafeAPI.Tests.Functional
             var client = CreateClient(true, owner);
             var response = await client.PostAsJsonAsync($"/api/families/{family.Id}/contributors", new AddFamilyContributorDto
             {
-                Email = "nonexistent_email_never_logged_in@example.com",
+                Username = "nonexistent_username_never_logged_in",
                 Role = ContributorRole.Viewer
             });
             Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);

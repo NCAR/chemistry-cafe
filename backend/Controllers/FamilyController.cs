@@ -165,7 +165,7 @@ namespace ChemistryCafeAPI.Controllers
 
         [Authorize]
         [HttpPost("{id}/contributors")]
-        public async Task<ActionResult<FamilyContributorDto>> AddOrUpdateContributor(Guid id, [FromBody] AddFamilyContributorDto request)
+        public async Task<ActionResult<FamilyContributorDto>> AddContributor(Guid id, [FromBody] AddFamilyContributorDto request)
         {
             string? nameIdentifier = GetNameIdentifier();
             if (nameIdentifier == null)
@@ -173,13 +173,13 @@ namespace ChemistryCafeAPI.Controllers
                 return Unauthorized("User is not authenticated");
             }
 
-            if (!request.UserId.HasValue && string.IsNullOrWhiteSpace(request.Email))
+            if (string.IsNullOrWhiteSpace(request.Username))
             {
-                return BadRequest("Either userId or email must be provided.");
+                return BadRequest("Username must be provided.");
             }
 
-            var (code, contributor) = await familyService.AddOrUpdateContributorAsync(
-                id, request.UserId, request.Email, request.Role, nameIdentifier);
+            var (code, contributor) = await familyService.AddContributorAsync(
+                id, request.Username, request.Role, nameIdentifier);
 
             return code switch
             {
@@ -193,6 +193,46 @@ namespace ChemistryCafeAPI.Controllers
         }
 
         [Authorize]
+        [HttpPut("{id}/contributors/{contributorUserId}")]
+        public async Task<ActionResult<FamilyContributorDto>> UpdateContributor(Guid id, Guid contributorUserId, [FromBody] UpdateFamilyContributorDto request)
+        {
+            string? nameIdentifier = GetNameIdentifier();
+            if (nameIdentifier == null)
+            {
+                return Unauthorized("User is not authenticated");
+            }
+
+            if (contributorUserId == Guid.Empty)
+            {
+                return BadRequest("Valid contributor user GUID must be provided.");
+            }
+
+            var (code, contributor) = await familyService.UpdateContributorAsync(
+                id, contributorUserId, request.Role, nameIdentifier);
+
+            return code switch
+            {
+                QueryResult.NotFound => NotFound("Family or contributor not found"),
+                QueryResult.ValidationError => BadRequest("Owner cannot be added or updated as a contributor."),
+                QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
+                QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier claim"),
+                _ => Ok(contributor),
+            };
+        }
+
+        [Authorize]
+        [HttpPut("{id}/contributors")]
+        public async Task<ActionResult<FamilyContributorDto>> UpdateContributorFromBody(Guid id, [FromBody] UpdateFamilyContributorDto request)
+        {
+            if (!request.UserId.HasValue || request.UserId.Value == Guid.Empty)
+            {
+                return BadRequest("Valid contributor user GUID must be provided.");
+            }
+
+            return await UpdateContributor(id, request.UserId.Value, request);
+        }
+
+        [Authorize]
         [HttpDelete("{id}/contributors/{contributorUserId}")]
         public async Task<IActionResult> DeleteContributor(Guid id, Guid contributorUserId)
         {
@@ -202,10 +242,16 @@ namespace ChemistryCafeAPI.Controllers
                 return Unauthorized("User is not authenticated");
             }
 
+            if (contributorUserId == Guid.Empty)
+            {
+                return BadRequest("Valid contributor user GUID must be provided.");
+            }
+
             var code = await familyService.RemoveContributorAsync(id, contributorUserId, nameIdentifier);
             return code switch
             {
                 QueryResult.NotFound => NotFound("Family or contributor not found"),
+                QueryResult.ValidationError => BadRequest("Owner cannot be removed as a contributor."),
                 QueryResult.NoAccess => StatusCode(StatusCodes.Status403Forbidden),
                 QueryResult.ParseError => BadRequest("Invalid UUID format for user's name identifier claim"),
                 _ => NoContent(),

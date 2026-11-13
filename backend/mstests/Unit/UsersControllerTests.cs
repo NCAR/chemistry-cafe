@@ -619,8 +619,8 @@ namespace ChemistryCafeAPI.Tests
             Assert.IsNotNull(createdFamily);
 
             // Add srcUser as an Editor
-            var (addCode, _) = await familyService.AddOrUpdateContributorAsync(
-                createdFamily.Entity.Id, srcUser.Id, null, ContributorRole.Editor, thirdUser.Id.ToString());
+            var (addCode, _) = await familyService.AddContributorAsync(
+                createdFamily.Entity.Id, srcUser.Username, ContributorRole.Editor, thirdUser.Id.ToString());
             Assert.AreEqual(QueryResult.Success, addCode);
 
             // Merge srcUser into destUser

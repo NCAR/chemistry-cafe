@@ -46,7 +46,12 @@ public class FamilyContributorDto
 
 public class AddFamilyContributorDto
 {
+    public string Username { get; set; } = null!;
+    public ContributorRole Role { get; set; } = ContributorRole.Viewer;
+}
+
+public class UpdateFamilyContributorDto
+{
     public Guid? UserId { get; set; }
-    public string? Email { get; set; }
     public ContributorRole Role { get; set; } = ContributorRole.Viewer;
 }

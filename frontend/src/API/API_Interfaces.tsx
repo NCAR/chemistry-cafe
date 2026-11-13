@@ -70,8 +70,12 @@ export interface APIFamilyContributor {
 }
 
 export interface AddFamilyContributorRequest {
+  username: string;
+  role: ContributorRole;
+}
+
+export interface UpdateFamilyContributorRequest {
   userId?: UUID;
-  email?: string;
   role: ContributorRole;
 }
 

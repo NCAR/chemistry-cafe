@@ -785,6 +785,21 @@ describe("Uploading a family", () => {
     expect(result.phases.at(0)?.id).equals(apiPhase.id);
     expect(result.mechanisms.at(0)?.id).equals(apiMechanism.id);
   });
+
+  test("Removes localstorage version of family when uploaded", async () => {
+    localStorage.setItem(
+      "localFamilies",
+      JSON.stringify([frontendFamily]),
+    );
+
+    vi.spyOn(axios, "post").mockResolvedValue(createMockData(apiFamily));
+    vi.spyOn(axios, "get").mockResolvedValue(createMockData(apiFamily));
+
+    await uploadFamily(frontendFamily, user);
+
+    const stored = JSON.parse(localStorage.getItem("localFamilies") || "[]");
+    expect(stored.some((f: any) => f.id === frontendFamily.id)).toBe(false);
+  });
 });
 
 describe("saveFamilyChanges reference integrity", () => {

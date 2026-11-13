@@ -1,8 +1,15 @@
 // API_UpdateMethods.ts
 
 import axios from "axios";
-import { APIFamily, APIUser, APIUserPreferences } from "./API_Interfaces";
+import {
+  APIFamily,
+  APIFamilyContributor,
+  APIUser,
+  APIUserPreferences,
+  ContributorRole,
+} from "./API_Interfaces";
 import { BASE_URL } from "./API_config";
+import { UUID } from "crypto";
 
 /**
  * Updates a user to
@@ -47,4 +54,29 @@ export async function updateFamily(family: APIFamily): Promise<void> {
       "Content-Type": "application/json",
     },
   });
+}
+
+/**
+ * Updates a contributor's role for a family by user GUID.
+ * @param familyId
+ * @param contributorUserId
+ * @param role
+ */
+export async function updateFamilyContributor(
+  familyId: UUID,
+  contributorUserId: UUID,
+  role: ContributorRole,
+): Promise<APIFamilyContributor> {
+  const response = await axios.put<APIFamilyContributor>(
+    `${BASE_URL}/families/${familyId}/contributors/${contributorUserId}`,
+    { role },
+    {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    },
+  );
+
+  return response.data;
 }

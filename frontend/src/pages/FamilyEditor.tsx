@@ -374,6 +374,7 @@ const FamilyEditor = () => {
     setInPageError(null);
     try {
       const uploaded = await uploadFamily(family, user);
+      removeFamilyLocally(family);
       addUploadedFamilyIdLocally(uploaded.id);
       localStorage.setItem("selectedEditorFamilyId", uploaded.id);
       setFamily(uploaded);
