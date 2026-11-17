@@ -1,8 +1,14 @@
 <?php
 
-include('pwd.php');
+// Docker sets the CHEMDB_* variables. The production server uses pwd.php.
+if (getenv('CHEMDB_USER') !== false) {
+    $user = getenv('CHEMDB_USER');
+    $pass = getenv('CHEMDB_PASSWORD');
+} else {
+    include('pwd.php');
+}
 
-$host = "localhost"; 
+$host = getenv('CHEMDB_HOST') ?: "localhost";
 $db = "chem3"; 
 //$db = "chemtest2"; 
 
