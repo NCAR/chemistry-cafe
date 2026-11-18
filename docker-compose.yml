@@ -1,0 +1,32 @@
+name: chemistry-cafe-v1
+
+services:
+  db:
+    image: postgres:10
+    environment:
+      POSTGRES_DB: chem3
+      POSTGRES_USER: chem
+      POSTGRES_PASSWORD: chem
+    volumes:
+      - ./docker/db:/docker-entrypoint-initdb.d:ro
+      - chem3-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chem -d chem3"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  web:
+    build: .
+    environment:
+      CHEMDB_HOST: db
+      CHEMDB_USER: chem
+      CHEMDB_PASSWORD: chem
+    ports:
+      - "8090:80"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  chem3-data:

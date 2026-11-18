@@ -1,0 +1,11 @@
+.git
+.env
+.claude
+.vscode
+docker
+docker-compose.yml
+Dockerfile
+# Leftover folders from the main branch checkout
+backend
+frontend
+TestResults
