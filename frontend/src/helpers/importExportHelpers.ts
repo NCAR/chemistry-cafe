@@ -37,8 +37,24 @@ type CreateTypeMapHelper<T extends BaseCSVImport>=T extends BaseCSVImport?{
     [K in keyof T]-?: PrimToStrType<T[K]>[]
 }:never;
 
-export function CreateTypeMap<const T extends BaseCSVImport>(typeMap:CreateTypeMapHelper<T>){
-    return Object.fromEntries(Object.entries(typeMap).map(([k,v])=>[k,new Set<SpreadType<typeof v>>(Array.isArray(v)?v:[v])])) as TypeMapHelperSets<T>;
+export type GetOut<T extends TypeMap<any,any,any,any,any>> = T extends TypeMap<any,any,any,any,infer A> ? A : never;
+export class TypeMap<T extends BaseCSVImport,A extends unknown[]=[],B extends unknown[]=[],H extends TypeMapHelper = TypeMapHelperSets<T>,O extends unknown = CSVImport<H>>{
+    innerMap:H;
+    exp?:(val:O,...args:B)=>CSVImport<H>;
+    imp?:(val:CSVImport<H>,...args:A)=>O;
+    constructor(typeMap:CreateTypeMapHelper<T>) {
+        this.innerMap=Object.fromEntries(Object.entries(typeMap).map(([k,v])=>[k,new Set<SpreadType<typeof v>>(Array.isArray(v)?v:[v])])) as H;
+    }
+    setImport<NO extends unknown,NA extends unknown[]>(imp:(val:CSVImport<H>,...args:NA)=>NO) {
+        //@ts-expect-error
+        this.imp=imp;
+        return this as unknown as TypeMap<T,NA,B,H,NO>
+    }
+    setExport<NB extends unknown[]>(exp:(val:O,...args:NB)=>CSVImport<H>) {
+        //@ts-expect-error
+        this.exp=exp;
+        return this as TypeMap<T,A,NB,H,O>
+    }
 }
 
 export function processCSVType<T extends Set<StrType>>(v:string,type:T){
@@ -88,7 +104,8 @@ export function exportCSVArray(data:string[][],filename:string="download"){
     link.click();
     URL.revokeObjectURL(url);
 }
-export async function importCSV<const T extends TypeMapHelper>(typeMap:T){
+export async function importCSV<const T extends TypeMap<any,A,any,any,any>,A extends unknown []>(type:T,...args:A){
+    const typeMap = type.innerMap;
     const raw = await importCSVArray();
     const [header,...data] = raw;
     const headerChecker = new Set(Object.keys(typeMap));
@@ -101,7 +118,7 @@ export async function importCSV<const T extends TypeMapHelper>(typeMap:T){
     if(!(headerChecker.size===0 || [...headerChecker.values()].every((v)=>typeMap[v].has("undefined")))){
         throw new Error("not enough headers");
     }
-    return data.map((data)=>{
+    const out = data.map((data)=>{
         if(data.length!==header.length){
             console.log(data,header)
             throw new Error("column length does not match headers");
@@ -110,9 +127,12 @@ export async function importCSV<const T extends TypeMapHelper>(typeMap:T){
             const val = processCSVType(v,typeMap[header[i]]);
             return val === undefined?[]:[[header[i],val]]
         }));
-    }) as CSVImport<T>;
+    }) as CSVImport<T["innerMap"]>;
+    return (type.imp?.(out,...args) ?? out) as GetOut<T>;
 }
-export function exportCSV<T extends TypeMapHelper>(data:CSVImport<T>,typeMap:T,filename:string="download"){
+export function exportCSV<T extends TypeMap<any,any,A,any,any>,A extends unknown []>(type:T,exportData:GetOut<T>,filename:string="download",...args:A){
+    const typeMap=type.innerMap;
+    const data = (type.exp?.(exportData,...args) ?? exportData) as CSVImport<T["innerMap"]>;
     const keys = Object.keys(typeMap);
     const headerRows = Object.fromEntries(keys.map((v,i)=>[v,i]))
     exportCSVArray([keys,...data.map((val)=>Object.entries(val).reduce((row,[k,v])=>(typeMap[k] && (row[headerRows[k]]=(typeMap[k].has("string")&&typeof v==="string")?v:(JSON.stringify(v) ?? "")),row),Array(keys.length).fill("")))],filename);

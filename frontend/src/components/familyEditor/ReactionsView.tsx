@@ -98,7 +98,7 @@ export const ReactionsView = ({
   }
   const exportReaction = () => {
     console.log(family.reactions)
-    exportCSV(family.reactions,ReactionTypeMap,`${family.name.replace(/[^a-zA-Z]/g,"_")}_reactions`)
+    exportCSV(ReactionTypeMap,family.reactions,`${family.name.replace(/[^a-zA-Z]/g,"_")}_reactions`)
   }
 
   return (

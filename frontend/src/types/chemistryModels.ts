@@ -1,7 +1,7 @@
 import { UUID } from "crypto";
 import { APIFamilyContributor, APIUser } from "../API/API_Interfaces";
 import { mechanismConfiguration } from "@ncar/musica";
-import {CreateTypeMap} from "../helpers/importExportHelpers.ts";
+import {TypeMap} from "../helpers/importExportHelpers.ts";
 const { reactionTypes, Mechanism } = mechanismConfiguration;
 
 /**
@@ -38,16 +38,20 @@ export type Species = {
   /** Optional, additional properties for the species which are not defined in the mechanism configuration schema but can be queried for in musica */
   otherProperties?: Record<string, unknown>;
 };
-export const SpeciesTypeMap=CreateTypeMap<Species>({
+export type ExportSpecies = Omit<Species,"sourceObjectId"|"id">;
+export const SpeciesTypeMap=new TypeMap<ExportSpecies>({
   absoluteTolerance:["number","undefined"],
   constantConcentration:["number","undefined"],
   constantMixingRatio:["number","undefined"],
   description:["string","null"],
-  id: ["string"],
   isThirdBody: ["boolean","undefined"],
   molecularWeight:["number","undefined"],
   name: ["string"],
   otherProperties:["object","undefined"]
+}).setImport((val)=>{
+  return val as Species[];
+}).setExport((val)=>{
+  return val;
 });
 
 /**
@@ -120,8 +124,8 @@ export type Reaction = {
   /** Optional, additional properties for the reactions which are not defined in the mechanism configuration schema but can be queried for in musica */
   otherProperties?: Record<string, unknown>;
 };
-export const ReactionTypeMap=CreateTypeMap<Reaction>({
-  id: ["string"],
+export type ExportReaction = Omit<Reaction,"sourceObjectId"|"id">;
+export const ReactionTypeMap=new TypeMap<ExportReaction>({
   name: ["string"],
   description:["string","null"],
   type: ["string"],
@@ -131,6 +135,10 @@ export const ReactionTypeMap=CreateTypeMap<Reaction>({
   products:["object"],
   attributes:["object"],
   otherProperties:["object","undefined"]
+}).setImport((val)=>{
+  return val as Reaction[];
+}).setExport((val)=>{
+  return val;
 });
 
 export type Reactant = {
