@@ -48,9 +48,9 @@ export const SpeciesTypeMap=new TypeMap<ExportSpecies>({
   molecularWeight:["number","undefined"],
   name: ["string"],
   otherProperties:["object","undefined"]
-}).setImport((val)=>{
+}).setConv((val)=>{
   return val as Species[];
-}).setExport((val)=>{
+},(val)=>{
   return val;
 });
 
@@ -135,9 +135,9 @@ export const ReactionTypeMap=new TypeMap<ExportReaction>({
   products:["object"],
   attributes:["object"],
   otherProperties:["object","undefined"]
-}).setImport((val)=>{
+}).setConv((val)=>{
   return val as Reaction[];
-}).setExport((val)=>{
+},(val)=>{
   return val;
 });
 

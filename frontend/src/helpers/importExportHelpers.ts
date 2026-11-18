@@ -45,15 +45,12 @@ export class TypeMap<T extends BaseCSVImport,A extends unknown[]=[],B extends un
     constructor(typeMap:CreateTypeMapHelper<T>) {
         this.innerMap=Object.fromEntries(Object.entries(typeMap).map(([k,v])=>[k,new Set<SpreadType<typeof v>>(Array.isArray(v)?v:[v])])) as H;
     }
-    setImport<NO extends unknown,NA extends unknown[]>(imp:(val:CSVImport<H>,...args:NA)=>NO) {
+    setConv<NO extends unknown,NA extends unknown[],NB extends unknown[]>(imp:(val:CSVImport<H>,...args:NA)=>NO,exp:(val:NO,...args:NB)=>CSVImport<H>) {
         //@ts-expect-error
         this.imp=imp;
-        return this as unknown as TypeMap<T,NA,B,H,NO>
-    }
-    setExport<NB extends unknown[]>(exp:(val:O,...args:NB)=>CSVImport<H>) {
         //@ts-expect-error
         this.exp=exp;
-        return this as TypeMap<T,A,NB,H,O>
+        return this as unknown as TypeMap<T,NA,NB,H,NO>
     }
 }
 
