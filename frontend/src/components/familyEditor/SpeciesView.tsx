@@ -42,7 +42,7 @@ export const SpeciesView = ({ family, updateFamily, readOnly }: ViewProps) => {
   };
   const importSpecies = () => {
     importCSV(SpeciesTypeMap).then((data)=>{
-      console.log(data);
+      updateFamily(applySpeciesRowUpdate(family,...data as Species[]));
     }).catch((err)=>{
       console.log(err);
     })
@@ -94,21 +94,7 @@ export const SpeciesView = ({ family, updateFamily, readOnly }: ViewProps) => {
    * @param species
    */
   const updateSpecies = (species: Species) => {
-    const speciesList = [...family.species];
-    const existingIndex = speciesList.findIndex(
-      (element) => element.id == species.id,
-    );
-
-    if (existingIndex >= 0) {
-      speciesList[existingIndex] = { ...species };
-    } else {
-      speciesList.unshift({ ...species });
-    }
-
-    updateFamily({
-      ...family,
-      species: speciesList,
-    });
+    updateFamily(applySpeciesRowUpdate(family,species));
   };
 
   return (

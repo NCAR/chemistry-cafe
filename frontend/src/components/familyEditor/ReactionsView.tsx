@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Box, Tooltip, Typography } from "@mui/material";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import { Reaction } from "../../types/chemistryModels";
+import {Reaction, ReactionTypeMap} from "../../types/chemistryModels";
 import {
   ReactionEditorModal,
   type PhaseSpeciesAddition,
@@ -19,7 +19,8 @@ import {
   EditSelectedButton,
   HistorySelectedButton,
 } from "./SelectionButtons";
-import { removeReactions } from "../../helpers/editorHelpers";
+import {applyReactionRowUpdate, removeReactions} from "../../helpers/editorHelpers";
+import {exportCSV, importCSV} from "../../helpers/importExportHelpers.ts";
 
 export const ReactionsView = ({
   family,
@@ -87,6 +88,18 @@ export const ReactionsView = ({
     setSelectedReaction(family.reactions.find((element) => element.id === id));
     setReactionsEditorOpen(true);
   };
+
+  const importReaction = () => {
+    importCSV(ReactionTypeMap).then((data)=>{
+      updateFamily(applyReactionRowUpdate(family,...data as Reaction[]));
+    }).catch((err)=>{
+      console.log(err);
+    })
+  }
+  const exportReaction = () => {
+    console.log(family.reactions)
+    exportCSV(family.reactions,ReactionTypeMap,`${family.name.replace(/[^a-zA-Z]/g,"_")}_reactions`)
+  }
 
   return (
     <Box
@@ -170,6 +183,8 @@ export const ReactionsView = ({
         species={family.species}
         onRowUpdate={readOnly ? undefined : updateReaction}
         onAdd={readOnly ? undefined : createReaction}
+        onImport={importReaction}
+        onExport={exportReaction}
         onEdit={readOnly ? undefined : editReaction}
       />
       <ReactionEditorModal

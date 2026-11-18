@@ -1,29 +1,59 @@
 import { UUID } from "crypto";
-import { Family, Species } from "../types/chemistryModels";
+import {Family, Reaction, Species} from "../types/chemistryModels";
 
 export const applySpeciesRowUpdate = (
   family: Family,
-  updatedSpecies: Species,
+  ...updatedSpecies: Species[]
 ): Family => {
   const speciesList = [...family.species];
-  const existingIndex = speciesList.findIndex(
-    (element) => element.id === updatedSpecies.id,
-  );
-
-  if (existingIndex >= 0) {
-    speciesList[existingIndex] = {
-      ...speciesList[existingIndex],
-      ...updatedSpecies,
-    };
-  } else {
-    speciesList.unshift({
-      ...updatedSpecies,
-    });
+  const idxMap = new Map<UUID,number>(speciesList.map((s,i) => [s.id,i]));
+  const temp = [];
+  for (const upSpec of updatedSpecies) {
+    const idx= idxMap.get(upSpec.id)
+    if (idx!==undefined) {
+      speciesList[idx] = {
+        ...speciesList[idx],
+        ...upSpec,
+      };
+    } else {
+      idxMap.set(upSpec.id,speciesList.length)
+      temp.push({
+        ...upSpec,
+      });
+    }
   }
+  speciesList.unshift(...temp)
 
   return {
     ...family,
     species: speciesList,
+  };
+};
+export const applyReactionRowUpdate = (
+    family: Family,
+    ...updatedReactions: Reaction[]
+): Family => {
+  const reactionList = [...family.reactions];
+  const idxMap = new Map<UUID,number>(reactionList.map((s,i) => [s.id,i]));
+  const temp = [];
+  for (const upReac of updatedReactions) {
+    const idx= idxMap.get(upReac.id)
+    if (idx!==undefined) {
+      reactionList[idx] = {
+        ...upReac,
+      };
+    } else {
+      idxMap.set(upReac.id,reactionList.length)
+      temp.push({
+        ...upReac,
+      });
+    }
+  }
+  reactionList.unshift(...temp)
+
+  return {
+    ...family,
+    reactions: reactionList,
   };
 };
 
