@@ -49,8 +49,9 @@ export const SpeciesTypeMap=new TypeMap<ExportSpecies>({
   molecularWeight:["number","undefined"],
   name: ["string"],
   otherProperties:["object","undefined"]
-}).setConv((val)=>{
-  return val.map((v)=>((v as Species).id=generateID(),v as Species));
+}).setConv((val,family?:Family)=>{
+  const speciesMap = family && new Map<string,UUID>(family.species.map((v)=>[v.name,v.id]));
+  return val.map((v)=>((v as Species).id=(speciesMap?.get(v.name))??generateID(),v as Species));
 },(val)=>{
   return val;
 });

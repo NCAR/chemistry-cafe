@@ -41,7 +41,7 @@ export const SpeciesView = ({ family, updateFamily, readOnly }: ViewProps) => {
     setSpeciesEditorOpen(true);
   };
   const importSpecies = () => {
-    importCSV(SpeciesTypeMap).then((data)=>{
+    importCSV(SpeciesTypeMap,family).then((data)=>{
       updateFamily(applySpeciesRowUpdate(family,...data));
     }).catch((err)=>{
       console.log(err);
