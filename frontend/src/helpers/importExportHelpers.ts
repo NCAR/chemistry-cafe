@@ -28,7 +28,7 @@ export type CSVImport<T extends TypeMapHelper>=T extends TypeMapHelper?ReZip<Und
 }>>[]:never;
 
 
-type TypeMapHelperSets<T extends BaseCSVImport>=T extends BaseCSVImport?{
+export type TypeMapHelperSets<T extends BaseCSVImport>=T extends BaseCSVImport?{
     [K in keyof T]-?: Set<PrimToStrType<T[K]>>
 }:never;
 

@@ -19,7 +19,7 @@ import {
   EditSelectedButton,
   HistorySelectedButton,
 } from "./SelectionButtons";
-import {applyReactionRowUpdate, removeReactions} from "../../helpers/editorHelpers";
+import {removeReactions} from "../../helpers/editorHelpers";
 import {exportCSV, importCSV} from "../../helpers/importExportHelpers.ts";
 
 export const ReactionsView = ({
@@ -90,15 +90,14 @@ export const ReactionsView = ({
   };
 
   const importReaction = () => {
-    importCSV(ReactionTypeMap).then((data)=>{
-      updateFamily(applyReactionRowUpdate(family,...data as Reaction[]));
+    importCSV(ReactionTypeMap,family).then((data)=>{
+      updateFamily(data);
     }).catch((err)=>{
       console.log(err);
     })
   }
   const exportReaction = () => {
-    console.log(family.reactions)
-    exportCSV(ReactionTypeMap,family.reactions,`${family.name.replace(/[^a-zA-Z]/g,"_")}_reactions`)
+    exportCSV(ReactionTypeMap,family,`${family.name.replace(/[^a-zA-Z]/g,"_")}_reactions`)
   }
 
   return (
