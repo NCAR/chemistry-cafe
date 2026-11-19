@@ -24,6 +24,20 @@ declare module "@mui/x-data-grid" {
     /** Test ID of the add button */
     addTestId?: string;
     onAdd?: () => void;
+    /** Text of the import button, for example "import species" */
+    importLabel?: string;
+    /** Tooltip of the import button */
+    importTooltip?: string;
+    /** Test ID of the import button */
+    importTestId?: string;
+    onImport?: () => void;
+    /** Text of the export button, for example "export species" */
+    exportLabel?: string;
+    /** Tooltip of the export button */
+    exportTooltip?: string;
+    /** Test ID of the export button */
+    exportTestId?: string;
+    onExport?: () => void;
     /** Placeholder of the search field */
     searchPlaceholder?: string;
     /** More filters after the search field */
@@ -59,7 +73,15 @@ export const DataViewToolbar = ({
   addLabel,
   addTooltip,
   addTestId,
-  onAdd,
+  onAdd, 
+  importLabel,
+  importTooltip,
+  importTestId,
+  onImport, 
+  exportLabel,
+  exportTooltip,
+  exportTestId,
+  onExport,  
   searchPlaceholder,
   filters,
   actions,
@@ -110,6 +132,32 @@ export const DataViewToolbar = ({
           </Button>
         </Tooltip>
       </>
+    )}
+    {onImport && (
+        <Tooltip title={importTooltip ?? ""}>
+          <Button
+              aria-label={importLabel}
+              data-testid={importTestId}
+              onClick={onImport}
+              color="primary"
+          >
+            <AddIcon />
+            <Typography variant="caption">{importLabel}</Typography>
+          </Button>
+        </Tooltip>
+    )}
+    {onExport && (
+        <Tooltip title={exportTooltip ?? ""}>
+          <Button
+              aria-label={exportLabel}
+              data-testid={exportTestId}
+              onClick={onExport}
+              color="primary"
+          >
+            <AddIcon />
+            <Typography variant="caption">{exportLabel}</Typography>
+          </Button>
+        </Tooltip>
     )}
   </GridToolbarContainer>
 );

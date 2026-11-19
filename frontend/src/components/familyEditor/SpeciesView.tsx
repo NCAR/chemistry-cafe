@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Box, Tooltip, Typography } from "@mui/material";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import { Species } from "../../types/chemistryModels";
+import {Species, SpeciesTypeMap} from "../../types/chemistryModels";
 import { applySpeciesRowUpdate } from "../../helpers/editorHelpers";
 import { SpeciesEditorModal } from "../modals/SpeciesEditorModal";
 import { UUID } from "crypto";
@@ -13,12 +13,17 @@ import {
   countOf,
   DeleteSelectedButton,
   EditSelectedButton,
+  HistorySelectedButton,
 } from "./SelectionButtons";
+import { EntityHistoryModal } from "../modals/EntityHistoryModal";
+import { exportCSV, importCSV} from "../../helpers/importExportHelpers.ts";
+
 
 export const SpeciesView = ({ family, updateFamily, readOnly }: ViewProps) => {
   const { byItem } = useFamilyValidation();
   const [speciesEditorOpen, setSpeciesEditorOpen] = useState<boolean>(false);
   const [selectedSpecies, setSelectedSpecies] = useState<Species>();
+  const [historySpecies, setHistorySpecies] = useState<Species | null>(null);
 
   const handleSpeciesRowUpdate = (updatedSpecies: Species) => {
     updateFamily(applySpeciesRowUpdate(family, updatedSpecies));
@@ -35,6 +40,17 @@ export const SpeciesView = ({ family, updateFamily, readOnly }: ViewProps) => {
     setSelectedSpecies(species);
     setSpeciesEditorOpen(true);
   };
+  const importSpecies = () => {
+    importCSV(SpeciesTypeMap,family).then((data)=>{
+      updateFamily(applySpeciesRowUpdate(family,...data));
+    }).catch((err)=>{
+      console.log(err);
+    })
+  }
+  const exportSpecies = () => {
+    console.log(family.species)
+    exportCSV(SpeciesTypeMap,family.species,`${family.name.replace(/[^a-zA-Z]/g,"_")}_species`)
+  }
 
   const removeSpecies = (speciesIds: Array<UUID>) => {
     const ids = new Set<string>(speciesIds);
@@ -78,21 +94,7 @@ export const SpeciesView = ({ family, updateFamily, readOnly }: ViewProps) => {
    * @param species
    */
   const updateSpecies = (species: Species) => {
-    const speciesList = [...family.species];
-    const existingIndex = speciesList.findIndex(
-      (element) => element.id == species.id,
-    );
-
-    if (existingIndex >= 0) {
-      speciesList[existingIndex] = { ...species };
-    } else {
-      speciesList.unshift({ ...species });
-    }
-
-    updateFamily({
-      ...family,
-      species: speciesList,
-    });
+    updateFamily(applySpeciesRowUpdate(family,species));
   };
 
   return (
@@ -122,11 +124,11 @@ export const SpeciesView = ({ family, updateFamily, readOnly }: ViewProps) => {
         issues={byItem}
         species={family.species}
         selectionActions={
-          readOnly
+          readOnly && !family.isInDatabase
             ? undefined
             : (ids, clearSelection) => (
                 <>
-                  {ids.length === 1 && (
+                  {!readOnly && ids.length === 1 && (
                     <EditSelectedButton
                       testId="edit-species-button"
                       onClick={() => {
@@ -139,19 +141,35 @@ export const SpeciesView = ({ family, updateFamily, readOnly }: ViewProps) => {
                       }}
                     />
                   )}
-                  <DeleteSelectedButton
-                    testId="delete-species-button"
-                    message={`This deletes ${countOf(ids.length, "species", "species")} from the family, its phases, its mechanisms, and its reactions.`}
-                    onDelete={() => {
-                      removeSpecies(ids);
-                      clearSelection();
-                    }}
-                  />
+                  {family.isInDatabase && ids.length === 1 && (
+                    <HistorySelectedButton
+                      testId="history-species-button"
+                      onClick={() => {
+                        const sp = family.species.find(
+                          (element) => element.id === ids[0],
+                        );
+                        if (sp) setHistorySpecies(sp);
+                      }}
+                    />
+                  )}
+                  {!readOnly && (
+                    <DeleteSelectedButton
+                      testId="delete-species-button"
+                      message={`This deletes ${countOf(ids.length, "species", "species")} from the family, its phases, its mechanisms, and its reactions.`}
+                      onDelete={() => {
+                        removeSpecies(ids);
+                        clearSelection();
+                      }}
+                    />
+                  )}
                 </>
               )
         }
         onRowUpdate={readOnly ? undefined : handleSpeciesRowUpdate}
         onAdd={readOnly ? undefined : createSpecies}
+        onImport={importSpecies}
+        onExport={exportSpecies}
+        
       />
       <SpeciesEditorModal
         open={speciesEditorOpen}
@@ -162,6 +180,17 @@ export const SpeciesView = ({ family, updateFamily, readOnly }: ViewProps) => {
         onUpdate={updateSpecies}
         species={selectedSpecies}
       />
+      {historySpecies && (
+        <EntityHistoryModal
+          open={Boolean(historySpecies)}
+          onClose={() => setHistorySpecies(null)}
+          familyId={family.id}
+          targetType="Species"
+          targetId={historySpecies.id}
+          targetName={historySpecies.name}
+          family={family}
+        />
+      )}
     </Box>
   );
 };

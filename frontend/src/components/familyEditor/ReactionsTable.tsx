@@ -391,6 +391,10 @@ export type ReactionsTableProps = {
   onRowUpdate?: (reaction: Reaction) => void;
   /** Shows the add button of the toolbar, and calls this when it is clicked. */
   onAdd?: () => void;
+  /** Shows the import button of the toolbar, and calls this when it is clicked. */
+  onImport?: () => void;
+  /** Shows the import button of the toolbar, and calls this when it is clicked. */
+  onExport?: () => void;
   /**
    * Opens the editor of the reaction with this ID when a cell that is not
    * editable is double-clicked. Without it, a double-click there does nothing.
@@ -416,6 +420,8 @@ export const ReactionsTable = ({
   getRowActions,
   onRowUpdate,
   onAdd,
+  onImport,
+  onExport,  
   onEdit,
   issues,
   selectionActions,
@@ -781,6 +787,14 @@ export const ReactionsTable = ({
           addTooltip: "Add reaction to family",
           addTestId: "add-reaction-button",
           onAdd,
+          importLabel: "Import Reaction",
+          importTooltip: "Import reaction into a family",
+          importTestId:"import-reaction-button",
+          onImport,
+          exportLabel: "Export Reaction",
+          exportTooltip: "Export reaction",
+          exportTestId:"export-reaction-button",
+          onExport,  
           searchPlaceholder: "Search reactions",
           filters: (
             <>

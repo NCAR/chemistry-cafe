@@ -1,6 +1,8 @@
 import { UUID } from "crypto";
 import { APIFamilyContributor, APIUser } from "../API/API_Interfaces";
 import { mechanismConfiguration } from "@ncar/musica";
+import {CSVImport, TypeMap, TypeMapHelperSets} from "../helpers/importExportHelpers.ts";
+import {generateID} from "../helpers/localFamilies.ts";
 const { reactionTypes, Mechanism } = mechanismConfiguration;
 
 /**
@@ -37,6 +39,22 @@ export type Species = {
   /** Optional, additional properties for the species which are not defined in the mechanism configuration schema but can be queried for in musica */
   otherProperties?: Record<string, unknown>;
 };
+export type ExportSpecies = Omit<Species,"sourceObjectId"|"id">;
+export const SpeciesTypeMap=new TypeMap<ExportSpecies>({
+  absoluteTolerance:["number","undefined"],
+  constantConcentration:["number","undefined"],
+  constantMixingRatio:["number","undefined"],
+  description:["string","null"],
+  isThirdBody: ["boolean","undefined"],
+  molecularWeight:["number","undefined"],
+  name: ["string"],
+  otherProperties:["object","undefined"]
+}).setConv((val,family?:Family)=>{
+  const speciesMap = family && new Map<string,UUID>(family.species.map((v)=>[v.name,v.id]));
+  return val.map((v)=>((v as Species).id=(speciesMap?.get(v.name))??generateID(),v as Species));
+},(val)=>{
+  return val;
+});
 
 /**
  * Represents a value that the reaction may have.
@@ -108,6 +126,120 @@ export type Reaction = {
   /** Optional, additional properties for the reactions which are not defined in the mechanism configuration schema but can be queried for in musica */
   otherProperties?: Record<string, unknown>;
 };
+export type ExportReaction = Omit<Reaction,"sourceObjectId"|"id"|"gasPhaseId"|"gasPhaseSpeciesId"|"reactants"|"products"> & {
+  gasPhase:string;
+  gasPhaseSpecies:string;
+  reactionString:string;
+};
+export function serializeStdReactions(family:Family,reactions?:Reaction[]){
+  const speciesMap = new Map<string,string>(family.species.map((v)=>[v.id,v.name]));
+  const gasMap = new Map<string,string>(family.phases.map((v)=>[v.id,v.name]));
+  return (reactions ?? family.reactions).map((reaction:Reaction)=>(
+      {...reaction,
+        gasPhase:(reaction.gasPhaseId && gasMap.get(reaction.gasPhaseId))??"",
+        gasPhaseSpecies:(reaction.gasPhaseSpeciesId && speciesMap.get(reaction.gasPhaseSpeciesId))??"",
+        reactionString:`${reaction.reactants.map((r)=>r.coefficient===1?speciesMap.get(r.speciesId):`${r.coefficient} ${speciesMap.get(r.speciesId)}`).join(" + ")} -> ${reaction.products.map((r)=>`${r.coefficient!==1?`${r.coefficient} `:""}${speciesMap.get(r.speciesId)}${r.branch?`.(${r.branch})`:""}`).join(" + ")}`,
+      }));
+}
+export function parseStdReactions(val:CSVImport<TypeMapHelperSets<ExportReaction>>,family:Family){
+  const phases = [...family.phases];
+  const species = [...family.species];
+  const reactions = [...family.reactions];
+  const existingPhases = new Map<string,[number|undefined,Phase]>(phases.map((v,i)=>[v.name,[i,v]]));
+  const existingReactions = new Map<string,[number|undefined,Reaction]>(reactions.map((v,i)=>[v.name,[i,v]]));
+  const existingSpecies = new Map<string,[number|undefined,Species]>(species.map((v,i)=>[v.name,[i,v]]));
+  const addPhases:Phase[] = [];
+  const addSpecies:Species[] = [];
+  const addReactions:Reaction[] = [];
+  val.forEach((v)=>{
+    let phase = existingPhases.get(v.gasPhase);
+    if(!phase){
+      phase=[undefined,{id:generateID(),name:v.gasPhase,description:"",speciesIds:[]}]
+      existingPhases.set(phase[1].name,phase);
+      addPhases.push(phase[1]);
+    }else if(phase[0]!==undefined){
+      phase[1]={...phase[1]};
+      phases[phase[0]]=phase[1];
+      phase[0]=undefined;
+    }
+    const phaseSet = new Set(phase[1].speciesIds);
+    
+  
+    const [reactants,products] = v.reactionString?v.reactionString.split(" -> ").map((s)=>s.split(" + ").flatMap((p)=>{
+      const [_,coef,val,branch]=p.match(/(?:(\d+(?:\.\d+)?|\.\d+) )?(\w[\w\d]*)(?:\.\(([^+]+)\))?/m) ?? [undefined,undefined,undefined,undefined];
+      if(!val){
+        return [];
+      }
+      let spec=existingSpecies.get(val);
+      if(!spec){
+        spec=[undefined,{id:generateID(),name:val,description:""}]
+        existingSpecies.set(spec[1].name,spec);
+        addSpecies.push(spec[1]);
+      }else if(spec[0]!==undefined){
+        spec[1]={...spec[1]};
+        species[spec[0]]=spec[1];
+        spec[0]=undefined;
+      }
+      phaseSet.add(spec[1].id);
+      const coefVal = Number(coef);
+      return [{coefficient:Number.isNaN(coefVal)?1:coefVal,speciesId:spec[1].id,branch:branch}];
+    })):[[],[]];
+    
+    let reaction = existingReactions.get(v.name);
+    if(!reaction||reaction[0]===undefined){
+      //@ts-expect-error
+      delete v.reactionString;
+      //@ts-expect-error
+      delete v.gasPhase
+      reaction =[undefined, {...(v as Omit<typeof v,"gasPhase"|"reactionString">),id:generateID(),gasPhaseId:phase[1].id,reactants:[],products:[]}as Reaction];
+      existingReactions.set(reaction[1].name,reaction);
+      addReactions.push(reaction[1]);
+    }else if(reaction[0]!==undefined){
+      reaction[1]={...reaction[1]};
+      reactions[reaction[0]]=reaction[1];
+      reaction[0]=undefined;
+    }
+
+    let gasSpecId=undefined;
+    if(v.gasPhaseSpecies) {
+      let gasSpec = existingSpecies.get(v.gasPhaseSpecies)
+      if (!gasSpec) {
+        gasSpec = [undefined, {id: generateID(), name: v.gasPhaseSpecies, description: ""}]
+        existingSpecies.set(gasSpec[1].name, gasSpec);
+        addSpecies.push(gasSpec[1]);
+      } else if (gasSpec[0] !== undefined) {
+        gasSpec[1] = {...gasSpec[1]};
+        species[gasSpec[0]] = gasSpec[1];
+        gasSpec[0] = undefined;
+      }
+      phaseSet.add(gasSpec[1].id);
+      gasSpecId=gasSpec[1].id;
+    }
+    reaction[1].products=products;
+    reaction[1].reactants=reactants;
+    reaction[1].gasPhaseSpeciesId=gasSpecId;
+    phase[1].speciesIds=[...phaseSet.values()];
+  })
+  
+  phases.unshift(...addPhases);
+  species.unshift(...addSpecies);
+  reactions.unshift(...addReactions);
+  return {...family,
+    phases,
+    species,
+    reactions};
+}
+
+export const ReactionTypeMap=new TypeMap<ExportReaction>({
+  name: ["string"],
+  description:["string","null"],
+  type: ["string"],
+  gasPhase:["string"],
+  gasPhaseSpecies:["string"],
+  reactionString: ["string"],
+  attributes:["object"],
+  otherProperties:["object","undefined"]
+}).setConv(parseStdReactions,serializeStdReactions);
 
 export type Reactant = {
   speciesId: UUID;
@@ -279,6 +411,9 @@ export type Family = {
 
   /** Determines if the family is in the database */
   isInDatabase?: boolean;
+
+  /** Optional save note for audit history */
+  saveNote?: string;
 };
 
 /**
@@ -465,3 +600,33 @@ export const reactionConfigurations: {
     hasGasPhaseSpecies: false,
   },
 });
+
+export type ChangeAction = "Added" | "Updated" | "Deleted";
+export type ChangeTargetType =
+  | "Family"
+  | "Species"
+  | "Reaction"
+  | "Phase"
+  | "Mechanism"
+  | "Group";
+
+export type ChangeEntry = {
+  id: UUID;
+  changeSetId: UUID;
+  targetType: ChangeTargetType;
+  targetId: UUID;
+  targetName: string;
+  action: ChangeAction;
+  before?: string | null;
+  after?: string | null;
+};
+
+export type ChangeSet = {
+  id: UUID;
+  familyId: UUID;
+  userId?: UUID | null;
+  user?: APIUser | null;
+  timestamp: string;
+  note?: string | null;
+  entries: Array<ChangeEntry>;
+};
